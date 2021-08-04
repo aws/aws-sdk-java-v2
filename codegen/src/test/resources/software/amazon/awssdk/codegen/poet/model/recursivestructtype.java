@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.beans.Transient;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -346,28 +347,30 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
             return noRecurse;
         }
 
+        public final void setNoRecurse(String noRecurse) {
+            this.noRecurse = noRecurse;
+        }
+
         @Override
+        @Transient
         public final Builder noRecurse(String noRecurse) {
             this.noRecurse = noRecurse;
             return this;
-        }
-
-        public final void setNoRecurse(String noRecurse) {
-            this.noRecurse = noRecurse;
         }
 
         public final Builder getRecursiveStruct() {
             return recursiveStruct != null ? recursiveStruct.toBuilder() : null;
         }
 
+        public final void setRecursiveStruct(BuilderImpl recursiveStruct) {
+            this.recursiveStruct = recursiveStruct != null ? recursiveStruct.build() : null;
+        }
+
         @Override
+        @Transient
         public final Builder recursiveStruct(RecursiveStructType recursiveStruct) {
             this.recursiveStruct = recursiveStruct;
             return this;
-        }
-
-        public final void setRecursiveStruct(BuilderImpl recursiveStruct) {
-            this.recursiveStruct = recursiveStruct != null ? recursiveStruct.build() : null;
         }
 
         public final List<Builder> getRecursiveList() {
@@ -378,13 +381,19 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
             return result;
         }
 
+        public final void setRecursiveList(Collection<BuilderImpl> recursiveList) {
+            this.recursiveList = RecursiveListTypeCopier.copyFromBuilder(recursiveList);
+        }
+
         @Override
+        @Transient
         public final Builder recursiveList(Collection<RecursiveStructType> recursiveList) {
             this.recursiveList = RecursiveListTypeCopier.copy(recursiveList);
             return this;
         }
 
         @Override
+        @Transient
         @SafeVarargs
         public final Builder recursiveList(RecursiveStructType... recursiveList) {
             recursiveList(Arrays.asList(recursiveList));
@@ -392,15 +401,12 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
 
         @Override
+        @Transient
         @SafeVarargs
         public final Builder recursiveList(Consumer<Builder>... recursiveList) {
             recursiveList(Stream.of(recursiveList).map(c -> RecursiveStructType.builder().applyMutation(c).build())
                                 .collect(Collectors.toList()));
             return this;
-        }
-
-        public final void setRecursiveList(Collection<BuilderImpl> recursiveList) {
-            this.recursiveList = RecursiveListTypeCopier.copyFromBuilder(recursiveList);
         }
 
         public final Map<String, Builder> getRecursiveMap() {
@@ -411,14 +417,15 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
             return result;
         }
 
+        public final void setRecursiveMap(Map<String, BuilderImpl> recursiveMap) {
+            this.recursiveMap = RecursiveMapTypeCopier.copyFromBuilder(recursiveMap);
+        }
+
         @Override
+        @Transient
         public final Builder recursiveMap(Map<String, RecursiveStructType> recursiveMap) {
             this.recursiveMap = RecursiveMapTypeCopier.copy(recursiveMap);
             return this;
-        }
-
-        public final void setRecursiveMap(Map<String, BuilderImpl> recursiveMap) {
-            this.recursiveMap = RecursiveMapTypeCopier.copyFromBuilder(recursiveMap);
         }
 
         @Override

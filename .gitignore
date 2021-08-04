@@ -6,6 +6,7 @@
 # Intellij
 .idea/
 *.iml
+*.ipr
 *.iws
 
 # Mac
@@ -14,6 +15,10 @@
 # Maven
 target/
 
+# JEnv
+.java-version
+
+# Shade
 **/dependency-reduced-pom.xml
 
 *.pyc

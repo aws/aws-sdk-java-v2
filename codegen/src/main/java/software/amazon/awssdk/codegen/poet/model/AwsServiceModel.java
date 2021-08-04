@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.model;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
+import static software.amazon.awssdk.codegen.poet.model.DeprecationUtils.checkDeprecated;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -509,7 +510,7 @@ public class AwsServiceModel implements ClassSpec {
 
         result.add(memberGetter(member));
 
-        return result.stream();
+        return checkDeprecated(member, result).stream();
     }
 
     private boolean shouldGenerateDeprecatedNameGetter(MemberModel member) {

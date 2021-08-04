@@ -16,64 +16,54 @@
 package software.amazon.awssdk.protocols.json.internal.unmarshall.document;
 
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.SdkNumber;
 import software.amazon.awssdk.core.document.Document;
-import software.amazon.awssdk.protocols.json.internal.dom.SdkArrayNode;
-import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
-import software.amazon.awssdk.protocols.json.internal.dom.SdkNullNode;
-import software.amazon.awssdk.protocols.json.internal.dom.SdkObjectNode;
-import software.amazon.awssdk.protocols.json.internal.dom.SdkScalarNode;
-import software.amazon.awssdk.protocols.json.internal.visitor.SdkJsonNodeVisitor;
+import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.protocols.jsoncore.JsonNodeVisitor;
 
 @SdkInternalApi
-public class DocumentUnmarshaller implements SdkJsonNodeVisitor<Document> {
-
-    private Document visitMap(SdkJsonNode jsonContent) {
-        return Document.fromMap(jsonContent.fields().entrySet()
-                .stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> visit(entry.getValue()),
-                        (left, right) -> left,
-                        LinkedHashMap::new)));
-    }
-
-    private Document visitList(SdkJsonNode jsonContent) {
-        return Document.fromList(
-                ((SdkArrayNode) jsonContent).items().stream()
-                        .map(item -> visit(item)).collect(Collectors.toList()));
-    }
-
-    private Document visitScalar(SdkJsonNode jsonContent) {
-        SdkScalarNode sdkScalarNode = (SdkScalarNode) jsonContent;
-
-        switch (sdkScalarNode.getNodeType()) {
-            case BOOLEAN:
-                return Document.fromBoolean(Boolean.valueOf(sdkScalarNode.asText()));
-            case NUMBER:
-                return Document.fromNumber(SdkNumber.fromString(jsonContent.asText()));
-            default:
-                return Document.fromString(sdkScalarNode.asText());
-        }
-    }
-
+public class DocumentUnmarshaller implements JsonNodeVisitor<Document> {
     @Override
-    public Document visit(SdkJsonNode sdkJsonNode) {
-
-        if (sdkJsonNode instanceof SdkScalarNode) {
-            return visitScalar(sdkJsonNode);
-        } else if (sdkJsonNode instanceof SdkObjectNode) {
-            return visitMap(sdkJsonNode);
-        } else if (sdkJsonNode instanceof SdkArrayNode) {
-            return visitList(sdkJsonNode);
-        } else if (sdkJsonNode instanceof SdkNullNode) {
-            return visitNull();
-        } else {
-            throw new IllegalStateException("Visitor not defined for " + sdkJsonNode);
-        }
-    }
-
-    private Document visitNull() {
+    public Document visitNull() {
         return Document.fromNull();
     }
 
+    @Override
+    public Document visitBoolean(boolean bool) {
+        return Document.fromBoolean(bool);
+    }
+
+    @Override
+    public Document visitNumber(String number) {
+        return Document.fromNumber(number);
+    }
+
+    @Override
+    public Document visitString(String string) {
+        return Document.fromString(string);
+    }
+
+    @Override
+    public Document visitArray(List<JsonNode> array) {
+        return Document.fromList(array.stream()
+                                      .map(node -> node.visit(this))
+                                      .collect(Collectors.toList()));
+    }
+
+    @Override
+    public Document visitObject(Map<String, JsonNode> object) {
+        return Document.fromMap(object.entrySet()
+                                      .stream().collect(Collectors.toMap(entry -> entry.getKey(),
+                                                                         entry -> entry.getValue().visit(this),
+                                                                         (left, right) -> left,
+                                                                         LinkedHashMap::new)));
+    }
+
+    @Override
+    public Document visitEmbeddedObject(Object embeddedObject) {
+        throw new UnsupportedOperationException("Embedded objects are not supported within Document types.");
+    }
 }

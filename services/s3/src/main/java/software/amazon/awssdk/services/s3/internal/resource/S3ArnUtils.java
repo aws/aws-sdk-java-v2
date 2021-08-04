@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.resource;
 
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.arns.ArnResource;
@@ -71,5 +72,16 @@ public class S3ArnUtils {
                                           .outpostId(outpostId)
                                           .outpostSubresource(ArnResource.fromString(subresource))
                                           .build();
+    }
+
+    public static Optional<S3ResourceType> getArnType(String arnString) {
+        try {
+            Arn arn = Arn.fromString(arnString);
+            String resourceType = arn.resource().resourceType().get();
+            S3ResourceType s3ResourceType = S3ResourceType.fromValue(resourceType);
+            return Optional.of(s3ResourceType);
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
     }
 }
