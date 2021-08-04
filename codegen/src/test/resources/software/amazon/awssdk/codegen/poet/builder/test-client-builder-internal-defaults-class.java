@@ -10,6 +10,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.CollectionUtils;
 
@@ -37,7 +38,10 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected final SdkClientConfiguration mergeInternalDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> c.option(SdkClientOption.INTERNAL_USER_AGENT, "md/foobar"));
+        return config.merge(c -> {
+            c.option(SdkClientOption.INTERNAL_USER_AGENT, "md/foobar");
+            c.option(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.STANDARD);
+        });
     }
 
     @Override
