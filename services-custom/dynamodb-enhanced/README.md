@@ -152,8 +152,10 @@ index. Here's an example of how to do this:
    ```java
    DynamoDbIndex<Customer> customersByName = customerTable.index("customers_by_name");
        
-   PageIterable<Customer> customersWithName = 
+   SdkIterable<Page<Customer>> customersWithName = 
        customersByName.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("Smith"))));
+   
+   PageIterable<Customer> pages = PageIterable.create(customersWithName);
    ```
 
 ### Working with immutable data classes

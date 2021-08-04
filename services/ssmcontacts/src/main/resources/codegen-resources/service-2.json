@@ -338,6 +338,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ThrottlingException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Lists the tags of an escalation plan or contact.</p>"
@@ -409,6 +410,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Stops an engagement before it finishes the final stage of the escalation plan or engagement plan. Further contacts aren't engaged.</p>"
@@ -443,6 +445,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ThrottlingException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Removes tags from the specified resource. </p>"
@@ -493,6 +496,13 @@
       "min":6,
       "pattern":"^[0-9]*$"
     },
+    "AcceptCodeValidation":{
+      "type":"string",
+      "enum":[
+        "IGNORE",
+        "ENFORCE"
+      ]
+    },
     "AcceptPageRequest":{
       "type":"structure",
       "required":[
@@ -520,6 +530,10 @@
         "AcceptCode":{
           "shape":"AcceptCode",
           "documentation":"<p>The accept code is a 6-digit code used to acknowledge the page.</p>"
+        },
+        "AcceptCodeValidation":{
+          "shape":"AcceptCodeValidation",
+          "documentation":"<p>An optional field that Incident Manager uses to <code>ENFORCE</code> <code>AcceptCode</code> validation when acknowledging an page. Acknowledgement can occur by replying to a page, or when entering the AcceptCode in the console. Enforcing AcceptCode validation causes Incident Manager to verify that the code entered by the user matches the code sent by Incident Manager with the page.</p> <p>Incident Manager can also <code>IGNORE</code> <code>AcceptCode</code> validation. Ignoring <code>AcceptCode</code> validation causes Incident Manager to accept any value entered for the <code>AcceptCode</code>.</p>"
         }
       }
     },
@@ -588,7 +602,7 @@
       "type":"string",
       "max":255,
       "min":1,
-      "pattern":"^[a-zA-Z0-9_\\-\\s\\.]*$"
+      "pattern":"^[\\p{L}\\p{Z}\\p{N}_.\\-]*$"
     },
     "ChannelTargetInfo":{
       "type":"structure",
@@ -721,8 +735,8 @@
     "ContactName":{
       "type":"string",
       "max":255,
-      "min":1,
-      "pattern":"^[a-zA-Z0-9_\\-\\s\\.]*$"
+      "min":0,
+      "pattern":"^[\\p{L}\\p{Z}\\p{N}_.\\-]*$"
     },
     "ContactTargetInfo":{
       "type":"structure",
@@ -767,7 +781,7 @@
       "members":{
         "ContactId":{
           "shape":"SsmContactsArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the contact channel.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the contact you are adding the contact channel to.</p>"
         },
         "Name":{
           "shape":"ChannelName",
@@ -1684,7 +1698,7 @@
       "members":{
         "DurationInMinutes":{
           "shape":"StageDurationInMins",
-          "documentation":"<p>The time to wait until beginning the next stage.</p>"
+          "documentation":"<p>The time to wait until beginning the next stage. The duration can only be set to 0 if a target is specified.</p>"
         },
         "Targets":{
           "shape":"TargetsList",
@@ -1804,14 +1818,14 @@
     },
     "TagKey":{
       "type":"string",
-      "max":255,
+      "max":128,
       "min":1,
       "pattern":"^[\\\\\\/a-zA-Z0-9_+=\\-]*$"
     },
     "TagKeyList":{
       "type":"list",
       "member":{"shape":"TagKey"},
-      "max":200,
+      "max":50,
       "min":0
     },
     "TagResourceRequest":{
@@ -1838,7 +1852,7 @@
     },
     "TagValue":{
       "type":"string",
-      "max":255,
+      "max":256,
       "min":1,
       "pattern":"^[\\p{L}\\p{Z}\\p{N}_.:\\/=+\\-@]*$"
     },
@@ -2018,5 +2032,5 @@
       ]
     }
   },
-  "documentation":"<p/>"
+  "documentation":"<p>AWS Systems Manager Incident Manager is an incident management console designed to help users mitigate and recover from incidents affecting their AWS-hosted applications. An incident is any unplanned interruption or reduction in quality of services. </p> <p>Incident Manager increases incident resolution by notifying responders of impact, highlighting relevant troubleshooting data, and providing collaboration tools to get services back up and running. To achieve the primary goal of reducing the time-to-resolution of critical incidents, Incident Manager automates response plans and enables responder team escalation. </p>"
 }

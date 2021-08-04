@@ -207,6 +207,14 @@
       "output": {
         "shape": "EventStreamOutput"
       }
+    },
+    "DocumentInputOperation":{
+      "name":"DocumentInputOperation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/documentInputOperation"
+      },
+      "input":{"shape":"StructureWithDocumentMember"}
     }
   },
   "shapes":{
@@ -239,7 +247,10 @@
         "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
         "EnumMember":{"shape":"EnumType"},
         "ListOfEnums":{"shape":"ListOfEnums"},
-        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"}
+        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
+        "ListOfTimeStamp":{"shape":"ListOfTimeStamp"},
+        "MapOfTimeStamp":{"shape":"MapOfTimeStamp"},
+        "MyDocument":{"shape":"MyDocument"}
       }
     },
     "BaseType":{
@@ -493,6 +504,11 @@
           "shape":"String",
           "location":"header",
           "locationName":"x-amz-string"
+        },
+        "ListOfStringsMember":{
+          "shape":"ListOfStrings",
+          "location":"header",
+          "locationName":"x-amz-string-list"
         },
         "BooleanMember":{
           "shape":"Boolean",
@@ -753,6 +769,15 @@
       }
     },
     "Timestamp":{"type":"timestamp"},
+    "ListOfTimeStamp":{
+      "type":"list",
+      "member":{"shape":"Timestamp"}
+    },
+    "MapOfTimeStamp":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"Timestamp"}
+    },
     "EventStreamOperationRequest": {
       "type": "structure",
       "required": [
@@ -829,6 +854,16 @@
         }
       },
       "event": true
+    },
+    "MyDocument": {
+      "type": "structure",
+      "document": true
+    },
+    "StructureWithDocumentMember":{
+      "type":"structure",
+      "members":{
+        "DocumentMember":{"shape":"MyDocument"}
+      }
     }
   }
 }

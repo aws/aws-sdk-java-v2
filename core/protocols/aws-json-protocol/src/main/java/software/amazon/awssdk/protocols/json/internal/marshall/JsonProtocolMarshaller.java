@@ -23,7 +23,7 @@ import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
@@ -100,6 +100,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .payloadMarshaller(MarshallingType.LIST, SimpleTypeJsonMarshaller.LIST)
             .payloadMarshaller(MarshallingType.MAP, SimpleTypeJsonMarshaller.MAP)
             .payloadMarshaller(MarshallingType.NULL, SimpleTypeJsonMarshaller.NULL)
+            .payloadMarshaller(MarshallingType.DOCUMENT, SimpleTypeJsonMarshaller.DOCUMENT)
 
             .headerMarshaller(MarshallingType.STRING, HeaderMarshaller.STRING)
             .headerMarshaller(MarshallingType.INTEGER, HeaderMarshaller.INTEGER)
@@ -109,6 +110,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .headerMarshaller(MarshallingType.FLOAT, HeaderMarshaller.FLOAT)
             .headerMarshaller(MarshallingType.BOOLEAN, HeaderMarshaller.BOOLEAN)
             .headerMarshaller(MarshallingType.INSTANT, HeaderMarshaller.INSTANT)
+            .headerMarshaller(MarshallingType.LIST, HeaderMarshaller.LIST)
             .headerMarshaller(MarshallingType.NULL, JsonMarshaller.NULL)
 
             .queryParamMarshaller(MarshallingType.STRING, QueryParamMarshaller.STRING)
@@ -135,7 +137,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     }
 
     private static Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
-        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new EnumMap<>(MarshallLocation.class);
         // TODO the default is supposedly rfc822. See JAVA-2949
         // We are using ISO_8601 in v1. Investigate which is the right format
         formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);

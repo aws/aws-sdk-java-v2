@@ -3112,6 +3112,26 @@
         "USE_CONFIGURED"
       ]
     },
+    "AudioHlsRenditionSelection": {
+      "type": "structure",
+      "members": {
+        "GroupId": {
+          "shape": "__stringMin1",
+          "locationName": "groupId",
+          "documentation": "Specifies the GROUP-ID in the #EXT-X-MEDIA tag of the target HLS audio rendition."
+        },
+        "Name": {
+          "shape": "__stringMin1",
+          "locationName": "name",
+          "documentation": "Specifies the NAME in the #EXT-X-MEDIA tag of the target HLS audio rendition."
+        }
+      },
+      "documentation": "Audio Hls Rendition Selection",
+      "required": [
+        "Name",
+        "GroupId"
+      ]
+    },
     "AudioLanguageSelection": {
       "type": "structure",
       "members": {
@@ -3255,6 +3275,10 @@
     "AudioSelectorSettings": {
       "type": "structure",
       "members": {
+        "AudioHlsRenditionSelection": {
+          "shape": "AudioHlsRenditionSelection",
+          "locationName": "audioHlsRenditionSelection"
+        },
         "AudioLanguageSelection": {
           "shape": "AudioLanguageSelection",
           "locationName": "audioLanguageSelection"
@@ -6496,9 +6520,26 @@
         "SCALED"
       ]
     },
+    "DvbSubOcrLanguage": {
+      "type": "string",
+      "documentation": "Dvb Sub Ocr Language",
+      "enum": [
+        "DEU",
+        "ENG",
+        "FRA",
+        "NLD",
+        "POR",
+        "SPA"
+      ]
+    },
     "DvbSubSourceSettings": {
       "type": "structure",
       "members": {
+        "OcrLanguage": {
+          "shape": "DvbSubOcrLanguage",
+          "locationName": "ocrLanguage",
+          "documentation": "If you will configure a WebVTT caption description that references this caption selector, use this field to\nprovide the language to consider when translating the image-based source to text."
+        },
         "Pid": {
           "shape": "__integerMin1",
           "locationName": "pid",
@@ -8482,6 +8523,11 @@
           "shape": "__integerMin0",
           "locationName": "retryInterval",
           "documentation": "The number of seconds between retries when an attempt to read a manifest or segment fails."
+        },
+        "Scte35Source": {
+          "shape": "HlsScte35SourceType",
+          "locationName": "scte35Source",
+          "documentation": "Identifies the source for the SCTE-35 messages that MediaLive will ingest. Messages can be ingested from the content segments (in the stream) or from tags in the playlist (the HLS manifest). MediaLive ignores SCTE-35 information in the source that is not selected."
         }
       },
       "documentation": "Hls Input Settings"
@@ -8636,6 +8682,14 @@
         }
       },
       "documentation": "Hls S3 Settings"
+    },
+    "HlsScte35SourceType": {
+      "type": "string",
+      "documentation": "Hls Scte35 Source Type",
+      "enum": [
+        "MANIFEST",
+        "SEGMENTS"
+      ]
     },
     "HlsSegmentationMode": {
       "type": "string",
@@ -12662,10 +12716,12 @@
     },
     "ReservationSpecialFeature": {
       "type": "string",
-      "documentation": "Special features, 'ADVANCED_AUDIO' or 'AUDIO_NORMALIZATION'",
+      "documentation": "Special features, 'ADVANCED_AUDIO' 'AUDIO_NORMALIZATION' 'MGHD' or 'MGUHD'",
       "enum": [
         "ADVANCED_AUDIO",
-        "AUDIO_NORMALIZATION"
+        "AUDIO_NORMALIZATION",
+        "MGHD",
+        "MGUHD"
       ]
     },
     "ReservationState": {
@@ -12999,9 +13055,26 @@
       },
       "documentation": "Scte27 Destination Settings"
     },
+    "Scte27OcrLanguage": {
+      "type": "string",
+      "documentation": "Scte27 Ocr Language",
+      "enum": [
+        "DEU",
+        "ENG",
+        "FRA",
+        "NLD",
+        "POR",
+        "SPA"
+      ]
+    },
     "Scte27SourceSettings": {
       "type": "structure",
       "members": {
+        "OcrLanguage": {
+          "shape": "Scte27OcrLanguage",
+          "locationName": "ocrLanguage",
+          "documentation": "If you will configure a WebVTT caption description that references this caption selector, use this field to\nprovide the language to consider when translating the image-based source to text."
+        },
         "Pid": {
           "shape": "__integerMin1",
           "locationName": "pid",
@@ -15112,8 +15185,21 @@
     "WebvttDestinationSettings": {
       "type": "structure",
       "members": {
+        "StyleControl": {
+          "shape": "WebvttDestinationStyleControl",
+          "locationName": "styleControl",
+          "documentation": "Controls whether the color and position of the source captions is passed through to the WebVTT output captions.  PASSTHROUGH - Valid only if the source captions are EMBEDDED or TELETEXT.  NO_STYLE_DATA - Don't pass through the style. The output captions will not contain any font styling information."
+        }
       },
       "documentation": "Webvtt Destination Settings"
+    },
+    "WebvttDestinationStyleControl": {
+      "type": "string",
+      "documentation": "Webvtt Destination Style Control",
+      "enum": [
+        "NO_STYLE_DATA",
+        "PASSTHROUGH"
+      ]
     },
     "__boolean": {
       "type": "boolean",

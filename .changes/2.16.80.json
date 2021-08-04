@@ -1,0 +1,36 @@
+{
+    "version": "2.16.80",
+    "date": "2021-06-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "This release adds support for auditing end-user access to files, folders, and file shares using Windows event logs, enabling customers to meet their security and compliance needs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "contributor": "",
+            "description": "increase max pagesize for List/Search apis"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Documentation updates for cognito-idp"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix for NullPointerException while Marshalling List/Map of TimeStamps"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "This release of the Amazon Macie API introduces stricter validation of S3 object criteria for classification jobs."
+        }
+    ]
+}

@@ -59,6 +59,8 @@ public class Shape {
     private boolean fault;
 
     private boolean deprecated;
+    
+    private String deprecatedMessage;
 
     private boolean eventstream;
 
@@ -69,6 +71,8 @@ public class Shape {
     private boolean sensitive;
 
     private XmlNamespace xmlNamespace;
+
+    private boolean document;
 
     public boolean isFault() {
         return fault;
@@ -258,6 +262,14 @@ public class Shape {
         this.deprecated = deprecated;
     }
 
+    public String getDeprecatedMessage() {
+        return deprecatedMessage;
+    }
+
+    public void setDeprecatedMessage(String deprecatedMessage) {
+        this.deprecatedMessage = deprecatedMessage;
+    }
+
     public boolean isEventstream() {
         return eventstream;
     }
@@ -296,6 +308,14 @@ public class Shape {
 
     public void setXmlNamespace(XmlNamespace xmlNamespace) {
         this.xmlNamespace = xmlNamespace;
+    }
+
+    public boolean isDocument() {
+        return document;
+    }
+
+    public void setDocument(boolean document) {
+        this.document = document;
     }
 
 }

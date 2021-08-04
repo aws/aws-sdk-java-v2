@@ -106,7 +106,7 @@
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Creates a new job to transform input data, using steps defined in an existing AWS Glue DataBrew recipe</p>"
+      "documentation":"<p>Creates a new job to transform input data, using steps defined in an existing Glue DataBrew recipe</p>"
     },
     "CreateSchedule":{
       "name":"CreateSchedule",
@@ -669,6 +669,45 @@
       "max":20,
       "min":0
     },
+    "ColumnSelector":{
+      "type":"structure",
+      "members":{
+        "Regex":{
+          "shape":"ColumnName",
+          "documentation":"<p>A regular expression for selecting a column from a dataset.</p>"
+        },
+        "Name":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name of a column from a dataset.</p>"
+        }
+      },
+      "documentation":"<p>Selector of a column from a dataset for profile job configuration. One selector includes either a column name or a regular expression.</p>"
+    },
+    "ColumnSelectorList":{
+      "type":"list",
+      "member":{"shape":"ColumnSelector"},
+      "min":1
+    },
+    "ColumnStatisticsConfiguration":{
+      "type":"structure",
+      "required":["Statistics"],
+      "members":{
+        "Selectors":{
+          "shape":"ColumnSelectorList",
+          "documentation":"<p>List of column selectors. Selectors can be used to select columns from the dataset. When selectors are undefined, configuration will be applied to all supported columns. </p>"
+        },
+        "Statistics":{
+          "shape":"StatisticsConfiguration",
+          "documentation":"<p>Configuration for evaluations. Statistics can be used to select evaluations and override parameters of evaluations. </p>"
+        }
+      },
+      "documentation":"<p>Configuration for column evaluations for a profile job. ColumnStatisticsConfiguration can be used to select evaluations and override parameters of evaluations for particular columns. </p>"
+    },
+    "ColumnStatisticsConfigurationList":{
+      "type":"list",
+      "member":{"shape":"ColumnStatisticsConfiguration"},
+      "min":1
+    },
     "CompressionFormat":{
       "type":"string",
       "enum":[
@@ -698,7 +737,7 @@
       "members":{
         "Condition":{
           "shape":"Condition",
-          "documentation":"<p>A specific condition to apply to a recipe action. For more information, see <a href=\"https://docs.aws.amazon.com/databrew/latest/dg/recipes.html#recipes.structure\">Recipe structure</a> in the <i>AWS Glue DataBrew Developer Guide</i>.</p>"
+          "documentation":"<p>A specific condition to apply to a recipe action. For more information, see <a href=\"https://docs.aws.amazon.com/databrew/latest/dg/recipes.html#recipes.structure\">Recipe structure</a> in the <i>Glue DataBrew Developer Guide</i>.</p>"
         },
         "Value":{
           "shape":"ConditionValue",
@@ -742,13 +781,13 @@
         },
         "Format":{
           "shape":"InputFormat",
-          "documentation":"<p>The file format of a dataset that is created from an S3 file or folder.</p>"
+          "documentation":"<p>The file format of a dataset that is created from an Amazon S3 file or folder.</p>"
         },
         "FormatOptions":{"shape":"FormatOptions"},
         "Input":{"shape":"Input"},
         "PathOptions":{
           "shape":"PathOptions",
-          "documentation":"<p>A set of options that defines how DataBrew interprets an S3 path of the dataset.</p>"
+          "documentation":"<p>A set of options that defines how DataBrew interprets an Amazon S3 path of the dataset.</p>"
         },
         "Tags":{
           "shape":"TagMap",
@@ -785,7 +824,7 @@
         },
         "EncryptionMode":{
           "shape":"EncryptionMode",
-          "documentation":"<p>The encryption mode for the job, which can be one of the following:</p> <ul> <li> <p> <code>SSE-KMS</code> - <code>SSE-KMS</code> - Server-side encryption with AWS KMS-managed keys.</p> </li> <li> <p> <code>SSE-S3</code> - Server-side encryption with keys managed by Amazon S3.</p> </li> </ul>"
+          "documentation":"<p>The encryption mode for the job, which can be one of the following:</p> <ul> <li> <p> <code>SSE-KMS</code> - <code>SSE-KMS</code> - Server-side encryption with KMS-managed keys.</p> </li> <li> <p> <code>SSE-S3</code> - Server-side encryption with keys managed by Amazon S3.</p> </li> </ul>"
         },
         "Name":{
           "shape":"JobName",
@@ -804,9 +843,13 @@
           "documentation":"<p>The maximum number of times to retry the job after a job run fails.</p>"
         },
         "OutputLocation":{"shape":"S3Location"},
+        "Configuration":{
+          "shape":"ProfileConfiguration",
+          "documentation":"<p>Configuration for profile jobs. Used to select columns, do evaluations, and override default parameters of evaluations. When configuration is null, the profile job will run with default settings.</p>"
+        },
         "RoleArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the AWS Identity and Access Management (IAM) role to be assumed when DataBrew runs the job.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Identity and Access Management (IAM) role to be assumed when DataBrew runs the job.</p>"
         },
         "Tags":{
           "shape":"TagMap",
@@ -856,7 +899,7 @@
         "Sample":{"shape":"Sample"},
         "RoleArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the AWS Identity and Access Management (IAM) role to be assumed for this request.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Identity and Access Management (IAM) role to be assumed for this request.</p>"
         },
         "Tags":{
           "shape":"TagMap",
@@ -878,7 +921,6 @@
       "type":"structure",
       "required":[
         "Name",
-        "Outputs",
         "RoleArn"
       ],
       "members":{
@@ -892,7 +934,7 @@
         },
         "EncryptionMode":{
           "shape":"EncryptionMode",
-          "documentation":"<p>The encryption mode for the job, which can be one of the following:</p> <ul> <li> <p> <code>SSE-KMS</code> - Server-side encryption with keys managed by AWS KMS.</p> </li> <li> <p> <code>SSE-S3</code> - Server-side encryption with keys managed by Amazon S3.</p> </li> </ul>"
+          "documentation":"<p>The encryption mode for the job, which can be one of the following:</p> <ul> <li> <p> <code>SSE-KMS</code> - Server-side encryption with keys managed by KMS.</p> </li> <li> <p> <code>SSE-S3</code> - Server-side encryption with keys managed by Amazon S3.</p> </li> </ul>"
         },
         "Name":{
           "shape":"JobName",
@@ -914,6 +956,14 @@
           "shape":"OutputList",
           "documentation":"<p>One or more artifacts that represent the output from running the job.</p>"
         },
+        "DataCatalogOutputs":{
+          "shape":"DataCatalogOutputList",
+          "documentation":"<p>One or more artifacts that represent the Glue Data Catalog output from running the job.</p>"
+        },
+        "DatabaseOutputs":{
+          "shape":"DatabaseOutputList",
+          "documentation":"<p>Represents a list of JDBC database output objects which defines the output destination for a DataBrew recipe job to write to. </p>"
+        },
         "ProjectName":{
           "shape":"ProjectName",
           "documentation":"<p>Either the name of an existing project, or a combination of a recipe and a dataset to associate with the recipe.</p>"
@@ -921,7 +971,7 @@
         "RecipeReference":{"shape":"RecipeReference"},
         "RoleArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the AWS Identity and Access Management (IAM) role to be assumed when DataBrew runs the job.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Identity and Access Management (IAM) role to be assumed when DataBrew runs the job.</p>"
         },
         "Tags":{
           "shape":"TagMap",
@@ -991,7 +1041,7 @@
         },
         "CronExpression":{
           "shape":"CronExpression",
-          "documentation":"<p>The date or dates and time or times when the jobs are to be run. For more information, see <a href=\"https://docs.aws.amazon.com/databrew/latest/dg/jobs.cron.html\">Cron expressions</a> in the <i>AWS Glue DataBrew Developer Guide</i>.</p>"
+          "documentation":"<p>The date or dates and time or times when the jobs are to be run. For more information, see <a href=\"https://docs.aws.amazon.com/databrew/latest/dg/jobs.cron.html\">Cron expressions</a> in the <i>Glue DataBrew Developer Guide</i>.</p>"
         },
         "Tags":{
           "shape":"TagMap",
@@ -1052,7 +1102,7 @@
       "members":{
         "CatalogId":{
           "shape":"CatalogId",
-          "documentation":"<p>The unique identifier of the AWS account that holds the Data Catalog that stores the data.</p>"
+          "documentation":"<p>The unique identifier of the Amazon Web Services account that holds the Data Catalog that stores the data.</p>"
         },
         "DatabaseName":{
           "shape":"DatabaseName",
@@ -1064,10 +1114,49 @@
         },
         "TempDirectory":{
           "shape":"S3Location",
-          "documentation":"<p>An Amazon location that AWS Glue Data Catalog can use as a temporary directory.</p>"
+          "documentation":"<p>Represents an Amazon location where DataBrew can store intermediate results.</p>"
         }
       },
-      "documentation":"<p>Represents how metadata stored in the AWS Glue Data Catalog is defined in a DataBrew dataset. </p>"
+      "documentation":"<p>Represents how metadata stored in the Glue Data Catalog is defined in a DataBrew dataset. </p>"
+    },
+    "DataCatalogOutput":{
+      "type":"structure",
+      "required":[
+        "DatabaseName",
+        "TableName"
+      ],
+      "members":{
+        "CatalogId":{
+          "shape":"CatalogId",
+          "documentation":"<p>The unique identifier of the Amazon Web Services account that holds the Data Catalog that stores the data.</p>"
+        },
+        "DatabaseName":{
+          "shape":"DatabaseName",
+          "documentation":"<p>The name of a database in the Data Catalog.</p>"
+        },
+        "TableName":{
+          "shape":"TableName",
+          "documentation":"<p>The name of a table in the Data Catalog.</p>"
+        },
+        "S3Options":{
+          "shape":"S3TableOutputOptions",
+          "documentation":"<p>Represents options that specify how and where DataBrew writes the Amazon S3 output generated by recipe jobs.</p>"
+        },
+        "DatabaseOptions":{
+          "shape":"DatabaseTableOutputOptions",
+          "documentation":"<p>Represents options that specify how and where DataBrew writes the database output generated by recipe jobs.</p>"
+        },
+        "Overwrite":{
+          "shape":"OverwriteOutput",
+          "documentation":"<p>A value that, if true, means that any data in the location specified for output is overwritten with new output. Not supported with DatabaseOptions.</p>"
+        }
+      },
+      "documentation":"<p>Represents options that specify how and where in the Glue Data Catalog DataBrew writes the output generated by recipe jobs.</p>"
+    },
+    "DataCatalogOutputList":{
+      "type":"list",
+      "member":{"shape":"DataCatalogOutput"},
+      "min":1
     },
     "DatabaseInputDefinition":{
       "type":"structure",
@@ -1078,7 +1167,7 @@
       "members":{
         "GlueConnectionName":{
           "shape":"GlueConnectionName",
-          "documentation":"<p>The AWS Glue Connection that stores the connection information for the target database.</p>"
+          "documentation":"<p>The Glue Connection that stores the connection information for the target database.</p>"
         },
         "DatabaseTableName":{
           "shape":"DatabaseTableName",
@@ -1093,10 +1182,56 @@
       "max":255,
       "min":1
     },
+    "DatabaseOutput":{
+      "type":"structure",
+      "required":[
+        "GlueConnectionName",
+        "DatabaseOptions"
+      ],
+      "members":{
+        "GlueConnectionName":{
+          "shape":"GlueConnectionName",
+          "documentation":"<p>The Glue connection that stores the connection information for the target database.</p>"
+        },
+        "DatabaseOptions":{
+          "shape":"DatabaseTableOutputOptions",
+          "documentation":"<p>Represents options that specify how and where DataBrew writes the database output generated by recipe jobs.</p>"
+        },
+        "DatabaseOutputMode":{
+          "shape":"DatabaseOutputMode",
+          "documentation":"<p>The output mode to write into the database. Currently supported option: NEW_TABLE.</p>"
+        }
+      },
+      "documentation":"<p>Represents a JDBC database output object which defines the output destination for a DataBrew recipe job to write into.</p>"
+    },
+    "DatabaseOutputList":{
+      "type":"list",
+      "member":{"shape":"DatabaseOutput"},
+      "min":1
+    },
+    "DatabaseOutputMode":{
+      "type":"string",
+      "enum":["NEW_TABLE"]
+    },
     "DatabaseTableName":{
       "type":"string",
       "max":255,
       "min":1
+    },
+    "DatabaseTableOutputOptions":{
+      "type":"structure",
+      "required":["TableName"],
+      "members":{
+        "TempDirectory":{
+          "shape":"S3Location",
+          "documentation":"<p>Represents an Amazon S3 location (bucket name and object key) where DataBrew can store intermediate results.</p>"
+        },
+        "TableName":{
+          "shape":"DatabaseTableName",
+          "documentation":"<p>A prefix for the name of a table DataBrew will create in the database.</p>"
+        }
+      },
+      "documentation":"<p>Represents options that specify how and where DataBrew writes the database output generated by recipe jobs.</p>"
     },
     "Dataset":{
       "type":"structure",
@@ -1107,7 +1242,7 @@
       "members":{
         "AccountId":{
           "shape":"AccountId",
-          "documentation":"<p>The ID of the AWS account that owns the dataset.</p>"
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the dataset.</p>"
         },
         "CreatedBy":{
           "shape":"CreatedBy",
@@ -1123,7 +1258,7 @@
         },
         "Format":{
           "shape":"InputFormat",
-          "documentation":"<p>The file format of a dataset that is created from an S3 file or folder.</p>"
+          "documentation":"<p>The file format of a dataset that is created from an Amazon S3 file or folder.</p>"
         },
         "FormatOptions":{
           "shape":"FormatOptions",
@@ -1131,7 +1266,7 @@
         },
         "Input":{
           "shape":"Input",
-          "documentation":"<p>Information on how DataBrew can find the dataset, in either the AWS Glue Data Catalog or Amazon S3.</p>"
+          "documentation":"<p>Information on how DataBrew can find the dataset, in either the Glue Data Catalog or Amazon S3.</p>"
         },
         "LastModifiedDate":{
           "shape":"Date",
@@ -1143,11 +1278,11 @@
         },
         "Source":{
           "shape":"Source",
-          "documentation":"<p>The location of the data for the dataset, either Amazon S3 or the AWS Glue Data Catalog.</p>"
+          "documentation":"<p>The location of the data for the dataset, either Amazon S3 or the Glue Data Catalog.</p>"
         },
         "PathOptions":{
           "shape":"PathOptions",
-          "documentation":"<p>A set of options that defines how DataBrew interprets an S3 path of the dataset.</p>"
+          "documentation":"<p>A set of options that defines how DataBrew interprets an Amazon S3 path of the dataset.</p>"
         },
         "Tags":{
           "shape":"TagMap",
@@ -1178,7 +1313,7 @@
       "members":{
         "Name":{
           "shape":"PathParameterName",
-          "documentation":"<p>The name of the parameter that is used in the dataset's S3 path.</p>"
+          "documentation":"<p>The name of the parameter that is used in the dataset's Amazon S3 path.</p>"
         },
         "Type":{
           "shape":"ParameterType",
@@ -1190,14 +1325,14 @@
         },
         "CreateColumn":{
           "shape":"CreateColumn",
-          "documentation":"<p>Optional boolean value that defines whether the captured value of this parameter should be loaded as an additional column in the dataset.</p>"
+          "documentation":"<p>Optional boolean value that defines whether the captured value of this parameter should be used to create a new column in a dataset.</p>"
         },
         "Filter":{
           "shape":"FilterExpression",
           "documentation":"<p>The optional filter expression structure to apply additional matching criteria to the parameter.</p>"
         }
       },
-      "documentation":"<p>Represents a dataset paramater that defines type and conditions for a parameter in the S3 path of the dataset.</p>"
+      "documentation":"<p>Represents a dataset paramater that defines type and conditions for a parameter in the Amazon S3 path of the dataset.</p>"
     },
     "Date":{"type":"timestamp"},
     "DatetimeFormat":{
@@ -1211,18 +1346,18 @@
       "members":{
         "Format":{
           "shape":"DatetimeFormat",
-          "documentation":"<p>Required option, that defines the datetime format used for a date parameter in the S3 path. Should use only supported datetime specifiers and separation characters, all litera a-z or A-Z character should be escaped with single quotes. E.g. \"MM.dd.yyyy-'at'-HH:mm\".</p>"
+          "documentation":"<p>Required option, that defines the datetime format used for a date parameter in the Amazon S3 path. Should use only supported datetime specifiers and separation characters, all literal a-z or A-Z characters should be escaped with single quotes. E.g. \"MM.dd.yyyy-'at'-HH:mm\".</p>"
         },
         "TimezoneOffset":{
           "shape":"TimezoneOffset",
-          "documentation":"<p>Optional value for a timezone offset of the datetime parameter value in the S3 path. Shouldn't be used if Format for this parameter includes timezone fields. If no offset specified, UTC is assumed.</p>"
+          "documentation":"<p>Optional value for a timezone offset of the datetime parameter value in the Amazon S3 path. Shouldn't be used if Format for this parameter includes timezone fields. If no offset specified, UTC is assumed.</p>"
         },
         "LocaleCode":{
           "shape":"LocaleCode",
           "documentation":"<p>Optional value for a non-US locale code, needed for correct interpretation of some date formats.</p>"
         }
       },
-      "documentation":"<p>Represents additional options for correct interpretation of datetime parameters used in the S3 path of a dataset.</p>"
+      "documentation":"<p>Represents additional options for correct interpretation of datetime parameters used in the Amazon S3 path of a dataset.</p>"
     },
     "DeleteDatasetRequest":{
       "type":"structure",
@@ -1388,7 +1523,7 @@
         },
         "Format":{
           "shape":"InputFormat",
-          "documentation":"<p>The file format of a dataset that is created from an S3 file or folder.</p>"
+          "documentation":"<p>The file format of a dataset that is created from an Amazon S3 file or folder.</p>"
         },
         "FormatOptions":{"shape":"FormatOptions"},
         "Input":{"shape":"Input"},
@@ -1402,11 +1537,11 @@
         },
         "Source":{
           "shape":"Source",
-          "documentation":"<p>The location of the data for this dataset, Amazon S3 or the AWS Glue Data Catalog.</p>"
+          "documentation":"<p>The location of the data for this dataset, Amazon S3 or the Glue Data Catalog.</p>"
         },
         "PathOptions":{
           "shape":"PathOptions",
-          "documentation":"<p>A set of options that defines how DataBrew interprets an S3 path of the dataset.</p>"
+          "documentation":"<p>A set of options that defines how DataBrew interprets an Amazon S3 path of the dataset.</p>"
         },
         "Tags":{
           "shape":"TagMap",
@@ -1452,7 +1587,7 @@
         },
         "EncryptionMode":{
           "shape":"EncryptionMode",
-          "documentation":"<p>The encryption mode for the job, which can be one of the following:</p> <ul> <li> <p> <code>SSE-KMS</code> - Server-side encryption with keys managed by AWS KMS.</p> </li> <li> <p> <code>SSE-S3</code> - Server-side encryption with keys managed by Amazon S3.</p> </li> </ul>"
+          "documentation":"<p>The encryption mode for the job, which can be one of the following:</p> <ul> <li> <p> <code>SSE-KMS</code> - Server-side encryption with keys managed by KMS.</p> </li> <li> <p> <code>SSE-S3</code> - Server-side encryption with keys managed by Amazon S3.</p> </li> </ul>"
         },
         "Name":{
           "shape":"JobName",
@@ -1486,9 +1621,21 @@
           "shape":"OutputList",
           "documentation":"<p>One or more artifacts that represent the output from running the job.</p>"
         },
+        "DataCatalogOutputs":{
+          "shape":"DataCatalogOutputList",
+          "documentation":"<p>One or more artifacts that represent the Glue Data Catalog output from running the job.</p>"
+        },
+        "DatabaseOutputs":{
+          "shape":"DatabaseOutputList",
+          "documentation":"<p>Represents a list of JDBC database output objects which defines the output destination for a DataBrew recipe job to write into.</p>"
+        },
         "ProjectName":{
           "shape":"ProjectName",
           "documentation":"<p>The DataBrew project associated with this job.</p>"
+        },
+        "ProfileConfiguration":{
+          "shape":"ProfileConfiguration",
+          "documentation":"<p>Configuration for profile jobs. Used to select columns, do evaluations, and override default parameters of evaluations. When configuration is null, the profile job will run with default settings.</p>"
         },
         "RecipeReference":{"shape":"RecipeReference"},
         "ResourceArn":{
@@ -1497,7 +1644,7 @@
         },
         "RoleArn":{
           "shape":"Arn",
-          "documentation":"<p>The ARN of the AWS Identity and Access Management (IAM) role to be assumed when DataBrew runs the job.</p>"
+          "documentation":"<p>The ARN of the Identity and Access Management (IAM) role to be assumed when DataBrew runs the job.</p>"
         },
         "Tags":{
           "shape":"TagMap",
@@ -1562,6 +1709,10 @@
           "shape":"JobName",
           "documentation":"<p>The name of the job being processed during this run.</p>"
         },
+        "ProfileConfiguration":{
+          "shape":"ProfileConfiguration",
+          "documentation":"<p>Configuration for profile jobs. Used to select columns, do evaluations, and override default parameters of evaluations. When configuration is null, the profile job will run with default settings.</p>"
+        },
         "RunId":{
           "shape":"JobRunId",
           "documentation":"<p>The unique identifier of the job run.</p>"
@@ -1581,6 +1732,14 @@
         "Outputs":{
           "shape":"OutputList",
           "documentation":"<p>One or more output artifacts from a job run.</p>"
+        },
+        "DataCatalogOutputs":{
+          "shape":"DataCatalogOutputList",
+          "documentation":"<p>One or more artifacts that represent the Glue Data Catalog output from running the job.</p>"
+        },
+        "DatabaseOutputs":{
+          "shape":"DatabaseOutputList",
+          "documentation":"<p>Represents a list of JDBC database output objects which defines the output destination for a DataBrew recipe job to write into.</p>"
         },
         "RecipeReference":{"shape":"RecipeReference"},
         "StartedBy":{
@@ -1648,7 +1807,7 @@
         "Sample":{"shape":"Sample"},
         "RoleArn":{
           "shape":"Arn",
-          "documentation":"<p>The ARN of the AWS Identity and Access Management (IAM) role to be assumed when DataBrew runs the job.</p>"
+          "documentation":"<p>The ARN of the Identity and Access Management (IAM) role to be assumed when DataBrew runs the job.</p>"
         },
         "Tags":{
           "shape":"TagMap",
@@ -1786,7 +1945,7 @@
         },
         "CronExpression":{
           "shape":"CronExpression",
-          "documentation":"<p>The date or dates and time or times when the jobs are to be run for the schedule. For more information, see <a href=\"https://docs.aws.amazon.com/databrew/latest/dg/jobs.cron.html\">Cron expressions</a> in the <i>AWS Glue DataBrew Developer Guide</i>.</p>"
+          "documentation":"<p>The date or dates and time or times when the jobs are to be run for the schedule. For more information, see <a href=\"https://docs.aws.amazon.com/databrew/latest/dg/jobs.cron.html\">Cron expressions</a> in the <i>Glue DataBrew Developer Guide</i>.</p>"
         },
         "Tags":{
           "shape":"TagMap",
@@ -1845,18 +2004,18 @@
       "members":{
         "MaxFiles":{
           "shape":"MaxFiles",
-          "documentation":"<p>The number of S3 files to select.</p>"
+          "documentation":"<p>The number of Amazon S3 files to select.</p>"
         },
         "OrderedBy":{
           "shape":"OrderedBy",
-          "documentation":"<p>A criteria to use for S3 files sorting before their selection. By default uses LAST_MODIFIED_DATE as a sorting criteria. Currently it's the only allowed value.</p>"
+          "documentation":"<p>A criteria to use for Amazon S3 files sorting before their selection. By default uses LAST_MODIFIED_DATE as a sorting criteria. Currently it's the only allowed value.</p>"
         },
         "Order":{
           "shape":"Order",
-          "documentation":"<p>A criteria to use for S3 files sorting before their selection. By default uses DESCENDING order, i.e. most recent files are selected first. Anotherpossible value is ASCENDING.</p>"
+          "documentation":"<p>A criteria to use for Amazon S3 files sorting before their selection. By default uses DESCENDING order, i.e. most recent files are selected first. Anotherpossible value is ASCENDING.</p>"
         }
       },
-      "documentation":"<p>Represents a limit imposed on number of S3 files that should be selected for a dataset from a connected S3 path.</p>"
+      "documentation":"<p>Represents a limit imposed on number of Amazon S3 files that should be selected for a dataset from a connected Amazon S3 path.</p>"
     },
     "FilterExpression":{
       "type":"structure",
@@ -1874,7 +2033,7 @@
           "documentation":"<p>The map of substitution variable names to their values used in this filter expression.</p>"
         }
       },
-      "documentation":"<p>Represents a structure for defining parameter conditions.</p>"
+      "documentation":"<p>Represents a structure for defining parameter conditions. Supported conditions are described here: <a href=\"https://docs-aws.amazon.com/databrew/latest/dg/datasets.multiple-files.html#conditions.for.dynamic.datasets\">Supported conditions for dynamic datasets</a> in the <i>Glue DataBrew Developer Guide</i>.</p>"
     },
     "FormatOptions":{
       "type":"structure",
@@ -1913,14 +2072,14 @@
         },
         "DataCatalogInputDefinition":{
           "shape":"DataCatalogInputDefinition",
-          "documentation":"<p>The AWS Glue Data Catalog parameters for the data.</p>"
+          "documentation":"<p>The Glue Data Catalog parameters for the data.</p>"
         },
         "DatabaseInputDefinition":{
           "shape":"DatabaseInputDefinition",
           "documentation":"<p>Connection information for dataset input files stored in a database.</p>"
         }
       },
-      "documentation":"<p>Represents information on how DataBrew can find data, in either the AWS Glue Data Catalog or Amazon S3.</p>"
+      "documentation":"<p>Represents information on how DataBrew can find data, in either the Glue Data Catalog or Amazon S3.</p>"
     },
     "InputFormat":{
       "type":"string",
@@ -1946,7 +2105,7 @@
       "members":{
         "AccountId":{
           "shape":"AccountId",
-          "documentation":"<p>The ID of the AWS account that owns the job.</p>"
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the job.</p>"
         },
         "CreatedBy":{
           "shape":"CreatedBy",
@@ -1966,7 +2125,7 @@
         },
         "EncryptionMode":{
           "shape":"EncryptionMode",
-          "documentation":"<p>The encryption mode for the job, which can be one of the following:</p> <ul> <li> <p> <code>SSE-KMS</code> - Server-side encryption with keys managed by AWS KMS.</p> </li> <li> <p> <code>SSE-S3</code> - Server-side encryption with keys managed by Amazon S3.</p> </li> </ul>"
+          "documentation":"<p>The encryption mode for the job, which can be one of the following:</p> <ul> <li> <p> <code>SSE-KMS</code> - Server-side encryption with keys managed by KMS.</p> </li> <li> <p> <code>SSE-S3</code> - Server-side encryption with keys managed by Amazon S3.</p> </li> </ul>"
         },
         "Name":{
           "shape":"JobName",
@@ -1999,6 +2158,14 @@
         "Outputs":{
           "shape":"OutputList",
           "documentation":"<p>One or more artifacts that represent output from running the job.</p>"
+        },
+        "DataCatalogOutputs":{
+          "shape":"DataCatalogOutputList",
+          "documentation":"<p>One or more artifacts that represent the Glue Data Catalog output from running the job.</p>"
+        },
+        "DatabaseOutputs":{
+          "shape":"DatabaseOutputList",
+          "documentation":"<p>Represents a list of JDBC database output objects which defines the output destination for a DataBrew recipe job to write into.</p>"
         },
         "ProjectName":{
           "shape":"ProjectName",
@@ -2092,6 +2259,14 @@
           "shape":"OutputList",
           "documentation":"<p>One or more output artifacts from a job run.</p>"
         },
+        "DataCatalogOutputs":{
+          "shape":"DataCatalogOutputList",
+          "documentation":"<p>One or more artifacts that represent the Glue Data Catalog output from running the job.</p>"
+        },
+        "DatabaseOutputs":{
+          "shape":"DatabaseOutputList",
+          "documentation":"<p>Represents a list of JDBC database output objects which defines the output destination for a DataBrew recipe job to write into.</p>"
+        },
         "RecipeReference":{
           "shape":"RecipeReference",
           "documentation":"<p>The set of steps processed by the job.</p>"
@@ -2163,7 +2338,7 @@
           "documentation":"<p>A value that specifies whether JSON input contains embedded new line characters.</p>"
         }
       },
-      "documentation":"<p>Represents the JSON-specific options that define how input is to be interpreted by AWS Glue DataBrew.</p>"
+      "documentation":"<p>Represents the JSON-specific options that define how input is to be interpreted by Glue DataBrew.</p>"
     },
     "Key":{
       "type":"string",
@@ -2533,7 +2708,7 @@
           "documentation":"<p>Represents options that define how DataBrew formats job output files.</p>"
         }
       },
-      "documentation":"<p>Represents options that specify how and where DataBrew writes the output generated by recipe jobs or profile jobs.</p>"
+      "documentation":"<p>Represents options that specify how and where in Amazon S3 DataBrew writes the output generated by recipe jobs or profile jobs.</p>"
     },
     "OutputFormat":{
       "type":"string",
@@ -2584,7 +2759,7 @@
     },
     "ParameterValue":{
       "type":"string",
-      "max":12288,
+      "max":32768,
       "min":1
     },
     "PathOptions":{
@@ -2592,7 +2767,7 @@
       "members":{
         "LastModifiedDateCondition":{
           "shape":"FilterExpression",
-          "documentation":"<p>If provided, this structure defines a date range for matching S3 objects based on their LastModifiedDate attribute in S3.</p>"
+          "documentation":"<p>If provided, this structure defines a date range for matching Amazon S3 objects based on their LastModifiedDate attribute in Amazon S3.</p>"
         },
         "FilesLimit":{
           "shape":"FilesLimit",
@@ -2600,10 +2775,10 @@
         },
         "Parameters":{
           "shape":"PathParametersMap",
-          "documentation":"<p>A structure that maps names of parameters used in the S3 path of a dataset to their definitions.</p>"
+          "documentation":"<p>A structure that maps names of parameters used in the Amazon S3 path of a dataset to their definitions.</p>"
         }
       },
-      "documentation":"<p>Represents a set of options that define how DataBrew selects files for a given S3 path in a dataset.</p>"
+      "documentation":"<p>Represents a set of options that define how DataBrew selects files for a given Amazon S3 path in a dataset.</p>"
     },
     "PathParameterName":{
       "type":"string",
@@ -2614,11 +2789,29 @@
       "type":"map",
       "key":{"shape":"PathParameterName"},
       "value":{"shape":"DatasetParameter"},
-      "documentation":"<p>A structure that map names of parameters used in the S3 path of a dataset to their definitions. A definition includes parameter type and conditions.</p>",
+      "documentation":"<p>A structure that map names of parameters used in the Amazon S3 path of a dataset to their definitions. A definition includes parameter type and conditions.</p>",
       "max":10,
       "min":1
     },
     "Preview":{"type":"boolean"},
+    "ProfileConfiguration":{
+      "type":"structure",
+      "members":{
+        "DatasetStatisticsConfiguration":{
+          "shape":"StatisticsConfiguration",
+          "documentation":"<p>Configuration for inter-column evaluations. Configuration can be used to select evaluations and override parameters of evaluations. When configuration is undefined, the profile job will run all supported inter-column evaluations. </p>"
+        },
+        "ProfileColumns":{
+          "shape":"ColumnSelectorList",
+          "documentation":"<p>List of column selectors. ProfileColumns can be used to select columns from the dataset. When ProfileColumns is undefined, the profile job will profile all supported columns. </p>"
+        },
+        "ColumnStatisticsConfigurations":{
+          "shape":"ColumnStatisticsConfigurationList",
+          "documentation":"<p>List of configurations for column evaluations. ColumnStatisticsConfigurations are used to select evaluations and override parameters of evaluations for particular columns. When ColumnStatisticsConfigurations is undefined, the profile job will profile all supported columns and run all supported evaluations. </p>"
+        }
+      },
+      "documentation":"<p>Configuration for profile jobs. Configuration can be used to select columns, do evaluations, and override default parameters of evaluations. When configuration is undefined, the profile job will apply default settings to all supported columns. </p>"
+    },
     "Project":{
       "type":"structure",
       "required":[
@@ -2628,7 +2821,7 @@
       "members":{
         "AccountId":{
           "shape":"AccountId",
-          "documentation":"<p>The ID of the AWS account that owns the project.</p>"
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the project.</p>"
         },
         "CreateDate":{
           "shape":"Date",
@@ -2793,7 +2986,7 @@
           "documentation":"<p>Contextual parameters for the transformation.</p>"
         }
       },
-      "documentation":"<p>Represents a transformation and associated parameters that are used to apply a change to a DataBrew dataset. For more information, see <a href=\"https://docs.aws.amazon.com/databrew/latest/dg/recipe-structure.html\">Recipe structure</a> and <a href=\"https://docs.aws.amazon.com/databrew/latest/dg/recipe-actions-reference.html\">Recipe actions reference</a>.</p>"
+      "documentation":"<p>Represents a transformation and associated parameters that are used to apply a change to a DataBrew dataset. For more information, see <a href=\"https://docs.aws.amazon.com/databrew/latest/dg/recipe-actions-reference.html\">Recipe actions reference</a>.</p>"
     },
     "RecipeDescription":{
       "type":"string",
@@ -2892,7 +3085,7 @@
       "members":{
         "Bucket":{
           "shape":"Bucket",
-          "documentation":"<p>The S3 bucket name.</p>"
+          "documentation":"<p>The Amazon S3 bucket name.</p>"
         },
         "Key":{
           "shape":"Key",
@@ -2900,6 +3093,17 @@
         }
       },
       "documentation":"<p>Represents an Amazon S3 location (bucket name and object key) where DataBrew can read input data, or write output from a job.</p>"
+    },
+    "S3TableOutputOptions":{
+      "type":"structure",
+      "required":["Location"],
+      "members":{
+        "Location":{
+          "shape":"S3Location",
+          "documentation":"<p>Represents an Amazon S3 location (bucket name and object key) where DataBrew can write output from a job.</p>"
+        }
+      },
+      "documentation":"<p>Represents options that specify how and where DataBrew writes the Amazon S3 output generated by recipe jobs.</p>"
     },
     "Sample":{
       "type":"structure",
@@ -2942,7 +3146,7 @@
       "members":{
         "AccountId":{
           "shape":"AccountId",
-          "documentation":"<p>The ID of the AWS account that owns the schedule.</p>"
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the schedule.</p>"
         },
         "CreatedBy":{
           "shape":"CreatedBy",
@@ -2970,7 +3174,7 @@
         },
         "CronExpression":{
           "shape":"CronExpression",
-          "documentation":"<p>The dates and times when the job is to run. For more information, see <a href=\"https://docs.aws.amazon.com/databrew/latest/dg/jobs.cron.html\">Cron expressions</a> in the <i>AWS Glue DataBrew Developer Guide</i>.</p>"
+          "documentation":"<p>The dates and times when the job is to run. For more information, see <a href=\"https://docs.aws.amazon.com/databrew/latest/dg/jobs.cron.html\">Cron expressions</a> in the <i>Glue DataBrew Developer Guide</i>.</p>"
         },
         "Tags":{
           "shape":"TagMap",
@@ -3147,6 +3351,54 @@
       }
     },
     "StartedBy":{"type":"string"},
+    "Statistic":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"^[A-Z\\_]+$"
+    },
+    "StatisticList":{
+      "type":"list",
+      "member":{"shape":"Statistic"},
+      "min":1
+    },
+    "StatisticOverride":{
+      "type":"structure",
+      "required":[
+        "Statistic",
+        "Parameters"
+      ],
+      "members":{
+        "Statistic":{
+          "shape":"Statistic",
+          "documentation":"<p>The name of an evaluation</p>"
+        },
+        "Parameters":{
+          "shape":"ParameterMap",
+          "documentation":"<p>A map that includes overrides of an evaluation’s parameters.</p>"
+        }
+      },
+      "documentation":"<p>Override of a particular evaluation for a profile job. </p>"
+    },
+    "StatisticOverrideList":{
+      "type":"list",
+      "member":{"shape":"StatisticOverride"},
+      "min":1
+    },
+    "StatisticsConfiguration":{
+      "type":"structure",
+      "members":{
+        "IncludedStatistics":{
+          "shape":"StatisticList",
+          "documentation":"<p>List of included evaluations. When the list is undefined, all supported evaluations will be included.</p>"
+        },
+        "Overrides":{
+          "shape":"StatisticOverrideList",
+          "documentation":"<p>List of overrides for evaluations.</p>"
+        }
+      },
+      "documentation":"<p>Configuration of evaluations for a profile job. This configuration can be used to select evaluations and override the parameters of selected evaluations. </p>"
+    },
     "StepIndex":{
       "type":"integer",
       "min":0
@@ -3289,13 +3541,13 @@
         },
         "Format":{
           "shape":"InputFormat",
-          "documentation":"<p>The file format of a dataset that is created from an S3 file or folder.</p>"
+          "documentation":"<p>The file format of a dataset that is created from an Amazon S3 file or folder.</p>"
         },
         "FormatOptions":{"shape":"FormatOptions"},
         "Input":{"shape":"Input"},
         "PathOptions":{
           "shape":"PathOptions",
-          "documentation":"<p>A set of options that defines how DataBrew interprets an S3 path of the dataset.</p>"
+          "documentation":"<p>A set of options that defines how DataBrew interprets an Amazon S3 path of the dataset.</p>"
         }
       }
     },
@@ -3317,13 +3569,17 @@
         "RoleArn"
       ],
       "members":{
+        "Configuration":{
+          "shape":"ProfileConfiguration",
+          "documentation":"<p>Configuration for profile jobs. Used to select columns, do evaluations, and override default parameters of evaluations. When configuration is null, the profile job will run with default settings.</p>"
+        },
         "EncryptionKeyArn":{
           "shape":"EncryptionKeyArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of an encryption key that is used to protect the job.</p>"
         },
         "EncryptionMode":{
           "shape":"EncryptionMode",
-          "documentation":"<p>The encryption mode for the job, which can be one of the following:</p> <ul> <li> <p> <code>SSE-KMS</code> - Server-side encryption with keys managed by AWS KMS.</p> </li> <li> <p> <code>SSE-S3</code> - Server-side encryption with keys managed by Amazon S3.</p> </li> </ul>"
+          "documentation":"<p>The encryption mode for the job, which can be one of the following:</p> <ul> <li> <p> <code>SSE-KMS</code> - Server-side encryption with keys managed by KMS.</p> </li> <li> <p> <code>SSE-S3</code> - Server-side encryption with keys managed by Amazon S3.</p> </li> </ul>"
         },
         "Name":{
           "shape":"JobName",
@@ -3346,7 +3602,7 @@
         "OutputLocation":{"shape":"S3Location"},
         "RoleArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the AWS Identity and Access Management (IAM) role to be assumed when DataBrew runs the job.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Identity and Access Management (IAM) role to be assumed when DataBrew runs the job.</p>"
         },
         "Timeout":{
           "shape":"Timeout",
@@ -3406,7 +3662,6 @@
       "type":"structure",
       "required":[
         "Name",
-        "Outputs",
         "RoleArn"
       ],
       "members":{
@@ -3416,7 +3671,7 @@
         },
         "EncryptionMode":{
           "shape":"EncryptionMode",
-          "documentation":"<p>The encryption mode for the job, which can be one of the following:</p> <ul> <li> <p> <code>SSE-KMS</code> - Server-side encryption with keys managed by AWS KMS.</p> </li> <li> <p> <code>SSE-S3</code> - Server-side encryption with keys managed by Amazon S3.</p> </li> </ul>"
+          "documentation":"<p>The encryption mode for the job, which can be one of the following:</p> <ul> <li> <p> <code>SSE-KMS</code> - Server-side encryption with keys managed by KMS.</p> </li> <li> <p> <code>SSE-S3</code> - Server-side encryption with keys managed by Amazon S3.</p> </li> </ul>"
         },
         "Name":{
           "shape":"JobName",
@@ -3440,9 +3695,17 @@
           "shape":"OutputList",
           "documentation":"<p>One or more artifacts that represent the output from running the job. </p>"
         },
+        "DataCatalogOutputs":{
+          "shape":"DataCatalogOutputList",
+          "documentation":"<p>One or more artifacts that represent the Glue Data Catalog output from running the job.</p>"
+        },
+        "DatabaseOutputs":{
+          "shape":"DatabaseOutputList",
+          "documentation":"<p>Represents a list of JDBC database output objects which defines the output destination for a DataBrew recipe job to write into.</p>"
+        },
         "RoleArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the AWS Identity and Access Management (IAM) role to be assumed when DataBrew runs the job.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Identity and Access Management (IAM) role to be assumed when DataBrew runs the job.</p>"
         },
         "Timeout":{
           "shape":"Timeout",
@@ -3503,7 +3766,7 @@
         },
         "CronExpression":{
           "shape":"CronExpression",
-          "documentation":"<p>The date or dates and time or times when the jobs are to be run. For more information, see <a href=\"https://docs.aws.amazon.com/databrew/latest/dg/jobs.cron.html\">Cron expressions</a> in the <i>AWS Glue DataBrew Developer Guide</i>.</p>"
+          "documentation":"<p>The date or dates and time or times when the jobs are to be run. For more information, see <a href=\"https://docs.aws.amazon.com/databrew/latest/dg/jobs.cron.html\">Cron expressions</a> in the <i>Glue DataBrew Developer Guide</i>.</p>"
         },
         "Name":{
           "shape":"ScheduleName",
@@ -3563,5 +3826,5 @@
       "documentation":"<p>Represents the data being transformed during an action.</p>"
     }
   },
-  "documentation":"<p>AWS Glue DataBrew is a visual, cloud-scale data-preparation service. DataBrew simplifies data preparation tasks, targeting data issues that are hard to spot and time-consuming to fix. DataBrew empowers users of all technical levels to visualize the data and perform one-click data transformations, with no coding required.</p>"
+  "documentation":"<p>Glue DataBrew is a visual, cloud-scale data-preparation service. DataBrew simplifies data preparation tasks, targeting data issues that are hard to spot and time-consuming to fix. DataBrew empowers users of all technical levels to visualize the data and perform one-click data transformations, with no coding required.</p>"
 }

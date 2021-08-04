@@ -51,6 +51,15 @@
       "input": {"shape": "DeprecatedRenameRequest"},
       "output": {"shape": "DeprecatedRenameResponse"}
     },
+    "OperationWithDeprecatedMember": {
+      "name": "OperationWithDeprecatedMember",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "OperationWithDeprecatedMemberRequest"},
+      "output": {"shape": "OperationWithDeprecatedMemberResponse"}
+    },
     "StreamingInputOperation":{
       "name":"StreamingInputOperation",
       "http":{
@@ -101,6 +110,14 @@
       },
       "output": {
         "shape": "ExistenceCheckNamingResponse"
+      },
+      "DocumentInputOperation":{
+        "name":"DocumentInputOperation",
+        "http":{
+          "method":"POST",
+          "requestUri":"/2016-03-11/documentInputOperation"
+        },
+        "input":{"shape":"StructureWithDocumentMember"}
       }
     }
   },
@@ -140,7 +157,8 @@
         "PolymorphicTypeWithSubTypes":{"shape":"BaseType"},
         "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
         "EnumType":{"shape":"EnumType"},
-        "Underscore_Name_Type":{"shape":"Underscore_Name_Type"}
+        "Underscore_Name_Type":{"shape":"Underscore_Name_Type"},
+        "MyDocument":{"shape":"MyDocument"}
       }
     },
     "BaseType":{
@@ -168,6 +186,30 @@
       "members": {
         "OriginalNameNoDeprecation":{"shape": "String"},
         "OriginalNameDeprecated": {"shape": "String"}
+      }
+    },
+    "OperationWithDeprecatedMemberRequest":{
+      "type": "structure",
+      "members": {
+        "MemberModeledAsDeprecated": {
+          "shape": "String",
+          "deprecated": true,
+          "deprecatedMessage": "This field is modeled as deprecated."
+        },
+        "MemberModifiedAsDeprecated":{"shape": "String"},
+        "UndeprecatedMember": {"shape": "String"}
+      }
+    },
+    "OperationWithDeprecatedMemberResponse":{
+      "type": "structure",
+      "members": {
+        "MemberModeledAsDeprecated": {
+          "shape": "String",
+          "deprecated": true,
+          "deprecatedMessage": "This field is modeled as deprecated."
+        },
+        "MemberModifiedAsDeprecated":{"shape": "String"},
+        "UndeprecatedMember": {"shape": "String"}
       }
     },
     "Double":{"type":"double"},
@@ -488,6 +530,17 @@
     "ImplicitPayloadMemberOne":{"type":"blob"},
     "Underscore_Name_Type": {
       "type": "structure"
+    },
+    "MyDocument": {
+      "type": "structure",
+      "document": true
+    },
+    "StructureWithDocumentMember":{
+      "type":"structure",
+      "members":{
+        "DocumentMember":{"shape":"MyDocument"}
+      },
+      "payload":"DocumentMember"
     }
   }
 }
