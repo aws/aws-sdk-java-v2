@@ -105,18 +105,16 @@ For each service that can leverage batch features, two classes will be created: 
  public interface SqsBatchManager {
  
     /**
-     * Buffers a variable number of messages on the client and sends them
-     * as batch requests to the service. 
+     * Buffers outgoing requests on the client and sends them as batch requests to the service. 
+     * Requests are batched together according to a batchKey and are sent periodically to the 
+     * service as determined by {@link #maxBatchOpenInMs}. If the number of requests for a 
+     * batchKey reaches or exceeds {@link #maxBatchItems}, then the requests are immediately 
+     * flushed and the timeout on the periodic flush is reset.
+     * By default, messages are batched according to a service's maximum size for a batch request. 
+     * These settings can be customized via the configuration.
      *
-     * If the number of messages passed in is greater than the maximum size of 
-     * a batch request, the method also automatically chunks the messages into 
-     * the appropriate batch sizes before sending them with batch requests. 
-     * By default, messages are chunked according to a service's maximum size for a 
-     * batch request. These settings can be customized via the configuration. 
-     *
-     * @param messages A variable number of SendMessageRequest items that represent
-                       the messages to be passed to SQS.
-     * @return {@link BatchResponses}
+     * @param request the outgoing request.
+     * @return a CompletableFuture of the corresponding response.
      */
     CompletableFuture<SendMessageResponse> sendMessage(SendMessageRequest message);
     
@@ -125,7 +123,6 @@ For each service that can leverage batch features, two classes will be created: 
      * are sent. An exception is returned otherwise.
      */
     CompletableFuture<Void> flush();
-    
     
     // Other Batch Manager methods omitted
     // ...
@@ -170,20 +167,18 @@ For each service that can leverage batch features, two classes will be created: 
  public interface SqsAsyncBatchManager {
  
     /**
-     * Buffers a variable number of messages on the client and sends them
-     * as batch requests to the service. 
+     * Buffers outgoing requests on the client and sends them as batch requests to the service. 
+     * Requests are batched together according to a batchKey and are sent periodically to the 
+     * service as determined by {@link #maxBatchOpenInMs}. If the number of requests for a 
+     * batchKey reaches or exceeds {@link #maxBatchItems}, then the requests are immediately 
+     * flushed and the timeout on the periodic flush is reset.
+     * By default, messages are batched according to a service's maximum size for a batch request. 
+     * These settings can be customized via the configuration.
      *
-     * If the number of messages passed in is greater than the maximum size of 
-     * a batch request, the method also automatically chunks the messages into 
-     * the appropriate batch sizes before sending them with batch requests. 
-     * By default, messages are chunked according to a service's maximum size for a 
-     * batch request. These settings can be customized via the configuration. 
-     *
-     * @param messages A variable number of SendMessageRequest items that represent
-                       the messages to be passed to SQS.
-     * @return {@link BatchResponses}
+     * @param request the outgoing request.
+     * @return a CompletableFuture of the corresponding response.
      */
-    CompletableFuture<SendMessageResponse> sendMessage(SendMessageRequest messages);
+    CompletableFuture<SendMessageResponse> sendMessage(SendMessageRequest message);
     
     /**
      * Manually flush the buffer for sendMessage requests. Completes when requests
@@ -191,14 +186,8 @@ For each service that can leverage batch features, two classes will be created: 
      */
     CompletableFuture<Void> flush();
     
-    /**
-     * Option to flush a specific buffer/queue
-     * Buffer: DeleteMessage buffer, sendMessage buffer, ...
-     * Queue: User would provide queueUrl
-     * Note: The option to flush a specific buffer is not implemented in v1 nor
-     *       has it been requested.
-     */
-    CompletableFuture<Void> flush(String bufferOrQueueName);
+    // Other Batch Manager methods omitted
+    // ...
     
     interface Builder {
     
