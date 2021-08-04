@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EC2 Image Builder",
-    "contributor": "",
-    "description": "Updated list actions to include a list of valid filters that can be used in the request."
-}

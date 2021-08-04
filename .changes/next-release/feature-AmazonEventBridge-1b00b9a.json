@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EventBridge",
-    "contributor": "",
-    "description": "Documentation updates to add EC2 Image Builder as a target on PutTargets."
-}

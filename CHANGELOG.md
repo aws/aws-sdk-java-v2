@@ -1,3 +1,32 @@
+# __2.17.12__ __2021-08-04__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add customization.config support for setting default RetryMode
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where a bean-based marshallers for request and response models would fail for fluent setters that happened to start with "set", like "settings".
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Documentation updates for Incident Manager.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Documentation updates to add EC2 Image Builder as a target on PutTargets.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds AutomaticRestartTime to the DescribeDBInstances and DescribeDBClusters operations. AutomaticRestartTime indicates the time when a stopped DB instance or DB cluster is restarted automatically.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for call analytics (batch) within Amazon Transcribe.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Updated list actions to include a list of valid filters that can be used in the request.
+
 # __2.17.11__ __2021-08-03__
 ## __AWS Elemental MediaConvert__
   - ### Features
