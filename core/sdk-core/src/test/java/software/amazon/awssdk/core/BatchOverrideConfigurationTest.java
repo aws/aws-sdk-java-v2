@@ -53,11 +53,13 @@ public class BatchOverrideConfigurationTest {
     }
 
     @Test
-    public void creatingCopyWithToBuilder() {
+    public void creatingCopyWithToBuilderAndCheckEqual() {
         BatchOverrideConfiguration overrideConfigurationCopy = overrideConfiguration.toBuilder().build();
         Assert.assertEquals(maxBatchItems, overrideConfigurationCopy.maxBatchItems().intValue());
         Assert.assertEquals(maxBatchOpenInMs, overrideConfigurationCopy.maxBatchOpenInMs().toMillis());
         Assert.assertEquals(scheduledExecutor, overrideConfigurationCopy.scheduledExecutor());
+        Assert.assertEquals(overrideConfiguration, overrideConfigurationCopy);
+        Assert.assertEquals(overrideConfiguration.hashCode(), overrideConfigurationCopy.hashCode());
     }
 
     @Test
