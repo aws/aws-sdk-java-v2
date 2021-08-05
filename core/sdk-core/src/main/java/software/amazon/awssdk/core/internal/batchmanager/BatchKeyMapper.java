@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.internal.batchmanager;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
- * Takes a request and extracts a batchGroupId as determined by the caller.
+ * Takes a request and extracts a batchKey as determined by the caller.
  * TODO: For right now, the batchKey is a String but this may change as needed in the future.
  * @param <RequestT> the request.
  */

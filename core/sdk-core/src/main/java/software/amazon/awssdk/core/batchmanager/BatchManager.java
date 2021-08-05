@@ -16,14 +16,31 @@
 package software.amazon.awssdk.core.batchmanager;
 
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.batchmanager.DefaultBatchManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
-// TODO: Add javadoc comments. Should I move JavaDoc comments from DefaultBatchManager here? Or keep comments in both files?
-@SdkPublicApi
+/**
+ * Generic batch manager that implements automatic request batching features.
+ * @param <RequestT> the type of an outgoing request.
+ * @param <ResponseT> the type of an outgoing response.
+ * @param <BatchResponseT> the type of an outgoing batch response.
+ */
+@SdkProtectedApi
 public interface BatchManager<RequestT, ResponseT, BatchResponseT> extends SdkAutoCloseable {
 
+    /**
+     * Buffers outgoing requests on the client and sends them as batch requests to the service. Requests are batched together
+     * according to a batchKey and are sent periodically to the service as determined by a configured timeout. If the
+     * number of requests for a batchKey reaches or exceeds a configured limit, then the requests are immediately flushed
+     * and the timeout on the periodic flush is reset.
+     * <p>
+     * By default, messages are batched according to a service's maximum size for a batch request. These settings can be
+     * customized via the configuration.
+     *
+     * @param request the outgoing request.
+     * @return a CompletableFuture of the corresponding response.
+     */
     CompletableFuture<ResponseT> sendRequest(RequestT request);
 
     /**
@@ -40,7 +57,8 @@ public interface BatchManager<RequestT, ResponseT, BatchResponseT> extends SdkAu
     }
 
     /**
-     * The BatchManager Builder
+     * The BatchManager Builder.
+     *
      * @param <RequestT> the type of an outgoing request.
      * @param <ResponseT> the type of an outgoing response.
      * @param <BatchResponseT> the type of an outgoing batch response.

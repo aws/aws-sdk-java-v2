@@ -24,13 +24,44 @@ import software.amazon.awssdk.core.internal.batchmanager.BatchResponseMapper;
 @SdkPublicApi
 public interface BatchManagerBuilder<RequestT, ResponseT, BatchResponseT, B> {
 
+    /**
+     * Defines overrides to the default BatchManager configuration that should be used.
+     *
+     * @param overrideConfiguration the override configuration.
+     * @return a reference to this object so that method calls can be chained together.
+     */
     B overrideConfiguration(BatchOverrideConfiguration overrideConfiguration);
 
+    /**
+     * Adds a {@link ScheduledExecutorService} to be used by the BatchManager to schedule periodic flushes of the underlying
+     * buffers.
+     *
+     * @param scheduledExecutor the provided scheduled executor.
+     * @return a reference to this object so that method calls can be chained together.
+     */
     B scheduledExecutor(ScheduledExecutorService scheduledExecutor);
 
+    /**
+     * Adds a function that defines how requests should be batched together into the appropriate batch response.
+     *
+     * @param batchingFunction the provided function.
+     * @return a reference to this object so that method calls can be chained together.
+     */
     B batchingFunction(BatchAndSend<RequestT, BatchResponseT> batchingFunction);
 
+    /**
+     * Adds a function that defines how a batch response should be extracted and transformed into its individual responses.
+     *
+     * @param mapResponsesFunction the provided function.
+     * @return a reference to this object so that method calls can be chained together.
+     */
     B mapResponsesFunction(BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction);
 
+    /**
+     * Adds a function that calculates an appropriate batchKey from a given request.
+     *
+     * @param batchKeyMapperFunction the provided function.
+     * @return a reference to this object so that method calls can be chained together.
+     */
     B batchKeyMapperFunction(BatchKeyMapper<RequestT> batchKeyMapperFunction);
 }

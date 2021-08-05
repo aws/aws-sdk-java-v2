@@ -29,12 +29,6 @@ import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
-/**
- * Implementation of a generic buffer for automatic request batching.
- * @param <RequestT> the type of an outgoing request.
- * @param <ResponseT> the type of an outgoing response.
- * @param <BatchResponseT> the type of an outgoing batch response.
- */
 @SdkInternalApi
 public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> implements BatchManager<RequestT, ResponseT,
     BatchResponseT> {
@@ -86,17 +80,6 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
         return new DefaultBuilder<>();
     }
 
-    /**
-     * Buffers outgoing requests on the client and sends them as batch requests to the service. Requests are batched together
-     * according to a batchKey and are sent periodically to the service as determined by {@link #maxBatchOpenInMs}. If the
-     * number of requests for a batchKey reaches or exceeds {@link #maxBatchItems}, then the requests are immediately flushed
-     * and the timeout on the periodic flush is reset.
-     * By default, messages are batched according to a service's maximum size for a batch request. These settings can be
-     * customized via the configuration.
-     *
-     * @param request the outgoing request.
-     * @return a CompletableFuture of the corresponding response.
-     */
     @Override
     public CompletableFuture<ResponseT> sendRequest(RequestT request) {
         CompletableFuture<ResponseT> response = new CompletableFuture<>();

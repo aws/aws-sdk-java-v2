@@ -105,11 +105,24 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         private Builder() {
         }
 
+        /**
+         * Define the the maximum number of messages that are batched together in a single request.
+         *
+         * @param maxBatchItems The new maxBatchItems value.
+         * @return This object for method chaining.
+         */
         public Builder maxBatchItems(Integer maxBatchItems) {
             this.maxBatchItems = maxBatchItems;
             return this;
         }
 
+        /**
+         * The maximum amount of time (in milliseconds) that an outgoing call waits for other requests before sending out a batch
+         * request.
+         *
+         * @param maxBatchOpenInMs
+         * @return
+         */
         public Builder maxBatchOpenInMs(Duration maxBatchOpenInMs) {
             this.maxBatchOpenInMs = maxBatchOpenInMs;
             return this;
