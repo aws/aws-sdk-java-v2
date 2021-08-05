@@ -16,10 +16,12 @@
 package software.amazon.awssdk.core.batchmanager;
 
 import java.util.concurrent.ScheduledExecutorService;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.batchmanager.BatchAndSend;
 import software.amazon.awssdk.core.internal.batchmanager.BatchKeyMapper;
 import software.amazon.awssdk.core.internal.batchmanager.BatchResponseMapper;
 
+@SdkPublicApi
 public interface BatchManagerBuilder<RequestT, ResponseT, BatchResponseT, B> {
 
     B overrideConfiguration(BatchOverrideConfiguration overrideConfiguration);

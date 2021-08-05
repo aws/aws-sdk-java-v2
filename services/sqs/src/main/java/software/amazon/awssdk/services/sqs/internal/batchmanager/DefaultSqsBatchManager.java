@@ -35,26 +35,10 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
 @SdkInternalApi
-public class DefaultSqsBatchManager implements SqsBatchManager{
+public class DefaultSqsBatchManager implements SqsBatchManager {
 
     private SqsClient client;
     private BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> batchManager;
-
-    private DefaultSqsBatchManager(DefaultBuilder builder) {
-        this.client = builder.client;
-        SqsBatchConfiguration config = new SqsBatchConfiguration(builder.overrideConfiguration);
-        BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
-                                                                                     .maxBatchItems(config.maxBatchItems())
-                                                                                     .maxBatchOpenInMs(config.maxBatchOpenInMs())
-                                                                                     .build();
-        this.batchManager = BatchManager.builder(SendMessageRequest.class, SendMessageResponse.class,
-                                                 SendMessageBatchResponse.class)
-                                        .overrideConfiguration(overrideConfiguration)
-                                        .batchingFunction(batchingFunction)
-                                        .mapResponsesFunction(mapResponsesFunction)
-                                        .batchKeyMapperFunction(getBatchGroupIdFunction)
-                                        .build();
-    }
 
     // TODO: These functions were just copied over from the SQS integration test. Should I move these to a separate file or
     //  into a separate wrapper class or is it fine to keep these as private lambdas here?
@@ -94,6 +78,22 @@ public class DefaultSqsBatchManager implements SqsBatchManager{
                 return request.queueUrl();
             }
         };
+
+    private DefaultSqsBatchManager(DefaultBuilder builder) {
+        this.client = builder.client;
+        SqsBatchConfiguration config = new SqsBatchConfiguration(builder.overrideConfiguration);
+        BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
+                                                                                     .maxBatchItems(config.maxBatchItems())
+                                                                                     .maxBatchOpenInMs(config.maxBatchOpenInMs())
+                                                                                     .build();
+        this.batchManager = BatchManager.builder(SendMessageRequest.class, SendMessageResponse.class,
+                                                 SendMessageBatchResponse.class)
+                                        .overrideConfiguration(overrideConfiguration)
+                                        .batchingFunction(batchingFunction)
+                                        .mapResponsesFunction(mapResponsesFunction)
+                                        .batchKeyMapperFunction(getBatchGroupIdFunction)
+                                        .build();
+    }
 
     private SendMessageBatchRequestEntry createMessageBatchRequestEntry(String id, SendMessageRequest request) {
         return SendMessageBatchRequestEntry.builder()

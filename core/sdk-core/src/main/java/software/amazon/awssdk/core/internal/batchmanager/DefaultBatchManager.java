@@ -27,7 +27,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -190,7 +189,7 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
     }
 
     public static final class DefaultBuilder<RequestT, ResponseT, BatchResponseT> implements Builder<RequestT, ResponseT,
-        BatchResponseT>{
+        BatchResponseT> {
 
         private BatchOverrideConfiguration overrideConfiguration;
         private ScheduledExecutorService scheduledExecutor;

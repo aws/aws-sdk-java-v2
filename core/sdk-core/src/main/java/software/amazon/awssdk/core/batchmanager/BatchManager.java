@@ -16,15 +16,15 @@
 package software.amazon.awssdk.core.batchmanager;
 
 import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.batchmanager.DefaultBatchManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 // TODO: Add javadoc comments. Should I move JavaDoc comments from DefaultBatchManager here? Or keep comments in both files?
+@SdkPublicApi
 public interface BatchManager<RequestT, ResponseT, BatchResponseT> extends SdkAutoCloseable {
 
     CompletableFuture<ResponseT> sendRequest(RequestT request);
-
-    void close();
 
     /**
      * Creates a newly initialized BatchManager builder object.
