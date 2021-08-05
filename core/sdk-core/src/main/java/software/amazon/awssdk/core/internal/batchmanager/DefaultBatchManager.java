@@ -37,7 +37,6 @@ import software.amazon.awssdk.utils.Validate;
  * @param <BatchResponseT> the type of an outgoing batch response.
  */
 @SdkInternalApi
-// TODO: Implement BatchManager interface after renaming this to defaultBatchManager
 public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> implements BatchManager<RequestT, ResponseT,
     BatchResponseT> {
 
@@ -73,7 +72,7 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
      */
     private final ScheduledExecutorService scheduledExecutor;
 
-    private DefaultBatchManager(Builder<RequestT, ResponseT, BatchResponseT> builder) {
+    private DefaultBatchManager(DefaultBuilder<RequestT, ResponseT, BatchResponseT> builder) {
         BatchConfiguration batchConfiguration = new BatchConfiguration(builder.overrideConfiguration);
         this.requestsAndResponsesMaps = new BatchingMap<>();
         this.maxBatchItems = batchConfiguration.maxBatchItems();
@@ -85,7 +84,7 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
     }
 
     public static <RequestT, ResponseT, BatchResponseT> Builder<RequestT, ResponseT, BatchResponseT> builder() {
-        return new Builder<>();
+        return new DefaultBuilder<>();
     }
 
     /**
@@ -176,6 +175,7 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
         }
     }
 
+    @Override
     public void close() {
         requestsAndResponsesMaps.forEach((batchKey, batchBuffer) -> {
             requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
@@ -189,7 +189,8 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
         requestsAndResponsesMaps.waitForFlushesAndClear(log);
     }
 
-    public static final class Builder<RequestT, ResponseT, BatchResponseT> {
+    public static final class DefaultBuilder<RequestT, ResponseT, BatchResponseT> implements Builder<RequestT, ResponseT,
+        BatchResponseT>{
 
         private BatchOverrideConfiguration overrideConfiguration;
         private ScheduledExecutorService scheduledExecutor;
@@ -197,32 +198,37 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
         private BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction;
         private BatchKeyMapper<RequestT> batchKeyMapperFunction;
 
-        private Builder() {
+        private DefaultBuilder() {
         }
 
+        @Override
         public Builder<RequestT, ResponseT, BatchResponseT> overrideConfiguration(BatchOverrideConfiguration
                                                                                       overrideConfiguration) {
             this.overrideConfiguration = overrideConfiguration;
             return this;
         }
 
+        @Override
         public Builder<RequestT, ResponseT, BatchResponseT> scheduledExecutor(ScheduledExecutorService scheduledExecutor) {
             this.scheduledExecutor = scheduledExecutor;
             return this;
         }
 
+        @Override
         public Builder<RequestT, ResponseT, BatchResponseT> batchingFunction(BatchAndSend<RequestT, BatchResponseT>
                                                                                  batchingFunction) {
             this.batchingFunction = batchingFunction;
             return this;
         }
 
+        @Override
         public Builder<RequestT, ResponseT, BatchResponseT> mapResponsesFunction(
             BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction) {
             this.mapResponsesFunction = mapResponsesFunction;
             return this;
         }
 
+        @Override
         public Builder<RequestT, ResponseT, BatchResponseT> batchKeyMapperFunction(BatchKeyMapper<RequestT>
                                                                                      batchKeyMapperFunction) {
             this.batchKeyMapperFunction = batchKeyMapperFunction;
