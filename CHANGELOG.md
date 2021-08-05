@@ -1,3 +1,12 @@
+# __2.17.13__ __2021-08-05__
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Customers can now toggle the active field on prompts and responses.
+
+## __Auto Scaling__
+  - ### Features
+    - EC2 Auto Scaling adds configuration checks and Launch Template validation to Instance Refresh.
+
 # __2.17.12__ __2021-08-04__
 ## __AWS SDK for Java v2__
   - ### Features
