@@ -35,12 +35,12 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.internal.batchutilities.BatchAndSend;
-import software.amazon.awssdk.core.internal.batchutilities.BatchKeyMapper;
-import software.amazon.awssdk.core.internal.batchutilities.BatchManager;
+import software.amazon.awssdk.core.internal.batchmanager.BatchAndSend;
+import software.amazon.awssdk.core.internal.batchmanager.BatchKeyMapper;
+import software.amazon.awssdk.core.internal.batchmanager.BatchManager;
 import software.amazon.awssdk.core.BatchOverrideConfiguration;
-import software.amazon.awssdk.core.internal.batchutilities.BatchResponseMapper;
-import software.amazon.awssdk.core.internal.batchutilities.IdentifiableResponse;
+import software.amazon.awssdk.core.internal.batchmanager.BatchResponseMapper;
+import software.amazon.awssdk.core.internal.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
@@ -66,6 +66,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
     public void setUp() {
         ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("batch-buffer").build();
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
+
         client = createSqsSyncClient();
         defaultQueueUrl = client.createQueue(CreateQueueRequest.builder().queueName("myQueue0").build()).queueUrl();
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
@@ -73,13 +74,13 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
                                                                                      .maxBatchOpenInMs(Duration.ofMillis(DEFAULT_MAX_BATCH_OPEN))
                                                                                      .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
-
-        batchManager = BatchManager.<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> builder()
-                                   .overrideConfiguration(overrideConfiguration)
-                                   .batchingFunction(batchingFunction)
-                                   .mapResponsesFunction(mapResponsesFunction)
-                                   .batchKeyMapperFunction(getBatchGroupIdFunction)
-                                   .build();
+        batchManager =
+            BatchManager.builder(SendMessageRequest.class, SendMessageResponse.class, SendMessageBatchResponse.class)
+                        .overrideConfiguration(overrideConfiguration)
+                        .batchingFunction(batchingFunction)
+                        .mapResponsesFunction(mapResponsesFunction)
+                        .batchKeyMapperFunction(getBatchGroupIdFunction)
+                        .build();
     }
 
     @After
@@ -122,7 +123,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
 
         long startTime = System.nanoTime();
         Map<String, CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(0, 5, requests);
-        waitForTime(DEFAULT_MAX_BATCH_OPEN);
+        waitForTime(DEFAULT_MAX_BATCH_OPEN + 10);
         responses.putAll(createAndSendResponses(5, 5, requests));
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
@@ -149,7 +150,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
     public void scheduleFiveMessagesWithEachThreadToDifferentLocations() {
         int numThreads = 10;
         int numMessages = 5;
-        Map<String, SendMessageRequest> requests = createRequestsOfSizeToDiffDestinations(numThreads,numMessages);
+        Map<String, SendMessageRequest> requests = createRequestsOfSizeToDiffDestinations(numThreads, numMessages);
         ConcurrentHashMap<String, CompletableFuture<SendMessageResponse>> responses = new ConcurrentHashMap<>();
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
 
@@ -158,13 +159,12 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         checkThreadedResponses(requests, responses, sendRequestFutures);
     }
 
-    // Sometimes it passes a null identifiedRequests;
     BatchAndSend<SendMessageRequest, SendMessageBatchResponse> batchingFunction =
         (identifiedRequests, destination) -> {
             List<SendMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
             identifiedRequests.forEach(identifiedRequest -> {
                 String id = identifiedRequest.id();
-                SendMessageRequest request = identifiedRequest.request();
+                SendMessageRequest request = identifiedRequest.message();
                 entries.add(createMessageBatchRequestEntry(id, request));
             });
             SendMessageBatchRequest batchRequest = SendMessageBatchRequest.builder()
@@ -176,14 +176,14 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
 
     BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> mapResponsesFunction =
         sendMessageBatchResponse -> {
-            List<IdentifiableResponse<SendMessageResponse>> mappedResponses = new ArrayList<>();
+            List<IdentifiableMessage<SendMessageResponse>> mappedResponses = new ArrayList<>();
             sendMessageBatchResponse.successful()
                                     .forEach(batchResponseEntry -> {
                                         String key = batchResponseEntry.id();
                                         SendMessageResponse response = createSendMessageResponse(batchResponseEntry);
-                                        mappedResponses.add(new IdentifiableResponse<>(key, response));
+                                        mappedResponses.add(new IdentifiableMessage<>(key, response));
                                     });
-            // Add failed responses once I figure out how to create sendMessageResponse items.
+            // TODO: Add failed responses once I figure out how to create sendMessageResponse items.
             return mappedResponses;
         };
 
@@ -273,11 +273,12 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         Map<String, SendMessageRequest> requests = new HashMap<>();
         for (int i = 0; i < numDestinations; i++) {
             for (int j = 0; j < destinationSize; j++) {
+                String key = Integer.toString(i*destinationSize + j);
                 myQueueUrl = client.createQueue(CreateQueueRequest.builder().queueName("myQueue" + i).build()).queueUrl();
-                requests.put(Integer.toString(i), SendMessageRequest.builder()
-                                                                    .messageBody(Integer.toString(i))
-                                                                    .queueUrl(myQueueUrl)
-                                                                    .build());
+                requests.put(key, SendMessageRequest.builder()
+                                                    .messageBody(Integer.toString(i))
+                                                    .queueUrl(myQueueUrl)
+                                                    .build());
             }
         }
         return requests;

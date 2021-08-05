@@ -18,7 +18,7 @@ package software.amazon.awssdk.core;
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.internal.batchutilities.BatchManager;
+import software.amazon.awssdk.core.internal.batchmanager.BatchManager;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -78,8 +78,36 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     public String toString() {
         return ToString.builder("BatchOverrideConfiguration")
                        .add("maxBatchItems", maxBatchItems)
-                       .add("maxBatchOpenInMs", maxBatchOpenInMs)
+                       .add("maxBatchOpenInMs", maxBatchOpenInMs.toMillis())
                        .build();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        BatchOverrideConfiguration that = (BatchOverrideConfiguration) o;
+
+        if (maxBatchItems != null ? !maxBatchItems.equals(that.maxBatchItems) : that.maxBatchItems != null) {
+            return false;
+        }
+        if (maxBatchOpenInMs != null ? !maxBatchOpenInMs.equals(that.maxBatchOpenInMs) : that.maxBatchOpenInMs != null) {
+            return false;
+        }
+        return scheduledExecutor.equals(that.scheduledExecutor);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = maxBatchItems != null ? maxBatchItems.hashCode() : 0;
+        result = 31 * result + (maxBatchOpenInMs != null ? maxBatchOpenInMs.hashCode() : 0);
+        result = 31 * result + scheduledExecutor.hashCode();
+        return result;
     }
 
     public static final class Builder implements CopyableBuilder<Builder, BatchOverrideConfiguration> {

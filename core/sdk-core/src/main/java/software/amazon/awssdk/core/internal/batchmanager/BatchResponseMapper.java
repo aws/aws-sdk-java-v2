@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.batchutilities;
+package software.amazon.awssdk.core.internal.batchmanager;
 
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -27,5 +27,5 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 @FunctionalInterface
 @SdkProtectedApi
 public interface BatchResponseMapper<BatchResponseT, ResponseT> {
-    List<IdentifiableResponse<ResponseT>> mapBatchResponse(BatchResponseT batchResponse);
+    List<IdentifiableMessage<ResponseT>> mapBatchResponse(BatchResponseT batchResponse);
 }

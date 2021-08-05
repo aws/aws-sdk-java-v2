@@ -13,19 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.batchutilities;
+package software.amazon.awssdk.core.internal.batchmanager;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Logger;
@@ -85,7 +82,9 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
         this.scheduledExecutor = overrideConfiguration.scheduledExecutor();
     }
 
-    public static <RequestT, ResponseT, BatchResponseT> Builder<RequestT, ResponseT, BatchResponseT> builder() {
+    public static <RequestT, ResponseT, BatchResponseT> Builder<RequestT, ResponseT, BatchResponseT> builder(
+        Class<? extends RequestT> requestClass, Class<? extends ResponseT> responseClass,
+        Class<? extends  BatchResponseT> batchResponseClass) {
         return new Builder<>();
     }
 
@@ -104,111 +103,89 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
         CompletableFuture<ResponseT> response = new CompletableFuture<>();
         try {
             String batchKey = batchKeyMapperFunction.getBatchKey(request);
-            BatchBuffer<RequestT, ResponseT> requestBuffer =
-                requestsAndResponsesMaps.batchBufferByKey(batchKey,
-                                                          () -> scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
-                                                                                          scheduledExecutor));
-            requestBuffer.put(request, response);
-
-            int requestsNum = requestsAndResponsesMaps.get(batchKey).requestSize();
-            if (requestsNum > maxBatchItems) {
-                manualFlushBuffer(batchKey);
-            }
+            requestsAndResponsesMaps.put(batchKey,
+                                         () -> scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(), scheduledExecutor),
+                                         request,
+                                         response);
+            flushBufferIfNeeded(batchKey);
         } catch (Exception e) {
             response.completeExceptionally(e);
         }
         return response;
     }
 
-    private void manualFlushBuffer(String batchKey) {
-        ScheduledFlush scheduledFuture = requestsAndResponsesMaps.getScheduledFlush(batchKey);
-        // Only cancel a periodic scheduled flush.
-        if (!scheduledFuture.isManual()) {
-            scheduledFuture.cancel();
+    private void flushBufferIfNeeded(String batchKey) {
+        Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests =
+            requestsAndResponsesMaps.flushableRequests(batchKey, maxBatchItems);
+        if (!flushableRequests.isEmpty()) {
+            manualFlushBuffer(batchKey, flushableRequests);
         }
-        requestsAndResponsesMaps.putScheduledFlush(batchKey, scheduleBufferFlush(batchKey, 0, maxBatchOpenInMs.toMillis(), true,
+    }
+
+    private void manualFlushBuffer(String batchKey,
+                                   Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
+        requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
+        flushBuffer(batchKey, flushableRequests);
+        requestsAndResponsesMaps.putScheduledFlush(batchKey, scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
                                                                                  scheduledExecutor));
     }
 
     // Flushes the buffer for the given batchKey and fills in the response map with the returned responses.
     // Returns exception in completableFuture if batchingFunction.apply throws an exception.
-    private void flushBuffer(String batchKey) {
-        BatchBuffer<RequestT, ResponseT> requestBuffer = requestsAndResponsesMaps.get(batchKey);
-        if (!requestBuffer.hasRequests()) {
-            return;
-        }
+    private void flushBuffer(String batchKey, Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
+        List<IdentifiableMessage<RequestT>> requestEntries = new ArrayList<>();
+        flushableRequests.forEach((contextId, batchExecutionContext) ->
+                                      requestEntries.add(new IdentifiableMessage<>(contextId, batchExecutionContext.request())));
 
-        List<IdentifiableRequest<RequestT>> requestEntryList = new ArrayList<>();
-        Iterator<Map.Entry<String, BatchingExecutionContext<RequestT, ResponseT>>> requestIterator = requestBuffer.entrySet()
-                                                                                                                  .iterator();
-        while (requestEntryList.size() < maxBatchItems && requestIterator.hasNext()) {
-            Map.Entry<String, BatchingExecutionContext<RequestT, ResponseT>> entry = requestIterator.next();
-            RequestT request = entry.getValue().request();
-            if (request != null) {
-                requestEntryList.add(new IdentifiableRequest<>(entry.getKey(), request));
-                requestBuffer.removeRequest(entry.getKey());
-            }
-        }
-        if (!requestEntryList.isEmpty()) {
-            batchingFunction.batchAndSend(requestEntryList, batchKey)
-                            .whenComplete((result, ex) -> handleAndCompleteResponses(batchKey, result, ex));
+        if (!requestEntries.isEmpty()) {
+            batchingFunction.batchAndSend(requestEntries, batchKey)
+                            .whenComplete((result, ex) -> handleAndCompleteResponses(result, ex, flushableRequests));
         }
     }
 
-    private void handleAndCompleteResponses(String batchKey, BatchResponseT batchResult, Throwable exception) {
+    private void handleAndCompleteResponses(BatchResponseT batchResult, Throwable exception,
+                                            Map<String, BatchingExecutionContext<RequestT, ResponseT>> requests) {
         if (exception != null) {
-            requestsAndResponsesMaps.get(batchKey)
-                                    .entrySet()
-                                    .forEach(entry -> {
-                                        entry.getValue().response().completeExceptionally(exception);
-                                        requestsAndResponsesMaps.get(batchKey)
-                                                                .remove(entry.getKey());
-                                    });
+            requests.forEach((contextId, batchExecutionContext) -> batchExecutionContext.response()
+                                                                                        .completeExceptionally(exception));
         } else {
-            List<IdentifiableResponse<ResponseT>> identifiedResponses = mapResponsesFunction.mapBatchResponse(batchResult);
-            for (IdentifiableResponse<ResponseT> identifiedResponse : identifiedResponses) {
+            List<IdentifiableMessage<ResponseT>> identifiedResponses = mapResponsesFunction.mapBatchResponse(batchResult);
+            for (IdentifiableMessage<ResponseT> identifiedResponse : identifiedResponses) {
                 String id = identifiedResponse.id();
-                ResponseT response = identifiedResponse.response();
-                requestsAndResponsesMaps.get(batchKey)
-                                        .getResponse(id)
-                                        .complete(response);
-                requestsAndResponsesMaps.get(batchKey)
-                                        .remove(id);
+                ResponseT response = identifiedResponse.message();
+                requests.get(id)
+                        .response()
+                        .complete(response);
             }
         }
+        requests.clear();
     }
 
-    private ScheduledFlush scheduleBufferFlush(String batchKey, long timeOutInMs,
-                                               ScheduledExecutorService scheduledExecutor) {
-        return scheduleBufferFlush(batchKey, timeOutInMs, timeOutInMs, false, scheduledExecutor);
+    private ScheduledFuture<?> scheduleBufferFlush(String batchKey, long timeOutInMs,
+                                           ScheduledExecutorService scheduledExecutor) {
+        return scheduledExecutor.scheduleAtFixedRate(() -> performScheduledFlush(batchKey), timeOutInMs, timeOutInMs,
+                                                     TimeUnit.MILLISECONDS);
     }
 
-    private ScheduledFlush scheduleBufferFlush(String batchKey, long initialDelay, long timeOutInMs, boolean isManual,
-                                               ScheduledExecutorService scheduledExecutor) {
-        CancellableFlush flushTask = new CancellableFlush(() -> flushBuffer(batchKey), isManual);
-        ScheduledFuture<?> scheduledFuture = scheduledExecutor.scheduleAtFixedRate(() -> {
-            flushTask.run();
-            flushTask.reset();
-        }, initialDelay, timeOutInMs, TimeUnit.MILLISECONDS);
-        return new ScheduledFlush(flushTask, scheduledFuture);
+    private void performScheduledFlush(String batchKey) {
+        Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests =
+            requestsAndResponsesMaps.flushableScheduledRequests(batchKey, maxBatchItems);
+        if (!flushableRequests.isEmpty()) {
+            flushBuffer(batchKey, flushableRequests);
+        }
     }
 
     public void close() {
-        try {
-            requestsAndResponsesMaps.forEach((key, batchBuffer) -> batchBuffer.cancelScheduledFlush());
-            requestsAndResponsesMaps.forEach((key, value) -> flushBuffer(key));
-            for (BatchBuffer<RequestT, ResponseT> idToResponse : requestsAndResponsesMaps.values()) {
-                CompletableFuture.allOf(idToResponse.responses().toArray(new CompletableFuture[0]))
-                                 .get(60, TimeUnit.SECONDS);
+        requestsAndResponsesMaps.forEach((batchKey, batchBuffer) -> {
+            requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
+            Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests =
+                requestsAndResponsesMaps.flushableScheduledRequests(batchKey, maxBatchItems);
+
+            while (!flushableRequests.isEmpty()) {
+                flushBuffer(batchKey, flushableRequests);
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.warn(() -> "Interrupted during BatchBuffer shutdown" + e);
-        } catch (ExecutionException e) {
-            log.warn(() -> "Failed during graceful metric publisher shutdown." + e);
-        } catch (TimeoutException e) {
-            log.warn(() -> "Timed out during graceful metric publisher shutdown." + e);
-        }
+        });
+        requestsAndResponsesMaps.waitForFlushesAndClear(log);
     }
 
     public static final class Builder<RequestT, ResponseT, BatchResponseT> {

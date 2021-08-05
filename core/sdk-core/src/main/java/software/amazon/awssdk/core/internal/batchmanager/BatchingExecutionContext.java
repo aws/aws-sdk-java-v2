@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.batchutilities;
+package software.amazon.awssdk.core.internal.batchmanager;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -21,8 +21,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class BatchingExecutionContext<RequestT, ResponseT> {
 
-    // TODO: Remove need for locking once I figure out how to properly remove requests.
-    private RequestT request;
+    private final RequestT request;
     private final CompletableFuture<ResponseT> response;
     private final Object lock = new Object();
 
@@ -39,16 +38,5 @@ public final class BatchingExecutionContext<RequestT, ResponseT> {
 
     public CompletableFuture<ResponseT> response() {
         return response;
-    }
-
-    public boolean removeRequest() {
-        synchronized (this.lock) {
-            RequestT ret = request;
-            if (ret == null) {
-                return false;
-            }
-            request = null;
-            return true;
-        }
     }
 }

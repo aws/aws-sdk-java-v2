@@ -13,9 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.batchutilities;
-
-import static org.mockito.Mockito.mock;
+package software.amazon.awssdk.core.internal.batchmanager;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -40,10 +38,10 @@ import software.amazon.awssdk.core.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
-public class BatchBufferTest {
+public class BatchManagerTest {
 
     private static final int DEFAULT_MAX_BATCH_OPEN = 200;
-    private static final Logger log = Logger.loggerFor(BatchBufferTest.class);
+    private static final Logger log = Logger.loggerFor(BatchManagerTest.class);
     private BatchManager<String, String, BatchResponse> batchManager;
     private ScheduledExecutorService scheduledExecutor;
     private String defaultDestination;
@@ -58,7 +56,7 @@ public class BatchBufferTest {
                                                                                      .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
 
-        batchManager = BatchManager.<String, String, BatchResponse> builder()
+        batchManager = BatchManager.builder(String.class, String.class, BatchResponse.class)
                              .overrideConfiguration(overrideConfiguration)
                              .batchingFunction(batchingFunction)
                              .mapResponsesFunction(mapResponsesFunction)
@@ -107,7 +105,7 @@ public class BatchBufferTest {
 
         long startTime = System.nanoTime();
         Map<String, CompletableFuture<String>> responses = createAndSendResponses(0, 5, requests);
-        waitForTime(DEFAULT_MAX_BATCH_OPEN);
+        waitForTime(DEFAULT_MAX_BATCH_OPEN + 10);
         responses.putAll(createAndSendResponses(5, 5, requests));
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
@@ -159,6 +157,23 @@ public class BatchBufferTest {
         checkThreadedResponses(requests, responses, sendRequestFutures);
         executorService.shutdownNow();
     }
+
+    @Test
+    public void periodicallySendMessagesWithTenThreadsToSameDestination() {
+        int numThreads = 10;
+        int numMessages = 10;
+        Map<String, String> requests = createRequestsOfSize(numMessages*numThreads);
+        ConcurrentHashMap<String, CompletableFuture<String>> responses = new ConcurrentHashMap<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
+        List<CompletableFuture<Map<String, CompletableFuture<String>>>> executions = new ArrayList<>();
+        for (int i = 0; i < numThreads; i++) {
+            executions.add(sendRequestToDestinationWithDelay(i*numMessages, numMessages, requests, responses, executorService));
+            waitForTime(75);
+        }
+        checkThreadedResponses(requests, responses, executions);
+        executorService.shutdownNow();
+    }
+
     @Test
     public void sentRequestsAllReturnExceptions(){
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
@@ -166,7 +181,7 @@ public class BatchBufferTest {
                                                                                      .maxBatchOpenInMs(Duration.ofMillis(DEFAULT_MAX_BATCH_OPEN))
                                                                                      .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
-        BatchManager<String, String, BatchResponse> testBatchManager = BatchManager.<String, String, BatchResponse> builder()
+        BatchManager<String, String, BatchResponse> testBatchManager = BatchManager.builder(String.class, String.class, BatchResponse.class)
                                                                                    .overrideConfiguration(overrideConfiguration)
                                                                                    .batchingFunction(exceptionBatchFunction)
                                                                                    .mapResponsesFunction(mapResponsesFunction)
@@ -197,7 +212,7 @@ public class BatchBufferTest {
             BatchResponse entries = new BatchResponse();
             identifiableRequests.forEach(identifiableRequest -> {
                 String id = identifiableRequest.id();
-                String request = identifiableRequest.request();
+                String request = identifiableRequest.message();
                 entries.add(new MessageWithId(id, request));
             });
             return CompletableFuture.supplyAsync(() -> {
@@ -208,9 +223,9 @@ public class BatchBufferTest {
 
     private static final BatchResponseMapper<BatchResponse, String> mapResponsesFunction =
         requestBatchResponse -> {
-            List<IdentifiableResponse<String>> identifiableResponses = new ArrayList<>();
+            List<IdentifiableMessage<String>> identifiableResponses = new ArrayList<>();
             for (MessageWithId requestWithId : requestBatchResponse.getResponses()) {
-                identifiableResponses.add(new IdentifiableResponse<>(requestWithId.getId(), requestWithId.getMessage()));
+                identifiableResponses.add(new IdentifiableMessage<>(requestWithId.getId(), requestWithId.getMessage()));
             }
             return identifiableResponses;
         };
@@ -232,6 +247,17 @@ public class BatchBufferTest {
         ConcurrentHashMap<String, CompletableFuture<String>> responses, ExecutorService executorService) {
         return CompletableFuture.supplyAsync(() -> {
             Map<String, CompletableFuture<String>> newResponses = createAndSendResponses(startingId, numMessages, requests);
+            responses.putAll(newResponses);
+            return newResponses;
+        }, executorService);
+    }
+
+
+    private CompletableFuture<Map<String, CompletableFuture<String>>> sendRequestToDestinationWithDelay(
+        int startingId, int numMessages, Map<String, String> requests,
+        ConcurrentHashMap<String, CompletableFuture<String>> responses, ExecutorService executorService) {
+        return CompletableFuture.supplyAsync(() -> {
+            Map<String, CompletableFuture<String>> newResponses = createAndSendResponsesWithDelay(startingId, numMessages, requests);
             responses.putAll(newResponses);
             return newResponses;
         }, executorService);
@@ -302,6 +328,18 @@ public class BatchBufferTest {
             String key = Integer.toString(i);
             String request = requests.get(key);
             responses.put(key, batchManager.sendRequest(request));
+        }
+        return responses;
+    }
+
+    private Map<String, CompletableFuture<String>> createAndSendResponsesWithDelay(int startingId, int size,
+                                                                                   Map<String, String> requests) {
+        Map<String, CompletableFuture<String>> responses = new HashMap<>();
+        for (int i = startingId; i < startingId + size; i++) {
+            String key = Integer.toString(i);
+            String request = requests.get(key);
+            responses.put(key, batchManager.sendRequest(request));
+            waitForTime(100);
         }
         return responses;
     }
