@@ -19,7 +19,6 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.DefaultSqsBatchManager;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
@@ -46,7 +45,9 @@ public interface SqsBatchManager extends SdkAutoCloseable {
      * @param message the outgoing SendMessageRequest.
      * @return a CompletableFuture of the corresponding SendMessageResponse.
      */
-    CompletableFuture<SendMessageResponse> sendMessage(SendMessageRequest message);
+    default CompletableFuture<SendMessageResponse> sendMessage(SendMessageRequest message) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Buffers outgoing ChangeMessageVisibilityRequests on the client and sends them as a ChangeMessageVisibilityBatchRequest to
@@ -59,7 +60,9 @@ public interface SqsBatchManager extends SdkAutoCloseable {
      * @param changeRequest the outgoing ChangeMessageVisibilityRequest.
      * @return a CompletableFuture of the corresponding ChangeMessageVisibilityResponse.
      */
-    CompletableFuture<ChangeMessageVisibilityResponse> changeMessageVisibility(ChangeMessageVisibilityRequest changeRequest);
+    default CompletableFuture<ChangeMessageVisibilityResponse> changeMessageVisibility(ChangeMessageVisibilityRequest changeRequest) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Buffers outgoing DeleteMessageRequests on the client and sends them as a DeleteMessageBatchRequest to SQS. Requests are
@@ -72,7 +75,9 @@ public interface SqsBatchManager extends SdkAutoCloseable {
      * @param deleteRequest the outgoing DeleteMessageRequest.
      * @return a CompletableFuture of the corresponding DeleteMessageResponse.
      */
-    CompletableFuture<DeleteMessageResponse> deleteMessage(DeleteMessageRequest deleteRequest);
+    default CompletableFuture<DeleteMessageResponse> deleteMessage(DeleteMessageRequest deleteRequest) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Create a builder that can be used to configure and create a {@link SqsBatchManager}.
@@ -80,7 +85,7 @@ public interface SqsBatchManager extends SdkAutoCloseable {
      * @return a builder
      */
     static Builder builder() {
-        return DefaultSqsBatchManager.builder();
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -89,7 +94,7 @@ public interface SqsBatchManager extends SdkAutoCloseable {
      * @return an instance of {@link SqsBatchManager}
      */
     static SqsBatchManager create() {
-        return DefaultSqsBatchManager.builder().build();
+        throw new UnsupportedOperationException();
     }
 
     interface Builder {
