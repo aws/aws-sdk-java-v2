@@ -35,10 +35,10 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.core.internal.batchmanager.BatchAndSend;
 import software.amazon.awssdk.core.internal.batchmanager.BatchKeyMapper;
-import software.amazon.awssdk.core.internal.batchmanager.BatchManager;
-import software.amazon.awssdk.core.BatchOverrideConfiguration;
+import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.core.internal.batchmanager.BatchResponseMapper;
 import software.amazon.awssdk.core.internal.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
@@ -72,11 +72,11 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
                                                                                      .maxBatchItems(10)
                                                                                      .maxBatchOpenInMs(Duration.ofMillis(DEFAULT_MAX_BATCH_OPEN))
-                                                                                     .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
         batchManager =
             BatchManager.builder(SendMessageRequest.class, SendMessageResponse.class, SendMessageBatchResponse.class)
                         .overrideConfiguration(overrideConfiguration)
+                        .scheduledExecutor(scheduledExecutor)
                         .batchingFunction(batchingFunction)
                         .mapResponsesFunction(mapResponsesFunction)
                         .batchKeyMapperFunction(getBatchGroupIdFunction)

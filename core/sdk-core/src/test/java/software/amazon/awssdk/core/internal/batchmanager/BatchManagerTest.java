@@ -34,7 +34,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.testng.Assert;
-import software.amazon.awssdk.core.BatchOverrideConfiguration;
+import software.amazon.awssdk.core.batchmanager.BatchManager;
+import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
@@ -53,15 +54,15 @@ public class BatchManagerTest {
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
                                                                                      .maxBatchItems(10)
                                                                                      .maxBatchOpenInMs(Duration.ofMillis(DEFAULT_MAX_BATCH_OPEN))
-                                                                                     .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
 
         batchManager = BatchManager.builder(String.class, String.class, BatchResponse.class)
-                             .overrideConfiguration(overrideConfiguration)
-                             .batchingFunction(batchingFunction)
-                             .mapResponsesFunction(mapResponsesFunction)
-                             .batchKeyMapperFunction(getBatchGroupIdFunction)
-                             .build();
+                                   .overrideConfiguration(overrideConfiguration)
+                                   .scheduledExecutor(scheduledExecutor)
+                                   .batchingFunction(batchingFunction)
+                                   .mapResponsesFunction(mapResponsesFunction)
+                                   .batchKeyMapperFunction(getBatchGroupIdFunction)
+                                   .build();
 
         defaultDestination = "dest0";
     }
@@ -179,10 +180,10 @@ public class BatchManagerTest {
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
                                                                                      .maxBatchItems(10)
                                                                                      .maxBatchOpenInMs(Duration.ofMillis(DEFAULT_MAX_BATCH_OPEN))
-                                                                                     .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
         BatchManager<String, String, BatchResponse> testBatchManager = BatchManager.builder(String.class, String.class, BatchResponse.class)
                                                                                    .overrideConfiguration(overrideConfiguration)
+                                                                                   .scheduledExecutor(scheduledExecutor)
                                                                                    .batchingFunction(exceptionBatchFunction)
                                                                                    .mapResponsesFunction(mapResponsesFunction)
                                                                                    .batchKeyMapperFunction(getBatchGroupIdFunction)
