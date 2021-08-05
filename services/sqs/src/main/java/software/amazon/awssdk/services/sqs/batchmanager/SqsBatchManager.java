@@ -18,6 +18,8 @@ package software.amazon.awssdk.services.sqs.batchmanager;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.DefaultSqsBatchManager;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -42,7 +44,7 @@ public interface SqsBatchManager extends SdkAutoCloseable {
      * @return a builder
      */
     static Builder builder() {
-        throw new UnsupportedOperationException();
+        return DefaultSqsBatchManager.builder();
     }
 
     /**
@@ -51,7 +53,7 @@ public interface SqsBatchManager extends SdkAutoCloseable {
      * @return an instance of {@link SqsBatchManager}
      */
     static SqsBatchManager create() {
-        throw new UnsupportedOperationException();
+        return DefaultSqsBatchManager.builder().build();
     }
 
     interface Builder {
@@ -63,6 +65,17 @@ public interface SqsBatchManager extends SdkAutoCloseable {
          * @return a reference to this object so that method calls can be chained together.
          */
         Builder overrideConfiguration(BatchOverrideConfiguration overrideConfiguration);
+
+        /**
+         * Sets a custom {@link SqsClient} that will be used to poll the resource.
+         * <p>
+         * This SDK client must be closed by the caller when it is ready to be disposed. The SDK will not close the
+         * client when the BatchManager is closed.
+         *
+         * @param client the client used to send and receive batch messages.
+         * @return a reference to this object so that method calls can be chained together.
+         */
+        Builder client(SqsClient client);
 
         SqsBatchManager build();
     }
