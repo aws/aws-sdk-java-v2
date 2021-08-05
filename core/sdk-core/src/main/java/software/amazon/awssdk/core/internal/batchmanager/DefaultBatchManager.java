@@ -24,6 +24,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -37,7 +38,8 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 // TODO: Implement BatchManager interface after renaming this to defaultBatchManager
-public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAutoCloseable {
+public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> implements BatchManager<RequestT, ResponseT,
+    BatchResponseT> {
 
     private static final Logger log = Logger.loggerFor(DefaultBatchManager.class);
     private final int maxBatchItems;
@@ -82,9 +84,7 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
         this.scheduledExecutor = builder.scheduledExecutor;
     }
 
-    public static <RequestT, ResponseT, BatchResponseT> Builder<RequestT, ResponseT, BatchResponseT> builder(
-        Class<? extends RequestT> requestClass, Class<? extends ResponseT> responseClass,
-        Class<? extends  BatchResponseT> batchResponseClass) {
+    public static <RequestT, ResponseT, BatchResponseT> Builder<RequestT, ResponseT, BatchResponseT> builder() {
         return new Builder<>();
     }
 
@@ -99,6 +99,7 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
      * @param request the outgoing request.
      * @return a CompletableFuture of the corresponding response.
      */
+    @Override
     public CompletableFuture<ResponseT> sendRequest(RequestT request) {
         CompletableFuture<ResponseT> response = new CompletableFuture<>();
         try {

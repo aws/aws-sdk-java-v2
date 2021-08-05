@@ -16,19 +16,31 @@
 package software.amazon.awssdk.core.batchmanager;
 
 import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.core.internal.batchmanager.DefaultBatchManager;
 import software.amazon.awssdk.core.internal.waiters.DefaultWaiter;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterBuilder;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
-// TODO: Add javadoc comments
+// TODO: Add javadoc commentsgit
 public interface BatchManager<RequestT, ResponseT, BatchResponseT> extends SdkAutoCloseable {
 
     CompletableFuture<ResponseT> sendRequest(RequestT request);
 
     void close();
 
-    //TODO: Add static builder method that returns DefaultBatchManager buider
+    /**
+     * Creates a newly initialized BatchManager builder object.
+     *
+     * @param <RequestT> the type of an outgoing request.
+     * @param <ResponseT> the type of an outgoing response.
+     * @param <BatchResponseT> the type of an outgoing batch response.
+     */
+    static <RequestT, ResponseT, BatchResponseT> DefaultBatchManager.Builder<RequestT, ResponseT, BatchResponseT> builder(
+        Class<? extends RequestT> requestClass, Class<? extends ResponseT> responseClass,
+        Class<? extends  BatchResponseT> batchResponseClass) {
+        return DefaultBatchManager.builder();
+    }
 
     /**
      * The BatchManager Builder
