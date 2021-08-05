@@ -20,6 +20,10 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.DefaultSqsBatchManager;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -43,6 +47,32 @@ public interface SqsBatchManager extends SdkAutoCloseable {
      * @return a CompletableFuture of the corresponding SendMessageResponse.
      */
     CompletableFuture<SendMessageResponse> sendMessage(SendMessageRequest message);
+
+    /**
+     * Buffers outgoing ChangeMessageVisibilityRequests on the client and sends them as a ChangeMessageVisibilityBatchRequest to
+     * SQS. Requests are batched together according to a batchKey and are sent periodically to SQS. If the number of requests
+     * for a batchKey reaches or exceeds the configured max items, then the requests are immediately flushed and the timeout on
+     * the periodic flush is reset.
+     * <p>
+     * By default, messages are batched with a maximum batch size of 10. These settings can be customized via the configuration.
+     *
+     * @param changeRequest the outgoing ChangeMessageVisibilityRequest.
+     * @return a CompletableFuture of the corresponding ChangeMessageVisibilityResponse.
+     */
+    CompletableFuture<ChangeMessageVisibilityResponse> changeMessageVisibility(ChangeMessageVisibilityRequest changeRequest);
+
+    /**
+     * Buffers outgoing DeleteMessageRequests on the client and sends them as a DeleteMessageBatchRequest to SQS. Requests are
+     * batched together according to a batchKey and are sent periodically to SQS. If the number of requests for a batchKey
+     * reaches or exceeds the configured max items, then the requests are immediately flushed and the timeout on the periodic
+     * flush is reset.
+     * <p>
+     * By default, messages are batched with a maximum batch size of 10. These settings can be customized via the configuration.
+     *
+     * @param deleteRequest the outgoing DeleteMessageRequest.
+     * @return a CompletableFuture of the corresponding DeleteMessageResponse.
+     */
+    CompletableFuture<DeleteMessageResponse> deleteMessage(DeleteMessageRequest deleteRequest);
 
     /**
      * Create a builder that can be used to configure and create a {@link SqsBatchManager}.
