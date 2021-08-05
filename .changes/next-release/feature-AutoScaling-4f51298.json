@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Auto Scaling",
+    "contributor": "",
+    "description": "EC2 Auto Scaling adds configuration checks and Launch Template validation to Instance Refresh."
+}
