@@ -70,9 +70,9 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
         this.requestsAndResponsesMaps = new BatchingMap<>();
         this.maxBatchItems = batchConfiguration.maxBatchItems();
         this.maxBatchOpenInMs = batchConfiguration.maxBatchOpenInMs();
-        this.batchingFunction = Validate.notNull(builder.batchingFunction, "Null batchingFunction");
-        this.mapResponsesFunction = Validate.notNull(builder.mapResponsesFunction, "Null mapResponsesFunction");
-        this.batchKeyMapperFunction = Validate.notNull(builder.batchKeyMapperFunction, "Null batchKeyMapperFunction");
+        this.batchingFunction = Validate.notNull(builder.batchFunction, "Null batchingFunction");
+        this.mapResponsesFunction = Validate.notNull(builder.responseMapper, "Null mapResponsesFunction");
+        this.batchKeyMapperFunction = Validate.notNull(builder.batchKeyMapper, "Null batchKeyMapperFunction");
         this.scheduledExecutor = builder.scheduledExecutor;
     }
 
@@ -176,9 +176,9 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
 
         private BatchOverrideConfiguration overrideConfiguration;
         private ScheduledExecutorService scheduledExecutor;
-        private BatchAndSend<RequestT, BatchResponseT> batchingFunction;
-        private BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction;
-        private BatchKeyMapper<RequestT> batchKeyMapperFunction;
+        private BatchAndSend<RequestT, BatchResponseT> batchFunction;
+        private BatchResponseMapper<BatchResponseT, ResponseT> responseMapper;
+        private BatchKeyMapper<RequestT> batchKeyMapper;
 
         private DefaultBuilder() {
         }
@@ -197,23 +197,22 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
         }
 
         @Override
-        public Builder<RequestT, ResponseT, BatchResponseT> batchingFunction(BatchAndSend<RequestT, BatchResponseT>
+        public Builder<RequestT, ResponseT, BatchResponseT> batchFunction(BatchAndSend<RequestT, BatchResponseT>
                                                                                  batchingFunction) {
-            this.batchingFunction = batchingFunction;
+            this.batchFunction = batchingFunction;
             return this;
         }
 
         @Override
-        public Builder<RequestT, ResponseT, BatchResponseT> mapResponsesFunction(
-            BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction) {
-            this.mapResponsesFunction = mapResponsesFunction;
+        public Builder<RequestT, ResponseT, BatchResponseT> responseMapper(
+            BatchResponseMapper<BatchResponseT, ResponseT> responseMapper) {
+            this.responseMapper = responseMapper;
             return this;
         }
 
         @Override
-        public Builder<RequestT, ResponseT, BatchResponseT> batchKeyMapperFunction(BatchKeyMapper<RequestT>
-                                                                                     batchKeyMapperFunction) {
-            this.batchKeyMapperFunction = batchKeyMapperFunction;
+        public Builder<RequestT, ResponseT, BatchResponseT> batchKeyMapper(BatchKeyMapper<RequestT> batchKeyMapper) {
+            this.batchKeyMapper = batchKeyMapper;
             return this;
         }
 

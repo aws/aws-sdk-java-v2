@@ -77,9 +77,9 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
             BatchManager.builder(SendMessageRequest.class, SendMessageResponse.class, SendMessageBatchResponse.class)
                         .overrideConfiguration(overrideConfiguration)
                         .scheduledExecutor(scheduledExecutor)
-                        .batchingFunction(batchingFunction)
-                        .mapResponsesFunction(mapResponsesFunction)
-                        .batchKeyMapperFunction(getBatchGroupIdFunction)
+                        .batchFunction(batchFunction)
+                        .responseMapper(responseMapper)
+                        .batchKeyMapper(batchKeyMapper)
                         .build();
     }
 
@@ -159,7 +159,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         checkThreadedResponses(requests, responses, sendRequestFutures);
     }
 
-    BatchAndSend<SendMessageRequest, SendMessageBatchResponse> batchingFunction =
+    BatchAndSend<SendMessageRequest, SendMessageBatchResponse> batchFunction =
         (identifiedRequests, destination) -> {
             List<SendMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
             identifiedRequests.forEach(identifiedRequest -> {
@@ -174,7 +174,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
             return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest));
         };
 
-    BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> mapResponsesFunction =
+    BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> responseMapper =
         sendMessageBatchResponse -> {
             List<IdentifiableMessage<SendMessageResponse>> mappedResponses = new ArrayList<>();
             sendMessageBatchResponse.successful()
@@ -187,7 +187,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
             return mappedResponses;
         };
 
-    private static final BatchKeyMapper<SendMessageRequest> getBatchGroupIdFunction =
+    private static final BatchKeyMapper<SendMessageRequest> batchKeyMapper =
         request -> {
             if (request.overrideConfiguration().isPresent()) {
                 return request.queueUrl() + request.overrideConfiguration().get();

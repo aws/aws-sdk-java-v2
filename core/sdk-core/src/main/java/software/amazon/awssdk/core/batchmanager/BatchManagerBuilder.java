@@ -16,12 +16,12 @@
 package software.amazon.awssdk.core.batchmanager;
 
 import java.util.concurrent.ScheduledExecutorService;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.batchmanager.BatchAndSend;
 import software.amazon.awssdk.core.internal.batchmanager.BatchKeyMapper;
 import software.amazon.awssdk.core.internal.batchmanager.BatchResponseMapper;
 
-@SdkPublicApi
+@SdkProtectedApi
 public interface BatchManagerBuilder<RequestT, ResponseT, BatchResponseT, B> {
 
     /**
@@ -44,24 +44,24 @@ public interface BatchManagerBuilder<RequestT, ResponseT, BatchResponseT, B> {
     /**
      * Adds a function that defines how requests should be batched together into the appropriate batch response.
      *
-     * @param batchingFunction the provided function.
+     * @param batchFunction the provided function.
      * @return a reference to this object so that method calls can be chained together.
      */
-    B batchingFunction(BatchAndSend<RequestT, BatchResponseT> batchingFunction);
+    B batchFunction(BatchAndSend<RequestT, BatchResponseT> batchFunction);
 
     /**
      * Adds a function that defines how a batch response should be extracted and transformed into its individual responses.
      *
-     * @param mapResponsesFunction the provided function.
+     * @param responseMapper the provided function.
      * @return a reference to this object so that method calls can be chained together.
      */
-    B mapResponsesFunction(BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction);
+    B responseMapper(BatchResponseMapper<BatchResponseT, ResponseT> responseMapper);
 
     /**
      * Adds a function that calculates an appropriate batchKey from a given request.
      *
-     * @param batchKeyMapperFunction the provided function.
+     * @param batchKeyMapper the provided function.
      * @return a reference to this object so that method calls can be chained together.
      */
-    B batchKeyMapperFunction(BatchKeyMapper<RequestT> batchKeyMapperFunction);
+    B batchKeyMapper(BatchKeyMapper<RequestT> batchKeyMapper);
 }

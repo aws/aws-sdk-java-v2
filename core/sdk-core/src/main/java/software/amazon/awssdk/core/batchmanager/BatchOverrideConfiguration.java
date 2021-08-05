@@ -120,8 +120,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
          * The maximum amount of time (in milliseconds) that an outgoing call waits for other requests before sending out a batch
          * request.
          *
-         * @param maxBatchOpenInMs
-         * @return
+         * @param maxBatchOpenInMs The new maxBatchOpenInMs value.
+         * @return This object for method chaining.
          */
         public Builder maxBatchOpenInMs(Duration maxBatchOpenInMs) {
             this.maxBatchOpenInMs = maxBatchOpenInMs;
