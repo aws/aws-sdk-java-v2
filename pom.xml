@@ -511,9 +511,8 @@
                         <excludes>
                             <exclude>*.internal.*</exclude>
 
-                            <!-- Jackson removal -->
-                            <exclude>software.amazon.awssdk.core.util.json.JacksonUtils</exclude>
-                            <exclude>software.amazon.awssdk.protocols.json.*</exclude>
+                            <!-- Checksum bug fix -->
+                            <exclude>software.amazon.awssdk.services.s3.checksums.ChecksumValidatingInputStream</exclude>
                         </excludes>
 
                         <excludeModules>
