@@ -24,6 +24,10 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
+/**
+ * Batch manager class that implements automatic batching features for a SQS async client. This can be created using the static
+ * {@link #builder()} method.
+ */
 @SdkPublicApi
 public interface SqsAsyncBatchManager extends SdkAutoCloseable {
     /**
@@ -31,6 +35,7 @@ public interface SqsAsyncBatchManager extends SdkAutoCloseable {
      * batched together according to a batchKey and are sent periodically to SQS. If the number of requests for a batchKey
      * reaches or exceeds the configured max items, then the requests are immediately flushed and the timeout on the periodic
      * flush is reset.
+     * <p>
      * By default, messages are batched with a maximum batch size of 10. These settings can be customized via the configuration.
      *
      * @param message the outgoing SendMessageRequest.
@@ -40,6 +45,7 @@ public interface SqsAsyncBatchManager extends SdkAutoCloseable {
 
     /**
      * Create a builder that can be used to configure and create a {@link SqsAsyncBatchManager}.
+     *
      * @return a builder
      */
     static SqsAsyncBatchManager.Builder builder() {
@@ -76,6 +82,11 @@ public interface SqsAsyncBatchManager extends SdkAutoCloseable {
          */
         SqsAsyncBatchManager.Builder client(SqsAsyncClient client);
 
+        /**
+         * Builds an instance of {@link SqsAsyncBatchManager} based on the configurations supplied to this builder.
+         *
+         * @return An initialized {@link SqsAsyncBatchManager}
+         */
         SqsAsyncBatchManager build();
     }
 }
