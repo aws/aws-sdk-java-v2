@@ -1,3 +1,36 @@
+# __2.17.14__ __2021-08-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Athena__
+  - ### Features
+    - Documentation updates for Athena.
+
+## __Amazon Chime SDK Identity__
+  - ### Features
+    - The Amazon Chime SDK Identity APIs allow software developers to create and manage unique instances of their messaging applications.
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - The Amazon Chime SDK Messaging APIs allow software developers to send and receive messages in custom messaging applications.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds support for agent status and hours of operation. For details, see the Release Notes in the Amazon Connect Administrator Guide.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support to track when a bucket access key was last used.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue where checksum validation only considered the first 4 bytes of the 16 byte checksum, creating the potential for corrupted downloads to go undetected.
+
+## __Synthetics__
+  - ### Features
+    - Documentation updates for Visual Monitoring feature and other doc ticket fixes.
+
 # __2.17.13__ __2021-08-05__
 ## __Amazon Lex Model Building V2__
   - ### Features
