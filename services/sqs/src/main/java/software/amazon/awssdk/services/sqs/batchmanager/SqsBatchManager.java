@@ -60,7 +60,8 @@ public interface SqsBatchManager extends SdkAutoCloseable {
      * @param changeRequest the outgoing ChangeMessageVisibilityRequest.
      * @return a CompletableFuture of the corresponding ChangeMessageVisibilityResponse.
      */
-    default CompletableFuture<ChangeMessageVisibilityResponse> changeMessageVisibility(ChangeMessageVisibilityRequest changeRequest) {
+    default CompletableFuture<ChangeMessageVisibilityResponse> changeMessageVisibility(ChangeMessageVisibilityRequest
+                                                                                           changeRequest) {
         throw new UnsupportedOperationException();
     }
 
