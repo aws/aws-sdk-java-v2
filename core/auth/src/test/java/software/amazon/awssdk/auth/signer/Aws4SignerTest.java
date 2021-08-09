@@ -156,6 +156,48 @@ public class Aws4SignerTest {
                           "Signature=581d0042389009a28d461124138f1fe8eeb8daed87611d2a2b47fd3d68d81d73");
     }
 
+    /**
+     * Multi-value headers should be comma separated.
+     */
+    @Test
+    public void canonicalizedHeaderString_multiValueHeaders_areCommaSeparated() throws Exception {
+        AwsBasicCredentials credentials = AwsBasicCredentials.create("akid", "skid");
+        SdkHttpFullRequest.Builder request = generateBasicRequest();
+        request.appendHeader("foo","bar");
+        request.appendHeader("foo","baz");
+
+        SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingOverrideClock, "us-east-1");
+
+        // We cannot easily test the canonical header string value, but the below signature asserts that it contains:
+        // foo:bar,baz
+        assertThat(actual.firstMatchingHeader("Authorization"))
+            .hasValue("AWS4-HMAC-SHA256 Credential=akid/19810216/us-east-1/demo/aws4_request, " 
+                      + "SignedHeaders=foo;host;x-amz-archive-description;x-amz-date, " 
+                      + "Signature=1253bc1751048ea299e688cbe07a2224292e5cc606a079cb40459ad987793c19");
+    }
+
+    /**
+     * Canonical headers should remove excess white space before and after values, and convert sequential spaces to a single 
+     * space.
+     */
+    @Test
+    public void canonicalizedHeaderString_valuesWithExtraWhitespace_areTrimmed() throws Exception {
+        AwsBasicCredentials credentials = AwsBasicCredentials.create("akid", "skid");
+        SdkHttpFullRequest.Builder request = generateBasicRequest();
+        request.putHeader("My-header1","    a   b   c  ");
+        request.putHeader("My-Header2","    \"a   b   c\"  ");
+
+        SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingOverrideClock, "us-east-1");
+
+        // We cannot easily test the canonical header string value, but the below signature asserts that it contains:
+        // my-header1:a b c
+        // my-header2:"a b c"
+        assertThat(actual.firstMatchingHeader("Authorization"))
+            .hasValue("AWS4-HMAC-SHA256 Credential=akid/19810216/us-east-1/demo/aws4_request, " 
+                      + "SignedHeaders=host;my-header1;my-header2;x-amz-archive-description;x-amz-date, " 
+                      + "Signature=6d3520e3397e7aba593d8ebd8361fc4405e90aed71bc4c7a09dcacb6f72460b9");
+    }
+
     private SdkHttpFullRequest.Builder generateBasicRequest() {
         return SdkHttpFullRequest.builder()
                                  .contentStreamProvider(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))

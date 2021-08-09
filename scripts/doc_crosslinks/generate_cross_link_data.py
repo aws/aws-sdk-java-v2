@@ -4,7 +4,8 @@ import io
 import codecs
 import json
 import re
-# import requests
+import pathlib
+from pathlib import Path
 from os import listdir
 from os.path import isdir, exists, join
 from re import split
@@ -14,22 +15,17 @@ clientClass = {}
 
 def generateDocsMap(apiDefinitionsPath, apiDefinitionsRelativeFilePath):
 
-    filesInDir = [f for f in listdir(apiDefinitionsPath) if isdir(join(apiDefinitionsPath, f))]
-    for file in filesInDir :
-        serviceJsonFileName = join(apiDefinitionsPath, join(file, apiDefinitionsRelativeFilePath))
-
-        if(exists(serviceJsonFileName)) :
-            with codecs.open(serviceJsonFileName, 'rb', 'utf-8') as api_definition:
-                api_content = json.loads(api_definition.read())
-                if "uid" in api_content["metadata"].keys():
-                    sdks[api_content["metadata"]["uid"]] = file
-                clientClass[api_content["metadata"]["uid"]] = getClientClassNameFromMetadata(api_content["metadata"])
-
-#                 # Below  code can be used for debugging  failing clients
-#                 str  = "https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/"+ file +"/"+getClientClassNameFromMetadata(api_content["metadata"])+".html"+"#validateTemplate--"
-#                 ret = requests.head(str)
-#                 if( ret.status_code != 200 ):
-#                     print(str)
+    rootPath = pathlib.Path(r'./services')
+    for serviceModelPaths in rootPath.rglob('service-2.json'):
+        tokenizePath = str(Path(serviceModelPaths).parent).split("/")
+        getServiceName = tokenizePath[len(tokenizePath)-1]
+        if (getServiceName == "codegen-resources"):
+            getServiceName = str(serviceModelPaths).split("services/")[1].split("/src/main/resources")[0]
+        with codecs.open(serviceModelPaths, 'rb', 'utf-8') as apiDefinition:
+            apiContent = json.loads(apiDefinition.read())
+            if "uid" in apiContent["metadata"].keys():
+                sdks[apiContent["metadata"]["uid"]] = getServiceName
+            clientClass[apiContent["metadata"]["uid"]] = getClientClassNameFromMetadata(apiContent["metadata"])
 
     return sdks
 
@@ -110,11 +106,10 @@ def Main():
     argMap = {}
     argMap[ "apiDefinitionsBasePath" ] = args[ "apiDefinitionsBasePath" ] or "./../services/"
     argMap[ "apiDefinitionsRelativeFilePath" ] = args[ "apiDefinitionsRelativeFilePath" ] or "/src/main/resources/codegen-resources/service-2.json"
-    argMap[ "templateFilePath" ] = args[ "templateFilePath" ] or "./scripts/crosslink_redirect.html"
+    argMap[ "templateFilePath" ] = args[ "templateFilePath" ] or "./scripts/doc_crosslinks/crosslink_redirect.html"
     argMap[ "outputFilePath" ] = args[ "outputFilePath" ] or "./crosslink_redirect.html"
     
     insertDocsMapToRedirect(argMap["apiDefinitionsBasePath"], argMap["apiDefinitionsRelativeFilePath"], argMap["templateFilePath"], argMap["outputFilePath"])
     print("Generated Cross link at " + argMap["outputFilePath"])
     
-Main()    
-            
+Main()

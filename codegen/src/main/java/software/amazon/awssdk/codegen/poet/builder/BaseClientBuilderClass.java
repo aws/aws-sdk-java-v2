@@ -29,6 +29,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.endpointdiscovery.providers.DefaultEndpointDiscoveryProviderChain;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -92,9 +94,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(serviceNameMethod());
         builder.addMethod(mergeServiceDefaultsMethod());
 
-        if (model.getCustomizationConfig().getUserAgent() != null) {
-            builder.addMethod(mergeInternalDefaultsMethod());
-        }
+        mergeInternalDefaultsMethod().ifPresent(builder::addMethod);
 
         builder.addMethod(finalizeServiceConfigurationMethod());
         builder.addMethod(defaultSignerMethod());
@@ -175,19 +175,31 @@ public class BaseClientBuilderClass implements ClassSpec {
         return builder.build();
     }
 
-    private MethodSpec mergeInternalDefaultsMethod() {
+    private Optional<MethodSpec> mergeInternalDefaultsMethod() {
         String userAgent = model.getCustomizationConfig().getUserAgent();
+        RetryMode defaultRetryMode = model.getCustomizationConfig().getDefaultRetryMode();
+        
+        // If none of the options are customized, then we do not need to bother overriding the method
+        if (userAgent == null && defaultRetryMode == null) {
+            return Optional.empty();
+        }
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder("mergeInternalDefaults")
                                                .addAnnotation(Override.class)
                                                .addModifiers(PROTECTED, FINAL)
                                                .returns(SdkClientConfiguration.class)
                                                .addParameter(SdkClientConfiguration.class, "config")
-                                               .addCode("return config.merge(c -> c.option($T.INTERNAL_USER_AGENT, $S)\n",
-                                                        SdkClientOption.class, userAgent);
-
-        builder.addCode(");");
-        return builder.build();
+                                               .addCode("return config.merge(c -> {\n");
+        if (userAgent != null) {
+            builder.addCode("c.option($T.INTERNAL_USER_AGENT, $S);\n",
+                            SdkClientOption.class, userAgent);
+        }
+        if (defaultRetryMode != null) {
+            builder.addCode("c.option($T.DEFAULT_RETRY_MODE, $T.$L);\n",
+                            SdkClientOption.class, RetryMode.class, defaultRetryMode.name());
+        }
+        builder.addCode("});\n");
+        return Optional.of(builder.build());
     }
 
     private MethodSpec finalizeServiceConfigurationMethod() {

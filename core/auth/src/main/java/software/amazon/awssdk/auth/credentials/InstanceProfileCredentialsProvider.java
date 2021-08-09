@@ -20,10 +20,11 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.util.SdkUserAgent;
-import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.ToString;
@@ -41,11 +42,15 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
 
     private static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
 
+    private final String endpoint;
+    private final Ec2MetadataConfigProvider configProvider = Ec2MetadataConfigProvider.builder().build();
+
     /**
      * @see #builder()
      */
     private InstanceProfileCredentialsProvider(BuilderImpl builder) {
         super(builder);
+        this.endpoint = builder.endpoint;
     }
 
     /**
@@ -66,7 +71,7 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
 
     @Override
     protected ResourcesEndpointProvider getCredentialsEndpointProvider() {
-        return new InstanceProviderCredentialsEndpointProvider(getToken());
+        return new InstanceProviderCredentialsEndpointProvider(getImdsEndpoint(), getToken());
     }
 
     @Override
@@ -80,7 +85,24 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
     }
 
     private String getToken() {
-        return EC2MetadataUtils.getToken();
+        try {
+            return HttpResourcesUtils.instance()
+                    .readResource(new TokenEndpointProvider(getImdsEndpoint()), "PUT");
+        } catch (Exception e) {
+
+            boolean is400ServiceException = e instanceof SdkServiceException
+                    && ((SdkServiceException) e).statusCode() == 400;
+
+            // metadata resolution must not continue to the token-less flow for a 400
+            if (is400ServiceException) {
+                throw SdkClientException.builder()
+                        .message("Unable to fetch metadata token")
+                        .cause(e)
+                        .build();
+            }
+
+            return null;
+        }
     }
 
     private static ResourcesEndpointProvider includeTokenHeader(ResourcesEndpointProvider provider, String token) {
@@ -99,18 +121,26 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
         };
     }
 
+    private String getImdsEndpoint() {
+        if (endpoint != null) {
+            return endpoint;
+        }
+
+        return configProvider.getEndpoint();
+    }
+
     private static final class InstanceProviderCredentialsEndpointProvider implements ResourcesEndpointProvider {
+        private final String imdsEndpoint;
         private final String metadataToken;
 
-        private InstanceProviderCredentialsEndpointProvider(String metadataToken) {
+        private InstanceProviderCredentialsEndpointProvider(String imdsEndpoint, String metadataToken) {
+            this.imdsEndpoint = imdsEndpoint;
             this.metadataToken = metadataToken;
         }
 
         @Override
         public URI endpoint() throws IOException {
-            String host = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
-
-            URI endpoint = URI.create(host + SECURITY_CREDENTIALS_RESOURCE);
+            URI endpoint = URI.create(imdsEndpoint + SECURITY_CREDENTIALS_RESOURCE);
             ResourcesEndpointProvider endpointProvider = () -> endpoint;
 
             if (metadataToken != null) {
@@ -124,7 +154,7 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
                 throw SdkClientException.builder().message("Unable to load credentials path").build();
             }
 
-            return URI.create(host + SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
+            return URI.create(imdsEndpoint + SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
         }
 
         @Override
@@ -142,11 +172,45 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
         }
     }
 
+    private static final class TokenEndpointProvider implements ResourcesEndpointProvider {
+        private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
+        private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
+        private static final String DEFAULT_TOKEN_TTL = "21600";
+
+        private final String host;
+
+        private TokenEndpointProvider(String host) {
+            this.host = host;
+        }
+
+        @Override
+        public URI endpoint() {
+            String finalHost = host;
+            if (finalHost.endsWith("/")) {
+                finalHost = finalHost.substring(0, finalHost.length() - 1);
+            }
+            return URI.create(finalHost + TOKEN_RESOURCE_PATH);
+        }
+
+        @Override
+        public Map<String, String> headers() {
+            Map<String, String> requestHeaders = new HashMap<>();
+            requestHeaders.put("User-Agent", SdkUserAgent.create().userAgent());
+            requestHeaders.put("Accept", "*/*");
+            requestHeaders.put("Connection", "keep-alive");
+            requestHeaders.put(EC2_METADATA_TOKEN_TTL_HEADER, DEFAULT_TOKEN_TTL);
+
+            return requestHeaders;
+        }
+    }
+
 
     /**
      * A builder for creating a custom a {@link InstanceProfileCredentialsProvider}.
      */
     public interface Builder extends HttpCredentialsProvider.Builder<InstanceProfileCredentialsProvider, Builder> {
+
+        Builder endpoint(String endpoint);
 
         /**
          * Build a {@link InstanceProfileCredentialsProvider} from the provided configuration.
@@ -159,8 +223,16 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
         extends HttpCredentialsProvider.BuilderImpl<InstanceProfileCredentialsProvider, Builder>
         implements Builder {
 
+        private String endpoint;
+
         private BuilderImpl() {
             super.asyncThreadName("instance-profile-credentials-provider");
+        }
+
+        @Override
+        public Builder endpoint(String endpoint) {
+            this.endpoint = endpoint;
+            return this;
         }
 
         @Override

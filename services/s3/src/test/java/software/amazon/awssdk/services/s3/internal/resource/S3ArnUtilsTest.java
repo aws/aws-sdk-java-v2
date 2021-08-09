@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -130,5 +131,23 @@ public class S3ArnUtilsTest {
                                       .accountId("123456789012")
                                       .resource("outpost::accesspoint:name")
                                       .build());
+    }
+
+    @Test
+    public void getArnType_shouldRecognizeAccessPointArn() {
+        String arnString = "arn:aws:s3:us-west-2:123456789012:accesspoint/my-access-point";
+        assertThat(S3ArnUtils.getArnType(arnString), is(Optional.of(S3ResourceType.ACCESS_POINT)));
+    }
+
+    @Test
+    public void getArnType_shouldRecognizeOutpostArn() {
+        String arnString = "arn:aws:s3-outposts:us-west-2:123456789012:outpost/my-outpost/bucket/my-bucket";
+        assertThat(S3ArnUtils.getArnType(arnString), is(Optional.of(S3ResourceType.OUTPOST)));
+    }
+
+    @Test
+    public void getArnType_shouldNotThrow_onRandomInput() {
+        String arnString = UUID.randomUUID().toString();
+        assertThat(S3ArnUtils.getArnType(arnString), is(Optional.empty()));
     }
 }

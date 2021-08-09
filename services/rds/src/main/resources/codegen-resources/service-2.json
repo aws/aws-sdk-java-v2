@@ -3540,7 +3540,7 @@
         },
         "AllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The amount of storage (in gibibytes) to allocate for the DB instance.</p> <p>Type: Integer</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. Aurora cluster volumes automatically grow as the amount of data in your database increases, though you are only charged for the space that you use in an Aurora cluster volume.</p> <p> <b>MySQL</b> </p> <p>Constraints to the amount of storage for each storage type are the following: </p> <ul> <li> <p>General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> <p> <b>MariaDB</b> </p> <p>Constraints to the amount of storage for each storage type are the following: </p> <ul> <li> <p>General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> <p> <b>PostgreSQL</b> </p> <p>Constraints to the amount of storage for each storage type are the following: </p> <ul> <li> <p>General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> <p> <b>Oracle</b> </p> <p>Constraints to the amount of storage for each storage type are the following: </p> <ul> <li> <p>General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 10 to 3072.</p> </li> </ul> <p> <b>SQL Server</b> </p> <p>Constraints to the amount of storage for each storage type are the following: </p> <ul> <li> <p>General Purpose (SSD) storage (gp2):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 200 to 16384.</p> </li> <li> <p>Web and Express editions: Must be an integer from 20 to 16384.</p> </li> </ul> </li> <li> <p>Provisioned IOPS storage (io1):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 200 to 16384.</p> </li> <li> <p>Web and Express editions: Must be an integer from 100 to 16384.</p> </li> </ul> </li> <li> <p>Magnetic storage (standard):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 200 to 1024.</p> </li> <li> <p>Web and Express editions: Must be an integer from 20 to 1024.</p> </li> </ul> </li> </ul>"
+          "documentation":"<p>The amount of storage in gibibytes (GiB) to allocate for the DB instance.</p> <p>Type: Integer</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. Aurora cluster volumes automatically grow as the amount of data in your database increases, though you are only charged for the space that you use in an Aurora cluster volume.</p> <p> <b>MySQL</b> </p> <p>Constraints to the amount of storage for each storage type are the following: </p> <ul> <li> <p>General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> <p> <b>MariaDB</b> </p> <p>Constraints to the amount of storage for each storage type are the following: </p> <ul> <li> <p>General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> <p> <b>PostgreSQL</b> </p> <p>Constraints to the amount of storage for each storage type are the following: </p> <ul> <li> <p>General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> <p> <b>Oracle</b> </p> <p>Constraints to the amount of storage for each storage type are the following: </p> <ul> <li> <p>General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 10 to 3072.</p> </li> </ul> <p> <b>SQL Server</b> </p> <p>Constraints to the amount of storage for each storage type are the following: </p> <ul> <li> <p>General Purpose (SSD) storage (gp2):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 200 to 16384.</p> </li> <li> <p>Web and Express editions: Must be an integer from 20 to 16384.</p> </li> </ul> </li> <li> <p>Provisioned IOPS storage (io1):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 200 to 16384.</p> </li> <li> <p>Web and Express editions: Must be an integer from 100 to 16384.</p> </li> </ul> </li> <li> <p>Magnetic storage (standard):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 200 to 1024.</p> </li> <li> <p>Web and Express editions: Must be an integer from 20 to 1024.</p> </li> </ul> </li> </ul>"
         },
         "DBInstanceClass":{
           "shape":"String",
@@ -3716,7 +3716,7 @@
         },
         "MaxAllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The upper limit to which Amazon RDS can automatically scale the storage of the DB instance.</p> <p>For more information about this setting, including limitations that apply to it, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.StorageTypes.html#USER_PIOPS.Autoscaling\"> Managing capacity automatically with Amazon RDS storage autoscaling</a> in the <i>Amazon RDS User Guide</i>.</p>"
+          "documentation":"<p>The upper limit in gibibytes (GiB) to which Amazon RDS can automatically scale the storage of the DB instance.</p> <p>For more information about this setting, including limitations that apply to it, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.StorageTypes.html#USER_PIOPS.Autoscaling\"> Managing capacity automatically with Amazon RDS storage autoscaling</a> in the <i>Amazon RDS User Guide</i>.</p>"
         },
         "EnableCustomerOwnedIp":{
           "shape":"BooleanOptional",
@@ -3855,7 +3855,7 @@
         },
         "MaxAllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The upper limit to which Amazon RDS can automatically scale the storage of the DB instance.</p> <p>For more information about this setting, including limitations that apply to it, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.StorageTypes.html#USER_PIOPS.Autoscaling\"> Managing capacity automatically with Amazon RDS storage autoscaling</a> in the <i>Amazon RDS User Guide</i>.</p>"
+          "documentation":"<p>The upper limit in gibibytes (GiB) to which Amazon RDS can automatically scale the storage of the DB instance.</p> <p>For more information about this setting, including limitations that apply to it, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.StorageTypes.html#USER_PIOPS.Autoscaling\"> Managing capacity automatically with Amazon RDS storage autoscaling</a> in the <i>Amazon RDS User Guide</i>.</p>"
         }
       }
     },
@@ -4326,6 +4326,10 @@
         "Status":{
           "shape":"String",
           "documentation":"<p>Specifies the current state of this DB cluster.</p>"
+        },
+        "AutomaticRestartTime":{
+          "shape":"TStamp",
+          "documentation":"<p>The time when a stopped DB cluster is restarted automatically.</p>"
         },
         "PercentProgress":{
           "shape":"String",
@@ -5249,6 +5253,10 @@
           "shape":"String",
           "documentation":"<p>Specifies the current state of this database.</p> <p>For information about DB instance statuses, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/accessing-monitoring.html#Overview.DBInstance.Status\">Viewing DB instance status</a> in the <i>Amazon RDS User Guide.</i> </p>"
         },
+        "AutomaticRestartTime":{
+          "shape":"TStamp",
+          "documentation":"<p>The time when a stopped DB instance is restarted automatically.</p>"
+        },
         "MasterUsername":{
           "shape":"String",
           "documentation":"<p>Contains the master username for the DB instance.</p>"
@@ -5259,11 +5267,11 @@
         },
         "Endpoint":{
           "shape":"Endpoint",
-          "documentation":"<p>Specifies the connection endpoint.</p>"
+          "documentation":"<p>Specifies the connection endpoint.</p> <note> <p>The endpoint might not be shown for instances whose status is <code>creating</code>.</p> </note>"
         },
         "AllocatedStorage":{
           "shape":"Integer",
-          "documentation":"<p>Specifies the allocated storage size specified in gibibytes.</p>"
+          "documentation":"<p>Specifies the allocated storage size specified in gibibytes (GiB).</p>"
         },
         "InstanceCreateTime":{
           "shape":"TStamp",
@@ -5471,7 +5479,7 @@
         },
         "MaxAllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The upper limit to which Amazon RDS can automatically scale the storage of the DB instance.</p>"
+          "documentation":"<p>The upper limit in gibibytes (GiB) to which Amazon RDS can automatically scale the storage of the DB instance.</p>"
         },
         "TagList":{"shape":"TagList"},
         "DBInstanceAutomatedBackupsReplications":{
@@ -6452,7 +6460,7 @@
         },
         "SnapshotCreateTime":{
           "shape":"TStamp",
-          "documentation":"<p>Specifies when the snapshot was taken in Coordinated Universal Time (UTC).</p>"
+          "documentation":"<p>Specifies when the snapshot was taken in Coordinated Universal Time (UTC). Changes for the copy when the snapshot is copied.</p>"
         },
         "Engine":{
           "shape":"String",
@@ -6516,7 +6524,7 @@
         },
         "SourceDBSnapshotIdentifier":{
           "shape":"String",
-          "documentation":"<p>The DB snapshot Amazon Resource Name (ARN) that the DB snapshot was copied from. It only has value in case of cross-customer or cross-region copy.</p>"
+          "documentation":"<p>The DB snapshot Amazon Resource Name (ARN) that the DB snapshot was copied from. It only has a value in the case of a cross-account or cross-Region copy.</p>"
         },
         "StorageType":{
           "shape":"String",
@@ -6554,7 +6562,11 @@
           "shape":"String",
           "documentation":"<p>The identifier for the source DB instance, which can't be changed and which is unique to an Amazon Web Services Region.</p>"
         },
-        "TagList":{"shape":"TagList"}
+        "TagList":{"shape":"TagList"},
+        "OriginalSnapshotCreateTime":{
+          "shape":"TStamp",
+          "documentation":"<p>Specifies the time of the CreateDBSnapshot operation in Coordinated Universal Time (UTC). Doesn't change when the snapshot is copied.</p>"
+        }
       },
       "documentation":"<p>Contains the details of an Amazon RDS DB snapshot. </p> <p>This data type is used as a response element in the <code>DescribeDBSnapshots</code> action. </p>",
       "wrapper":true
@@ -7288,7 +7300,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>A filter that specifies one or more DB clusters to describe.</p> <p>Supported filters:</p> <ul> <li> <p> <code>db-cluster-id</code> - Accepts DB cluster identifiers and DB cluster Amazon Resource Names (ARNs). The results list will only include information about the DB clusters identified by these ARNs.</p> </li> </ul>"
+          "documentation":"<p>A filter that specifies one or more DB clusters to describe.</p> <p>Supported filters:</p> <ul> <li> <p> <code>clone-group-id</code> - Accepts clone group identifiers. The results list will only include information about the DB clusters associated with these clone groups.</p> </li> <li> <p> <code>db-cluster-id</code> - Accepts DB cluster identifiers and DB cluster Amazon Resource Names (ARNs). The results list will only include information about the DB clusters identified by these ARNs.</p> </li> <li> <p> <code>domain</code> - Accepts Active Directory directory IDs. The results list will only include information about the DB clusters associated with these domains.</p> </li> <li> <p> <code>engine</code> - Accepts engine names. The results list will only include information about the DB clusters for these engines.</p> </li> </ul>"
         },
         "MaxRecords":{
           "shape":"IntegerOptional",
@@ -7947,7 +7959,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>A filter that specifies one or more global DB clusters to describe.</p> <p>Supported filters:</p> <ul> <li> <p> <code>db-cluster-id</code> - Accepts DB cluster identifiers and DB cluster Amazon Resource Names (ARNs). The results list will only include information about the DB clusters identified by these ARNs.</p> </li> </ul>"
+          "documentation":"<p>This parameter isn't currently supported.</p>"
         },
         "MaxRecords":{
           "shape":"IntegerOptional",
@@ -9770,7 +9782,7 @@
         },
         "AllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The new amount of storage (in gibibytes) to allocate for the DB instance. </p> <p>For MariaDB, MySQL, Oracle, and PostgreSQL, the value supplied must be at least 10% greater than the current value. Values that are not at least 10% greater than the existing value are rounded up so that they are 10% greater than the current value. </p> <p>For the valid values for allocated storage for each engine, see <code>CreateDBInstance</code>. </p>"
+          "documentation":"<p>The new amount of storage in gibibytes (GiB) to allocate for the DB instance. </p> <p>For MariaDB, MySQL, Oracle, and PostgreSQL, the value supplied must be at least 10% greater than the current value. Values that are not at least 10% greater than the existing value are rounded up so that they are 10% greater than the current value. </p> <p>For the valid values for allocated storage for each engine, see <code>CreateDBInstance</code>. </p>"
         },
         "DBInstanceClass":{
           "shape":"String",
@@ -9926,7 +9938,7 @@
         },
         "MaxAllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The upper limit to which Amazon RDS can automatically scale the storage of the DB instance.</p> <p>For more information about this setting, including limitations that apply to it, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.StorageTypes.html#USER_PIOPS.Autoscaling\"> Managing capacity automatically with Amazon RDS storage autoscaling</a> in the <i>Amazon RDS User Guide</i>.</p>"
+          "documentation":"<p>The upper limit in gibibytes (GiB) to which Amazon RDS can automatically scale the storage of the DB instance.</p> <p>For more information about this setting, including limitations that apply to it, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.StorageTypes.html#USER_PIOPS.Autoscaling\"> Managing capacity automatically with Amazon RDS storage autoscaling</a> in the <i>Amazon RDS User Guide</i>.</p>"
         },
         "CertificateRotationRestart":{
           "shape":"BooleanOptional",
@@ -10977,7 +10989,7 @@
         },
         "AllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The allocated storage size for the DB instance specified in gibibytes .</p>"
+          "documentation":"<p>The allocated storage size for the DB instance specified in gibibytes (GiB).</p>"
         },
         "MasterUserPassword":{
           "shape":"String",
@@ -12315,7 +12327,7 @@
         },
         "MaxAllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The upper limit to which Amazon RDS can automatically scale the storage of the DB instance.</p> <p>For more information about this setting, including limitations that apply to it, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.StorageTypes.html#USER_PIOPS.Autoscaling\"> Managing capacity automatically with Amazon RDS storage autoscaling</a> in the <i>Amazon RDS User Guide</i>.</p>"
+          "documentation":"<p>The upper limit in gibibytes (GiB) to which Amazon RDS can automatically scale the storage of the DB instance.</p> <p>For more information about this setting, including limitations that apply to it, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.StorageTypes.html#USER_PIOPS.Autoscaling\"> Managing capacity automatically with Amazon RDS storage autoscaling</a> in the <i>Amazon RDS User Guide</i>.</p>"
         }
       }
     },
@@ -12452,7 +12464,7 @@
         },
         "MaxAllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The upper limit to which Amazon RDS can automatically scale the storage of the DB instance.</p> <p>For more information about this setting, including limitations that apply to it, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.StorageTypes.html#USER_PIOPS.Autoscaling\"> Managing capacity automatically with Amazon RDS storage autoscaling</a> in the <i>Amazon RDS User Guide</i>.</p>"
+          "documentation":"<p>The upper limit in gibibytes (GiB) to which Amazon RDS can automatically scale the storage of the DB instance.</p> <p>For more information about this setting, including limitations that apply to it, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.StorageTypes.html#USER_PIOPS.Autoscaling\"> Managing capacity automatically with Amazon RDS storage autoscaling</a> in the <i>Amazon RDS User Guide</i>.</p>"
         },
         "SourceDBInstanceAutomatedBackupsArn":{
           "shape":"String",
@@ -13298,7 +13310,7 @@
         },
         "StorageSize":{
           "shape":"RangeList",
-          "documentation":"<p>The valid range of storage in gibibytes. For example, 100 to 16384. </p>"
+          "documentation":"<p>The valid range of storage in gibibytes (GiB). For example, 100 to 16384. </p>"
         },
         "ProvisionedIops":{
           "shape":"RangeList",

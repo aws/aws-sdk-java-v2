@@ -339,7 +339,6 @@ public class SyncClientClass implements ClassSpec {
             case AWS_JSON:
             case REST_JSON:
             case CBOR:
-            case ION:
                 return new JsonProtocolSpec(poetExtensions, model);
             default:
                 throw new RuntimeException("Unknown protocol: " + protocol.name());

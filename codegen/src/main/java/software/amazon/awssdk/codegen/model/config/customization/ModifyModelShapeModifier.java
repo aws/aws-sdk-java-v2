@@ -18,6 +18,16 @@ package software.amazon.awssdk.codegen.model.config.customization;
 public class ModifyModelShapeModifier {
 
     /**
+     * Indicates whether a member should be annotated as {@link Deprecated}.
+     */
+    private boolean deprecated;
+
+    /**
+     * The Javadoc message that will be included with the {@link Deprecated} annotation.
+     */
+    private String deprecatedMessage;
+
+    /**
      * Indicates whether a renamed member should create getters and setters under the existing name
      */
     private boolean existingNameDeprecated;
@@ -48,6 +58,22 @@ public class ModifyModelShapeModifier {
     private String marshallLocationName;
 
     private String unmarshallLocationName;
+
+    public String getDeprecatedMessage() {
+        return deprecatedMessage;
+    }
+
+    public void setDeprecatedMessage(String deprecatedMessage) {
+        this.deprecatedMessage = deprecatedMessage;
+    }
+
+    public boolean isDeprecated() {
+        return deprecated;
+    }
+
+    public void setDeprecated(boolean deprecated) {
+        this.deprecated = deprecated;
+    }
 
     public boolean isExistingNameDeprecated() {
         return existingNameDeprecated;

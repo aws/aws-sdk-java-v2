@@ -65,8 +65,8 @@ public class S3AsyncAccessPointsIntegrationTest extends S3ControlIntegrationTest
 
     @AfterClass
     public static void tearDown() {
-        deleteBucketAndAllContents(BUCKET);
         s3control.deleteAccessPoint(b -> b.accountId(accountId).name(AP_NAME)).join();
+        deleteBucketAndAllContents(BUCKET);
     }
 
     @Test
