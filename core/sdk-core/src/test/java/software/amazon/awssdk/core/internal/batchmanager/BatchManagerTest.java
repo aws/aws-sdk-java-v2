@@ -34,7 +34,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.testng.Assert;
-import software.amazon.awssdk.core.BatchOverrideConfiguration;
+import software.amazon.awssdk.core.batchmanager.BatchManager;
+import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
@@ -53,15 +54,15 @@ public class BatchManagerTest {
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
                                                                                      .maxBatchItems(10)
                                                                                      .maxBatchOpenInMs(Duration.ofMillis(DEFAULT_MAX_BATCH_OPEN))
-                                                                                     .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
 
         batchManager = BatchManager.builder(String.class, String.class, BatchResponse.class)
-                             .overrideConfiguration(overrideConfiguration)
-                             .batchingFunction(batchingFunction)
-                             .mapResponsesFunction(mapResponsesFunction)
-                             .batchKeyMapperFunction(getBatchGroupIdFunction)
-                             .build();
+                                   .overrideConfiguration(overrideConfiguration)
+                                   .scheduledExecutor(scheduledExecutor)
+                                   .batchFunction(batchFunction)
+                                   .responseMapper(responseMapper)
+                                   .batchKeyMapper(batchKeyMapper)
+                                   .build();
 
         defaultDestination = "dest0";
     }
@@ -179,13 +180,13 @@ public class BatchManagerTest {
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
                                                                                      .maxBatchItems(10)
                                                                                      .maxBatchOpenInMs(Duration.ofMillis(DEFAULT_MAX_BATCH_OPEN))
-                                                                                     .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
         BatchManager<String, String, BatchResponse> testBatchManager = BatchManager.builder(String.class, String.class, BatchResponse.class)
                                                                                    .overrideConfiguration(overrideConfiguration)
-                                                                                   .batchingFunction(exceptionBatchFunction)
-                                                                                   .mapResponsesFunction(mapResponsesFunction)
-                                                                                   .batchKeyMapperFunction(getBatchGroupIdFunction)
+                                                                                   .scheduledExecutor(scheduledExecutor)
+                                                                                   .batchFunction(exceptionBatchFunction)
+                                                                                   .responseMapper(responseMapper)
+                                                                                   .batchKeyMapper(batchKeyMapper)
                                                                                    .build();
         Map<String, String> requests = createRequestsOfSize(10);
         Map<String, CompletableFuture<String>> responses = new HashMap<>();
@@ -207,7 +208,7 @@ public class BatchManagerTest {
             throw new RuntimeException("Throwing exception in test");
         });
 
-    private static final BatchAndSend<String, BatchResponse> batchingFunction =
+    private static final BatchAndSend<String, BatchResponse> batchFunction =
         (identifiableRequests, destination) -> {
             BatchResponse entries = new BatchResponse();
             identifiableRequests.forEach(identifiableRequest -> {
@@ -221,7 +222,7 @@ public class BatchManagerTest {
             });
         };
 
-    private static final BatchResponseMapper<BatchResponse, String> mapResponsesFunction =
+    private static final BatchResponseMapper<BatchResponse, String> responseMapper =
         requestBatchResponse -> {
             List<IdentifiableMessage<String>> identifiableResponses = new ArrayList<>();
             for (MessageWithId requestWithId : requestBatchResponse.getResponses()) {
@@ -230,7 +231,7 @@ public class BatchManagerTest {
             return identifiableResponses;
         };
 
-    private static final BatchKeyMapper<String> getBatchGroupIdFunction = request -> request.substring(0, 5);
+    private static final BatchKeyMapper<String> batchKeyMapper = request -> request.substring(0, 5);
 
     private List<CompletableFuture<Map<String, CompletableFuture<String>>>> createThreadsAndSendMessages(
         int numThreads, int numMessages, Map<String, String> requests,

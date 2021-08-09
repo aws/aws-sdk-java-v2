@@ -35,10 +35,10 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.core.internal.batchmanager.BatchAndSend;
 import software.amazon.awssdk.core.internal.batchmanager.BatchKeyMapper;
-import software.amazon.awssdk.core.internal.batchmanager.BatchManager;
-import software.amazon.awssdk.core.BatchOverrideConfiguration;
+import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.core.internal.batchmanager.BatchResponseMapper;
 import software.amazon.awssdk.core.internal.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
@@ -72,14 +72,14 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
                                                                                      .maxBatchItems(10)
                                                                                      .maxBatchOpenInMs(Duration.ofMillis(DEFAULT_MAX_BATCH_OPEN))
-                                                                                     .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
         batchManager =
             BatchManager.builder(SendMessageRequest.class, SendMessageResponse.class, SendMessageBatchResponse.class)
                         .overrideConfiguration(overrideConfiguration)
-                        .batchingFunction(batchingFunction)
-                        .mapResponsesFunction(mapResponsesFunction)
-                        .batchKeyMapperFunction(getBatchGroupIdFunction)
+                        .scheduledExecutor(scheduledExecutor)
+                        .batchFunction(batchFunction)
+                        .responseMapper(responseMapper)
+                        .batchKeyMapper(batchKeyMapper)
                         .build();
     }
 
@@ -159,7 +159,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         checkThreadedResponses(requests, responses, sendRequestFutures);
     }
 
-    BatchAndSend<SendMessageRequest, SendMessageBatchResponse> batchingFunction =
+    BatchAndSend<SendMessageRequest, SendMessageBatchResponse> batchFunction =
         (identifiedRequests, destination) -> {
             List<SendMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
             identifiedRequests.forEach(identifiedRequest -> {
@@ -174,7 +174,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
             return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest));
         };
 
-    BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> mapResponsesFunction =
+    BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> responseMapper =
         sendMessageBatchResponse -> {
             List<IdentifiableMessage<SendMessageResponse>> mappedResponses = new ArrayList<>();
             sendMessageBatchResponse.successful()
@@ -187,7 +187,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
             return mappedResponses;
         };
 
-    private static final BatchKeyMapper<SendMessageRequest> getBatchGroupIdFunction =
+    private static final BatchKeyMapper<SendMessageRequest> batchKeyMapper =
         request -> {
             if (request.overrideConfiguration().isPresent()) {
                 return request.queueUrl() + request.overrideConfiguration().get();

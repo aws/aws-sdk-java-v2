@@ -22,6 +22,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 
 public class BatchOverrideConfigurationTest {
 
@@ -36,7 +37,6 @@ public class BatchOverrideConfigurationTest {
         overrideConfiguration = BatchOverrideConfiguration.builder()
                                                           .maxBatchItems(maxBatchItems)
                                                           .maxBatchOpenInMs(Duration.ofMillis(maxBatchOpenInMs))
-                                                          .scheduledExecutor(scheduledExecutor)
                                                           .build();
     }
 
@@ -47,17 +47,15 @@ public class BatchOverrideConfigurationTest {
 
     @Test
     public void createNewBatchOverrideConfiguration() {
-        Assert.assertEquals(maxBatchItems, overrideConfiguration.maxBatchItems().intValue());
-        Assert.assertEquals(maxBatchOpenInMs, overrideConfiguration.maxBatchOpenInMs().toMillis());
-        Assert.assertEquals(scheduledExecutor, overrideConfiguration.scheduledExecutor());
+        Assert.assertEquals(maxBatchItems, overrideConfiguration.maxBatchItems().get().intValue());
+        Assert.assertEquals(maxBatchOpenInMs, overrideConfiguration.maxBatchOpenInMs().get().toMillis());
     }
 
     @Test
     public void creatingCopyWithToBuilderAndCheckEqual() {
         BatchOverrideConfiguration overrideConfigurationCopy = overrideConfiguration.toBuilder().build();
-        Assert.assertEquals(maxBatchItems, overrideConfigurationCopy.maxBatchItems().intValue());
-        Assert.assertEquals(maxBatchOpenInMs, overrideConfigurationCopy.maxBatchOpenInMs().toMillis());
-        Assert.assertEquals(scheduledExecutor, overrideConfigurationCopy.scheduledExecutor());
+        Assert.assertEquals(maxBatchItems, overrideConfigurationCopy.maxBatchItems().get().intValue());
+        Assert.assertEquals(maxBatchOpenInMs, overrideConfigurationCopy.maxBatchOpenInMs().get().toMillis());
         Assert.assertEquals(overrideConfiguration, overrideConfigurationCopy);
         Assert.assertEquals(overrideConfiguration.hashCode(), overrideConfigurationCopy.hashCode());
     }

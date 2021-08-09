@@ -24,21 +24,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.BatchOverrideConfiguration;
+import software.amazon.awssdk.core.batchmanager.BatchManager;
+import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
-/**
- * Implementation of a generic buffer for automatic request batching.
- * @param <RequestT> the type of an outgoing request.
- * @param <ResponseT> the type of an outgoing response.
- * @param <BatchResponseT> the type of an outgoing batch response.
- */
 @SdkInternalApi
-public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAutoCloseable {
+public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> implements BatchManager<RequestT, ResponseT,
+    BatchResponseT> {
 
-    private static final Logger log = Logger.loggerFor(BatchManager.class);
+    private static final Logger log = Logger.loggerFor(DefaultBatchManager.class);
     private final int maxBatchItems;
     private final Duration maxBatchOpenInMs;
 
@@ -70,35 +65,22 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
      */
     private final ScheduledExecutorService scheduledExecutor;
 
-    private BatchManager(Builder<RequestT, ResponseT, BatchResponseT> builder) {
-        BatchOverrideConfiguration overrideConfiguration = Validate.notNull(builder.overrideConfiguration, "Null override"
-                                                                                                           + "Configuration");
+    private DefaultBatchManager(DefaultBuilder<RequestT, ResponseT, BatchResponseT> builder) {
+        BatchConfiguration batchConfiguration = new BatchConfiguration(builder.overrideConfiguration);
         this.requestsAndResponsesMaps = new BatchingMap<>();
-        this.maxBatchItems = overrideConfiguration.maxBatchItems();
-        this.maxBatchOpenInMs = overrideConfiguration.maxBatchOpenInMs();
-        this.batchingFunction = Validate.notNull(builder.batchingFunction, "Null batchingFunction");
-        this.mapResponsesFunction = Validate.notNull(builder.mapResponsesFunction, "Null mapResponsesFunction");
-        this.batchKeyMapperFunction = Validate.notNull(builder.batchKeyMapperFunction, "Null batchKeyMapperFunction");
-        this.scheduledExecutor = overrideConfiguration.scheduledExecutor();
+        this.maxBatchItems = batchConfiguration.maxBatchItems();
+        this.maxBatchOpenInMs = batchConfiguration.maxBatchOpenInMs();
+        this.batchingFunction = Validate.notNull(builder.batchFunction, "Null batchingFunction");
+        this.mapResponsesFunction = Validate.notNull(builder.responseMapper, "Null mapResponsesFunction");
+        this.batchKeyMapperFunction = Validate.notNull(builder.batchKeyMapper, "Null batchKeyMapperFunction");
+        this.scheduledExecutor = builder.scheduledExecutor;
     }
 
-    public static <RequestT, ResponseT, BatchResponseT> Builder<RequestT, ResponseT, BatchResponseT> builder(
-        Class<? extends RequestT> requestClass, Class<? extends ResponseT> responseClass,
-        Class<? extends  BatchResponseT> batchResponseClass) {
-        return new Builder<>();
+    public static <RequestT, ResponseT, BatchResponseT> Builder<RequestT, ResponseT, BatchResponseT> builder() {
+        return new DefaultBuilder<>();
     }
 
-    /**
-     * Buffers outgoing requests on the client and sends them as batch requests to the service. Requests are batched together
-     * according to a batchKey and are sent periodically to the service as determined by {@link #maxBatchOpenInMs}. If the
-     * number of requests for a batchKey reaches or exceeds {@link #maxBatchItems}, then the requests are immediately flushed
-     * and the timeout on the periodic flush is reset.
-     * By default, messages are batched according to a service's maximum size for a batch request. These settings can be
-     * customized via the configuration.
-     *
-     * @param request the outgoing request.
-     * @return a CompletableFuture of the corresponding response.
-     */
+    @Override
     public CompletableFuture<ResponseT> sendRequest(RequestT request) {
         CompletableFuture<ResponseT> response = new CompletableFuture<>();
         try {
@@ -175,6 +157,7 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
         }
     }
 
+    @Override
     public void close() {
         requestsAndResponsesMaps.forEach((batchKey, batchBuffer) -> {
             requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
@@ -188,42 +171,53 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
         requestsAndResponsesMaps.waitForFlushesAndClear(log);
     }
 
-    public static final class Builder<RequestT, ResponseT, BatchResponseT> {
+    public static final class DefaultBuilder<RequestT, ResponseT, BatchResponseT> implements Builder<RequestT, ResponseT,
+        BatchResponseT> {
 
         private BatchOverrideConfiguration overrideConfiguration;
-        private BatchAndSend<RequestT, BatchResponseT> batchingFunction;
-        private BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction;
-        private BatchKeyMapper<RequestT> batchKeyMapperFunction;
+        private ScheduledExecutorService scheduledExecutor;
+        private BatchAndSend<RequestT, BatchResponseT> batchFunction;
+        private BatchResponseMapper<BatchResponseT, ResponseT> responseMapper;
+        private BatchKeyMapper<RequestT> batchKeyMapper;
 
-        private Builder() {
+        private DefaultBuilder() {
         }
 
+        @Override
         public Builder<RequestT, ResponseT, BatchResponseT> overrideConfiguration(BatchOverrideConfiguration
                                                                                       overrideConfiguration) {
             this.overrideConfiguration = overrideConfiguration;
             return this;
         }
 
-        public Builder<RequestT, ResponseT, BatchResponseT> batchingFunction(BatchAndSend<RequestT, BatchResponseT>
+        @Override
+        public Builder<RequestT, ResponseT, BatchResponseT> scheduledExecutor(ScheduledExecutorService scheduledExecutor) {
+            this.scheduledExecutor = scheduledExecutor;
+            return this;
+        }
+
+        @Override
+        public Builder<RequestT, ResponseT, BatchResponseT> batchFunction(BatchAndSend<RequestT, BatchResponseT>
                                                                                  batchingFunction) {
-            this.batchingFunction = batchingFunction;
+            this.batchFunction = batchingFunction;
             return this;
         }
 
-        public Builder<RequestT, ResponseT, BatchResponseT> mapResponsesFunction(
-            BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction) {
-            this.mapResponsesFunction = mapResponsesFunction;
+        @Override
+        public Builder<RequestT, ResponseT, BatchResponseT> responseMapper(
+            BatchResponseMapper<BatchResponseT, ResponseT> responseMapper) {
+            this.responseMapper = responseMapper;
             return this;
         }
 
-        public Builder<RequestT, ResponseT, BatchResponseT> batchKeyMapperFunction(BatchKeyMapper<RequestT>
-                                                                                     batchKeyMapperFunction) {
-            this.batchKeyMapperFunction = batchKeyMapperFunction;
+        @Override
+        public Builder<RequestT, ResponseT, BatchResponseT> batchKeyMapper(BatchKeyMapper<RequestT> batchKeyMapper) {
+            this.batchKeyMapper = batchKeyMapper;
             return this;
         }
 
-        public BatchManager<RequestT, ResponseT, BatchResponseT> build() {
-            return new BatchManager<>(this);
+        public DefaultBatchManager<RequestT, ResponseT, BatchResponseT> build() {
+            return new DefaultBatchManager<>(this);
         }
     }
 }
