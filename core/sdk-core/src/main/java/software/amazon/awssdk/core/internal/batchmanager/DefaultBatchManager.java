@@ -162,13 +162,13 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
         requestsAndResponsesMaps.forEach((batchKey, batchBuffer) -> {
             requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
             Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests =
-                requestsAndResponsesMaps.flushableScheduledRequests(batchKey, maxBatchItems);
+                requestsAndResponsesMaps.flushableRequests(batchKey, maxBatchItems);
 
             while (!flushableRequests.isEmpty()) {
                 flushBuffer(batchKey, flushableRequests);
             }
         });
-        requestsAndResponsesMaps.waitForFlushesAndClear(log);
+        requestsAndResponsesMaps.clear();
     }
 
     public static final class DefaultBuilder<RequestT, ResponseT, BatchResponseT> implements Builder<RequestT, ResponseT,
