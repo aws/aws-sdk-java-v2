@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 
@@ -28,12 +29,9 @@ public final class InstanceProviderTokenEndpointProvider implements ResourcesEnd
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
     private static final String DEFAULT_TOKEN_TTL = "21600";
 
-    private static final Ec2MetadataConfigProvider EC2_METADATA_CONFIG_PROVIDER = Ec2MetadataConfigProvider.builder()
-            .build();
-
     @Override
     public URI endpoint() {
-        String host = EC2_METADATA_CONFIG_PROVIDER.getEndpoint();
+        String host = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
         if (host.endsWith("/")) {
             host = host.substring(0, host.length() - 1);
         }

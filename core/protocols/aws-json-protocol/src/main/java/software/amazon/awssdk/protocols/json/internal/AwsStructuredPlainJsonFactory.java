@@ -15,12 +15,11 @@
 
 package software.amazon.awssdk.protocols.json.internal;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.json.BaseAwsStructuredJsonFactory;
 import software.amazon.awssdk.protocols.json.SdkJsonGenerator;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
-import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
-import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 
 /**
  * Creates generators and protocol handlers for plain text JSON wire format.
@@ -43,7 +42,7 @@ public final class AwsStructuredPlainJsonFactory {
 
         @Override
         public JsonFactory getJsonFactory() {
-            return JsonNodeParser.DEFAULT_JSON_FACTORY;
+            return JSON_FACTORY;
         }
     };
 

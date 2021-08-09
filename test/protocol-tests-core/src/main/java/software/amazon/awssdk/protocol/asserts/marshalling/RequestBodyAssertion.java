@@ -32,4 +32,8 @@ public class RequestBodyAssertion extends CompositeMarshallingAssertion {
     public void setEquals(String equals) {
         addAssertion(new RawBodyAssertion(equals));
     }
+
+    public void setIonEquals(String ionEquals) {
+        addAssertion(new IonBodyAssertion(ionEquals));
+    }
 }

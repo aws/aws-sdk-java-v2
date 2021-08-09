@@ -56,21 +56,6 @@ public interface SystemSetting {
     }
 
     /**
-     * Attempt to load a system setting from {@link System#getProperty(String)} and {@link System#getenv(String)}. This should be
-     * used in favor of those methods because the SDK should support both methods of configuration.
-     *
-     * {@link System#getProperty(String)} takes precedent over {@link System#getenv(String)} if both are specified.
-     * <p>
-     * Similar to {@link #getStringValue()}, but does not fall back to the default value.
-     *
-     * @return The requested setting, or {@link Optional#empty()} if the values were not set, or the security manager did not
-     *         allow reading the setting.
-     */
-    default Optional<String> getNonDefaultStringValue() {
-        return SystemSettingUtils.resolveNonDefaultSetting(this);
-    }
-
-    /**
      * Load the requested system setting as per the documentation in {@link #getStringValue()}, throwing an exception if the value
      * was not set and had no default.
      *

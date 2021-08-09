@@ -47,21 +47,6 @@ public final class SystemSettingUtils {
     }
 
     /**
-     * Resolve the value of this system setting, loading it from the System by checking:
-     * <ol>
-     *     <li>The system properties.</li>
-     *     <li>The environment variables.</li>
-     * </ol>
-     * <p>
-     * This is similar to {@link #resolveSetting(SystemSetting)} but does not fall back to the default value if neither
-     * the environment variable or system property value are present.
-     */
-    public static Optional<String> resolveNonDefaultSetting(SystemSetting setting) {
-        return firstPresent(resolveProperty(setting), () -> resolveEnvironmentVariable(setting))
-                .map(String::trim);
-    }
-
-    /**
      * Attempt to load this setting from the system properties.
      */
     private static Optional<String> resolveProperty(SystemSetting setting) {

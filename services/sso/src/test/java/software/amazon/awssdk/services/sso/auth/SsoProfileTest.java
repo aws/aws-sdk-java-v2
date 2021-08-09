@@ -39,7 +39,7 @@ public class SsoProfileTest {
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
         assertThat(profiles.profile("foo")).hasValueSatisfying(profile -> {
-            assertThatThrownBy(() -> new ProfileCredentialsUtils(profiles, profile, profiles::profile).credentialsProvider())
+            assertThatThrownBy(() -> new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider())
                 .hasMessageContaining("Profile property 'sso_account_id' was not configured");
         });
     }
@@ -55,7 +55,7 @@ public class SsoProfileTest {
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
         assertThat(profiles.profile("foo")).hasValueSatisfying(profile -> {
-            assertThatThrownBy(() -> new ProfileCredentialsUtils(profiles, profile, profiles::profile).credentialsProvider())
+            assertThatThrownBy(() -> new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider())
                 .hasMessageContaining("Profile property 'sso_region' was not configured");
         });
     }
@@ -71,7 +71,7 @@ public class SsoProfileTest {
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
         assertThat(profiles.profile("foo")).hasValueSatisfying(profile -> {
-            assertThatThrownBy(() -> new ProfileCredentialsUtils(profiles, profile, profiles::profile).credentialsProvider())
+            assertThatThrownBy(() -> new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider())
                 .hasMessageContaining("Profile property 'sso_role_name' was not configured");
         });
     }
@@ -87,7 +87,7 @@ public class SsoProfileTest {
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
         assertThat(profiles.profile("foo")).hasValueSatisfying(profile -> {
-            assertThatThrownBy(() -> new ProfileCredentialsUtils(profiles, profile, profiles::profile).credentialsProvider())
+            assertThatThrownBy(() -> new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider())
                 .hasMessageContaining("Profile property 'sso_start_url' was not configured");
         });
     }

@@ -51,15 +51,6 @@
       "input": {"shape": "DeprecatedRenameRequest"},
       "output": {"shape": "DeprecatedRenameResponse"}
     },
-    "OperationWithDeprecatedMember": {
-      "name": "OperationWithDeprecatedMember",
-      "http": {
-        "method": "POST",
-        "requestUri": "/"
-      },
-      "input": {"shape": "OperationWithDeprecatedMemberRequest"},
-      "output": {"shape": "OperationWithDeprecatedMemberResponse"}
-    },
     "StreamingInputOperation":{
       "name":"StreamingInputOperation",
       "http":{
@@ -186,30 +177,6 @@
       "members": {
         "OriginalNameNoDeprecation":{"shape": "String"},
         "OriginalNameDeprecated": {"shape": "String"}
-      }
-    },
-    "OperationWithDeprecatedMemberRequest":{
-      "type": "structure",
-      "members": {
-        "MemberModeledAsDeprecated": {
-          "shape": "String",
-          "deprecated": true,
-          "deprecatedMessage": "This field is modeled as deprecated."
-        },
-        "MemberModifiedAsDeprecated":{"shape": "String"},
-        "UndeprecatedMember": {"shape": "String"}
-      }
-    },
-    "OperationWithDeprecatedMemberResponse":{
-      "type": "structure",
-      "members": {
-        "MemberModeledAsDeprecated": {
-          "shape": "String",
-          "deprecated": true,
-          "deprecatedMessage": "This field is modeled as deprecated."
-        },
-        "MemberModifiedAsDeprecated":{"shape": "String"},
-        "UndeprecatedMember": {"shape": "String"}
       }
     },
     "Double":{"type":"double"},

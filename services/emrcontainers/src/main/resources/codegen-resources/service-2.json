@@ -294,12 +294,6 @@
       },
       "documentation":"<p>A configuration for CloudWatch monitoring. You can configure your jobs to send log information to CloudWatch Logs.</p>"
     },
-    "ClusterId":{
-      "type":"string",
-      "max":100,
-      "min":1,
-      "pattern":"^[0-9A-Za-z][A-Za-z0-9\\-_]*"
-    },
     "Configuration":{
       "type":"structure",
       "required":["classification"],
@@ -361,7 +355,7 @@
           "documentation":"<p>The type of the container provider. EKS is the only supported type as of now.</p>"
         },
         "id":{
-          "shape":"ClusterId",
+          "shape":"String256",
           "documentation":"<p>The ID of the container cluster.</p>"
         },
         "info":{
@@ -637,7 +631,7 @@
       "type":"structure",
       "members":{
         "namespace":{
-          "shape":"KubernetesNamespace",
+          "shape":"String256",
           "documentation":"<p>The namespaces of the EKS cluster.</p>"
         }
       },
@@ -701,14 +695,6 @@
         "subnetIds":{
           "shape":"SubnetIds",
           "documentation":"<p>The subnet IDs of the endpoint. </p>"
-        },
-        "stateDetails":{
-          "shape":"String256",
-          "documentation":"<p> Additional details of the endpoint state. </p>"
-        },
-        "failureReason":{
-          "shape":"FailureReason",
-          "documentation":"<p> The reasons why the endpoint has failed. </p>"
         },
         "tags":{
           "shape":"TagMap",
@@ -902,12 +888,6 @@
     "JobRuns":{
       "type":"list",
       "member":{"shape":"JobRun"}
-    },
-    "KubernetesNamespace":{
-      "type":"string",
-      "max":63,
-      "min":1,
-      "pattern":"[a-z0-9]([-a-z0-9]*[a-z0-9])?"
     },
     "ListJobRunsRequest":{
       "type":"structure",
@@ -1227,7 +1207,7 @@
     },
     "SparkSubmitParameters":{
       "type":"string",
-      "max":102400,
+      "max":1024,
       "min":1,
       "pattern":"(?!\\s*$)(^[^';|\\u0026\\u003C\\u003E*?`$(){}\\[\\]!#\\\\]*$)",
       "sensitive":true

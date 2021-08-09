@@ -20,7 +20,7 @@
     <parent>
         <artifactId>protocols</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.17.16-SNAPSHOT</version>
+        <version>2.16.101-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -62,14 +62,13 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>third-party-jackson-core</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>json-utils</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

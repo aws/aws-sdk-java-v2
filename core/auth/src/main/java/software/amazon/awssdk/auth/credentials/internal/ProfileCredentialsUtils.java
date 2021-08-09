@@ -40,7 +40,6 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.profiles.Profile;
-import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
@@ -55,10 +54,6 @@ public final class ProfileCredentialsUtils {
     private static final String SSO_PROFILE_CREDENTIALS_PROVIDER_FACTORY =
         "software.amazon.awssdk.services.sso.auth.SsoProfileCredentialsProviderFactory";
 
-    /**
-     * The profile file containing {@code profile}.
-     */
-    private final ProfileFile profileFile;
     private final Profile profile;
 
     /**
@@ -79,10 +74,7 @@ public final class ProfileCredentialsUtils {
      */
     private final Function<String, Optional<Profile>> credentialsSourceResolver;
 
-    public ProfileCredentialsUtils(ProfileFile profileFile,
-                                   Profile profile,
-                                   Function<String, Optional<Profile>> credentialsSourceResolver) {
-        this.profileFile = Validate.paramNotNull(profileFile, "profileFile");
+    public ProfileCredentialsUtils(Profile profile, Function<String, Optional<Profile>> credentialsSourceResolver) {
         this.profile = Validate.paramNotNull(profile, "profile");
         this.name = profile.name();
         this.properties = profile.properties();
@@ -223,7 +215,7 @@ public final class ProfileCredentialsUtils {
         children.add(name);
         AwsCredentialsProvider sourceCredentialsProvider =
             credentialsSourceResolver.apply(properties.get(ProfileProperty.SOURCE_PROFILE))
-                                     .flatMap(p -> new ProfileCredentialsUtils(profileFile, p, credentialsSourceResolver)
+                                     .flatMap(p -> new ProfileCredentialsUtils(p, credentialsSourceResolver)
                                          .credentialsProvider(children))
                                      .orElseThrow(this::noSourceCredentialsException);
 
@@ -247,15 +239,7 @@ public final class ProfileCredentialsUtils {
             case ECS_CONTAINER:
                 return ContainerCredentialsProvider.builder().build();
             case EC2_INSTANCE_METADATA:
-                // The IMDS credentials provider should source the endpoint config properties from the currently active profile
-                Ec2MetadataConfigProvider configProvider = Ec2MetadataConfigProvider.builder()
-                        .profileFile(() -> profileFile)
-                        .profileName(name)
-                        .build();
-
-                return InstanceProfileCredentialsProvider.builder()
-                        .endpoint(configProvider.getEndpoint())
-                        .build();
+                return InstanceProfileCredentialsProvider.create();
             case ENVIRONMENT:
                 return AwsCredentialsProviderChain.builder()
                     .addCredentialsProvider(SystemPropertyCredentialsProvider.create())

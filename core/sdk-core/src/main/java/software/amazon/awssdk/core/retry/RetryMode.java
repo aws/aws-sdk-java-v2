@@ -91,11 +91,8 @@ public enum RetryMode {
      * Allows customizing the variables used during determination of a {@link RetryMode}. Created via {@link #resolver()}.
      */
     public static class Resolver {
-        private static final RetryMode SDK_DEFAULT_RETRY_MODE = LEGACY;
-        
         private Supplier<ProfileFile> profileFile;
         private String profileName;
-        private RetryMode defaultRetryMode;
 
         private Resolver() {
         }
@@ -118,19 +115,11 @@ public enum RetryMode {
         }
 
         /**
-         * Configure the {@link RetryMode} that should be used if the mode is not specified anywhere else.
-         */
-        public Resolver defaultRetryMode(RetryMode defaultRetryMode) {
-            this.defaultRetryMode = defaultRetryMode;
-            return this;
-        }
-
-        /**
          * Resolve which retry mode should be used, based on the configured values.
          */
         public RetryMode resolve() {
             return OptionalUtils.firstPresent(Resolver.fromSystemSettings(), () -> fromProfileFile(profileFile, profileName))
-                                .orElseGet(this::fromDefaultMode);
+                                .orElse(RetryMode.LEGACY);
         }
 
         private static Optional<RetryMode> fromSystemSettings() {
@@ -160,10 +149,6 @@ public enum RetryMode {
                 default:
                     throw new IllegalStateException("Unsupported retry policy mode configured: " + string);
             }
-        }
-
-        private RetryMode fromDefaultMode() {
-            return defaultRetryMode != null ? defaultRetryMode : SDK_DEFAULT_RETRY_MODE;
         }
     }
 }

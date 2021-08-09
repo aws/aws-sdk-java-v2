@@ -16,7 +16,6 @@
 package software.amazon.awssdk.codegen.poet.model;
 
 import static java.util.stream.Collectors.toList;
-import static software.amazon.awssdk.codegen.poet.model.DeprecationUtils.checkDeprecated;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -77,10 +76,8 @@ class ModelBuilderSpecs {
 
         shapeModel.getNonStreamingMembers()
                   .forEach(m -> {
-                      builder.addMethods(
-                          checkDeprecated(m, accessorsFactory.fluentSetterDeclarations(m, builderInterfaceName())));
-                      builder.addMethods(
-                          checkDeprecated(m, accessorsFactory.convenienceSetterDeclarations(m, builderInterfaceName())));
+                      builder.addMethods(accessorsFactory.fluentSetterDeclarations(m, builderInterfaceName()));
+                      builder.addMethods(accessorsFactory.convenienceSetterDeclarations(m, builderInterfaceName()));
                   });
 
         if (isException()) {
@@ -215,10 +212,13 @@ class ModelBuilderSpecs {
         List<MethodSpec> accessors = new ArrayList<>();
         shapeModel.getNonStreamingMembers()
                   .forEach(m -> {
-                      accessors.add(checkDeprecated(m, accessorsFactory.beanStyleGetter(m)));
-                      accessors.addAll(checkDeprecated(m, accessorsFactory.beanStyleSetters(m)));
-                      accessors.addAll(checkDeprecated(m, accessorsFactory.fluentSetters(m, builderInterfaceName())));
-                      accessors.addAll(checkDeprecated(m, accessorsFactory.convenienceSetters(m, builderInterfaceName())));
+                      accessors.add(accessorsFactory.beanStyleGetter(m));
+
+                      List<MethodSpec> fluentSetters = accessorsFactory.fluentSetters(m, builderInterfaceName());
+                      accessors.addAll(fluentSetters);
+
+                      accessors.addAll(accessorsFactory.beanStyleSetters(m));
+                      accessors.addAll(accessorsFactory.convenienceSetters(m, builderInterfaceName()));
                   });
 
         if (isException()) {

@@ -16,13 +16,11 @@
 package software.amazon.awssdk.services.s3.checksums;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +31,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.checksums.Md5Checksum;
-import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Unit test for ChecksumValidatingPublisher
@@ -42,7 +39,6 @@ public class ChecksumValidatingPublisherTest {
   private static int TEST_DATA_SIZE = 32;  // size of the test data, in bytes
   private static final int CHECKSUM_SIZE = 16;
   private static byte[] testData;
-  private static byte[] testDataWithoutChecksum;
 
   @BeforeClass
   public static void populateData() {
@@ -56,47 +52,27 @@ public class ChecksumValidatingPublisherTest {
     for (int i = 0; i < CHECKSUM_SIZE; i++) {
       testData[TEST_DATA_SIZE + i] = checksumBytes[i];
     }
-
-    testDataWithoutChecksum = Arrays.copyOfRange(testData, 0, TEST_DATA_SIZE);
   }
 
   @Test
   public void testSinglePacket() {
     final TestPublisher driver = new TestPublisher();
-    final TestSubscriber s = new TestSubscriber();
+    final TestSubscriber s = new TestSubscriber(Arrays.copyOfRange(testData, 0, TEST_DATA_SIZE));
     final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
     p.subscribe(s);
 
     driver.doOnNext(ByteBuffer.wrap(testData));
     driver.doOnComplete();
 
-    assertArrayEquals(testDataWithoutChecksum, s.receivedData());
     assertTrue(s.hasCompleted());
     assertFalse(s.isOnErrorCalled());
-  }
-
-  @Test
-  public void testLastChecksumByteCorrupted() {
-    TestPublisher driver = new TestPublisher();
-
-    TestSubscriber s = new TestSubscriber();
-    ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
-    p.subscribe(s);
-
-    byte[] incorrectChecksumData = Arrays.copyOfRange(testData, 0, TEST_DATA_SIZE);
-    incorrectChecksumData[TEST_DATA_SIZE - 1] = (byte) ~incorrectChecksumData[TEST_DATA_SIZE - 1];
-    driver.doOnNext(ByteBuffer.wrap(incorrectChecksumData));
-    driver.doOnComplete();
-
-    assertFalse(s.hasCompleted());
-    assertTrue(s.isOnErrorCalled());
   }
 
   @Test
   public void testTwoPackets() {
     for (int i = 1; i < TEST_DATA_SIZE + CHECKSUM_SIZE - 1; i++) {
       final TestPublisher driver = new TestPublisher();
-      final TestSubscriber s = new TestSubscriber();
+      final TestSubscriber s = new TestSubscriber(Arrays.copyOfRange(testData, 0, TEST_DATA_SIZE));
       final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
       p.subscribe(s);
 
@@ -104,7 +80,6 @@ public class ChecksumValidatingPublisherTest {
       driver.doOnNext(ByteBuffer.wrap(testData, i, TEST_DATA_SIZE + CHECKSUM_SIZE - i));
       driver.doOnComplete();
 
-      assertArrayEquals(testDataWithoutChecksum, s.receivedData());
       assertTrue(s.hasCompleted());
       assertFalse(s.isOnErrorCalled());
     }
@@ -114,7 +89,7 @@ public class ChecksumValidatingPublisherTest {
   public void testTinyPackets() {
     for (int packetSize = 1; packetSize < CHECKSUM_SIZE; packetSize++) {
       final TestPublisher driver = new TestPublisher();
-      final TestSubscriber s = new TestSubscriber();
+      final TestSubscriber s = new TestSubscriber(Arrays.copyOfRange(testData, 0, TEST_DATA_SIZE));
       final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
       p.subscribe(s);
       int currOffset = 0;
@@ -125,7 +100,6 @@ public class ChecksumValidatingPublisherTest {
       }
       driver.doOnComplete();
 
-      assertArrayEquals(testDataWithoutChecksum, s.receivedData());
       assertTrue(s.hasCompleted());
       assertFalse(s.isOnErrorCalled());
     }
@@ -135,7 +109,7 @@ public class ChecksumValidatingPublisherTest {
   public void testUnknownLength() {
     // When the length is unknown, the last 16 bytes are treated as a checksum, but are later ignored when completing
     final TestPublisher driver = new TestPublisher();
-    final TestSubscriber s = new TestSubscriber();
+    final TestSubscriber s = new TestSubscriber(Arrays.copyOfRange(testData, 0, TEST_DATA_SIZE));
     final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, new Md5Checksum(), 0);
     p.subscribe(s);
 
@@ -148,7 +122,6 @@ public class ChecksumValidatingPublisherTest {
     driver.doOnNext(ByteBuffer.wrap(randomChecksumData));
     driver.doOnComplete();
 
-    assertArrayEquals(testDataWithoutChecksum, s.receivedData());
     assertTrue(s.hasCompleted());
     assertFalse(s.isOnErrorCalled());
   }
@@ -157,7 +130,7 @@ public class ChecksumValidatingPublisherTest {
   public void checksumValidationFailure_throwsSdkClientException_NotNPE() {
     final byte[] incorrectData = new byte[0];
     final TestPublisher driver = new TestPublisher();
-    final TestSubscriber s = new TestSubscriber();
+    final TestSubscriber s = new TestSubscriber(Arrays.copyOfRange(incorrectData, 0, TEST_DATA_SIZE));
     final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
     p.subscribe(s);
 
@@ -169,11 +142,13 @@ public class ChecksumValidatingPublisherTest {
   }
 
   private class TestSubscriber implements Subscriber<ByteBuffer> {
+    final byte[] expected;
     final List<ByteBuffer> received;
     boolean completed;
     boolean onErrorCalled;
 
-    TestSubscriber() {
+    TestSubscriber(byte[] expected) {
+      this.expected = expected;
       this.received = new ArrayList<>();
       this.completed = false;
     }
@@ -197,19 +172,15 @@ public class ChecksumValidatingPublisherTest {
 
     @Override
     public void onComplete() {
-      completed = true;
-    }
-
-    public byte[] receivedData() {
-      try {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        for (ByteBuffer buffer : received) {
-          os.write(BinaryUtils.copyBytesFrom(buffer));
-        }
-        return os.toByteArray();
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
+      int matchPos = 0;
+      for (ByteBuffer buffer : received) {
+        byte[] bufferData = new byte[buffer.limit() - buffer.position()];
+        buffer.get(bufferData);
+        assertArrayEquals(Arrays.copyOfRange(expected, matchPos, matchPos + bufferData.length), bufferData);
+        matchPos += bufferData.length;
       }
+      assertEquals(expected.length, matchPos);
+      completed = true;
     }
 
     public boolean hasCompleted() {

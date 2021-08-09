@@ -19,15 +19,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
 
-/**
- * {@code service-2.json} models can be manually modified via defining properties in an associated {@code customization.config}
- * file. This class defines the Java bean representation that will be used to parse the JSON customization file. The bean can
- * then be later queried in the misc. codegen steps.
- */
 public class CustomizationConfig {
 
     /**
@@ -194,8 +188,6 @@ public class CustomizationConfig {
     private UnderscoresInNameBehavior underscoresInNameBehavior;
 
     private String userAgent;
-    
-    private RetryMode defaultRetryMode;
 
     private CustomizationConfig() {
     }
@@ -492,13 +484,5 @@ public class CustomizationConfig {
     public CustomizationConfig withUserAgent(String userAgent) {
         this.userAgent = userAgent;
         return this;
-    }
-
-    public RetryMode getDefaultRetryMode() {
-        return defaultRetryMode;
-    }
-
-    public void setDefaultRetryMode(RetryMode defaultRetryMode) {
-        this.defaultRetryMode = defaultRetryMode;
     }
 }

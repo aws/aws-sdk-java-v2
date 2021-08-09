@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -24,20 +23,20 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest implements
-                                                                            ToCopyableBuilder<DeprecatedRenameRequest.Builder, DeprecatedRenameRequest> {
+        ToCopyableBuilder<DeprecatedRenameRequest.Builder, DeprecatedRenameRequest> {
     private static final SdkField<String> NEW_NAME_NO_DEPRECATION_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-                                                                                  .memberName("NewNameNoDeprecation").getter(getter(DeprecatedRenameRequest::newNameNoDeprecation))
-                                                                                  .setter(setter(Builder::newNameNoDeprecation))
-                                                                                  .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("OriginalNameNoDeprecation").build())
-                                                                                  .build();
+            .memberName("NewNameNoDeprecation").getter(getter(DeprecatedRenameRequest::newNameNoDeprecation))
+            .setter(setter(Builder::newNameNoDeprecation))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("OriginalNameNoDeprecation").build())
+            .build();
 
     private static final SdkField<String> NEW_NAME_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-                                                                   .memberName("NewName").getter(getter(DeprecatedRenameRequest::newName)).setter(setter(Builder::newName))
-                                                                   .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("OriginalNameDeprecated").build())
-                                                                   .build();
+            .memberName("NewName").getter(getter(DeprecatedRenameRequest::newName)).setter(setter(Builder::newName))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("OriginalNameDeprecated").build())
+            .build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NEW_NAME_NO_DEPRECATION_FIELD,
-                                                                                                   NEW_NAME_FIELD));
+            NEW_NAME_FIELD));
 
     private final String newNameNoDeprecation;
 
@@ -51,7 +50,7 @@ public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest impl
 
     /**
      * Returns the value of the NewNameNoDeprecation property for this object.
-     *
+     * 
      * @return The value of the NewNameNoDeprecation property for this object.
      */
     public final String newNameNoDeprecation() {
@@ -60,7 +59,7 @@ public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest impl
 
     /**
      * Returns the value of the NewName property for this object.
-     *
+     * 
      * @return The value of the NewName property for this object.
      * @deprecated Use {@link #newName()}
      */
@@ -71,7 +70,7 @@ public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest impl
 
     /**
      * Returns the value of the NewName property for this object.
-     *
+     * 
      * @return The value of the NewName property for this object.
      */
     public final String newName() {
@@ -127,19 +126,19 @@ public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest impl
     @Override
     public final String toString() {
         return ToString.builder("DeprecatedRenameRequest").add("NewNameNoDeprecation", newNameNoDeprecation())
-                       .add("NewName", newName()).build();
+                .add("NewName", newName()).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "NewNameNoDeprecation":
-                return Optional.ofNullable(clazz.cast(newNameNoDeprecation()));
-            case "NewName":
-                return Optional.ofNullable(clazz.cast(newName()));
-            case "OriginalNameDeprecated":
-                return Optional.ofNullable(clazz.cast(newName()));
-            default:
-                return Optional.empty();
+        case "NewNameNoDeprecation":
+            return Optional.ofNullable(clazz.cast(newNameNoDeprecation()));
+        case "NewName":
+            return Optional.ofNullable(clazz.cast(newName()));
+        case "OriginalNameDeprecated":
+            return Optional.ofNullable(clazz.cast(newName()));
+        default:
+            return Optional.empty();
         }
     }
 
@@ -211,19 +210,30 @@ public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest impl
             return newNameNoDeprecation;
         }
 
-        public final void setNewNameNoDeprecation(String newNameNoDeprecation) {
-            this.newNameNoDeprecation = newNameNoDeprecation;
-        }
-
         @Override
-        @Transient
         public final Builder newNameNoDeprecation(String newNameNoDeprecation) {
             this.newNameNoDeprecation = newNameNoDeprecation;
             return this;
         }
 
+        public final void setNewNameNoDeprecation(String newNameNoDeprecation) {
+            this.newNameNoDeprecation = newNameNoDeprecation;
+        }
+
         public final String getNewName() {
             return newName;
+        }
+
+        @Override
+        public final Builder newName(String newName) {
+            this.newName = newName;
+            return this;
+        }
+
+        @Override
+        public final Builder originalNameDeprecated(String newName) {
+            this.newName = newName;
+            return this;
         }
 
         public final void setNewName(String newName) {
@@ -236,20 +246,6 @@ public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest impl
         @Deprecated
         public final void setOriginalNameDeprecated(String newName) {
             this.newName = newName;
-        }
-
-        @Override
-        @Transient
-        public final Builder newName(String newName) {
-            this.newName = newName;
-            return this;
-        }
-
-        @Override
-        @Transient
-        public final Builder originalNameDeprecated(String newName) {
-            this.newName = newName;
-            return this;
         }
 
         @Override
@@ -275,3 +271,4 @@ public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest impl
         }
     }
 }
+

@@ -176,7 +176,6 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
             .headerMarshaller(MarshallingType.BOOLEAN, HeaderMarshaller.BOOLEAN)
             .headerMarshaller(MarshallingType.INSTANT, HeaderMarshaller.INSTANT)
             .headerMarshaller(MarshallingType.MAP, HeaderMarshaller.MAP)
-            .headerMarshaller(MarshallingType.LIST, HeaderMarshaller.LIST)
             .headerMarshaller(MarshallingType.NULL, XmlMarshaller.NULL)
 
             .queryParamMarshaller(MarshallingType.STRING, QueryParamMarshaller.STRING)

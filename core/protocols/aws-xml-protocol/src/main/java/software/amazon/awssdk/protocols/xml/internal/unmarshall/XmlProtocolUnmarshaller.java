@@ -150,7 +150,6 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
             .headerUnmarshaller(MarshallingType.INSTANT, HeaderUnmarshaller.INSTANT)
             .headerUnmarshaller(MarshallingType.FLOAT, HeaderUnmarshaller.FLOAT)
             .headerUnmarshaller(MarshallingType.MAP, HeaderUnmarshaller.MAP)
-            .headerUnmarshaller(MarshallingType.LIST, HeaderUnmarshaller.LIST)
 
             .payloadUnmarshaller(MarshallingType.STRING, XmlPayloadUnmarshaller.STRING)
             .payloadUnmarshaller(MarshallingType.INTEGER, XmlPayloadUnmarshaller.INTEGER)

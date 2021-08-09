@@ -168,7 +168,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
                                           .build();
         Optional<Profile> profile = profiles.profile("test");
         AwsCredentialsProvider awsCredentialsProvider =
-            new ProfileCredentialsUtils(profiles, profile.get(), profiles::profile).credentialsProvider().get();
+            new ProfileCredentialsUtils(profile.get(), profiles::profile).credentialsProvider().get();
 
 
         // Try to assume the role until the eventual consistency catches up.
@@ -200,7 +200,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
                                               .build();
             Optional<Profile> profile = profiles.profile("test");
             AwsCredentialsProvider awsCredentialsProvider =
-                new ProfileCredentialsUtils(profiles, profile.get(), profiles::profile).credentialsProvider().get();
+                new ProfileCredentialsUtils(profile.get(), profiles::profile).credentialsProvider().get();
 
 
             // Try to assume the role until the eventual consistency catches up.
@@ -237,7 +237,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
                                                   .build();
                 Optional<Profile> profile = profiles.profile("test");
                 AwsCredentialsProvider awsCredentialsProvider =
-                    new ProfileCredentialsUtils(profiles, profile.get(), profiles::profile).credentialsProvider().get();
+                    new ProfileCredentialsUtils(profile.get(), profiles::profile).credentialsProvider().get();
 
 
                 // Try to assume the role until the eventual consistency catches up.

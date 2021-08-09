@@ -94,7 +94,7 @@
         {"shape":"InternalFailureException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Attaches the specified policy to the specified principal (certificate or other credential).</p>"
+      "documentation":"<p>Attaches a policy to the specified target.</p>"
     },
     "AttachPrincipalPolicy":{
       "name":"AttachPrincipalPolicy",
@@ -7264,7 +7264,7 @@
     "CreationDate":{"type":"timestamp"},
     "CredentialDurationSeconds":{
       "type":"integer",
-      "max":43200,
+      "max":3600,
       "min":900
     },
     "CustomCodeSigning":{

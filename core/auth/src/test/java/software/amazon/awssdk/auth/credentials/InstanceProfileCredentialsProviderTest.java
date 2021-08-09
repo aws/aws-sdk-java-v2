@@ -23,11 +23,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import com.github.tomakehurst.wiremock.WireMockServer;
+
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.AfterClass;
@@ -210,36 +208,5 @@ public class InstanceProfileCredentialsProviderTest {
         InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
 
         provider.resolveCredentials();
-    }
-
-    @Test
-    public void resolveCredentials_customProfileFileAndName_usesCorrectEndpoint() {
-        WireMockServer mockMetadataEndpoint_2 = new WireMockServer(WireMockConfiguration.options().dynamicPort());
-        mockMetadataEndpoint_2.start();
-        try {
-            String stubToken = "some-token";
-            mockMetadataEndpoint_2.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(stubToken)));
-            mockMetadataEndpoint_2.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody("some-profile")));
-            mockMetadataEndpoint_2.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
-
-            String mockServer2Endpoint = "http://localhost:" + mockMetadataEndpoint_2.port();
-
-            InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder()
-                    .endpoint(mockServer2Endpoint)
-                    .build();
-
-            provider.resolveCredentials();
-
-            String userAgentHeader = "User-Agent";
-            String userAgent = SdkUserAgent.create().userAgent();
-            mockMetadataEndpoint_2.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
-            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
-            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).withHeader(userAgentHeader, equalTo(userAgent)));
-
-            // all requests should have gone to the second server, and none to the other one
-            mockMetadataEndpoint.verify(0, RequestPatternBuilder.allRequests());
-        } finally {
-            mockMetadataEndpoint_2.stop();
-        }
     }
 }

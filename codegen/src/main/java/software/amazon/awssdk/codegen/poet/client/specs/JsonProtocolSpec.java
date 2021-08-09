@@ -51,6 +51,7 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.protocols.cbor.AwsCborProtocolFactory;
+import software.amazon.awssdk.protocols.ion.AwsIonProtocolFactory;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
@@ -118,6 +119,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
     private Class<?> protocolFactoryClass() {
         if (model.getMetadata().isCborProtocol()) {
             return AwsCborProtocolFactory.class;
+        } else if (model.getMetadata().isIonProtocol()) {
+            return AwsIonProtocolFactory.class;
         } else {
             return AwsJsonProtocolFactory.class;
         }
@@ -374,6 +377,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
     private String protocolEnumName(software.amazon.awssdk.codegen.model.intermediate.Protocol protocol) {
         switch (protocol) {
             case CBOR:
+            case ION:
             case AWS_JSON:
                 return AWS_JSON.name();
             default:

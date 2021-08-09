@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.document.Document;
+import software.amazon.awssdk.core.io.ReleasableInputStream;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.ListTrait;
@@ -40,9 +41,9 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
 import software.amazon.awssdk.protocols.json.internal.MarshallerUtil;
+import software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
-import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
@@ -57,7 +58,7 @@ public final class JsonProtocolUnmarshaller {
 
     private final JsonUnmarshallerRegistry registry;
 
-    private final JsonNodeParser parser;
+    private final JsonDomParser parser;
 
     private JsonProtocolUnmarshaller(Builder builder) {
         this.parser = builder.parser;
@@ -81,7 +82,6 @@ public final class JsonProtocolUnmarshaller {
             .headerUnmarshaller(MarshallingType.BOOLEAN, HeaderUnmarshaller.BOOLEAN)
             .headerUnmarshaller(MarshallingType.INSTANT, HeaderUnmarshaller.createInstantHeaderUnmarshaller(instantStringToValue))
             .headerUnmarshaller(MarshallingType.FLOAT, HeaderUnmarshaller.FLOAT)
-            .headerUnmarshaller(MarshallingType.LIST, HeaderUnmarshaller.LIST)
 
             .payloadUnmarshaller(MarshallingType.STRING, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_STRING))
             .payloadUnmarshaller(MarshallingType.INTEGER, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_INTEGER))
@@ -102,21 +102,21 @@ public final class JsonProtocolUnmarshaller {
     }
 
     private static SdkBytes unmarshallSdkBytes(JsonUnmarshallerContext context,
-                                               JsonNode jsonContent,
+                                               SdkJsonNode jsonContent,
                                                SdkField<SdkBytes> field) {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }
         // Binary protocols like CBOR may already have the raw bytes extracted.
-        if (jsonContent.isEmbeddedObject()) {
-            return SdkBytes.fromByteArray((byte[]) jsonContent.asEmbeddedObject());
+        if (jsonContent.embeddedObject() != null) {
+            return SdkBytes.fromByteArray((byte[]) jsonContent.embeddedObject());
         } else {
             // Otherwise decode the JSON string as Base64
-            return TO_SDK_BYTES.convert(jsonContent.text(), field);
+            return TO_SDK_BYTES.convert(jsonContent.asText(), field);
         }
     }
 
-    private static SdkPojo unmarshallStructured(JsonUnmarshallerContext context, JsonNode jsonContent, SdkField<SdkPojo> f) {
+    private static SdkPojo unmarshallStructured(JsonUnmarshallerContext context, SdkJsonNode jsonContent, SdkField<SdkPojo> f) {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         } else {
@@ -125,35 +125,35 @@ public final class JsonProtocolUnmarshaller {
     }
 
     private static Document unmarshallDocument(JsonUnmarshallerContext context,
-                                               JsonNode jsonContent,
+                                               SdkJsonNode jsonContent,
                                                SdkField<Document> field) {
         return jsonContent != null && !jsonContent.isNull() ? getDocumentFromJsonContent(jsonContent) : null;
     }
 
-    private static Document getDocumentFromJsonContent(JsonNode jsonContent) {
-        return jsonContent.visit(new DocumentUnmarshaller());
+    private static Document getDocumentFromJsonContent(SdkJsonNode jsonContent) {
+        return new DocumentUnmarshaller().visit(jsonContent);
     }
 
     private static Map<String, ?> unmarshallMap(JsonUnmarshallerContext context,
-                                                JsonNode jsonContent,
+                                                SdkJsonNode jsonContent,
                                                 SdkField<Map<String, ?>> field) {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }
         SdkField<Object> valueInfo = field.getTrait(MapTrait.class).valueFieldInfo();
         Map<String, Object> map = new HashMap<>();
-        jsonContent.asObject().forEach((fieldName, value) -> {
+        jsonContent.fields().forEach((fieldName, value) -> {
             JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(valueInfo.location(), valueInfo.marshallingType());
             map.put(fieldName, unmarshaller.unmarshall(context, value, valueInfo));
         });
         return map;
     }
 
-    private static List<?> unmarshallList(JsonUnmarshallerContext context, JsonNode jsonContent, SdkField<List<?>> field) {
+    private static List<?> unmarshallList(JsonUnmarshallerContext context, SdkJsonNode jsonContent, SdkField<List<?>> field) {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }
-        return jsonContent.asArray()
+        return jsonContent.items()
                           .stream()
                           .map(item -> {
                               SdkField<Object> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
@@ -174,16 +174,16 @@ public final class JsonProtocolUnmarshaller {
 
         @Override
         public T unmarshall(JsonUnmarshallerContext context,
-                            JsonNode jsonContent,
+                            SdkJsonNode jsonContent,
                             SdkField<T> field) {
-            return jsonContent != null && !jsonContent.isNull() ? stringToValue.convert(jsonContent.text(), field) : null;
+            return jsonContent != null && !jsonContent.isNull() ? stringToValue.convert(jsonContent.asText(), field) : null;
         }
     }
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
                             SdkHttpFullResponse response) throws IOException {
         if (hasPayloadMembersOnUnmarshall(sdkPojo) && !hasExplicitBlobPayloadMember(sdkPojo) && response.content().isPresent()) {
-            JsonNode jsonNode = parser.parse(response.content().get());
+            SdkJsonNode jsonNode = parser.parse(ReleasableInputStream.wrap(response.content().get()).disableClose());
             return unmarshall(sdkPojo, response, jsonNode);
         } else {
             return unmarshall(sdkPojo, response, null);
@@ -209,7 +209,7 @@ public final class JsonProtocolUnmarshaller {
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
                             SdkHttpFullResponse response,
-                            JsonNode jsonContent) {
+                            SdkJsonNode jsonContent) {
         JsonUnmarshallerContext context = JsonUnmarshallerContext.builder()
                                                                  .unmarshallerRegistry(registry)
                                                                  .response(response)
@@ -219,14 +219,14 @@ public final class JsonProtocolUnmarshaller {
 
     @SuppressWarnings("unchecked")
     private static <TypeT extends SdkPojo> TypeT unmarshallStructured(SdkPojo sdkPojo,
-                                                                      JsonNode jsonContent,
+                                                                      SdkJsonNode jsonContent,
                                                                       JsonUnmarshallerContext context) {
         for (SdkField<?> field : sdkPojo.sdkFields()) {
             if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES &&
                 context.response().content().isPresent()) {
                 field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().get()));
             } else {
-                JsonNode jsonFieldContent = getJsonNode(jsonContent, field);
+                SdkJsonNode jsonFieldContent = getSdkJsonNode(jsonContent, field);
                 JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(field.location(), field.marshallingType());
                 field.set(sdkPojo, unmarshaller.unmarshall(context, jsonFieldContent, (SdkField<Object>) field));
             }
@@ -234,12 +234,11 @@ public final class JsonProtocolUnmarshaller {
         return (TypeT) ((Buildable) sdkPojo).build();
     }
 
-    private static JsonNode getJsonNode(JsonNode jsonContent, SdkField<?> field) {
+    private static SdkJsonNode getSdkJsonNode(SdkJsonNode jsonContent, SdkField<?> field) {
         if (jsonContent == null) {
             return null;
         }
-        return isExplicitPayloadMember(field) ? jsonContent : jsonContent.field(field.locationName())
-                                                                         .orElse(null);
+        return isExplicitPayloadMember(field) ? jsonContent : jsonContent.get(field.locationName());
     }
 
     /**
@@ -254,7 +253,7 @@ public final class JsonProtocolUnmarshaller {
      */
     public static final class Builder {
 
-        private JsonNodeParser parser;
+        private JsonDomParser parser;
         private Map<MarshallLocation, TimestampFormatTrait.Format> defaultTimestampFormats;
 
         private Builder() {
@@ -264,7 +263,7 @@ public final class JsonProtocolUnmarshaller {
          * @param parser JSON parser to use.
          * @return This builder for method chaining.
          */
-        public Builder parser(JsonNodeParser parser) {
+        public Builder parser(JsonDomParser parser) {
             this.parser = parser;
             return this;
         }

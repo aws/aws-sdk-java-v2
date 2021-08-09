@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -324,51 +323,46 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         StringBuilder buffer = new StringBuilder();
 
         canonicalizedHeaders.forEach((headerName, headerValues) -> {
-            buffer.append(headerName);
-            buffer.append(":");
-            buffer.append(String.join(",", trimAll(headerValues)));
-            buffer.append("\n");
+            for (String headerValue : headerValues) {
+                appendCompactedString(buffer, headerName);
+                buffer.append(":");
+                if (headerValue != null) {
+                    appendCompactedString(buffer, headerValue);
+                }
+                buffer.append("\n");
+            }
         });
 
         return buffer.toString();
     }
 
     /**
-     * "The Trimall function removes excess white space before and after values,
-     * and converts sequential spaces to a single space."
-     * <p>
-     * https://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
-     * <p>
-     * The collapse-whitespace logic is equivalent to:
-     * <pre>
-     *     value.replaceAll("\\s+", " ")
-     * </pre>
+     * This method appends a string to a string builder and collapses contiguous
+     * white space is a single space.
+     *
+     * This is equivalent to:
+     *      destination.append(source.replaceAll("\\s+", " "))
      * but does not create a Pattern object that needs to compile the match
      * string; it also prevents us from having to make a Matcher object as well.
+     *
      */
-    private String trimAll(String value) {
+    private void appendCompactedString(final StringBuilder destination, final String source) {
         boolean previousIsWhiteSpace = false;
-        StringBuilder sb = new StringBuilder(value.length());
+        int length = source.length();
 
-        for (int i = 0; i < value.length(); i++) {
-            char ch = value.charAt(i);
+        for (int i = 0; i < length; i++) {
+            char ch = source.charAt(i);
             if (isWhiteSpace(ch)) {
                 if (previousIsWhiteSpace) {
                     continue;
                 }
-                sb.append(' ');
+                destination.append(' ');
                 previousIsWhiteSpace = true;
             } else {
-                sb.append(ch);
+                destination.append(ch);
                 previousIsWhiteSpace = false;
             }
         }
-
-        return sb.toString().trim();
-    }
-
-    private List<String> trimAll(List<String> values) {
-        return values.stream().map(this::trimAll).collect(Collectors.toList());
     }
 
     /**

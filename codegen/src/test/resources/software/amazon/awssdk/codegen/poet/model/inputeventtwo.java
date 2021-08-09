@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -223,45 +222,42 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
             return implicitPayloadMemberOne == null ? null : implicitPayloadMemberOne.asByteBuffer();
         }
 
-        public final void setImplicitPayloadMemberOne(ByteBuffer implicitPayloadMemberOne) {
-            implicitPayloadMemberOne(implicitPayloadMemberOne == null ? null : SdkBytes.fromByteBuffer(implicitPayloadMemberOne));
-        }
-
         @Override
-        @Transient
         public final Builder implicitPayloadMemberOne(SdkBytes implicitPayloadMemberOne) {
             this.implicitPayloadMemberOne = implicitPayloadMemberOne;
             return this;
+        }
+
+        public final void setImplicitPayloadMemberOne(ByteBuffer implicitPayloadMemberOne) {
+            implicitPayloadMemberOne(implicitPayloadMemberOne == null ? null : SdkBytes.fromByteBuffer(implicitPayloadMemberOne));
         }
 
         public final String getImplicitPayloadMemberTwo() {
             return implicitPayloadMemberTwo;
         }
 
-        public final void setImplicitPayloadMemberTwo(String implicitPayloadMemberTwo) {
-            this.implicitPayloadMemberTwo = implicitPayloadMemberTwo;
-        }
-
         @Override
-        @Transient
         public final Builder implicitPayloadMemberTwo(String implicitPayloadMemberTwo) {
             this.implicitPayloadMemberTwo = implicitPayloadMemberTwo;
             return this;
+        }
+
+        public final void setImplicitPayloadMemberTwo(String implicitPayloadMemberTwo) {
+            this.implicitPayloadMemberTwo = implicitPayloadMemberTwo;
         }
 
         public final String getEventHeaderMember() {
             return eventHeaderMember;
         }
 
-        public final void setEventHeaderMember(String eventHeaderMember) {
-            this.eventHeaderMember = eventHeaderMember;
-        }
-
         @Override
-        @Transient
         public final Builder eventHeaderMember(String eventHeaderMember) {
             this.eventHeaderMember = eventHeaderMember;
             return this;
+        }
+
+        public final void setEventHeaderMember(String eventHeaderMember) {
+            this.eventHeaderMember = eventHeaderMember;
         }
 
         @Override

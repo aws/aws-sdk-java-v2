@@ -16,14 +16,13 @@
 package software.amazon.awssdk.protocol.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
 import java.util.Map;
 
 public class GivenResponse {
 
     @JsonProperty(value = "status_code")
     private Integer statusCode;
-    private Map<String, List<String>> headers;
+    private Map<String, String> headers;
     private String body;
 
     public Integer getStatusCode() {
@@ -34,11 +33,11 @@ public class GivenResponse {
         this.statusCode = statusCode;
     }
 
-    public Map<String, List<String>> getHeaders() {
+    public Map<String, String> getHeaders() {
         return headers;
     }
 
-    public void setHeaders(Map<String, List<String>> headers) {
+    public void setHeaders(Map<String, String> headers) {
         this.headers = headers;
     }
 

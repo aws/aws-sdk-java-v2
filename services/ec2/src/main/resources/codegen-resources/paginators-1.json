@@ -174,12 +174,6 @@
       "output_token": "NextToken",
       "result_key": "InstanceCreditSpecifications"
     },
-    "DescribeInstanceEventWindows": {
-      "input_token": "NextToken",
-      "limit_key": "MaxResults",
-      "output_token": "NextToken",
-      "result_key": "InstanceEventWindows"
-    },
     "DescribeInstanceStatus": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",

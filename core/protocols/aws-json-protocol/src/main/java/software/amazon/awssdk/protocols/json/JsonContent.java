@@ -15,14 +15,16 @@
 
 package software.amazon.awssdk.protocols.json;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
-import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
+import software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkObjectNode;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -35,9 +37,9 @@ public class JsonContent {
     private static final Logger LOG = LoggerFactory.getLogger(JsonContent.class);
 
     private final byte[] rawContent;
-    private final JsonNode jsonNode;
+    private final SdkJsonNode jsonNode;
 
-    JsonContent(byte[] rawJsonContent, JsonNode jsonNode) {
+    JsonContent(byte[] rawJsonContent, SdkJsonNode jsonNode) {
         this.rawContent = rawJsonContent;
         this.jsonNode = jsonNode;
     }
@@ -65,16 +67,16 @@ public class JsonContent {
         return new JsonContent(rawJsonContent, jsonFactory);
     }
 
-    private static JsonNode parseJsonContent(byte[] rawJsonContent, JsonFactory jsonFactory) {
+    private static SdkJsonNode parseJsonContent(byte[] rawJsonContent, JsonFactory jsonFactory) {
         if (rawJsonContent == null || rawJsonContent.length == 0) {
-            return JsonNode.emptyObjectNode();
+            return SdkObjectNode.emptyObject();
         }
         try {
-            JsonNodeParser parser = JsonNodeParser.builder().jsonFactory(jsonFactory).build();
-            return parser.parse(rawJsonContent);
+            JsonDomParser parser = JsonDomParser.create(jsonFactory);
+            return parser.parse(new ByteArrayInputStream(rawJsonContent));
         } catch (Exception e) {
             LOG.debug("Unable to parse HTTP response content", e);
-            return JsonNode.emptyObjectNode();
+            return SdkObjectNode.emptyObject();
         }
     }
 
@@ -82,7 +84,7 @@ public class JsonContent {
         return rawContent;
     }
 
-    public JsonNode getJsonNode() {
+    public SdkJsonNode getJsonNode() {
         return jsonNode;
     }
 }

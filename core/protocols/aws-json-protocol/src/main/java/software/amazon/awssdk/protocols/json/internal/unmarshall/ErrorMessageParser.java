@@ -17,10 +17,10 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
 
 @SdkInternalApi
 public interface ErrorMessageParser {
 
-    String parseErrorMessage(SdkHttpFullResponse httpResponse, JsonNode jsonNode);
+    String parseErrorMessage(SdkHttpFullResponse httpResponse, SdkJsonNode jsonNode);
 }

@@ -244,8 +244,7 @@
         "ListOfBlobs":{"shape":"ListOfBlobsType"},
         "RecursiveStruct":{"shape":"RecursiveStructType"},
         "PolymorphicTypeWithSubTypes":{"shape":"BaseType"},
-        "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
-        "SetPrefixedMember":{"shape":"String"}
+        "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"}
       }
     },
     "BaseType":{

@@ -81,7 +81,9 @@ public class XmlPayloadMarshaller {
         @Override
         public void marshall(List<?> list, XmlMarshallerContext context, String paramName,
                              SdkField<List<?>> sdkField, ValueToStringConverter.ValueToString<List<?>> converter) {
-            ListTrait listTrait = sdkField.getRequiredTrait(ListTrait.class);
+            ListTrait listTrait = sdkField
+                .getOptionalTrait(ListTrait.class)
+                .orElseThrow(() -> new IllegalStateException(paramName + " member is missing ListTrait"));
 
             if (!listTrait.isFlattened()) {
                 context.xmlGenerator().startElement(paramName);
@@ -123,7 +125,8 @@ public class XmlPayloadMarshaller {
         public void marshall(Map<String, ?> map, XmlMarshallerContext context, String paramName,
                              SdkField<Map<String, ?>> sdkField, ValueToStringConverter.ValueToString<Map<String, ?>> converter) {
 
-            MapTrait mapTrait = sdkField.getRequiredTrait(MapTrait.class);
+            MapTrait mapTrait = sdkField.getOptionalTrait(MapTrait.class)
+                                        .orElseThrow(() -> new IllegalStateException(paramName + " member is missing MapTrait"));
 
             for (Map.Entry<String, ?> entry : map.entrySet()) {
                 context.xmlGenerator().startElement("entry");

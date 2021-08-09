@@ -117,6 +117,7 @@ public class MarshallerSpec implements ClassSpec {
         switch (protocol) {
             case REST_JSON:
             case CBOR:
+            case ION:
             case AWS_JSON:
                 return getJsonMarshallerSpec();
 

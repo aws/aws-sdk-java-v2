@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,8 +24,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<EventOne.Builder, EventOne>, EventStream {
     private static final SdkField<String> FOO_FIELD = SdkField.<String> builder(MarshallingType.STRING).memberName("Foo")
-                                                              .getter(getter(EventOne::foo)).setter(setter(Builder::foo))
-                                                              .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Foo").build()).build();
+            .getter(getter(EventOne::foo)).setter(setter(Builder::foo))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Foo").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(FOO_FIELD));
 
@@ -40,7 +39,7 @@ public class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<EventO
 
     /**
      * Returns the value of the Foo property for this object.
-     *
+     * 
      * @return The value of the Foo property for this object.
      */
     public final String foo() {
@@ -98,10 +97,10 @@ public class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<EventO
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "Foo":
-                return Optional.ofNullable(clazz.cast(foo()));
-            default:
-                return Optional.empty();
+        case "Foo":
+            return Optional.ofNullable(clazz.cast(foo()));
+        default:
+            return Optional.empty();
         }
     }
 
@@ -159,15 +158,14 @@ public class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<EventO
             return foo;
         }
 
-        public final void setFoo(String foo) {
-            this.foo = foo;
-        }
-
         @Override
-        @Transient
         public final Builder foo(String foo) {
             this.foo = foo;
             return this;
+        }
+
+        public final void setFoo(String foo) {
+            this.foo = foo;
         }
 
         @Override
@@ -181,3 +179,4 @@ public class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<EventO
         }
     }
 }
+

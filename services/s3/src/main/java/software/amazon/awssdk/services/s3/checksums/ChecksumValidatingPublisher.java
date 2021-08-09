@@ -132,11 +132,12 @@ public final class ChecksumValidatingPublisher implements SdkPublisher<ByteBuffe
         @Override
         public void onComplete() {
             if (strippedLength > 0) {
-                byte[] computedChecksum = sdkChecksum.getChecksumBytes();
-                if (!Arrays.equals(computedChecksum, streamChecksum)) {
+                int streamChecksumInt = ByteBuffer.wrap(streamChecksum).getInt();
+                int computedChecksumInt = ByteBuffer.wrap(sdkChecksum.getChecksumBytes()).getInt();
+                if (streamChecksumInt != computedChecksumInt) {
                     onError(SdkClientException.create(
-                        String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s",
-                                      BinaryUtils.toHex(computedChecksum), BinaryUtils.toHex(streamChecksum))));
+                        String.format("Data read has a different checksum than expected. Was %d, but expected %d",
+                                      computedChecksumInt, streamChecksumInt)));
                     return; // Return after onError and not call onComplete below
                 }
             }

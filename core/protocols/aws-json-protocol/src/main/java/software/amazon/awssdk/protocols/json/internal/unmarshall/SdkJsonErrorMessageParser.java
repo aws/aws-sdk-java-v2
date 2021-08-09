@@ -20,7 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
 
 @SdkInternalApi
 public class SdkJsonErrorMessageParser implements ErrorMessageParser {
@@ -50,11 +50,11 @@ public class SdkJsonErrorMessageParser implements ErrorMessageParser {
      * @return Error Code of exceptional response or null if it can't be determined
      */
     @Override
-    public String parseErrorMessage(SdkHttpFullResponse httpResponse, JsonNode jsonNode) {
+    public String parseErrorMessage(SdkHttpFullResponse httpResponse, SdkJsonNode jsonNode) {
         for (String field : errorMessageJsonLocations) {
-            String value = jsonNode.field(field).map(JsonNode::text).orElse(null);
+            SdkJsonNode value = jsonNode.get(field);
             if (value != null) {
-                return value;
+                return value.asText();
             }
         }
         return null;

@@ -1,0 +1,6 @@
+{
+  "testCases": [
+    "cases/ion-input.ion",
+    "cases/ion-output.ion"
+  ]
+}

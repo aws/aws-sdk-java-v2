@@ -17,12 +17,11 @@ package software.amazon.awssdk.services.s3.checksums;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
+import java.nio.ByteBuffer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.Abortable;
-import software.amazon.awssdk.utils.BinaryUtils;
 
 @SdkInternalApi
 public class ChecksumValidatingInputStream extends InputStream implements Abortable {
@@ -35,7 +34,7 @@ public class ChecksumValidatingInputStream extends InputStream implements Aborta
     private long lengthRead = 0;
     // Preserve the computed checksum because some InputStream readers (e.g., java.util.Properties) read more than once at the
     // end of the stream.
-    private byte[] computedChecksum;
+    private Integer computedChecksum;
 
     /**
      * Creates an input stream using the specified Checksum, input stream, and length.
@@ -163,15 +162,26 @@ public class ChecksumValidatingInputStream extends InputStream implements Aborta
         inputStream.close();
     }
 
+    /**
+     * Gets the stream's checksum as an integer.
+     *
+     * @return checksum.
+     */
+    public int getStreamChecksum() {
+        ByteBuffer bb = ByteBuffer.wrap(streamChecksum);
+        return bb.getInt();
+    }
+
     private void validateAndThrow() {
+        int streamChecksumInt = getStreamChecksum();
         if (computedChecksum == null) {
-            computedChecksum = checkSum.getChecksumBytes();
+            computedChecksum = ByteBuffer.wrap(checkSum.getChecksumBytes()).getInt();
         }
 
-        if (!Arrays.equals(computedChecksum, streamChecksum)) {
+        if (streamChecksumInt != computedChecksum) {
             throw SdkClientException.builder().message(
-                String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s",
-                              BinaryUtils.toHex(computedChecksum), BinaryUtils.toHex(streamChecksum))).build();
+                String.format("Data read has a different checksum than expected. Was %d, but expected %d",
+                              computedChecksum, streamChecksumInt)).build();
         }
     }
 

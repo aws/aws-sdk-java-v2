@@ -69,8 +69,7 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
             ProfileFile finalProfileFile = profileFile;
             credentialsProvider =
                     profileFile.profile(profileName)
-                               .flatMap(p -> new ProfileCredentialsUtils(finalProfileFile, p, finalProfileFile::profile)
-                                       .credentialsProvider())
+                               .flatMap(p -> new ProfileCredentialsUtils(p, finalProfileFile::profile).credentialsProvider())
                                .orElseThrow(() -> {
                                    String errorMessage = String.format("Profile file contained no credentials for " +
                                                                        "profile '%s': %s", finalProfileName, finalProfileFile);

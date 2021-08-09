@@ -10,12 +10,6 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken"
     },
-    "ListAgentStatuses": {
-      "input_token": "NextToken",
-      "limit_key": "MaxResults",
-      "output_token": "NextToken",
-      "result_key": "AgentStatusSummaryList"
-    },
     "ListApprovedOrigins": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",

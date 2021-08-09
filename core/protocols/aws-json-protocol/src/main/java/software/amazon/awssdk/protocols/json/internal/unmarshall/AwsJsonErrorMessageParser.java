@@ -17,7 +17,7 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
 
 @SdkInternalApi
 public final class AwsJsonErrorMessageParser implements ErrorMessageParser {
@@ -52,7 +52,7 @@ public final class AwsJsonErrorMessageParser implements ErrorMessageParser {
      * @return Error Code of exceptional response or null if it can't be determined
      */
     @Override
-    public String parseErrorMessage(SdkHttpFullResponse httpResponse, JsonNode jsonNode) {
+    public String parseErrorMessage(SdkHttpFullResponse httpResponse, SdkJsonNode jsonNode) {
         String headerMessage = httpResponse.firstMatchingHeader(X_AMZN_ERROR_MESSAGE).orElse(null);
         if (headerMessage != null) {
             return headerMessage;

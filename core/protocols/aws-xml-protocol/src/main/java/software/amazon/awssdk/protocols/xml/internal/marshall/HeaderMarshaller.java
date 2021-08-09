@@ -15,15 +15,11 @@
 
 package software.amazon.awssdk.protocols.xml.internal.marshall;
 
-import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
-
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
-import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
 
 @SdkInternalApi
@@ -66,30 +62,10 @@ public final class HeaderMarshaller {
 
         @Override
         protected boolean shouldEmit(Map map) {
-            return !isNullOrEmpty(map);
+            return map != null && !map.isEmpty();
         }
     };
 
-    public static final XmlMarshaller<List<?>> LIST = new SimpleHeaderMarshaller<List<?>>(null) {
-        @Override
-        public void marshall(List<?> list, XmlMarshallerContext context, String paramName, SdkField<List<?>> sdkField) {
-            if (!shouldEmit(list)) {
-                return;
-            }
-            SdkField memberFieldInfo = sdkField.getRequiredTrait(ListTrait.class).memberFieldInfo();
-            for (Object listValue : list) {
-                XmlMarshaller marshaller = context.marshallerRegistry().getMarshaller(MarshallLocation.HEADER, listValue);
-                marshaller.marshall(listValue, context, paramName, memberFieldInfo);
-            }
-        }
-
-        @Override
-        protected boolean shouldEmit(List list) {
-            // Null or empty lists cannot be meaningfully (or safely) represented in an HTTP header message since header-fields
-            // must typically have a non-empty field-value. https://datatracker.ietf.org/doc/html/rfc7230#section-3.2
-            return !isNullOrEmpty(list);
-        }
-    };
 
     private HeaderMarshaller() {
     }
@@ -107,7 +83,7 @@ public final class HeaderMarshaller {
                 return;
             }
 
-            context.request().appendHeader(paramName, converter.convert(val, sdkField));
+            context.request().putHeader(paramName, converter.convert(val, sdkField));
         }
 
         protected boolean shouldEmit(T val) {

@@ -208,13 +208,7 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
 
     private void doModifyShapeMembers(ServiceModel serviceModel, Shape shape, String memberToModify,
                                       ModifyModelShapeModifier modifyModel) {
-        if (modifyModel.isDeprecated()) {
-            Member member = shape.getMembers().get(memberToModify);
-            member.setDeprecated(true);
-            if (modifyModel.getDeprecatedMessage() != null) {
-                member.setDeprecatedMessage(modifyModel.getDeprecatedMessage());
-            }
-        }
+
         // Currently only supports emitPropertyName which is to rename the member
         if (modifyModel.getEmitPropertyName() != null) {
             Member member = shape.getMembers().remove(memberToModify);

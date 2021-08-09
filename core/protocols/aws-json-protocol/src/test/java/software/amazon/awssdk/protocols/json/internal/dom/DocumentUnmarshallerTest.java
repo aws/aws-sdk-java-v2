@@ -15,50 +15,63 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.protocols.jsoncore.internal.EmbeddedObjectJsonNode;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 
 public class DocumentUnmarshallerTest {
+
     @Test
     public void testDocumentFromNumberNode() throws ParseException {
-        JsonNode node = JsonNode.parser().parse("100");
-        assertThat(Document.fromNumber(SdkNumber.fromInteger(100)).asNumber().intValue())
-                .isEqualTo(node.visit(new DocumentUnmarshaller()).asNumber().intValue());
+
+        SdkJsonNode sdkJsonNode = SdkScalarNode.createNumber(100);
+        assertThat( Document.fromNumber(SdkNumber.fromString("100")))
+                .isEqualTo(new DocumentUnmarshaller().visit(sdkJsonNode));
+
+        SdkJsonNode sdkJsonNodeInt = SdkScalarNode.createNumber(100);
+        assertThat( Document.fromNumber(SdkNumber.fromInteger(100)).asNumber().intValue())
+                .isEqualTo(new DocumentUnmarshaller().visit(sdkJsonNodeInt).asNumber().intValue());
+
     }
+
 
     @Test
     public void testDocumentFromBoolean() {
-        JsonNode node = JsonNode.parser().parse("true");
-        assertThat(Document.fromBoolean(true)).isEqualTo(node.visit(new DocumentUnmarshaller()));
+
+        SdkJsonNode sdkScalarNode = SdkScalarNode.createBoolean(true);
+
+        assertThat( Document.fromBoolean(true))
+                .isEqualTo(new DocumentUnmarshaller().visit(sdkScalarNode));
+
     }
 
     @Test
     public void testDocumentFromString() {
-        JsonNode node = JsonNode.parser().parse("\"100.00\"");
-        assertThat(Document.fromString("100.00")).isEqualTo(node.visit(new DocumentUnmarshaller()));
+        SdkJsonNode sdkScalarNode = SdkScalarNode.create("100.00");
+        assertThat( Document.fromString("100.00"))
+                .isEqualTo(new DocumentUnmarshaller().visit(sdkScalarNode));
     }
 
     @Test
     public void testDocumentFromNull() {
-        JsonNode node = JsonNode.parser().parse("null");
-        assertThat(Document.fromNull()).isEqualTo(node.visit(new DocumentUnmarshaller()));
+        assertThat( Document.fromNull())
+                .isEqualTo(new DocumentUnmarshaller().visit(SdkNullNode.instance()));
     }
+
 
     @Test
     public void testExceptionIsThrownFromEmbededObjectType() {
-        assertThatExceptionOfType(UnsupportedOperationException.class)
-                .isThrownBy(() -> new EmbeddedObjectJsonNode(new Object()).visit(new DocumentUnmarshaller()));
+        assertThatExceptionOfType(IllegalStateException.class)
+                .isThrownBy(() -> new DocumentUnmarshaller().visit(SdkEmbeddedObject.create(new HashMap<>())) );
     }
+
 
     @Test
     public void testDocumentFromObjectNode(){
-        JsonNode node = JsonNode.parser().parse("{\"firstKey\": \"firstValue\", \"secondKey\": \"secondValue\"}");
-
-        Document documentMap = node.visit(new DocumentUnmarshaller());
+        final SdkJsonNode sdkObjectNode = SdkObjectNode.builder().putField("firstKey", SdkScalarNode.create("firstValue"))
+                .putField("secondKey", SdkScalarNode.create("secondValue")).build();
+        final Document  documentMap = new DocumentUnmarshaller().visit(sdkObjectNode);
         Map<String, Document> expectedMap = new LinkedHashMap<>();
         expectedMap.put("firstKey", Document.fromString("firstValue"));
         expectedMap.put("secondKey", Document.fromString("secondValue"));
@@ -66,16 +79,20 @@ public class DocumentUnmarshallerTest {
         assertThat(documentMap).isEqualTo(expectedDocumentMap);
     }
 
+
     @Test
     public void testDocumentFromArrayNode(){
-        JsonNode node = JsonNode.parser().parse("[\"One\", 10, true, null]");
+        final SdkArrayNode sdkArrayNode = SdkArrayNode.builder().addItem(SdkScalarNode.create("One")).addItem(SdkScalarNode.createNumber(10))
+                .addItem(SdkScalarNode.createBoolean(true)).addItem(SdkNullNode.instance()).build();
         List<Document> documentList = new ArrayList<>();
         documentList.add(Document.fromString("One"));
         documentList.add(Document.fromNumber(SdkNumber.fromBigDecimal(BigDecimal.TEN)));
         documentList.add(Document.fromBoolean(true));
         documentList.add(Document.fromNull());
         final Document document = Document.fromList(documentList);
-        final Document actualDocument = node.visit(new DocumentUnmarshaller());
+        final Document actualDocument = new DocumentUnmarshaller().visit(sdkArrayNode);
         assertThat(actualDocument).isEqualTo(document);
+
     }
+
 }

@@ -115,14 +115,5 @@
         "parameterTypes": []
       }
     ]
-  },
-  {
-    "name": "software.amazon.awssdk.services.s3.internal.handlers.CopySourceInterceptor",
-    "methods": [
-      {
-        "name": "<init>",
-        "parameterTypes": []
-      }
-    ]
   }
 ]

@@ -45,7 +45,7 @@ public class AssumeRoleProfileTest {
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
         assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
-            assertThat(new ProfileCredentialsUtils(profiles, profile, profiles::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
+            assertThat(new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
                 assertThat(credentialsProvider).isInstanceOf(SdkAutoCloseable.class);
                 ((SdkAutoCloseable) credentialsProvider).close();
             });

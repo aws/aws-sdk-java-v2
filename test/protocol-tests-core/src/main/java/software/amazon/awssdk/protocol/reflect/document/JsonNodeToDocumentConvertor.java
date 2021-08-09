@@ -23,8 +23,9 @@ import java.util.Map;
 import software.amazon.awssdk.core.SdkNumber;
 import software.amazon.awssdk.core.document.Document;
 
-public class JsonNodeToDocumentConvertor {
+public class JsonNodeToDocumentConvertor implements JsonNodeVisitor<Document> {
 
+    @Override
     public Document visit(JsonNode jsonNode) {
         if (jsonNode.isObject()) {
             return visitMap(jsonNode);

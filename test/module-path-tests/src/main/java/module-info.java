@@ -30,4 +30,5 @@ module software.amazon.awssdk.modulepath.tests {
 
     requires org.slf4j;
     requires slf4j.simple;
+    requires com.fasterxml.jackson.core;
 }

@@ -55,8 +55,6 @@ public class MemberModel extends DocumentationModel {
     private ParameterHttpMapping http;
 
     private boolean deprecated;
-    
-    private String deprecatedMessage;
 
     private ListModel listModel;
 
@@ -301,14 +299,6 @@ public class MemberModel extends DocumentationModel {
 
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
-    }
-
-    public String getDeprecatedMessage() {
-        return deprecatedMessage;
-    }
-
-    public void setDeprecatedMessage(String deprecatedMessage) {
-        this.deprecatedMessage = deprecatedMessage;
     }
 
     public boolean isEventPayload() {
