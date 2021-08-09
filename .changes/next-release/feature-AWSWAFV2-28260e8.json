@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "contributor": "",
+    "description": "This release adds APIs to support versioning feature of AWS WAF Managed rule groups"
+}
