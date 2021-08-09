@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.16.101-SNAPSHOT</version>
+    <version>2.17.16-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -68,6 +68,7 @@
         <module>codegen-lite</module>
         <module>codegen-lite-maven-plugin</module>
         <module>archetypes</module>
+        <module>third-party</module>
         <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
@@ -80,18 +81,18 @@
         <module>test/stability-tests</module>
         <module>test/sdk-native-image-test</module>
         <module>test/s3-benchmarks</module>
+        <module>test/auth-sts-testing</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.16.100</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.17.15</awsjavasdk.previous.version>
         <jackson.version>2.12.3</jackson.version>
         <jackson.databind.version>2.12.3</jackson.databind.version>
         <jacksonjr.version>2.12.3</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
-        <ion.java.version>1.2.0</ion.java.version>
         <commons.lang.version>3.12.0</commons.lang.version>
         <wiremock.version>2.18.0</wiremock.version>
         <slf4j.version>1.7.30</slf4j.version>
@@ -518,14 +519,9 @@
                         <onlyModified>true</onlyModified>
                         <excludes>
                             <exclude>*.internal.*</exclude>
-                            <exclude>software.amazon.awssdk.core.client.handler.ClientExecutionParams</exclude>
-                            <exclude>software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute</exclude>
-                            <exclude>software.amazon.awssdk.awscore.eventstream.*</exclude>
-                            <exclude>software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory</exclude>
-                            <exclude>software.amazon.awssdk.services.macie2.model.*</exclude>
 
-                            <!-- devopsguru update -->
-                            <exclude>software.amazon.awssdk.services.devopsguru.*</exclude>
+                            <!-- Checksum bug fix -->
+                            <exclude>software.amazon.awssdk.services.s3.checksums.ChecksumValidatingInputStream</exclude>
                         </excludes>
 
                         <excludeModules>
