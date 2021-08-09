@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Use \"full jitter\" & updated base delay for STANDARD retry mode defaults"
+}
