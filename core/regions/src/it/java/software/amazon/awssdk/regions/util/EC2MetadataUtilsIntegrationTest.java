@@ -49,39 +49,6 @@ public class EC2MetadataUtilsIntegrationTest {
         System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
     }
 
-    @Test
-    public void testIamInfo() {
-        EC2MetadataUtils.IamInfo info = EC2MetadataUtils
-                .getIamInstanceProfileInfo();
-
-        Assert.assertEquals("Success", info.code);
-        Assert.assertNull(info.message);
-        Assert.assertEquals("2014-04-07T08:18:41Z", info.lastUpdated);
-        Assert.assertEquals("foobar", info.instanceProfileArn);
-        Assert.assertEquals("moobily", info.instanceProfileId);
-    }
-
-    @Test
-    public void testIamCredentials() {
-        Map<String, EC2MetadataUtils.IamSecurityCredential> map = EC2MetadataUtils
-                .getIamSecurityCredentials();
-
-        Assert.assertEquals(2, map.size());
-
-        for (Map.Entry<String, EC2MetadataUtils.IamSecurityCredential> entry : map
-                .entrySet()) {
-
-            Assert.assertNotNull(entry.getKey());
-            Assert.assertNotNull(entry.getValue().code);
-            Assert.assertNotNull(entry.getValue().lastUpdated);
-            Assert.assertEquals("AWS-HMAC", entry.getValue().type);
-            Assert.assertEquals("foobar", entry.getValue().accessKeyId);
-            Assert.assertEquals("moobily", entry.getValue().secretAccessKey);
-            Assert.assertEquals("beebop", entry.getValue().token);
-            Assert.assertNotNull(entry.getValue().expiration);
-        }
-    }
-
     @Test(expected = SdkClientException.class)
     public void ec2MetadataDisabled_shouldThrowException() {
         try {
@@ -90,6 +57,12 @@ public class EC2MetadataUtilsIntegrationTest {
         } finally {
             System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property());
         }
+    }
+
+    @Test
+    public void testInstanceSignature() {
+        String signature = EC2MetadataUtils.getInstanceSignature();
+        Assert.assertEquals("foobar", signature);
     }
 
     @Test
@@ -110,11 +83,5 @@ public class EC2MetadataUtilsIntegrationTest {
         Assert.assertEquals("10.201.215.38", info.getPrivateIp());
         Assert.assertEquals("bar", info.getDevpayProductCodes()[0]);
         Assert.assertEquals("qaz", info.getMarketplaceProductCodes()[0]);
-    }
-
-    @Test
-    public void testInstanceSignature() {
-        String signature = EC2MetadataUtils.getInstanceSignature();
-        Assert.assertEquals("foobar", signature);
     }
 }

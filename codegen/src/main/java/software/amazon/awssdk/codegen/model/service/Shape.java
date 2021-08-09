@@ -59,6 +59,8 @@ public class Shape {
     private boolean fault;
 
     private boolean deprecated;
+    
+    private String deprecatedMessage;
 
     private boolean eventstream;
 
@@ -258,6 +260,14 @@ public class Shape {
 
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
+    }
+
+    public String getDeprecatedMessage() {
+        return deprecatedMessage;
+    }
+
+    public void setDeprecatedMessage(String deprecatedMessage) {
+        this.deprecatedMessage = deprecatedMessage;
     }
 
     public boolean isEventstream() {
