@@ -1,3 +1,16 @@
+# __2.17.15__ __2021-08-09__
+## __AWS WAFV2__
+  - ### Features
+    - This release adds APIs to support versioning feature of AWS WAF Managed rule groups
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds support for four new types of segments (opening credits, content segments, slates, and studio logos), improved accuracy for credits and shot detection and new filters to control black frame detection.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Documentation updates for AWS Systems Manager.
+
 # __2.17.14__ __2021-08-06__
 ## __AWS SDK for Java v2__
   - ### Features
