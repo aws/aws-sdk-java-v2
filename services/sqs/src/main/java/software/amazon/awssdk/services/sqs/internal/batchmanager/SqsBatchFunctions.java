@@ -61,9 +61,6 @@ public final class SqsBatchFunctions {
                 SendMessageRequest request = identifiedRequest.message();
                 entries.add(createSendMessageBatchRequestEntry(id, request));
             });
-            // TODO: If the individual requests have an override configuration, should we pass it to the batch request builder as well?
-            //  If so, how should we do it? Just take the override configuration of the first individual request (since theoretically
-            //  they should all have the same override configuration).
             Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
                                                                                                 .message()
                                                                                                 .overrideConfiguration();
@@ -86,29 +83,31 @@ public final class SqsBatchFunctions {
     }
 
     public static BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> sendMessageResponseMapper() {
-     return sendMessageBatchResponse -> {
-         List<IdentifiableMessage<SendMessageResponse>> mappedResponses = new ArrayList<>();
-         sendMessageBatchResponse.successful()
-                                 .forEach(batchResponseEntry -> {
-                                     String key = batchResponseEntry.id();
-                                     SendMessageResponse response = createSendMessageResponse(batchResponseEntry);
-                                     mappedResponses.add(new IdentifiableMessage<>(key, response));
-                                 });
-         sendMessageBatchResponse.failed()
-                                 .forEach(batchResponseEntry -> {
-                                     String key = batchResponseEntry.id();
-                                     SendMessageResponse response = createSendMessageResponse(batchResponseEntry);
-                                     mappedResponses.add(new IdentifiableMessage<>(key, response));
-                                 });
-         return mappedResponses;
-     };
+        return sendMessageBatchResponse -> {
+            List<IdentifiableMessage<SendMessageResponse>> mappedResponses = new ArrayList<>();
+            sendMessageBatchResponse.successful()
+                                    .forEach(batchResponseEntry -> {
+                                        String key = batchResponseEntry.id();
+                                        SendMessageResponse response = createSendMessageResponse(batchResponseEntry,
+                                                                                                 sendMessageBatchResponse);
+                                        mappedResponses.add(new IdentifiableMessage<>(key, response));
+                                    });
+            sendMessageBatchResponse.failed()
+                                    .forEach(batchResponseEntry -> {
+                                        String key = batchResponseEntry.id();
+                                        SendMessageResponse response = createSendMessageResponse(batchResponseEntry,
+                                                                                                 sendMessageBatchResponse);
+                                        mappedResponses.add(new IdentifiableMessage<>(key, response));
+                                    });
+            return mappedResponses;
+        };
     }
 
-    // TODO: This BatchKeyMapper for SQS is temporary. We have not decided on how to properly group batch requests
+    // TODO: The BatchKeyMappers for SQS is not set in stone. Could batch requests some other way.
     public static BatchKeyMapper<SendMessageRequest> sendMessageBatchKeyMapper() {
         return request -> {
             if (request.overrideConfiguration().isPresent()) {
-                return request.queueUrl() + request.overrideConfiguration().get();
+                return request.queueUrl() + request.overrideConfiguration().get().hashCode();
             } else {
                 return request.queueUrl();
             }
@@ -123,7 +122,6 @@ public final class SqsBatchFunctions {
                 DeleteMessageRequest request = identifiedRequest.message();
                 entries.add(createDeleteMessageBatchRequestEntry(id, request));
             });
-            // TODO: Fix overrideConfiguration.
             Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
                                                                                                 .message()
                                                                                                 .overrideConfiguration();
@@ -145,33 +143,29 @@ public final class SqsBatchFunctions {
         };
     }
 
-    // TODO: How should we properly map a deleteMessageResponse? Seems like a DeleteMessageResponse builder doesn't really take
-    //  any fields.
     public static BatchResponseMapper<DeleteMessageBatchResponse, DeleteMessageResponse> deleteMessageResponseMapper() {
         return deleteMessageBatchResponse -> {
             List<IdentifiableMessage<DeleteMessageResponse>> mappedResponses = new ArrayList<>();
             deleteMessageBatchResponse.successful()
                                       .forEach(batchResponseEntry -> {
                                           String key = batchResponseEntry.id();
-                                          DeleteMessageResponse response = createDeleteMessageResponse();
+                                          DeleteMessageResponse response = createDeleteMessageResponse(deleteMessageBatchResponse);
                                           mappedResponses.add(new IdentifiableMessage<>(key, response));
                                       });
             deleteMessageBatchResponse.failed()
                                       .forEach(batchResponseEntry -> {
                                           String key = batchResponseEntry.id();
-                                          DeleteMessageResponse response = createDeleteMessageResponse();
+                                          DeleteMessageResponse response = createDeleteMessageResponse(deleteMessageBatchResponse);
                                           mappedResponses.add(new IdentifiableMessage<>(key, response));
                                       });
             return mappedResponses;
         };
     }
 
-    // TODO: Might be able to combine all batchKeyMapper functions if they are all the same. Only problem is they take
-    //    //  different types as parameters so maybe not?
     public static BatchKeyMapper<DeleteMessageRequest> deleteMessageBatchKeyMapper() {
         return request -> {
             if (request.overrideConfiguration().isPresent()) {
-                return request.queueUrl() + request.overrideConfiguration().get();
+                return request.queueUrl() + request.overrideConfiguration().get().hashCode();
             } else {
                 return request.queueUrl();
             }
@@ -179,7 +173,7 @@ public final class SqsBatchFunctions {
     }
 
     public static BatchAndSend<ChangeMessageVisibilityRequest, ChangeMessageVisibilityBatchResponse>
-    changeVisibilityBatchFunction(SqsClient client) {
+        changeVisibilityBatchFunction(SqsClient client) {
         return (identifiedRequests, destination) -> {
             List<ChangeMessageVisibilityBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
             identifiedRequests.forEach(identifiedRequest -> {
@@ -187,7 +181,6 @@ public final class SqsBatchFunctions {
                 ChangeMessageVisibilityRequest request = identifiedRequest.message();
                 entries.add(createChangVisibilityBatchRequestEntry(id, request));
             });
-            // TODO: Fix overrideConfiguration.
             Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
                                                                                                 .message()
                                                                                                 .overrideConfiguration();
@@ -209,33 +202,32 @@ public final class SqsBatchFunctions {
         };
     }
 
-    // TODO: Same problem with mapping ChangeMessageVisibilityResponse as with DeleteMessageResponse.
     public static BatchResponseMapper<ChangeMessageVisibilityBatchResponse, ChangeMessageVisibilityResponse>
-    changeVisibilityResponseMapper() {
+        changeVisibilityResponseMapper() {
         return changeMessageVisibilityResponses -> {
             List<IdentifiableMessage<ChangeMessageVisibilityResponse>> mappedResponses = new ArrayList<>();
             changeMessageVisibilityResponses.successful()
                                             .forEach(batchResponseEntry -> {
                                                 String key = batchResponseEntry.id();
-                                                ChangeMessageVisibilityResponse response = createChangeVisibilityResponse();
+                                                ChangeMessageVisibilityResponse response =
+                                                    createChangeVisibilityResponse(changeMessageVisibilityResponses);
                                                 mappedResponses.add(new IdentifiableMessage<>(key, response));
                                             });
             changeMessageVisibilityResponses.failed()
                                             .forEach(batchResponseEntry -> {
                                                 String key = batchResponseEntry.id();
-                                                ChangeMessageVisibilityResponse response = createChangeVisibilityResponse();
+                                                ChangeMessageVisibilityResponse response =
+                                                    createChangeVisibilityResponse(changeMessageVisibilityResponses);
                                                 mappedResponses.add(new IdentifiableMessage<>(key, response));
                                             });
             return mappedResponses;
         };
     }
 
-    // TODO: Might be able to combine all batchKeyMapper functions if they are all the same. Only problem is they take
-    //  different types as parameters so maybe not?
     public static BatchKeyMapper<ChangeMessageVisibilityRequest> changeVisibilityBatchKeyMapper() {
         return request -> {
             if (request.overrideConfiguration().isPresent()) {
-                return request.queueUrl() + request.overrideConfiguration().get();
+                return request.queueUrl() + request.overrideConfiguration().get().hashCode();
             } else {
                 return request.queueUrl();
             }
@@ -254,21 +246,38 @@ public final class SqsBatchFunctions {
                                            .build();
     }
 
-    private static SendMessageResponse createSendMessageResponse(SendMessageBatchResultEntry successfulEntry) {
-        return SendMessageResponse.builder()
-                                  .md5OfMessageAttributes(successfulEntry.md5OfMessageAttributes())
-                                  .md5OfMessageBody(successfulEntry.md5OfMessageBody())
-                                  .md5OfMessageSystemAttributes(successfulEntry.md5OfMessageSystemAttributes())
-                                  .messageId(successfulEntry.messageId())
-                                  .sequenceNumber(successfulEntry.sequenceNumber())
-                                  .build();
+    private static SendMessageResponse createSendMessageResponse(SendMessageBatchResultEntry successfulEntry,
+                                                                 SendMessageBatchResponse batchResponse) {
+        SendMessageResponse.Builder builder = SendMessageResponse.builder()
+                                                                 .md5OfMessageAttributes(successfulEntry.md5OfMessageAttributes())
+                                                                 .md5OfMessageBody(successfulEntry.md5OfMessageBody())
+                                                                 .md5OfMessageSystemAttributes(successfulEntry
+                                                                                                   .md5OfMessageSystemAttributes())
+                                                                 .messageId(successfulEntry.messageId())
+                                                                 .sequenceNumber(successfulEntry.sequenceNumber());
+        if (batchResponse.responseMetadata() != null) {
+            builder.responseMetadata(batchResponse.responseMetadata());
+        }
+
+        if (batchResponse.sdkHttpResponse() != null) {
+            builder.sdkHttpResponse(batchResponse.sdkHttpResponse());
+        }
+        return builder.build();
     }
 
-    private static SendMessageResponse createSendMessageResponse(BatchResultErrorEntry failedEntry) {
+    private static SendMessageResponse createSendMessageResponse(BatchResultErrorEntry failedEntry,
+                                                                 SendMessageBatchResponse batchResponse) {
         String messageBody = String.format("%s: %s", failedEntry.code(), failedEntry.message());
-        return SendMessageResponse.builder()
-                                  .md5OfMessageBody(computeMd5Hash(messageBody))
-                                  .build();
+        SendMessageResponse.Builder builder = SendMessageResponse.builder()
+                                                                 .md5OfMessageBody(computeMd5Hash(messageBody));
+        if (batchResponse.responseMetadata() != null) {
+            builder.responseMetadata(batchResponse.responseMetadata());
+        }
+
+        if (batchResponse.sdkHttpResponse() != null) {
+            builder.sdkHttpResponse(batchResponse.sdkHttpResponse());
+        }
+        return builder.build();
     }
 
     private static DeleteMessageBatchRequestEntry createDeleteMessageBatchRequestEntry(String id, DeleteMessageRequest request) {
@@ -276,6 +285,19 @@ public final class SqsBatchFunctions {
                                              .id(id)
                                              .receiptHandle(request.receiptHandle())
                                              .build();
+    }
+
+    private static DeleteMessageResponse createDeleteMessageResponse(DeleteMessageBatchResponse batchResponse) {
+        DeleteMessageResponse.Builder builder = DeleteMessageResponse.builder();
+
+        if (batchResponse.responseMetadata() != null) {
+            builder.responseMetadata(batchResponse.responseMetadata());
+        }
+
+        if (batchResponse.sdkHttpResponse() != null) {
+            builder.sdkHttpResponse(batchResponse.sdkHttpResponse());
+        }
+        return builder.build();
     }
 
     private static ChangeMessageVisibilityBatchRequestEntry createChangVisibilityBatchRequestEntry(String id,
@@ -287,12 +309,18 @@ public final class SqsBatchFunctions {
                                                        .build();
     }
 
-    private static DeleteMessageResponse createDeleteMessageResponse() {
-        return DeleteMessageResponse.builder().build();
-    }
+    private static ChangeMessageVisibilityResponse createChangeVisibilityResponse(ChangeMessageVisibilityBatchResponse
+                                                                                      batchResponse) {
+        ChangeMessageVisibilityResponse.Builder builder = ChangeMessageVisibilityResponse.builder();
 
-    private static ChangeMessageVisibilityResponse createChangeVisibilityResponse() {
-        return ChangeMessageVisibilityResponse.builder().build();
+        if (batchResponse.responseMetadata() != null) {
+            builder.responseMetadata(batchResponse.responseMetadata());
+        }
+
+        if (batchResponse.sdkHttpResponse() != null) {
+            builder.sdkHttpResponse(batchResponse.sdkHttpResponse());
+        }
+        return builder.build();
     }
 
     private static String computeMd5Hash(String message) {
