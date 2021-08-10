@@ -1,3 +1,19 @@
+# __2.17.16__ __2021-08-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fix issue in `FileAsyncRequestBody` where the underlying file channel would only be closed when enough requests are sent to read *past* the end of the file; if just enough requests are sent to read to the end of the file, the file is not closed, leaving an open file descriptor around longer than it needs to be.
+
+## __Amazon Chime__
+  - ### Features
+    - Add support for "auto" in Region field of StartMeetingTranscription API request.
+
+## __Amazon S3 Transfer Manager [Preview]__
+  - ### Features
+    - This release includes the preview release of the Amazon S3 Transfer Manager. Visit our [Developer Guide](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/transfer-manager.html) for more information.
+
 # __2.17.15__ __2021-08-09__
 ## __AWS WAFV2__
   - ### Features
