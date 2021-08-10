@@ -4,10 +4,13 @@
 .settings/
 
 # Intellij
-.idea/
+.idea/*
 *.iml
 *.ipr
 *.iws
+# IntelliJ un-ignore
+!.idea/codeStyles/
+!.idea/copyright/
 
 # Mac
 .DS_Store

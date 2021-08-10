@@ -7,12 +7,13 @@
   generator][codegen]
 
 ### Development Environment Setup Tips
-If you use IntelliJ IDEA, we include some helpful config files that will make your development experience smoother:
-- [intellij-codestyle.xml](https://raw.githubusercontent.com/aws/aws-sdk-java-v2/master/build-tools/src/main/resources/software/amazon/awssdk/intellij-codestyle.xml)
+If you use IntelliJ IDEA, we recommend using the following config files, which will be used by default for your project-level settings:
 
+- [Code style](https://raw.githubusercontent.com/aws/aws-sdk-java-v2/master/.idea/codeStyles/Project.xml)
+  
   This will help ensure your code follows our code style guidelines.
 
-- [intellij-copyright-profile.xml](https://raw.githubusercontent.com/aws/aws-sdk-java-v2/master/build-tools/src/main/resources/software/amazon/awssdk/intellij-copyright-profile.xml)
+- [Copyright](https://raw.githubusercontent.com/aws/aws-sdk-java-v2/master/.idea/copyright/AWS_Java_SDK_2_0.xml)
 
   This automatically inserts the license header to the top of source files that you create.
 
