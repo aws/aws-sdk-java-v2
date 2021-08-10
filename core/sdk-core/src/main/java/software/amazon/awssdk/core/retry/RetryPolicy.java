@@ -329,8 +329,8 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
             this.retryMode = retryMode;
             this.numRetries = SdkDefaultRetrySetting.maxAttempts(retryMode) - 1;
             this.additionalRetryConditionsAllowed = true;
-            this.backoffStrategy = BackoffStrategy.defaultStrategy();
-            this.throttlingBackoffStrategy = BackoffStrategy.defaultThrottlingStrategy();
+            this.backoffStrategy = BackoffStrategy.defaultStrategy(retryMode);
+            this.throttlingBackoffStrategy = BackoffStrategy.defaultThrottlingStrategy(retryMode);
             this.retryCondition = RetryCondition.defaultRetryCondition();
             this.retryCapacityCondition = TokenBucketRetryCondition.forRetryMode(retryMode);
         }

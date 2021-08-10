@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.retry.backoff;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
 @SdkPublicApi
@@ -44,17 +45,35 @@ public interface BackoffStrategy {
     }
 
     static BackoffStrategy defaultStrategy() {
+        return defaultStrategy(RetryMode.defaultRetryMode());
+    }
+
+    static BackoffStrategy defaultStrategy(RetryMode retryMode) {
         return FullJitterBackoffStrategy.builder()
-                                        .baseDelay(SdkDefaultRetrySetting.BASE_DELAY)
+                                        .baseDelay(SdkDefaultRetrySetting.baseDelay(retryMode))
                                         .maxBackoffTime(SdkDefaultRetrySetting.MAX_BACKOFF)
                                         .build();
     }
 
     static BackoffStrategy defaultThrottlingStrategy() {
-        return EqualJitterBackoffStrategy.builder()
-                                         .baseDelay(SdkDefaultRetrySetting.THROTTLED_BASE_DELAY)
-                                         .maxBackoffTime(SdkDefaultRetrySetting.MAX_BACKOFF)
-                                         .build();
+        return defaultThrottlingStrategy(RetryMode.defaultRetryMode());
+    }
+
+    static BackoffStrategy defaultThrottlingStrategy(RetryMode retryMode) {
+        switch (retryMode) {
+            case LEGACY:
+                return EqualJitterBackoffStrategy.builder()
+                                                 .baseDelay(SdkDefaultRetrySetting.throttledBaseDelay(retryMode))
+                                                 .maxBackoffTime(SdkDefaultRetrySetting.MAX_BACKOFF)
+                                                 .build();
+            case STANDARD:
+                return FullJitterBackoffStrategy.builder()
+                                                .baseDelay(SdkDefaultRetrySetting.throttledBaseDelay(retryMode))
+                                                .maxBackoffTime(SdkDefaultRetrySetting.MAX_BACKOFF)
+                                                .build();
+            default:
+                throw new IllegalStateException("Unsupported RetryMode: " + retryMode);
+        }
     }
 
     static BackoffStrategy none() {

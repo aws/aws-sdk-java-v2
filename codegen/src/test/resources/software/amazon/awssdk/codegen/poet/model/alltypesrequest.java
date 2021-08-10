@@ -609,8 +609,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the SimpleList property was specified by the sender (it may be empty), or false if the sender did
-     * not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the SimpleList property. This DOES NOT check
+     * that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property). This is
+     * useful because the SDK will never return a null collection or map, but you may need to differentiate between the
+     * service returning nothing (or null) and the service returning an empty collection or map. For requests, this
+     * returns true if a value for the property was specified in the request builder, and false if a value was not
+     * specified.
      */
     public final boolean hasSimpleList() {
         return simpleList != null && !(simpleList instanceof SdkAutoConstructList);
@@ -622,7 +626,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasSimpleList()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasSimpleList} method.
      * </p>
      *
      * @return The value of the SimpleList property for this object.
@@ -637,7 +642,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfEnums()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfEnums} method.
      * </p>
      *
      * @return The value of the ListOfEnums property for this object.
@@ -647,8 +653,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the ListOfEnums property was specified by the sender (it may be empty), or false if the sender
-     * did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the ListOfEnums property. This DOES NOT
+     * check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasListOfEnums() {
         return listOfEnums != null && !(listOfEnums instanceof SdkAutoConstructList);
@@ -660,7 +670,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfEnums()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfEnums} method.
      * </p>
      *
      * @return The value of the ListOfEnums property for this object.
@@ -670,8 +681,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the ListOfMaps property was specified by the sender (it may be empty), or false if the sender did
-     * not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the ListOfMaps property. This DOES NOT check
+     * that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property). This is
+     * useful because the SDK will never return a null collection or map, but you may need to differentiate between the
+     * service returning nothing (or null) and the service returning an empty collection or map. For requests, this
+     * returns true if a value for the property was specified in the request builder, and false if a value was not
+     * specified.
      */
     public final boolean hasListOfMaps() {
         return listOfMaps != null && !(listOfMaps instanceof SdkAutoConstructList);
@@ -683,7 +698,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfMaps()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfMaps} method.
      * </p>
      *
      * @return The value of the ListOfMaps property for this object.
@@ -693,8 +709,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the ListOfStructs property was specified by the sender (it may be empty), or false if the sender
-     * did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the ListOfStructs property. This DOES NOT
+     * check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasListOfStructs() {
         return listOfStructs != null && !(listOfStructs instanceof SdkAutoConstructList);
@@ -706,7 +726,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfStructs()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfStructs} method.
      * </p>
      *
      * @return The value of the ListOfStructs property for this object.
@@ -721,7 +742,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfMapOfEnumToString()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfMapOfEnumToString} method.
      * </p>
      *
      * @return The value of the ListOfMapOfEnumToString property for this object.
@@ -731,9 +753,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the ListOfMapOfEnumToString property was specified by the sender (it may be empty), or false if
-     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the ListOfMapOfEnumToString property. This
+     * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasListOfMapOfEnumToString() {
         return listOfMapOfEnumToString != null && !(listOfMapOfEnumToString instanceof SdkAutoConstructList);
@@ -745,7 +770,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfMapOfEnumToString()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfMapOfEnumToString} method.
      * </p>
      *
      * @return The value of the ListOfMapOfEnumToString property for this object.
@@ -755,9 +781,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the ListOfMapOfStringToStruct property was specified by the sender (it may be empty), or false if
-     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the ListOfMapOfStringToStruct property. This
+     * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasListOfMapOfStringToStruct() {
         return listOfMapOfStringToStruct != null && !(listOfMapOfStringToStruct instanceof SdkAutoConstructList);
@@ -769,7 +798,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfMapOfStringToStruct()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfMapOfStringToStruct} method.
      * </p>
      *
      * @return The value of the ListOfMapOfStringToStruct property for this object.
@@ -779,9 +809,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the MapOfStringToIntegerList property was specified by the sender (it may be empty), or false if
-     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfStringToIntegerList property. This
+     * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasMapOfStringToIntegerList() {
         return mapOfStringToIntegerList != null && !(mapOfStringToIntegerList instanceof SdkAutoConstructMap);
@@ -793,7 +826,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfStringToIntegerList()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToIntegerList} method.
      * </p>
      *
      * @return The value of the MapOfStringToIntegerList property for this object.
@@ -803,9 +837,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the MapOfStringToString property was specified by the sender (it may be empty), or false if the
-     * sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfStringToString property. This DOES
+     * NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasMapOfStringToString() {
         return mapOfStringToString != null && !(mapOfStringToString instanceof SdkAutoConstructMap);
@@ -817,7 +854,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfStringToString()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToString} method.
      * </p>
      *
      * @return The value of the MapOfStringToString property for this object.
@@ -827,9 +865,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the MapOfStringToSimpleStruct property was specified by the sender (it may be empty), or false if
-     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfStringToSimpleStruct property. This
+     * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasMapOfStringToSimpleStruct() {
         return mapOfStringToSimpleStruct != null && !(mapOfStringToSimpleStruct instanceof SdkAutoConstructMap);
@@ -841,7 +882,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfStringToSimpleStruct()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToSimpleStruct} method.
      * </p>
      *
      * @return The value of the MapOfStringToSimpleStruct property for this object.
@@ -856,7 +898,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToEnum()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToEnum} method.
      * </p>
      *
      * @return The value of the MapOfEnumToEnum property for this object.
@@ -866,9 +909,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the MapOfEnumToEnum property was specified by the sender (it may be empty), or false if the
-     * sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfEnumToEnum property. This DOES NOT
+     * check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasMapOfEnumToEnum() {
         return mapOfEnumToEnum != null && !(mapOfEnumToEnum instanceof SdkAutoConstructMap);
@@ -880,7 +926,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToEnum()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToEnum} method.
      * </p>
      *
      * @return The value of the MapOfEnumToEnum property for this object.
@@ -895,7 +942,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToString()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToString} method.
      * </p>
      *
      * @return The value of the MapOfEnumToString property for this object.
@@ -905,9 +953,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the MapOfEnumToString property was specified by the sender (it may be empty), or false if the
-     * sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfEnumToString property. This DOES
+     * NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasMapOfEnumToString() {
         return mapOfEnumToString != null && !(mapOfEnumToString instanceof SdkAutoConstructMap);
@@ -919,7 +970,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToString()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToString} method.
      * </p>
      *
      * @return The value of the MapOfEnumToString property for this object.
@@ -934,7 +986,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfStringToEnum()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToEnum} method.
      * </p>
      *
      * @return The value of the MapOfStringToEnum property for this object.
@@ -944,9 +997,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the MapOfStringToEnum property was specified by the sender (it may be empty), or false if the
-     * sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfStringToEnum property. This DOES
+     * NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasMapOfStringToEnum() {
         return mapOfStringToEnum != null && !(mapOfStringToEnum instanceof SdkAutoConstructMap);
@@ -958,7 +1014,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfStringToEnum()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToEnum} method.
      * </p>
      *
      * @return The value of the MapOfStringToEnum property for this object.
@@ -973,7 +1030,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToSimpleStruct()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToSimpleStruct} method.
      * </p>
      *
      * @return The value of the MapOfEnumToSimpleStruct property for this object.
@@ -983,9 +1041,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the MapOfEnumToSimpleStruct property was specified by the sender (it may be empty), or false if
-     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfEnumToSimpleStruct property. This
+     * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasMapOfEnumToSimpleStruct() {
         return mapOfEnumToSimpleStruct != null && !(mapOfEnumToSimpleStruct instanceof SdkAutoConstructMap);
@@ -997,7 +1058,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToSimpleStruct()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToSimpleStruct} method.
      * </p>
      *
      * @return The value of the MapOfEnumToSimpleStruct property for this object.
@@ -1012,7 +1074,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToListOfEnums()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToListOfEnums} method.
      * </p>
      *
      * @return The value of the MapOfEnumToListOfEnums property for this object.
@@ -1022,9 +1085,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the MapOfEnumToListOfEnums property was specified by the sender (it may be empty), or false if
-     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfEnumToListOfEnums property. This
+     * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasMapOfEnumToListOfEnums() {
         return mapOfEnumToListOfEnums != null && !(mapOfEnumToListOfEnums instanceof SdkAutoConstructMap);
@@ -1036,7 +1102,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToListOfEnums()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToListOfEnums} method.
      * </p>
      *
      * @return The value of the MapOfEnumToListOfEnums property for this object.
@@ -1051,7 +1118,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToMapOfStringToEnum()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToMapOfStringToEnum} method.
      * </p>
      *
      * @return The value of the MapOfEnumToMapOfStringToEnum property for this object.
@@ -1061,9 +1129,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the MapOfEnumToMapOfStringToEnum property was specified by the sender (it may be empty), or false
-     * if the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the
-     * AWS service.
+     * For responses, this returns true if the service returned a value for the MapOfEnumToMapOfStringToEnum property.
+     * This DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasMapOfEnumToMapOfStringToEnum() {
         return mapOfEnumToMapOfStringToEnum != null && !(mapOfEnumToMapOfStringToEnum instanceof SdkAutoConstructMap);
@@ -1075,7 +1146,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToMapOfStringToEnum()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToMapOfStringToEnum} method.
      * </p>
      *
      * @return The value of the MapOfEnumToMapOfStringToEnum property for this object.
@@ -1121,8 +1193,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the BlobMap property was specified by the sender (it may be empty), or false if the sender did
-     * not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the BlobMap property. This DOES NOT check
+     * that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property). This is
+     * useful because the SDK will never return a null collection or map, but you may need to differentiate between the
+     * service returning nothing (or null) and the service returning an empty collection or map. For requests, this
+     * returns true if a value for the property was specified in the request builder, and false if a value was not
+     * specified.
      */
     public final boolean hasBlobMap() {
         return blobMap != null && !(blobMap instanceof SdkAutoConstructMap);
@@ -1134,7 +1210,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasBlobMap()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasBlobMap} method.
      * </p>
      *
      * @return The value of the BlobMap property for this object.
@@ -1144,8 +1221,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     }
 
     /**
-     * Returns true if the ListOfBlobs property was specified by the sender (it may be empty), or false if the sender
-     * did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the ListOfBlobs property. This DOES NOT
+     * check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasListOfBlobs() {
         return listOfBlobs != null && !(listOfBlobs instanceof SdkAutoConstructList);
@@ -1157,7 +1238,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfBlobs()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfBlobs} method.
      * </p>
      *
      * @return The value of the ListOfBlobs property for this object.

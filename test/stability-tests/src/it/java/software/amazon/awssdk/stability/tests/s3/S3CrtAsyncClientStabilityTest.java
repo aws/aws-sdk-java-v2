@@ -32,7 +32,6 @@ public class S3CrtAsyncClientStabilityTest extends S3BaseStabilityTest {
 
     static {
         s3CrtAsyncClient = S3CrtAsyncClient.builder()
-                                           .region(Region.US_WEST_2)
                                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .build();
     }

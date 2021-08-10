@@ -109,8 +109,11 @@ public final class ExistenceCheckNamingRequest extends JsonProtocolTestsRequest 
     }
 
     /**
-     * Returns true if the Build property was specified by the sender (it may be empty), or false if the sender did not
-     * specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the Build property. This DOES NOT check that
+     * the value is non-empty (for which, you should check the {@code isEmpty()} method on the property). This is useful
+     * because the SDK will never return a null collection or map, but you may need to differentiate between the service
+     * returning nothing (or null) and the service returning an empty collection or map. For requests, this returns true
+     * if a value for the property was specified in the request builder, and false if a value was not specified.
      */
     public final boolean hasBuild() {
         return build != null && !(build instanceof SdkAutoConstructList);
@@ -122,7 +125,8 @@ public final class ExistenceCheckNamingRequest extends JsonProtocolTestsRequest 
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasBuild()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasBuild} method.
      * </p>
      *
      * @return The value of the Build property for this object.
@@ -132,8 +136,11 @@ public final class ExistenceCheckNamingRequest extends JsonProtocolTestsRequest 
     }
 
     /**
-     * Returns true if the Super property was specified by the sender (it may be empty), or false if the sender did not
-     * specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the Super property. This DOES NOT check that
+     * the value is non-empty (for which, you should check the {@code isEmpty()} method on the property). This is useful
+     * because the SDK will never return a null collection or map, but you may need to differentiate between the service
+     * returning nothing (or null) and the service returning an empty collection or map. For requests, this returns true
+     * if a value for the property was specified in the request builder, and false if a value was not specified.
      */
     public final boolean hasSuperValue() {
         return superValue != null && !(superValue instanceof SdkAutoConstructList);
@@ -145,7 +152,8 @@ public final class ExistenceCheckNamingRequest extends JsonProtocolTestsRequest 
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasSuperValue()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasSuperValue} method.
      * </p>
      *
      * @return The value of the Super property for this object.
@@ -155,8 +163,12 @@ public final class ExistenceCheckNamingRequest extends JsonProtocolTestsRequest 
     }
 
     /**
-     * Returns true if the ToString property was specified by the sender (it may be empty), or false if the sender did
-     * not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the ToString property. This DOES NOT check
+     * that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property). This is
+     * useful because the SDK will never return a null collection or map, but you may need to differentiate between the
+     * service returning nothing (or null) and the service returning an empty collection or map. For requests, this
+     * returns true if a value for the property was specified in the request builder, and false if a value was not
+     * specified.
      */
     public final boolean hasToStringValue() {
         return toStringValue != null && !(toStringValue instanceof SdkAutoConstructMap);
@@ -168,7 +180,8 @@ public final class ExistenceCheckNamingRequest extends JsonProtocolTestsRequest 
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasToStringValue()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasToStringValue} method.
      * </p>
      *
      * @return The value of the ToString property for this object.
@@ -178,8 +191,12 @@ public final class ExistenceCheckNamingRequest extends JsonProtocolTestsRequest 
     }
 
     /**
-     * Returns true if the Equals property was specified by the sender (it may be empty), or false if the sender did not
-     * specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the Equals property. This DOES NOT check
+     * that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property). This is
+     * useful because the SDK will never return a null collection or map, but you may need to differentiate between the
+     * service returning nothing (or null) and the service returning an empty collection or map. For requests, this
+     * returns true if a value for the property was specified in the request builder, and false if a value was not
+     * specified.
      */
     public final boolean hasEqualsValue() {
         return equalsValue != null && !(equalsValue instanceof SdkAutoConstructMap);
@@ -191,7 +208,8 @@ public final class ExistenceCheckNamingRequest extends JsonProtocolTestsRequest 
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasEqualsValue()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasEqualsValue} method.
      * </p>
      *
      * @return The value of the Equals property for this object.
