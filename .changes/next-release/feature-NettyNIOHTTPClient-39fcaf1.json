@@ -1,0 +1,6 @@
+{
+    "category": "Netty NIO HTTP Client", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Upgrade Netty version to 4.1.66.Final"
+}
