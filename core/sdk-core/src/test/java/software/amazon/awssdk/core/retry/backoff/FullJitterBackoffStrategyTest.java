@@ -39,9 +39,6 @@ import software.amazon.awssdk.core.retry.RetryPolicyContext;
 @RunWith(Parameterized.class)
 public class FullJitterBackoffStrategyTest {
 
-    @Mock
-    private Random mockRandom = mock(Random.class);
-
     @Parameters
     public static Collection<TestCase> parameters() throws Exception {
         return Arrays.asList(
@@ -80,6 +77,9 @@ public class FullJitterBackoffStrategyTest {
 
     @Parameter
     public TestCase testCase;
+
+    @Mock
+    private Random mockRandom = mock(Random.class);
 
     @Before
     public void setUp() throws Exception {
