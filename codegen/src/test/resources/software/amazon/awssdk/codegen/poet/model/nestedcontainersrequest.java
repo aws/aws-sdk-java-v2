@@ -148,9 +148,12 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
     }
 
     /**
-     * Returns true if the ListOfListOfStrings property was specified by the sender (it may be empty), or false if the
-     * sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the ListOfListOfStrings property. This DOES
+     * NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasListOfListOfStrings() {
         return listOfListOfStrings != null && !(listOfListOfStrings instanceof SdkAutoConstructList);
@@ -162,7 +165,8 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfListOfStrings()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfListOfStrings} method.
      * </p>
      *
      * @return The value of the ListOfListOfStrings property for this object.
@@ -172,9 +176,12 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
     }
 
     /**
-     * Returns true if the ListOfListOfListOfStrings property was specified by the sender (it may be empty), or false if
-     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the ListOfListOfListOfStrings property. This
+     * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasListOfListOfListOfStrings() {
         return listOfListOfListOfStrings != null && !(listOfListOfListOfStrings instanceof SdkAutoConstructList);
@@ -186,7 +193,8 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfListOfListOfStrings()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfListOfListOfStrings} method.
      * </p>
      *
      * @return The value of the ListOfListOfListOfStrings property for this object.
@@ -196,9 +204,12 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
     }
 
     /**
-     * Returns true if the MapOfStringToListOfListOfStrings property was specified by the sender (it may be empty), or
-     * false if the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender
-     * is the AWS service.
+     * For responses, this returns true if the service returned a value for the MapOfStringToListOfListOfStrings
+     * property. This DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()}
+     * method on the property). This is useful because the SDK will never return a null collection or map, but you may
+     * need to differentiate between the service returning nothing (or null) and the service returning an empty
+     * collection or map. For requests, this returns true if a value for the property was specified in the request
+     * builder, and false if a value was not specified.
      */
     public final boolean hasMapOfStringToListOfListOfStrings() {
         return mapOfStringToListOfListOfStrings != null && !(mapOfStringToListOfListOfStrings instanceof SdkAutoConstructMap);
@@ -210,7 +221,9 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfStringToListOfListOfStrings()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToListOfListOfStrings}
+     * method.
      * </p>
      *
      * @return The value of the MapOfStringToListOfListOfStrings property for this object.

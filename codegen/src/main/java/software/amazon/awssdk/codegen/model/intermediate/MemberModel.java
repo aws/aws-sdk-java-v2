@@ -433,7 +433,8 @@ public class MemberModel extends DocumentationModel {
 
         if (getAutoConstructClassIfExists().isPresent()) {
             appendParagraph(docBuilder,
-                            "You can use {@link #%s()} to see if a value was sent in this field.",
+                            "This method will never return null. If you would like to know whether the service returned this "
+                            + "field (so that you can differentiate between null and empty), you can use the {@link #%s} method.",
                             getExistenceCheckMethodName());
         }
 

@@ -114,8 +114,12 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
     }
 
     /**
-     * Returns true if the RecursiveList property was specified by the sender (it may be empty), or false if the sender
-     * did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the RecursiveList property. This DOES NOT
+     * check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasRecursiveList() {
         return recursiveList != null && !(recursiveList instanceof SdkAutoConstructList);
@@ -127,7 +131,8 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasRecursiveList()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasRecursiveList} method.
      * </p>
      *
      * @return The value of the RecursiveList property for this object.
@@ -137,8 +142,12 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
     }
 
     /**
-     * Returns true if the RecursiveMap property was specified by the sender (it may be empty), or false if the sender
-     * did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the RecursiveMap property. This DOES NOT
+     * check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasRecursiveMap() {
         return recursiveMap != null && !(recursiveMap instanceof SdkAutoConstructMap);
@@ -150,7 +159,8 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasRecursiveMap()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasRecursiveMap} method.
      * </p>
      *
      * @return The value of the RecursiveMap property for this object.
