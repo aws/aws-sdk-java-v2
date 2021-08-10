@@ -139,16 +139,16 @@ public class RetryPolicyTest {
 
     @Test
     public void standardRetryMode_shouldUseFullJitterOnly() {
-        RetryPolicy legacyRetryPolicy = RetryPolicy.forRetryMode(RetryMode.STANDARD);
+        RetryPolicy standardRetryPolicy = RetryPolicy.forRetryMode(RetryMode.STANDARD);
 
-        assertThat(legacyRetryPolicy.backoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
-        FullJitterBackoffStrategy backoffStrategy = (FullJitterBackoffStrategy) legacyRetryPolicy.backoffStrategy();
+        assertThat(standardRetryPolicy.backoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
+        FullJitterBackoffStrategy backoffStrategy = (FullJitterBackoffStrategy) standardRetryPolicy.backoffStrategy();
         assertThat(backoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofSeconds(1));
         assertThat(backoffStrategy.toBuilder().maxBackoffTime()).isEqualTo(Duration.ofSeconds(20));
 
-        assertThat(legacyRetryPolicy.throttlingBackoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
+        assertThat(standardRetryPolicy.throttlingBackoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
         FullJitterBackoffStrategy throttlingBackoffStrategy =
-            (FullJitterBackoffStrategy) legacyRetryPolicy.throttlingBackoffStrategy();
+            (FullJitterBackoffStrategy) standardRetryPolicy.throttlingBackoffStrategy();
         assertThat(throttlingBackoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofSeconds(1));
         assertThat(throttlingBackoffStrategy.toBuilder().maxBackoffTime()).isEqualTo(Duration.ofSeconds(20));
     }
