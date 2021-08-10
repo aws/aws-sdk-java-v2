@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3 Transfer Manager [Preview]", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "This release includes the preview release of the Amazon S3 Transfer Manager. Visit our [Developer Guide](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/transfer-manager.html) for more information."
+}

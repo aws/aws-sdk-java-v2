@@ -13,21 +13,21 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.util;
+package software.amazon.awssdk.core.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
 import org.junit.Test;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 
-public class UserAgentUtilsTest {
+public class SdkUserAgentTest {
 
     @Test
     public void userAgent() {
-        String userAgent = UserAgentUtils.userAgent();
+        String userAgent = SdkUserAgent.create().userAgent();
         assertNotNull(userAgent);
         Arrays.stream(userAgent.split(" ")).forEach(str -> assertThat(isValidInput(str)).isTrue());
     }
@@ -35,7 +35,7 @@ public class UserAgentUtilsTest {
     @Test
     public void userAgent_HasVendor() {
         System.setProperty(JavaSystemSetting.JAVA_VENDOR.property(), "finks");
-        String userAgent = UserAgentUtils.userAgent();
+        String userAgent = SdkUserAgent.create().getUserAgent();
         System.clearProperty(JavaSystemSetting.JAVA_VENDOR.property());
         assertThat(userAgent).contains("vendor/finks");
     }
@@ -43,7 +43,7 @@ public class UserAgentUtilsTest {
     @Test
     public void userAgent_HasUnknownVendor() {
         System.clearProperty(JavaSystemSetting.JAVA_VENDOR.property());
-        String userAgent = UserAgentUtils.userAgent();
+        String userAgent = SdkUserAgent.create().getUserAgent();
         assertThat(userAgent).contains("vendor/unknown");
     }
 

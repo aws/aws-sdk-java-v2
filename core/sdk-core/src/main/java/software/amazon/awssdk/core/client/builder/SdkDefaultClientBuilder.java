@@ -63,9 +63,9 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -205,7 +205,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                          .option(ADDITIONAL_HTTP_HEADERS, new LinkedHashMap<>())
                                          .option(PROFILE_FILE, profileFile)
                                          .option(PROFILE_NAME, ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
-                                         .option(USER_AGENT_PREFIX, UserAgentUtils.getUserAgent())
+                                         .option(USER_AGENT_PREFIX, SdkUserAgent.create().userAgent())
                                          .option(USER_AGENT_SUFFIX, "")
                                          .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
@@ -298,6 +298,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * Finalize which async executor service will be used for the created client. The default async executor
      * service has at least 8 core threads and can scale up to at least 64 threads when needed depending
      * on the number of processors available.
+     *
+     * This uses the same default executor in S3NativeClientConfiguration#resolveAsyncFutureCompletionExecutor.
+     * Make sure you update that method if you update the defaults here.
      */
     private Executor resolveAsyncFutureCompletionExecutor(SdkClientConfiguration config) {
         Supplier<Executor> defaultExecutor = () -> {
