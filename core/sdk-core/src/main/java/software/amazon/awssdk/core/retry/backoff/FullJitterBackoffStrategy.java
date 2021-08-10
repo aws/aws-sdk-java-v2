@@ -62,7 +62,7 @@ public final class FullJitterBackoffStrategy implements BackoffStrategy,
     public Duration computeDelayBeforeNextRetry(RetryPolicyContext context) {
         int ceil = calculateExponentialDelay(context.retriesAttempted(), baseDelay, maxBackoffTime);
         // Minimum of 1 ms (consistent with BackoffStrategy.none()'s behavior)
-        return Duration.ofMillis(random.nextInt(ceil) + 1);
+        return Duration.ofMillis(random.nextInt(ceil) + 1L);
     }
 
     @Override
