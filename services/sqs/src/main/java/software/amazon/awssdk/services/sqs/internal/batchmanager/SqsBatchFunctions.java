@@ -149,13 +149,15 @@ public final class SqsBatchFunctions {
             deleteMessageBatchResponse.successful()
                                       .forEach(batchResponseEntry -> {
                                           String key = batchResponseEntry.id();
-                                          DeleteMessageResponse response = createDeleteMessageResponse(deleteMessageBatchResponse);
+                                          DeleteMessageResponse response =
+                                              createDeleteMessageResponse(deleteMessageBatchResponse);
                                           mappedResponses.add(new IdentifiableMessage<>(key, response));
                                       });
             deleteMessageBatchResponse.failed()
                                       .forEach(batchResponseEntry -> {
                                           String key = batchResponseEntry.id();
-                                          DeleteMessageResponse response = createDeleteMessageResponse(deleteMessageBatchResponse);
+                                          DeleteMessageResponse response =
+                                              createDeleteMessageResponse(deleteMessageBatchResponse);
                                           mappedResponses.add(new IdentifiableMessage<>(key, response));
                                       });
             return mappedResponses;
@@ -251,8 +253,8 @@ public final class SqsBatchFunctions {
         SendMessageResponse.Builder builder = SendMessageResponse.builder()
                                                                  .md5OfMessageAttributes(successfulEntry.md5OfMessageAttributes())
                                                                  .md5OfMessageBody(successfulEntry.md5OfMessageBody())
-                                                                 .md5OfMessageSystemAttributes(successfulEntry
-                                                                                                   .md5OfMessageSystemAttributes())
+                                                                 .md5OfMessageSystemAttributes(
+                                                                     successfulEntry.md5OfMessageSystemAttributes())
                                                                  .messageId(successfulEntry.messageId())
                                                                  .sequenceNumber(successfulEntry.sequenceNumber());
         if (batchResponse.responseMetadata() != null) {
