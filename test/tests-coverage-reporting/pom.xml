@@ -20,7 +20,7 @@
     <parent>
         <artifactId>aws-sdk-java-pom</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.17.15-SNAPSHOT</version>
+        <version>2.17.16-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -215,6 +215,11 @@
             <artifactId>glacier</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>s3-transfer-manager</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}-PREVIEW</version>
         </dependency>
     </dependencies>
 

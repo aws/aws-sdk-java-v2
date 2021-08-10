@@ -36,8 +36,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
-import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.internal.util.ConnectionUtils;
 import software.amazon.awssdk.regions.internal.util.SocketUtils;
 
@@ -53,7 +52,7 @@ public class HttpCredentialsUtilsTest {
     private static Map<String, String> headers = new HashMap<String, String>()
     {
         {
-            put("User-Agent", UserAgentUtils.getUserAgent());
+            put("User-Agent", SdkUserAgent.create().userAgent());
             put("Accept", "*/*");
             put("Connection", "keep-alive");
         }
