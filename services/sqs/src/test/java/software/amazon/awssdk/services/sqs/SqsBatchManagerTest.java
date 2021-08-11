@@ -30,6 +30,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -212,8 +213,8 @@ public class SqsBatchManagerTest {
             responses.add(batchManager.sendMessage(request));
         }
 
-        assertThatThrownBy(() -> responses.get(0).join()).isInstanceOf(Exception.class).hasMessageContaining("400");
-        assertThatThrownBy(() -> responses.get(1).join()).isInstanceOf(Exception.class).hasMessageContaining("400");
+        assertThatThrownBy(() -> responses.get(0).join()).isInstanceOf(CompletionException.class).hasMessageContaining("400");
+        assertThatThrownBy(() -> responses.get(1).join()).isInstanceOf(CompletionException.class).hasMessageContaining("400");
     }
 
     @Test
@@ -269,8 +270,8 @@ public class SqsBatchManagerTest {
             responses.add(batchManager.deleteMessage(request));
         }
 
-        assertThatThrownBy(() -> responses.get(0).join()).isInstanceOf(Exception.class).hasMessageContaining("400");
-        assertThatThrownBy(() -> responses.get(1).join()).isInstanceOf(Exception.class).hasMessageContaining("400");
+        assertThatThrownBy(() -> responses.get(0).join()).isInstanceOf(CompletionException.class).hasMessageContaining("400");
+        assertThatThrownBy(() -> responses.get(1).join()).isInstanceOf(CompletionException.class).hasMessageContaining("400");
     }
 
     @Test
@@ -325,8 +326,8 @@ public class SqsBatchManagerTest {
             responses.add(batchManager.changeMessageVisibility(request));
         }
 
-        assertThatThrownBy(() -> responses.get(0).join()).isInstanceOf(Exception.class).hasMessageContaining("400");
-        assertThatThrownBy(() -> responses.get(1).join()).isInstanceOf(Exception.class).hasMessageContaining("400");
+        assertThatThrownBy(() -> responses.get(0).join()).isInstanceOf(CompletionException.class).hasMessageContaining("400");
+        assertThatThrownBy(() -> responses.get(1).join()).isInstanceOf(CompletionException.class).hasMessageContaining("400");
     }
 
     @Mock
