@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.sqs.batchmanager;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -102,9 +104,9 @@ public interface SqsBatchManager extends SdkAutoCloseable {
     interface Builder {
 
         /**
-         * Defines overrides to the default BatchManager configuration
+         * Defines overrides to the default BatchManager configuration.
          *
-         * @param overrideConfiguration the override configuration to set
+         * @param overrideConfiguration the override configuration to set.
          * @return a reference to this object so that method calls can be chained together.
          */
         Builder overrideConfiguration(BatchOverrideConfiguration overrideConfiguration);
@@ -119,6 +121,28 @@ public interface SqsBatchManager extends SdkAutoCloseable {
          * @return a reference to this object so that method calls can be chained together.
          */
         Builder client(SqsClient client);
+
+        /**
+         * Sets a custom {@link ScheduledExecutorService} that will be used to schedule periodic buffer flushes.
+         * <p>
+         * Creating a SqsBatchManager directly from the client will use the client's scheduled executor. If supplied by the
+         * user, this ScheduledExecutorService must be closed by the caller when it is ready to be shut down.
+         *
+         * @param scheduledExecutor the scheduledExecutor to be used.
+         * @return a reference to this object so that method calls can be chained together.
+         */
+        Builder scheduledExecutor(ScheduledExecutorService scheduledExecutor);
+
+        /**
+         * Sets a custom {@link ExecutorService} that will be used to execute client requests asynchronously.
+         * <p>
+         * Creating a SqsBatchManager directly from the client will use the client's executor. If supplied by the user, this
+         * ExecutorService must be closed by the caller when it is ready to be shut down.
+         *
+         * @param executor the executor to be used.
+         * @returna reference to this object so that method calls can be chained together.
+         */
+        Builder executor(ExecutorService executor);
 
         /**
          * Builds an instance of {@link SqsBatchManager} based on the configurations supplied to this builder.
