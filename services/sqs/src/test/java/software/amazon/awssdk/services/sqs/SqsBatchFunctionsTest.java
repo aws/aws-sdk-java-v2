@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.sqs;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityBatchKeyMapper;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityResponseMapper;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.deleteMessageBatchKeyMapper;
@@ -25,7 +26,6 @@ import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatch
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
-import org.junit.Assert;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.internal.batchmanager.IdentifiableMessage;
@@ -63,10 +63,10 @@ public class SqsBatchFunctionsTest {
 
         IdentifiableMessage<SendMessageResponse> response1 = mappedResponses.get(0);
         IdentifiableMessage<SendMessageResponse> response2 = mappedResponses.get(1);
-        Assert.assertEquals(id1, response1.id());
-        Assert.assertEquals(messageBody1, response1.message().md5OfMessageBody());
-        Assert.assertEquals(id2, response2.id());
-        Assert.assertEquals(messageBody2, response2.message().md5OfMessageBody());
+        assertThat(response1.id()).isEqualTo(id1);
+        assertThat(response1.message().md5OfMessageBody()).isEqualTo(messageBody1);
+        assertThat(response2.id()).isEqualTo(id2);
+        assertThat(response2.message().md5OfMessageBody()).isEqualTo(messageBody2);
     }
 
     @Test
@@ -77,9 +77,9 @@ public class SqsBatchFunctionsTest {
         String batchKey1 = sendMessageBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = sendMessageBatchKeyMapper().getBatchKey(request2);
 
-        Assert.assertEquals(queueUrl, batchKey1);
-        Assert.assertEquals(queueUrl, batchKey2);
-        Assert.assertEquals(batchKey1, batchKey2);
+        assertThat(batchKey1).isEqualTo(queueUrl);
+        assertThat(batchKey2).isEqualTo(queueUrl);
+        assertThat(batchKey1).isEqualTo(batchKey2);
     }
 
     @Test
@@ -97,7 +97,7 @@ public class SqsBatchFunctionsTest {
                                                         .build();
         String batchKey1 = sendMessageBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = sendMessageBatchKeyMapper().getBatchKey(request2);
-        Assert.assertEquals(batchKey1, batchKey2);
+        assertThat(batchKey1).isEqualTo(batchKey2);
     }
 
     @Test
@@ -115,7 +115,7 @@ public class SqsBatchFunctionsTest {
                                                         .build();
         String batchKey1 = sendMessageBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = sendMessageBatchKeyMapper().getBatchKey(request2);
-        Assert.assertNotEquals(batchKey1, batchKey2);
+        assertThat(batchKey1).isNotEqualTo(batchKey2);
     }
 
     @Test
@@ -130,8 +130,8 @@ public class SqsBatchFunctionsTest {
 
         IdentifiableMessage<DeleteMessageResponse> response1 = mappedResponses.get(0);
         IdentifiableMessage<DeleteMessageResponse> response2 = mappedResponses.get(1);
-        Assert.assertEquals(id1, response1.id());
-        Assert.assertEquals(id2, response2.id());
+        assertThat(response1.id()).isEqualTo(id1);
+        assertThat(response2.id()).isEqualTo(id2);
     }
 
     @Test
@@ -142,9 +142,9 @@ public class SqsBatchFunctionsTest {
         String batchKey1 = deleteMessageBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = deleteMessageBatchKeyMapper().getBatchKey(request2);
 
-        Assert.assertEquals(queueUrl, batchKey1);
-        Assert.assertEquals(queueUrl, batchKey2);
-        Assert.assertEquals(batchKey1, batchKey2);
+        assertThat(batchKey1).isEqualTo(queueUrl);
+        assertThat(batchKey2).isEqualTo(queueUrl);
+        assertThat(batchKey1).isEqualTo(batchKey2);
     }
 
     @Test
@@ -162,7 +162,7 @@ public class SqsBatchFunctionsTest {
                                                             .build();
         String batchKey1 = deleteMessageBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = deleteMessageBatchKeyMapper().getBatchKey(request2);
-        Assert.assertEquals(batchKey1, batchKey2);
+        assertThat(batchKey1).isEqualTo(batchKey2);
     }
 
     @Test
@@ -180,7 +180,7 @@ public class SqsBatchFunctionsTest {
                                                             .build();
         String batchKey1 = deleteMessageBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = deleteMessageBatchKeyMapper().getBatchKey(request2);
-        Assert.assertNotEquals(batchKey1, batchKey2);
+        assertThat(batchKey1).isNotEqualTo(batchKey2);
     }
 
     @Test
@@ -197,8 +197,8 @@ public class SqsBatchFunctionsTest {
 
         IdentifiableMessage<ChangeMessageVisibilityResponse> response1 = mappedResponses.get(0);
         IdentifiableMessage<ChangeMessageVisibilityResponse> response2 = mappedResponses.get(1);
-        Assert.assertEquals(id1, response1.id());
-        Assert.assertEquals(id2, response2.id());
+        assertThat(response1.id()).isEqualTo(id1);
+        assertThat(response2.id()).isEqualTo(id2);
     }
 
     @Test
@@ -209,9 +209,9 @@ public class SqsBatchFunctionsTest {
         String batchKey1 = changeVisibilityBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = changeVisibilityBatchKeyMapper().getBatchKey(request2);
 
-        Assert.assertEquals(queueUrl, batchKey1);
-        Assert.assertEquals(queueUrl, batchKey2);
-        Assert.assertEquals(batchKey1, batchKey2);
+        assertThat(batchKey1).isEqualTo(queueUrl);
+        assertThat(batchKey2).isEqualTo(queueUrl);
+        assertThat(batchKey1).isEqualTo(batchKey2);
     }
 
     @Test
@@ -229,7 +229,7 @@ public class SqsBatchFunctionsTest {
                                                                                 .build();
         String batchKey1 = changeVisibilityBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = changeVisibilityBatchKeyMapper().getBatchKey(request2);
-        Assert.assertEquals(batchKey1, batchKey2);
+        assertThat(batchKey1).isEqualTo(batchKey2);
     }
 
     @Test
@@ -247,7 +247,7 @@ public class SqsBatchFunctionsTest {
                                                                                 .build();
         String batchKey1 = changeVisibilityBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = changeVisibilityBatchKeyMapper().getBatchKey(request2);
-        Assert.assertNotEquals(batchKey1, batchKey2);
+        assertThat(batchKey1).isNotEqualTo(batchKey2);
     }
 
     private SendMessageBatchResultEntry createSendMessageBatchEntry(String id, String messageBody) {

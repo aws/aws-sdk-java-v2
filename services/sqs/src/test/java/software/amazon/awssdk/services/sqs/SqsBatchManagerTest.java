@@ -19,6 +19,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
@@ -33,25 +36,33 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.batchmanager.SqsBatchManager;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.DefaultSqsBatchManager;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Md5Utils;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
+@RunWith(MockitoJUnitRunner.class)
 public class SqsBatchManagerTest {
 
     private static final int DEFAULT_MAX_BATCH_OPEN = 200;
@@ -135,8 +146,8 @@ public class SqsBatchManagerTest {
 
         SendMessageResponse completedResponse1 = responses.get(0).join();
         SendMessageResponse completedResponse2 = responses.get(1).join();
-        Assert.assertEquals(messageBody1, completedResponse1.md5OfMessageBody());
-        Assert.assertEquals(messageBody2, completedResponse2.md5OfMessageBody());
+        assertThat(completedResponse1.md5OfMessageBody()).isEqualTo(messageBody1);
+        assertThat(completedResponse2.md5OfMessageBody()).isEqualTo(messageBody2);
     }
 
     @Test
@@ -175,8 +186,8 @@ public class SqsBatchManagerTest {
         SendMessageResponse completedResponse1 = responses.get(0).join();
         SendMessageResponse completedResponse2 = responses.get(1).join();
         String expectedHash = getMd5Hash(String.format("%s: %s", errorCode, errorMessage));
-        Assert.assertEquals(expectedHash, completedResponse1.md5OfMessageBody());
-        Assert.assertEquals(expectedHash, completedResponse2.md5OfMessageBody());
+        assertThat(completedResponse1.md5OfMessageBody()).isEqualTo(expectedHash);
+        assertThat(completedResponse2.md5OfMessageBody()).isEqualTo(expectedHash);
     }
 
     @Test
@@ -201,8 +212,8 @@ public class SqsBatchManagerTest {
             responses.add(batchManager.sendMessage(request));
         }
 
-        Assert.assertThrows(Exception.class, () -> responses.get(0).join());
-        Assert.assertThrows(Exception.class, () -> responses.get(1).join());
+        assertThatThrownBy(() -> responses.get(0).join()).isInstanceOf(Exception.class).hasMessageContaining("400");
+        assertThatThrownBy(() -> responses.get(1).join()).isInstanceOf(Exception.class).hasMessageContaining("400");
     }
 
     @Test
@@ -235,7 +246,7 @@ public class SqsBatchManagerTest {
         long endTime = System.nanoTime();
         CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
 
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() < DEFAULT_MAX_BATCH_OPEN + 100);
+        assertThat(Duration.ofNanos(endTime - startTime).toMillis()).isLessThan(DEFAULT_MAX_BATCH_OPEN + 100);
     }
 
     @Test
@@ -258,8 +269,8 @@ public class SqsBatchManagerTest {
             responses.add(batchManager.deleteMessage(request));
         }
 
-        Assert.assertThrows(Exception.class, () -> responses.get(0).join());
-        Assert.assertThrows(Exception.class, () -> responses.get(1).join());
+        assertThatThrownBy(() -> responses.get(0).join()).isInstanceOf(Exception.class).hasMessageContaining("400");
+        assertThatThrownBy(() -> responses.get(1).join()).isInstanceOf(Exception.class).hasMessageContaining("400");
     }
 
     @Test
@@ -291,7 +302,7 @@ public class SqsBatchManagerTest {
         long endTime = System.nanoTime();
         CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
 
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() < DEFAULT_MAX_BATCH_OPEN + 100);
+        assertThat(Duration.ofNanos(endTime - startTime).toMillis()).isLessThan(DEFAULT_MAX_BATCH_OPEN + 100);
     }
 
     @Test
@@ -314,8 +325,30 @@ public class SqsBatchManagerTest {
             responses.add(batchManager.changeMessageVisibility(request));
         }
 
-        Assert.assertThrows(Exception.class, () -> responses.get(0).join());
-        Assert.assertThrows(Exception.class, () -> responses.get(1).join());
+        assertThatThrownBy(() -> responses.get(0).join()).isInstanceOf(Exception.class).hasMessageContaining("400");
+        assertThatThrownBy(() -> responses.get(1).join()).isInstanceOf(Exception.class).hasMessageContaining("400");
+    }
+
+    @Mock
+    private BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> mockSendMessageBatchManager;
+
+    @Mock
+    private BatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse> mockDeleteMessageBatchManager;
+
+    @Mock
+    private BatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
+        ChangeMessageVisibilityBatchResponse> mockChangeVisibilityBatchManager;
+
+    @Test
+    public void closeBatchManager_shouldNotCloseExecutorsOrClient() {
+        SqsBatchManager batchManager = new DefaultSqsBatchManager(client, executor, mockSendMessageBatchManager,
+                                                                  mockDeleteMessageBatchManager,
+                                                                  mockChangeVisibilityBatchManager);
+        batchManager.close();
+        verify(mockSendMessageBatchManager).close();
+        verify(mockDeleteMessageBatchManager).close();
+        verify(mockChangeVisibilityBatchManager).close();
+        assertThat(executor.isShutdown()).isFalse();
     }
 
     private SendMessageRequest createSendMessageRequest(String messageBody) {

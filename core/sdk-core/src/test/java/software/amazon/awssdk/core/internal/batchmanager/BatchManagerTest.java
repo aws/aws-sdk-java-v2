@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.core.internal.batchmanager;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +36,6 @@ import java.util.concurrent.TimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.testng.Assert;
 import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Logger;
@@ -96,7 +98,7 @@ public class BatchManagerTest {
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > DEFAULT_MAX_BATCH_OPEN);
+        assertThat(Duration.ofNanos(endTime - startTime).toMillis()).isGreaterThan(DEFAULT_MAX_BATCH_OPEN);
         checkAllResponses(requests, responses);
     }
 
@@ -111,8 +113,8 @@ public class BatchManagerTest {
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
-        Assert.assertEquals(responses.size(), 10);
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > DEFAULT_MAX_BATCH_OPEN + 100);
+        assertThat(responses).hasSize(10);
+        assertThat(Duration.ofNanos(endTime - startTime).toMillis()).isGreaterThan(DEFAULT_MAX_BATCH_OPEN + 100);
         checkAllResponses(requests, responses);
     }
 
@@ -126,8 +128,8 @@ public class BatchManagerTest {
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
-        Assert.assertEquals(responses.size(), 10);
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() < DEFAULT_MAX_BATCH_OPEN * 2);
+        assertThat(responses).hasSize(10);
+        assertThat(Duration.ofNanos(endTime - startTime).toMillis()).isLessThan(DEFAULT_MAX_BATCH_OPEN * 2);
         checkAllResponses(requests, responses);
     }
 
@@ -195,10 +197,12 @@ public class BatchManagerTest {
             String request = requests.get(key);
             responses.put(key, testBatchManager.sendRequest(request));
         }
-        Assert.assertEquals(requests.size(), responses.size());
+
+        assertThat(requests).hasSameSizeAs(responses);
         for (int i = 0; i < responses.size(); i++) {
             String key = Integer.toString(i);
-            Assert.assertThrows(RuntimeException.class, () -> responses.get(key).join());
+            CompletableFuture<String> completableResponse = responses.get(key);
+            assertThatThrownBy(completableResponse::join).isInstanceOf(RuntimeException.class);
         }
     }
 
@@ -291,10 +295,10 @@ public class BatchManagerTest {
     }
 
     private void checkAllResponses(Map<String, String> requests, Map<String, CompletableFuture<String>> responses) {
-        Assert.assertEquals(responses.size(), requests.size());
+        assertThat(responses).hasSameSizeAs(requests);
         for (int i = 0; i < responses.size(); i++) {
             String key = Integer.toString(i);
-            Assert.assertEquals(responses.get(key).join(), requests.get(key));
+            assertThat(responses.get(key).join()).isEqualTo(requests.get(key));
         }
     }
 

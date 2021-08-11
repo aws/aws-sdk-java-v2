@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.sqs;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -33,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -119,7 +120,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > DEFAULT_MAX_BATCH_OPEN);
+        assertThat(Duration.ofNanos(endTime - startTime).toMillis()).isGreaterThan(DEFAULT_MAX_BATCH_OPEN);
         checkAllResponses(requests, responses);
     }
 
@@ -134,8 +135,8 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
-        Assert.assertEquals(10, responses.size());
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > DEFAULT_MAX_BATCH_OPEN + 100);
+        assertThat(responses).hasSize(10);
+        assertThat(Duration.ofNanos(endTime - startTime).toMillis()).isGreaterThan(DEFAULT_MAX_BATCH_OPEN + 100);
         checkAllResponses(requests, responses);
     }
 
@@ -192,8 +193,8 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
             deleteResponses.addAll(sendDeleteMessageRequests(deleteRequests).values());
             messages = client.receiveMessage(receiveRequest).messages();
         }
-
-        Assert.assertEquals(numMessages, deleteResponses.size());
+        deleteAllMessagesInQueue(queueUrl);
+        assertThat(deleteResponses.size()).isEqualTo(numMessages);
     }
 
     @Test
@@ -218,7 +219,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
             messages = client.receiveMessage(receiveRequest).messages();
         }
         deleteAllMessagesInQueue(queueUrl);
-        Assert.assertEquals(numMessages, changeVisibilityResponses.size());
+        assertThat(changeVisibilityResponses.size()).isEqualTo(numMessages);
     }
 
     private List<CompletableFuture<Map<String, CompletableFuture<SendMessageResponse>>>> createThreadsAndSendMessages(
@@ -271,14 +272,14 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
     private void checkAllResponses(Map<String, SendMessageRequest> requests,
                                    Map<String, CompletableFuture<SendMessageResponse>> responses) {
 
-        Assert.assertEquals(responses.size(), requests.size());
+        assertThat(responses).hasSameSizeAs(requests);
         byte[] expectedMd5;
         for (int i = 0; i < responses.size(); i++) {
             String key = Integer.toString(i);
             String requestBody = requests.get(key).messageBody();
             expectedMd5 = Md5Utils.computeMD5Hash(requestBody.getBytes(StandardCharsets.UTF_8));
             String expectedHash = BinaryUtils.toHex(expectedMd5);
-            Assert.assertEquals(expectedHash, responses.get(key).join().md5OfMessageBody());
+            assertThat(responses.get(key).join().md5OfMessageBody()).isEqualTo(expectedHash);
         }
     }
 
