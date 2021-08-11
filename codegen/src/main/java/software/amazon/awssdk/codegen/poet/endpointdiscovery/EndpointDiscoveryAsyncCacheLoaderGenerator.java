@@ -30,6 +30,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -103,7 +104,9 @@ public class EndpointDiscoveryAsyncCacheLoaderGenerator implements ClassSpec {
 
         if (!opModel.getInputShape().isHasHeaderMember()) {
             ClassName endpointClass = poetExtensions.getModelClass("Endpoint");
-            methodBuilder.addCode("return $L.$L($L.builder().build()).thenApply(r -> {",
+            methodBuilder.addStatement("$1T requestConfig = $1T.from(endpointDiscoveryRequest.overrideConfiguration()"
+                                       + ".orElse(null))", AwsRequestOverrideConfiguration.class)
+                         .addCode("return $L.$L($L.builder().overrideConfiguration(requestConfig).build()).thenApply(r -> {",
                                   CLIENT_FIELD,
                                   opModel.getMethodName(),
                                   poetExtensions.getModelClass(opModel.getInputShape().getC2jName()))
