@@ -15,37 +15,20 @@
 
 package software.amazon.awssdk.services.sqs;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityBatchFunction;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityBatchKeyMapper;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityResponseMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.deleteMessageBatchFunction;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.deleteMessageBatchKeyMapper;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.deleteMessageResponseMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageBatchFunction;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageBatchKeyMapper;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageResponseMapper;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.internal.batchmanager.IdentifiableMessage;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
@@ -63,57 +46,6 @@ import software.amazon.awssdk.utils.Md5Utils;
 
 // TODO: Will refactor code in this test file for async tests.
 public class SqsBatchFunctionsTest {
-    private static final URI HTTP_LOCALHOST_URI = URI.create("http://localhost:8080/");
-
-    @Rule
-    public WireMockRule wireMock = new WireMockRule();
-
-    private SqsClientBuilder getSyncClientBuilder() {
-        return SqsClient.builder()
-                        .region(Region.US_EAST_1)
-                        .endpointOverride(HTTP_LOCALHOST_URI)
-                        .credentialsProvider(
-                            StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")));
-    }
-
-    @Test
-    public void sendMessageBatchFunction_batchMessageCorrectly() {
-        String id1 = "1";
-        String id2 = "2";
-        String messageBody1 = getMd5Hash("1");
-        String messageBody2 = getMd5Hash("2");
-        String responseBody = String.format(
-            "<SendMessageBatchResponse>\n"
-            + "<SendMessageBatchResult>\n"
-            + "    <SendMessageBatchResultEntry>\n"
-            + "        <Id>%s</Id>\n"
-            + "        <MD5OfMessageBody>%s</MD5OfMessageBody>\n"
-            + "    </SendMessageBatchResultEntry>\n"
-            + "    <SendMessageBatchResultEntry>\n"
-            + "        <Id>%s</Id>\n"
-            + "        <MD5OfMessageBody>%s</MD5OfMessageBody>\n"
-            + "    </SendMessageBatchResultEntry>\n"
-            + "</SendMessageBatchResult>\n"
-            + "</SendMessageBatchResponse>", id1, messageBody1, id2, messageBody2);
-
-        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
-
-        SqsClient sqsClient = getSyncClientBuilder().build();
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-
-        List<IdentifiableMessage<SendMessageRequest>> requests = new ArrayList<>();
-        requests.add(new IdentifiableMessage<>("1", createSendMessageRequest("1")));
-        requests.add(new IdentifiableMessage<>("2", createSendMessageRequest("2")));
-        CompletableFuture<SendMessageBatchResponse> response =
-            sendMessageBatchFunction(sqsClient, executor).batchAndSend(requests, "SomeId");
-        List<SendMessageBatchResultEntry> completedResponse = response.join().successful();
-        SendMessageBatchResultEntry completedResponse1 = completedResponse.get(0);
-        SendMessageBatchResultEntry completedResponse2 = completedResponse.get(1);
-        Assert.assertEquals(id1, completedResponse1.id());
-        Assert.assertEquals(messageBody1, completedResponse1.md5OfMessageBody());
-        Assert.assertEquals(id2, completedResponse2.id());
-        Assert.assertEquals(messageBody2, completedResponse2.md5OfMessageBody());
-    }
 
     @Test
     public void sendMessageResponseMapper_mapResponsesCorrectly() {
@@ -187,39 +119,6 @@ public class SqsBatchFunctionsTest {
     }
 
     @Test
-    public void deleteMessageBatchFunction_batchMessageCorrectly() {
-        String id1 = "1";
-        String id2 = "2";
-        String responseBody = String.format(
-            "<DeleteMessageBatchResponse>\n"
-            + "    <DeleteMessageBatchResult>\n"
-            + "        <DeleteMessageBatchResultEntry>\n"
-            + "            <Id>%s</Id>\n"
-            + "        </DeleteMessageBatchResultEntry>\n"
-            + "        <DeleteMessageBatchResultEntry>\n"
-            + "            <Id>%s</Id>\n"
-            + "        </DeleteMessageBatchResultEntry>\n"
-            + "    </DeleteMessageBatchResult>\n"
-            + "</DeleteMessageBatchResponse>\n", id1, id2);
-
-        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
-
-        SqsClient sqsClient = getSyncClientBuilder().build();
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-
-        List<IdentifiableMessage<DeleteMessageRequest>> requests = new ArrayList<>();
-        requests.add(new IdentifiableMessage<>("1", createDeleteMessageRequest()));
-        requests.add(new IdentifiableMessage<>("2", createDeleteMessageRequest()));
-        CompletableFuture<DeleteMessageBatchResponse> response =
-            deleteMessageBatchFunction(sqsClient, executor).batchAndSend(requests, "SomeId");
-        List<DeleteMessageBatchResultEntry> completedResponse = response.join().successful();
-        DeleteMessageBatchResultEntry completedResponse1 = completedResponse.get(0);
-        DeleteMessageBatchResultEntry completedResponse2 = completedResponse.get(1);
-        Assert.assertEquals(id1, completedResponse1.id());
-        Assert.assertEquals(id2, completedResponse2.id());
-    }
-
-    @Test
     public void deleteMessageResponseMapper_mapResponsesCorrectly() {
         String id1 = "1";
         String id2 = "2";
@@ -282,40 +181,6 @@ public class SqsBatchFunctionsTest {
         String batchKey1 = deleteMessageBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = deleteMessageBatchKeyMapper().getBatchKey(request2);
         Assert.assertNotEquals(batchKey1, batchKey2);
-    }
-
-    @Test
-    public void changeVisibilityBatchFunction_batchMessageCorrectly() {
-        String id1 = "1";
-        String id2 = "2";
-        String responseBody = String.format(
-            "<ChangeMessageVisibilityBatchResponse>\n"
-            + "    <ChangeMessageVisibilityBatchResult>\n"
-            + "        <ChangeMessageVisibilityBatchResultEntry>\n"
-            + "            <Id>%s</Id>\n"
-            + "        </ChangeMessageVisibilityBatchResultEntry>\n"
-            + "        <ChangeMessageVisibilityBatchResultEntry>\n"
-            + "            <Id>%s</Id>\n"
-            + "        </ChangeMessageVisibilityBatchResultEntry>\n"
-            + "    </ChangeMessageVisibilityBatchResult>\n"
-            + "</ChangeMessageVisibilityBatchResponse>", id1, id2);
-
-        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
-
-        SqsClient sqsClient = getSyncClientBuilder().build();
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-
-        List<IdentifiableMessage<ChangeMessageVisibilityRequest>> requests = new ArrayList<>();
-        requests.add(new IdentifiableMessage<>("1", createChangeVisibilityRequest()));
-        requests.add(new IdentifiableMessage<>("2", createChangeVisibilityRequest()));
-        CompletableFuture<ChangeMessageVisibilityBatchResponse> response =
-            changeVisibilityBatchFunction(sqsClient, executor).batchAndSend(requests, "SomeId");
-
-        List<ChangeMessageVisibilityBatchResultEntry> completedResponse = response.join().successful();
-        ChangeMessageVisibilityBatchResultEntry completedResponse1 = completedResponse.get(0);
-        ChangeMessageVisibilityBatchResultEntry completedResponse2 = completedResponse.get(1);
-        Assert.assertEquals(id1, completedResponse1.id());
-        Assert.assertEquals(id2, completedResponse2.id());
     }
 
     @Test
@@ -383,21 +248,6 @@ public class SqsBatchFunctionsTest {
         String batchKey1 = changeVisibilityBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = changeVisibilityBatchKeyMapper().getBatchKey(request2);
         Assert.assertNotEquals(batchKey1, batchKey2);
-    }
-
-    private SendMessageRequest createSendMessageRequest(String messageBody) {
-        return SendMessageRequest.builder()
-                                 .messageBody(messageBody)
-                                 .build();
-    }
-
-
-    private DeleteMessageRequest createDeleteMessageRequest() {
-        return DeleteMessageRequest.builder().build();
-    }
-
-    private ChangeMessageVisibilityRequest createChangeVisibilityRequest() {
-        return ChangeMessageVisibilityRequest.builder().build();
     }
 
     private SendMessageBatchResultEntry createSendMessageBatchEntry(String id, String messageBody) {
