@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -135,15 +136,7 @@ public class SqsBatchManagerTest {
             + "</SendMessageBatchResponse>", id1, messageBody1, id2, messageBody2);
 
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
-
-        List<SendMessageRequest> requests = new ArrayList<>();
-        requests.add(createSendMessageRequest(id1));
-        requests.add(createSendMessageRequest(id2));
-
-        List<CompletableFuture<SendMessageResponse>> responses = new ArrayList<>();
-        for (SendMessageRequest request : requests) {
-            responses.add(batchManager.sendMessage(request));
-        }
+        List<CompletableFuture<SendMessageResponse>> responses = createAndSendSendMessageRequests(id1, id2);
 
         SendMessageResponse completedResponse1 = responses.get(0).join();
         SendMessageResponse completedResponse2 = responses.get(1).join();
@@ -174,15 +167,7 @@ public class SqsBatchManagerTest {
             + "</SendMessageBatchResponse>", id1, errorCode, errorMessage, id2, errorCode, errorMessage);
 
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
-
-        List<SendMessageRequest> requests = new ArrayList<>();
-        requests.add(createSendMessageRequest(id1));
-        requests.add(createSendMessageRequest(id2));
-
-        List<CompletableFuture<SendMessageResponse>> responses = new ArrayList<>();
-        for (SendMessageRequest request : requests) {
-            responses.add(batchManager.sendMessage(request));
-        }
+        List<CompletableFuture<SendMessageResponse>> responses = createAndSendSendMessageRequests(id1, id2);
 
         SendMessageResponse completedResponse1 = responses.get(0).join();
         SendMessageResponse completedResponse2 = responses.get(1).join();
@@ -203,18 +188,26 @@ public class SqsBatchManagerTest {
                               + "</Error>";
 
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(400).withBody(responseBody)));
+        List<CompletableFuture<SendMessageResponse>> responses = createAndSendSendMessageRequests(id1, id2);
 
-        List<SendMessageRequest> requests = new ArrayList<>();
-        requests.add(createSendMessageRequest(id1));
-        requests.add(createSendMessageRequest(id2));
+        CompletableFuture<SendMessageResponse> response1 = responses.get(0);
+        CompletableFuture<SendMessageResponse> response2 = responses.get(1);
+        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining("400");
+        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining("400");
+    }
 
-        List<CompletableFuture<SendMessageResponse>> responses = new ArrayList<>();
-        for (SendMessageRequest request : requests) {
-            responses.add(batchManager.sendMessage(request));
-        }
+    @Test
+    public void sendMessageBatchNetworkError() {
+        String id1 = "0";
+        String id2 = "1";
+        stubFor(any(anyUrl()).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
-        assertThatThrownBy(() -> responses.get(0).join()).isInstanceOf(CompletionException.class).hasMessageContaining("400");
-        assertThatThrownBy(() -> responses.get(1).join()).isInstanceOf(CompletionException.class).hasMessageContaining("400");
+        List<CompletableFuture<SendMessageResponse>> responses = createAndSendSendMessageRequests(id1, id2);
+
+        CompletableFuture<SendMessageResponse> response1 = responses.get(0);
+        CompletableFuture<SendMessageResponse> response2 = responses.get(1);
+        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining("Connection reset");
+        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining("Connection reset");
     }
 
     @Test
@@ -270,8 +263,10 @@ public class SqsBatchManagerTest {
             responses.add(batchManager.deleteMessage(request));
         }
 
-        assertThatThrownBy(() -> responses.get(0).join()).isInstanceOf(CompletionException.class).hasMessageContaining("400");
-        assertThatThrownBy(() -> responses.get(1).join()).isInstanceOf(CompletionException.class).hasMessageContaining("400");
+        CompletableFuture<DeleteMessageResponse> response1 = responses.get(0);
+        CompletableFuture<DeleteMessageResponse> response2 = responses.get(1);
+        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining("400");
+        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining("400");
     }
 
     @Test
@@ -295,6 +290,7 @@ public class SqsBatchManagerTest {
         List<ChangeMessageVisibilityRequest> requests = new ArrayList<>();
         requests.add(createChangeVisibilityRequest());
         requests.add(createChangeVisibilityRequest());
+
         List<CompletableFuture<ChangeMessageVisibilityResponse>> responses = new ArrayList<>();
         long startTime = System.nanoTime();
         for (ChangeMessageVisibilityRequest request : requests) {
@@ -326,8 +322,10 @@ public class SqsBatchManagerTest {
             responses.add(batchManager.changeMessageVisibility(request));
         }
 
-        assertThatThrownBy(() -> responses.get(0).join()).isInstanceOf(CompletionException.class).hasMessageContaining("400");
-        assertThatThrownBy(() -> responses.get(1).join()).isInstanceOf(CompletionException.class).hasMessageContaining("400");
+        CompletableFuture<ChangeMessageVisibilityResponse> response1 = responses.get(0);
+        CompletableFuture<ChangeMessageVisibilityResponse> response2 = responses.get(1);
+        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining("400");
+        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining("400");
     }
 
     @Mock
@@ -350,6 +348,18 @@ public class SqsBatchManagerTest {
         verify(mockDeleteMessageBatchManager).close();
         verify(mockChangeVisibilityBatchManager).close();
         assertThat(executor.isShutdown()).isFalse();
+    }
+
+    private List<CompletableFuture<SendMessageResponse>> createAndSendSendMessageRequests(String message1, String message2) {
+        List<SendMessageRequest> requests = new ArrayList<>();
+        requests.add(createSendMessageRequest(message1));
+        requests.add(createSendMessageRequest(message2));
+
+        List<CompletableFuture<SendMessageResponse>> responses = new ArrayList<>();
+        for (SendMessageRequest request : requests) {
+            responses.add(batchManager.sendMessage(request));
+        }
+        return responses;
     }
 
     private SendMessageRequest createSendMessageRequest(String messageBody) {
