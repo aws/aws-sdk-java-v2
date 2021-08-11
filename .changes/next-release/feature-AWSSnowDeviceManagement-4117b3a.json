@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Snow Device Management",
-    "contributor": "",
-    "description": "AWS Snow Family customers can remotely monitor and operate their connected AWS Snowcone devices."
-}
