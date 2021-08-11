@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.internal.batchmanager.BatchAndSend;
@@ -53,32 +55,31 @@ public final class SqsBatchFunctions {
     private SqsBatchFunctions() {
     }
 
-    public static BatchAndSend<SendMessageRequest, SendMessageBatchResponse> sendMessageBatchFunction(SqsClient client) {
+    public static BatchAndSend<SendMessageRequest, SendMessageBatchResponse> sendMessageBatchFunction(SqsClient client,
+                                                                                                      ExecutorService executor) {
         return (identifiedRequests, destination) -> {
-            List<SendMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
-            identifiedRequests.forEach(identifiedRequest -> {
-                String id = identifiedRequest.id();
-                SendMessageRequest request = identifiedRequest.message();
-                entries.add(createSendMessageBatchRequestEntry(id, request));
-            });
+            List<SendMessageBatchRequestEntry> entries =
+                identifiedRequests.stream()
+                                  .map(identifiedRequest -> createSendMessageBatchRequestEntry(identifiedRequest.id(),
+                                                                                               identifiedRequest.message()))
+                                  .collect(Collectors.toList());
+
+            // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration, all
+            // requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first request.
             Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
                                                                                                 .message()
                                                                                                 .overrideConfiguration();
-            SendMessageBatchRequest batchRequest;
-            if (overrideConfiguration.isPresent()) {
-                batchRequest = SendMessageBatchRequest.builder()
-                                                      .queueUrl(destination)
-                                                      .overrideConfiguration(overrideConfiguration.get())
-                                                      .entries(entries)
-                                                      .build();
-            } else {
-                batchRequest = SendMessageBatchRequest.builder()
-                                                      .queueUrl(destination)
-                                                      .entries(entries)
-                                                      .build();
-            }
-            // TODO: Pass client executor in supplyAsync once an executor is added into the client.
-            return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest));
+            SendMessageBatchRequest batchRequest =
+                overrideConfiguration.map(overrideConfig -> SendMessageBatchRequest.builder()
+                                                                                   .queueUrl(destination)
+                                                                                   .overrideConfiguration(overrideConfig)
+                                                                                   .entries(entries)
+                                                                                   .build())
+                                     .orElse(SendMessageBatchRequest.builder()
+                                                                    .queueUrl(destination)
+                                                                    .entries(entries)
+                                                                    .build());
+            return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest), executor);
         };
     }
 
@@ -105,41 +106,37 @@ public final class SqsBatchFunctions {
 
     // TODO: The BatchKeyMappers for SQS is not set in stone. Could batch requests some other way.
     public static BatchKeyMapper<SendMessageRequest> sendMessageBatchKeyMapper() {
-        return request -> {
-            if (request.overrideConfiguration().isPresent()) {
-                return request.queueUrl() + request.overrideConfiguration().get().hashCode();
-            } else {
-                return request.queueUrl();
-            }
-        };
+        return request -> request.overrideConfiguration()
+                                 .map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
+                                 .orElse(request.queueUrl());
     }
 
-    public static BatchAndSend<DeleteMessageRequest, DeleteMessageBatchResponse> deleteMessageBatchFunction(SqsClient client) {
+    public static BatchAndSend<DeleteMessageRequest, DeleteMessageBatchResponse> deleteMessageBatchFunction(
+        SqsClient client, ExecutorService executor) {
         return (identifiedRequests, destination) -> {
-            List<DeleteMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
-            identifiedRequests.forEach(identifiedRequest -> {
-                String id = identifiedRequest.id();
-                DeleteMessageRequest request = identifiedRequest.message();
-                entries.add(createDeleteMessageBatchRequestEntry(id, request));
-            });
+            List<DeleteMessageBatchRequestEntry> entries =
+                identifiedRequests.stream()
+                                  .map(identifiedRequest -> createDeleteMessageBatchRequestEntry(identifiedRequest.id(),
+                                                                                                 identifiedRequest.message()))
+                                  .collect(Collectors.toList());
+
+            // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration, all
+            // requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first request.
             Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
                                                                                                 .message()
                                                                                                 .overrideConfiguration();
-            DeleteMessageBatchRequest batchRequest;
-            if (overrideConfiguration.isPresent()) {
-                batchRequest = DeleteMessageBatchRequest.builder()
-                                                        .entries(entries)
-                                                        .overrideConfiguration(overrideConfiguration.get())
-                                                        .queueUrl(destination)
-                                                        .build();
-            } else {
-                batchRequest = DeleteMessageBatchRequest.builder()
-                                                        .entries(entries)
-                                                        .queueUrl(destination)
-                                                        .build();
-            }
-            // TODO: Pass client executor in supplyAsync once an executor is added into the client.
-            return CompletableFuture.supplyAsync(() -> client.deleteMessageBatch(batchRequest));
+            DeleteMessageBatchRequest batchRequest =
+                overrideConfiguration.map(overrideConfig -> DeleteMessageBatchRequest.builder()
+                                                                                     .queueUrl(destination)
+                                                                                     .overrideConfiguration(overrideConfig)
+                                                                                     .entries(entries)
+                                                                                     .build())
+                                     .orElse(DeleteMessageBatchRequest.builder()
+                                                                      .queueUrl(destination)
+                                                                      .entries(entries)
+                                                                      .build());
+
+            return CompletableFuture.supplyAsync(() -> client.deleteMessageBatch(batchRequest), executor);
         };
     }
 
@@ -165,42 +162,39 @@ public final class SqsBatchFunctions {
     }
 
     public static BatchKeyMapper<DeleteMessageRequest> deleteMessageBatchKeyMapper() {
-        return request -> {
-            if (request.overrideConfiguration().isPresent()) {
-                return request.queueUrl() + request.overrideConfiguration().get().hashCode();
-            } else {
-                return request.queueUrl();
-            }
-        };
+        return request -> request.overrideConfiguration()
+                                 .map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
+                                 .orElse(request.queueUrl());
     }
 
     public static BatchAndSend<ChangeMessageVisibilityRequest, ChangeMessageVisibilityBatchResponse>
-        changeVisibilityBatchFunction(SqsClient client) {
+        changeVisibilityBatchFunction(SqsClient client, ExecutorService executor) {
         return (identifiedRequests, destination) -> {
-            List<ChangeMessageVisibilityBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
-            identifiedRequests.forEach(identifiedRequest -> {
-                String id = identifiedRequest.id();
-                ChangeMessageVisibilityRequest request = identifiedRequest.message();
-                entries.add(createChangVisibilityBatchRequestEntry(id, request));
-            });
+            List<ChangeMessageVisibilityBatchRequestEntry> entries =
+                identifiedRequests.stream()
+                                  .map(identifiedRequest -> createChangVisibilityBatchRequestEntry(identifiedRequest.id(),
+                                                                                                   identifiedRequest.message()))
+                                  .collect(Collectors.toList());
+
+            // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration, all
+            // requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first request.
             Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
                                                                                                 .message()
                                                                                                 .overrideConfiguration();
-            ChangeMessageVisibilityBatchRequest batchRequest;
-            if (overrideConfiguration.isPresent()) {
-                batchRequest = ChangeMessageVisibilityBatchRequest.builder()
-                                                                  .entries(entries)
-                                                                  .overrideConfiguration(overrideConfiguration.get())
-                                                                  .queueUrl(destination)
-                                                                  .build();
-            } else {
-                batchRequest = ChangeMessageVisibilityBatchRequest.builder()
-                                                                  .entries(entries)
-                                                                  .queueUrl(destination)
-                                                                  .build();
-            }
+            ChangeMessageVisibilityBatchRequest batchRequest =
+                overrideConfiguration.map(overrideConfig ->
+                                              ChangeMessageVisibilityBatchRequest.builder()
+                                                                                 .queueUrl(destination)
+                                                                                 .overrideConfiguration(overrideConfig)
+                                                                                 .entries(entries)
+                                                                                 .build())
+                                     .orElse(ChangeMessageVisibilityBatchRequest.builder()
+                                                                                .queueUrl(destination)
+                                                                                .entries(entries)
+                                                                                .build());
+
             // TODO: Pass client executor in supplyAsync once an executor is added into the client.
-            return CompletableFuture.supplyAsync(() -> client.changeMessageVisibilityBatch(batchRequest));
+            return CompletableFuture.supplyAsync(() -> client.changeMessageVisibilityBatch(batchRequest), executor);
         };
     }
 
@@ -227,13 +221,9 @@ public final class SqsBatchFunctions {
     }
 
     public static BatchKeyMapper<ChangeMessageVisibilityRequest> changeVisibilityBatchKeyMapper() {
-        return request -> {
-            if (request.overrideConfiguration().isPresent()) {
-                return request.queueUrl() + request.overrideConfiguration().get().hashCode();
-            } else {
-                return request.queueUrl();
-            }
-        };
+        return request -> request.overrideConfiguration()
+                                 .map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
+                                 .orElse(request.queueUrl());
     }
 
     private static SendMessageBatchRequestEntry createSendMessageBatchRequestEntry(String id, SendMessageRequest request) {

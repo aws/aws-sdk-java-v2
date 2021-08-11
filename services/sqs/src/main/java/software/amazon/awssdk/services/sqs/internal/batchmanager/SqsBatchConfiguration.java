@@ -28,10 +28,13 @@ public final class SqsBatchConfiguration {
     private final Duration maxBatchOpenInMs;
 
     public SqsBatchConfiguration(BatchOverrideConfiguration overrideConfiguration) {
-        Optional<BatchOverrideConfiguration> configuration = Optional.ofNullable(overrideConfiguration);
-        this.maxBatchItems = configuration.flatMap(BatchOverrideConfiguration::maxBatchItems).orElse(DEFAULT_MAX_BATCH_ITEMS);
-        this.maxBatchOpenInMs = configuration.flatMap(BatchOverrideConfiguration::maxBatchOpenInMs)
-                                             .orElse(DEFAULT_MAX_BATCH_OPEN_IN_MS);
+        if (overrideConfiguration == null) {
+            this.maxBatchItems = DEFAULT_MAX_BATCH_ITEMS;
+            this.maxBatchOpenInMs = DEFAULT_MAX_BATCH_OPEN_IN_MS;
+        } else {
+            this.maxBatchItems = overrideConfiguration.maxBatchItems().orElse(DEFAULT_MAX_BATCH_ITEMS);
+            this.maxBatchOpenInMs = overrideConfiguration.maxBatchOpenInMs().orElse(DEFAULT_MAX_BATCH_OPEN_IN_MS);
+        }
     }
 
     public Duration maxBatchOpenInMs() {
