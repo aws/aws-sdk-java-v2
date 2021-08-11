@@ -27,6 +27,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.After;
@@ -45,24 +47,31 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Md5Utils;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
 
     private static final int DEFAULT_MAX_BATCH_OPEN = 200;
     private static final String TEST_QUEUE_PREFIX = "myTestQueue";
     private static final Logger log = Logger.loggerFor(BatchManagerSqsIntegrationTest.class);
+    private static ScheduledExecutorService scheduledExecutor;
+    private static ExecutorService executor;
     private static SqsClient client;
     private static String defaultQueueUrl;
     private SqsBatchManager batchManager;
 
     @BeforeClass
     public static void oneTimeSetUp() {
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("SqsBatchManager").build();
+        scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
+        executor = Executors.newSingleThreadExecutor();
         client = createSqsSyncClient();
         defaultQueueUrl = client.createQueue(CreateQueueRequest.builder().queueName(TEST_QUEUE_PREFIX + "0").build()).queueUrl();
     }
@@ -71,12 +80,16 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
     public static void oneTimeTearDown() {
         deleteAllMessagesInQueue(defaultQueueUrl);
         client.close();
+        scheduledExecutor.shutdownNow();
+        executor.shutdownNow();
     }
 
     @Before
     public void setUp() {
         batchManager = SqsBatchManager.builder()
                                       .client(client)
+                                      .scheduledExecutor(scheduledExecutor)
+                                      .executor(executor)
                                       .build();
     }
 
@@ -163,39 +176,50 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
     @Test
     public void deleteTenMessages() {
         int numMessages = 10;
-        Map<String, SendMessageRequest> requests = createRequestsOfSize(numMessages);
+        String queueUrl = client.createQueue(CreateQueueRequest.builder().queueName(TEST_QUEUE_PREFIX + "10").build()).queueUrl();
+        Map<String, SendMessageRequest> requests = createRequestsOfSizeToDest(numMessages, queueUrl);
         Map<String, CompletableFuture<SendMessageResponse>> responses = sendSendMessageRequests(requests);
 
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         ReceiveMessageRequest receiveRequest = ReceiveMessageRequest.builder()
                                                                     .maxNumberOfMessages(numMessages)
-                                                                    .waitTimeSeconds(2)
-                                                                    .queueUrl(defaultQueueUrl)
+                                                                    .queueUrl(queueUrl)
                                                                     .build();
-        List<Message> messages = client.receiveMessage(receiveRequest).messages();
 
-        Map<String, DeleteMessageRequest> deleteRequests = createDeleteRequests(messages);
-        Map<String, CompletableFuture<DeleteMessageResponse>> deleteResponses = sendDeleteMessageRequests(deleteRequests);
+        List<Message> messages = client.receiveMessage(receiveRequest).messages();
+        Map<String, DeleteMessageRequest> deleteRequests;
+        List<CompletableFuture<DeleteMessageResponse>> deleteResponses = new ArrayList<>();
+        while (!messages.isEmpty()) {
+            deleteRequests = createDeleteRequests(messages, queueUrl);
+            deleteResponses.addAll(sendDeleteMessageRequests(deleteRequests).values());
+            messages = client.receiveMessage(receiveRequest).messages();
+        }
+
         Assert.assertEquals(numMessages, deleteResponses.size());
     }
 
     @Test
     public void changeVisibilityTenMessages() {
         int numMessages = 10;
-        Map<String, SendMessageRequest> requests = createRequestsOfSize(numMessages);
+        String queueUrl = client.createQueue(CreateQueueRequest.builder().queueName(TEST_QUEUE_PREFIX + "11").build()).queueUrl();
+        Map<String, SendMessageRequest> requests = createRequestsOfSizeToDest(numMessages, queueUrl);
         Map<String, CompletableFuture<SendMessageResponse>> responses = sendSendMessageRequests(requests);
 
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         ReceiveMessageRequest receiveRequest = ReceiveMessageRequest.builder()
                                                                     .maxNumberOfMessages(numMessages)
-                                                                    .waitTimeSeconds(2)
-                                                                    .queueUrl(defaultQueueUrl)
+                                                                    .queueUrl(queueUrl)
                                                                     .build();
-        List<Message> messages = client.receiveMessage(receiveRequest).messages();
 
-        Map<String, ChangeMessageVisibilityRequest> changeVisibilityRequests = createChangeVisibilityRequest(messages);
-        Map<String, CompletableFuture<ChangeMessageVisibilityResponse>> changeVisibilityResponses =
-            sendChangeVisibilityRequest(changeVisibilityRequests);
+        List<Message> messages = client.receiveMessage(receiveRequest).messages();
+        Map<String, ChangeMessageVisibilityRequest> changeVisibilityRequests;
+        List<CompletableFuture<ChangeMessageVisibilityResponse>> changeVisibilityResponses = new ArrayList<>();
+        while (!messages.isEmpty()) {
+            changeVisibilityRequests = createChangeVisibilityRequest(messages, queueUrl);
+            changeVisibilityResponses.addAll(sendChangeVisibilityRequest(changeVisibilityRequests).values());
+            messages = client.receiveMessage(receiveRequest).messages();
+        }
+        deleteAllMessagesInQueue(queueUrl);
         Assert.assertEquals(numMessages, changeVisibilityResponses.size());
     }
 
@@ -261,30 +285,36 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
     }
 
     private Map<String, SendMessageRequest> createRequestsOfSize(int size) {
-        Map<String, SendMessageRequest> requests = new HashMap<>();
-        for (int i = 0; i < size; i++) {
-            requests.put(Integer.toString(i), SendMessageRequest.builder()
-                                                                .messageBody(Integer.toString(i))
-                                                                .queueUrl(defaultQueueUrl)
-                                                                .build());
-        }
-        return requests;
+        return createRequestsOfSizeToDest(size, defaultQueueUrl);
     }
 
     private Map<String, SendMessageRequest> createRequestsOfSizeToDiffDestinations(int numDestinations, int destinationSize) {
         String myQueueUrl;
         Map<String, SendMessageRequest> requests = new HashMap<>();
         for (int i = 0; i < numDestinations; i++) {
+            myQueueUrl = client.createQueue(CreateQueueRequest.builder().queueName(TEST_QUEUE_PREFIX + i).build()).queueUrl();
             for (int j = 0; j < destinationSize; j++) {
                 String key = Integer.toString(i*destinationSize + j);
-                myQueueUrl = client.createQueue(CreateQueueRequest.builder().queueName(TEST_QUEUE_PREFIX + i).build()).queueUrl();
-                requests.put(key, SendMessageRequest.builder()
-                                                    .messageBody(Integer.toString(i))
-                                                    .queueUrl(myQueueUrl)
-                                                    .build());
+                requests.put(key, createSendMessageRequestToDestination(Integer.toString(i), myQueueUrl));
             }
         }
         return requests;
+    }
+
+    private Map<String, SendMessageRequest> createRequestsOfSizeToDest(int size, String queueUrl) {
+        Map<String, SendMessageRequest> requests = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            String key = Integer.toString(i);
+            requests.put(key, createSendMessageRequestToDestination(key, queueUrl));
+        }
+        return requests;
+    }
+
+    private SendMessageRequest createSendMessageRequestToDestination(String messageBody, String queueUrl) {
+        return SendMessageRequest.builder()
+                                 .messageBody(messageBody)
+                                 .queueUrl(queueUrl)
+                                 .build();
     }
 
     private Map<String, CompletableFuture<SendMessageResponse>> sendSendMessageRequests(Map<String, SendMessageRequest> requests) {
@@ -302,13 +332,13 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         return responses;
     }
 
-    private static Map<String, DeleteMessageRequest> createDeleteRequests(List<Message> messages) {
+    private static Map<String, DeleteMessageRequest> createDeleteRequests(List<Message> messages, String queueUrl) {
         Map<String, DeleteMessageRequest> requests = new HashMap<>();
         int i = 0;
         for (Message message : messages) {
             requests.put(Integer.toString(i), DeleteMessageRequest.builder()
                                                                   .receiptHandle(message.receiptHandle())
-                                                                  .queueUrl(defaultQueueUrl)
+                                                                  .queueUrl(queueUrl)
                                                                   .build());
             i++;
         }
@@ -326,13 +356,13 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         return responses;
     }
 
-    private Map<String, ChangeMessageVisibilityRequest> createChangeVisibilityRequest(List<Message> messages) {
+    private Map<String, ChangeMessageVisibilityRequest> createChangeVisibilityRequest(List<Message> messages, String queueUrl) {
         Map<String, ChangeMessageVisibilityRequest> requests = new HashMap<>();
         int i = 0;
         for (Message message : messages) {
             requests.put(Integer.toString(i), ChangeMessageVisibilityRequest.builder()
                                                                             .receiptHandle(message.receiptHandle())
-                                                                            .queueUrl(defaultQueueUrl)
+                                                                            .queueUrl(queueUrl)
                                                                             .build());
             i++;
         }
@@ -351,32 +381,9 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
     }
 
     private static void deleteAllMessagesInQueue(String queueUrl) {
-        int deleteNumMessages = 10;
-        ReceiveMessageRequest receiveRequest = ReceiveMessageRequest.builder()
-                                                                    .maxNumberOfMessages(deleteNumMessages)
-                                                                    .queueUrl(queueUrl)
-                                                                    .build();
-        List<Message> messages = client.receiveMessage(receiveRequest).messages();
-        while (!messages.isEmpty()) {
-            Map<String, DeleteMessageRequest> deleteRequests = createDeleteRequests(messages);
-            sendDeleteMessageBatch(deleteRequests, queueUrl);
-            messages = client.receiveMessage(receiveRequest).messages();
-        }
-    }
-
-    private static void sendDeleteMessageBatch(Map<String, DeleteMessageRequest> messages, String queueUrl) {
-        List<DeleteMessageBatchRequestEntry> deleteEntries = new ArrayList<>();
-        messages.forEach((id, message) -> {
-            deleteEntries.add(DeleteMessageBatchRequestEntry.builder()
-                                                            .id(id)
-                                                            .receiptHandle(message.receiptHandle())
-                                                            .build());
-
-        });
-        DeleteMessageBatchRequest deleteBatchRequest = DeleteMessageBatchRequest.builder()
-                                                                                .entries(deleteEntries)
-                                                                                .queueUrl(queueUrl)
-                                                                                .build();
-        client.deleteMessageBatch(deleteBatchRequest);
+        PurgeQueueRequest purgeQueueRequest = PurgeQueueRequest.builder()
+                                                               .queueUrl(queueUrl)
+                                                               .build();
+        client.purgeQueue(purgeQueueRequest);
     }
 }

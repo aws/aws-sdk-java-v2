@@ -36,6 +36,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -97,12 +99,13 @@ public class SqsBatchFunctionsTest {
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
 
         SqsClient sqsClient = getSyncClientBuilder().build();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
 
         List<IdentifiableMessage<SendMessageRequest>> requests = new ArrayList<>();
         requests.add(new IdentifiableMessage<>("1", createSendMessageRequest("1")));
         requests.add(new IdentifiableMessage<>("2", createSendMessageRequest("2")));
-        CompletableFuture<SendMessageBatchResponse> response = sendMessageBatchFunction(sqsClient).batchAndSend(requests,
-                                                                                                               "SomeId");
+        CompletableFuture<SendMessageBatchResponse> response =
+            sendMessageBatchFunction(sqsClient, executor).batchAndSend(requests, "SomeId");
         List<SendMessageBatchResultEntry> completedResponse = response.join().successful();
         SendMessageBatchResultEntry completedResponse1 = completedResponse.get(0);
         SendMessageBatchResultEntry completedResponse2 = completedResponse.get(1);
@@ -202,12 +205,13 @@ public class SqsBatchFunctionsTest {
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
 
         SqsClient sqsClient = getSyncClientBuilder().build();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
 
         List<IdentifiableMessage<DeleteMessageRequest>> requests = new ArrayList<>();
         requests.add(new IdentifiableMessage<>("1", createDeleteMessageRequest()));
         requests.add(new IdentifiableMessage<>("2", createDeleteMessageRequest()));
-        CompletableFuture<DeleteMessageBatchResponse> response = deleteMessageBatchFunction(sqsClient).batchAndSend(requests,
-                                                                                                                    "SomeId");
+        CompletableFuture<DeleteMessageBatchResponse> response =
+            deleteMessageBatchFunction(sqsClient, executor).batchAndSend(requests, "SomeId");
         List<DeleteMessageBatchResultEntry> completedResponse = response.join().successful();
         DeleteMessageBatchResultEntry completedResponse1 = completedResponse.get(0);
         DeleteMessageBatchResultEntry completedResponse2 = completedResponse.get(1);
@@ -299,12 +303,13 @@ public class SqsBatchFunctionsTest {
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
 
         SqsClient sqsClient = getSyncClientBuilder().build();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
 
         List<IdentifiableMessage<ChangeMessageVisibilityRequest>> requests = new ArrayList<>();
         requests.add(new IdentifiableMessage<>("1", createChangeVisibilityRequest()));
         requests.add(new IdentifiableMessage<>("2", createChangeVisibilityRequest()));
         CompletableFuture<ChangeMessageVisibilityBatchResponse> response =
-            changeVisibilityBatchFunction(sqsClient).batchAndSend(requests, "SomeId");
+            changeVisibilityBatchFunction(sqsClient, executor).batchAndSend(requests, "SomeId");
 
         List<ChangeMessageVisibilityBatchResultEntry> completedResponse = response.join().successful();
         ChangeMessageVisibilityBatchResultEntry completedResponse1 = completedResponse.get(0);
