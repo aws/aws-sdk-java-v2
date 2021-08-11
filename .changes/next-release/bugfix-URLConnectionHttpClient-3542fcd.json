@@ -1,0 +1,6 @@
+{
+    "category": "URL Connection Http Client", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixed connection pooling for HTTPS endpoints. Previously, each request would create a new connection."
+}
