@@ -197,7 +197,7 @@ public class SqsBatchManagerTest {
     }
 
     @Test
-    public void sendMessageBatchNetworkError() {
+    public void sendMessageBatchNetworkError_causesConnectionResetException() {
         String id1 = "0";
         String id2 = "1";
         stubFor(any(anyUrl()).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
