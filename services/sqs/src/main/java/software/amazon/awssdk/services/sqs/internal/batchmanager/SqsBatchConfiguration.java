@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.time.Duration;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 
