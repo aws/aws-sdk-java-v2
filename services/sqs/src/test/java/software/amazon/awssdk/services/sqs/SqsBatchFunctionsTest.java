@@ -25,10 +25,14 @@ import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatch
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.core.internal.batchmanager.IdentifiableMessage;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
@@ -55,9 +59,9 @@ public class SqsBatchFunctionsTest {
         String messageBody2 = getMd5Hash("2");
         SendMessageBatchResultEntry entry1 = createSendMessageBatchEntry(id1, messageBody1);
         SendMessageBatchResultEntry entry2 = createSendMessageBatchEntry(id2, messageBody2);
-        SendMessageBatchResponse batchResponse = SendMessageBatchResponse.builder()
-                                                                         .successful(entry1, entry2)
-                                                                         .build();
+        AwsResponseMetadata responseMetadata = createAwsResponseMetadata();
+        SdkHttpResponse httpResponse = createSdkHttpResponse();
+        SendMessageBatchResponse batchResponse = createSendMessageBatchResponse(responseMetadata, httpResponse, entry1, entry2);
         List<IdentifiableMessage<SendMessageResponse>> mappedResponses =
             sendMessageResponseMapper().mapBatchResponse(batchResponse);
 
@@ -65,8 +69,12 @@ public class SqsBatchFunctionsTest {
         IdentifiableMessage<SendMessageResponse> response2 = mappedResponses.get(1);
         assertThat(response1.id()).isEqualTo(id1);
         assertThat(response1.message().md5OfMessageBody()).isEqualTo(messageBody1);
+        assertThat(response1.message().sdkHttpResponse()).isEqualTo(httpResponse);
+        assertThat(response1.message().responseMetadata().requestId()).isEqualTo(responseMetadata.requestId());
         assertThat(response2.id()).isEqualTo(id2);
         assertThat(response2.message().md5OfMessageBody()).isEqualTo(messageBody2);
+        assertThat(response2.message().sdkHttpResponse()).isEqualTo(httpResponse);
+        assertThat(response2.message().responseMetadata().requestId()).isEqualTo(responseMetadata.requestId());
     }
 
     @Test
@@ -124,14 +132,21 @@ public class SqsBatchFunctionsTest {
         String id2 = "2";
         DeleteMessageBatchResultEntry entry1 = createDeleteMessageBatchEntry(id1);
         DeleteMessageBatchResultEntry entry2 = createDeleteMessageBatchEntry(id2);
-        DeleteMessageBatchResponse batchResponse = DeleteMessageBatchResponse.builder().successful(entry1, entry2).build();
+        AwsResponseMetadata responseMetadata = createAwsResponseMetadata();
+        SdkHttpResponse httpResponse = createSdkHttpResponse();
+        DeleteMessageBatchResponse batchResponse = createDeleteMessageBatchResponse(responseMetadata, httpResponse, entry1,
+                                                                                    entry2);
         List<IdentifiableMessage<DeleteMessageResponse>> mappedResponses =
             deleteMessageResponseMapper().mapBatchResponse(batchResponse);
 
         IdentifiableMessage<DeleteMessageResponse> response1 = mappedResponses.get(0);
         IdentifiableMessage<DeleteMessageResponse> response2 = mappedResponses.get(1);
         assertThat(response1.id()).isEqualTo(id1);
+        assertThat(response1.message().sdkHttpResponse()).isEqualTo(httpResponse);
+        assertThat(response1.message().responseMetadata().requestId()).isEqualTo(responseMetadata.requestId());
         assertThat(response2.id()).isEqualTo(id2);
+        assertThat(response2.message().sdkHttpResponse()).isEqualTo(httpResponse);
+        assertThat(response2.message().responseMetadata().requestId()).isEqualTo(responseMetadata.requestId());
     }
 
     @Test
@@ -189,16 +204,21 @@ public class SqsBatchFunctionsTest {
         String id2 = "2";
         ChangeMessageVisibilityBatchResultEntry entry1 = createChangeVisibilityBatchEntry(id1);
         ChangeMessageVisibilityBatchResultEntry entry2 = createChangeVisibilityBatchEntry(id2);
-        ChangeMessageVisibilityBatchResponse batchResponse = ChangeMessageVisibilityBatchResponse.builder()
-                                                                                                 .successful(entry1, entry2)
-                                                                                                 .build();
+        AwsResponseMetadata responseMetadata = createAwsResponseMetadata();
+        SdkHttpResponse httpResponse = createSdkHttpResponse();
+        ChangeMessageVisibilityBatchResponse batchResponse = createChangeVisibilityBatchResponse(responseMetadata, httpResponse,
+                                                                                                 entry1, entry2);
         List<IdentifiableMessage<ChangeMessageVisibilityResponse>> mappedResponses =
             changeVisibilityResponseMapper().mapBatchResponse(batchResponse);
 
         IdentifiableMessage<ChangeMessageVisibilityResponse> response1 = mappedResponses.get(0);
         IdentifiableMessage<ChangeMessageVisibilityResponse> response2 = mappedResponses.get(1);
         assertThat(response1.id()).isEqualTo(id1);
+        assertThat(response1.message().sdkHttpResponse()).isEqualTo(httpResponse);
+        assertThat(response1.message().responseMetadata().requestId()).isEqualTo(responseMetadata.requestId());
         assertThat(response2.id()).isEqualTo(id2);
+        assertThat(response2.message().sdkHttpResponse()).isEqualTo(httpResponse);
+        assertThat(response2.message().responseMetadata().requestId()).isEqualTo(responseMetadata.requestId());
     }
 
     @Test
@@ -248,6 +268,47 @@ public class SqsBatchFunctionsTest {
         String batchKey1 = changeVisibilityBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = changeVisibilityBatchKeyMapper().getBatchKey(request2);
         assertThat(batchKey1).isNotEqualTo(batchKey2);
+    }
+
+    private SendMessageBatchResponse createSendMessageBatchResponse(AwsResponseMetadata responseMetadata,
+                                                                    SdkHttpResponse httpResponse,
+                                                                    SendMessageBatchResultEntry... entries) {
+        return (SendMessageBatchResponse) SendMessageBatchResponse.builder()
+                                                                  .successful(entries)
+                                                                  .responseMetadata(responseMetadata)
+                                                                  .sdkHttpResponse(httpResponse)
+                                                                  .build();
+    }
+
+    private DeleteMessageBatchResponse createDeleteMessageBatchResponse(AwsResponseMetadata responseMetadata,
+                                                                        SdkHttpResponse httpResponse,
+                                                                        DeleteMessageBatchResultEntry... entries) {
+        return (DeleteMessageBatchResponse) DeleteMessageBatchResponse.builder()
+                                                                      .successful(entries)
+                                                                      .responseMetadata(responseMetadata)
+                                                                      .sdkHttpResponse(httpResponse)
+                                                                      .build();
+    }
+
+    private ChangeMessageVisibilityBatchResponse createChangeVisibilityBatchResponse(AwsResponseMetadata responseMetadata,
+                                                                                     SdkHttpResponse httpResponse,
+                                                                                     ChangeMessageVisibilityBatchResultEntry...
+                                                                                         entries) {
+        return (ChangeMessageVisibilityBatchResponse) ChangeMessageVisibilityBatchResponse.builder()
+                                                                                          .successful(entries)
+                                                                                          .responseMetadata(responseMetadata)
+                                                                                          .sdkHttpResponse(httpResponse)
+                                                                                          .build();
+    }
+
+    private AwsResponseMetadata createAwsResponseMetadata() {
+        Map<String, String> metadataMap = new HashMap<>();
+        metadataMap.put("data", "metadata");
+        return new AwsResponseMetadata(metadataMap) {};
+    }
+
+    private SdkHttpResponse createSdkHttpResponse() {
+        return SdkHttpResponse.builder().putHeader("content", "content").build();
     }
 
     private SendMessageBatchResultEntry createSendMessageBatchEntry(String id, String messageBody) {
