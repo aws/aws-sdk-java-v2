@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue DataBrew",
+    "contributor": "",
+    "description": "This SDK release adds support for the output of a recipe job results to Tableau Hyper format."
+}
