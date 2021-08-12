@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AsyncAws4Signer;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.client.handler.AwsClientHandlerUtils;
@@ -286,15 +287,20 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
             builder.addStatement("$T cachedEndpoint = null", URI.class);
             builder.beginControlFlow("if (endpointDiscoveryEnabled)");
-            builder.addStatement("\n\nString key = clientConfiguration.option($T.CREDENTIALS_PROVIDER).resolveCredentials()" +
-                                 ".accessKeyId()", AwsClientOption.class);
-            builder.addStatement("EndpointDiscoveryRequest endpointDiscoveryRequest = $T.builder().required($L)" +
-                                 ".defaultEndpoint(clientConfiguration.option($T.ENDPOINT)).build()",
-                                EndpointDiscoveryRequest.class,
-                                opModel.getInputShape().getEndpointDiscovery().isRequired(),
-                                 SdkClientOption.class);
-            builder.addStatement("cachedEndpoint = $L.get(key, endpointDiscoveryRequest)",
-                                 "endpointDiscoveryCache");
+
+            builder.addCode("$T key = $N.overrideConfiguration()", String.class, opModel.getInput().getVariableName())
+                   .addCode("    .flatMap($T::credentialsProvider)", AwsRequestOverrideConfiguration.class)
+                   .addCode("    .orElseGet(() -> clientConfiguration.option($T.CREDENTIALS_PROVIDER))", AwsClientOption.class)
+                   .addCode("    .resolveCredentials().accessKeyId();");
+
+            builder.addCode("$1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
+                   .addCode("    .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())
+                   .addCode("    .defaultEndpoint(clientConfiguration.option($T.ENDPOINT))", SdkClientOption.class)
+                   .addCode("    .overrideConfiguration($N.overrideConfiguration().orElse(null))",
+                            opModel.getInput().getVariableName())
+                   .addCode("    .build();");
+
+            builder.addStatement("cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest)");
             builder.endControlFlow();
         }
 

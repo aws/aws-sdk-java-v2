@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.auth.credentials.internal;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,7 +63,7 @@ public class Ec2MetadataConfigProviderEndpointResolutionTest {
 
     @Test
     public void resolvesCorrectEndpoint() {
-        assertThat(Ec2MetadataConfigProvider.builder().build().getEndpoint(), equalTo(testCase.expectedEndpoint));
+        assertThat(Ec2MetadataConfigProvider.builder().build().getEndpoint()).isEqualTo(testCase.expectedEndpoint);
     }
 
     private static class TestCase {
