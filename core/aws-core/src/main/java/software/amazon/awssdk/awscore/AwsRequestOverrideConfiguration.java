@@ -35,6 +35,25 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
     }
 
     /**
+     * Create a {@link AwsRequestOverrideConfiguration} from the provided {@link RequestOverrideConfiguration}.
+     *
+     * Given null, this will return null. Given a {@code AwsRequestOverrideConfiguration} this will return the input. Given
+     * any other {@code RequestOverrideConfiguration} this will return a new {@code AwsRequestOverrideConfiguration} with all
+     * the common attributes from the input copied into the result.
+     */
+    public static AwsRequestOverrideConfiguration from(RequestOverrideConfiguration configuration) {
+        if (configuration == null) {
+            return null;
+        }
+
+        if (configuration instanceof AwsRequestOverrideConfiguration) {
+            return (AwsRequestOverrideConfiguration) configuration;
+        }
+
+        return new AwsRequestOverrideConfiguration.BuilderImpl(configuration).build();
+    }
+
+    /**
      * The optional {@link AwsCredentialsProvider} that will provide credentials to be used to authenticate this request.
      *
      * @return The optional {@link AwsCredentialsProvider}.
@@ -104,6 +123,10 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
 
 
         private BuilderImpl() {
+        }
+
+        private BuilderImpl(RequestOverrideConfiguration requestOverrideConfiguration) {
+            super(requestOverrideConfiguration);
         }
 
         private BuilderImpl(AwsRequestOverrideConfiguration awsRequestOverrideConfig) {
