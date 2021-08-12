@@ -31,7 +31,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -48,6 +47,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.batchmanager.BatchManager;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.batchmanager.SqsBatchManager;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.DefaultSqsBatchManager;
@@ -60,6 +60,7 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+import software.amazon.awssdk.services.sqs.model.SqsException;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Md5Utils;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
@@ -202,8 +203,8 @@ public class SqsBatchManagerTest {
 
         CompletableFuture<SendMessageResponse> response1 = responses.get(0);
         CompletableFuture<SendMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining("Status Code: 400");
-        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(response1::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(response2::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
     }
 
     @Test
@@ -217,8 +218,8 @@ public class SqsBatchManagerTest {
 
         CompletableFuture<SendMessageResponse> response1 = responses.get(0);
         CompletableFuture<SendMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining(errorMessage);
-        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(response1::join).hasCauseInstanceOf(SdkClientException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(response2::join).hasCauseInstanceOf(SdkClientException.class).hasMessageContaining(errorMessage);
     }
 
     @Test
@@ -276,8 +277,8 @@ public class SqsBatchManagerTest {
 
         CompletableFuture<DeleteMessageResponse> response1 = responses.get(0);
         CompletableFuture<DeleteMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining("Status Code: 400");
-        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(response1::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(response2::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
     }
 
     @Test
@@ -335,8 +336,8 @@ public class SqsBatchManagerTest {
 
         CompletableFuture<ChangeMessageVisibilityResponse> response1 = responses.get(0);
         CompletableFuture<ChangeMessageVisibilityResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining("Status Code: 400");
-        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(response1::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(response2::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
     }
 
     @Test
