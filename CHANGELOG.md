@@ -1,3 +1,36 @@
+# __2.17.17__ __2021-08-11__
+## __AWS CodeBuild__
+  - ### Features
+    - CodeBuild now allows you to make the build results for your build projects available to the public without requiring access to an AWS account.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Use "full jitter" & updated base delay for STANDARD retry mode defaults
+
+  - ### Documentations
+    - Create a shared, project-level IntelliJ inspection profile
+    - Move IntelliJ code style & copyright configuration to project-level settings
+
+## __AWS Snow Device Management__
+  - ### Features
+    - AWS Snow Family customers can remotely monitor and operate their connected AWS Snowcone devices.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation updates for ECS.
+
+## __Amazon Elastic Block Store__
+  - ### Features
+    - Documentation updates for Amazon EBS direct APIs.
+
+## __Amazon Route 53__
+  - ### Features
+    - Documentation updates for route53
+
+## __AmazonNimbleStudio__
+  - ### Features
+    - Add new attribute 'ownedBy' in Streaming Session APIs. 'ownedBy' represents the AWS SSO Identity Store User ID of the owner of the Streaming Session resource.
+
 # __2.17.16__ __2021-08-10__
 ## __AWS SDK for Java v2__
   - ### Features
