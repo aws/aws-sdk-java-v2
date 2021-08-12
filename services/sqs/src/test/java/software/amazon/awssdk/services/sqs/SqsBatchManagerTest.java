@@ -202,22 +202,23 @@ public class SqsBatchManagerTest {
 
         CompletableFuture<SendMessageResponse> response1 = responses.get(0);
         CompletableFuture<SendMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class);
-        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class);
+        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining("Status Code: 400");
     }
 
     @Test
     public void sendMessageBatchNetworkError_causesConnectionResetException() {
         String id1 = "0";
         String id2 = "1";
+        String errorMessage = "Unable to execute HTTP request";
         stubFor(any(anyUrl()).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
         List<CompletableFuture<SendMessageResponse>> responses = createAndSendSendMessageRequests(id1, id2);
 
         CompletableFuture<SendMessageResponse> response1 = responses.get(0);
         CompletableFuture<SendMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class);
-        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class);
+        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining(errorMessage);
     }
 
     @Test
@@ -275,8 +276,8 @@ public class SqsBatchManagerTest {
 
         CompletableFuture<DeleteMessageResponse> response1 = responses.get(0);
         CompletableFuture<DeleteMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining("400");
-        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining("400");
+        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining("Status Code: 400");
     }
 
     @Test
@@ -334,8 +335,8 @@ public class SqsBatchManagerTest {
 
         CompletableFuture<ChangeMessageVisibilityResponse> response1 = responses.get(0);
         CompletableFuture<ChangeMessageVisibilityResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining("400");
-        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining("400");
+        assertThatThrownBy(response1::join).isInstanceOf(CompletionException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(response2::join).isInstanceOf(CompletionException.class).hasMessageContaining("Status Code: 400");
     }
 
     @Test
