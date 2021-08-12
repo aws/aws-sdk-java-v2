@@ -37,6 +37,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 
 /**
@@ -60,6 +61,7 @@ public class AsyncCoreMetricsTest extends BaseAsyncCoreMetricsTest {
     @Before
     public void setup() throws IOException {
         client = ProtocolRestJsonAsyncClient.builder()
+                                            .region(Region.US_WEST_2)
                                             .credentialsProvider(mockCredentialsProvider)
                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                             .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
@@ -103,6 +105,7 @@ public class AsyncCoreMetricsTest extends BaseAsyncCoreMetricsTest {
     public void apiCall_noConfiguredPublisher_succeeds() {
         stubSuccessfulResponse();
         ProtocolRestJsonAsyncClient noPublisher = ProtocolRestJsonAsyncClient.builder()
+                                                                             .region(Region.US_WEST_2)
                                                                              .credentialsProvider(mockCredentialsProvider)
                                                                              .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                                                              .build();
