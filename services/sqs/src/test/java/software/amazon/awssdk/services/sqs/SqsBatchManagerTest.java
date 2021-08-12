@@ -87,7 +87,7 @@ public class SqsBatchManagerTest {
         ChangeMessageVisibilityBatchResponse> mockChangeVisibilityBatchManager;
 
     @Rule
-    public WireMockRule wireMock = new WireMockRule();
+    public WireMockRule wireMock = new WireMockRule(0);
 
     private static SqsClientBuilder getSyncClientBuilder() {
         return SqsClient.builder()
