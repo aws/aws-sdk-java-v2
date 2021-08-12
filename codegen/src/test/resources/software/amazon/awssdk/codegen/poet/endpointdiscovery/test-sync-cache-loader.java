@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryCacheLoader;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryEndpoint;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
@@ -29,9 +30,11 @@ class EndpointDiscoveryTestEndpointDiscoveryCacheLoader implements EndpointDisco
     @Override
     public CompletableFuture<EndpointDiscoveryEndpoint> discoverEndpoint(EndpointDiscoveryRequest endpointDiscoveryRequest) {
         return CompletableFuture.supplyAsync(() -> {
+            AwsRequestOverrideConfiguration requestConfig = AwsRequestOverrideConfiguration.from(endpointDiscoveryRequest
+                                                                                                     .overrideConfiguration().orElse(null));
             DescribeEndpointsResponse response = client
                 .describeEndpoints(software.amazon.awssdk.services.endpointdiscoverytest.model.DescribeEndpointsRequest
-                                       .builder().build());
+                                       .builder().overrideConfiguration(requestConfig).build());
             List<Endpoint> endpoints = response.endpoints();
             Validate.notEmpty(endpoints, "Endpoints returned by service for endpoint discovery must not be empty.");
             Endpoint endpoint = endpoints.get(0);
