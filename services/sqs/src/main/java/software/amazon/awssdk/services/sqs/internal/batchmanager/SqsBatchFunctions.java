@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +28,6 @@ import software.amazon.awssdk.core.internal.batchmanager.BatchKeyMapper;
 import software.amazon.awssdk.core.internal.batchmanager.BatchResponseMapper;
 import software.amazon.awssdk.core.internal.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
@@ -46,8 +44,6 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
-import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.utils.Md5Utils;
 
 @SdkInternalApi
 public final class SqsBatchFunctions {
@@ -96,8 +92,7 @@ public final class SqsBatchFunctions {
             sendMessageBatchResponse.failed()
                                     .forEach(batchResponseEntry -> {
                                         String key = batchResponseEntry.id();
-                                        SendMessageResponse response = createSendMessageResponse(batchResponseEntry,
-                                                                                                 sendMessageBatchResponse);
+                                        SendMessageResponse response = createSendMessageResponse();
                                         mappedResponses.add(new IdentifiableMessage<>(key, response));
                                     });
             return mappedResponses;
@@ -257,19 +252,9 @@ public final class SqsBatchFunctions {
         return builder.build();
     }
 
-    private static SendMessageResponse createSendMessageResponse(BatchResultErrorEntry failedEntry,
-                                                                 SendMessageBatchResponse batchResponse) {
-        String messageBody = String.format("%s: %s", failedEntry.code(), failedEntry.message());
-        SendMessageResponse.Builder builder = SendMessageResponse.builder()
-                                                                 .md5OfMessageBody(computeMd5Hash(messageBody));
-        if (batchResponse.responseMetadata() != null) {
-            builder.responseMetadata(batchResponse.responseMetadata());
-        }
-
-        if (batchResponse.sdkHttpResponse() != null) {
-            builder.sdkHttpResponse(batchResponse.sdkHttpResponse());
-        }
-        return builder.build();
+    private static SendMessageResponse createSendMessageResponse() {
+        // TODO: Return an exception instead of filling a sendMessageResponse with the error message.
+        return SendMessageResponse.builder().build();
     }
 
     private static DeleteMessageBatchRequestEntry createDeleteMessageBatchRequestEntry(String id, DeleteMessageRequest request) {
@@ -313,11 +298,5 @@ public final class SqsBatchFunctions {
             builder.sdkHttpResponse(batchResponse.sdkHttpResponse());
         }
         return builder.build();
-    }
-
-    private static String computeMd5Hash(String message) {
-        byte[] expectedMd5;
-        expectedMd5 = Md5Utils.computeMD5Hash(message.getBytes(StandardCharsets.UTF_8));
-        return BinaryUtils.toHex(expectedMd5);
     }
 }
