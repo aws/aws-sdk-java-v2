@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fixed an issue where request-level overrides (e.g. credentials) were not applied to endpoint discovery calls."
-}

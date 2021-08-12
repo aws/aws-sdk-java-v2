@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonApiGatewayV2",
-    "contributor": "",
-    "description": "Adding support for ACM imported or private CA certificates for mTLS enabled domain names"
-}
