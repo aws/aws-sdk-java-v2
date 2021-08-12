@@ -2719,7 +2719,8 @@
         "GLUEPARQUET",
         "AVRO",
         "ORC",
-        "XML"
+        "XML",
+        "TABLEAUHYPER"
       ]
     },
     "OutputFormatOptions":{
