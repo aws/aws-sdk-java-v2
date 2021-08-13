@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EMR",
+    "contributor": "",
+    "description": "Amazon EMR customers can now specify custom AMIs at the instance level in their clusters. This allows using custom AMIs in clusters that have instances with different instruction set architectures, e.g. m5.xlarge (x86) and m6g.xlarge (ARM)."
+}
