@@ -26,14 +26,12 @@ import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> implements BatchManager<RequestT, ResponseT,
     BatchResponseT> {
 
-    private static final Logger log = Logger.loggerFor(DefaultBatchManager.class);
     private final int maxBatchItems;
     private final Duration maxBatchOpenInMs;
 
@@ -47,18 +45,18 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
      * Takes a list of identified requests in addition to a destination and batches the requests into a batch request.
      * It then sends the batch request and returns a CompletableFuture of the response.
      */
-    private final BatchAndSend<RequestT, BatchResponseT> batchingFunction;
+    private final BatchAndSend<RequestT, BatchResponseT> batchFunction;
 
     /**
      * Unpacks the batch response, then transforms individual entries to the appropriate response type. Each entry's batch ID
      * is mapped to the individual response entry.
      */
-    private final BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction;
+    private final BatchResponseMapper<BatchResponseT, ResponseT> responseMapper;
 
     /**
      * Takes a request and extracts a batchKey as determined by the caller.
      */
-    private final BatchKeyMapper<RequestT> batchKeyMapperFunction;
+    private final BatchKeyMapper<RequestT> batchKeyMapper;
 
     /**
      * A scheduled executor that periodically schedules {@link #flushBuffer}.
@@ -70,9 +68,9 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
         this.requestsAndResponsesMaps = new BatchingMap<>();
         this.maxBatchItems = batchConfiguration.maxBatchItems();
         this.maxBatchOpenInMs = batchConfiguration.maxBatchOpenInMs();
-        this.batchingFunction = Validate.notNull(builder.batchFunction, "Null batchingFunction");
-        this.mapResponsesFunction = Validate.notNull(builder.responseMapper, "Null mapResponsesFunction");
-        this.batchKeyMapperFunction = Validate.notNull(builder.batchKeyMapper, "Null batchKeyMapperFunction");
+        this.batchFunction = Validate.notNull(builder.batchFunction, "Null batchFunction");
+        this.responseMapper = Validate.notNull(builder.responseMapper, "Null responseMapper");
+        this.batchKeyMapper = Validate.notNull(builder.batchKeyMapper, "Null batchKeyMapper");
         this.scheduledExecutor = builder.scheduledExecutor;
     }
 
@@ -84,7 +82,7 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
     public CompletableFuture<ResponseT> sendRequest(RequestT request) {
         CompletableFuture<ResponseT> response = new CompletableFuture<>();
         try {
-            String batchKey = batchKeyMapperFunction.getBatchKey(request);
+            String batchKey = batchKeyMapper.getBatchKey(request);
             requestsAndResponsesMaps.put(batchKey,
                                          () -> scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(), scheduledExecutor),
                                          request,
@@ -120,8 +118,8 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
                                       requestEntries.add(new IdentifiableMessage<>(contextId, batchExecutionContext.request())));
 
         if (!requestEntries.isEmpty()) {
-            batchingFunction.batchAndSend(requestEntries, batchKey)
-                            .whenComplete((result, ex) -> handleAndCompleteResponses(result, ex, flushableRequests));
+            batchFunction.batchAndSend(requestEntries, batchKey)
+                         .whenComplete((result, ex) -> handleAndCompleteResponses(result, ex, flushableRequests));
         }
     }
 
@@ -131,7 +129,7 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
             requests.forEach((contextId, batchExecutionContext) -> batchExecutionContext.response()
                                                                                         .completeExceptionally(exception));
         } else {
-            List<IdentifiableMessage<ResponseT>> identifiedResponses = mapResponsesFunction.mapBatchResponse(batchResult);
+            List<IdentifiableMessage<ResponseT>> identifiedResponses = responseMapper.mapBatchResponse(batchResult);
             for (IdentifiableMessage<ResponseT> identifiedResponse : identifiedResponses) {
                 String id = identifiedResponse.id();
                 ResponseT response = identifiedResponse.message();
@@ -162,13 +160,13 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
         requestsAndResponsesMaps.forEach((batchKey, batchBuffer) -> {
             requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
             Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests =
-                requestsAndResponsesMaps.flushableScheduledRequests(batchKey, maxBatchItems);
+                requestsAndResponsesMaps.flushableRequests(batchKey, maxBatchItems);
 
             while (!flushableRequests.isEmpty()) {
                 flushBuffer(batchKey, flushableRequests);
             }
         });
-        requestsAndResponsesMaps.waitForFlushesAndClear(log);
+        requestsAndResponsesMaps.clear();
     }
 
     public static final class DefaultBuilder<RequestT, ResponseT, BatchResponseT> implements Builder<RequestT, ResponseT,
