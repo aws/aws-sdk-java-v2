@@ -96,7 +96,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
     }
 
     @SdkTestInternalApi
-    public DefaultSqsBatchManager(SqsClient client, ExecutorService executor,
+    public DefaultSqsBatchManager(SqsClient client, ExecutorService executor, ScheduledExecutorService scheduledExecutor,
                                   BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse>
                                       sendMessageBatchManager,
                                   BatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse>
