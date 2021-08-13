@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon ElastiCache",
+    "contributor": "",
+    "description": "This release adds ReplicationGroupCreateTime field to ReplicationGroup which indicates the UTC time when ElastiCache ReplicationGroup is created"
+}
