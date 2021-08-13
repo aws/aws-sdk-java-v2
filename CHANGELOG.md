@@ -1,3 +1,24 @@
+# __2.17.19__ __2021-08-13__
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces Standard Profile Objects, namely Asset and Case which contain values populated by data from third party systems and belong to a specific profile. This release adds an optional parameter, ObjectFilter to the ListProfileObjects API in order to search for these Standard Objects.
+
+## __Amazon EMR__
+  - ### Features
+    - Amazon EMR customers can now specify custom AMIs at the instance level in their clusters. This allows using custom AMIs in clusters that have instances with different instruction set architectures, e.g. m5.xlarge (x86) and m6g.xlarge (ARM).
+
+## __Amazon ElastiCache__
+  - ### Features
+    - This release adds ReplicationGroupCreateTime field to ReplicationGroup which indicates the UTC time when ElastiCache ReplicationGroup is created
+
+## __Amazon QuickSight__
+  - ### Features
+    - Documentation updates for QuickSight.
+
+## __URL Connection Http Client__
+  - ### Bugfixes
+    - Fixed connection pooling for HTTPS endpoints. Previously, each request would create a new connection.
+
 # __2.17.18__ __2021-08-12__
 ## __AWS Glue DataBrew__
   - ### Features

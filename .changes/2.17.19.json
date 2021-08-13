@@ -1,0 +1,36 @@
+{
+    "version": "2.17.19",
+    "date": "2021-08-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "Amazon EMR customers can now specify custom AMIs at the instance level in their clusters. This allows using custom AMIs in clusters that have instances with different instruction set architectures, e.g. m5.xlarge (x86) and m6g.xlarge (ARM)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "This release introduces Standard Profile Objects, namely Asset and Case which contain values populated by data from third party systems and belong to a specific profile. This release adds an optional parameter, ObjectFilter to the ListProfileObjects API in order to search for these Standard Objects."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Documentation updates for QuickSight."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "This release adds ReplicationGroupCreateTime field to ReplicationGroup which indicates the UTC time when ElastiCache ReplicationGroup is created"
+        },
+        {
+            "type": "bugfix",
+            "category": "URL Connection Http Client",
+            "contributor": "",
+            "description": "Fixed connection pooling for HTTPS endpoints. Previously, each request would create a new connection."
+        }
+    ]
+}
