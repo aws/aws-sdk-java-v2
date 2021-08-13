@@ -38,6 +38,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
 
@@ -128,6 +129,7 @@ public class SyncClientMetricPublisherResolutionTest {
     private ProtocolRestJsonClient clientWithPublishers(MetricPublisher... metricPublishers) throws IOException {
         ProtocolRestJsonClientBuilder builder = ProtocolRestJsonClient.builder()
                 .httpClient(mockHttpClient)
+                .region(Region.US_WEST_2)
                 .credentialsProvider(mockCredentialsProvider);
 
         AbortableInputStream content = AbortableInputStream.create(new ByteArrayInputStream("{}".getBytes()));
