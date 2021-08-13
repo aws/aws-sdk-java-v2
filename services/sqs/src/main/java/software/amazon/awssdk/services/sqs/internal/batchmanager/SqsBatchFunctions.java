@@ -196,7 +196,7 @@ public final class SqsBatchFunctions {
     }
 
     public static BatchAndSend<ChangeMessageVisibilityRequest, ChangeMessageVisibilityBatchResponse>
-    changeVisibilityBatchAsyncFunction(SqsAsyncClient client) {
+        changeVisibilityBatchAsyncFunction(SqsAsyncClient client) {
         return (identifiedRequests, batchKey) -> {
             ChangeMessageVisibilityBatchRequest batchRequest = createChangeVisibilityBatchRequest(identifiedRequests, batchKey);
             return client.changeMessageVisibilityBatch(batchRequest);
