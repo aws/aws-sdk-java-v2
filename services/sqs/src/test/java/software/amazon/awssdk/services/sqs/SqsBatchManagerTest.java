@@ -19,6 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
@@ -39,7 +40,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -70,10 +71,10 @@ public class SqsBatchManagerTest {
 
     private static final int DEFAULT_MAX_BATCH_OPEN = 200;
     private static final String DEFAULT_QUEUE_URl = "SomeQueueUrl";
-    private static final URI HTTP_LOCALHOST_URI = URI.create("http://localhost:8080/");
     private static ScheduledExecutorService scheduledExecutor;
     private static ExecutorService executor;
     private static SqsClient client;
+    private static URI http_localhost_uri;
     private SqsBatchManager batchManager;
 
     @Mock
@@ -86,13 +87,13 @@ public class SqsBatchManagerTest {
     private BatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
         ChangeMessageVisibilityBatchResponse> mockChangeVisibilityBatchManager;
 
-    @Rule
-    public WireMockRule wireMock = new WireMockRule(0);
+    @ClassRule
+    public static WireMockRule wireMock = new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
 
     private static SqsClientBuilder getSyncClientBuilder() {
         return SqsClient.builder()
                         .region(Region.US_EAST_1)
-                        .endpointOverride(HTTP_LOCALHOST_URI)
+                        .endpointOverride(http_localhost_uri)
                         .credentialsProvider(
                             StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")));
     }
@@ -102,6 +103,7 @@ public class SqsBatchManagerTest {
         ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("SqsBatchManager").build();
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
         executor = Executors.newSingleThreadExecutor();
+        http_localhost_uri = URI.create(String.format("http://localhost:%s/", wireMock.port()));
         client = getSyncClientBuilder().build();
     }
 
