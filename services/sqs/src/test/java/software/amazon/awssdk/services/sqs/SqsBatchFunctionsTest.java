@@ -48,7 +48,6 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Md5Utils;
 
-// TODO: Will refactor code in this test file for async tests.
 public class SqsBatchFunctionsTest {
 
     @Test
@@ -93,16 +92,8 @@ public class SqsBatchFunctionsTest {
     @Test
     public void sendMessageBatchKeyMapperWithOverrideConfig_hasSameBatchKey() {
         String queueUrl = "myQueue";
-        AwsRequestOverrideConfiguration overrideConfiguration1 = createOverrideConfig(10);
-        AwsRequestOverrideConfiguration overrideConfiguration2 = createOverrideConfig(10);
-        SendMessageRequest request1 = SendMessageRequest.builder()
-                                                        .queueUrl(queueUrl)
-                                                        .overrideConfiguration(overrideConfiguration1)
-                                                        .build();
-        SendMessageRequest request2 = SendMessageRequest.builder()
-                                                        .queueUrl(queueUrl)
-                                                        .overrideConfiguration(overrideConfiguration2)
-                                                        .build();
+        SendMessageRequest request1 = createSendMessageRequestWithOverrideConfig(queueUrl, 10);
+        SendMessageRequest request2 = createSendMessageRequestWithOverrideConfig(queueUrl, 10);
         String batchKey1 = sendMessageBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = sendMessageBatchKeyMapper().getBatchKey(request2);
         assertThat(batchKey1).isEqualTo(batchKey2);
@@ -111,16 +102,8 @@ public class SqsBatchFunctionsTest {
     @Test
     public void sendMessageBatchKeyMapperWithDifferentOverrideConfig_hasDifferentBatchKey() {
         String queueUrl = "myQueue";
-        AwsRequestOverrideConfiguration overrideConfiguration1 = createOverrideConfig(10);
-        AwsRequestOverrideConfiguration overrideConfiguration2 = createOverrideConfig(20);
-        SendMessageRequest request1 = SendMessageRequest.builder()
-                                                        .queueUrl(queueUrl)
-                                                        .overrideConfiguration(overrideConfiguration1)
-                                                        .build();
-        SendMessageRequest request2 = SendMessageRequest.builder()
-                                                        .queueUrl(queueUrl)
-                                                        .overrideConfiguration(overrideConfiguration2)
-                                                        .build();
+        SendMessageRequest request1 = createSendMessageRequestWithOverrideConfig(queueUrl, 10);
+        SendMessageRequest request2 = createSendMessageRequestWithOverrideConfig(queueUrl, 20);
         String batchKey1 = sendMessageBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = sendMessageBatchKeyMapper().getBatchKey(request2);
         assertThat(batchKey1).isNotEqualTo(batchKey2);
@@ -165,16 +148,8 @@ public class SqsBatchFunctionsTest {
     @Test
     public void deleteMessageBatchKeyMapperWithOverrideConfig_hasSameBatchKey() {
         String queueUrl = "myQueue";
-        AwsRequestOverrideConfiguration overrideConfiguration1 = createOverrideConfig(10);
-        AwsRequestOverrideConfiguration overrideConfiguration2 = createOverrideConfig(10);
-        DeleteMessageRequest request1 = DeleteMessageRequest.builder()
-                                                            .queueUrl(queueUrl)
-                                                            .overrideConfiguration(overrideConfiguration1)
-                                                            .build();
-        DeleteMessageRequest request2 = DeleteMessageRequest.builder()
-                                                            .queueUrl(queueUrl)
-                                                            .overrideConfiguration(overrideConfiguration2)
-                                                            .build();
+        DeleteMessageRequest request1 = createDeleteMessageRequestWithOverrideConfig(queueUrl, 10);
+        DeleteMessageRequest request2 = createDeleteMessageRequestWithOverrideConfig(queueUrl, 10);
         String batchKey1 = deleteMessageBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = deleteMessageBatchKeyMapper().getBatchKey(request2);
         assertThat(batchKey1).isEqualTo(batchKey2);
@@ -183,16 +158,8 @@ public class SqsBatchFunctionsTest {
     @Test
     public void deleteMessageBatchKeyMapperWithDifferentOverrideConfig_hasDifferentBatchKey() {
         String queueUrl = "myQueue";
-        AwsRequestOverrideConfiguration overrideConfiguration1 = createOverrideConfig(10);
-        AwsRequestOverrideConfiguration overrideConfiguration2 = createOverrideConfig(20);
-        DeleteMessageRequest request1 = DeleteMessageRequest.builder()
-                                                            .queueUrl(queueUrl)
-                                                            .overrideConfiguration(overrideConfiguration1)
-                                                            .build();
-        DeleteMessageRequest request2 = DeleteMessageRequest.builder()
-                                                            .queueUrl(queueUrl)
-                                                            .overrideConfiguration(overrideConfiguration2)
-                                                            .build();
+        DeleteMessageRequest request1 = createDeleteMessageRequestWithOverrideConfig(queueUrl, 10);
+        DeleteMessageRequest request2 = createDeleteMessageRequestWithOverrideConfig(queueUrl, 20);
         String batchKey1 = deleteMessageBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = deleteMessageBatchKeyMapper().getBatchKey(request2);
         assertThat(batchKey1).isNotEqualTo(batchKey2);
@@ -237,16 +204,8 @@ public class SqsBatchFunctionsTest {
     @Test
     public void changeVisibilityBatchKeyMapperWithOverrideConfig_hasSameBatchKey() {
         String queueUrl = "myQueue";
-        AwsRequestOverrideConfiguration overrideConfiguration1 = createOverrideConfig(10);
-        AwsRequestOverrideConfiguration overrideConfiguration2 = createOverrideConfig(10);
-        ChangeMessageVisibilityRequest request1 = ChangeMessageVisibilityRequest.builder()
-                                                                                .queueUrl(queueUrl)
-                                                                                .overrideConfiguration(overrideConfiguration1)
-                                                                                .build();
-        ChangeMessageVisibilityRequest request2 = ChangeMessageVisibilityRequest.builder()
-                                                                                .queueUrl(queueUrl)
-                                                                                .overrideConfiguration(overrideConfiguration2)
-                                                                                .build();
+        ChangeMessageVisibilityRequest request1 = createChangeVisibilityRequestWithOverrideConfig(queueUrl, 10);
+        ChangeMessageVisibilityRequest request2 = createChangeVisibilityRequestWithOverrideConfig(queueUrl, 10);
         String batchKey1 = changeVisibilityBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = changeVisibilityBatchKeyMapper().getBatchKey(request2);
         assertThat(batchKey1).isEqualTo(batchKey2);
@@ -255,19 +214,35 @@ public class SqsBatchFunctionsTest {
     @Test
     public void changeVisibilityBatchKeyMapperWithDifferentOverrideConfig_hasDifferentBatchKey() {
         String queueUrl = "myQueue";
-        AwsRequestOverrideConfiguration overrideConfiguration1 = createOverrideConfig(10);
-        AwsRequestOverrideConfiguration overrideConfiguration2 = createOverrideConfig(20);
-        ChangeMessageVisibilityRequest request1 = ChangeMessageVisibilityRequest.builder()
-                                                                                .queueUrl(queueUrl)
-                                                                                .overrideConfiguration(overrideConfiguration1)
-                                                                                .build();
-        ChangeMessageVisibilityRequest request2 = ChangeMessageVisibilityRequest.builder()
-                                                                                .queueUrl(queueUrl)
-                                                                                .overrideConfiguration(overrideConfiguration2)
-                                                                                .build();
+        ChangeMessageVisibilityRequest request1 = createChangeVisibilityRequestWithOverrideConfig(queueUrl, 10);
+        ChangeMessageVisibilityRequest request2 = createChangeVisibilityRequestWithOverrideConfig(queueUrl, 20);
         String batchKey1 = changeVisibilityBatchKeyMapper().getBatchKey(request1);
         String batchKey2 = changeVisibilityBatchKeyMapper().getBatchKey(request2);
         assertThat(batchKey1).isNotEqualTo(batchKey2);
+    }
+
+    private SendMessageRequest createSendMessageRequestWithOverrideConfig(String queueUrl, int millis) {
+        AwsRequestOverrideConfiguration overrideConfiguration = createOverrideConfig(millis);
+        return SendMessageRequest.builder()
+                                 .queueUrl(queueUrl)
+                                 .overrideConfiguration(overrideConfiguration)
+                                 .build();
+    }
+
+    private DeleteMessageRequest createDeleteMessageRequestWithOverrideConfig(String queueUrl, int millis) {
+        AwsRequestOverrideConfiguration overrideConfiguration = createOverrideConfig(millis);
+        return DeleteMessageRequest.builder()
+                                   .queueUrl(queueUrl)
+                                   .overrideConfiguration(overrideConfiguration)
+                                   .build();
+    }
+
+    private ChangeMessageVisibilityRequest createChangeVisibilityRequestWithOverrideConfig(String queueUrl, int millis) {
+        AwsRequestOverrideConfiguration overrideConfiguration = createOverrideConfig(millis);
+        return ChangeMessageVisibilityRequest.builder()
+                                             .queueUrl(queueUrl)
+                                             .overrideConfiguration(overrideConfiguration)
+                                             .build();
     }
 
     private SendMessageBatchResponse createSendMessageBatchResponse(AwsResponseMetadata responseMetadata,
