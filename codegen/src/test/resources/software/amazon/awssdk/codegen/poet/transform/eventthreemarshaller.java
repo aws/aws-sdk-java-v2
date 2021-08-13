@@ -35,7 +35,7 @@ public class EventThreeMarshaller implements Marshaller<EventThree> {
                     .createProtocolMarshaller(SDK_OPERATION_BINDING);
             return protocolMarshaller.marshall(eventThree).toBuilder().putHeader(":message-type", "event")
                     .putHeader(":event-type", eventThree.sdkEventType().toString())
-                    .putHeader(":content-type", "application/json").build();
+                    .putHeader(":content-type", protocolFactory.getContentType()).build();
         } catch (Exception e) {
             throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }

@@ -32,6 +32,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.async.EmptyPublisher;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationResponseHandler;
@@ -56,6 +57,7 @@ public class AsyncEventStreamingCoreMetricsTest extends BaseAsyncCoreMetricsTest
     @Before
     public void setup() {
         client = ProtocolRestJsonAsyncClient.builder()
+                                            .region(Region.US_WEST_2)
                                             .credentialsProvider(mockCredentialsProvider)
                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                             .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher)
