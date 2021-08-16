@@ -1,3 +1,36 @@
+# __2.17.20__ __2021-08-16__
+## __AWS CodeBuild__
+  - ### Features
+    - CodeBuild now allows you to select how batch build statuses are sent to the source provider for a project.
+
+## __AWS Config__
+  - ### Features
+    - Update ResourceType enum with values for Backup Plan, Selection, Vault, RecoveryPoint; ECS Cluster, Service, TaskDefinition; EFS AccessPoint, FileSystem; EKS Cluster; ECR Repository resources
+
+## __AWS Directory Service__
+  - ### Features
+    - This release adds support for describing client authentication settings.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - AWS IoT SiteWise added query window for the interpolation interval. AWS IoT SiteWise computes each interpolated value by using data points from the timestamp of each interval minus the window to the timestamp of each interval plus the window.
+
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now allows end users to call CheckoutLicense API using new CheckoutType PERPETUAL. Perpetual checkouts allow sellers to check out a quantity of entitlements to be drawn down for consumption.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for Amazon S3
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Upgrade Netty version to 4.1.66.Final
+
 # __2.17.19__ __2021-08-13__
 ## __Amazon Connect Customer Profiles__
   - ### Features
