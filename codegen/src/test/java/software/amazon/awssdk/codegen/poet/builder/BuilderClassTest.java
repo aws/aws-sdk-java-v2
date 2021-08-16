@@ -69,7 +69,7 @@ public class BuilderClassTest {
     }
 
     private void validateGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {
-        assertThat(generatorConstructor.apply(ClientTestModels.jsonServiceModels()), generatesTo(expectedClassName));
+        assertThat(generatorConstructor.apply(ClientTestModels.restJsonServiceModels()), generatesTo(expectedClassName));
     }
 
     private void validateQueryGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {

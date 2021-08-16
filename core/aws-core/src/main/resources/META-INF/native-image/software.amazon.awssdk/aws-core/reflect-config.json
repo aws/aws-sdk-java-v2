@@ -1,0 +1,11 @@
+[
+  {
+    "name": "software.amazon.awssdk.awscore.eventstream.EventStreamInitialRequestInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]
