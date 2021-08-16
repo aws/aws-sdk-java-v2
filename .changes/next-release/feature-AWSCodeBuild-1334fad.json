@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "contributor": "",
+    "description": "CodeBuild now allows you to select how batch build statuses are sent to the source provider for a project."
+}
