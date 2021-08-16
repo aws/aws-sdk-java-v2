@@ -15,25 +15,24 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityBatchFunction;
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityBatchAsyncFunction;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityBatchKeyMapper;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityResponseMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.deleteMessageBatchFunction;
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.deleteMessageBatchAsyncFunction;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.deleteMessageBatchKeyMapper;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.deleteMessageResponseMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageBatchFunction;
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageBatchAsyncFunction;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageBatchKeyMapper;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageResponseMapper;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
-import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.batchmanager.SqsBatchManager;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
@@ -45,39 +44,35 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
 @SdkInternalApi
-public final class DefaultSqsBatchManager implements SqsBatchManager {
+public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
 
-    private final SqsClient client;
-    private final ExecutorService executor;
+    private final SqsAsyncClient client;
     private final BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> sendMessageBatchManager;
     private final BatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse> deleteMessageBatchManager;
     private final BatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
         ChangeMessageVisibilityBatchResponse> changeVisibilityBatchManager;
 
-    private DefaultSqsBatchManager(DefaultBuilder builder) {
+    private DefaultSqsAsyncBatchManager(DefaultBuilder builder) {
         this.client = builder.client;
         SqsBatchConfiguration config = new SqsBatchConfiguration(builder.overrideConfiguration);
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
                                                                                      .maxBatchItems(config.maxBatchItems())
                                                                                      .maxBatchOpenInMs(config.maxBatchOpenInMs())
                                                                                      .build();
-
-
         ScheduledExecutorService scheduledExecutor = builder.scheduledExecutor;
-        this.executor = builder.executor;
 
         this.sendMessageBatchManager = BatchManager.builder(SendMessageRequest.class, SendMessageResponse.class,
                                                             SendMessageBatchResponse.class)
-                                        .batchFunction(sendMessageBatchFunction(client, executor))
-                                        .responseMapper(sendMessageResponseMapper())
-                                        .batchKeyMapper(sendMessageBatchKeyMapper())
-                                        .overrideConfiguration(overrideConfiguration)
-                                        .scheduledExecutor(scheduledExecutor)
-                                        .build();
+                                                   .batchFunction(sendMessageBatchAsyncFunction(client))
+                                                   .responseMapper(sendMessageResponseMapper())
+                                                   .batchKeyMapper(sendMessageBatchKeyMapper())
+                                                   .overrideConfiguration(overrideConfiguration)
+                                                   .scheduledExecutor(scheduledExecutor)
+                                                   .build();
 
         this.deleteMessageBatchManager = BatchManager.builder(DeleteMessageRequest.class, DeleteMessageResponse.class,
                                                               DeleteMessageBatchResponse.class)
-                                                     .batchFunction(deleteMessageBatchFunction(client, executor))
+                                                     .batchFunction(deleteMessageBatchAsyncFunction(client))
                                                      .responseMapper(deleteMessageResponseMapper())
                                                      .batchKeyMapper(deleteMessageBatchKeyMapper())
                                                      .overrideConfiguration(overrideConfiguration)
@@ -87,7 +82,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
         this.changeVisibilityBatchManager = BatchManager.builder(ChangeMessageVisibilityRequest.class,
                                                                  ChangeMessageVisibilityResponse.class,
                                                                  ChangeMessageVisibilityBatchResponse.class)
-                                                        .batchFunction(changeVisibilityBatchFunction(client, executor))
+                                                        .batchFunction(changeVisibilityBatchAsyncFunction(client))
                                                         .responseMapper(changeVisibilityResponseMapper())
                                                         .batchKeyMapper(changeVisibilityBatchKeyMapper())
                                                         .overrideConfiguration(overrideConfiguration)
@@ -96,15 +91,14 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
     }
 
     @SdkTestInternalApi
-    public DefaultSqsBatchManager(SqsClient client, ExecutorService executor, ScheduledExecutorService scheduledExecutor,
+    public DefaultSqsAsyncBatchManager(SqsAsyncClient client, ScheduledExecutorService scheduledExecutor,
                                   BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse>
                                       sendMessageBatchManager,
                                   BatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse>
-                                          deleteMessageBatchManager,
+                                      deleteMessageBatchManager,
                                   BatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
                                       ChangeMessageVisibilityBatchResponse> changeVisibilityBatchManager) {
         this.client = client;
-        this.executor = executor;
         this.sendMessageBatchManager = sendMessageBatchManager;
         this.deleteMessageBatchManager = deleteMessageBatchManager;
         this.changeVisibilityBatchManager = changeVisibilityBatchManager;
@@ -116,32 +110,31 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
     }
 
     @Override
-    public CompletableFuture<DeleteMessageResponse> deleteMessage(DeleteMessageRequest deleteRequest) {
-        return deleteMessageBatchManager.sendRequest(deleteRequest);
-    }
-
-    @Override
     public CompletableFuture<ChangeMessageVisibilityResponse> changeMessageVisibility(ChangeMessageVisibilityRequest
                                                                                               changeRequest) {
         return changeVisibilityBatchManager.sendRequest(changeRequest);
     }
 
     @Override
-    public void close() {
-        sendMessageBatchManager.close();
-        deleteMessageBatchManager.close();
-        changeVisibilityBatchManager.close();
+    public CompletableFuture<DeleteMessageResponse> deleteMessage(DeleteMessageRequest deleteRequest) {
+        return deleteMessageBatchManager.sendRequest(deleteRequest);
     }
 
-    public static SqsBatchManager.Builder builder() {
-        return new DefaultBuilder();
+    @Override
+    public void close() {
+        sendMessageBatchManager.close();
+        changeVisibilityBatchManager.close();
+        deleteMessageBatchManager.close();
+    }
+
+    public static SqsAsyncBatchManager.Builder builder() {
+        return new DefaultSqsAsyncBatchManager.DefaultBuilder();
     }
 
     public static final class DefaultBuilder implements Builder {
         private BatchOverrideConfiguration overrideConfiguration;
-        private SqsClient client;
+        private SqsAsyncClient client;
         private ScheduledExecutorService scheduledExecutor;
-        private ExecutorService executor;
 
         private DefaultBuilder() {
         }
@@ -153,7 +146,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
         }
 
         @Override
-        public Builder client(SqsClient client) {
+        public Builder client(SqsAsyncClient client) {
             this.client = client;
             return this;
         }
@@ -164,14 +157,8 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
             return this;
         }
 
-        @Override
-        public Builder executor(ExecutorService executor) {
-            this.executor = executor;
-            return this;
-        }
-
-        public SqsBatchManager build() {
-            return new DefaultSqsBatchManager(this);
+        public SqsAsyncBatchManager build() {
+            return new DefaultSqsAsyncBatchManager(this);
         }
     }
 }

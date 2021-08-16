@@ -92,15 +92,6 @@ public interface SqsBatchManager extends SdkAutoCloseable {
         return DefaultSqsBatchManager.builder();
     }
 
-    /**
-     * Create an instance of {@link SqsBatchManager} with the default configuration.
-     *
-     * @return an instance of {@link SqsBatchManager}
-     */
-    static SqsBatchManager create() {
-        throw new UnsupportedOperationException();
-    }
-
     interface Builder {
 
         /**

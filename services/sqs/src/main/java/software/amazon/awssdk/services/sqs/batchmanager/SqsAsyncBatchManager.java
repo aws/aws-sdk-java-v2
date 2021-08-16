@@ -16,9 +16,11 @@
 package software.amazon.awssdk.services.sqs.batchmanager;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.DefaultSqsAsyncBatchManager;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
@@ -85,7 +87,7 @@ public interface SqsAsyncBatchManager extends SdkAutoCloseable {
      * @return a builder
      */
     static SqsAsyncBatchManager.Builder builder() {
-        throw new UnsupportedOperationException();
+        return DefaultSqsAsyncBatchManager.builder();
     }
 
     /**
@@ -117,6 +119,17 @@ public interface SqsAsyncBatchManager extends SdkAutoCloseable {
          * @return a reference to this object so that method calls can be chained together.
          */
         SqsAsyncBatchManager.Builder client(SqsAsyncClient client);
+
+        /**
+         * Sets a custom {@link ScheduledExecutorService} that will be used to schedule periodic buffer flushes.
+         * <p>
+         * Creating a SqsBatchManager directly from the client will use the client's scheduled executor. If supplied by the
+         * user, this ScheduledExecutorService must be closed by the caller when it is ready to be shut down.
+         *
+         * @param scheduledExecutor the scheduledExecutor to be used.
+         * @return a reference to this object so that method calls can be chained together.
+         */
+        SqsAsyncBatchManager.Builder scheduledExecutor(ScheduledExecutorService scheduledExecutor);
 
         /**
          * Builds an instance of {@link SqsAsyncBatchManager} based on the configurations supplied to this builder.

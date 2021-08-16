@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.internal.batchmanager.BatchAndSend;
 import software.amazon.awssdk.core.internal.batchmanager.BatchKeyMapper;
 import software.amazon.awssdk.core.internal.batchmanager.BatchResponseMapper;
 import software.amazon.awssdk.core.internal.batchmanager.IdentifiableMessage;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
@@ -53,30 +54,42 @@ public final class SqsBatchFunctions {
 
     public static BatchAndSend<SendMessageRequest, SendMessageBatchResponse> sendMessageBatchFunction(SqsClient client,
                                                                                                       ExecutorService executor) {
-        return (identifiedRequests, destination) -> {
-            List<SendMessageBatchRequestEntry> entries =
-                identifiedRequests.stream()
-                                  .map(identifiedRequest -> createSendMessageBatchRequestEntry(identifiedRequest.id(),
-                                                                                               identifiedRequest.message()))
-                                  .collect(Collectors.toList());
-
-            // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration, all
-            // requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first request.
-            Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
-                                                                                                .message()
-                                                                                                .overrideConfiguration();
-            SendMessageBatchRequest batchRequest =
-                overrideConfiguration.map(overrideConfig -> SendMessageBatchRequest.builder()
-                                                                                   .queueUrl(destination)
-                                                                                   .overrideConfiguration(overrideConfig)
-                                                                                   .entries(entries)
-                                                                                   .build())
-                                     .orElse(SendMessageBatchRequest.builder()
-                                                                    .queueUrl(destination)
-                                                                    .entries(entries)
-                                                                    .build());
+        return (identifiedRequests, batchKey) -> {
+            SendMessageBatchRequest batchRequest = createSendMessageBatchRequest(identifiedRequests, batchKey);
             return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest), executor);
         };
+    }
+
+    public static BatchAndSend<SendMessageRequest, SendMessageBatchResponse> sendMessageBatchAsyncFunction(SqsAsyncClient
+                                                                                                               client) {
+        return (identifiedRequests, batchKey) -> {
+            SendMessageBatchRequest batchRequest = createSendMessageBatchRequest(identifiedRequests, batchKey);
+            return client.sendMessageBatch(batchRequest);
+        };
+    }
+
+    public static SendMessageBatchRequest createSendMessageBatchRequest(
+        List<IdentifiableMessage<SendMessageRequest>> identifiedRequests, String batchKey) {
+        List<SendMessageBatchRequestEntry> entries =
+            identifiedRequests.stream()
+                              .map(identifiedRequest -> createSendMessageBatchRequestEntry(identifiedRequest.id(),
+                                                                                           identifiedRequest.message()))
+                              .collect(Collectors.toList());
+
+        // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration, all
+        // requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first request.
+        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
+                                                                                            .message()
+                                                                                            .overrideConfiguration();
+        return overrideConfiguration.map(overrideConfig -> SendMessageBatchRequest.builder()
+                                                                                  .queueUrl(batchKey)
+                                                                                  .overrideConfiguration(overrideConfig)
+                                                                                  .entries(entries)
+                                                                                  .build())
+                                    .orElse(SendMessageBatchRequest.builder()
+                                                                   .queueUrl(batchKey)
+                                                                   .entries(entries)
+                                                                   .build());
     }
 
     public static BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> sendMessageResponseMapper() {
@@ -108,31 +121,43 @@ public final class SqsBatchFunctions {
 
     public static BatchAndSend<DeleteMessageRequest, DeleteMessageBatchResponse> deleteMessageBatchFunction(
         SqsClient client, ExecutorService executor) {
-        return (identifiedRequests, destination) -> {
-            List<DeleteMessageBatchRequestEntry> entries =
-                identifiedRequests.stream()
-                                  .map(identifiedRequest -> createDeleteMessageBatchRequestEntry(identifiedRequest.id(),
-                                                                                                 identifiedRequest.message()))
-                                  .collect(Collectors.toList());
-
-            // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration, all
-            // requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first request.
-            Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
-                                                                                                .message()
-                                                                                                .overrideConfiguration();
-            DeleteMessageBatchRequest batchRequest =
-                overrideConfiguration.map(overrideConfig -> DeleteMessageBatchRequest.builder()
-                                                                                     .queueUrl(destination)
-                                                                                     .overrideConfiguration(overrideConfig)
-                                                                                     .entries(entries)
-                                                                                     .build())
-                                     .orElse(DeleteMessageBatchRequest.builder()
-                                                                      .queueUrl(destination)
-                                                                      .entries(entries)
-                                                                      .build());
-
+        return (identifiedRequests, batchKey) -> {
+            DeleteMessageBatchRequest batchRequest = createDeleteMessageBatchRequest(identifiedRequests, batchKey);
             return CompletableFuture.supplyAsync(() -> client.deleteMessageBatch(batchRequest), executor);
         };
+    }
+
+    public static BatchAndSend<DeleteMessageRequest, DeleteMessageBatchResponse> deleteMessageBatchAsyncFunction(
+        SqsAsyncClient client) {
+        return (identifiedRequests, batchKey) -> {
+            DeleteMessageBatchRequest batchRequest = createDeleteMessageBatchRequest(identifiedRequests, batchKey);
+            return client.deleteMessageBatch(batchRequest);
+        };
+    }
+
+    public static DeleteMessageBatchRequest createDeleteMessageBatchRequest(
+        List<IdentifiableMessage<DeleteMessageRequest>> identifiedRequests, String batchKey) {
+        List<DeleteMessageBatchRequestEntry> entries =
+            identifiedRequests.stream()
+                              .map(identifiedRequest -> createDeleteMessageBatchRequestEntry(identifiedRequest.id(),
+                                                                                             identifiedRequest.message()))
+                              .collect(Collectors.toList());
+
+        // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration, all
+        // requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first request.
+        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
+                                                                                            .message()
+                                                                                            .overrideConfiguration();
+        return overrideConfiguration.map(overrideConfig -> DeleteMessageBatchRequest.builder()
+                                                                                    .queueUrl(batchKey)
+                                                                                    .overrideConfiguration(overrideConfig)
+                                                                                    .entries(entries)
+                                                                                    .build())
+                                    .orElse(DeleteMessageBatchRequest.builder()
+                                                                     .queueUrl(batchKey)
+                                                                     .entries(entries)
+                                                                     .build());
+
     }
 
     public static BatchResponseMapper<DeleteMessageBatchResponse, DeleteMessageResponse> deleteMessageResponseMapper() {
@@ -164,33 +189,43 @@ public final class SqsBatchFunctions {
 
     public static BatchAndSend<ChangeMessageVisibilityRequest, ChangeMessageVisibilityBatchResponse>
         changeVisibilityBatchFunction(SqsClient client, ExecutorService executor) {
-        return (identifiedRequests, destination) -> {
-            List<ChangeMessageVisibilityBatchRequestEntry> entries =
-                identifiedRequests.stream()
-                                  .map(identifiedRequest -> createChangVisibilityBatchRequestEntry(identifiedRequest.id(),
-                                                                                                   identifiedRequest.message()))
-                                  .collect(Collectors.toList());
-
-            // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration, all
-            // requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first request.
-            Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
-                                                                                                .message()
-                                                                                                .overrideConfiguration();
-            ChangeMessageVisibilityBatchRequest batchRequest =
-                overrideConfiguration.map(overrideConfig ->
-                                              ChangeMessageVisibilityBatchRequest.builder()
-                                                                                 .queueUrl(destination)
-                                                                                 .overrideConfiguration(overrideConfig)
-                                                                                 .entries(entries)
-                                                                                 .build())
-                                     .orElse(ChangeMessageVisibilityBatchRequest.builder()
-                                                                                .queueUrl(destination)
-                                                                                .entries(entries)
-                                                                                .build());
-
-            // TODO: Pass client executor in supplyAsync once an executor is added into the client.
+        return (identifiedRequests, batchKey) -> {
+            ChangeMessageVisibilityBatchRequest batchRequest = createChangeVisibilityBatchRequest(identifiedRequests, batchKey);
             return CompletableFuture.supplyAsync(() -> client.changeMessageVisibilityBatch(batchRequest), executor);
         };
+    }
+
+    public static BatchAndSend<ChangeMessageVisibilityRequest, ChangeMessageVisibilityBatchResponse>
+        changeVisibilityBatchAsyncFunction(SqsAsyncClient client) {
+        return (identifiedRequests, batchKey) -> {
+            ChangeMessageVisibilityBatchRequest batchRequest = createChangeVisibilityBatchRequest(identifiedRequests, batchKey);
+            return client.changeMessageVisibilityBatch(batchRequest);
+        };
+    }
+
+    public static ChangeMessageVisibilityBatchRequest createChangeVisibilityBatchRequest(
+        List<IdentifiableMessage<ChangeMessageVisibilityRequest>> identifiedRequests, String batchKey) {
+        List<ChangeMessageVisibilityBatchRequestEntry> entries =
+            identifiedRequests.stream()
+                              .map(identifiedRequest -> createChangVisibilityBatchRequestEntry(identifiedRequest.id(),
+                                                                                               identifiedRequest.message()))
+                              .collect(Collectors.toList());
+
+        // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration, all
+        // requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first request.
+        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
+                                                                                            .message()
+                                                                                            .overrideConfiguration();
+        return overrideConfiguration.map(overrideConfig ->
+                                             ChangeMessageVisibilityBatchRequest.builder()
+                                                                                .queueUrl(batchKey)
+                                                                                .overrideConfiguration(overrideConfig)
+                                                                                .entries(entries)
+                                                                                .build())
+                                    .orElse(ChangeMessageVisibilityBatchRequest.builder()
+                                                                               .queueUrl(batchKey)
+                                                                               .entries(entries)
+                                                                               .build());
     }
 
     public static BatchResponseMapper<ChangeMessageVisibilityBatchResponse, ChangeMessageVisibilityResponse>

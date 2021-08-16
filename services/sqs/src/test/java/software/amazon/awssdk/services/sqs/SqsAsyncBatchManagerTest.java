@@ -22,7 +22,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -38,8 +37,8 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.sqs.batchmanager.SqsBatchManager;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.DefaultSqsBatchManager;
+import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.DefaultSqsAsyncBatchManager;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
@@ -52,12 +51,11 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SqsBatchManagerTest extends BaseSqsBatchManagerTest {
+public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
 
     private static ScheduledExecutorService scheduledExecutor;
-    private static ExecutorService executor;
-    private static SqsClient client;
-    private SqsBatchManager batchManager;
+    private static SqsAsyncClient client;
+    private SqsAsyncBatchManager batchManager;
 
     @Mock
     private BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> mockSendMessageBatchManager;
@@ -69,37 +67,34 @@ public class SqsBatchManagerTest extends BaseSqsBatchManagerTest {
     private BatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
         ChangeMessageVisibilityBatchResponse> mockChangeVisibilityBatchManager;
 
-    private static SqsClientBuilder getSyncClientBuilder(URI http_localhost_uri) {
-        return SqsClient.builder()
-                        .region(Region.US_EAST_1)
-                        .endpointOverride(http_localhost_uri)
-                        .credentialsProvider(
-                            StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")));
+    private static SqsAsyncClientBuilder getAsyncClientBuilder(URI http_localhost_uri) {
+        return SqsAsyncClient.builder()
+                             .region(Region.US_EAST_1)
+                             .endpointOverride(http_localhost_uri)
+                             .credentialsProvider(
+                                 StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")));
     }
 
     @BeforeClass
     public static void oneTimeSetUp() {
         ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("SqsBatchManager").build();
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
-        executor = Executors.newSingleThreadExecutor();
         URI http_localhost_uri = URI.create(String.format("http://localhost:%s/", wireMock.port()));
-        client = getSyncClientBuilder(http_localhost_uri).build();
+        client = getAsyncClientBuilder(http_localhost_uri).build();
     }
 
     @AfterClass
     public static void oneTimeTearDown() {
         client.close();
         scheduledExecutor.shutdownNow();
-        executor.shutdownNow();
     }
 
     @Before
     public void setUp() {
-        batchManager = SqsBatchManager.builder()
-                                      .client(client)
-                                      .scheduledExecutor(scheduledExecutor)
-                                      .executor(executor)
-                                      .build();
+        batchManager = SqsAsyncBatchManager.builder()
+                                           .client(client)
+                                           .scheduledExecutor(scheduledExecutor)
+                                           .build();
     }
 
     @After
@@ -109,15 +104,14 @@ public class SqsBatchManagerTest extends BaseSqsBatchManagerTest {
 
     @Test
     public void closeBatchManager_shouldNotCloseExecutorsOrClient() {
-        SqsBatchManager batchManager = new DefaultSqsBatchManager(client, executor, scheduledExecutor,
-                                                                  mockSendMessageBatchManager,
-                                                                  mockDeleteMessageBatchManager,
-                                                                  mockChangeVisibilityBatchManager);
+        SqsAsyncBatchManager batchManager = new DefaultSqsAsyncBatchManager(client, scheduledExecutor,
+                                                                            mockSendMessageBatchManager,
+                                                                            mockDeleteMessageBatchManager,
+                                                                            mockChangeVisibilityBatchManager);
         batchManager.close();
         verify(mockSendMessageBatchManager).close();
         verify(mockDeleteMessageBatchManager).close();
         verify(mockChangeVisibilityBatchManager).close();
-        assertThat(executor.isShutdown()).isFalse();
         assertThat(scheduledExecutor.isShutdown()).isFalse();
     }
 
