@@ -13,10 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.batchmanager;
+package software.amazon.awssdk.core.batchmanager;
 
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.batchmanager.IdentifiableMessage;
+import software.amazon.awssdk.utils.Either;
 
 /**
  * Unpacks the batch response, then transforms individual entries to the appropriate response type. Each entry's batch ID
@@ -27,5 +29,5 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 @FunctionalInterface
 @SdkProtectedApi
 public interface BatchResponseMapper<BatchResponseT, ResponseT> {
-    List<IdentifiableMessage<ResponseT>> mapBatchResponse(BatchResponseT batchResponse);
+    List<Either<IdentifiableMessage<ResponseT>, IdentifiableMessage<Throwable>>> mapBatchResponse(BatchResponseT batchResponse);
 }

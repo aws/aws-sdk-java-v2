@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.batchmanager;
+package software.amazon.awssdk.core.batchmanager;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
