@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.sqs.batchmanager;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -133,7 +134,7 @@ public interface SqsBatchManager extends SdkAutoCloseable {
          * @param executor the executor to be used.
          * @returna reference to this object so that method calls can be chained together.
          */
-        Builder executor(ExecutorService executor);
+        Builder executor(Executor executor);
 
         /**
          * Builds an instance of {@link SqsBatchManager} based on the configurations supplied to this builder.
