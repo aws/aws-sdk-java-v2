@@ -1,3 +1,24 @@
+# __2.17.21__ __2021-08-17__
+## __AWS Cloud9__
+  - ### Features
+    - Added DryRun parameter to CreateEnvironmentEC2 API. Added ManagedCredentialsActions parameter to UpdateEnvironment API
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release is a new feature for Cost Categories: Split charge rules. Split charge rules enable you to allocate shared costs between your cost category values.
+
+## __Amazon CloudDirectory__
+  - ### Features
+    - Documentation updates for clouddirectory
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Documentation-only update for CloudWatch Logs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for EC2 ED25519 key pairs for authentication
+
 # __2.17.20__ __2021-08-16__
 ## __AWS CodeBuild__
   - ### Features

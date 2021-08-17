@@ -1,0 +1,36 @@
+{
+    "version": "2.17.21",
+    "date": "2021-08-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CloudDirectory",
+            "contributor": "",
+            "description": "Documentation updates for clouddirectory"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "Documentation-only update for CloudWatch Logs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support for EC2 ED25519 key pairs for authentication"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud9",
+            "contributor": "",
+            "description": "Added DryRun parameter to CreateEnvironmentEC2 API. Added ManagedCredentialsActions parameter to UpdateEnvironment API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "This release is a new feature for Cost Categories: Split charge rules. Split charge rules enable you to allocate shared costs between your cost category values."
+        }
+    ]
+}
