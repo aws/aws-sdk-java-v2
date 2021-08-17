@@ -36,8 +36,13 @@ import java.util.concurrent.TimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.batchmanager.BatchAndSend;
+import software.amazon.awssdk.core.batchmanager.BatchKeyMapper;
 import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
+import software.amazon.awssdk.core.batchmanager.BatchResponseMapper;
+import software.amazon.awssdk.core.batchmanager.IdentifiableMessage;
+import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
@@ -206,6 +211,65 @@ public class BatchManagerTest {
         }
     }
 
+    @Test
+    public void batchKeyLimitExceededReturnsIndexOutOfBoundsException() {
+        BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
+                                                                                     .maxBatchKeys(1)
+                                                                                     .build();
+        BatchManager<String, String, BatchResponse> testBatchManager = BatchManager.builder(String.class, String.class, BatchResponse.class)
+                                                                                   .overrideConfiguration(overrideConfiguration)
+                                                                                   .scheduledExecutor(scheduledExecutor)
+                                                                                   .batchFunction(batchFunction)
+                                                                                   .responseMapper(responseMapper)
+                                                                                   .batchKeyMapper(batchKeyMapper)
+                                                                                   .build();
+
+        Map<String, String> requests = new HashMap<>();
+        requests.put(Integer.toString(0), "dest0 0");
+        requests.put(Integer.toString(1), "dest1 0");
+        requests.put(Integer.toString(2), "dest0 1");
+
+        Map<String, CompletableFuture<String>> responses = new HashMap<>();
+        for (int i = 0; i < requests.size(); i++) {
+            String key = Integer.toString(i);
+            String request = requests.get(key);
+            responses.put(key, testBatchManager.sendRequest(request));
+        }
+
+        assertThat(responses.get("0").join()).isEqualTo(requests.get("0"));
+        CompletableFuture<String> completableResponse = responses.get("1");
+        assertThatThrownBy(completableResponse::join).hasCauseInstanceOf(IndexOutOfBoundsException.class)
+                                                     .hasMessageContaining("MaxBatchKeys reached");
+        assertThat(responses.get("2").join()).isEqualTo(requests.get("2"));
+    }
+
+    @Test
+    public void batchBufferLimitExceededReturnsIndexOutOfBoundsException() {
+        BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
+                                                                                     .maxBufferSize(1)
+                                                                                     .build();
+        BatchManager<String, String, BatchResponse> testBatchManager = BatchManager.builder(String.class, String.class, BatchResponse.class)
+                                                                                   .overrideConfiguration(overrideConfiguration)
+                                                                                   .scheduledExecutor(scheduledExecutor)
+                                                                                   .batchFunction(batchFunction)
+                                                                                   .responseMapper(responseMapper)
+                                                                                   .batchKeyMapper(batchKeyMapper)
+                                                                                   .build();
+
+        Map<String, String> requests = createRequestsOfSize(2);
+        Map<String, CompletableFuture<String>> responses = new HashMap<>();
+        for (int i = 0; i < requests.size(); i++) {
+            String key = Integer.toString(i);
+            String request = requests.get(key);
+            responses.put(key, testBatchManager.sendRequest(request));
+        }
+
+        assertThat(responses.get("0").join()).isEqualTo(requests.get("0"));
+        CompletableFuture<String> completableResponse = responses.get("1");
+        assertThatThrownBy(completableResponse::join).hasCauseInstanceOf(IndexOutOfBoundsException.class)
+                                                     .hasMessageContaining("MaxBufferSize reached");
+    }
+
     private static final BatchAndSend<String, BatchResponse> exceptionBatchFunction =
         (identifiableRequests, destination) -> CompletableFuture.supplyAsync(() -> {
             waitForTime(DEFAULT_MAX_BATCH_OPEN - 50);
@@ -228,9 +292,11 @@ public class BatchManagerTest {
 
     private static final BatchResponseMapper<BatchResponse, String> responseMapper =
         requestBatchResponse -> {
-            List<IdentifiableMessage<String>> identifiableResponses = new ArrayList<>();
+            List<Either<IdentifiableMessage<String>, IdentifiableMessage<Throwable>>> identifiableResponses = new ArrayList<>();
             for (MessageWithId requestWithId : requestBatchResponse.getResponses()) {
-                identifiableResponses.add(new IdentifiableMessage<>(requestWithId.getId(), requestWithId.getMessage()));
+                IdentifiableMessage<String> response = new IdentifiableMessage<>(requestWithId.getId(),
+                                                                                 requestWithId.getMessage());
+                identifiableResponses.add(Either.left(response));
             }
             return identifiableResponses;
         };
