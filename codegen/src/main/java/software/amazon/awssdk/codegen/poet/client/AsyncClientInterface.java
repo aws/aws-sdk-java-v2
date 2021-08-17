@@ -39,6 +39,7 @@ import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.docs.WaiterDocs;
+import software.amazon.awssdk.codegen.model.config.customization.BatchManagerMethod;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -106,6 +107,10 @@ public class AsyncClientInterface implements ClassSpec {
 
         if (model.hasWaiters()) {
             result.addMethod(waiterMethod());
+        }
+
+        if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
+            result.addMethod(batchManagerMethod());
         }
 
         return result.build();
@@ -465,6 +470,19 @@ public class AsyncClientInterface implements ClassSpec {
                          .returns(poetExtensions.getAsyncWaiterInterface())
                          .addStatement("throw new $T()", UnsupportedOperationException.class)
                          .addJavadoc(WaiterDocs.waiterMethodInClient(poetExtensions.getAsyncWaiterInterface()))
+                         .build();
+    }
+
+    private MethodSpec batchManagerMethod() {
+        BatchManagerMethod config = model.getCustomizationConfig().getBatchManagerMethod();
+        ClassName returnType = PoetUtils.classNameFromFqcn(config.getAsyncReturnType());
+
+        return MethodSpec.methodBuilder("batchManager")
+                         .returns(returnType)
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
+                         .addJavadoc("Creates an instance of {@link $T} object with the "
+                                     + "configuration set on this client.", returnType)
                          .build();
     }
 }

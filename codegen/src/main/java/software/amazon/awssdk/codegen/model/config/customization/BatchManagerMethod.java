@@ -23,11 +23,11 @@ public class BatchManagerMethod {
 
     public static final String METHOD_NAME = "batchManager";
 
-    /** Fqcn of the return type of the operation */
+    /** Fqcn of the return type of the operation for the sync client */
     private String returnType;
 
-    /** Fqcn of the instance type to be created */
-    private String instanceType;
+    /** Fqcn of the return type of the operation for the async client */
+    private String asyncReturnType;
 
     public String getReturnType() {
         return returnType;
@@ -37,11 +37,11 @@ public class BatchManagerMethod {
         this.returnType = returnType;
     }
 
-    public String getInstanceType() {
-        return instanceType;
+    public String getAsyncReturnType() {
+        return asyncReturnType;
     }
 
-    public void setInstanceType(String instanceType) {
-        this.instanceType = instanceType;
+    public void setAsyncReturnType(String asyncReturnType) {
+        this.asyncReturnType = asyncReturnType;
     }
 }
