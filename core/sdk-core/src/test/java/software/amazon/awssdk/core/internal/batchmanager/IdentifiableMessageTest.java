@@ -48,4 +48,10 @@ public class IdentifiableMessageTest {
         Assert.assertNotEquals(myRequest1.hashCode(), myRequest2.hashCode());
     }
 
+    @Test
+    public void checkSameIdentifiableMesagesIsEqual() {
+        IdentifiableMessage<String> myRequest1 = new IdentifiableMessage<>("id1", "request1");
+        Assert.assertEquals(myRequest1, myRequest1);
+    }
+
 }

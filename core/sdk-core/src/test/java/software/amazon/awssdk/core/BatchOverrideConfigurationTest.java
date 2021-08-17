@@ -29,6 +29,8 @@ public class BatchOverrideConfigurationTest {
     private BatchOverrideConfiguration overrideConfiguration;
     private ScheduledExecutorService scheduledExecutor;
     private final int maxBatchItems = 10;
+    private final int maxBatchKeys = 100;
+    private final int maxBufferSize = 200;
     private final int maxBatchOpenInMs = 200;
 
     @Before
@@ -37,6 +39,8 @@ public class BatchOverrideConfigurationTest {
         overrideConfiguration = BatchOverrideConfiguration.builder()
                                                           .maxBatchItems(maxBatchItems)
                                                           .maxBatchOpenInMs(Duration.ofMillis(maxBatchOpenInMs))
+                                                          .maxBatchKeys(maxBatchKeys)
+                                                          .maxBufferSize(maxBufferSize)
                                                           .build();
     }
 
@@ -49,6 +53,8 @@ public class BatchOverrideConfigurationTest {
     public void createNewBatchOverrideConfiguration() {
         Assert.assertEquals(maxBatchItems, overrideConfiguration.maxBatchItems().get().intValue());
         Assert.assertEquals(maxBatchOpenInMs, overrideConfiguration.maxBatchOpenInMs().get().toMillis());
+        Assert.assertEquals(maxBatchKeys, overrideConfiguration.maxBatchKeys().get().intValue());
+        Assert.assertEquals(maxBufferSize, overrideConfiguration.maxBufferSize().get().intValue());
     }
 
     @Test
@@ -56,7 +62,10 @@ public class BatchOverrideConfigurationTest {
         BatchOverrideConfiguration overrideConfigurationCopy = overrideConfiguration.toBuilder().build();
         Assert.assertEquals(maxBatchItems, overrideConfigurationCopy.maxBatchItems().get().intValue());
         Assert.assertEquals(maxBatchOpenInMs, overrideConfigurationCopy.maxBatchOpenInMs().get().toMillis());
+        Assert.assertEquals(maxBatchKeys, overrideConfiguration.maxBatchKeys().get().intValue());
+        Assert.assertEquals(maxBufferSize, overrideConfiguration.maxBufferSize().get().intValue());
         Assert.assertEquals(overrideConfiguration, overrideConfigurationCopy);
+        Assert.assertEquals(overrideConfiguration.toString(), overrideConfigurationCopy.toString());
         Assert.assertEquals(overrideConfiguration.hashCode(), overrideConfigurationCopy.hashCode());
     }
 
