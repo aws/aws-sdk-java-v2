@@ -31,7 +31,7 @@ import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
-import software.amazon.awssdk.core.internal.batchmanager.IdentifiableMessage;
+import software.amazon.awssdk.core.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResultEntry;
@@ -46,6 +46,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Md5Utils;
 
 public class SqsBatchFunctionsTest {
@@ -61,11 +62,11 @@ public class SqsBatchFunctionsTest {
         AwsResponseMetadata responseMetadata = createAwsResponseMetadata();
         SdkHttpResponse httpResponse = createSdkHttpResponse();
         SendMessageBatchResponse batchResponse = createSendMessageBatchResponse(responseMetadata, httpResponse, entry1, entry2);
-        List<IdentifiableMessage<SendMessageResponse>> mappedResponses =
+        List<Either<IdentifiableMessage<SendMessageResponse>, IdentifiableMessage<Throwable>>> mappedResponses =
             sendMessageResponseMapper().mapBatchResponse(batchResponse);
 
-        IdentifiableMessage<SendMessageResponse> response1 = mappedResponses.get(0);
-        IdentifiableMessage<SendMessageResponse> response2 = mappedResponses.get(1);
+        IdentifiableMessage<SendMessageResponse> response1 = mappedResponses.get(0).left().get();
+        IdentifiableMessage<SendMessageResponse> response2 = mappedResponses.get(1).left().get();
         assertThat(response1.id()).isEqualTo(id1);
         assertThat(response1.message().md5OfMessageBody()).isEqualTo(messageBody1);
         assertThat(response1.message().sdkHttpResponse()).isEqualTo(httpResponse);
@@ -119,11 +120,11 @@ public class SqsBatchFunctionsTest {
         SdkHttpResponse httpResponse = createSdkHttpResponse();
         DeleteMessageBatchResponse batchResponse = createDeleteMessageBatchResponse(responseMetadata, httpResponse, entry1,
                                                                                     entry2);
-        List<IdentifiableMessage<DeleteMessageResponse>> mappedResponses =
+        List<Either<IdentifiableMessage<DeleteMessageResponse>, IdentifiableMessage<Throwable>>> mappedResponses =
             deleteMessageResponseMapper().mapBatchResponse(batchResponse);
 
-        IdentifiableMessage<DeleteMessageResponse> response1 = mappedResponses.get(0);
-        IdentifiableMessage<DeleteMessageResponse> response2 = mappedResponses.get(1);
+        IdentifiableMessage<DeleteMessageResponse> response1 = mappedResponses.get(0).left().get();
+        IdentifiableMessage<DeleteMessageResponse> response2 = mappedResponses.get(1).left().get();
         assertThat(response1.id()).isEqualTo(id1);
         assertThat(response1.message().sdkHttpResponse()).isEqualTo(httpResponse);
         assertThat(response1.message().responseMetadata().requestId()).isEqualTo(responseMetadata.requestId());
@@ -175,11 +176,11 @@ public class SqsBatchFunctionsTest {
         SdkHttpResponse httpResponse = createSdkHttpResponse();
         ChangeMessageVisibilityBatchResponse batchResponse = createChangeVisibilityBatchResponse(responseMetadata, httpResponse,
                                                                                                  entry1, entry2);
-        List<IdentifiableMessage<ChangeMessageVisibilityResponse>> mappedResponses =
+        List<Either<IdentifiableMessage<ChangeMessageVisibilityResponse>, IdentifiableMessage<Throwable>>> mappedResponses =
             changeVisibilityResponseMapper().mapBatchResponse(batchResponse);
 
-        IdentifiableMessage<ChangeMessageVisibilityResponse> response1 = mappedResponses.get(0);
-        IdentifiableMessage<ChangeMessageVisibilityResponse> response2 = mappedResponses.get(1);
+        IdentifiableMessage<ChangeMessageVisibilityResponse> response1 = mappedResponses.get(0).left().get();
+        IdentifiableMessage<ChangeMessageVisibilityResponse> response2 = mappedResponses.get(1).left().get();
         assertThat(response1.id()).isEqualTo(id1);
         assertThat(response1.message().sdkHttpResponse()).isEqualTo(httpResponse);
         assertThat(response1.message().responseMetadata().requestId()).isEqualTo(responseMetadata.requestId());

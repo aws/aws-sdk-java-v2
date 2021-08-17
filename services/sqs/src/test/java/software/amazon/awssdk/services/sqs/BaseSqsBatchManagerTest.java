@@ -79,7 +79,6 @@ public abstract class BaseSqsBatchManagerTest {
         assertThat(completedResponse2.md5OfMessageBody()).isEqualTo(messageBody2);
     }
 
-    // TODO: Update tests after updating how batchEntryFailures are handled
     @Test
     public void sendMessageBatchFunctionWithBatchEntryFailures_wrapFailureMessageInBatchEntry() {
         String id1 = "0";
@@ -105,10 +104,10 @@ public abstract class BaseSqsBatchManagerTest {
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
         List<CompletableFuture<SendMessageResponse>> responses = createAndSendSendMessageRequests(id1, id2);
 
-        SendMessageResponse completedResponse1 = responses.get(0).join();
-        SendMessageResponse completedResponse2 = responses.get(1).join();
-        assertThat(completedResponse1.md5OfMessageBody()).isNullOrEmpty();
-        assertThat(completedResponse2.md5OfMessageBody()).isNullOrEmpty();
+        CompletableFuture<SendMessageResponse> response1 = responses.get(0);
+        CompletableFuture<SendMessageResponse> response2 = responses.get(1);
+        assertThatThrownBy(response1::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(response2::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
     }
 
     @Test
