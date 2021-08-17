@@ -30,20 +30,32 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class BatchingMap<RequestT, ResponseT> {
 
+    private final int maxBatchKeys;
+    private final int maxBufferSize;
     private final Map<String, BatchBuffer<RequestT, ResponseT>> batchContextMap;
 
-    public BatchingMap() {
+    public BatchingMap(int maxBatchKeys, int maxBufferSize) {
         this.batchContextMap = new ConcurrentHashMap<>();
+        this.maxBatchKeys = maxBatchKeys;
+        this.maxBufferSize = maxBufferSize;
     }
 
+    // put has a happens-before relation with removeBufferIfNeeded which is called by flushableRequests() and
+    // flushableScheduledRequests. This is done because removeBufferIfNeeded removes the underlying buffer and so we want to
+    // guarantee that we don't try to put items into a buffer that is removed.
     public void put(String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
-                     CompletableFuture<ResponseT> response) {
-        batchContextMap.computeIfAbsent(batchKey, k -> new BatchBuffer<>(scheduleFlush.get()))
+                     CompletableFuture<ResponseT> response) throws IndexOutOfBoundsException {
+        batchContextMap.computeIfAbsent(batchKey, k -> {
+            if (batchContextMap.size() == maxBatchKeys) {
+                throw new IndexOutOfBoundsException("MaxBatchKeys reached");
+            }
+            return new BatchBuffer<>(maxBufferSize, scheduleFlush.get());
+        })
                        .put(request, response);
     }
 
-    public void putScheduledFlush(String key, ScheduledFuture<?> scheduledFlush) {
-        batchContextMap.get(key).putScheduledFlush(scheduledFlush);
+    public void putScheduledFlush(String batchKey, ScheduledFuture<?> scheduledFlush) {
+        batchContextMap.get(batchKey).putScheduledFlush(scheduledFlush);
     }
 
     public void forEach(BiConsumer<String, BatchBuffer<RequestT, ResponseT>> action) {
