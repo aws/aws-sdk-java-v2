@@ -145,7 +145,11 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         }
 
         /**
-         * Define the maximum number of batchKeys to keep track of.
+         * Define the maximum number of batchKeys to keep track of. A batchKey determines which requests are batched together
+         * and is calculated by the client based on the information in a request.
+         * <p>
+         * Ex. SQS determines a batchKey based on a request's queueUrl in combination with its overrideConfiguration, so
+         * requests with the same queueUrl and overrideConfiguration will have the same batchKey and be batched together.
          *
          * @param maxBatchKeys the new maxBatchKeys value.
          * @return This object for method chaining.

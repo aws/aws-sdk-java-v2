@@ -99,11 +99,10 @@ public final class BatchBuffer<RequestT, ResponseT> {
         return idToBatchContext.get(key).response();
     }
 
-    public void put(RequestT request, CompletableFuture<ResponseT> response)
-            throws IndexOutOfBoundsException {
+    public void put(RequestT request, CompletableFuture<ResponseT> response){
         synchronized (this) {
             if (idToBatchContext.size() == maxBufferSize) {
-                throw new IndexOutOfBoundsException("MaxBufferSize reached");
+                throw new IllegalStateException("Reached MaxBufferSize of: " + maxBufferSize);
             }
 
             if (nextId == Integer.MAX_VALUE) {

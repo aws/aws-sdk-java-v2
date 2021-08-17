@@ -44,10 +44,10 @@ public final class BatchingMap<RequestT, ResponseT> {
     // flushableScheduledRequests. This is done because removeBufferIfNeeded removes the underlying buffer and so we want to
     // guarantee that we don't try to put items into a buffer that is removed.
     public void put(String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
-                     CompletableFuture<ResponseT> response) throws IndexOutOfBoundsException {
+                     CompletableFuture<ResponseT> response) throws IllegalStateException {
         batchContextMap.computeIfAbsent(batchKey, k -> {
             if (batchContextMap.size() == maxBatchKeys) {
-                throw new IndexOutOfBoundsException("MaxBatchKeys reached");
+                throw new IllegalStateException("Reached MaxBatchKeys of: " + maxBatchKeys);
             }
             return new BatchBuffer<>(maxBufferSize, scheduleFlush.get());
         })

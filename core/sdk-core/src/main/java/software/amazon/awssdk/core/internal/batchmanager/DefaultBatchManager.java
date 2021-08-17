@@ -133,18 +133,15 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
             requests.forEach((contextId, batchExecutionContext) -> batchExecutionContext.response()
                                                                                         .completeExceptionally(exception));
         } else {
-            List<Either<IdentifiableMessage<ResponseT>, IdentifiableMessage<Throwable>>> identifiedResponses =
-                responseMapper.mapBatchResponse(batchResult);
-            for (Either<IdentifiableMessage<ResponseT>, IdentifiableMessage<Throwable>> response : identifiedResponses) {
-                response.map(
-                    actualResponse -> requests.get(actualResponse.id())
-                                              .response()
-                                              .complete(actualResponse.message()),
-                    throwable -> requests.get(throwable.id())
-                                         .response()
-                                         .completeExceptionally(throwable.message())
-                );
-            }
+            responseMapper.mapBatchResponse(batchResult)
+                          .forEach(
+                              response -> response.map(actualResponse -> requests.get(actualResponse.id())
+                                                                                 .response()
+                                                                                 .complete(actualResponse.message()),
+                                                       throwable -> requests.get(throwable.id())
+                                                                            .response()
+                                                                            .completeExceptionally(throwable.message()))
+                          );
         }
         requests.clear();
     }
