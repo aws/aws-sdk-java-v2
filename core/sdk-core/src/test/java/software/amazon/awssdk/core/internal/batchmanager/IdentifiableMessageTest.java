@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.batchmanager;
 
 import org.junit.Assert;
 import org.junit.Test;
+import software.amazon.awssdk.core.batchmanager.IdentifiableMessage;
 
 public class IdentifiableMessageTest {
 
