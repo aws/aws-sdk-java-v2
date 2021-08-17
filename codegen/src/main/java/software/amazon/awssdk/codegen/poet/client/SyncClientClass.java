@@ -32,12 +32,15 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
+import software.amazon.awssdk.codegen.model.config.customization.BatchManagerMethod;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -52,6 +55,7 @@ import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
@@ -114,6 +118,22 @@ public class SyncClientClass implements ClassSpec {
 
         if (model.getCustomizationConfig().getUtilitiesMethod() != null) {
             classBuilder.addMethod(utilitiesMethod());
+        }
+
+        if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
+            classBuilder.addMethod(batchMangerMethod());
+        }
+
+        if (!model.getCustomizationConfig().getBatchManagerMethod().hasExecutor()) {
+            classBuilder.addField(FieldSpec.builder(ClassName.get(Executor.class), "executor")
+                                           .addModifiers(PRIVATE, FINAL)
+                                           .build());
+        }
+
+        if (!model.getCustomizationConfig().getBatchManagerMethod().hasScheduledExecutor()) {
+            classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
+                                           .addModifiers(PRIVATE, FINAL)
+                                           .build());
         }
 
         model.getEndpointOperation().ifPresent(
@@ -179,6 +199,16 @@ public class SyncClientClass implements ClassSpec {
             }
 
             builder.endControlFlow();
+        }
+
+        if (!model.getCustomizationConfig().getBatchManagerMethod().hasExecutor()) {
+            builder.addStatement("this.executor = clientConfiguration.option($T.FUTURE_COMPLETION_EXECUTOR)",
+                                 SdkAdvancedAsyncClientOption.class);
+        }
+
+        if (!model.getCustomizationConfig().getBatchManagerMethod().hasScheduledExecutor()) {
+            builder.addStatement("this.executorService = clientConfiguration.option($T.SCHEDULED_EXECUTOR_SERVICE)",
+                                 SdkClientOption.class);
         }
 
         return builder.build();
@@ -388,6 +418,28 @@ public class SyncClientClass implements ClassSpec {
                          .addStatement("return $T.builder().client(this).build()",
                                        poetExtensions.getSyncWaiterInterface())
                          .returns(poetExtensions.getSyncWaiterInterface())
+                         .build();
+    }
+
+    private MethodSpec batchMangerMethod() {
+        String executor = "executor";
+        String scheduledExecutor = "executorService";
+
+        BatchManagerMethod config = model.getCustomizationConfig().getBatchManagerMethod();
+        ClassName returnType = PoetUtils.classNameFromFqcn(config.getReturnType());
+        String instanceClass = config.getInstanceType();
+        if (instanceClass == null) {
+            instanceClass = config.getReturnType();
+        }
+
+        ClassName instanceType = PoetUtils.classNameFromFqcn(instanceClass);
+
+        return MethodSpec.methodBuilder(BatchManagerMethod.METHOD_NAME)
+                         .returns(returnType)
+                         .addModifiers(Modifier.PUBLIC)
+                         .addAnnotation(Override.class)
+                         .addStatement("return $T.builder().client(this).executor($N).scheduledExecutor($N).build()",
+                                       instanceType, executor, scheduledExecutor)
                          .build();
     }
 }
