@@ -418,19 +418,13 @@ public class SyncClientClass implements ClassSpec {
 
         BatchManagerMethod config = model.getCustomizationConfig().getBatchManagerMethod();
         ClassName returnType = PoetUtils.classNameFromFqcn(config.getReturnType());
-        String instanceClass = config.getInstanceType();
-        if (instanceClass == null) {
-            instanceClass = config.getReturnType();
-        }
-
-        ClassName instanceType = PoetUtils.classNameFromFqcn(instanceClass);
 
         return MethodSpec.methodBuilder(BatchManagerMethod.METHOD_NAME)
                          .returns(returnType)
                          .addModifiers(Modifier.PUBLIC)
                          .addAnnotation(Override.class)
                          .addStatement("return $T.builder().client(this).executor($N).scheduledExecutor($N).build()",
-                                       instanceType, executor, scheduledExecutor)
+                                       returnType, executor, scheduledExecutor)
                          .build();
     }
 }
