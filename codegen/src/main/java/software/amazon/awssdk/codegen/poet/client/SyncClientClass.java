@@ -122,15 +122,9 @@ public class SyncClientClass implements ClassSpec {
 
         if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
             classBuilder.addMethod(batchMangerMethod());
-        }
-
-        if (!model.getCustomizationConfig().getBatchManagerMethod().hasExecutor()) {
             classBuilder.addField(FieldSpec.builder(ClassName.get(Executor.class), "executor")
                                            .addModifiers(PRIVATE, FINAL)
                                            .build());
-        }
-
-        if (!model.getCustomizationConfig().getBatchManagerMethod().hasScheduledExecutor()) {
             classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
                                            .addModifiers(PRIVATE, FINAL)
                                            .build());
@@ -201,12 +195,9 @@ public class SyncClientClass implements ClassSpec {
             builder.endControlFlow();
         }
 
-        if (!model.getCustomizationConfig().getBatchManagerMethod().hasExecutor()) {
+        if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
             builder.addStatement("this.executor = clientConfiguration.option($T.FUTURE_COMPLETION_EXECUTOR)",
                                  SdkAdvancedAsyncClientOption.class);
-        }
-
-        if (!model.getCustomizationConfig().getBatchManagerMethod().hasScheduledExecutor()) {
             builder.addStatement("this.executorService = clientConfiguration.option($T.SCHEDULED_EXECUTOR_SERVICE)",
                                  SdkClientOption.class);
         }

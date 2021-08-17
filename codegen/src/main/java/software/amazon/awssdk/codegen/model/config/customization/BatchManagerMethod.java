@@ -29,12 +29,6 @@ public class BatchManagerMethod {
     /** Fqcn of the instance type to be created */
     private String instanceType;
 
-    /** indicates whether the client already has an executor. If it does not, create a field for one */
-    private boolean hasExecutor;
-
-    /** indicates whether the client already has a scheduledExecutor. If it does not, create a field for one */
-    private boolean hasScheduledExecutor;
-
     public String getReturnType() {
         return returnType;
     }
@@ -49,21 +43,5 @@ public class BatchManagerMethod {
 
     public void setInstanceType(String instanceType) {
         this.instanceType = instanceType;
-    }
-
-    public boolean hasExecutor() {
-        return hasExecutor;
-    }
-
-    public void setHasExecutor(boolean hasExecutor) {
-        this.hasExecutor = hasExecutor;
-    }
-
-    public boolean hasScheduledExecutor() {
-        return hasScheduledExecutor;
-    }
-
-    public void setHasScheduledExecutor(boolean hasScheduledExecutor) {
-        this.hasScheduledExecutor = hasScheduledExecutor;
     }
 }
