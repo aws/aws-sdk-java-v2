@@ -1,3 +1,24 @@
+# __2.17.22__ __2021-08-18__
+## __AWS CodeBuild__
+  - ### Features
+    - CodeBuild now allows you to make the build results for your build projects available to the public without requiring access to an AWS account.
+
+## __Amazon Route 53__
+  - ### Features
+    - Documentation updates for route53
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Documentation updates for Route 53 Resolver
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Amazon SageMaker Runtime now supports InvokeEndpointAsync to asynchronously invoke endpoints that were created with the AsyncInferenceConfig object in the EndpointConfig. Asynchronous invocations support larger payload sizes in Amazon S3 and longer processing times.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports Asynchronous Inference endpoints. Adds PlatformIdentifier field that allows Notebook Instance creation with different platform selections. Increases the maximum number of containers in multi-container endpoints to 15. Adds more instance types to InstanceType field.
+
 # __2.17.21__ __2021-08-17__
 ## __AWS Cloud9__
   - ### Features
