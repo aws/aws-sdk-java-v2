@@ -519,9 +519,6 @@
                         <onlyModified>true</onlyModified>
                         <excludes>
                             <exclude>*.internal.*</exclude>
-
-                            <!-- Checksum bug fix -->
-                            <exclude>software.amazon.awssdk.services.codebuild.*</exclude>
                         </excludes>
 
                         <excludeModules>
