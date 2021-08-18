@@ -26,6 +26,7 @@ import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatch
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageResponseMapper;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -48,7 +49,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 public final class DefaultSqsBatchManager implements SqsBatchManager {
 
     private final SqsClient client;
-    private final ExecutorService executor;
+    private final Executor executor;
     private final BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> sendMessageBatchManager;
     private final BatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse> deleteMessageBatchManager;
     private final BatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
@@ -141,7 +142,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
         private BatchOverrideConfiguration overrideConfiguration;
         private SqsClient client;
         private ScheduledExecutorService scheduledExecutor;
-        private ExecutorService executor;
+        private Executor executor;
 
         private DefaultBuilder() {
         }
@@ -165,7 +166,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
         }
 
         @Override
-        public Builder executor(ExecutorService executor) {
+        public Builder executor(Executor executor) {
             this.executor = executor;
             return this;
         }
