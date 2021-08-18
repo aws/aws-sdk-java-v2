@@ -1,0 +1,20 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"batchmanager",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"BatchManager",
+    "serviceFullName":"BatchManager",
+    "serviceId":"BatchManager",
+    "signatureVersion":"v4",
+    "uid":"batchmanager-2016-03-11"
+  },
+  "operations":{
+  },
+  "shapes": {
+    "String":{"type":"string"}
+  },
+  "documentation": "A service that implements the batchManager() method"
+}
