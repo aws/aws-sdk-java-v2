@@ -24,14 +24,17 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.batchmanager.BatchAndSend;
+import software.amazon.awssdk.core.batchmanager.BatchKeyMapper;
 import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
+import software.amazon.awssdk.core.batchmanager.BatchResponseMapper;
+import software.amazon.awssdk.core.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> implements BatchManager<RequestT, ResponseT,
     BatchResponseT> {
-
     private final int maxBatchItems;
     private final Duration maxBatchOpenInMs;
 
@@ -65,7 +68,8 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
 
     private DefaultBatchManager(DefaultBuilder<RequestT, ResponseT, BatchResponseT> builder) {
         BatchConfiguration batchConfiguration = new BatchConfiguration(builder.overrideConfiguration);
-        this.requestsAndResponsesMaps = new BatchingMap<>();
+        this.requestsAndResponsesMaps = new BatchingMap<>(batchConfiguration.maxBatchKeys(),
+                                                          batchConfiguration.maxBufferSize());
         this.maxBatchItems = batchConfiguration.maxBatchItems();
         this.maxBatchOpenInMs = batchConfiguration.maxBatchOpenInMs();
         this.batchFunction = Validate.notNull(builder.batchFunction, "Null batchFunction");
@@ -116,7 +120,6 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
         List<IdentifiableMessage<RequestT>> requestEntries = new ArrayList<>();
         flushableRequests.forEach((contextId, batchExecutionContext) ->
                                       requestEntries.add(new IdentifiableMessage<>(contextId, batchExecutionContext.request())));
-
         if (!requestEntries.isEmpty()) {
             batchFunction.batchAndSend(requestEntries, batchKey)
                          .whenComplete((result, ex) -> handleAndCompleteResponses(result, ex, flushableRequests));
@@ -129,14 +132,14 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
             requests.forEach((contextId, batchExecutionContext) -> batchExecutionContext.response()
                                                                                         .completeExceptionally(exception));
         } else {
-            List<IdentifiableMessage<ResponseT>> identifiedResponses = responseMapper.mapBatchResponse(batchResult);
-            for (IdentifiableMessage<ResponseT> identifiedResponse : identifiedResponses) {
-                String id = identifiedResponse.id();
-                ResponseT response = identifiedResponse.message();
-                requests.get(id)
-                        .response()
-                        .complete(response);
-            }
+            responseMapper.mapBatchResponse(batchResult)
+                          .forEach(
+                              response -> response.map(actualResponse -> requests.get(actualResponse.id())
+                                                                                 .response()
+                                                                                 .complete(actualResponse.message()),
+                                                       throwable -> requests.get(throwable.id())
+                                                                            .response()
+                                                                            .completeExceptionally(throwable.message())));
         }
         requests.clear();
     }

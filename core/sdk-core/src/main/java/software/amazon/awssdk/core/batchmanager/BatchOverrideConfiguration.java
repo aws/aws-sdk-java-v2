@@ -33,11 +33,15 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     BatchOverrideConfiguration> {
 
     private final Integer maxBatchItems;
+    private final Integer maxBatchKeys;
+    private final Integer maxBufferSize;
     private final Duration maxBatchOpenInMs;
 
     public BatchOverrideConfiguration(Builder builder) {
         this.maxBatchItems = Validate.isPositiveOrNull(builder.maxBatchItems, "maxBatchItems");
         this.maxBatchOpenInMs = Validate.isPositiveOrNull(builder.maxBatchOpenInMs, "maxBachOpenInMs");
+        this.maxBatchKeys = Validate.isPositiveOrNull(builder.maxBatchKeys, "maxBatchKeys");
+        this.maxBufferSize = Validate.isPositiveOrNull(builder.maxBufferSize, "maxBufferSize");
     }
 
     public static Builder builder() {
@@ -52,6 +56,20 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     }
 
     /**
+     * @return the optional maximum number of batchKeys to keep track of.
+     */
+    public Optional<Integer> maxBatchKeys() {
+        return Optional.ofNullable(maxBatchKeys);
+    }
+
+    /**
+     * @return the maximum number of items to allow to be buffered for each batchKey.
+     */
+    public Optional<Integer> maxBufferSize() {
+        return Optional.ofNullable(maxBufferSize);
+    }
+
+    /**
      * @return the optional maximum amount of time (in milliseconds) that an outgoing call waits to be batched with messages of
      * the same type.
      */
@@ -62,6 +80,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     @Override
     public Builder toBuilder() {
         return new Builder().maxBatchItems(maxBatchItems)
+                            .maxBatchKeys(maxBatchKeys)
+                            .maxBufferSize(maxBufferSize)
                             .maxBatchOpenInMs(maxBatchOpenInMs);
     }
 
@@ -69,6 +89,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     public String toString() {
         return ToString.builder("BatchOverrideConfiguration")
                        .add("maxBatchItems", maxBatchItems)
+                       .add("maxBatchKeys", maxBatchKeys)
+                       .add("maxBufferSize", maxBufferSize)
                        .add("maxBatchOpenInMs", maxBatchOpenInMs.toMillis())
                        .build();
     }
@@ -87,12 +109,20 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         if (maxBatchItems != null ? !maxBatchItems.equals(that.maxBatchItems) : that.maxBatchItems != null) {
             return false;
         }
+        if (maxBatchKeys != null ? !maxBatchKeys.equals(that.maxBatchKeys) : that.maxBatchKeys != null) {
+            return false;
+        }
+        if (maxBufferSize != null ? !maxBufferSize.equals(that.maxBufferSize) : that.maxBufferSize != null) {
+            return false;
+        }
         return maxBatchOpenInMs != null ? maxBatchOpenInMs.equals(that.maxBatchOpenInMs) : that.maxBatchOpenInMs == null;
     }
 
     @Override
     public int hashCode() {
         int result = maxBatchItems != null ? maxBatchItems.hashCode() : 0;
+        result = 31 * result + (maxBatchKeys != null ? maxBatchKeys.hashCode() : 0);
+        result = 31 * result + (maxBufferSize != null ? maxBufferSize.hashCode() : 0);
         result = 31 * result + (maxBatchOpenInMs != null ? maxBatchOpenInMs.hashCode() : 0);
         return result;
     }
@@ -100,6 +130,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     public static final class Builder implements CopyableBuilder<Builder, BatchOverrideConfiguration> {
 
         private Integer maxBatchItems;
+        private Integer maxBatchKeys;
+        private Integer maxBufferSize;
         private Duration maxBatchOpenInMs;
 
         private Builder() {
@@ -117,6 +149,32 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         }
 
         /**
+         * Define the maximum number of batchKeys to keep track of. A batchKey determines which requests are batched together
+         * and is calculated by the client based on the information in a request.
+         * <p>
+         * Ex. SQS determines a batchKey based on a request's queueUrl in combination with its overrideConfiguration, so
+         * requests with the same queueUrl and overrideConfiguration will have the same batchKey and be batched together.
+         *
+         * @param maxBatchKeys the new maxBatchKeys value.
+         * @return This object for method chaining.
+         */
+        public Builder maxBatchKeys(Integer maxBatchKeys) {
+            this.maxBatchKeys = maxBatchKeys;
+            return this;
+        }
+
+        /**
+         * Define the maximum number of items to allow to be buffered for each batchKey.
+         *
+         * @param maxBufferSize the new maxBufferSize value.
+         * @return This object for method chaining.
+         */
+        public Builder maxBufferSize(Integer maxBufferSize) {
+            this.maxBufferSize = maxBufferSize;
+            return this;
+        }
+
+        /**
          * The maximum amount of time (in milliseconds) that an outgoing call waits for other requests before sending out a batch
          * request.
          *
@@ -127,6 +185,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
             this.maxBatchOpenInMs = maxBatchOpenInMs;
             return this;
         }
+
 
         public BatchOverrideConfiguration build() {
             return new BatchOverrideConfiguration(this);

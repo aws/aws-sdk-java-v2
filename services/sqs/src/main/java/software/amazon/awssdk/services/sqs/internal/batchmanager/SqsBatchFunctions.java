@@ -23,12 +23,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.core.internal.batchmanager.BatchAndSend;
-import software.amazon.awssdk.core.internal.batchmanager.BatchKeyMapper;
-import software.amazon.awssdk.core.internal.batchmanager.BatchResponseMapper;
-import software.amazon.awssdk.core.internal.batchmanager.IdentifiableMessage;
+import software.amazon.awssdk.core.batchmanager.BatchAndSend;
+import software.amazon.awssdk.core.batchmanager.BatchKeyMapper;
+import software.amazon.awssdk.core.batchmanager.BatchResponseMapper;
+import software.amazon.awssdk.core.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
@@ -45,6 +46,8 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+import software.amazon.awssdk.services.sqs.model.SqsException;
+import software.amazon.awssdk.utils.Either;
 
 @SdkInternalApi
 public final class SqsBatchFunctions {
@@ -94,19 +97,20 @@ public final class SqsBatchFunctions {
 
     public static BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> sendMessageResponseMapper() {
         return sendMessageBatchResponse -> {
-            List<IdentifiableMessage<SendMessageResponse>> mappedResponses = new ArrayList<>();
+            List<Either<IdentifiableMessage<SendMessageResponse>, IdentifiableMessage<Throwable>>>
+                mappedResponses = new ArrayList<>();
             sendMessageBatchResponse.successful()
                                     .forEach(batchResponseEntry -> {
                                         String key = batchResponseEntry.id();
                                         SendMessageResponse response = createSendMessageResponse(batchResponseEntry,
                                                                                                  sendMessageBatchResponse);
-                                        mappedResponses.add(new IdentifiableMessage<>(key, response));
+                                        mappedResponses.add(Either.left(new IdentifiableMessage<>(key, response)));
                                     });
             sendMessageBatchResponse.failed()
                                     .forEach(batchResponseEntry -> {
                                         String key = batchResponseEntry.id();
-                                        SendMessageResponse response = createSendMessageResponse();
-                                        mappedResponses.add(new IdentifiableMessage<>(key, response));
+                                        Throwable response = createThrowable(batchResponseEntry);
+                                        mappedResponses.add(Either.right(new IdentifiableMessage<>(key, response)));
                                     });
             return mappedResponses;
         };
@@ -162,20 +166,20 @@ public final class SqsBatchFunctions {
 
     public static BatchResponseMapper<DeleteMessageBatchResponse, DeleteMessageResponse> deleteMessageResponseMapper() {
         return deleteMessageBatchResponse -> {
-            List<IdentifiableMessage<DeleteMessageResponse>> mappedResponses = new ArrayList<>();
+            List<Either<IdentifiableMessage<DeleteMessageResponse>, IdentifiableMessage<Throwable>>>
+                mappedResponses = new ArrayList<>();
             deleteMessageBatchResponse.successful()
                                       .forEach(batchResponseEntry -> {
                                           String key = batchResponseEntry.id();
                                           DeleteMessageResponse response =
                                               createDeleteMessageResponse(deleteMessageBatchResponse);
-                                          mappedResponses.add(new IdentifiableMessage<>(key, response));
+                                          mappedResponses.add(Either.left(new IdentifiableMessage<>(key, response)));
                                       });
             deleteMessageBatchResponse.failed()
                                       .forEach(batchResponseEntry -> {
                                           String key = batchResponseEntry.id();
-                                          DeleteMessageResponse response =
-                                              createDeleteMessageResponse(deleteMessageBatchResponse);
-                                          mappedResponses.add(new IdentifiableMessage<>(key, response));
+                                          Throwable response = createThrowable(batchResponseEntry);
+                                          mappedResponses.add(Either.right(new IdentifiableMessage<>(key, response)));
                                       });
             return mappedResponses;
         };
@@ -231,20 +235,20 @@ public final class SqsBatchFunctions {
     public static BatchResponseMapper<ChangeMessageVisibilityBatchResponse, ChangeMessageVisibilityResponse>
         changeVisibilityResponseMapper() {
         return changeMessageVisibilityResponses -> {
-            List<IdentifiableMessage<ChangeMessageVisibilityResponse>> mappedResponses = new ArrayList<>();
+            List<Either<IdentifiableMessage<ChangeMessageVisibilityResponse>, IdentifiableMessage<Throwable>>>
+                mappedResponses = new ArrayList<>();
             changeMessageVisibilityResponses.successful()
                                             .forEach(batchResponseEntry -> {
                                                 String key = batchResponseEntry.id();
                                                 ChangeMessageVisibilityResponse response =
                                                     createChangeVisibilityResponse(changeMessageVisibilityResponses);
-                                                mappedResponses.add(new IdentifiableMessage<>(key, response));
+                                                mappedResponses.add(Either.left(new IdentifiableMessage<>(key, response)));
                                             });
             changeMessageVisibilityResponses.failed()
                                             .forEach(batchResponseEntry -> {
                                                 String key = batchResponseEntry.id();
-                                                ChangeMessageVisibilityResponse response =
-                                                    createChangeVisibilityResponse(changeMessageVisibilityResponses);
-                                                mappedResponses.add(new IdentifiableMessage<>(key, response));
+                                                Throwable response = createThrowable(batchResponseEntry);
+                                                mappedResponses.add(Either.right(new IdentifiableMessage<>(key, response)));
                                             });
             return mappedResponses;
         };
@@ -287,9 +291,12 @@ public final class SqsBatchFunctions {
         return builder.build();
     }
 
-    private static SendMessageResponse createSendMessageResponse() {
-        // TODO: Return an exception instead of filling a sendMessageResponse with the error message.
-        return SendMessageResponse.builder().build();
+    private static Throwable createThrowable(BatchResultErrorEntry failedEntry) {
+        int code = Integer.parseInt(failedEntry.code());
+        return SqsException.builder()
+                           .statusCode(code)
+                           .message(failedEntry.message())
+                           .build();
     }
 
     private static DeleteMessageBatchRequestEntry createDeleteMessageBatchRequestEntry(String id, DeleteMessageRequest request) {

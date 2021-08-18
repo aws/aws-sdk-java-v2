@@ -27,8 +27,12 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class BatchBuffer<RequestT, ResponseT> {
     private final Object flushLock = new Object();
-
     private final Map<String, BatchingExecutionContext<RequestT, ResponseT>> idToBatchContext;
+
+    /**
+     * Maximum number of elements that can be included in the BatchBuffer.
+     */
+    private final int maxBufferSize;
 
     // TODO: Figure out better name for nextId and nextBatchEntry.
     /**
@@ -50,8 +54,9 @@ public final class BatchBuffer<RequestT, ResponseT> {
      */
     private ScheduledFuture<?> scheduledFlush;
 
-    public BatchBuffer(ScheduledFuture<?> scheduledFlush) {
+    public BatchBuffer(int maxBufferSize, ScheduledFuture<?> scheduledFlush) {
         this.idToBatchContext = new ConcurrentHashMap<>();
+        this.maxBufferSize = maxBufferSize;
         this.nextId = 0;
         this.nextBatchEntry = 0;
         this.scheduledFlush = scheduledFlush;
@@ -94,13 +99,17 @@ public final class BatchBuffer<RequestT, ResponseT> {
         return idToBatchContext.get(key).response();
     }
 
-    public BatchingExecutionContext<RequestT, ResponseT> put(RequestT request, CompletableFuture<ResponseT> response) {
+    public void put(RequestT request, CompletableFuture<ResponseT> response) {
         synchronized (this) {
+            if (idToBatchContext.size() == maxBufferSize) {
+                throw new IllegalStateException("Reached MaxBufferSize of: " + maxBufferSize);
+            }
+
             if (nextId == Integer.MAX_VALUE) {
                 nextId = 0;
             }
             String id = Integer.toString(nextId++);
-            return idToBatchContext.put(id, new BatchingExecutionContext<>(request, response));
+            idToBatchContext.put(id, new BatchingExecutionContext<>(request, response));
         }
     }
 

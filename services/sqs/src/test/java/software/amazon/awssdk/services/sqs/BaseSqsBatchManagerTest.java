@@ -79,7 +79,6 @@ public abstract class BaseSqsBatchManagerTest {
         assertThat(completedResponse2.md5OfMessageBody()).isEqualTo(messageBody2);
     }
 
-    // TODO: Update tests after updating how batchEntryFailures are handled
     @Test
     public void sendMessageBatchFunctionWithBatchEntryFailures_wrapFailureMessageInBatchEntry() {
         String id1 = "0";
@@ -105,10 +104,10 @@ public abstract class BaseSqsBatchManagerTest {
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
         List<CompletableFuture<SendMessageResponse>> responses = createAndSendSendMessageRequests(id1, id2);
 
-        SendMessageResponse completedResponse1 = responses.get(0).join();
-        SendMessageResponse completedResponse2 = responses.get(1).join();
-        assertThat(completedResponse1.md5OfMessageBody()).isNullOrEmpty();
-        assertThat(completedResponse2.md5OfMessageBody()).isNullOrEmpty();
+        CompletableFuture<SendMessageResponse> response1 = responses.get(0);
+        CompletableFuture<SendMessageResponse> response2 = responses.get(1);
+        assertThatThrownBy(response1::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(response2::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
     }
 
     @Test
@@ -173,6 +172,37 @@ public abstract class BaseSqsBatchManagerTest {
     }
 
     @Test
+    public void deleteMessageBatchFunctionWithBatchEntryFailures_wrapFailureMessageInBatchEntry() {
+        String id1 = "0";
+        String id2 = "1";
+        String errorCode = "400";
+        String errorMessage = "Some error";
+        String responseBody = String.format(
+            "<DeleteMessageBatchResponse>\n"
+            + "<DeleteMessageBatchResult>\n"
+            + "    <BatchResultErrorEntry>\n"
+            + "        <Id>%s</Id>\n"
+            + "        <Code>%s</Code>\n"
+            + "        <Message>%s</Message>\n"
+            + "    </BatchResultErrorEntry>\n"
+            + "    <BatchResultErrorEntry>\n"
+            + "        <Id>%s</Id>\n"
+            + "        <Code>%s</Code>\n"
+            + "        <Message>%s</Message>\n"
+            + "    </BatchResultErrorEntry>\n"
+            + "</DeleteMessageBatchResult>\n"
+            + "</DeleteMessageBatchResponse>", id1, errorCode, errorMessage, id2, errorCode, errorMessage);
+
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
+        List<CompletableFuture<DeleteMessageResponse>> responses = createAndSendDeleteMessageRequests();
+
+        CompletableFuture<DeleteMessageResponse> response1 = responses.get(0);
+        CompletableFuture<DeleteMessageResponse> response2 = responses.get(1);
+        assertThatThrownBy(response1::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(response2::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+    }
+
+    @Test
     public void deleteMessageBatchFunctionReturnsWithError_completeMessagesExceptionally() {
         String responseBody = "<Error>\n"
                               + "<Code>CustomError</Code>\n"
@@ -213,6 +243,37 @@ public abstract class BaseSqsBatchManagerTest {
         CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
 
         assertThat(Duration.ofNanos(endTime - startTime).toMillis()).isLessThan(DEFAULT_MAX_BATCH_OPEN + 100);
+    }
+
+    @Test
+    public void changeVisibilityBatchFunctionWithBatchEntryFailures_wrapFailureMessageInBatchEntry() {
+        String id1 = "0";
+        String id2 = "1";
+        String errorCode = "400";
+        String errorMessage = "Some error";
+        String responseBody = String.format(
+            "<ChangeMessageVisibilityBatchResponse>\n"
+            + "<ChangeMessageVisibilityBatchResult>\n"
+            + "    <BatchResultErrorEntry>\n"
+            + "        <Id>%s</Id>\n"
+            + "        <Code>%s</Code>\n"
+            + "        <Message>%s</Message>\n"
+            + "    </BatchResultErrorEntry>\n"
+            + "    <BatchResultErrorEntry>\n"
+            + "        <Id>%s</Id>\n"
+            + "        <Code>%s</Code>\n"
+            + "        <Message>%s</Message>\n"
+            + "    </BatchResultErrorEntry>\n"
+            + "</ChangeMessageVisibilityBatchResult>\n"
+            + "</ChangeMessageVisibilityBatchResponse>", id1, errorCode, errorMessage, id2, errorCode, errorMessage);
+
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
+        List<CompletableFuture<ChangeMessageVisibilityResponse>> responses = createAndSendChangeVisibilityRequests();
+
+        CompletableFuture<ChangeMessageVisibilityResponse> response1 = responses.get(0);
+        CompletableFuture<ChangeMessageVisibilityResponse> response2 = responses.get(1);
+        assertThatThrownBy(response1::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(response2::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
     }
 
     @Test

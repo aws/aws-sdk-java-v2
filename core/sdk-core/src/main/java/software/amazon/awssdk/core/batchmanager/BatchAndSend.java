@@ -13,11 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.batchmanager;
+package software.amazon.awssdk.core.batchmanager;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.batchmanager.IdentifiableMessage;
 
 /**
  * Takes a list of identified requests in addition to a destination and batches the requests into a batch request.

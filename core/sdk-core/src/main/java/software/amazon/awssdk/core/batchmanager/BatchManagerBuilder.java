@@ -17,9 +17,6 @@ package software.amazon.awssdk.core.batchmanager;
 
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.internal.batchmanager.BatchAndSend;
-import software.amazon.awssdk.core.internal.batchmanager.BatchKeyMapper;
-import software.amazon.awssdk.core.internal.batchmanager.BatchResponseMapper;
 
 @SdkProtectedApi
 public interface BatchManagerBuilder<RequestT, ResponseT, BatchResponseT, B> {

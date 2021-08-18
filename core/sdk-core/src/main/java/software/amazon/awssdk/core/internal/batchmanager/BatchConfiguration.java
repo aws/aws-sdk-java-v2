@@ -25,13 +25,20 @@ public final class BatchConfiguration {
 
     // TODO: Update these default values.
     private static final int DEFAULT_MAX_BATCH_ITEMS = 5;
+    private static final int DEFAULT_MAX_BATCH_KEYS = 100;
+    private static final int DEFAULT_MAX_BUFFER_SIZE = 500;
     private static final Duration DEFAULT_MAX_BATCH_OPEN_IN_MS = Duration.ofMillis(200);
+
     private final Integer maxBatchItems;
+    private final Integer maxBatchKeys;
+    private final Integer maxBufferSize;
     private final Duration maxBatchOpenInMs;
 
     public BatchConfiguration(BatchOverrideConfiguration overrideConfiguration) {
         Optional<BatchOverrideConfiguration> configuration = Optional.ofNullable(overrideConfiguration);
         this.maxBatchItems = configuration.flatMap(BatchOverrideConfiguration::maxBatchItems).orElse(DEFAULT_MAX_BATCH_ITEMS);
+        this.maxBatchKeys = configuration.flatMap(BatchOverrideConfiguration::maxBatchKeys).orElse(DEFAULT_MAX_BATCH_KEYS);
+        this.maxBufferSize = configuration.flatMap(BatchOverrideConfiguration::maxBufferSize).orElse(DEFAULT_MAX_BUFFER_SIZE);
         this.maxBatchOpenInMs = configuration.flatMap(BatchOverrideConfiguration::maxBatchOpenInMs)
                                              .orElse(DEFAULT_MAX_BATCH_OPEN_IN_MS);
     }
@@ -42,5 +49,13 @@ public final class BatchConfiguration {
 
     public int maxBatchItems() {
         return maxBatchItems;
+    }
+
+    public int maxBatchKeys() {
+        return maxBatchKeys;
+    }
+
+    public int maxBufferSize() {
+        return maxBufferSize;
     }
 }
