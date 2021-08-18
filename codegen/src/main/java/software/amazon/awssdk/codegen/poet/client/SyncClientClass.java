@@ -32,7 +32,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
@@ -55,7 +54,6 @@ import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
@@ -122,9 +120,6 @@ public class SyncClientClass implements ClassSpec {
 
         if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
             classBuilder.addMethod(batchMangerMethod());
-            classBuilder.addField(FieldSpec.builder(ClassName.get(Executor.class), "executor")
-                                           .addModifiers(PRIVATE, FINAL)
-                                           .build());
             classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
                                            .addModifiers(PRIVATE, FINAL)
                                            .build());
@@ -196,8 +191,6 @@ public class SyncClientClass implements ClassSpec {
         }
 
         if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
-            builder.addStatement("this.executor = clientConfiguration.option($T.FUTURE_COMPLETION_EXECUTOR)",
-                                 SdkAdvancedAsyncClientOption.class);
             builder.addStatement("this.executorService = clientConfiguration.option($T.SCHEDULED_EXECUTOR_SERVICE)",
                                  SdkClientOption.class);
         }
@@ -413,7 +406,6 @@ public class SyncClientClass implements ClassSpec {
     }
 
     private MethodSpec batchMangerMethod() {
-        String executor = "executor";
         String scheduledExecutor = "executorService";
 
         BatchManagerMethod config = model.getCustomizationConfig().getBatchManagerMethod();
@@ -424,7 +416,7 @@ public class SyncClientClass implements ClassSpec {
                          .addModifiers(Modifier.PUBLIC)
                          .addAnnotation(Override.class)
                          .addStatement("return $T.builder().client(this).executor($N).scheduledExecutor($N).build()",
-                                       returnType, executor, scheduledExecutor)
+                                       returnType, scheduledExecutor, scheduledExecutor)
                          .build();
     }
 }

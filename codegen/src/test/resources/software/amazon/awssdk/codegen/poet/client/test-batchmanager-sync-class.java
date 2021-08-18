@@ -2,14 +2,12 @@ package software.amazon.awssdk.services.batchmanager;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
@@ -39,15 +37,12 @@ final class DefaultBatchManagerClient implements BatchManagerClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final Executor executor;
-
     private final ScheduledExecutorService executorService;
 
     protected DefaultBatchManagerClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
-        this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
         this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
 
@@ -88,6 +83,6 @@ final class DefaultBatchManagerClient implements BatchManagerClient {
 
     @Override
     public SqsBatchManager batchManager() {
-        return SqsBatchManager.builder().client(this).executor(executor).scheduledExecutor(executorService).build();
+        return SqsBatchManager.builder().client(this).executor(executorService).scheduledExecutor(executorService).build();
     }
 }
