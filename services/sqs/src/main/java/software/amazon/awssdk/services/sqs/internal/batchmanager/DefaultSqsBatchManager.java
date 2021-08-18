@@ -27,7 +27,6 @@ import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatch
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -62,11 +61,8 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
                                                                                      .maxBatchItems(config.maxBatchItems())
                                                                                      .maxBatchOpenInMs(config.maxBatchOpenInMs())
                                                                                      .build();
-
-
         ScheduledExecutorService scheduledExecutor = builder.scheduledExecutor;
         this.executor = builder.executor;
-
         this.sendMessageBatchManager = BatchManager.builder(SendMessageRequest.class, SendMessageResponse.class,
                                                             SendMessageBatchResponse.class)
                                         .batchFunction(sendMessageBatchFunction(client, executor))
@@ -75,7 +71,6 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
                                         .overrideConfiguration(overrideConfiguration)
                                         .scheduledExecutor(scheduledExecutor)
                                         .build();
-
         this.deleteMessageBatchManager = BatchManager.builder(DeleteMessageRequest.class, DeleteMessageResponse.class,
                                                               DeleteMessageBatchResponse.class)
                                                      .batchFunction(deleteMessageBatchFunction(client, executor))
@@ -84,7 +79,6 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
                                                      .overrideConfiguration(overrideConfiguration)
                                                      .scheduledExecutor(scheduledExecutor)
                                                      .build();
-
         this.changeVisibilityBatchManager = BatchManager.builder(ChangeMessageVisibilityRequest.class,
                                                                  ChangeMessageVisibilityResponse.class,
                                                                  ChangeMessageVisibilityBatchResponse.class)
@@ -97,7 +91,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
     }
 
     @SdkTestInternalApi
-    public DefaultSqsBatchManager(SqsClient client, ExecutorService executor, ScheduledExecutorService scheduledExecutor,
+    public DefaultSqsBatchManager(SqsClient client,
                                   BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse>
                                       sendMessageBatchManager,
                                   BatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse>
@@ -105,7 +99,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
                                   BatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
                                       ChangeMessageVisibilityBatchResponse> changeVisibilityBatchManager) {
         this.client = client;
-        this.executor = executor;
+        this.executor = null;
         this.sendMessageBatchManager = sendMessageBatchManager;
         this.deleteMessageBatchManager = deleteMessageBatchManager;
         this.changeVisibilityBatchManager = changeVisibilityBatchManager;
