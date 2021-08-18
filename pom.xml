@@ -521,7 +521,7 @@
                             <exclude>*.internal.*</exclude>
 
                             <!-- Checksum bug fix -->
-                            <exclude>software.amazon.awssdk.services.s3.checksums.ChecksumValidatingInputStream</exclude>
+                            <exclude>software.amazon.awssdk.services.codebuild.*</exclude>
                         </excludes>
 
                         <excludeModules>
