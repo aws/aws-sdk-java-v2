@@ -212,7 +212,7 @@ public class BatchManagerTest {
     }
 
     @Test
-    public void batchKeyLimitExceededReturnsIndexOutOfBoundsException() {
+    public void batchKeyLimitExceededReturnsIllegalStateException() {
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
                                                                                      .maxBatchKeys(1)
                                                                                      .build();
@@ -238,13 +238,13 @@ public class BatchManagerTest {
 
         assertThat(responses.get("0").join()).isEqualTo(requests.get("0"));
         CompletableFuture<String> completableResponse = responses.get("1");
-        assertThatThrownBy(completableResponse::join).hasCauseInstanceOf(IndexOutOfBoundsException.class)
-                                                     .hasMessageContaining("MaxBatchKeys reached");
+        assertThatThrownBy(completableResponse::join).hasCauseInstanceOf(IllegalStateException.class)
+                                                     .hasMessageContaining("Reached MaxBatchKeys of:");
         assertThat(responses.get("2").join()).isEqualTo(requests.get("2"));
     }
 
     @Test
-    public void batchBufferLimitExceededReturnsIndexOutOfBoundsException() {
+    public void batchBufferLimitExceededReturnsIllegalStateException() {
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
                                                                                      .maxBufferSize(1)
                                                                                      .build();
@@ -266,8 +266,8 @@ public class BatchManagerTest {
 
         assertThat(responses.get("0").join()).isEqualTo(requests.get("0"));
         CompletableFuture<String> completableResponse = responses.get("1");
-        assertThatThrownBy(completableResponse::join).hasCauseInstanceOf(IndexOutOfBoundsException.class)
-                                                     .hasMessageContaining("MaxBufferSize reached");
+        assertThatThrownBy(completableResponse::join).hasCauseInstanceOf(IllegalStateException.class)
+                                                     .hasMessageContaining("Reached MaxBufferSize of:");
     }
 
     private static final BatchAndSend<String, BatchResponse> exceptionBatchFunction =

@@ -72,7 +72,8 @@ public class BatchOverrideConfigurationTest {
     @Test
     public void toStringMethod() {
         String stringRepresentation = overrideConfiguration.toString();
-        String expected = String.format("BatchOverrideConfiguration(maxBatchItems=%d, maxBatchOpenInMs=%d)", maxBatchItems,
+        String expected = String.format("BatchOverrideConfiguration(maxBatchItems=%d, maxBatchKeys=%d, "
+                                        + "maxBufferSize=%d, maxBatchOpenInMs=%d)", maxBatchItems, maxBatchKeys, maxBufferSize,
                                         maxBatchOpenInMs);
         Assert.assertEquals(expected, stringRepresentation);
     }

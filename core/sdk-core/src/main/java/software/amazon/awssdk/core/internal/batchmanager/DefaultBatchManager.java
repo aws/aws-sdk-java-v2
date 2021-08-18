@@ -30,7 +30,6 @@ import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.core.batchmanager.BatchResponseMapper;
 import software.amazon.awssdk.core.batchmanager.IdentifiableMessage;
-import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -69,8 +68,8 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
 
     private DefaultBatchManager(DefaultBuilder<RequestT, ResponseT, BatchResponseT> builder) {
         BatchConfiguration batchConfiguration = new BatchConfiguration(builder.overrideConfiguration);
-        this.requestsAndResponsesMaps = new BatchingMap<>(batchConfiguration.getMaxBatchKeys(),
-                                                          batchConfiguration.getMaxBufferSize());
+        this.requestsAndResponsesMaps = new BatchingMap<>(batchConfiguration.maxBatchKeys(),
+                                                          batchConfiguration.maxBufferSize());
         this.maxBatchItems = batchConfiguration.maxBatchItems();
         this.maxBatchOpenInMs = batchConfiguration.maxBatchOpenInMs();
         this.batchFunction = Validate.notNull(builder.batchFunction, "Null batchFunction");
@@ -140,8 +139,7 @@ public final class DefaultBatchManager<RequestT, ResponseT, BatchResponseT> impl
                                                                                  .complete(actualResponse.message()),
                                                        throwable -> requests.get(throwable.id())
                                                                             .response()
-                                                                            .completeExceptionally(throwable.message()))
-                          );
+                                                                            .completeExceptionally(throwable.message())));
         }
         requests.clear();
     }

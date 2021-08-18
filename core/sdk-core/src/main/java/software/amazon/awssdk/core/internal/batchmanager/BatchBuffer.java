@@ -99,7 +99,7 @@ public final class BatchBuffer<RequestT, ResponseT> {
         return idToBatchContext.get(key).response();
     }
 
-    public void put(RequestT request, CompletableFuture<ResponseT> response){
+    public void put(RequestT request, CompletableFuture<ResponseT> response) {
         synchronized (this) {
             if (idToBatchContext.size() == maxBufferSize) {
                 throw new IllegalStateException("Reached MaxBufferSize of: " + maxBufferSize);

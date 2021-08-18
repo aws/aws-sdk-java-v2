@@ -51,11 +51,11 @@ public final class BatchConfiguration {
         return maxBatchItems;
     }
 
-    public int getMaxBatchKeys() {
+    public int maxBatchKeys() {
         return maxBatchKeys;
     }
 
-    public int getMaxBufferSize() {
+    public int maxBufferSize() {
         return maxBufferSize;
     }
 }
