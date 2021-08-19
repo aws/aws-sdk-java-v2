@@ -134,7 +134,7 @@ public interface SqsBatchManager extends SdkAutoCloseable {
          * @param executor the executor to be used.
          * @returna reference to this object so that method calls can be chained together.
          */
-        Builder executor(Executor executor);
+        Builder executor(ExecutorService executor);
 
         /**
          * Builds an instance of {@link SqsBatchManager} based on the configurations supplied to this builder.
