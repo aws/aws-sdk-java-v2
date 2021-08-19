@@ -66,6 +66,7 @@ public interface BackoffStrategy {
                                                  .baseDelay(SdkDefaultRetrySetting.throttledBaseDelay(retryMode))
                                                  .maxBackoffTime(SdkDefaultRetrySetting.MAX_BACKOFF)
                                                  .build();
+            case ADAPTIVE:
             case STANDARD:
                 return FullJitterBackoffStrategy.builder()
                                                 .baseDelay(SdkDefaultRetrySetting.throttledBaseDelay(retryMode))

@@ -93,6 +93,7 @@ public final class SdkDefaultRetrySetting {
                 case LEGACY:
                     maxAttempts = Legacy.MAX_ATTEMPTS;
                     break;
+                case ADAPTIVE:
                 case STANDARD:
                     maxAttempts = Standard.MAX_ATTEMPTS;
                     break;
@@ -108,9 +109,13 @@ public final class SdkDefaultRetrySetting {
 
     public static TokenBucketExceptionCostFunction tokenCostFunction(RetryMode retryMode) {
         switch (retryMode) {
-            case LEGACY: return Legacy.COST_FUNCTION;
-            case STANDARD: return Standard.COST_FUNCTION;
-            default: throw new IllegalStateException("Unsupported RetryMode: " + retryMode);
+            case LEGACY:
+                return Legacy.COST_FUNCTION;
+            case ADAPTIVE:
+            case STANDARD:
+                return Standard.COST_FUNCTION;
+            default:
+                throw new IllegalStateException("Unsupported RetryMode: " + retryMode);
         }
     }
 
@@ -122,6 +127,7 @@ public final class SdkDefaultRetrySetting {
         switch (retryMode) {
             case LEGACY:
                 return Legacy.BASE_DELAY;
+            case ADAPTIVE:
             case STANDARD:
                 return Standard.BASE_DELAY;
             default:
@@ -133,6 +139,7 @@ public final class SdkDefaultRetrySetting {
         switch (retryMode) {
             case LEGACY:
                 return Legacy.THROTTLED_BASE_DELAY;
+            case ADAPTIVE:
             case STANDARD:
                 return Standard.THROTTLED_BASE_DELAY;
             default:
