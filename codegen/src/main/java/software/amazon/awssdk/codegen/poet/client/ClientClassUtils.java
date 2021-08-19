@@ -270,27 +270,22 @@ final class ClientClassUtils {
     }
 
     static MethodSpec batchMangerMethod(IntermediateModel model, boolean isSync) {
-        String executor = "executor";
         String scheduledExecutor = "executorService";
-
         BatchManagerMethod config = model.getCustomizationConfig().getBatchManagerMethod();
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(BatchManagerMethod.METHOD_NAME)
-                                  .addModifiers(Modifier.PUBLIC)
-                                  .addAnnotation(Override.class);
         ClassName returnType;
         if (isSync) {
             returnType = PoetUtils.classNameFromFqcn(config.getReturnType());
-            methodBuilder.returns(returnType)
-                         .addStatement("return $T.builder().client(this).executor($N).scheduledExecutor($N).build()",
-                                       returnType, executor, scheduledExecutor);
         } else {
             returnType = PoetUtils.classNameFromFqcn(config.getAsyncReturnType());
-            methodBuilder.returns(returnType)
-                         .addStatement("return $T.builder().client(this).scheduledExecutor($N).build()",
-                                       returnType, scheduledExecutor);
         }
 
-        return methodBuilder.build();
+        return MethodSpec.methodBuilder(BatchManagerMethod.METHOD_NAME)
+                         .addModifiers(Modifier.PUBLIC)
+                         .addAnnotation(Override.class)
+                         .returns(returnType)
+                         .addStatement("return $T.builder().client(this).scheduledExecutor($N).build()",
+                                       returnType, scheduledExecutor)
+                         .build();
     }
 
     /**

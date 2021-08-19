@@ -84,6 +84,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private final PoetExtensions poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
+    private boolean hasScheduledExecutor;
 
     public AsyncClientClass(GeneratorTaskParams dependencies) {
         super(dependencies.getModel());
@@ -91,6 +92,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.poetExtensions = dependencies.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getAsyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
+        this.hasScheduledExecutor = false;
     }
 
     @Override
@@ -142,13 +144,13 @@ public final class AsyncClientClass extends AsyncClientInterface {
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
         if (model.hasWaiters()) {
-            classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
-                                                   .addModifiers(PRIVATE, FINAL)
-                                                   .build());
             classBuilder.addMethod(waiterImplMethod());
-            addBatchManagerMethodAndScheduledExecutorIfNeeded(classBuilder, true);
-        } else {
-            addBatchManagerMethodAndScheduledExecutorIfNeeded(classBuilder, false);
+            addScheduledExecutorIfNeeded(classBuilder);
+        }
+
+        if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
+            classBuilder.addMethod(batchMangerMethod(model, false));
+            addScheduledExecutorIfNeeded(classBuilder);
         }
 
 
@@ -491,14 +493,12 @@ public final class AsyncClientClass extends AsyncClientInterface {
                 .anyMatch(this::shouldUseAsyncWithBodySigner);
     }
 
-    private void addBatchManagerMethodAndScheduledExecutorIfNeeded(Builder classBuilder, boolean hasScheduledExecutor) {
-        if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
-            classBuilder.addMethod(batchMangerMethod(model, false));
-            if (!hasScheduledExecutor) {
-                classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
-                                               .addModifiers(PRIVATE, FINAL)
-                                               .build());
-            }
+    private void addScheduledExecutorIfNeeded(Builder classBuilder) {
+        if (!hasScheduledExecutor) {
+            classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
+                                           .addModifiers(PRIVATE, FINAL)
+                                           .build());
+            hasScheduledExecutor = true;
         }
     }
 }

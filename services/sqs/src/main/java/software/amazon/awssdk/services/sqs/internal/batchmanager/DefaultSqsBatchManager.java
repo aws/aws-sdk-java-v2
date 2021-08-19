@@ -27,7 +27,12 @@ import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatch
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.batchmanager.BatchManager;
@@ -43,17 +48,19 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 @SdkInternalApi
 public final class DefaultSqsBatchManager implements SqsBatchManager {
 
     private final SqsClient client;
-    private final Executor executor;
+    private final ExecutorService executor;
     private final BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> sendMessageBatchManager;
     private final BatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse> deleteMessageBatchManager;
     private final BatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
         ChangeMessageVisibilityBatchResponse> changeVisibilityBatchManager;
 
+    // TODO: When generating executor, do it like it is done here in
     private DefaultSqsBatchManager(DefaultBuilder builder) {
         this.client = builder.client;
         SqsBatchConfiguration config = new SqsBatchConfiguration(builder.overrideConfiguration);
@@ -62,7 +69,8 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
                                                                                      .maxBatchOpenInMs(config.maxBatchOpenInMs())
                                                                                      .build();
         ScheduledExecutorService scheduledExecutor = builder.scheduledExecutor;
-        this.executor = builder.executor;
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("DefaultSqsBatchManager").build();
+        this.executor = createDefaultExecutor(threadFactory);
         this.sendMessageBatchManager = BatchManager.builder(SendMessageRequest.class, SendMessageResponse.class,
                                                             SendMessageBatchResponse.class)
                                         .batchFunction(sendMessageBatchFunction(client, executor))
@@ -91,7 +99,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
     }
 
     @SdkTestInternalApi
-    public DefaultSqsBatchManager(SqsClient client,
+    public DefaultSqsBatchManager(SqsClient client, ExecutorService executor,
                                   BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse>
                                       sendMessageBatchManager,
                                   BatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse>
@@ -99,7 +107,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
                                   BatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
                                       ChangeMessageVisibilityBatchResponse> changeVisibilityBatchManager) {
         this.client = client;
-        this.executor = null;
+        this.executor = executor;
         this.sendMessageBatchManager = sendMessageBatchManager;
         this.deleteMessageBatchManager = deleteMessageBatchManager;
         this.changeVisibilityBatchManager = changeVisibilityBatchManager;
@@ -126,6 +134,20 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
         sendMessageBatchManager.close();
         deleteMessageBatchManager.close();
         changeVisibilityBatchManager.close();
+        executor.shutdownNow();
+    }
+
+    private ExecutorService createDefaultExecutor(ThreadFactory threadFactory) {
+        int processors = Runtime.getRuntime().availableProcessors();
+        int corePoolSize = Math.max(8, processors);
+        int maxPoolSize = Math.max(64, processors * 2);
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, maxPoolSize,
+                                                             10, TimeUnit.SECONDS,
+                                                             new LinkedBlockingQueue<>(1_000),
+                                                             threadFactory);
+        // Allow idle core threads to time out
+        executor.allowCoreThreadTimeOut(true);
+        return executor;
     }
 
     public static SqsBatchManager.Builder builder() {

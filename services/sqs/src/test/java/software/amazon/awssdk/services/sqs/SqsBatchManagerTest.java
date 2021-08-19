@@ -22,6 +22,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -54,6 +56,9 @@ public class SqsBatchManagerTest extends BaseSqsBatchManagerTest {
 
     @Mock
     private SqsClient mockClient;
+
+    @Mock
+    private ExecutorService mockExecutor;
 
     @Mock
     private BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> mockSendMessageBatchManager;
@@ -96,7 +101,7 @@ public class SqsBatchManagerTest extends BaseSqsBatchManagerTest {
 
     @Test
     public void closeBatchManager_shouldNotCloseExecutorsOrClient() {
-        SqsBatchManager batchManager = new DefaultSqsBatchManager(mockClient,
+        SqsBatchManager batchManager = new DefaultSqsBatchManager(mockClient, mockExecutor,
                                                                   mockSendMessageBatchManager,
                                                                   mockDeleteMessageBatchManager,
                                                                   mockChangeVisibilityBatchManager);
@@ -104,6 +109,7 @@ public class SqsBatchManagerTest extends BaseSqsBatchManagerTest {
         verify(mockSendMessageBatchManager).close();
         verify(mockDeleteMessageBatchManager).close();
         verify(mockChangeVisibilityBatchManager).close();
+        verify(mockExecutor).shutdownNow();
         verify(mockClient, never()).close();
     }
 
