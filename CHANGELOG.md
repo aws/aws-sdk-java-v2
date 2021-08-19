@@ -1,3 +1,29 @@
+# __2.17.23__ __2021-08-19__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Implement ADAPTIVE retry mode. ADAPTIVE mode builds on STANDARD retry mode and adds rate limiting of requests when the client is throttled.
+
+      Adaptive retry mode dynamically limits the rate of AWS requests to maximize success rate. This may be at the expense of request latency. Adaptive retry mode is not recommended when predictable latency is important.
+
+      Warning: Adaptive retry mode assumes that the client is working against a single resource (e.g. one DynamoDB Table or one S3 Bucket). If you use a single client for multiple resources, throttling or outages associated with one resource will result in increased latency and failures when accessing all other resources via the same client. When using adaptive retry mode, we recommend using a single client per resource.
+    - Updated service endpoint metadata.
+
+## __Amazon Appflow__
+  - ### Features
+    - This release adds support for SAPOData connector and extends Veeva connector for document extraction.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The ImportImage API now supports the ability to create AMIs with AWS-managed licenses for Microsoft SQL Server for both Windows and Linux.
+
+## __Amazon MemoryDB__
+  - ### Features
+    - AWS MemoryDB SDK now supports all APIs for newly launched MemoryDB service.
+
+## __Application Auto Scaling__
+  - ### Features
+    - This release extends Application Auto Scaling support for replication group of Amazon ElastiCache Redis clusters. Auto Scaling monitors and automatically expands node group count and number of replicas per node group when a critical usage threshold is met or according to customer-defined schedule.
+
 # __2.17.22__ __2021-08-18__
 ## __AWS CodeBuild__
   - ### Features
