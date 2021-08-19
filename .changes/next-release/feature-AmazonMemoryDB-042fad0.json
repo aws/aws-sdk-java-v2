@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon MemoryDB",
-    "contributor": "",
-    "description": "AWS MemoryDB SDK now supports all APIs for newly launched MemoryDB service."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Appflow",
-    "contributor": "",
-    "description": "This release adds support for SAPOData connector and extends Veeva connector for document extraction."
-}
