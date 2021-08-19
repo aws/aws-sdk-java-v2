@@ -32,6 +32,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.auth.signer.EventStreamAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.codegen.model.config.customization.BatchManagerMethod;
 import software.amazon.awssdk.codegen.model.config.customization.S3ArnableFieldConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -266,6 +267,30 @@ final class ClientClassUtils {
             return Optional.of(builder.addStatement(".build()").endControlFlow().build());
         }
         return Optional.empty();
+    }
+
+    static MethodSpec batchMangerMethod(IntermediateModel model, boolean isSync) {
+        String executor = "executor";
+        String scheduledExecutor = "executorService";
+
+        BatchManagerMethod config = model.getCustomizationConfig().getBatchManagerMethod();
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(BatchManagerMethod.METHOD_NAME)
+                                  .addModifiers(Modifier.PUBLIC)
+                                  .addAnnotation(Override.class);
+        ClassName returnType;
+        if (isSync) {
+            returnType = PoetUtils.classNameFromFqcn(config.getReturnType());
+            methodBuilder.returns(returnType)
+                         .addStatement("return $T.builder().client(this).executor($N).scheduledExecutor($N).build()",
+                                       returnType, executor, scheduledExecutor);
+        } else {
+            returnType = PoetUtils.classNameFromFqcn(config.getAsyncReturnType());
+            methodBuilder.returns(returnType)
+                         .addStatement("return $T.builder().client(this).scheduledExecutor($N).build()",
+                                       returnType, scheduledExecutor);
+        }
+
+        return methodBuilder.build();
     }
 
     /**

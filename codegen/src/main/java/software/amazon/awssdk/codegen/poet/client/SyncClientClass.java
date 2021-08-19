@@ -21,6 +21,7 @@ import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.batchMangerMethod;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -32,14 +33,16 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
-import software.amazon.awssdk.codegen.model.config.customization.BatchManagerMethod;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -64,6 +67,7 @@ import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 //TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
 public class SyncClientClass implements ClassSpec {
@@ -119,8 +123,11 @@ public class SyncClientClass implements ClassSpec {
         }
 
         if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
-            classBuilder.addMethod(batchMangerMethod());
+            classBuilder.addMethod(batchMangerMethod(model, true));
             classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
+                                           .addModifiers(PRIVATE, FINAL)
+                                           .build());
+            classBuilder.addField(FieldSpec.builder(ClassName.get(ExecutorService.class), "executor")
                                            .addModifiers(PRIVATE, FINAL)
                                            .build());
         }
@@ -193,6 +200,9 @@ public class SyncClientClass implements ClassSpec {
         if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
             builder.addStatement("this.executorService = clientConfiguration.option($T.SCHEDULED_EXECUTOR_SERVICE)",
                                  SdkClientOption.class);
+            builder.addStatement("$T threadFactory = new $T().threadNamePrefix(\"$T\").build()",
+                                 ThreadFactory.class, ThreadFactoryBuilder.class, className);
+            builder.addStatement("this.executor = $T.newSingleThreadExecutor(threadFactory)", Executors.class);
         }
 
         return builder.build();
@@ -314,11 +324,16 @@ public class SyncClientClass implements ClassSpec {
     }
 
     private MethodSpec closeMethod() {
-        return MethodSpec.methodBuilder("close")
-                         .addAnnotation(Override.class)
-                         .addStatement("clientHandler.close()")
-                         .addModifiers(Modifier.PUBLIC)
-                         .build();
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("close")
+                                                     .addAnnotation(Override.class)
+                                                     .addStatement("clientHandler.close()")
+                                                     .addModifiers(Modifier.PUBLIC);
+
+        if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
+            methodBuilder.addStatement("executor.shutdownNow()");
+        }
+
+        return methodBuilder.build();
     }
 
     private MethodSpec utilitiesMethod() {
@@ -402,21 +417,6 @@ public class SyncClientClass implements ClassSpec {
                          .addStatement("return $T.builder().client(this).build()",
                                        poetExtensions.getSyncWaiterInterface())
                          .returns(poetExtensions.getSyncWaiterInterface())
-                         .build();
-    }
-
-    private MethodSpec batchMangerMethod() {
-        String scheduledExecutor = "executorService";
-
-        BatchManagerMethod config = model.getCustomizationConfig().getBatchManagerMethod();
-        ClassName returnType = PoetUtils.classNameFromFqcn(config.getReturnType());
-
-        return MethodSpec.methodBuilder(BatchManagerMethod.METHOD_NAME)
-                         .returns(returnType)
-                         .addModifiers(Modifier.PUBLIC)
-                         .addAnnotation(Override.class)
-                         .addStatement("return $T.builder().client(this).executor($N).scheduledExecutor($N).build()",
-                                       returnType, scheduledExecutor, scheduledExecutor)
                          .build();
     }
 }

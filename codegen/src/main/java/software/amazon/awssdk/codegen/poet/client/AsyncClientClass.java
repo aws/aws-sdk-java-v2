@@ -23,6 +23,7 @@ import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.batchMangerMethod;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
 import com.squareup.javapoet.ClassName;
@@ -50,7 +51,6 @@ import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.client.handler.AwsClientHandlerUtils;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonMarshaller;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
-import software.amazon.awssdk.codegen.model.config.customization.BatchManagerMethod;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -80,7 +80,6 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
 
 public final class AsyncClientClass extends AsyncClientInterface {
-    private boolean hasScheduledExecutor = false;
     private final IntermediateModel model;
     private final PoetExtensions poetExtensions;
     private final ClassName className;
@@ -146,18 +145,12 @@ public final class AsyncClientClass extends AsyncClientInterface {
             classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
                                                    .addModifiers(PRIVATE, FINAL)
                                                    .build());
-            hasScheduledExecutor = true;
             classBuilder.addMethod(waiterImplMethod());
+            addBatchManagerMethodAndScheduledExecutorIfNeeded(classBuilder, true);
+        } else {
+            addBatchManagerMethodAndScheduledExecutorIfNeeded(classBuilder, false);
         }
 
-        if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
-            classBuilder.addMethod(batchMangerMethod());
-            if (!hasScheduledExecutor) {
-                classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
-                                               .addModifiers(PRIVATE, FINAL)
-                                               .build());
-            }
-        }
 
         return classBuilder.build();
     }
@@ -207,12 +200,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
             builder.endControlFlow();
         }
 
-        if (model.hasWaiters()) {
-            builder.addStatement("this.executorService = clientConfiguration.option($T.SCHEDULED_EXECUTOR_SERVICE)",
-                                 SdkClientOption.class);
-        }
-
-        if (model.getCustomizationConfig().getBatchManagerMethod() != null && !hasScheduledExecutor) {
+        if (model.hasWaiters() || model.getCustomizationConfig().getBatchManagerMethod() != null) {
             builder.addStatement("this.executorService = clientConfiguration.option($T.SCHEDULED_EXECUTOR_SERVICE)",
                                  SdkClientOption.class);
         }
@@ -503,18 +491,14 @@ public final class AsyncClientClass extends AsyncClientInterface {
                 .anyMatch(this::shouldUseAsyncWithBodySigner);
     }
 
-    private MethodSpec batchMangerMethod() {
-        String scheduledExecutor = "executorService";
-
-        BatchManagerMethod config = model.getCustomizationConfig().getBatchManagerMethod();
-        ClassName returnType = PoetUtils.classNameFromFqcn(config.getAsyncReturnType());
-
-        return MethodSpec.methodBuilder(BatchManagerMethod.METHOD_NAME)
-                         .returns(returnType)
-                         .addModifiers(Modifier.PUBLIC)
-                         .addAnnotation(Override.class)
-                         .addStatement("return $T.builder().client(this).scheduledExecutor($N).build()",
-                                       returnType, scheduledExecutor)
-                         .build();
+    private void addBatchManagerMethodAndScheduledExecutorIfNeeded(Builder classBuilder, boolean hasScheduledExecutor) {
+        if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
+            classBuilder.addMethod(batchMangerMethod(model, false));
+            if (!hasScheduledExecutor) {
+                classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
+                                               .addModifiers(PRIVATE, FINAL)
+                                               .build());
+            }
+        }
     }
 }

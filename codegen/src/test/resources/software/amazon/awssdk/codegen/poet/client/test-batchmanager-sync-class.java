@@ -2,7 +2,10 @@ package software.amazon.awssdk.services.batchmanager;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
@@ -18,8 +21,9 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.services.batchmanager.model.BatchManagerException;
-import software.amazon.awssdk.services.sqs.batchmanager.SqsBatchManager;
+import software.amazon.awssdk.services.batchmanagertest.batchmanager.SyncBatchManagerTest;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 /**
  * Internal implementation of {@link BatchManagerClient}.
@@ -39,11 +43,15 @@ final class DefaultBatchManagerClient implements BatchManagerClient {
 
     private final ScheduledExecutorService executorService;
 
+    private final ExecutorService executor;
+
     protected DefaultBatchManagerClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("DefaultBatchManagerClient").build();
+        this.executor = Executors.newSingleThreadExecutor(threadFactory);
     }
 
     @Override
@@ -79,10 +87,11 @@ final class DefaultBatchManagerClient implements BatchManagerClient {
     @Override
     public void close() {
         clientHandler.close();
+        executor.shutdownNow();
     }
 
     @Override
-    public SqsBatchManager batchManager() {
-        return SqsBatchManager.builder().client(this).executor(executorService).scheduledExecutor(executorService).build();
+    public SyncBatchManagerTest batchManager() {
+        return SyncBatchManagerTest.builder().client(this).executor(executor).scheduledExecutor(executorService).build();
     }
 }

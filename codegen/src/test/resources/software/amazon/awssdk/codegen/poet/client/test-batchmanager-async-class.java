@@ -22,7 +22,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.services.batchmanager.model.BatchManagerException;
-import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
+import software.amazon.awssdk.services.batchmanagertest.batchmanager.AsyncBatchManagerTest;
 
 /**
  * Internal implementation of {@link BatchManagerAsyncClient}.
@@ -85,7 +85,7 @@ final class DefaultBatchManagerAsyncClient implements BatchManagerAsyncClient {
     }
 
     @Override
-    public SqsAsyncBatchManager batchManager() {
-        return SqsAsyncBatchManager.builder().client(this).scheduledExecutor(executorService).build();
+    public AsyncBatchManagerTest batchManager() {
+        return AsyncBatchManagerTest.builder().client(this).scheduledExecutor(executorService).build();
     }
 }

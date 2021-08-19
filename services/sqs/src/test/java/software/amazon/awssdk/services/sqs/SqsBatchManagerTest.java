@@ -15,18 +15,13 @@
 
 package software.amazon.awssdk.services.sqs;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -50,13 +45,15 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
-import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SqsBatchManagerTest extends BaseSqsBatchManagerTest {
 
     private static SqsClient client;
     private SqsBatchManager batchManager;
+
+    @Mock
+    private SqsClient mockClient;
 
     @Mock
     private BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> mockSendMessageBatchManager;
@@ -99,7 +96,7 @@ public class SqsBatchManagerTest extends BaseSqsBatchManagerTest {
 
     @Test
     public void closeBatchManager_shouldNotCloseExecutorsOrClient() {
-        SqsBatchManager batchManager = new DefaultSqsBatchManager(client,
+        SqsBatchManager batchManager = new DefaultSqsBatchManager(mockClient,
                                                                   mockSendMessageBatchManager,
                                                                   mockDeleteMessageBatchManager,
                                                                   mockChangeVisibilityBatchManager);
@@ -107,7 +104,7 @@ public class SqsBatchManagerTest extends BaseSqsBatchManagerTest {
         verify(mockSendMessageBatchManager).close();
         verify(mockDeleteMessageBatchManager).close();
         verify(mockChangeVisibilityBatchManager).close();
-        assertThatCode(() -> client.serviceName()).doesNotThrowAnyException(); // To make sure client is not closed
+        verify(mockClient, never()).close();
     }
 
     @Override

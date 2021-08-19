@@ -5,7 +5,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.regions.ServiceMetadata;
-import software.amazon.awssdk.services.sqs.batchmanager.SqsBatchManager;
+import software.amazon.awssdk.services.batchmanagertest.batchmanager.SyncBatchManagerTest;
 
 /**
  * Service client for accessing BatchManager. This can be created using the static {@link #builder()} method.
@@ -45,9 +45,9 @@ public interface BatchManagerClient extends SdkClient {
     }
 
     /**
-     * Creates an instance of {@link SqsBatchManager} object with the configuration set on this client.
+     * Creates an instance of {@link SyncBatchManagerTest} object with the configuration set on this client.
      */
-    default SqsBatchManager batchManager() {
+    default SyncBatchManagerTest batchManager() {
         throw new UnsupportedOperationException();
     }
 }
