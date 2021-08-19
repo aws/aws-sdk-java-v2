@@ -26,8 +26,13 @@ import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatch
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageResponseMapper;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.batchmanager.BatchManager;
@@ -43,17 +48,20 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 @SdkInternalApi
 public final class DefaultSqsBatchManager implements SqsBatchManager {
 
     private final SqsClient client;
-    private final ExecutorService executor;
+    private boolean createdExecutor;
+    private final Executor executor;
     private final BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> sendMessageBatchManager;
     private final BatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse> deleteMessageBatchManager;
     private final BatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
         ChangeMessageVisibilityBatchResponse> changeVisibilityBatchManager;
 
+    // TODO: When generating executor, do it like it is done here in
     private DefaultSqsBatchManager(DefaultBuilder builder) {
         this.client = builder.client;
         SqsBatchConfiguration config = new SqsBatchConfiguration(builder.overrideConfiguration);
@@ -61,11 +69,15 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
                                                                                      .maxBatchItems(config.maxBatchItems())
                                                                                      .maxBatchOpenInMs(config.maxBatchOpenInMs())
                                                                                      .build();
-
-
         ScheduledExecutorService scheduledExecutor = builder.scheduledExecutor;
-        this.executor = builder.executor;
-
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("DefaultSqsBatchManager").build();
+        if (builder.executor == null) {
+            this.executor = createDefaultExecutor(threadFactory);
+            this.createdExecutor = true;
+        } else {
+            this.executor = builder.executor;
+            this.createdExecutor = false;
+        }
         this.sendMessageBatchManager = BatchManager.builder(SendMessageRequest.class, SendMessageResponse.class,
                                                             SendMessageBatchResponse.class)
                                         .batchFunction(sendMessageBatchFunction(client, executor))
@@ -74,7 +86,6 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
                                         .overrideConfiguration(overrideConfiguration)
                                         .scheduledExecutor(scheduledExecutor)
                                         .build();
-
         this.deleteMessageBatchManager = BatchManager.builder(DeleteMessageRequest.class, DeleteMessageResponse.class,
                                                               DeleteMessageBatchResponse.class)
                                                      .batchFunction(deleteMessageBatchFunction(client, executor))
@@ -83,7 +94,6 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
                                                      .overrideConfiguration(overrideConfiguration)
                                                      .scheduledExecutor(scheduledExecutor)
                                                      .build();
-
         this.changeVisibilityBatchManager = BatchManager.builder(ChangeMessageVisibilityRequest.class,
                                                                  ChangeMessageVisibilityResponse.class,
                                                                  ChangeMessageVisibilityBatchResponse.class)
@@ -96,7 +106,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
     }
 
     @SdkTestInternalApi
-    public DefaultSqsBatchManager(SqsClient client, ExecutorService executor, ScheduledExecutorService scheduledExecutor,
+    public DefaultSqsBatchManager(SqsClient client, ExecutorService executor, boolean createdExecutor,
                                   BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse>
                                       sendMessageBatchManager,
                                   BatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse>
@@ -105,6 +115,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
                                       ChangeMessageVisibilityBatchResponse> changeVisibilityBatchManager) {
         this.client = client;
         this.executor = executor;
+        this.createdExecutor = createdExecutor;
         this.sendMessageBatchManager = sendMessageBatchManager;
         this.deleteMessageBatchManager = deleteMessageBatchManager;
         this.changeVisibilityBatchManager = changeVisibilityBatchManager;
@@ -131,6 +142,23 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
         sendMessageBatchManager.close();
         deleteMessageBatchManager.close();
         changeVisibilityBatchManager.close();
+        if (createdExecutor && executor instanceof ExecutorService) {
+            ExecutorService executorService = (ExecutorService) executor;
+            executorService.shutdownNow();
+        }
+    }
+
+    private Executor createDefaultExecutor(ThreadFactory threadFactory) {
+        int processors = Runtime.getRuntime().availableProcessors();
+        int corePoolSize = Math.max(8, processors);
+        int maxPoolSize = Math.max(64, processors * 2);
+        ThreadPoolExecutor defaultExecutor = new ThreadPoolExecutor(corePoolSize, maxPoolSize,
+                                                                    10, TimeUnit.SECONDS,
+                                                                    new LinkedBlockingQueue<>(1_000),
+                                                                    threadFactory);
+        // Allow idle core threads to time out
+        defaultExecutor.allowCoreThreadTimeOut(true);
+        return defaultExecutor;
     }
 
     public static SqsBatchManager.Builder builder() {
@@ -141,7 +169,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
         private BatchOverrideConfiguration overrideConfiguration;
         private SqsClient client;
         private ScheduledExecutorService scheduledExecutor;
-        private ExecutorService executor;
+        private Executor executor;
 
         private DefaultBuilder() {
         }
@@ -165,7 +193,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
         }
 
         @Override
-        public Builder executor(ExecutorService executor) {
+        public Builder executor(Executor executor) {
             this.executor = executor;
             return this;
         }

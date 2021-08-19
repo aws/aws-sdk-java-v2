@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -56,7 +56,7 @@ public final class SqsBatchFunctions {
     }
 
     public static BatchAndSend<SendMessageRequest, SendMessageBatchResponse> sendMessageBatchFunction(SqsClient client,
-                                                                                                      ExecutorService executor) {
+                                                                                                      Executor executor) {
         return (identifiedRequests, batchKey) -> {
             SendMessageBatchRequest batchRequest = createSendMessageBatchRequest(identifiedRequests, batchKey);
             return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest), executor);
@@ -124,7 +124,7 @@ public final class SqsBatchFunctions {
     }
 
     public static BatchAndSend<DeleteMessageRequest, DeleteMessageBatchResponse> deleteMessageBatchFunction(
-        SqsClient client, ExecutorService executor) {
+        SqsClient client, Executor executor) {
         return (identifiedRequests, batchKey) -> {
             DeleteMessageBatchRequest batchRequest = createDeleteMessageBatchRequest(identifiedRequests, batchKey);
             return CompletableFuture.supplyAsync(() -> client.deleteMessageBatch(batchRequest), executor);
@@ -192,7 +192,7 @@ public final class SqsBatchFunctions {
     }
 
     public static BatchAndSend<ChangeMessageVisibilityRequest, ChangeMessageVisibilityBatchResponse>
-        changeVisibilityBatchFunction(SqsClient client, ExecutorService executor) {
+        changeVisibilityBatchFunction(SqsClient client, Executor executor) {
         return (identifiedRequests, batchKey) -> {
             ChangeMessageVisibilityBatchRequest batchRequest = createChangeVisibilityBatchRequest(identifiedRequests, batchKey);
             return CompletableFuture.supplyAsync(() -> client.changeMessageVisibilityBatch(batchRequest), executor);

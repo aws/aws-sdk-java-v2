@@ -21,6 +21,7 @@ import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.batchMangerMethod;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -32,6 +33,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -116,6 +118,13 @@ public class SyncClientClass implements ClassSpec {
             classBuilder.addMethod(utilitiesMethod());
         }
 
+        if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
+            classBuilder.addMethod(batchMangerMethod(model, true));
+            classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
+                                           .addModifiers(PRIVATE, FINAL)
+                                           .build());
+        }
+
         model.getEndpointOperation().ifPresent(
             o -> classBuilder.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
 
@@ -179,6 +188,11 @@ public class SyncClientClass implements ClassSpec {
             }
 
             builder.endControlFlow();
+        }
+
+        if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
+            builder.addStatement("this.executorService = clientConfiguration.option($T.SCHEDULED_EXECUTOR_SERVICE)",
+                                 SdkClientOption.class);
         }
 
         return builder.build();

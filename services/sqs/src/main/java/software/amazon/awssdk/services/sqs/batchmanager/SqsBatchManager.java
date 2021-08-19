@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.sqs.batchmanager;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
@@ -125,15 +125,15 @@ public interface SqsBatchManager extends SdkAutoCloseable {
         Builder scheduledExecutor(ScheduledExecutorService scheduledExecutor);
 
         /**
-         * Sets a custom {@link ExecutorService} that will be used to execute client requests asynchronously.
+         * Sets a custom {@link Executor} that will be used to execute client requests asynchronously.
          * <p>
          * Creating a SqsBatchManager directly from the client will use the client's executor. If supplied by the user, this
-         * ExecutorService must be closed by the caller when it is ready to be shut down.
+         * Executor must be closed by the caller when it is ready to be shut down.
          *
          * @param executor the executor to be used.
-         * @returna reference to this object so that method calls can be chained together.
+         * @return a reference to this object so that method calls can be chained together.
          */
-        Builder executor(ExecutorService executor);
+        Builder executor(Executor executor);
 
         /**
          * Builds an instance of {@link SqsBatchManager} based on the configurations supplied to this builder.

@@ -186,7 +186,6 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
             return this;
         }
 
-
         public BatchOverrideConfiguration build() {
             return new BatchOverrideConfiguration(this);
         }

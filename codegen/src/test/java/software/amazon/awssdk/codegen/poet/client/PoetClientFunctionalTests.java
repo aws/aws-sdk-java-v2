@@ -23,6 +23,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
+import software.amazon.awssdk.codegen.poet.waiters.WaiterInterfaceSpec;
 
 public class PoetClientFunctionalTests {
 
@@ -116,5 +117,30 @@ public class PoetClientFunctionalTests {
     public void syncClientCustomServiceMetaData() throws Exception {
         ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(ClientTestModels.customContentTypeModels());
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-sync.java"));
+    }
+
+    @Test
+    public void syncClientBatchManager() throws Exception {
+        ClassSpec syncClientBatchManager = createSyncClientClass(ClientTestModels.batchManagerModels());
+        assertThat(syncClientBatchManager, generatesTo("test-batchmanager-sync-class.java"));
+    }
+
+    @Test
+    public void asyncClientBatchManager() throws Exception {
+        ClassSpec asyncClientBatchManager = new AsyncClientClass(
+            GeneratorTaskParams.create(ClientTestModels.batchManagerModels(), "sources/", "tests/"));
+        assertThat(asyncClientBatchManager, generatesTo("test-batchmanager-async-class.java"));
+    }
+
+    @Test
+    public void syncClientBatchManagerInterface() throws Exception {
+        ClassSpec syncClientBatchManagerInterface = new SyncClientInterface(ClientTestModels.batchManagerModels());
+        assertThat(syncClientBatchManagerInterface, generatesTo("test-batchmanager-sync-interface.java"));
+    }
+
+    @Test
+    public void asyncClientBatchManagerInterface() throws Exception {
+        ClassSpec asyncClientBatchManagerInterface = new AsyncClientInterface(ClientTestModels.batchManagerModels());
+        assertThat(asyncClientBatchManagerInterface, generatesTo("test-batchmanager-async-interface.java"));
     }
 }

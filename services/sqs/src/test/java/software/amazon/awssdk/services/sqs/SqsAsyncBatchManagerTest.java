@@ -15,16 +15,13 @@
 
 package software.amazon.awssdk.services.sqs;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -48,14 +45,15 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
-import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
 
-    private static ScheduledExecutorService scheduledExecutor;
     private static SqsAsyncClient client;
     private SqsAsyncBatchManager batchManager;
+
+    @Mock
+    private SqsAsyncClient mockClient;
 
     @Mock
     private BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> mockSendMessageBatchManager;
@@ -77,8 +75,6 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
 
     @BeforeClass
     public static void oneTimeSetUp() {
-        ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("SqsBatchManager").build();
-        scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
         URI http_localhost_uri = URI.create(String.format("http://localhost:%s/", wireMock.port()));
         client = getAsyncClientBuilder(http_localhost_uri).build();
     }
@@ -86,15 +82,11 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
     @AfterClass
     public static void oneTimeTearDown() {
         client.close();
-        scheduledExecutor.shutdownNow();
     }
 
     @Before
     public void setUp() {
-        batchManager = SqsAsyncBatchManager.builder()
-                                           .client(client)
-                                           .scheduledExecutor(scheduledExecutor)
-                                           .build();
+        batchManager = client.batchManager();
     }
 
     @After
@@ -104,7 +96,7 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
 
     @Test
     public void closeBatchManager_shouldNotCloseExecutorsOrClient() {
-        SqsAsyncBatchManager batchManager = new DefaultSqsAsyncBatchManager(client, scheduledExecutor,
+        SqsAsyncBatchManager batchManager = new DefaultSqsAsyncBatchManager(mockClient,
                                                                             mockSendMessageBatchManager,
                                                                             mockDeleteMessageBatchManager,
                                                                             mockChangeVisibilityBatchManager);
@@ -112,7 +104,7 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
         verify(mockSendMessageBatchManager).close();
         verify(mockDeleteMessageBatchManager).close();
         verify(mockChangeVisibilityBatchManager).close();
-        assertThat(scheduledExecutor.isShutdown()).isFalse();
+        verify(mockClient, never()).close();;
     }
 
     @Override

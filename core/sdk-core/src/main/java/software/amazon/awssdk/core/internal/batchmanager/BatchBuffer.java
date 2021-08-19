@@ -27,6 +27,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class BatchBuffer<RequestT, ResponseT> {
     private final Object flushLock = new Object();
+
     private final Map<String, BatchingExecutionContext<RequestT, ResponseT>> idToBatchContext;
 
     /**
