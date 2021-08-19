@@ -26,6 +26,7 @@ import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatch
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageResponseMapper;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -54,7 +55,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
 
     private final SqsClient client;
     private boolean createdExecutor;
-    private final ExecutorService executor;
+    private final Executor executor;
     private final BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> sendMessageBatchManager;
     private final BatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse> deleteMessageBatchManager;
     private final BatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
@@ -141,22 +142,23 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
         sendMessageBatchManager.close();
         deleteMessageBatchManager.close();
         changeVisibilityBatchManager.close();
-        if (createdExecutor) {
-            executor.shutdownNow();
+        if (createdExecutor && executor instanceof ExecutorService) {
+            ExecutorService executorService = (ExecutorService) executor;
+            executorService.shutdownNow();
         }
     }
 
-    private ExecutorService createDefaultExecutor(ThreadFactory threadFactory) {
+    private Executor createDefaultExecutor(ThreadFactory threadFactory) {
         int processors = Runtime.getRuntime().availableProcessors();
         int corePoolSize = Math.max(8, processors);
         int maxPoolSize = Math.max(64, processors * 2);
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, maxPoolSize,
-                                                             10, TimeUnit.SECONDS,
-                                                             new LinkedBlockingQueue<>(1_000),
-                                                             threadFactory);
+        ThreadPoolExecutor defaultExecutor = new ThreadPoolExecutor(corePoolSize, maxPoolSize,
+                                                                    10, TimeUnit.SECONDS,
+                                                                    new LinkedBlockingQueue<>(1_000),
+                                                                    threadFactory);
         // Allow idle core threads to time out
-        executor.allowCoreThreadTimeOut(true);
-        return executor;
+        defaultExecutor.allowCoreThreadTimeOut(true);
+        return defaultExecutor;
     }
 
     public static SqsBatchManager.Builder builder() {
@@ -167,7 +169,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
         private BatchOverrideConfiguration overrideConfiguration;
         private SqsClient client;
         private ScheduledExecutorService scheduledExecutor;
-        private ExecutorService executor;
+        private Executor executor;
 
         private DefaultBuilder() {
         }
@@ -191,7 +193,7 @@ public final class DefaultSqsBatchManager implements SqsBatchManager {
         }
 
         @Override
-        public Builder executor(ExecutorService executor) {
+        public Builder executor(Executor executor) {
             this.executor = executor;
             return this;
         }
