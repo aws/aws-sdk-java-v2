@@ -1,3 +1,20 @@
+# __2.17.24__ __2021-08-20__
+## __AWS RoboMaker__
+  - ### Features
+    - Documentation updates for RoboMaker
+
+## __Amazon Comprehend__
+  - ### Features
+    - Add tagging support for Comprehend async inference job.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - encryptionInTransitSupported added to DescribeInstanceTypes API
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for EKS add-ons "preserve" flag, which allows customers to maintain software on their EKS clusters after removing it from EKS add-ons management.
+
 # __2.17.23__ __2021-08-19__
 ## __AWS SDK for Java v2__
   - ### Features
