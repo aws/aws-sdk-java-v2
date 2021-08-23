@@ -180,4 +180,9 @@ public class RetryPolicyTest {
     public void fastFailRateLimitingConfigured_retryModeAdaptive_doesNotThrow() {
         RetryPolicy.builder(RetryMode.ADAPTIVE).fastFailRateLimiting(true).build();
     }
+
+    @Test
+    public void hashCodeDoesNotThrow() {
+        RetryPolicy.defaultRetryPolicy().hashCode();
+    }
 }
