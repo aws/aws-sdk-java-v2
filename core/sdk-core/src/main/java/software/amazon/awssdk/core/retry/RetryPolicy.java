@@ -234,7 +234,7 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         result = 31 * result + Boolean.hashCode(additionalRetryConditionsAllowed);
         result = 31 * result + backoffStrategy.hashCode();
         result = 31 * result + throttlingBackoffStrategy.hashCode();
-        result = 31 * result + Boolean.hashCode(fastFailRateLimiting);
+        result = 31 * result + Objects.hashCode(fastFailRateLimiting);
         return result;
     }
 
