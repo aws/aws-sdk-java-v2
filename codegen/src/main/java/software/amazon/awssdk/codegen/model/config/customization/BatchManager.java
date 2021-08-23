@@ -15,33 +15,30 @@
 
 package software.amazon.awssdk.codegen.model.config.customization;
 
+import java.util.Map;
+
 /**
  * Config required to generate a batchManager method that returns an instance of a BatchManager in addition to any required
  * executors or scheduledExecutors.
  */
-public class BatchManagerMethod {
+public class BatchManager {
 
     public static final String METHOD_NAME = "batchManager";
 
-    /** Fqcn of the return type of the operation for the sync client */
-    private String returnType;
+    /**
+     * Stores a map of methods that have a batch counterpart, and maps them to the required types needed to configure the
+     * BatchingFunctions file. The key used is the request type for a single request (not a batch request).
+     *
+     * ex. For SQS, we can use a key of: sendMessage, meanwhile the batchFunctionsTypes will store the types
+     * SendMessageRequest, SendMessageResponse, and SendMessageBatchResponse.
+     */
+    private Map<String, BatchFunctionsTypes> batchableFunctions;
 
-    /** Fqcn of the return type of the operation for the async client */
-    private String asyncReturnType;
-
-    public String getReturnType() {
-        return returnType;
+    public Map<String, BatchFunctionsTypes> getBatchableFunctions() {
+        return batchableFunctions;
     }
 
-    public void setReturnType(String returnType) {
-        this.returnType = returnType;
-    }
-
-    public String getAsyncReturnType() {
-        return asyncReturnType;
-    }
-
-    public void setAsyncReturnType(String asyncReturnType) {
-        this.asyncReturnType = asyncReturnType;
+    public void setBatchableFunctions(Map<String, BatchFunctionsTypes> batchableFunctions) {
+        this.batchableFunctions = batchableFunctions;
     }
 }

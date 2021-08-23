@@ -71,7 +71,7 @@ public final class SqsBatchFunctions {
         };
     }
 
-    public static SendMessageBatchRequest createSendMessageBatchRequest(
+    private static SendMessageBatchRequest createSendMessageBatchRequest(
         List<IdentifiableMessage<SendMessageRequest>> identifiedRequests, String batchKey) {
         List<SendMessageBatchRequestEntry> entries =
             identifiedRequests.stream()
@@ -139,7 +139,7 @@ public final class SqsBatchFunctions {
         };
     }
 
-    public static DeleteMessageBatchRequest createDeleteMessageBatchRequest(
+    private static DeleteMessageBatchRequest createDeleteMessageBatchRequest(
         List<IdentifiableMessage<DeleteMessageRequest>> identifiedRequests, String batchKey) {
         List<DeleteMessageBatchRequestEntry> entries =
             identifiedRequests.stream()
@@ -207,7 +207,7 @@ public final class SqsBatchFunctions {
         };
     }
 
-    public static ChangeMessageVisibilityBatchRequest createChangeVisibilityBatchRequest(
+    private static ChangeMessageVisibilityBatchRequest createChangeVisibilityBatchRequest(
         List<IdentifiableMessage<ChangeMessageVisibilityRequest>> identifiedRequests, String batchKey) {
         List<ChangeMessageVisibilityBatchRequestEntry> entries =
             identifiedRequests.stream()

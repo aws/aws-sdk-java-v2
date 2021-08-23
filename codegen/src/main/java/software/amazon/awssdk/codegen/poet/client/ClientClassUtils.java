@@ -32,7 +32,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.auth.signer.EventStreamAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.codegen.model.config.customization.BatchManagerMethod;
+import software.amazon.awssdk.codegen.model.config.customization.BatchManager;
 import software.amazon.awssdk.codegen.model.config.customization.S3ArnableFieldConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -269,17 +269,16 @@ final class ClientClassUtils {
         return Optional.empty();
     }
 
-    static MethodSpec batchMangerMethod(IntermediateModel model, boolean isSync) {
+    static MethodSpec batchMangerMethod(PoetExtensions poetExtensions, boolean isSync) {
         String scheduledExecutor = "executorService";
-        BatchManagerMethod config = model.getCustomizationConfig().getBatchManagerMethod();
         ClassName returnType;
         if (isSync) {
-            returnType = PoetUtils.classNameFromFqcn(config.getReturnType());
+            returnType = poetExtensions.getBatchManagerSyncReturnType();
         } else {
-            returnType = PoetUtils.classNameFromFqcn(config.getAsyncReturnType());
+            returnType = poetExtensions.getBatchManagerAsyncReturnType();
         }
 
-        return MethodSpec.methodBuilder(BatchManagerMethod.METHOD_NAME)
+        return MethodSpec.methodBuilder(BatchManager.METHOD_NAME)
                          .addModifiers(Modifier.PUBLIC)
                          .addAnnotation(Override.class)
                          .returns(returnType)

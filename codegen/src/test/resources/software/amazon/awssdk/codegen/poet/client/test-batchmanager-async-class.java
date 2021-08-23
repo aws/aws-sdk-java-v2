@@ -1,4 +1,4 @@
-package software.amazon.awssdk.services.batchmanager;
+package software.amazon.awssdk.services.batchmanagetest;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
@@ -21,18 +21,18 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
-import software.amazon.awssdk.services.batchmanager.model.BatchManagerException;
-import software.amazon.awssdk.services.batchmanagertest.batchmanager.AsyncBatchManagerTest;
+import software.amazon.awssdk.services.batchmanagetest.batchmanager.BatchManageTestAsyncBatchManager;
+import software.amazon.awssdk.services.batchmanagetest.model.BatchManageTestException;
 
 /**
- * Internal implementation of {@link BatchManagerAsyncClient}.
+ * Internal implementation of {@link BatchManageTestAsyncClient}.
  *
- * @see BatchManagerAsyncClient#builder()
+ * @see BatchManageTestAsyncClient#builder()
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-final class DefaultBatchManagerAsyncClient implements BatchManagerAsyncClient {
-    private static final Logger log = LoggerFactory.getLogger(DefaultBatchManagerAsyncClient.class);
+final class DefaultBatchManageTestAsyncClient implements BatchManageTestAsyncClient {
+    private static final Logger log = LoggerFactory.getLogger(DefaultBatchManageTestAsyncClient.class);
 
     private final AsyncClientHandler clientHandler;
 
@@ -42,7 +42,7 @@ final class DefaultBatchManagerAsyncClient implements BatchManagerAsyncClient {
 
     private final ScheduledExecutorService executorService;
 
-    protected DefaultBatchManagerAsyncClient(SdkClientConfiguration clientConfiguration) {
+    protected DefaultBatchManageTestAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
@@ -60,8 +60,9 @@ final class DefaultBatchManagerAsyncClient implements BatchManagerAsyncClient {
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
-        return builder.clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(BatchManagerException::builder)
-                      .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1");
+        return builder.clientConfiguration(clientConfiguration)
+                      .defaultServiceExceptionSupplier(BatchManageTestException::builder).protocol(AwsJsonProtocol.REST_JSON)
+                      .protocolVersion("1.1");
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
@@ -85,7 +86,7 @@ final class DefaultBatchManagerAsyncClient implements BatchManagerAsyncClient {
     }
 
     @Override
-    public AsyncBatchManagerTest batchManager() {
-        return AsyncBatchManagerTest.builder().client(this).scheduledExecutor(executorService).build();
+    public BatchManageTestAsyncBatchManager batchManager() {
+        return BatchManageTestAsyncBatchManager.builder().client(this).scheduledExecutor(executorService).build();
     }
 }

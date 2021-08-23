@@ -95,6 +95,21 @@ public class PoetExtensions {
                                                                               "AsyncWaiter");
     }
 
+    public ClassName getBatchFunctionsClass() {
+        return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(), model.getMetadata().getServiceName() +
+                                                                                   "BatchFunctions");
+    }
+
+    public ClassName getBatchManagerSyncReturnType() {
+        return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(), model.getMetadata().getServiceName() +
+                                                                                   "BatchManager");
+    }
+
+    public ClassName getBatchManagerAsyncReturnType() {
+        return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(), model.getMetadata().getServiceName() +
+                                                                                   "AsyncBatchManager");
+    }
+
     /**
      * @param operationName Name of the operation
      * @return A Poet {@link ClassName} for the response type of a async paginated operation in the base service package.

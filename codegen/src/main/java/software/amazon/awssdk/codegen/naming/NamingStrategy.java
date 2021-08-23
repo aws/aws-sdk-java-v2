@@ -64,6 +64,11 @@ public interface NamingStrategy {
     String getSmokeTestPackageName(String serviceName);
 
     /**
+     * Retrieve the batchmanager package name that should be used based on the service name.
+     */
+    String getBatchManagerPackageName(String serviceName);
+
+    /**
      * @param errorShapeName Name of error shape to derive exception class name from.
      * @return Appropriate name to use for a Java exception class name
      */
