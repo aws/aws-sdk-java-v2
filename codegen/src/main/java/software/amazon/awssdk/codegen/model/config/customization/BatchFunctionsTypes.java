@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.model.config.customization;
 
+import java.util.List;
+
 public class BatchFunctionsTypes {
 
     /**
@@ -35,9 +37,6 @@ public class BatchFunctionsTypes {
      */
     String successBatchEntry;
 
-    /** Type of a failed batch response entry. This is optional (depending on service). */
-    String errorBatchEntry;
-
     /**
      * Name of the method used to get/set the destination for a request. This is required.
      *
@@ -46,22 +45,12 @@ public class BatchFunctionsTypes {
     String destinationMethod;
 
     /**
-     * Name of the method used to extract the successful responses from a batch response. If the method to extract successful
-     * and failed entries are the same, successEntriesMethod indicates the name of that method. This is required.
+     * List of methods in a request that will be used to get the values that will determine the batchKey (not including
+     * overrideConfiguration).
      *
-     * Ex. successful for SQS, records for kinesis, responses for dynamodb etc.
+     * Ex. [queueUrl] or maybe [queueUrl, delaySeconds] for SQS.
      */
-    String successEntriesMethod;
-
-    /** Name of the method used to extract failed responses from a batch responses. This is optional (depending on service). */
-    String errorEntriesMethod;
-
-    /**
-     * Name of the method used to extract the status code from a failed batch entry.
-     *
-     * Ex. code for SQS, errorCode for Kinesis.
-     */
-    String errorCodeMethod;
+    List<String> batchKeyMethods;
 
     public String getBatchMethod() {
         return batchMethod;
@@ -87,14 +76,6 @@ public class BatchFunctionsTypes {
         this.successBatchEntry = successBatchEntry;
     }
 
-    public String getErrorBatchEntry() {
-        return errorBatchEntry;
-    }
-
-    public void setErrorBatchEntry(String errorBatchEntry) {
-        this.errorBatchEntry = errorBatchEntry;
-    }
-
     public String getDestinationMethod() {
         return destinationMethod;
     }
@@ -103,27 +84,11 @@ public class BatchFunctionsTypes {
         this.destinationMethod = destinationMethod;
     }
 
-    public String getSuccessEntriesMethod() {
-        return successEntriesMethod;
+    public List<String> getBatchKeyMethods() {
+        return batchKeyMethods;
     }
 
-    public void setSuccessEntriesMethod(String successEntriesMethod) {
-        this.successEntriesMethod = successEntriesMethod;
-    }
-
-    public String getErrorEntriesMethod() {
-        return errorEntriesMethod;
-    }
-
-    public void setErrorEntriesMethod(String errorEntriesMethod) {
-        this.errorEntriesMethod = errorEntriesMethod;
-    }
-
-    public String getErrorCodeMethod() {
-        return errorCodeMethod;
-    }
-
-    public void setErrorCodeMethod(String errorCodeMethod) {
-        this.errorCodeMethod = errorCodeMethod;
+    public void setBatchKeyMethods(List<String> batchKeyMethods) {
+        this.batchKeyMethods = batchKeyMethods;
     }
 }

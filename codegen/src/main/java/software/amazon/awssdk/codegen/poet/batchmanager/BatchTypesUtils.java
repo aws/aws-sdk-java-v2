@@ -16,9 +16,11 @@
 package software.amazon.awssdk.codegen.poet.batchmanager;
 
 import com.squareup.javapoet.ClassName;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.config.customization.BatchFunctionsTypes;
+import software.amazon.awssdk.codegen.model.config.customization.BatchManager;
 
 /**
  * Conenvience methods to access the batch types and methods listed in the customization.config
@@ -61,28 +63,28 @@ public final class BatchTypesUtils {
         return getType(batchFunctions.getValue().getSuccessBatchEntry(), modelPackage);
     }
 
-    public static ClassName getErrorBatchEntry(Map.Entry<String, BatchFunctionsTypes> batchFunctions, String modelPackage) {
-        String errorEntry = batchFunctions.getValue().getErrorBatchEntry();
-        if (errorEntry == null) {
-            return getType(batchFunctions.getValue().getSuccessBatchEntry(), modelPackage);
-        }
-        return getType(errorEntry, modelPackage);
+    public static ClassName getErrorBatchEntry(BatchManager batchManager, String modelPackage) {
+        return getType(batchManager.getErrorBatchEntry(), modelPackage);
     }
 
     public static String getDestinationMethod(Map.Entry<String, BatchFunctionsTypes> batchFunctions) {
         return batchFunctions.getValue().getDestinationMethod();
     }
 
-    public static String getSuccessEntriesMethod(Map.Entry<String, BatchFunctionsTypes> batchFunctions) {
-        return batchFunctions.getValue().getSuccessEntriesMethod();
+    public static String getSuccessEntriesMethod(BatchManager batchManager) {
+        return batchManager.getSuccessEntriesMethod();
     }
 
-    public static String getErrorEntriesMethod(Map.Entry<String, BatchFunctionsTypes> batchFunctions) {
-        return batchFunctions.getValue().getErrorEntriesMethod();
+    public static String getErrorEntriesMethod(BatchManager batchManager) {
+        return batchManager.getErrorEntriesMethod();
     }
 
-    public static String getErrorCodeMethod(Map.Entry<String, BatchFunctionsTypes> batchFunctions) {
-        return batchFunctions.getValue().getErrorCodeMethod();
+    public static String getErrorCodeMethod(BatchManager batchManager) {
+        return batchManager.getErrorCodeMethod();
+    }
+
+    public static List<String> getBatchKeyMethods(Map.Entry<String, BatchFunctionsTypes> batchFunctions) {
+        return batchFunctions.getValue().getBatchKeyMethods();
     }
 
     public static ClassName getType(String type, String modelPackage) {

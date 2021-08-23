@@ -19,6 +19,7 @@ import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
+import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getBatchKeyMethods;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getBatchRequestEntryType;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getBatchRequestMethod;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getBatchRequestType;
@@ -51,11 +52,13 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.config.customization.BatchFunctionsTypes;
+import software.amazon.awssdk.codegen.model.config.customization.BatchManager;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.batchmanager.BatchAndSend;
+import software.amazon.awssdk.core.batchmanager.BatchKeyMapper;
 import software.amazon.awssdk.core.batchmanager.BatchResponseMapper;
 import software.amazon.awssdk.core.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.utils.Either;
@@ -67,6 +70,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
 
     private final IntermediateModel model;
     private final Map<String, BatchFunctionsTypes> batchFunctions;
+    private final BatchManager batchManagerTypes;
     private final String modelPackage;
     private final PoetExtensions poetExtensions;
     private final ClassName className;
@@ -75,7 +79,8 @@ public class BatchFunctionsClassSpec implements ClassSpec {
 
     public BatchFunctionsClassSpec(IntermediateModel model) {
         this.model = model;
-        this.batchFunctions = model.getCustomizationConfig().getBatchManager().getBatchableFunctions();
+        this.batchManagerTypes = model.getCustomizationConfig().getBatchManager();
+        this.batchFunctions = batchManagerTypes.getBatchableFunctions();
         this.modelPackage = model.getMetadata().getFullModelPackageName();
         this.poetExtensions = new PoetExtensions(model);
         this.className = poetExtensions.getBatchFunctionsClass();
@@ -104,17 +109,24 @@ public class BatchFunctionsClassSpec implements ClassSpec {
     }
 
     private List<MethodSpec> batchFunctions() {
-        return batchFunctions.entrySet()
-                             .stream()
-                             .flatMap(this::batchFunctions)
-                             .sorted(Comparator.comparing(m -> m.name))
-                             .collect(Collectors.toList());
+        List<MethodSpec> methods = batchFunctions.entrySet()
+                                                 .stream()
+                                                 .flatMap(this::batchFunctions)
+                                                 .sorted(Comparator.comparing(m -> m.name))
+                                                 .collect(Collectors.toList());
+
+        if (getErrorEntriesMethod(batchManagerTypes) != null) {
+            methods.add(createThrowableFromEntry());
+        }
+
+        return methods;
     }
 
     private Stream<MethodSpec> batchFunctions(Map.Entry<String, BatchFunctionsTypes> batchFunctions) {
         List<MethodSpec> methods = new ArrayList<>();
         methods.addAll(batchingFunction(batchFunctions));
         methods.addAll(responseMapper(batchFunctions));
+        methods.add(batchKeyMapper(batchFunctions));
         return methods.stream();
     }
 
@@ -247,9 +259,6 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(responseMapperCore(batchFunctions));
         methods.add(createResponseFromEntry(batchFunctions));
-        if (getErrorEntriesMethod(batchFunctions) != null) {
-            methods.add(createThrowableFromEntry(batchFunctions));
-        }
         return methods;
     }
 
@@ -277,17 +286,17 @@ public class BatchFunctionsClassSpec implements ClassSpec {
                              + "    IdentifiableMessage<$T> response = $N(batchResponseEntry, batchResponse);\n"
                              + "    mappedResponses.add(Either.left(response));\n"
                              + "})",
-                             getSuccessEntriesMethod(batchFunctions), responseClass,
+                             getSuccessEntriesMethod(batchManagerTypes), responseClass,
                              createResponseFromEntry(batchFunctions));
 
-        if (getErrorEntriesMethod(batchFunctions) != null) {
+        if (getErrorEntriesMethod(batchManagerTypes) != null) {
             builder.addStatement("batchResponse.$L()\n"
                                  + ".forEach(batchResponseEntry -> {\n"
                                  + "    IdentifiableMessage<Throwable> response = $N(batchResponseEntry);\n"
                                  + "    mappedResponses.add(Either.right(response));\n"
                                  + "})",
-                                 getErrorEntriesMethod(batchFunctions),
-                                 createThrowableFromEntry(batchFunctions));
+                                 getErrorEntriesMethod(batchManagerTypes),
+                                 createThrowableFromEntry());
         }
         builder.addStatement("return mappedResponses;\n"
                              + "}");
@@ -305,13 +314,11 @@ public class BatchFunctionsClassSpec implements ClassSpec {
             .addParameter(responseEntryClass, "successfulEntry")
             .addParameter(getBatchResponseType(batchFunctions, modelPackage), "batchResponse");
 
-        // TODO: Need to modify somehow for services like dynamoDB since it returns a map of items, so the successfulEntry
-        //  parameter is actually a Map.Entry as opposed to a regular entry.
+        // TODO: Need to modify somehow for services like dynamoDB's batchGetItem since it returns a map of items, so the
+        //  successfulEntry parameter is actually a Map.Entry as opposed to a regular entry.
         // TODO: Also need to modify since for some services, entries don't have an id() method.
-        ClassName responseBuilderClass = getType(responseClass.simpleName() + ".Builder", modelPackage);
         builder.addStatement("String key = successfulEntry.id()");
-        builder.addCode("$T builder = ",
-                        responseBuilderClass);
+        builder.addCode("$T.Builder builder = ", responseClass);
         builderMapOneClassToAnother(responseClass, responseEntryClass, builder);
         builder.addCode(";\n");
         builder.beginControlFlow("if (batchResponse.responseMetadata() != null)")
@@ -327,11 +334,11 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return builder.build();
     }
 
-    private MethodSpec createThrowableFromEntry(Map.Entry<String, BatchFunctionsTypes> batchFunctions) {
+    private MethodSpec createThrowableFromEntry() {
         String methodName = "createThrowable";
         ClassName responseClass = ClassName.get(Throwable.class);
         ParameterizedTypeName returnClass = ParameterizedTypeName.get(ClassName.get(IdentifiableMessage.class), responseClass);
-        ClassName responseEntryClass = getErrorBatchEntry(batchFunctions, modelPackage);
+        ClassName responseEntryClass = getErrorBatchEntry(batchManagerTypes, modelPackage);
         MethodSpec.Builder builder = methodSignatureWithReturnType(methodName, returnClass)
             .addModifiers(PRIVATE, STATIC)
             .addParameter(responseEntryClass, "failedEntry");
@@ -342,7 +349,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         builderMapOneClassToAnother(newType, responseEntryClass, builder);
         builder.addCode(";\n");
         builder.addStatement("builder.statusCode($T.parseInt(failedEntry.$L()))",
-                             ClassName.get(Integer.class), getErrorCodeMethod(batchFunctions));
+                             ClassName.get(Integer.class), getErrorCodeMethod(batchManagerTypes));
 
         builder.addStatement("$T response = builder.build()", responseClass);
         builder.addStatement("return new $T(key, response)",
@@ -389,6 +396,26 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         } catch (ClassNotFoundException e) {
             log.warn(() -> "Error generating createBatchEntryMethod. " + e);
         }
+    }
+
+    private MethodSpec batchKeyMapper(Map.Entry<String, BatchFunctionsTypes> batchFunctions) {
+        String methodName = batchFunctions.getKey() + "BatchKeyMapper";
+        ClassName requestClass = getRequestType(batchFunctions, modelPackage);
+        ParameterizedTypeName returnType = ParameterizedTypeName.get(ClassName.get(BatchKeyMapper.class), requestClass);
+
+        MethodSpec.Builder builder = methodSignatureWithReturnType(methodName, returnType)
+            .addModifiers(PUBLIC, STATIC);
+        builder.addCode("return request -> request.overrideConfiguration()\n"
+                        + ".map(overrideConfig -> ");
+
+        List<String> batchKeyMethods = getBatchKeyMethods(batchFunctions).stream()
+                                                                         .map(c -> "request." + c + "()")
+                                                                         .collect(Collectors.toList());
+        String batchKeyFormula = String.join(" + ", batchKeyMethods);
+        builder.addCode("$L + overrideConfig.hashCode())\n", batchKeyFormula);
+        builder.addStatement(".orElse($L)", batchKeyFormula);
+
+        return builder.build();
     }
 
     private MethodSpec.Builder methodSignatureWithReturnType(String methodName, TypeName returnType) {
