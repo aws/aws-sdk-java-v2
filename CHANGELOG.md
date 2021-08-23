@@ -1,3 +1,36 @@
+# __2.17.25__ __2021-08-23__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup - Features: Evaluate your backup activity and generate audit reports.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Amazon AWS DMS service now support Redis target endpoint migration. Now S3 endpoint setting is capable to setup features which are used to be configurable only in extract connection attributes.
+
+## __AWS Glue__
+  - ### Features
+    - Add support for Custom Blueprints
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Documentation updates for AWS IoT SiteWise
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Adding some of the pending releases (1) Adding WAF Filter to GatewayResponseType enum (2) Ensuring consistent error model for all operations (3) Add missing BRE to GetVpcLink operation
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Added AMI deprecation support for Amazon Data Lifecycle Manager EBS-backed AMI policies.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - Updated an element of the DescribeModelVersion API response (LogitMetrics -> logOddsMetrics) for clarity. Added new exceptions to several APIs to protect against unlikely scenarios.
+
 # __2.17.24__ __2021-08-20__
 ## __AWS RoboMaker__
   - ### Features
