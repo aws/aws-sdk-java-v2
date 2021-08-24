@@ -35,14 +35,15 @@ import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.g
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getType;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -54,9 +55,12 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.config.customization.BatchFunctionsTypes;
 import software.amazon.awssdk.codegen.model.config.customization.BatchManager;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.model.ExceptionProperties;
 import software.amazon.awssdk.core.batchmanager.BatchAndSend;
 import software.amazon.awssdk.core.batchmanager.BatchKeyMapper;
 import software.amazon.awssdk.core.batchmanager.BatchResponseMapper;
@@ -92,7 +96,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
     public TypeSpec poetSpec() {
         TypeSpec.Builder classBuilder = PoetUtils.createClassBuilder(className)
                                                  .addAnnotation(SdkInternalApi.class)
-                                                 .addModifiers(FINAL)
+                                                 .addModifiers(PUBLIC, FINAL)
                                                  .addMethod(constructor())
                                                  .addMethods(batchFunctions());
 
@@ -112,7 +116,6 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         List<MethodSpec> methods = batchFunctions.entrySet()
                                                  .stream()
                                                  .flatMap(this::batchFunctions)
-                                                 .sorted(Comparator.comparing(m -> m.name))
                                                  .collect(Collectors.toList());
 
         if (getErrorEntriesMethod(batchManagerTypes) != null) {
@@ -235,13 +238,14 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         ClassName batchRequestEntryType = getBatchRequestEntryType(batchFunctions, modelPackage);
         ClassName requestType = getRequestType(batchFunctions, modelPackage);
         String methodName = "create" + batchRequestEntryType.simpleName();
+        String requestParam = "request";
 
         MethodSpec.Builder builder = methodSignatureWithReturnType(methodName, batchRequestEntryType)
             .addModifiers(PRIVATE, STATIC)
             .addParameter(ClassName.get(String.class), "id")
-            .addParameter(getRequestType(batchFunctions, modelPackage), "request");
+            .addParameter(getRequestType(batchFunctions, modelPackage), requestParam);
         builder.addCode("return ");
-        builderMapOneClassToAnother(batchRequestEntryType, requestType, builder);
+        builder.addCode(builderMapOneClassToAnother(batchRequestEntryType, requestType, requestParam));
         builder.addCode(".build();");
 
         return builder.build();
@@ -306,21 +310,23 @@ public class BatchFunctionsClassSpec implements ClassSpec {
 
     private MethodSpec createResponseFromEntry(Map.Entry<String, BatchFunctionsTypes> batchFunctions) {
         String methodName = "create" + getResponseType(batchFunctions, modelPackage).simpleName();
+        String responseParam = "successfulEntry";
         ClassName responseClass = getResponseType(batchFunctions, modelPackage);
         ClassName responseEntryClass = getSuccessBatchEntry(batchFunctions, modelPackage);
         ParameterizedTypeName returnType = ParameterizedTypeName.get(ClassName.get(IdentifiableMessage.class), responseClass);
         MethodSpec.Builder builder = methodSignatureWithReturnType(methodName, returnType)
             .addModifiers(PRIVATE, STATIC)
-            .addParameter(responseEntryClass, "successfulEntry")
+            .addParameter(responseEntryClass, responseParam)
             .addParameter(getBatchResponseType(batchFunctions, modelPackage), "batchResponse");
 
-        // TODO: Need to modify somehow for services like dynamoDB's batchGetItem since it returns a map of items, so the
-        //  successfulEntry parameter is actually a Map.Entry as opposed to a regular entry.
+        // TODO: Need to modify somehow for services like dynamoDB's batchGetItem since it returns:
+        //  Map<String,List<Map<String,AttributeValue>>>. This is very different from other services which return an entry wrapper
+        //  class which makes it much simpler to map to an individual response (ex. SQS returns List<sendMessageBatchResultEntry>,
+        //  Kinesis returns List<PutRecordsResultEntry>).
         // TODO: Also need to modify since for some services, entries don't have an id() method.
         builder.addStatement("String key = successfulEntry.id()");
         builder.addCode("$T.Builder builder = ", responseClass);
-        builderMapOneClassToAnother(responseClass, responseEntryClass, builder);
-        builder.addCode(";\n");
+        builder.addStatement(builderMapOneClassToAnother(responseClass, responseEntryClass, responseParam));
         builder.beginControlFlow("if (batchResponse.responseMetadata() != null)")
                .addStatement("builder.responseMetadata(batchResponse.responseMetadata())")
                .endControlFlow();
@@ -336,18 +342,16 @@ public class BatchFunctionsClassSpec implements ClassSpec {
 
     private MethodSpec createThrowableFromEntry() {
         String methodName = "createThrowable";
+        String responseParam = "failedEntry";
         ClassName responseClass = ClassName.get(Throwable.class);
-        ParameterizedTypeName returnClass = ParameterizedTypeName.get(ClassName.get(IdentifiableMessage.class), responseClass);
         ClassName responseEntryClass = getErrorBatchEntry(batchManagerTypes, modelPackage);
+        ParameterizedTypeName returnClass = ParameterizedTypeName.get(ClassName.get(IdentifiableMessage.class), responseClass);
         MethodSpec.Builder builder = methodSignatureWithReturnType(methodName, returnClass)
             .addModifiers(PRIVATE, STATIC)
-            .addParameter(responseEntryClass, "failedEntry");
+            .addParameter(responseEntryClass, responseParam);
 
-        ClassName newType = getType(model.getMetadata().getServiceName() + "Exception", modelPackage);
         builder.addStatement("String key = failedEntry.id()");
-        builder.addCode("$T.Builder builder = ", newType);
-        builderMapOneClassToAnother(newType, responseEntryClass, builder);
-        builder.addCode(";\n");
+        builder.addStatement(exceptionBuilder(responseEntryClass, responseParam));
         builder.addStatement("builder.statusCode($T.parseInt(failedEntry.$L()))",
                              ClassName.get(Integer.class), getErrorCodeMethod(batchManagerTypes));
 
@@ -358,44 +362,58 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return builder.build();
     }
 
-    private void builderMapOneClassToAnother(ClassName newType, ClassName originalType,
-                                             MethodSpec.Builder builder) {
-        builder.addCode("$T.builder()", newType);
-        try {
-            // TODO: The problem is here, it thinks the batchRequestEntryType (for Sqs, SendMessageBatchRequestEntry) does not
-            //  exist. I tried putting this in while loop to wait until the models are generated but that didn't work. Tried
-            //  overriding the  compute method in ModelClassGeneratorTasks to only generate BatchFunctions once the models are
-            //  generated but that didn't work either.
-            Class<?> newClass = Class.forName(newType.canonicalName()); // Even this fails, so not a problem with the builder.
-            Class<?> newClassBuilder = Class.forName(newType.canonicalName() + "$Builder"); // Using $ or . both result in errors.
+    private CodeBlock exceptionBuilder(ClassName originalType, String originalParam) {
+        ClassName newType = getType(model.getMetadata().getServiceName() + "Exception", modelPackage);
+        CodeBlock.Builder builder = CodeBlock.builder();
 
-            Class<?> originalClass = Class.forName(originalType.canonicalName());
-            builder.addStatement("$T", originalClass);
-            Arrays.stream(newClassBuilder.getMethods())
-                  .forEach(method -> {
-                      try {
-                          originalClass.getMethod(method.getName(), method.getParameterTypes());
+        builder.add("$T.Builder builder = $T.builder()", newType, newType);
 
-                          // TODO: Not all services have an id method, but the ID method is kind of integral to how the
-                          //  responseMapper or even the default manager works to correlate requests and responses. The solution
-                          //  will either involves refactoring the core batchManager to correlate requests to responses some
-                          //  other way or by changing the services to all include an id field/method in batchRequest and
-                          //  batchResponse entries.
-                          if (method.getName().equals("id")) {
-                              builder.addCode(".$S(id)", method.getName());
-                          } else {
-                              builder.addCode(".$S(request.$S())", method.getName(), method.getName());
-                          }
-                      } catch (NoSuchMethodException e) {
-                          // If the method exists in the batchRequestEntryClassBuilder but not the requestClass, then do
-                          // nothing since we can't add anything for that builder method.
-                      } catch (SecurityException e) {
-                          log.warn(() -> String.valueOf(e));
-                      }
-                  });
-        } catch (ClassNotFoundException e) {
-            log.warn(() -> "Error generating createBatchEntryMethod. " + e);
-        }
+        // Doesn't matter what classname is passed into builderInterfaceMethods since we just want the methodName
+        List<MethodSpec> exceptionMethods = ExceptionProperties.builderInterfaceMethods(originalType);
+        ShapeModel originalShape = model.getShapes().get(originalType.simpleName());
+        exceptionMethods.forEach(method -> {
+            MemberModel foundMember = originalShape.getMemberByName(method.name);
+            if (foundMember != null) {
+                String builderMethod = methodNameFromMemberModel(method.name);
+                builder.add(".$L($L.$L())\n", builderMethod, originalParam, builderMethod);
+            }
+        });
+
+        return builder.build();
+    }
+
+    private CodeBlock builderMapOneClassToAnother(ClassName newType, ClassName originalType, String originalParam) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+
+        builder.add("$T.builder()", newType);
+        ShapeModel newShape = model.getShapes().get(newType.simpleName());
+        ShapeModel originalShape = model.getShapes().get(originalType.simpleName());
+
+        newShape.getMembers()
+                .forEach(memberModel -> {
+                    MemberModel foundMember = originalShape.getMemberByName(memberModel.getName());
+                    if (foundMember != null) {
+                        String builderMethod = methodNameFromMemberModel(memberModel.getName());
+                        // TODO: Not all services have an id method, but the ID method is integral to how the
+                        //  responseMapper or even the default manager works to correlate requests and responses. The solution
+                        //  will either involves refactoring the core batchManager to correlate requests to responses some
+                        //  other way or by changing the services to all include an id field/method in batchRequest and
+                        //  batchResponse entries.
+                        // Each batch entry should have some request identifier, pass it in as a field.
+                        if (foundMember.getName().equals("id")) {
+                            builder.add(".$L(id)\n", builderMethod);
+                        } else {
+                            builder.add(".$L($L.$L())\n", builderMethod, originalParam, builderMethod);
+                        }
+                    }
+              });
+
+        return builder.build();
+    }
+
+    private String methodNameFromMemberModel(String memberModelName) {
+        // Have to lowercase second char as well since MD5 methods/members have the D capitalized as well
+        return memberModelName.substring(0, 2).toLowerCase(Locale.ROOT) + memberModelName.substring(2);
     }
 
     private MethodSpec batchKeyMapper(Map.Entry<String, BatchFunctionsTypes> batchFunctions) {

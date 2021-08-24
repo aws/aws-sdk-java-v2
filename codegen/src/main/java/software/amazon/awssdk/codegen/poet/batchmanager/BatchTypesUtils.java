@@ -92,7 +92,7 @@ public final class BatchTypesUtils {
     }
 
     private static String capitalizeRequestMethodName(String methodName) {
-        return methodName.substring(0, 1).toUpperCase(Locale.ENGLISH) + methodName.substring(1);
+        return methodName.substring(0, 1).toUpperCase(Locale.ROOT) + methodName.substring(1);
     }
 
 }
