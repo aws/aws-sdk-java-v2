@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "contributor": "",
-    "description": "Updated Parameter Store property for logging improvements."
-}
