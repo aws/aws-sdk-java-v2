@@ -63,6 +63,21 @@ public class AsyncStreamPrependerTest {
     }
 
     @Test
+    public void multiSubscribe_stillPrepends() {
+        AsyncStreamPrepender<Long> prepender = new AsyncStreamPrepender<>(rangeLong(1L, 5L), 0L);
+        Flowable<Long> prepended1 = fromPublisher(prepender);
+        Flowable<Long> prepended2 = fromPublisher(prepender);
+
+        Iterator<Long> iterator1 = prepended1.blockingIterable(1).iterator();
+        Iterator<Long> iterator2 = prepended2.blockingIterable(1).iterator();
+
+        for (long i = 0; i <= 5; i++) {
+            assertEquals(i, iterator1.next().longValue());
+            assertEquals(i, iterator2.next().longValue());
+        }
+    }
+
+    @Test
     public void error() {
         Flowable<Long> error = Flowable.error(IllegalStateException::new);
         Flowable<Long> prepender = fromPublisher(new AsyncStreamPrepender<>(error, 0L));
