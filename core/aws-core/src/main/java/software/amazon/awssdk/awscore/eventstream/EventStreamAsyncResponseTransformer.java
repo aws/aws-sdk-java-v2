@@ -394,7 +394,9 @@ public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         @Override
         public void onComplete() {
             // Add the special on complete event to signal drainEvents to complete the subscriber
-            eventsToDeliver.add(ON_COMPLETE_EVENT);
+            synchronized (eventsToDeliver) {
+                eventsToDeliver.add(ON_COMPLETE_EVENT);
+            }
             drainEventsIfNotAlready();
             transformFuture.complete(null);
         }
