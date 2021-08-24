@@ -234,9 +234,6 @@ public class SubscribeToShardUnmarshallingTest {
 
                 @Override
                 public void cancel() {
-                    RuntimeException e = new RuntimeException();
-                    subscriber.onError(e);
-                    value.onError(e);
                 }
             }));
             return cf;

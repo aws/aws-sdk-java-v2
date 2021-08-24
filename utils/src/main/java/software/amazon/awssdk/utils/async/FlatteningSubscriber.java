@@ -23,17 +23,21 @@ import java.util.stream.StreamSupport;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkProtectedApi
 public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U> {
+    private static final Logger log = Logger.loggerFor(FlatteningSubscriber.class);
 
     private final AtomicLong demand = new AtomicLong(0);
     private final Object lock = new Object();
 
-    private boolean requestedNextBatch;
-    private Queue<U> currentBatch;
-    private boolean onCompleteCalled = false;
+    private boolean requestedNextBatch = false;
+    private boolean onCompleteCalledByUpstream = false;
+    private boolean terminalCallMadeDownstream = false;
+
     private Subscription sourceSubscription;
+    private Queue<U> currentBatch;
 
     public FlatteningSubscriber(Subscriber<? super U> subscriber) {
         super(subscriber);
@@ -42,6 +46,12 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
 
     @Override
     public void onSubscribe(Subscription subscription) {
+        if (sourceSubscription != null) {
+            Exception failure = new IllegalStateException("Duplicate subscription.");
+            log.warn(() -> "Received duplicate subscription, cancelling the duplicate.", failure);
+            subscription.cancel();
+        }
+
         sourceSubscription = subscription;
         subscriber.onSubscribe(new Subscription() {
             @Override
@@ -76,12 +86,16 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
     }
 
     private void fulfillDemand() {
+        if (terminalCallMadeDownstream) {
+            return;
+        }
+
         while (demand.get() > 0 && !currentBatch.isEmpty()) {
             demand.decrementAndGet();
             subscriber.onNext(currentBatch.poll());
         }
 
-        if (onCompleteCalled && currentBatch.isEmpty()) {
+        if (onCompleteCalledByUpstream && currentBatch.isEmpty()) {
             subscriber.onComplete();
         } else if (currentBatch.isEmpty() && demand.get() > 0) {
             requestedNextBatch = true;
@@ -90,11 +104,20 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
     }
 
     @Override
+    public void onError(Throwable throwable) {
+        synchronized (lock) {
+            subscriber.onError(throwable);
+            terminalCallMadeDownstream = true;
+        }
+    }
+
+    @Override
     public void onComplete() {
         synchronized (lock) {
-            onCompleteCalled = true;
+            onCompleteCalledByUpstream = true;
             if (currentBatch.isEmpty()) {
                 subscriber.onComplete();
+                terminalCallMadeDownstream = true;
             }
         }
     }
