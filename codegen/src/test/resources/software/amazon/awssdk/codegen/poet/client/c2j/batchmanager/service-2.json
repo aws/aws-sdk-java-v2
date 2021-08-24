@@ -7,7 +7,7 @@
     "protocol":"rest-json",
     "serviceAbbreviation":"BatchManagerTest",
     "serviceFullName":"BatchManagerTest",
-    "serviceId":"BatchManageTest",
+    "serviceId":"BatchManagerTest",
     "signatureVersion":"v4",
     "uid":"batchmanagertest-2016-03-11"
   },

@@ -1,11 +1,11 @@
-package software.amazon.awssdk.services.batchmanagetest;
+package software.amazon.awssdk.services.batchmanagertest;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.regions.ServiceMetadata;
-import software.amazon.awssdk.services.batchmanagetest.batchmanager.BatchManageTestBatchManager;
+import software.amazon.awssdk.services.batchmanagertest.batchmanager.BatchManagerTestBatchManager;
 
 /**
  * Service client for accessing BatchManagerTest. This can be created using the static {@link #builder()} method.
@@ -15,7 +15,7 @@ import software.amazon.awssdk.services.batchmanagetest.batchmanager.BatchManageT
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
 @ThreadSafe
-public interface BatchManageTestClient extends SdkClient {
+public interface BatchManagerTestClient extends SdkClient {
     String SERVICE_NAME = "batchmanagertest";
 
     /**
@@ -25,19 +25,19 @@ public interface BatchManageTestClient extends SdkClient {
     String SERVICE_METADATA_ID = "batchmanagertest";
 
     /**
-     * Create a {@link BatchManageTestClient} with the region loaded from the
+     * Create a {@link BatchManagerTestClient} with the region loaded from the
      * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
      * {@link software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider}.
      */
-    static BatchManageTestClient create() {
+    static BatchManagerTestClient create() {
         return builder().build();
     }
 
     /**
-     * Create a builder that can be used to configure and create a {@link BatchManageTestClient}.
+     * Create a builder that can be used to configure and create a {@link BatchManagerTestClient}.
      */
-    static BatchManageTestClientBuilder builder() {
-        return new DefaultBatchManageTestClientBuilder();
+    static BatchManagerTestClientBuilder builder() {
+        return new DefaultBatchManagerTestClientBuilder();
     }
 
     static ServiceMetadata serviceMetadata() {
@@ -45,9 +45,9 @@ public interface BatchManageTestClient extends SdkClient {
     }
 
     /**
-     * Creates an instance of {@link BatchManageTestBatchManager} object with the configuration set on this client.
+     * Creates an instance of {@link BatchManagerTestBatchManager} object with the configuration set on this client.
      */
-    default BatchManageTestBatchManager batchManager() {
+    default BatchManagerTestBatchManager batchManager() {
         throw new UnsupportedOperationException();
     }
 }
