@@ -25,9 +25,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 public class AsyncStreamPrepender<T> implements Publisher<T> {
     private final Publisher<T> delegate;
     private final T firstItem;
-    private Subscriber<? super T> subscriber;
-    private volatile boolean complete = false;
-    private volatile boolean firstRequest = true;
 
     public AsyncStreamPrepender(Publisher<T> delegate, T firstItem) {
         this.delegate = delegate;
@@ -36,11 +33,18 @@ public class AsyncStreamPrepender<T> implements Publisher<T> {
 
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        subscriber = s;
-        delegate.subscribe(new DelegateSubscriber());
+        delegate.subscribe(new DelegateSubscriber(s));
     }
 
     private class DelegateSubscriber implements Subscriber<T> {
+        private final Subscriber<? super T> subscriber;
+        private volatile boolean complete = false;
+        private volatile boolean firstRequest = true;
+
+        private DelegateSubscriber(Subscriber<? super T> subscriber) {
+            this.subscriber = subscriber;
+        }
+
         @Override
         public void onSubscribe(Subscription subscription) {
             subscriber.onSubscribe(new Subscription() {
@@ -90,7 +94,6 @@ public class AsyncStreamPrepender<T> implements Publisher<T> {
                 public void cancel() {
                     cancelled = true;
                     subscription.cancel();
-                    subscriber = null;
                 }
             });
         }
