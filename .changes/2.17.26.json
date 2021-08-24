@@ -1,0 +1,42 @@
+{
+    "version": "2.17.26",
+    "date": "2021-08-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT Data Plane",
+            "contributor": "",
+            "description": "Updated Publish with support for new Retain flag and added two new API operations: GetRetainedMessage, ListRetainedMessages."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Updated Parameter Store property for logging improvements."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "AWS Elemental MediaConvert SDK has added MBAFF encoding support for AVC video and the ability to pass encryption context from the job settings to S3."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix `NullPointerException` in `RetryPolicy.hashCode()`."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "contributor": "",
+            "description": "Amazon Polly adds new New Zealand English voice - Aria. Aria is available as Neural voice only."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "This release adds support for feature tagging with Amazon Transcribe batch jobs."
+        }
+    ]
+}
