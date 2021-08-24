@@ -275,6 +275,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://16lim21.github.io"><img src="https://avatars.githubusercontent.com/u/53011962?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Michael Li</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=16lim21" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/Bennett-Lynch"><img src="https://avatars.githubusercontent.com/u/11811448?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Bennett Lynch</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=Bennett-Lynch" title="Code">💻</a></td>
     <td align="center"><a href="https://bandism.net/"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ikko Ashimine</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=eltociear" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://jamieliu.me"><img src="https://avatars.githubusercontent.com/u/35614552?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jamie Liu</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=jamieliu386" title="Documentation">📖</a></td>
   </tr>
 </table>
 
