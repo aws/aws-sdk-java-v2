@@ -1,18 +1,3 @@
-/*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
- */
-
 package software.amazon.awssdk.services.batchmanagertest.batchmanager;
 
 import java.util.ArrayList;
@@ -30,8 +15,8 @@ import software.amazon.awssdk.core.batchmanager.BatchResponseMapper;
 import software.amazon.awssdk.core.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.services.batchmanagertest.BatchManagerTestAsyncClient;
 import software.amazon.awssdk.services.batchmanagertest.BatchManagerTestClient;
-import software.amazon.awssdk.services.batchmanagertest.model.BatchErrorEntry;
 import software.amazon.awssdk.services.batchmanagertest.model.BatchManagerTestException;
+import software.amazon.awssdk.services.batchmanagertest.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.batchmanagertest.model.DeleteRequestBatchRequest;
 import software.amazon.awssdk.services.batchmanagertest.model.DeleteRequestBatchRequestEntry;
 import software.amazon.awssdk.services.batchmanagertest.model.DeleteRequestBatchResponse;
@@ -86,18 +71,19 @@ public final class BatchManagerTestBatchFunctions {
     }
 
     private static SendRequestBatchRequestEntry createSendRequestBatchRequestEntry(String id, SendRequestRequest request) {
-        return SendRequestBatchRequestEntry.builder().build();
+        return SendRequestBatchRequestEntry.builder().messageBody(request.messageBody()).delaySeconds(request.delaySeconds())
+                                           .messageDeduplicationId(request.messageDeduplicationId()).messageGroupId(request.messageGroupId()).build();
     }
 
     public static BatchResponseMapper<SendRequestBatchResponse, SendRequestResponse> sendRequestResponseMapper() {
         return batchResponse -> {
             List<Either<IdentifiableMessage<SendRequestResponse>, IdentifiableMessage<Throwable>>> mappedResponses = new ArrayList<>();
-            batchResponse.successfulEntries().forEach(batchResponseEntry -> {
+            batchResponse.successful().forEach(batchResponseEntry -> {
                 IdentifiableMessage<SendRequestResponse> response = createSendRequestResponse(batchResponseEntry, batchResponse);
                 mappedResponses.add(Either.left(response));
             });
-            batchResponse.failedEntries().forEach(batchResponseEntry -> {
-                IdentifiableMessage<Throwable> response = createThrowable(batchResponseEntry);
+            batchResponse.failed().forEach(batchResponseEntry -> {
+                IdentifiableMessage<Throwable> response = sendRequestCreateThrowable(batchResponseEntry);
                 mappedResponses.add(Either.right(response));
             });
             return mappedResponses;
@@ -107,7 +93,10 @@ public final class BatchManagerTestBatchFunctions {
     private static IdentifiableMessage<SendRequestResponse> createSendRequestResponse(
         SendRequestBatchResultEntry successfulEntry, SendRequestBatchResponse batchResponse) {
         String key = successfulEntry.id();
-        SendRequestResponse.Builder builder = SendRequestResponse.builder();
+        SendRequestResponse.Builder builder = SendRequestResponse.builder().md5OfMessageBody(successfulEntry.md5OfMessageBody())
+                                                                 .md5OfMessageAttributes(successfulEntry.md5OfMessageAttributes())
+                                                                 .md5OfMessageSystemAttributes(successfulEntry.md5OfMessageSystemAttributes())
+                                                                 .messageId(successfulEntry.messageId()).sequenceNumber(successfulEntry.sequenceNumber());
         if (batchResponse.responseMetadata() != null) {
             builder.responseMetadata(batchResponse.responseMetadata());
         }
@@ -116,6 +105,14 @@ public final class BatchManagerTestBatchFunctions {
         }
         SendRequestResponse response = builder.build();
         return new IdentifiableMessage<SendRequestResponse>(key, response);
+    }
+
+    private static IdentifiableMessage<Throwable> sendRequestCreateThrowable(BatchResultErrorEntry failedEntry) {
+        String key = failedEntry.id();
+        BatchManagerTestException.Builder builder = BatchManagerTestException.builder().message(failedEntry.message());
+        builder.statusCode(Integer.parseInt(failedEntry.errorCode()));
+        Throwable response = builder.build();
+        return new IdentifiableMessage<Throwable>(key, response);
     }
 
     public static BatchKeyMapper<SendRequestRequest> sendRequestBatchKeyMapper() {
@@ -157,20 +154,20 @@ public final class BatchManagerTestBatchFunctions {
     }
 
     private static DeleteRequestBatchRequestEntry createDeleteRequestBatchRequestEntry(String id, DeleteRequestRequest request) {
-        return DeleteRequestBatchRequestEntry.builder().build();
+        return DeleteRequestBatchRequestEntry.builder().receiptHandle(request.receiptHandle()).build();
     }
 
     public static BatchResponseMapper<DeleteRequestBatchResponse, DeleteRequestResponse> deleteRequestResponseMapper() {
         return batchResponse -> {
             List<Either<IdentifiableMessage<DeleteRequestResponse>, IdentifiableMessage<Throwable>>> mappedResponses = new ArrayList<>();
-            batchResponse.successfulEntries().forEach(
+            batchResponse.responses().forEach(
                 batchResponseEntry -> {
                     IdentifiableMessage<DeleteRequestResponse> response = createDeleteRequestResponse(batchResponseEntry,
                                                                                                       batchResponse);
                     mappedResponses.add(Either.left(response));
                 });
-            batchResponse.failedEntries().forEach(batchResponseEntry -> {
-                IdentifiableMessage<Throwable> response = createThrowable(batchResponseEntry);
+            batchResponse.responses().forEach(batchResponseEntry -> {
+                IdentifiableMessage<Throwable> response = deleteRequestCreateThrowable(batchResponseEntry);
                 mappedResponses.add(Either.right(response));
             });
             return mappedResponses;
@@ -191,17 +188,16 @@ public final class BatchManagerTestBatchFunctions {
         return new IdentifiableMessage<DeleteRequestResponse>(key, response);
     }
 
-    public static BatchKeyMapper<DeleteRequestRequest> deleteRequestBatchKeyMapper() {
-        return request -> request.overrideConfiguration()
-                                 .map(overrideConfig -> request.destination() + request.someOtherMethod() + overrideConfig.hashCode())
-                                 .orElse(request.destination() + request.someOtherMethod());
-    }
-
-    private static IdentifiableMessage<Throwable> createThrowable(BatchErrorEntry failedEntry) {
+    private static IdentifiableMessage<Throwable> deleteRequestCreateThrowable(DeleteRequestBatchResultEntry failedEntry) {
         String key = failedEntry.id();
         BatchManagerTestException.Builder builder = BatchManagerTestException.builder();
         builder.statusCode(Integer.parseInt(failedEntry.errorCode()));
         Throwable response = builder.build();
         return new IdentifiableMessage<Throwable>(key, response);
+    }
+
+    public static BatchKeyMapper<DeleteRequestRequest> deleteRequestBatchKeyMapper() {
+        return request -> request.overrideConfiguration()
+                                 .map(overrideConfig -> request.destination() + overrideConfig.hashCode()).orElse(request.destination());
     }
 }
