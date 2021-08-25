@@ -15,38 +15,28 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
-/**
- * Defines parameters used to update an item to a DynamoDb table using the updateItem() operation (such as
- * {@link DynamoDbTable#updateItem(UpdateItemEnhancedRequest)} or
- * {@link DynamoDbAsyncTable#updateItem(UpdateItemEnhancedRequest)}).
- * <p>
- * A valid request object must contain the item that should be written to the table.
- *
- * @param <T> The type of the modelled object.
- */
-@SdkPublicApi
-public final class UpdateItemEnhancedRequest<T> {
+public class TransactUpdateItemEnhancedRequest<T> {
 
     private final T item;
     private final Boolean ignoreNulls;
     private final Expression conditionExpression;
+    private final String returnValuesOnConditionCheckFailure;
 
-    private UpdateItemEnhancedRequest(Builder<T> builder) {
+    private TransactUpdateItemEnhancedRequest(Builder<T> builder) {
         this.item = builder.item;
         this.ignoreNulls = builder.ignoreNulls;
         this.conditionExpression = builder.conditionExpression;
+        this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
 
     /**
      * Creates a newly initialized builder for the request object.
      *
      * @param itemClass the class that items in this table map to
-     * @param <T> The type of the modelled object, corresponding to itemClass
+     * @param <T>       The type of the modelled object, corresponding to itemClass
      * @return a UpdateItemEnhancedRequest builder
      */
     public static <T> Builder<T> builder(Class<? extends T> itemClass) {
@@ -59,7 +49,8 @@ public final class UpdateItemEnhancedRequest<T> {
     public Builder<T> toBuilder() {
         return new Builder<T>().item(item)
                                .ignoreNulls(ignoreNulls)
-                               .conditionExpression(conditionExpression);
+                               .conditionExpression(conditionExpression)
+                               .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
     }
 
     /**
@@ -83,6 +74,14 @@ public final class UpdateItemEnhancedRequest<T> {
         return conditionExpression;
     }
 
+    public ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure() {
+        return ReturnValuesOnConditionCheckFailure.fromValue(returnValuesOnConditionCheckFailure);
+    }
+
+    public String returnValuesOnConditionCheckFailureAsString() {
+        return returnValuesOnConditionCheckFailure;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -92,7 +91,7 @@ public final class UpdateItemEnhancedRequest<T> {
             return false;
         }
 
-        UpdateItemEnhancedRequest<?> that = (UpdateItemEnhancedRequest<?>) o;
+        TransactUpdateItemEnhancedRequest<?> that = (TransactUpdateItemEnhancedRequest<?>) o;
 
         if (item != null ? !item.equals(that.item) : that.item != null) {
             return false;
@@ -100,7 +99,13 @@ public final class UpdateItemEnhancedRequest<T> {
         if (ignoreNulls != null ? !ignoreNulls.equals(that.ignoreNulls) : that.ignoreNulls != null) {
             return false;
         }
-        return conditionExpression != null ? conditionExpression.equals(that.conditionExpression) : that.conditionExpression == null;
+        if (conditionExpression != null ? !conditionExpression.equals(that.conditionExpression) :
+            that.conditionExpression != null) {
+            return false;
+        }
+        return returnValuesOnConditionCheckFailure != null ?
+               returnValuesOnConditionCheckFailure.equals(that.returnValuesOnConditionCheckFailure) :
+               that.returnValuesOnConditionCheckFailure == null;
     }
 
     @Override
@@ -108,6 +113,7 @@ public final class UpdateItemEnhancedRequest<T> {
         int result = item != null ? item.hashCode() : 0;
         result = 31 * result + (ignoreNulls != null ? ignoreNulls.hashCode() : 0);
         result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
+        result = 31 * result + (returnValuesOnConditionCheckFailure != null ? returnValuesOnConditionCheckFailure.hashCode() : 0);
         return result;
     }
 
@@ -120,17 +126,19 @@ public final class UpdateItemEnhancedRequest<T> {
         private T item;
         private Boolean ignoreNulls;
         private Expression conditionExpression;
+        private String returnValuesOnConditionCheckFailure;
 
         private Builder() {
         }
 
         /**
-         *  Sets if the update operation should ignore attributes with null values. By default, the value is false.
-         *  <p>
-         *  If set to true, any null values in the Java object will be ignored and not be updated on the persisted
-         *  record. This is commonly referred to as a 'partial update'.
-         *  If set to false, null values in the Java object will cause those attributes to be removed from the persisted
-         *  record on update.
+         * Sets if the update operation should ignore attributes with null values. By default, the value is false.
+         * <p>
+         * If set to true, any null values in the Java object will be ignored and not be updated on the persisted
+         * record. This is commonly referred to as a 'partial update'.
+         * If set to false, null values in the Java object will cause those attributes to be removed from the persisted
+         * record on update.
+         *
          * @param ignoreNulls the boolean value
          * @return a builder of this type
          */
@@ -164,8 +172,19 @@ public final class UpdateItemEnhancedRequest<T> {
             return this;
         }
 
-        public UpdateItemEnhancedRequest<T> build() {
-            return new UpdateItemEnhancedRequest<>(this);
+        public Builder<T> returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure) {
+            this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure == null ? null :
+                                                       returnValuesOnConditionCheckFailure.toString();
+            return this;
+        }
+
+        public Builder<T> returnValuesOnConditionCheckFailure(String returnValuesOnConditionCheckFailure) {
+            this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure;
+            return this;
+        }
+
+        public TransactUpdateItemEnhancedRequest<T> build() {
+            return new TransactUpdateItemEnhancedRequest<>(this);
         }
     }
 }

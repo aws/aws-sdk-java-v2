@@ -44,6 +44,7 @@ public class ConditionCheckTest {
     public void generateTransactWriteItem() {
         FakeItem fakeItem = FakeItem.createUniqueFakeItem();
         Map<String, AttributeValue> keyMap = singletonMap("id", stringValue(fakeItem.getId()));
+        String returnValues = "return-values";
         Expression conditionExpression = Expression.builder()
                                                    .expression("expression")
                                                    .expressionNames(singletonMap("key1", "value1"))
@@ -53,6 +54,7 @@ public class ConditionCheckTest {
             ConditionCheck.builder()
                           .key(k -> k.partitionValue(fakeItem.getId()))
                           .conditionExpression(conditionExpression)
+                          .returnValuesOnConditionCheckFailure(returnValues)
                           .build();
         OperationContext context = DefaultOperationContext.create("table-name", TableMetadata.primaryIndexName());
 
@@ -69,6 +71,7 @@ public class ConditionCheckTest {
                                      .conditionExpression(conditionExpression.expression())
                                      .expressionAttributeValues(conditionExpression.expressionValues())
                                      .expressionAttributeNames(conditionExpression.expressionNames())
+                                     .returnValuesOnConditionCheckFailure(returnValues)
                                      .build())
                              .build();
         assertThat(result, is(expectedResult));

@@ -178,6 +178,11 @@ public final class TransactWriteItemsEnhancedRequest {
             return this;
         }
 
+        public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, TransactDeleteItemEnhancedRequest request) {
+            itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, DeleteItemOperation.create(request)));
+            return this;
+        }
+
         /**
          * Adds a primary lookup key for the item to delete, and it's associated table, to the transaction. For more
          * information on the delete action, see the low-level operation description in for instance
@@ -189,7 +194,7 @@ public final class TransactWriteItemsEnhancedRequest {
          * @return a builder of this type
          */
         public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, Key key) {
-            return addDeleteItem(mappedTableResource, DeleteItemEnhancedRequest.builder().key(key).build());
+            return addDeleteItem(mappedTableResource, TransactDeleteItemEnhancedRequest.builder().key(key).build());
         }
 
         /**
@@ -221,6 +226,11 @@ public final class TransactWriteItemsEnhancedRequest {
             return this;
         }
 
+        public <T> Builder addPutItem(MappedTableResource<T> mappedTableResource, TransactPutItemEnhancedRequest<T> request) {
+            itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, PutItemOperation.create(request)));
+            return this;
+        }
+
         /**
          * Adds an item to be written, and it's associated table, to the transaction. For more information on the put
          * action, see the low-level operation description in for instance
@@ -234,9 +244,9 @@ public final class TransactWriteItemsEnhancedRequest {
         public <T> Builder addPutItem(MappedTableResource<T> mappedTableResource, T item) {
             return addPutItem(
                 mappedTableResource,
-                PutItemEnhancedRequest.builder(mappedTableResource.tableSchema().itemType().rawClass())
-                                      .item(item)
-                                      .build());
+                TransactPutItemEnhancedRequest.builder(mappedTableResource.tableSchema().itemType().rawClass())
+                                              .item(item)
+                                              .build());
         }
 
         /**
@@ -257,6 +267,13 @@ public final class TransactWriteItemsEnhancedRequest {
             return this;
         }
 
+        public <T> Builder addUpdateItem(MappedTableResource<T> mappedTableResource,
+                                         TransactUpdateItemEnhancedRequest<T> request) {
+            itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource,
+                                                                 UpdateItemOperation.create(request)));
+            return this;
+        }
+
         /**
          * Adds an item to be updated, and it's associated table, to the transaction. For more information on the update
          * action, see the low-level operation description in for instance
@@ -270,9 +287,9 @@ public final class TransactWriteItemsEnhancedRequest {
         public <T> Builder addUpdateItem(MappedTableResource<T> mappedTableResource, T item) {
             return addUpdateItem(
                 mappedTableResource,
-                UpdateItemEnhancedRequest.builder(mappedTableResource.tableSchema().itemType().rawClass())
-                                         .item(item)
-                                         .build());
+                TransactUpdateItemEnhancedRequest.builder(mappedTableResource.tableSchema().itemType().rawClass())
+                                                 .item(item)
+                                                 .build());
         }
 
         /**

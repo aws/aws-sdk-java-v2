@@ -64,11 +64,24 @@ public class UpdateItemEnhancedRequestTest {
 
     @Test
     public void toBuilder() {
-        UpdateItemEnhancedRequest<FakeItem> builtObject = UpdateItemEnhancedRequest.builder(FakeItem.class).build();
+        FakeItem fakeItem = createUniqueFakeItem();
 
-        UpdateItemEnhancedRequest copiedObject = builtObject.toBuilder().build();
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#key = :value OR #key1 = :value1")
+                                                   .putExpressionName("#key", "attribute")
+                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionValue(":value", stringValue("wrong"))
+                                                   .putExpressionValue(":value1", stringValue("three"))
+                                                   .build();
+
+        UpdateItemEnhancedRequest<FakeItem> builtObject = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                   .item(fakeItem)
+                                                                                   .ignoreNulls(true)
+                                                                                   .conditionExpression(conditionExpression)
+                                                                                   .build();
+
+        UpdateItemEnhancedRequest<FakeItem> copiedObject = builtObject.toBuilder().build();
 
         assertThat(copiedObject, is(builtObject));
     }
-
 }

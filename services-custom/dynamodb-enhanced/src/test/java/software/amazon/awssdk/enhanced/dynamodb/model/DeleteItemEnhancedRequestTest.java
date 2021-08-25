@@ -62,11 +62,12 @@ public class DeleteItemEnhancedRequestTest {
     public void toBuilder() {
         Key key = Key.builder().partitionValue("key").build();
 
-        DeleteItemEnhancedRequest builtObject = DeleteItemEnhancedRequest.builder().key(key).build();
+        DeleteItemEnhancedRequest builtObject = DeleteItemEnhancedRequest.builder()
+                                                                         .key(key)
+                                                                         .build();
 
         DeleteItemEnhancedRequest copiedObject = builtObject.toBuilder().build();
 
         assertThat(copiedObject, is(builtObject));
     }
-
 }

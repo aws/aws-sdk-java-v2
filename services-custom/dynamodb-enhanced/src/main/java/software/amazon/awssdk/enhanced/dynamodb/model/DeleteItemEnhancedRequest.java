@@ -21,6 +21,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
  * Defines parameters used to remove an item from a DynamoDb table using the deleteItem() operation (such as
@@ -51,7 +52,8 @@ public final class DeleteItemEnhancedRequest {
      * Returns a builder initialized with all existing values on the request object.
      */
     public Builder toBuilder() {
-        return builder().key(key).conditionExpression(conditionExpression);
+        return builder().key(key)
+                        .conditionExpression(conditionExpression);
     }
 
     /**
@@ -79,12 +81,17 @@ public final class DeleteItemEnhancedRequest {
 
         DeleteItemEnhancedRequest that = (DeleteItemEnhancedRequest) o;
 
-        return key != null ? key.equals(that.key) : that.key == null;
+        if (key != null ? !key.equals(that.key) : that.key != null) {
+            return false;
+        }
+        return conditionExpression != null ? conditionExpression.equals(that.conditionExpression) : that.conditionExpression == null;
     }
 
     @Override
     public int hashCode() {
-        return key != null ? key.hashCode() : 0;
+        int result = key != null ? key.hashCode() : 0;
+        result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
+        return result;
     }
 
     /**

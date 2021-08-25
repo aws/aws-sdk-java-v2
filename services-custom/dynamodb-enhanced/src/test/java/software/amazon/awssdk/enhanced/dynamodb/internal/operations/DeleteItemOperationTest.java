@@ -50,6 +50,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemC
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactDeleteItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Delete;
@@ -346,6 +347,40 @@ public class DeleteItemOperationTest {
                                                                           .conditionExpression(conditionExpression)
                                                                           .expressionAttributeNames(attributeNames)
                                                                           .expressionAttributeValues(attributeValues)
+                                                                          .build())
+                                                            .build();
+        assertThat(actualResult, is(expectedResult));
+        verify(deleteItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
+    }
+
+    @Test
+    public void generateTransactWriteItem_returnValuesOnConditionCheckFailure_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+        String returnValues = "return-values";
+
+        DeleteItemOperation<FakeItem> deleteItemOperation =
+            spy(DeleteItemOperation.create(TransactDeleteItemEnhancedRequest.builder()
+                                                                            .key(k -> k.partitionValue(fakeItem.getId()))
+                                                                            .returnValuesOnConditionCheckFailure(returnValues)
+                                                                            .build()));
+        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+
+        DeleteItemRequest deleteItemRequest = DeleteItemRequest.builder()
+                                                               .tableName(TABLE_NAME)
+                                                               .key(fakeItemMap)
+                                                               .build();
+        doReturn(deleteItemRequest).when(deleteItemOperation).generateRequest(any(), any(), any());
+
+        TransactWriteItem actualResult = deleteItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
+                                                                                       context,
+                                                                                       mockDynamoDbEnhancedClientExtension);
+
+        TransactWriteItem expectedResult = TransactWriteItem.builder()
+                                                            .delete(Delete.builder()
+                                                                          .key(fakeItemMap)
+                                                                          .tableName(TABLE_NAME)
+                                                                          .returnValuesOnConditionCheckFailure(returnValues)
                                                                           .build())
                                                             .build();
         assertThat(actualResult, is(expectedResult));

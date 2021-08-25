@@ -46,6 +46,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactPutItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Put;
@@ -123,7 +124,12 @@ public class PutItemOperationTest {
     public void generateRequest_generatesCorrectRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
         fakeItem.setSubclassAttribute("subclass-value");
-        PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class).item(fakeItem).build());
+        // String returnValues = "return-values";
+        PutItemOperation<FakeItem> putItemOperation =
+            PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                                                          // .returnValues(returnValues)
+                                                          .item(fakeItem)
+                                                          .build());
 
         PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
@@ -133,9 +139,11 @@ public class PutItemOperationTest {
         expectedItemMap.put("id", AttributeValue.builder().s(fakeItem.getId()).build());
         expectedItemMap.put("subclass_attribute", AttributeValue.builder().s("subclass-value").build());
         PutItemRequest expectedRequest = PutItemRequest.builder()
-            .tableName(TABLE_NAME)
-            .item(expectedItemMap)
-            .build();
+                                                       .tableName(TABLE_NAME)
+                                                       .item(expectedItemMap)
+                                                       // .returnValues(returnValues)
+                                                       .build();
+
         assertThat(request, is(expectedRequest));
     }
 
@@ -349,6 +357,40 @@ public class PutItemOperationTest {
                                                                     .conditionExpression(conditionExpression)
                                                                     .expressionAttributeNames(attributeNames)
                                                                     .expressionAttributeValues(attributeValues)
+                                                                    .build())
+                                                            .build();
+        assertThat(actualResult, is(expectedResult));
+        verify(putItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
+    }
+
+    @Test
+    public void generateTransactWriteItem_returnValuesOnConditionCheckFailure_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+        String returnValues = "return-values";
+
+        PutItemOperation<FakeItem> putItemOperation =
+            spy(PutItemOperation.create(TransactPutItemEnhancedRequest.builder(FakeItem.class)
+                                                                      .item(fakeItem)
+                                                                      .returnValuesOnConditionCheckFailure(returnValues)
+                                                                      .build()));
+        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+
+        PutItemRequest putItemRequest = PutItemRequest.builder()
+                                                      .tableName(TABLE_NAME)
+                                                      .item(fakeItemMap)
+                                                      .build();
+        doReturn(putItemRequest).when(putItemOperation).generateRequest(any(), any(), any());
+
+        TransactWriteItem actualResult = putItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
+                                                                                    context,
+                                                                                    mockDynamoDbEnhancedClientExtension);
+
+        TransactWriteItem expectedResult = TransactWriteItem.builder()
+                                                            .put(Put.builder()
+                                                                    .item(fakeItemMap)
+                                                                    .tableName(TABLE_NAME)
+                                                                    .returnValuesOnConditionCheckFailure(returnValues)
                                                                     .build())
                                                             .build();
         assertThat(actualResult, is(expectedResult));

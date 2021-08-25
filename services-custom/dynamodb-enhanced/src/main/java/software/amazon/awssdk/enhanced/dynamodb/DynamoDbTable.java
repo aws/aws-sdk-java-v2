@@ -24,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
@@ -446,6 +447,10 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * the table, its class and optional directives.
      */
     default void putItem(PutItemEnhancedRequest<T> request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default PutItemEnhancedResponse<T> putItemWithResponse(PutItemEnhancedRequest<T> request) {
         throw new UnsupportedOperationException();
     }
 

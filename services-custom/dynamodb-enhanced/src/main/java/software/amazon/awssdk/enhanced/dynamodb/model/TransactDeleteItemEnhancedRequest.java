@@ -17,52 +17,59 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TransactableWriteOperation;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
-import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 
-/**
- * Use ConditionCheck as a part of the composite operation transactGetItems (for example
- * {@link DynamoDbEnhancedClient#transactGetItems(TransactGetItemsEnhancedRequest)}) to determine
- * if the other actions that are part of the same transaction should take effect.
- * <p>
- * A valid ConditionCheck object should contain a reference to the primary key of the table that finds items with a matching key,
- * together with a condition (of type {@link Expression}) to evaluate the primary key.
- *
- * @param <T> The type of the modelled object.
- */
 @SdkPublicApi
-public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
+public final class TransactDeleteItemEnhancedRequest {
+
     private final Key key;
     private final Expression conditionExpression;
     private final String returnValuesOnConditionCheckFailure;
 
-    private ConditionCheck(Builder builder) {
+    private TransactDeleteItemEnhancedRequest(Builder builder) {
         this.key = builder.key;
         this.conditionExpression = builder.conditionExpression;
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
 
     /**
-     * Creates a newly initialized builder for this object.
+     * Creates a newly initialized builder for a request object.
      */
     public static Builder builder() {
         return new Builder();
     }
 
     /**
-     * Returns a builder initialized with all existing values on the object.
+     * Returns a builder initialized with all existing values on the request object.
      */
     public Builder toBuilder() {
-        return new Builder().key(key)
-                            .conditionExpression(conditionExpression)
-                            .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
+        return builder().key(key)
+                        .conditionExpression(conditionExpression)
+                        .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
+    }
+
+    /**
+     * Returns the primary {@link Key} for the item to delete.
+     */
+    public Key key() {
+        return key;
+    }
+
+    /**
+     * Returns the condition {@link Expression} set on this request object, or null if it doesn't exist.
+     */
+    public Expression conditionExpression() {
+        return conditionExpression;
+    }
+
+    public ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure() {
+        return ReturnValuesOnConditionCheckFailure.fromValue(returnValuesOnConditionCheckFailure);
+    }
+
+    public String returnValuesOnConditionCheckFailureAsString() {
+        return returnValuesOnConditionCheckFailure;
     }
 
     @Override
@@ -74,7 +81,7 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
             return false;
         }
 
-        ConditionCheck<?> that = (ConditionCheck<?>) o;
+        TransactDeleteItemEnhancedRequest that = (TransactDeleteItemEnhancedRequest) o;
 
         if (key != null ? !key.equals(that.key) : that.key != null) {
             return false;
@@ -96,54 +103,12 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
         return result;
     }
 
-    @Override
-    public TransactWriteItem generateTransactWriteItem(TableSchema<T> tableSchema,
-                                                       OperationContext operationContext,
-                                                       DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension) {
-        software.amazon.awssdk.services.dynamodb.model.ConditionCheck conditionCheck =
-            software.amazon.awssdk.services.dynamodb.model.ConditionCheck
-                .builder()
-                .tableName(operationContext.tableName())
-                .key(key.keyMap(tableSchema, operationContext.indexName()))
-                .conditionExpression(conditionExpression.expression())
-                .expressionAttributeNames(conditionExpression.expressionNames())
-                .expressionAttributeValues(conditionExpression.expressionValues())
-                .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
-                .build();
-
-        return TransactWriteItem.builder()
-                                .conditionCheck(conditionCheck)
-                                .build();
-    }
-
     /**
-     * Returns the primary {@link Key} that the condition is valid for, or null if it doesn't exist.
-     */
-    public Key key() {
-        return key;
-    }
-
-    /**
-     * Returns the condition {@link Expression} set on this object, or null if it doesn't exist.
-     */
-    public Expression conditionExpression() {
-        return conditionExpression;
-    }
-
-    public ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure() {
-        return ReturnValuesOnConditionCheckFailure.fromValue(returnValuesOnConditionCheckFailure);
-    }
-
-    public String returnValuesOnConditionCheckFailureAsString() {
-        return returnValuesOnConditionCheckFailure;
-    }
-
-    /**
-     * A builder that is used to create a condition check with the desired parameters.
+     * A builder that is used to create a request with the desired parameters.
      * <p>
-     * A valid builder must define both a {@link Key} and an {@link Expression}.
+     * <b>Note</b>: A valid request builder must define a {@link Key}.
      */
-    public static final class Builder  {
+    public static final class Builder {
         private Key key;
         private Expression conditionExpression;
         private String returnValuesOnConditionCheckFailure;
@@ -152,9 +117,9 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
         }
 
         /**
-         * Sets the primary {@link Key} that will be used together with the condition expression.
+         * Sets the primary {@link Key} that will be used to match the item to delete.
          *
-         * @param key the primary key to use in the operation.
+         * @param key the primary key to use in the request.
          * @return a builder of this type
          */
         public Builder key(Key key) {
@@ -163,7 +128,7 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
         }
 
         /**
-         * Sets the primary {@link Key} that will be used together with the condition expression
+         * Sets the primary {@link Key} that will be used to match the item to delete
          * on the builder by accepting a consumer of {@link Key.Builder}.
          *
          * @param keyConsumer a {@link Consumer} of {@link Key}
@@ -176,9 +141,8 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
         }
 
         /**
-         * Defines a logical expression on the attributes of table items that match the supplied primary key value(s).
-         * If the expression evaluates to true, the transaction operation succeeds. If the expression evaluates to false,
-         * the transaction will not succeed.
+         * Defines a logical expression on an item's attribute values which, if evaluating to true,
+         * will allow the delete operation to succeed. If evaluating to false, the operation will not succeed.
          * <p>
          * See {@link Expression} for condition syntax and examples.
          *
@@ -201,8 +165,9 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
             return this;
         }
 
-        public <T> ConditionCheck<T> build() {
-            return new ConditionCheck<T>(this);
+
+        public TransactDeleteItemEnhancedRequest build() {
+            return new TransactDeleteItemEnhancedRequest(this);
         }
     }
 }
