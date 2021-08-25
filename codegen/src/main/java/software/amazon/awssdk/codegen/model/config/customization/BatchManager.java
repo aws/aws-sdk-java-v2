@@ -15,25 +15,31 @@
 
 package software.amazon.awssdk.codegen.model.config.customization;
 
-import java.util.Map;
-
 /**
- * Config required to generate a batchManager method that returns an instance of a BatchManager in addition to any required
- * executors or scheduledExecutors.
+ * Config to define a batchable method. The key is a method that has a batch counterpart
+ *
+ * ex. For SQS, we can use a key of: sendMessage, meanwhile the batchFunctionsTypes will store the types
+ * SendMessageRequest, SendMessageResponse, and SendMessageBatchResponse.
  */
 public class BatchManager {
 
-    public static final String METHOD_NAME = "batchManager";
+    /**
+     * The batch equivalent of the request method. This is required.
+     *
+     * Ex. if the request method is sendMessage, batchMethod is sendMessageBatch
+     */
+    String batchMethod;
 
-    /** Name of the method used to extract failed responses from a batch responses. This is optional (depending on service). */
-    String errorEntriesMethod;
+    /** Type of a single entry that is contained within a batch request. This is required. */
+    String batchRequestEntry;
 
     /**
-     * Name of the method used to extract the status code from a failed batch entry.
+     * Type of a successful batch response entry. If a successful and failed batch response entry are the same,
+     * successfulBatchEntry indicates the type of that entry. This is required.
      *
-     * Ex. code for SQS, errorCode for Kinesis.
+     * Ex. SendMessageBatchResultEntry for SQS, PutRecordsResultEntry for kinesis
      */
-    String errorCodeMethod;
+    String successBatchEntry;
 
     /** Type of a failed batch response entry. This is optional (depending on service). */
     String errorBatchEntry;
@@ -46,37 +52,45 @@ public class BatchManager {
      */
     String successEntriesMethod;
 
+    /** Name of the method used to extract failed responses from a batch responses. This is optional (depending on service). */
+    String errorEntriesMethod;
+
     /**
-     * Stores a map of methods that have a batch counterpart, and maps them to the required types needed to configure the
-     * BatchingFunctions file. The key used is the request type for a single request (not a batch request).
+     * Name of the method used to get/set the destination for a request. This is required.
      *
-     * ex. For SQS, we can use a key of: sendMessage, meanwhile the batchFunctionsTypes will store the types
-     * SendMessageRequest, SendMessageResponse, and SendMessageBatchResponse.
+     * Ex. queueUrl for SQS, streamName for Kinesis
      */
-    private Map<String, BatchFunctionsTypes> batchableFunctions;
+    String batchKey;
 
-    public Map<String, BatchFunctionsTypes> getBatchableFunctions() {
-        return batchableFunctions;
+    /**
+     * Name of the method used to extract the status code from a failed batch entry.
+     *
+     * Ex. code for SQS, errorCode for Kinesis.
+     */
+    String errorCodeMethod;
+
+    public String getBatchMethod() {
+        return batchMethod;
     }
 
-    public void setBatchableFunctions(Map<String, BatchFunctionsTypes> batchableFunctions) {
-        this.batchableFunctions = batchableFunctions;
+    public void setBatchMethod(String batchMethod) {
+        this.batchMethod = batchMethod;
     }
 
-    public String getErrorEntriesMethod() {
-        return errorEntriesMethod;
+    public String getBatchRequestEntry() {
+        return batchRequestEntry;
     }
 
-    public void setErrorEntriesMethod(String errorEntriesMethod) {
-        this.errorEntriesMethod = errorEntriesMethod;
+    public void setBatchRequestEntry(String batchRequestEntry) {
+        this.batchRequestEntry = batchRequestEntry;
     }
 
-    public String getErrorCodeMethod() {
-        return errorCodeMethod;
+    public String getSuccessBatchEntry() {
+        return successBatchEntry;
     }
 
-    public void setErrorCodeMethod(String errorCodeMethod) {
-        this.errorCodeMethod = errorCodeMethod;
+    public void setSuccessBatchEntry(String successBatchEntry) {
+        this.successBatchEntry = successBatchEntry;
     }
 
     public String getErrorBatchEntry() {
@@ -93,5 +107,29 @@ public class BatchManager {
 
     public void setSuccessEntriesMethod(String successEntriesMethod) {
         this.successEntriesMethod = successEntriesMethod;
+    }
+
+    public String getErrorEntriesMethod() {
+        return errorEntriesMethod;
+    }
+
+    public void setErrorEntriesMethod(String errorEntriesMethod) {
+        this.errorEntriesMethod = errorEntriesMethod;
+    }
+
+    public String getBatchKey() {
+        return batchKey;
+    }
+
+    public void setBatchKey(String batchKey) {
+        this.batchKey = batchKey;
+    }
+
+    public String getErrorCodeMethod() {
+        return errorCodeMethod;
+    }
+
+    public void setErrorCodeMethod(String errorCodeMethod) {
+        this.errorCodeMethod = errorCodeMethod;
     }
 }
