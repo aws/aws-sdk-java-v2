@@ -519,8 +519,6 @@
                         <onlyModified>true</onlyModified>
                         <excludes>
                             <exclude>*.internal.*</exclude>
-
-			    <exclude>software.amazon.awssdk.services.frauddetector.*</exclude>
                         </excludes>
 
                         <excludeModules>
