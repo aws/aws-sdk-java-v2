@@ -34,7 +34,7 @@ public class BatchManagerGeneratorTasks extends BaseGeneratorTasks {
 
     @Override
     protected boolean hasTasks() {
-        return model.getCustomizationConfig().getBatchManager() != null;
+        return model.getCustomizationConfig().getBatchManagerMethods() != null;
     }
 
     @Override

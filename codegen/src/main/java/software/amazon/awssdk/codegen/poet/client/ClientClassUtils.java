@@ -32,7 +32,6 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.auth.signer.EventStreamAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.codegen.model.config.customization.BatchManager;
 import software.amazon.awssdk.codegen.model.config.customization.S3ArnableFieldConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -278,7 +277,7 @@ final class ClientClassUtils {
             returnType = poetExtensions.getBatchManagerAsyncReturnType();
         }
 
-        return MethodSpec.methodBuilder(BatchManager.METHOD_NAME)
+        return MethodSpec.methodBuilder("batchManager")
                          .addModifiers(Modifier.PUBLIC)
                          .addAnnotation(Override.class)
                          .returns(returnType)

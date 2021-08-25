@@ -110,7 +110,7 @@ public final class SyncClientInterface implements ClassSpec {
             result.addMethod(waiterMethod());
         }
 
-        if (model.getCustomizationConfig().getBatchManager() != null) {
+        if (model.getCustomizationConfig().getBatchManagerMethods() != null) {
             result.addMethod(batchManagerMethod());
         }
 

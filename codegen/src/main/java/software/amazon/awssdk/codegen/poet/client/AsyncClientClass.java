@@ -148,7 +148,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
             addScheduledExecutorIfNeeded(classBuilder);
         }
 
-        if (model.getCustomizationConfig().getBatchManager() != null) {
+        if (model.getCustomizationConfig().getBatchManagerMethods() != null) {
             classBuilder.addMethod(batchMangerMethod(poetExtensions, false));
             addScheduledExecutorIfNeeded(classBuilder);
         }
@@ -202,7 +202,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
             builder.endControlFlow();
         }
 
-        if (model.hasWaiters() || model.getCustomizationConfig().getBatchManager() != null) {
+        if (model.hasWaiters() || model.getCustomizationConfig().getBatchManagerMethods() != null) {
             builder.addStatement("this.executorService = clientConfiguration.option($T.SCHEDULED_EXECUTOR_SERVICE)",
                                  SdkClientOption.class);
         }
