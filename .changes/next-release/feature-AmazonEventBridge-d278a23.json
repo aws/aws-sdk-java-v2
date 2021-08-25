@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EventBridge",
-    "contributor": "",
-    "description": "AWS EventBridge adds an enum of EXTERNAL for EcsParameters LaunchType for PutTargets API"
-}
