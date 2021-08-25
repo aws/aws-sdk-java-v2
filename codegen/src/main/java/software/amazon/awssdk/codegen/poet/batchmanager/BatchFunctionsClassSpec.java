@@ -28,6 +28,7 @@ import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.g
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getErrorBatchEntry;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getErrorCodeMethod;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getErrorEntriesMethod;
+import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getRequestIdentifier;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getRequestType;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getResponseType;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getSuccessBatchEntry;
@@ -235,7 +236,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
             .addParameter(ClassName.get(String.class), "id")
             .addParameter(getRequestType(batchFunctions, modelPackage), requestParam);
         builder.addCode("return ");
-        builder.addCode(builderMapOneClassToAnother(batchRequestEntryType, requestType, requestParam));
+        builder.addCode(builderMapOneClassToAnother(batchFunctions, batchRequestEntryType, requestType, requestParam));
         builder.addCode(".build();");
 
         return builder.build();
@@ -310,14 +311,9 @@ public class BatchFunctionsClassSpec implements ClassSpec {
             .addParameter(responseEntryClass, responseParam)
             .addParameter(getBatchResponseType(batchFunctions, modelPackage), "batchResponse");
 
-        // TODO: Need to modify somehow for services like dynamoDB's batchGetItem since it returns:
-        //  Map<String,List<Map<String,AttributeValue>>>. This is very different from other services which return an entry wrapper
-        //  class which makes it much simpler to map to an individual response (ex. SQS returns List<sendMessageBatchResultEntry>,
-        //  Kinesis returns List<PutRecordsResultEntry>).
-        // TODO: Also need to modify since for some services, entries don't have an id() method.
-        builder.addStatement("String key = successfulEntry.id()");
+        builder.addStatement("String key = successfulEntry.$L()", getRequestIdentifier(batchFunctions));
         builder.addCode("$T.Builder builder = ", responseClass);
-        builder.addStatement(builderMapOneClassToAnother(responseClass, responseEntryClass, responseParam));
+        builder.addStatement(builderMapOneClassToAnother(batchFunctions, responseClass, responseEntryClass, responseParam));
         builder.beginControlFlow("if (batchResponse.responseMetadata() != null)")
                .addStatement("builder.responseMetadata(batchResponse.responseMetadata())")
                .endControlFlow();
@@ -343,7 +339,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
 
         // TODO: Figure out a better way to return error entry's. Right now we are just returning the error code and message in
         //  an exception but ideally we would want to return all field's in the error entry.
-        builder.addStatement("String key = failedEntry.id()");
+        builder.addStatement("String key = failedEntry.$L()", getRequestIdentifier(batchFunctions));
         builder.addStatement(exceptionBuilder(responseEntryClass, responseParam));
         builder.addStatement("builder.statusCode($T.parseInt(failedEntry.$L()))",
                              ClassName.get(Integer.class), getErrorCodeMethod(batchFunctions));
@@ -361,7 +357,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
 
         builder.add("$T.Builder builder = $T.builder()", newType, newType);
 
-        // Doesn't matter what classname is passed into builderInterfaceMethods since we just want the methodName
+        // Doesn't matter what classname is passed into builderInterfaceMethods since we just want the method names.
         List<MethodSpec> exceptionMethods = ExceptionProperties.builderInterfaceMethods(originalType);
         ShapeModel originalShape = model.getShapes().get(originalType.simpleName());
 
@@ -382,7 +378,8 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return builder.build();
     }
 
-    private CodeBlock builderMapOneClassToAnother(ClassName newType, ClassName originalType, String originalParam) {
+    private CodeBlock builderMapOneClassToAnother(Map.Entry<String, BatchManager> batchFunctions, ClassName newType,
+                                                  ClassName originalType, String originalParam) {
         CodeBlock.Builder builder = CodeBlock.builder();
 
         builder.add("$T.builder()", newType);
@@ -400,13 +397,8 @@ public class BatchFunctionsClassSpec implements ClassSpec {
                     MemberModel foundMember = originalShape.getMemberByName(memberModel.getName());
                     if (foundMember != null) {
                         String builderMethod = methodNameFromMemberModel(memberModel.getName());
-                        // TODO: Not all services have an id method, but the ID method is integral to how the
-                        //  responseMapper or even the default manager works to correlate requests and responses. The solution
-                        //  will either involves refactoring the core batchManager to correlate requests to responses some
-                        //  other way or by changing the services to all include an id field/method in batchRequest and
-                        //  batchResponse entries.
-                        // Each batch entry should have some request identifier, pass it in as a field.
-                        if (foundMember.getName().equals("id")) {
+
+                        if (foundMember.getName().equals(getRequestIdentifier(batchFunctions))) {
                             builder.add(".$L(id)\n", builderMethod);
                         } else {
                             builder.add(".$L($L.$L())\n", builderMethod, originalParam, builderMethod);

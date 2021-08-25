@@ -69,6 +69,13 @@ public class BatchManager {
      */
     String errorCodeMethod;
 
+    /**
+     * Name of the method used to set or extract the request identifier used to identify entries within a batch request.
+     *
+     * Ex. id for SQS
+     */
+    String batchRequestIdentifier;
+
     public String getBatchMethod() {
         return batchMethod;
     }
@@ -131,5 +138,13 @@ public class BatchManager {
 
     public void setErrorCodeMethod(String errorCodeMethod) {
         this.errorCodeMethod = errorCodeMethod;
+    }
+
+    public String getBatchRequestIdentifier() {
+        return batchRequestIdentifier;
+    }
+
+    public void setBatchRequestIdentifier(String requestIdentifier) {
+        this.batchRequestIdentifier = requestIdentifier;
     }
 }

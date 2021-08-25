@@ -22,6 +22,7 @@ import software.amazon.awssdk.codegen.model.config.customization.BatchManager;
 
 /**
  * Conenvience methods to access the batch types and methods listed in the customization.config
+ * TODO: would it make more sense to instantiate this as a class like PoetExtensions instead of making this a static utils class?
  */
 public final class BatchTypesUtils {
 
@@ -87,6 +88,10 @@ public final class BatchTypesUtils {
 
     public static String getErrorCodeMethod(Map.Entry<String, BatchManager> batchFunctions) {
         return batchFunctions.getValue().getErrorCodeMethod();
+    }
+
+    public static String getRequestIdentifier(Map.Entry<String, BatchManager> batchFunctions) {
+        return batchFunctions.getValue().getBatchRequestIdentifier();
     }
 
     public static ClassName getType(String type, String modelPackage) {
