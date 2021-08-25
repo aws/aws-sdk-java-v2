@@ -1,3 +1,53 @@
+# __2.17.27__ __2021-08-25__
+## __AWS DataSync__
+  - ### Features
+    - Added include filters to CreateTask and UpdateTask, and added exclude filters to StartTaskExecution, giving customers more granular control over how DataSync transfers files, folders, and objects.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - AWS CWEvents adds an enum of EXTERNAL for EcsParameters LaunchType for PutTargets API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Support added for IMDS IPv6 endpoint
+
+## __Amazon EventBridge__
+  - ### Features
+    - AWS EventBridge adds an enum of EXTERNAL for EcsParameters LaunchType for PutTargets API
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now supports triggering resource cleanup workflow when account or resource goes out of policy scope for AWS WAF, Security group, AWS Network Firewall, and Amazon Route 53 Resolver DNS Firewall policies.
+
+# __2.17.26__ __2021-08-24__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added MBAFF encoding support for AVC video and the ability to pass encryption context from the job settings to S3.
+
+## __AWS IoT Data Plane__
+  - ### Features
+    - Updated Publish with support for new Retain flag and added two new API operations: GetRetainedMessage, ListRetainedMessages.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix `NullPointerException` in `RetryPolicy.hashCode()`.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new New Zealand English voice - Aria. Aria is available as Neural voice only.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Updated Parameter Store property for logging improvements.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for feature tagging with Amazon Transcribe batch jobs.
+
 # __2.17.25__ __2021-08-23__
 ## __AWS Backup__
   - ### Features
