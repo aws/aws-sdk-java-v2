@@ -16,8 +16,8 @@
 package software.amazon.awssdk.services.sqs;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.changeVisibilityBatchKeyMapper;
-import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.changeVisibilityResponseMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.changeMessageVisibilityBatchKeyMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.changeMessageVisibilityResponseMapper;
 import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.deleteMessageBatchKeyMapper;
 import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.deleteMessageResponseMapper;
 import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.sendMessageBatchKeyMapper;
@@ -177,7 +177,7 @@ public class SqsBatchFunctionsTest {
         ChangeMessageVisibilityBatchResponse batchResponse = createChangeVisibilityBatchResponse(responseMetadata, httpResponse,
                                                                                                  entry1, entry2);
         List<Either<IdentifiableMessage<ChangeMessageVisibilityResponse>, IdentifiableMessage<Throwable>>> mappedResponses =
-            changeVisibilityResponseMapper().mapBatchResponse(batchResponse);
+            changeMessageVisibilityResponseMapper().mapBatchResponse(batchResponse);
 
         IdentifiableMessage<ChangeMessageVisibilityResponse> response1 = mappedResponses.get(0).left().get();
         IdentifiableMessage<ChangeMessageVisibilityResponse> response2 = mappedResponses.get(1).left().get();
@@ -194,8 +194,8 @@ public class SqsBatchFunctionsTest {
         String queueUrl = "myQueue";
         ChangeMessageVisibilityRequest request1 = ChangeMessageVisibilityRequest.builder().queueUrl(queueUrl).build();
         ChangeMessageVisibilityRequest request2 = ChangeMessageVisibilityRequest.builder().queueUrl(queueUrl).build();
-        String batchKey1 = changeVisibilityBatchKeyMapper().getBatchKey(request1);
-        String batchKey2 = changeVisibilityBatchKeyMapper().getBatchKey(request2);
+        String batchKey1 = changeMessageVisibilityBatchKeyMapper().getBatchKey(request1);
+        String batchKey2 = changeMessageVisibilityBatchKeyMapper().getBatchKey(request2);
 
         assertThat(batchKey1).isEqualTo(queueUrl);
         assertThat(batchKey2).isEqualTo(queueUrl);
@@ -207,8 +207,8 @@ public class SqsBatchFunctionsTest {
         String queueUrl = "myQueue";
         ChangeMessageVisibilityRequest request1 = createChangeVisibilityRequestWithOverrideConfig(queueUrl, 10);
         ChangeMessageVisibilityRequest request2 = createChangeVisibilityRequestWithOverrideConfig(queueUrl, 10);
-        String batchKey1 = changeVisibilityBatchKeyMapper().getBatchKey(request1);
-        String batchKey2 = changeVisibilityBatchKeyMapper().getBatchKey(request2);
+        String batchKey1 = changeMessageVisibilityBatchKeyMapper().getBatchKey(request1);
+        String batchKey2 = changeMessageVisibilityBatchKeyMapper().getBatchKey(request2);
         assertThat(batchKey1).isEqualTo(batchKey2);
     }
 
@@ -217,8 +217,8 @@ public class SqsBatchFunctionsTest {
         String queueUrl = "myQueue";
         ChangeMessageVisibilityRequest request1 = createChangeVisibilityRequestWithOverrideConfig(queueUrl, 10);
         ChangeMessageVisibilityRequest request2 = createChangeVisibilityRequestWithOverrideConfig(queueUrl, 20);
-        String batchKey1 = changeVisibilityBatchKeyMapper().getBatchKey(request1);
-        String batchKey2 = changeVisibilityBatchKeyMapper().getBatchKey(request2);
+        String batchKey1 = changeMessageVisibilityBatchKeyMapper().getBatchKey(request1);
+        String batchKey2 = changeMessageVisibilityBatchKeyMapper().getBatchKey(request2);
         assertThat(batchKey1).isNotEqualTo(batchKey2);
     }
 
