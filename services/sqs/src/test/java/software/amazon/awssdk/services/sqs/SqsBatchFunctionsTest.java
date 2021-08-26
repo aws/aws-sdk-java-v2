@@ -16,12 +16,12 @@
 package software.amazon.awssdk.services.sqs;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityBatchKeyMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityResponseMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.deleteMessageBatchKeyMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.deleteMessageResponseMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageBatchKeyMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageResponseMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.changeVisibilityBatchKeyMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.changeVisibilityResponseMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.deleteMessageBatchKeyMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.deleteMessageResponseMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.sendMessageBatchKeyMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.sendMessageResponseMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;

@@ -20,7 +20,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.DefaultSqsAsyncBatchManager;
+import software.amazon.awssdk.services.sqs.batchmanager.internal.DefaultSqsAsyncBatchManager;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
