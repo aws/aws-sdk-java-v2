@@ -1548,7 +1548,11 @@
         "ta-IN",
         "te-IN",
         "tr-TR",
-        "zh-CN"
+        "zh-CN",
+        "zh-TW",
+        "th-TH",
+        "en-ZA",
+        "en-NZ"
       ]
     },
     "LanguageModel":{
@@ -1816,7 +1820,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If the result of the previous request to <code>ListTranscriptionJobs</code> was truncated, include the <code>NextToken</code> to fetch the next set of jobs.</p>"
+          "documentation":"<p>If the result of the previous request to <code>ListTranscriptionJobs</code> is truncated, include the <code>NextToken</code> to fetch the next set of jobs.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
@@ -2739,7 +2743,7 @@
         },
         "CompletionTime":{
           "shape":"DateTime",
-          "documentation":"<p>A timestamp that shows when the job was completed.</p>"
+          "documentation":"<p>A timestamp that shows when the job completed.</p>"
         },
         "FailureReason":{
           "shape":"FailureReason",
