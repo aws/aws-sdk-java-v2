@@ -72,4 +72,10 @@ public final class CodegenNamingUtils {
         chars[0] = Character.toLowerCase(chars[0]);
         return String.valueOf(chars);
     }
+
+    public static String uppercaseFirstChar(String word) {
+        char[] chars = word.toCharArray();
+        chars[0] = Character.toUpperCase(chars[0]);
+        return String.valueOf(chars);
+    }
 }

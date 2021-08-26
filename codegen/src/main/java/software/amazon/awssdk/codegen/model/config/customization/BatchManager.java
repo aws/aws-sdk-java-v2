@@ -28,10 +28,10 @@ public class BatchManager {
      *
      * Ex. if the request method is sendMessage, batchMethod is sendMessageBatch
      */
-    String batchMethod;
+    private String batchMethod;
 
     /** Type of a single entry that is contained within a batch request. This is required. */
-    String batchRequestEntry;
+    private String batchRequestEntry;
 
     /**
      * Type of a successful batch response entry. If a successful and failed batch response entry are the same,
@@ -39,10 +39,10 @@ public class BatchManager {
      *
      * Ex. SendMessageBatchResultEntry for SQS, PutRecordsResultEntry for kinesis
      */
-    String successBatchEntry;
+    private String successBatchEntry;
 
     /** Type of a failed batch response entry. This is optional (depending on service). */
-    String errorBatchEntry;
+    private String errorBatchEntry;
 
     /**
      * Name of the method used to extract the successful responses from a batch response. If the method to extract successful
@@ -50,31 +50,31 @@ public class BatchManager {
      *
      * Ex. successful for SQS, records for kinesis, responses for dynamodb etc.
      */
-    String successEntriesMethod;
+    private String successEntriesMethod;
 
     /** Name of the method used to extract failed responses from a batch responses. This is optional (depending on service). */
-    String errorEntriesMethod;
+    private String errorEntriesMethod;
 
     /**
      * Name of the method used to get/set the destination for a request. This is required.
      *
      * Ex. queueUrl for SQS, streamName for Kinesis
      */
-    String batchKey;
+    private String batchKey;
 
     /**
      * Name of the method used to extract the status code from a failed batch entry.
      *
      * Ex. code for SQS, errorCode for Kinesis.
      */
-    String errorCodeMethod;
+    private String errorCodeMethod;
 
     /**
      * Name of the method used to set or extract the request identifier used to identify entries within a batch request.
      *
      * Ex. id for SQS
      */
-    String batchRequestIdentifier;
+    private String batchRequestIdentifier;
 
     public String getBatchMethod() {
         return batchMethod;

@@ -96,7 +96,7 @@ public class PoetExtensions {
     }
 
     public ClassName getBatchFunctionsClass() {
-        return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(), model.getMetadata().getServiceName() +
+        return ClassName.get(model.getMetadata().getFullBatchManagerInternalPackageName(), model.getMetadata().getServiceName() +
                                                                                    "BatchFunctions");
     }
 

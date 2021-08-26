@@ -15,8 +15,9 @@
 
 package software.amazon.awssdk.codegen.poet.batchmanager;
 
+import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.uppercaseFirstChar;
+
 import com.squareup.javapoet.ClassName;
-import java.util.Locale;
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.config.customization.BatchManager;
 
@@ -30,12 +31,12 @@ public final class BatchTypesUtils {
     }
 
     public static ClassName getRequestType(Map.Entry<String, BatchManager> batchFunctions, String modelPackage) {
-        String requestMethodName = capitalizeRequestMethodName(batchFunctions.getKey()) + "Request";
+        String requestMethodName = uppercaseFirstChar(batchFunctions.getKey()) + "Request";
         return getType(requestMethodName, modelPackage);
     }
 
     public static ClassName getResponseType(Map.Entry<String, BatchManager> batchFunctions, String modelPackage) {
-        String requestMethodName = capitalizeRequestMethodName(batchFunctions.getKey()) + "Response";
+        String requestMethodName = uppercaseFirstChar(batchFunctions.getKey()) + "Response";
         return getType(requestMethodName, modelPackage);
     }
 
@@ -44,7 +45,7 @@ public final class BatchTypesUtils {
     }
 
     public static ClassName getBatchRequestType(Map.Entry<String, BatchManager> batchFunctions, String modelPackage) {
-        String requestMethodName = capitalizeRequestMethodName(getBatchRequestMethod(batchFunctions)) + "Request";
+        String requestMethodName = uppercaseFirstChar(getBatchRequestMethod(batchFunctions)) + "Request";
         return getType(requestMethodName, modelPackage);
     }
 
@@ -54,7 +55,7 @@ public final class BatchTypesUtils {
     }
 
     public static ClassName getBatchResponseType(Map.Entry<String, BatchManager> batchFunctions, String modelPackage) {
-        String requestMethodName = capitalizeRequestMethodName(batchFunctions.getValue().getBatchMethod()) + "Response";
+        String requestMethodName = uppercaseFirstChar(batchFunctions.getValue().getBatchMethod()) + "Response";
         return getType(requestMethodName, modelPackage);
     }
 
@@ -70,36 +71,16 @@ public final class BatchTypesUtils {
         return getType(errorBatchEntry, modelPackage);
     }
 
-    public static String getBatchKeyMethod(Map.Entry<String, BatchManager> batchFunctions) {
-        return batchFunctions.getValue().getBatchKey();
-    }
-
-    public static String getSuccessEntriesMethod(Map.Entry<String, BatchManager> batchFunctions) {
-        return batchFunctions.getValue().getSuccessEntriesMethod();
-    }
-
     public static String getErrorEntriesMethod(Map.Entry<String, BatchManager> batchFunctions) {
         String errorEntriesMethod = batchFunctions.getValue().getErrorEntriesMethod();
         if (errorEntriesMethod == null) {
-            return getSuccessEntriesMethod(batchFunctions);
+            return batchFunctions.getValue().getSuccessEntriesMethod();
         }
         return errorEntriesMethod;
     }
 
-    public static String getErrorCodeMethod(Map.Entry<String, BatchManager> batchFunctions) {
-        return batchFunctions.getValue().getErrorCodeMethod();
-    }
-
-    public static String getRequestIdentifier(Map.Entry<String, BatchManager> batchFunctions) {
-        return batchFunctions.getValue().getBatchRequestIdentifier();
-    }
-
     public static ClassName getType(String type, String modelPackage) {
         return ClassName.get(modelPackage, type);
-    }
-
-    public static String capitalizeRequestMethodName(String methodName) {
-        return methodName.substring(0, 1).toUpperCase(Locale.ROOT) + methodName.substring(1);
     }
 
 }

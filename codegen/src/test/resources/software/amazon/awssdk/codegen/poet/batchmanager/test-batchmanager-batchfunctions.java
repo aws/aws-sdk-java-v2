@@ -1,4 +1,4 @@
-package software.amazon.awssdk.services.batchmanagertest.batchmanager;
+package software.amazon.awssdk.services.batchmanagertest.batchmanager.internal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +45,7 @@ public final class BatchManagerTestBatchFunctions {
         };
     }
 
-    public static BatchAndSend<SendRequestRequest, SendRequestBatchResponse> sendRequestAsyncBatchFunction(
+    public static BatchAndSend<SendRequestRequest, SendRequestBatchResponse> sendRequestBatchAsyncFunction(
         BatchManagerTestAsyncClient client) {
         return (identifiedRequests, batchKey) -> {
             SendRequestBatchRequest batchRequest = createSendRequestBatchRequest(identifiedRequests, batchKey);
@@ -59,9 +59,9 @@ public final class BatchManagerTestBatchFunctions {
             .stream()
             .map(identifiedRequest -> createSendRequestBatchRequestEntry(identifiedRequest.id(), identifiedRequest.message()))
             .collect(Collectors.toList());
-        // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration,
-        // all requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first
-        // request.
+        // Since requests are batched together according to a combination of their destination and
+        // overrideConfiguration, all requests must have the same overrideConfiguration so it is sufficient to retrieve
+        // it from the first request.
         Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0).message()
                                                                                             .overrideConfiguration();
         return overrideConfiguration.map(
@@ -71,7 +71,7 @@ public final class BatchManagerTestBatchFunctions {
     }
 
     private static SendRequestBatchRequestEntry createSendRequestBatchRequestEntry(String id, SendRequestRequest request) {
-        return SendRequestBatchRequestEntry.builder().messageBody(request.messageBody()).delaySeconds(request.delaySeconds())
+        return SendRequestBatchRequestEntry.builder().id(id).messageBody(request.messageBody()).delaySeconds(request.delaySeconds())
                                            .messageDeduplicationId(request.messageDeduplicationId()).messageGroupId(request.messageGroupId()).build();
     }
 
@@ -128,7 +128,7 @@ public final class BatchManagerTestBatchFunctions {
         };
     }
 
-    public static BatchAndSend<DeleteRequestRequest, DeleteRequestBatchResponse> deleteRequestAsyncBatchFunction(
+    public static BatchAndSend<DeleteRequestRequest, DeleteRequestBatchResponse> deleteRequestBatchAsyncFunction(
         BatchManagerTestAsyncClient client) {
         return (identifiedRequests, batchKey) -> {
             DeleteRequestBatchRequest batchRequest = createDeleteRequestBatchRequest(identifiedRequests, batchKey);
@@ -142,9 +142,9 @@ public final class BatchManagerTestBatchFunctions {
             .stream()
             .map(identifiedRequest -> createDeleteRequestBatchRequestEntry(identifiedRequest.id(),
                                                                            identifiedRequest.message())).collect(Collectors.toList());
-        // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration,
-        // all requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first
-        // request.
+        // Since requests are batched together according to a combination of their destination and
+        // overrideConfiguration, all requests must have the same overrideConfiguration so it is sufficient to retrieve
+        // it from the first request.
         Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0).message()
                                                                                             .overrideConfiguration();
         return overrideConfiguration.map(
@@ -154,7 +154,7 @@ public final class BatchManagerTestBatchFunctions {
     }
 
     private static DeleteRequestBatchRequestEntry createDeleteRequestBatchRequestEntry(String id, DeleteRequestRequest request) {
-        return DeleteRequestBatchRequestEntry.builder().receiptHandle(request.receiptHandle()).build();
+        return DeleteRequestBatchRequestEntry.builder().id(id).receiptHandle(request.receiptHandle()).build();
     }
 
     public static BatchResponseMapper<DeleteRequestBatchResponse, DeleteRequestResponse> deleteRequestResponseMapper() {
@@ -162,14 +162,15 @@ public final class BatchManagerTestBatchFunctions {
             List<Either<IdentifiableMessage<DeleteRequestResponse>, IdentifiableMessage<Throwable>>> mappedResponses = new ArrayList<>();
             batchResponse.responses().forEach(
                 batchResponseEntry -> {
-                    IdentifiableMessage<DeleteRequestResponse> response = createDeleteRequestResponse(batchResponseEntry,
-                                                                                                      batchResponse);
-                    mappedResponses.add(Either.left(response));
+                    if (batchResponseEntry.errorCode() == null) {
+                        IdentifiableMessage<DeleteRequestResponse> response = createDeleteRequestResponse(batchResponseEntry,
+                                                                                                          batchResponse);
+                        mappedResponses.add(Either.left(response));
+                    } else {
+                        IdentifiableMessage<Throwable> response = deleteRequestCreateThrowable(batchResponseEntry);
+                        mappedResponses.add(Either.right(response));
+                    }
                 });
-            batchResponse.responses().forEach(batchResponseEntry -> {
-                IdentifiableMessage<Throwable> response = deleteRequestCreateThrowable(batchResponseEntry);
-                mappedResponses.add(Either.right(response));
-            });
             return mappedResponses;
         };
     }
