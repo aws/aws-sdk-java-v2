@@ -1,3 +1,20 @@
+# __2.17.28__ __2021-08-26__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Adds support for 1) the AWS Graviton (AWS_ARM64) recommendation preference for Amazon EC2 instance and Auto Scaling group recommendations, and 2) the ability to get the enrollment statuses for all member accounts of an organization.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Support added for resizing VPC prefix lists
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release added new attributes to Rekognition RecognizeCelebities and GetCelebrityInfo API operations.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for batch transcription in six new languages - Afrikaans, Danish, Mandarin Chinese (Taiwan), New Zealand English, South African English, and Thai.
+
 # __2.17.27__ __2021-08-25__
 ## __AWS DataSync__
   - ### Features
