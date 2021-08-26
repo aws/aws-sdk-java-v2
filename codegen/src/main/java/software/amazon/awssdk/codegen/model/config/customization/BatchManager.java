@@ -70,6 +70,13 @@ public class BatchManager {
     private String errorCodeMethod;
 
     /**
+     * Name of the method used to extract the status code from a failed batch entry.
+     *
+     * Ex. code for SQS, errorCode for Kinesis.
+     */
+    private String errorMessageMethod;
+
+    /**
      * Name of the method used to set or extract the request identifier used to identify entries within a batch request.
      *
      * Ex. id for SQS
@@ -138,6 +145,14 @@ public class BatchManager {
 
     public void setErrorCodeMethod(String errorCodeMethod) {
         this.errorCodeMethod = errorCodeMethod;
+    }
+
+    public String getErrorMessageMethod() {
+        return errorMessageMethod;
+    }
+
+    public void setErrorMessageMethod(String errorMessageMethod) {
+        this.errorMessageMethod = errorMessageMethod;
     }
 
     public String getBatchRequestIdentifier() {

@@ -29,7 +29,6 @@ import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.g
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getResponseType;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getSuccessBatchEntry;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getType;
-import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.uppercaseFirstChar;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -48,6 +47,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.codegen.model.config.customization.BatchManager;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -55,7 +55,6 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.codegen.poet.model.ExceptionProperties;
 import software.amazon.awssdk.core.batchmanager.BatchAndSend;
 import software.amazon.awssdk.core.batchmanager.BatchKeyMapper;
 import software.amazon.awssdk.core.batchmanager.BatchResponseMapper;
@@ -344,47 +343,30 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         String responseParam = "failedEntry";
         BatchManager batchManager = batchFunctions.getValue();
         ClassName responseClass = ClassName.get(Throwable.class);
-        ClassName responseEntryClass = getErrorBatchEntry(batchFunctions, modelPackage);
+        ClassName exceptionType = getType(model.getMetadata().getServiceName() + "Exception", modelPackage);
         ParameterizedTypeName returnClass = ParameterizedTypeName.get(ClassName.get(IdentifiableMessage.class), responseClass);
         MethodSpec.Builder builder = methodSignatureWithReturnType(methodName, returnClass)
             .addModifiers(PRIVATE, STATIC)
-            .addParameter(responseEntryClass, responseParam);
+            .addParameter(getErrorBatchEntry(batchFunctions, modelPackage), responseParam);
 
         // TODO: Figure out a better way to return error entry's. Right now we are just returning the error code and message in
         //  an exception but ideally we would want to return all field's in the error entry.
         builder.addStatement("String key = failedEntry.$L()", batchManager.getBatchRequestIdentifier());
-        builder.addStatement(exceptionBuilder(responseEntryClass, responseParam));
-        builder.addStatement("builder.statusCode($T.parseInt(failedEntry.$L()))",
-                             ClassName.get(Integer.class), batchManager.getErrorCodeMethod());
 
-        builder.addStatement("$T response = builder.build()", responseClass);
+        builder.addCode("$T errorDetailsBuilder = $T.builder()",
+                        ClassName.get(AwsErrorDetails.class), ClassName.get(AwsErrorDetails.class));
+        if (batchManager.getErrorCodeMethod() != null) {
+            builder.addCode(".errorCode($L.$L())", responseParam, batchManager.getErrorCodeMethod());
+        }
+        if (batchManager.getErrorMessageMethod() != null) {
+            builder.addCode(".errorMessage($L.$L())", responseParam, batchManager.getErrorMessageMethod());
+        }
+        builder.addCode(".build();\n");
+
+        builder.addStatement("$T response = $T.builder().awsErrorDetails(errorDetailsBuilder).build()",
+                             responseClass, exceptionType);
         builder.addStatement("return new $T(key, response)",
                              returnClass);
-
-        return builder.build();
-    }
-
-    private CodeBlock exceptionBuilder(ClassName originalType, String originalParam) {
-        ClassName newType = getType(model.getMetadata().getServiceName() + "Exception", modelPackage);
-        CodeBlock.Builder builder = CodeBlock.builder();
-
-        builder.add("$T.Builder builder = $T.builder()", newType, newType);
-
-        // Doesn't matter what classname is passed into builderInterfaceMethods since we just want the method names.
-        List<MethodSpec> exceptionMethods = ExceptionProperties.builderInterfaceMethods(originalType);
-        ShapeModel originalShape = model.getShapes().get(originalType.simpleName());
-
-        if (originalShape == null) {
-            throw new IllegalArgumentException("Bad input for type: " + originalType.simpleName());
-        }
-
-        exceptionMethods.forEach(method -> {
-            MemberModel foundMember = originalShape.getMemberByC2jName(uppercaseFirstChar(method.name));
-            if (foundMember != null) {
-                String builderMethod = methodNameFromMemberModel(method.name);
-                builder.add(".$L($L.$L())\n", builderMethod, originalParam, builderMethod);
-            }
-        });
 
         return builder.build();
     }

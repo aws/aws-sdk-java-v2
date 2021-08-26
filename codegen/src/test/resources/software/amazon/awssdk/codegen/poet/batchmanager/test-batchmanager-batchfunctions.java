@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.core.batchmanager.BatchAndSend;
 import software.amazon.awssdk.core.batchmanager.BatchKeyMapper;
 import software.amazon.awssdk.core.batchmanager.BatchResponseMapper;
@@ -109,9 +110,9 @@ public final class BatchManagerTestBatchFunctions {
 
     private static IdentifiableMessage<Throwable> sendRequestCreateThrowable(BatchResultErrorEntry failedEntry) {
         String key = failedEntry.id();
-        BatchManagerTestException.Builder builder = BatchManagerTestException.builder().message(failedEntry.message());
-        builder.statusCode(Integer.parseInt(failedEntry.errorCode()));
-        Throwable response = builder.build();
+        AwsErrorDetails errorDetailsBuilder = AwsErrorDetails.builder().errorCode(failedEntry.errorCode())
+                                                                     .errorMessage(failedEntry.errorMessage()).build();
+        Throwable response = BatchManagerTestException.builder().awsErrorDetails(errorDetailsBuilder).build();
         return new IdentifiableMessage<Throwable>(key, response);
     }
 
@@ -191,9 +192,9 @@ public final class BatchManagerTestBatchFunctions {
 
     private static IdentifiableMessage<Throwable> deleteRequestCreateThrowable(DeleteRequestBatchResultEntry failedEntry) {
         String key = failedEntry.id();
-        BatchManagerTestException.Builder builder = BatchManagerTestException.builder();
-        builder.statusCode(Integer.parseInt(failedEntry.errorCode()));
-        Throwable response = builder.build();
+        AwsErrorDetails errorDetailsBuilder = AwsErrorDetails.builder().errorCode(failedEntry.errorCode())
+                                                                     .errorMessage(failedEntry.errorMessage()).build();
+        Throwable response = BatchManagerTestException.builder().awsErrorDetails(errorDetailsBuilder).build();
         return new IdentifiableMessage<Throwable>(key, response);
     }
 
