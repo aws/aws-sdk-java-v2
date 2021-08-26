@@ -161,17 +161,16 @@ public final class BatchManagerTestBatchFunctions {
     public static BatchResponseMapper<DeleteRequestBatchResponse, DeleteRequestResponse> deleteRequestResponseMapper() {
         return batchResponse -> {
             List<Either<IdentifiableMessage<DeleteRequestResponse>, IdentifiableMessage<Throwable>>> mappedResponses = new ArrayList<>();
-            batchResponse.responses().forEach(
+            batchResponse.successful().forEach(
                 batchResponseEntry -> {
-                    if (batchResponseEntry.errorCode() == null) {
-                        IdentifiableMessage<DeleteRequestResponse> response = createDeleteRequestResponse(batchResponseEntry,
-                                                                                                          batchResponse);
-                        mappedResponses.add(Either.left(response));
-                    } else {
-                        IdentifiableMessage<Throwable> response = deleteRequestCreateThrowable(batchResponseEntry);
-                        mappedResponses.add(Either.right(response));
-                    }
+                    IdentifiableMessage<DeleteRequestResponse> response = createDeleteRequestResponse(batchResponseEntry,
+                                                                                                      batchResponse);
+                    mappedResponses.add(Either.left(response));
                 });
+            batchResponse.failed().forEach(batchResponseEntry -> {
+                IdentifiableMessage<Throwable> response = deleteRequestCreateThrowable(batchResponseEntry);
+                mappedResponses.add(Either.right(response));
+            });
             return mappedResponses;
         };
     }
@@ -190,7 +189,7 @@ public final class BatchManagerTestBatchFunctions {
         return new IdentifiableMessage<DeleteRequestResponse>(key, response);
     }
 
-    private static IdentifiableMessage<Throwable> deleteRequestCreateThrowable(DeleteRequestBatchResultEntry failedEntry) {
+    private static IdentifiableMessage<Throwable> deleteRequestCreateThrowable(BatchResultErrorEntry failedEntry) {
         String key = failedEntry.id();
         AwsErrorDetails errorDetailsBuilder = AwsErrorDetails.builder().errorCode(failedEntry.errorCode())
                                                                      .errorMessage(failedEntry.errorMessage()).build();

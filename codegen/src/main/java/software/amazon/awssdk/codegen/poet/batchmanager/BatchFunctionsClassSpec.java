@@ -38,13 +38,13 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.xml.bind.ValidationException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -107,11 +107,19 @@ public class BatchFunctionsClassSpec implements ClassSpec {
     private List<MethodSpec> batchFunctions() {
         return batchFunctions.entrySet()
                              .stream()
-                             .flatMap(this::batchFunctions)
+                             .flatMap(this::safeBatchFunctions)
                              .collect(Collectors.toList());
     }
 
-    private Stream<MethodSpec> batchFunctions(Map.Entry<String, BatchManager> batchFunctions) {
+    private Stream<MethodSpec> safeBatchFunctions(Map.Entry<String, BatchManager> batchFunctions) throws RuntimeException {
+        try {
+            return batchFunctions(batchFunctions);
+        } catch (ValidationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Stream<MethodSpec> batchFunctions(Map.Entry<String, BatchManager> batchFunctions) throws ValidationException {
         List<MethodSpec> methods = new ArrayList<>();
         methods.addAll(batchingFunction(batchFunctions));
         methods.addAll(responseMapper(batchFunctions));
@@ -245,7 +253,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
                                          requestClass, batchResponseClass);
     }
 
-    private List<MethodSpec> responseMapper(Map.Entry<String, BatchManager> batchFunctions) {
+    private List<MethodSpec> responseMapper(Map.Entry<String, BatchManager> batchFunctions) throws ValidationException {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(responseMapperCore(batchFunctions));
         methods.add(createResponseFromEntry(batchFunctions));
@@ -253,7 +261,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return methods;
     }
 
-    private MethodSpec responseMapperCore(Map.Entry<String, BatchManager> batchFunctions) {
+    private MethodSpec responseMapperCore(Map.Entry<String, BatchManager> batchFunctions) throws ValidationException {
         BatchManager batchManager = batchFunctions.getValue();
         String methodName = batchFunctions.getKey() + "ResponseMapper";
         ClassName responseClass = getResponseType(batchFunctions, modelPackage);
@@ -273,27 +281,18 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         builder.addStatement("return batchResponse -> {\n"
                              + "    $T mappedResponses = new $T<>()",
                              mappedResponsesType, ClassName.get(ArrayList.class))
-               .addCode("batchResponse.$L()\n"
-                        + " .forEach(batchResponseEntry -> {\n",
-                        batchManager.getSuccessEntriesMethod());
+               .addStatement("batchResponse.$L()\n"
+                             + " .forEach(batchResponseEntry -> {\n"
+                             + "    IdentifiableMessage<$T> response = $N(batchResponseEntry, batchResponse);\n"
+                             + "    mappedResponses.add(Either.left(response));\n"
+                             + "})",
+                             batchManager.getSuccessEntriesMethod(), responseClass, createResponseFromEntry(batchFunctions));
 
         String errorEntriesMethod = getErrorEntriesMethod(batchFunctions);
         String errorCodeMethod = batchManager.getErrorCodeMethod();
         if (errorEntriesMethod.equals(batchManager.getSuccessEntriesMethod())) {
-            builder.addStatement("    if (batchResponseEntry.$L() == null) {\n"
-                                 + "        IdentifiableMessage<$T> response = $N(batchResponseEntry, batchResponse);\n"
-                                 + "        mappedResponses.add(Either.left(response));\n"
-                                 + "    } else {\n"
-                                 + "        IdentifiableMessage<Throwable> response = $N(batchResponseEntry);\n"
-                                 + "        mappedResponses.add(Either.right(response));\n"
-                                 + "}})",
-                                 errorCodeMethod, responseClass,
-                                 createResponseFromEntry(batchFunctions), createThrowableFromEntry(batchFunctions));
+            throw new ValidationException("A batch operation must return a separate list for success and errors in the response");
         } else {
-            builder.addStatement("    IdentifiableMessage<$T> response = $N(batchResponseEntry, batchResponse);\n"
-                                 + "    mappedResponses.add(Either.left(response));\n"
-                                 + "})",
-                                 responseClass, createResponseFromEntry(batchFunctions));
             if (errorCodeMethod != null) {
                 builder.addStatement("batchResponse.$L()\n"
                                      + ".forEach(batchResponseEntry -> {\n"
@@ -388,23 +387,19 @@ public class BatchFunctionsClassSpec implements ClassSpec {
 
         newShape.getMembers()
                 .forEach(memberModel -> {
-                    String builderMethod = methodNameFromMemberModel(memberModel.getName());
                     MemberModel foundMember = originalShape.getMemberByName(memberModel.getName());
-                    if (builderMethod.equals(batchFunctions.getValue().getBatchRequestIdentifier())) {
-                        builder.add(".$L(id)\n", builderMethod);
+                    String setterMethod = memberModel.getFluentSetterMethodName();
+                    if (setterMethod.equals(batchFunctions.getValue().getBatchRequestIdentifier())) {
+                        builder.add(".$L(id)\n", setterMethod);
                     } else if (foundMember != null) {
-                        builder.add(".$L($L.$L())\n", builderMethod, originalParam, builderMethod);
+                        String getterMethod = foundMember.getFluentGetterMethodName();
+                        builder.add(".$L($L.$L())\n", setterMethod, originalParam, getterMethod);
                     } else {
                         log.debug(() -> originalType.simpleName() + " doesn't have method: " + memberModel.getName());
                     }
                 });
 
         return builder.build();
-    }
-
-    private String methodNameFromMemberModel(String memberModelName) {
-        // Have to lowercase second char as well since MD5 methods/members have the D capitalized as well
-        return memberModelName.substring(0, 2).toLowerCase(Locale.ROOT) + memberModelName.substring(2);
     }
 
     private MethodSpec batchKeyMapper(Map.Entry<String, BatchManager> batchFunctions) {
