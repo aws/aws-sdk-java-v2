@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EMR",
-    "contributor": "",
-    "description": "Amazon EMR now supports auto-terminating idle EMR clusters. You can specify the idle timeout value when enabling auto-termination for both running and new clusters and Amazon EMR automatically terminates the cluster when idle timeout kicks in."
-}
