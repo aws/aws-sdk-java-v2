@@ -101,7 +101,7 @@ public class PoetExtensions {
     }
 
     public ClassName getBatchManagerSyncClass() {
-        return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(),
+        return ClassName.get(model.getMetadata().getFullBatchManagerInternalPackageName(),
                              "Default" + model.getMetadata().getServiceName() + "BatchManager");
     }
 
@@ -111,18 +111,13 @@ public class PoetExtensions {
     }
 
     public ClassName getBatchManagerAsyncClass() {
-        return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(),
+        return ClassName.get(model.getMetadata().getFullBatchManagerInternalPackageName(),
                              "Default" + model.getMetadata().getServiceName() + "AsyncBatchManager");
     }
 
     public ClassName getBatchManagerAsyncInterface() {
         return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(), model.getMetadata().getServiceName() +
                                                                                    "AsyncBatchManager");
-    }
-
-    public ClassName getConfigurationClass() {
-        return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(), model.getMetadata().getServiceName() +
-                                                                                   "BatchConfiguration");
     }
 
     /**

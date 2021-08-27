@@ -22,6 +22,7 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -29,7 +30,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import org.omg.SendingContext.RunTime;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
@@ -69,7 +69,7 @@ public class SyncBatchManagerClassSpec extends BaseBatchManagerClassSpec {
 
     @Override
     protected void additionalTypeSpecModification(TypeSpec.Builder builder) {
-        builder.addField(ClassName.get(boolean.class), "createdExecutor", PRIVATE)
+        builder.addField(TypeName.BOOLEAN, "createdExecutor", PRIVATE)
                .addField(ClassName.get(Executor.class), "executor", PRIVATE, FINAL);
     }
 
@@ -90,7 +90,7 @@ public class SyncBatchManagerClassSpec extends BaseBatchManagerClassSpec {
     @Override
     protected void additionalTestConstructorInitialization(MethodSpec.Builder builder) {
         builder.addParameter(ClassName.get(Executor.class), "executor")
-               .addParameter(ClassName.get(boolean.class), "createdExecutor")
+               .addParameter(TypeName.BOOLEAN, "createdExecutor")
                .addStatement("this.executor = executor")
                .addStatement("this.createdExecutor = createdExecutor");
     }
@@ -123,7 +123,7 @@ public class SyncBatchManagerClassSpec extends BaseBatchManagerClassSpec {
         ClassName threadPoolExecutorClass = ClassName.get(ThreadPoolExecutor.class);
         CodeBlock codeBlock = CodeBlock.builder()
                                        .addStatement("int processors = $T.getRuntime().availableProcessors()",
-                                                     ClassName.get(RunTime.class))
+                                                     ClassName.get(Runtime.class))
                                        .addStatement("int corePoolSize = $T.max(8, processors)", mathClass)
                                        .addStatement("int maxPoolSize = $T.max(64, processors * 2)", mathClass)
                                        .addStatement("$T defaultExecutor = new $T(corePoolSize, maxPoolSize, 10, $T"

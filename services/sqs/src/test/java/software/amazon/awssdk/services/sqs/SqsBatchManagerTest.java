@@ -100,10 +100,10 @@ public class SqsBatchManagerTest extends BaseSqsBatchManagerTest {
 
     @Test
     public void closeBatchManager_shouldCloseExecutorsButNotClient() {
-        SqsBatchManager batchManager = new DefaultSqsBatchManager(mockClient, mockExecutor, false,
+        SqsBatchManager batchManager = new DefaultSqsBatchManager(mockClient,
                                                                   mockSendMessageBatchManager,
                                                                   mockDeleteMessageBatchManager,
-                                                                  mockChangeVisibilityBatchManager);
+                                                                  mockChangeVisibilityBatchManager, mockExecutor, false);
         batchManager.close();
         verify(mockSendMessageBatchManager).close();
         verify(mockDeleteMessageBatchManager).close();
@@ -114,10 +114,10 @@ public class SqsBatchManagerTest extends BaseSqsBatchManagerTest {
 
     @Test
     public void closeBatchManager_shouldNotCloseExecutorsOrClient() {
-        SqsBatchManager batchManager = new DefaultSqsBatchManager(mockClient, mockExecutor, true,
+        SqsBatchManager batchManager = new DefaultSqsBatchManager(mockClient,
                                                                   mockSendMessageBatchManager,
                                                                   mockDeleteMessageBatchManager,
-                                                                  mockChangeVisibilityBatchManager);
+                                                                  mockChangeVisibilityBatchManager, mockExecutor, true);
         batchManager.close();
         verify(mockSendMessageBatchManager).close();
         verify(mockDeleteMessageBatchManager).close();
