@@ -83,8 +83,11 @@ public class BatchManagerMethods {
      */
     private String batchRequestIdentifier;
 
-    /** Default values for the configurable values in the service's batchManager */
-    // private BatchManagerConfigurations configurations;
+    /** Default value for maximum number of items in a batch request */
+    private Integer maxBatchItems;
+
+    /** Default value for maximum amount of time, in milliseconds, that a batch request is open for before being sent */
+    private Integer maxBatchOpenInMs;
 
     public String getBatchMethod() {
         return batchMethod;
@@ -166,11 +169,19 @@ public class BatchManagerMethods {
         this.batchRequestIdentifier = requestIdentifier;
     }
 
-    // public BatchManagerConfigurations getConfigurations() {
-    //     return configurations;
-    // }
+    public Integer getMaxBatchItems() {
+        return maxBatchItems;
+    }
 
-    // public void setConfigurations(BatchManagerConfigurations configurations) {
-    //     this.configurations = configurations;
-    // }
+    public void setMaxBatchItems(Integer maxBatchItems) {
+        this.maxBatchItems = maxBatchItems;
+    }
+
+    public Integer getMaxBatchOpenInMs() {
+        return maxBatchOpenInMs;
+    }
+
+    public void setMaxBatchOpenInMs(Integer maxBatchOpenInMs) {
+        this.maxBatchOpenInMs = maxBatchOpenInMs;
+    }
 }

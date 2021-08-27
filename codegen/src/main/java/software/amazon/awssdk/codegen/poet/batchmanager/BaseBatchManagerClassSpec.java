@@ -29,6 +29,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +64,7 @@ public abstract class BaseBatchManagerClassSpec implements ClassSpec {
                                                  .addModifiers(PUBLIC, FINAL)
                                                  .addSuperinterface(interfaceClassName());
 
-        ClassName batchManagerType = ClassName.get(BatchManagerMethods.class);
+        ClassName batchManagerType = ClassName.get(BatchManager.class);
         additionalTypeSpecModification(classBuilder);
         classBuilder.addField(clientClassName(), "client", PRIVATE, FINAL);
         batchFunctions.entrySet()
@@ -82,6 +83,7 @@ public abstract class BaseBatchManagerClassSpec implements ClassSpec {
         classBuilder.addMethod(constructor())
                     .addMethod(internalTestConstructor())
                     .addMethods(batchManagerMethods())
+                    .addMethods(configMethods())
                     .addMethod(close())
                     .addMethod(MethodSpec.methodBuilder("builder")
                                          .addModifiers(PUBLIC, STATIC)
@@ -100,7 +102,7 @@ public abstract class BaseBatchManagerClassSpec implements ClassSpec {
                                                .addModifiers(PRIVATE)
                                                .addParameter(className().nestedClass("DefaultBuilder"), "builder");
         builder.addStatement("this.client = builder.client")
-               .addStatement("this.scheduledExecutor = builder.scheduledExecutor");
+               .addStatement("$T scheduledExecutor = builder.scheduledExecutor", ClassName.get(ScheduledExecutorService.class));
 
         // TODO: Figure out how to properly create and pass service configurations. Should it be the same configuration for each
         //  batchManager (so out here) or a separate configuration for each batchManager (so in the forEach loop).
@@ -119,20 +121,21 @@ public abstract class BaseBatchManagerClassSpec implements ClassSpec {
                                           batchManagerParam, ClassName.get(BatchManager.class), requestType,
                                           responseType, batchResponseType);
 
-                          String batchFunctionsCode;
                           if (isSync()) {
-                              batchFunctionsCode = ".batchFunctions($T.$L(client, executor))\n";
+                              builder.addCode(".batchFunction($T.$L(client, executor))\n", batchFunctionsClass,
+                                              requestMethod + "BatchFunction");
                           } else {
-                              batchFunctionsCode = ".batchFunctions($T.$L(client))\n";
+                              builder.addCode(".batchFunction($T.$L(client))\n", batchFunctionsClass,
+                                              requestMethod + "BatchAsyncFunction");
                           }
-                          builder.addCode(batchFunctionsCode, batchFunctionsClass, requestMethod + "BatchFunction")
-                                 .addStatement(".responseMapper($T.$L())\n"
-                                               + ".responseMapper($T.$L())\n"
-                                               + ".overrideConfiguration(overrideConfig)\n"
+                          builder.addStatement(".responseMapper($T.$L())\n"
+                                               + ".batchKeyMapper($T.$L())\n"
+                                               + ".overrideConfiguration($N(builder.overrideConfiguration))\n"
                                                + ".scheduledExecutor(scheduledExecutor)\n"
                                                + ".build()",
                                                batchFunctionsClass, requestMethod + "ResponseMapper",
-                                               batchFunctionsClass, requestMethod + "BatchKeyMapper");
+                                               batchFunctionsClass, requestMethod + "BatchKeyMapper",
+                                               configMethod(batchFunctionsEntry));
 
                       });
 
@@ -144,7 +147,7 @@ public abstract class BaseBatchManagerClassSpec implements ClassSpec {
                                                .addModifiers(PUBLIC)
                                                .addAnnotation(SdkInternalApi.class);
 
-        ClassName batchManagerType = ClassName.get(BatchManagerMethods.class);
+        ClassName batchManagerType = ClassName.get(BatchManager.class);
         builder.addParameter(clientClassName(), "client");
         batchFunctions.entrySet()
                       .forEach(batchFunctionsEntry -> {
@@ -185,8 +188,39 @@ public abstract class BaseBatchManagerClassSpec implements ClassSpec {
         return builder.build();
     }
 
+    private List<MethodSpec> configMethods() {
+        return batchFunctions.entrySet()
+                             .stream()
+                             .map(this::configMethod)
+                             .collect(Collectors.toList());
+    }
+
+    private MethodSpec configMethod(Map.Entry<String, BatchManagerMethods> batchManagerMethod) {
+        String methodName = batchManagerMethod.getKey() + "Config";
+        BatchManagerMethods batchManager = batchManagerMethod.getValue();
+        ClassName batchOverrideConfigClass = ClassName.get(BatchOverrideConfiguration.class);
+        MethodSpec.Builder builder = methodSignatureWithReturnType(methodName, batchOverrideConfigClass)
+            .addModifiers(PRIVATE)
+            .addParameter(batchOverrideConfigClass, "overrideConfiguration");
+
+        builder.addStatement("$T.Builder config = $T.builder()", batchOverrideConfigClass, batchOverrideConfigClass)
+               .beginControlFlow("if (overrideConfiguration == null)")
+               .addStatement("config.maxBatchItems($L)", batchManager.getMaxBatchItems())
+               .addStatement("config.maxBatchOpenInMs($T.ofMillis($L))", ClassName.get(Duration.class),
+                             batchManager.getMaxBatchOpenInMs())
+               .nextControlFlow("else")
+               .addStatement("config.maxBatchItems(overrideConfiguration.maxBatchItems().orElse($L))",
+                             batchManager.getMaxBatchItems())
+               .addStatement("config.maxBatchOpenInMs(overrideConfiguration.maxBatchOpenInMs().orElse($T.ofMillis($L)))",
+                             ClassName.get(Duration.class), batchManager.getMaxBatchOpenInMs())
+               .endControlFlow()
+               .addStatement("return config.build()");
+
+        return builder.build();
+    }
+
     private MethodSpec close() {
-        MethodSpec.Builder builder = methodSignatureWithReturnType("close", ClassName.get(void.class))
+        MethodSpec.Builder builder = methodSignatureWithReturnType("close", TypeName.VOID)
             .addModifiers(PUBLIC)
             .addAnnotation(Override.class);
 
@@ -222,7 +256,7 @@ public abstract class BaseBatchManagerClassSpec implements ClassSpec {
                                                                           "overrideConfiguration")
                                                             .addStatement("this.overrideConfiguration = overrideConfiguration");
         MethodSpec.Builder clientMethod = MethodSpec.methodBuilder("client")
-                                                    .addParameter(clientClassName(), "overrideConfiguration")
+                                                    .addParameter(clientClassName(), "client")
                                                     .addStatement("this.client = client");
         MethodSpec.Builder scheduledExecutorMethod = MethodSpec.methodBuilder("scheduledExecutor")
                                                                .addParameter(ClassName.get(ScheduledExecutorService.class),
