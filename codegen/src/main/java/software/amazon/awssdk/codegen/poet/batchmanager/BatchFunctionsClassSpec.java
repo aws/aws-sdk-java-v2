@@ -47,7 +47,7 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
-import software.amazon.awssdk.codegen.model.config.customization.BatchManager;
+import software.amazon.awssdk.codegen.model.config.customization.BatchManagerMethods;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
@@ -66,7 +66,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
     private static final Logger log = Logger.loggerFor(BatchFunctionsClassSpec.class);
 
     private final IntermediateModel model;
-    private final Map<String, BatchManager> batchFunctions;
+    private final Map<String, BatchManagerMethods> batchFunctions;
     private final String modelPackage;
     private final PoetExtensions poetExtensions;
     private final ClassName className;
@@ -110,7 +110,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
                              .collect(Collectors.toList());
     }
 
-    private Stream<MethodSpec> safeBatchFunctions(Map.Entry<String, BatchManager> batchFunctions) throws RuntimeException {
+    private Stream<MethodSpec> safeBatchFunctions(Map.Entry<String, BatchManagerMethods> batchFunctions) throws RuntimeException {
         try {
             return batchFunctions(batchFunctions);
         } catch (IllegalArgumentException e) {
@@ -118,7 +118,8 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         }
     }
 
-    private Stream<MethodSpec> batchFunctions(Map.Entry<String, BatchManager> batchFunctions) throws IllegalArgumentException {
+    private Stream<MethodSpec> batchFunctions(Map.Entry<String, BatchManagerMethods> batchFunctions)
+            throws IllegalArgumentException {
         List<MethodSpec> methods = new ArrayList<>();
         methods.addAll(batchingFunction(batchFunctions));
         methods.addAll(responseMapper(batchFunctions));
@@ -126,7 +127,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return methods.stream();
     }
 
-    private List<MethodSpec> batchingFunction(Map.Entry<String, BatchManager> batchFunctions) {
+    private List<MethodSpec> batchingFunction(Map.Entry<String, BatchManagerMethods> batchFunctions) {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(batchingFunctionSync(batchFunctions));
         methods.add(batchingFunctionAsync(batchFunctions));
@@ -135,7 +136,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return methods;
     }
 
-    private MethodSpec batchingFunctionSync(Map.Entry<String, BatchManager> batchFunctions) {
+    private MethodSpec batchingFunctionSync(Map.Entry<String, BatchManagerMethods> batchFunctions) {
         String methodName = batchFunctions.getKey() + "BatchFunction";
         MethodSpec.Builder builder = methodSignatureWithReturnType(methodName, batchingFunctionReturn(batchFunctions))
             .addModifiers(PUBLIC, STATIC)
@@ -146,7 +147,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return builder.build();
     }
 
-    private MethodSpec batchingFunctionAsync(Map.Entry<String, BatchManager> batchFunctions) {
+    private MethodSpec batchingFunctionAsync(Map.Entry<String, BatchManagerMethods> batchFunctions) {
         String methodName = batchFunctions.getKey() + "BatchAsyncFunction";
         MethodSpec.Builder builder = methodSignatureWithReturnType(methodName, batchingFunctionReturn(batchFunctions))
             .addModifiers(PUBLIC, STATIC)
@@ -156,7 +157,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return builder.build();
     }
 
-    private MethodSpec batchingFunctionHelper(Map.Entry<String, BatchManager> batchFunctions) {
+    private MethodSpec batchingFunctionHelper(Map.Entry<String, BatchManagerMethods> batchFunctions) {
         ClassName returnType = getBatchRequestType(batchFunctions, modelPackage);
         ClassName batchRequestEntryType = getBatchRequestEntryType(batchFunctions, modelPackage);
         ClassName batchRequestType = getBatchRequestType(batchFunctions, modelPackage);
@@ -203,7 +204,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
     }
 
     private void addBatchFunctionStatementSync(MethodSpec.Builder builder,
-                                               Map.Entry<String, BatchManager> batchFunctions) {
+                                               Map.Entry<String, BatchManagerMethods> batchFunctions) {
         addBatchFunctionStatementCore(builder, batchFunctions);
         builder.addStatement("    return $T.supplyAsync(() -> client.$L(batchRequest), executor);\n"
                              + "}",
@@ -212,7 +213,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
     }
 
     private void addBatchFunctionStatementAsync(MethodSpec.Builder builder,
-                                                Map.Entry<String, BatchManager> batchFunctions) {
+                                                Map.Entry<String, BatchManagerMethods> batchFunctions) {
         addBatchFunctionStatementCore(builder, batchFunctions);
         builder.addStatement("    return client.$L(batchRequest);\n"
                              + "}",
@@ -220,14 +221,14 @@ public class BatchFunctionsClassSpec implements ClassSpec {
     }
 
     private void addBatchFunctionStatementCore(MethodSpec.Builder builder,
-                                                      Map.Entry<String, BatchManager> batchFunctions) {
+                                                      Map.Entry<String, BatchManagerMethods> batchFunctions) {
         builder.addStatement("return (identifiedRequests, batchKey) -> {\n"
                              + "    $T batchRequest = $N(identifiedRequests, batchKey)",
                              getBatchRequestType(batchFunctions, modelPackage),
                              batchingFunctionHelper(batchFunctions));
     }
 
-    private MethodSpec addCreateBatchEntryMethod(Map.Entry<String, BatchManager> batchFunctions) {
+    private MethodSpec addCreateBatchEntryMethod(Map.Entry<String, BatchManagerMethods> batchFunctions) {
         ClassName batchRequestEntryType = getBatchRequestEntryType(batchFunctions, modelPackage);
         ClassName requestType = getRequestType(batchFunctions, modelPackage);
         String methodName = "create" + batchRequestEntryType.simpleName();
@@ -244,7 +245,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return builder.build();
     }
 
-    private ParameterizedTypeName batchingFunctionReturn(Map.Entry<String, BatchManager> batchFunctions) {
+    private ParameterizedTypeName batchingFunctionReturn(Map.Entry<String, BatchManagerMethods> batchFunctions) {
         ClassName requestClass = getRequestType(batchFunctions, modelPackage);
         ClassName batchResponseClass = getBatchResponseType(batchFunctions, modelPackage);
 
@@ -252,7 +253,8 @@ public class BatchFunctionsClassSpec implements ClassSpec {
                                          requestClass, batchResponseClass);
     }
 
-    private List<MethodSpec> responseMapper(Map.Entry<String, BatchManager> batchFunctions) throws IllegalArgumentException {
+    private List<MethodSpec> responseMapper(Map.Entry<String, BatchManagerMethods> batchFunctions)
+            throws IllegalArgumentException {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(responseMapperCore(batchFunctions));
         methods.add(createResponseFromEntry(batchFunctions));
@@ -260,8 +262,8 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return methods;
     }
 
-    private MethodSpec responseMapperCore(Map.Entry<String, BatchManager> batchFunctions) throws IllegalArgumentException {
-        BatchManager batchManager = batchFunctions.getValue();
+    private MethodSpec responseMapperCore(Map.Entry<String, BatchManagerMethods> batchFunctions) throws IllegalArgumentException {
+        BatchManagerMethods batchManagerMethods = batchFunctions.getValue();
         String methodName = batchFunctions.getKey() + "ResponseMapper";
         ClassName responseClass = getResponseType(batchFunctions, modelPackage);
         ClassName batchResponseClass = getBatchResponseType(batchFunctions, modelPackage);
@@ -285,11 +287,12 @@ public class BatchFunctionsClassSpec implements ClassSpec {
                              + "    IdentifiableMessage<$T> response = $N(batchResponseEntry, batchResponse);\n"
                              + "    mappedResponses.add(Either.left(response));\n"
                              + "})",
-                             batchManager.getSuccessEntriesMethod(), responseClass, createResponseFromEntry(batchFunctions));
+                             batchManagerMethods.getSuccessEntriesMethod(), responseClass,
+                             createResponseFromEntry(batchFunctions));
 
         String errorEntriesMethod = getErrorEntriesMethod(batchFunctions);
-        String errorCodeMethod = batchManager.getErrorCodeMethod();
-        if (errorEntriesMethod.equals(batchManager.getSuccessEntriesMethod())) {
+        String errorCodeMethod = batchManagerMethods.getErrorCodeMethod();
+        if (errorEntriesMethod.equals(batchManagerMethods.getSuccessEntriesMethod())) {
             throw new IllegalArgumentException("A batch operation must return a separate list for success and errors in the "
                                                + "response");
         } else {
@@ -310,7 +313,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return builder.build();
     }
 
-    private MethodSpec createResponseFromEntry(Map.Entry<String, BatchManager> batchFunctions) {
+    private MethodSpec createResponseFromEntry(Map.Entry<String, BatchManagerMethods> batchFunctions) {
         String methodName = "create" + getResponseType(batchFunctions, modelPackage).simpleName();
         String responseParam = "successfulEntry";
         ClassName responseClass = getResponseType(batchFunctions, modelPackage);
@@ -337,10 +340,10 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return builder.build();
     }
 
-    private MethodSpec createThrowableFromEntry(Map.Entry<String, BatchManager> batchFunctions) {
+    private MethodSpec createThrowableFromEntry(Map.Entry<String, BatchManagerMethods> batchFunctions) {
         String methodName = batchFunctions.getKey() + "CreateThrowable";
         String responseParam = "failedEntry";
-        BatchManager batchManager = batchFunctions.getValue();
+        BatchManagerMethods batchManagerMethods = batchFunctions.getValue();
         ClassName responseClass = ClassName.get(Throwable.class);
         ClassName exceptionType = getType(model.getMetadata().getServiceName() + "Exception", modelPackage);
         ParameterizedTypeName returnClass = ParameterizedTypeName.get(ClassName.get(IdentifiableMessage.class), responseClass);
@@ -350,15 +353,15 @@ public class BatchFunctionsClassSpec implements ClassSpec {
 
         // TODO: Figure out a better way to return error entry's. Right now we are just returning the error code and message in
         //  an exception but ideally we would want to return all field's in the error entry.
-        builder.addStatement("String key = failedEntry.$L()", batchManager.getBatchRequestIdentifier());
+        builder.addStatement("String key = failedEntry.$L()", batchManagerMethods.getBatchRequestIdentifier());
 
         builder.addCode("$T errorDetailsBuilder = $T.builder()",
                         ClassName.get(AwsErrorDetails.class), ClassName.get(AwsErrorDetails.class));
-        if (batchManager.getErrorCodeMethod() != null) {
-            builder.addCode(".errorCode($L.$L())", responseParam, batchManager.getErrorCodeMethod());
+        if (batchManagerMethods.getErrorCodeMethod() != null) {
+            builder.addCode(".errorCode($L.$L())", responseParam, batchManagerMethods.getErrorCodeMethod());
         }
-        if (batchManager.getErrorMessageMethod() != null) {
-            builder.addCode(".errorMessage($L.$L())", responseParam, batchManager.getErrorMessageMethod());
+        if (batchManagerMethods.getErrorMessageMethod() != null) {
+            builder.addCode(".errorMessage($L.$L())", responseParam, batchManagerMethods.getErrorMessageMethod());
         }
         builder.addCode(".build();\n");
 
@@ -370,7 +373,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return builder.build();
     }
 
-    private CodeBlock builderMapOneClassToAnother(Map.Entry<String, BatchManager> batchFunctions, ClassName newType,
+    private CodeBlock builderMapOneClassToAnother(Map.Entry<String, BatchManagerMethods> batchFunctions, ClassName newType,
                                                   ClassName originalType, String originalParam) {
         CodeBlock.Builder builder = CodeBlock.builder();
 
@@ -402,7 +405,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return builder.build();
     }
 
-    private MethodSpec batchKeyMapper(Map.Entry<String, BatchManager> batchFunctions) {
+    private MethodSpec batchKeyMapper(Map.Entry<String, BatchManagerMethods> batchFunctions) {
         String methodName = batchFunctions.getKey() + "BatchKeyMapper";
         String batchKeyMethod = batchFunctions.getValue().getBatchKey();
         ClassName requestClass = getRequestType(batchFunctions, modelPackage);
