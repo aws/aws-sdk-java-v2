@@ -13,17 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.internal.batchmanager;
+package software.amazon.awssdk.services.sqs.batchmanager.internal;
 
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityBatchAsyncFunction;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityBatchKeyMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.changeVisibilityResponseMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.deleteMessageBatchAsyncFunction;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.deleteMessageBatchKeyMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.deleteMessageResponseMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageBatchAsyncFunction;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageBatchKeyMapper;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsBatchFunctions.sendMessageResponseMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.changeMessageVisibilityBatchAsyncFunction;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.changeMessageVisibilityBatchKeyMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.changeMessageVisibilityResponseMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.deleteMessageBatchAsyncFunction;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.deleteMessageBatchKeyMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.deleteMessageResponseMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.sendMessageBatchAsyncFunction;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.sendMessageBatchKeyMapper;
+import static software.amazon.awssdk.services.sqs.batchmanager.internal.SqsBatchFunctions.sendMessageResponseMapper;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
@@ -82,9 +82,9 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
         this.changeVisibilityBatchManager = BatchManager.builder(ChangeMessageVisibilityRequest.class,
                                                                  ChangeMessageVisibilityResponse.class,
                                                                  ChangeMessageVisibilityBatchResponse.class)
-                                                        .batchFunction(changeVisibilityBatchAsyncFunction(client))
-                                                        .responseMapper(changeVisibilityResponseMapper())
-                                                        .batchKeyMapper(changeVisibilityBatchKeyMapper())
+                                                        .batchFunction(changeMessageVisibilityBatchAsyncFunction(client))
+                                                        .responseMapper(changeMessageVisibilityResponseMapper())
+                                                        .batchKeyMapper(changeMessageVisibilityBatchKeyMapper())
                                                         .overrideConfiguration(overrideConfiguration)
                                                         .scheduledExecutor(scheduledExecutor)
                                                         .build();

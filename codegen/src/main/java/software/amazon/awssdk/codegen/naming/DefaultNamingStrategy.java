@@ -181,6 +181,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
                                         Constant.PACKAGE_NAME_SMOKE_TEST_PATTERN);
     }
 
+    @Override
+    public String getBatchManagerPackageName(String serviceName) {
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName), Constant.PACKAGE_NAME_BATCHMANAGER_PATTERN);
+    }
+
     /**
      * If the service is sharing models with other services, we need to concatenate its customized package name
      * if provided or service name with the shared service name.

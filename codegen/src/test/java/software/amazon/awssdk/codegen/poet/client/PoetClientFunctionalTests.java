@@ -23,7 +23,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
-import software.amazon.awssdk.codegen.poet.waiters.WaiterInterfaceSpec;
+import software.amazon.awssdk.codegen.poet.batchmanager.BatchFunctionsClassSpec;
 
 public class PoetClientFunctionalTests {
 
@@ -142,5 +142,11 @@ public class PoetClientFunctionalTests {
     public void asyncClientBatchManagerInterface() throws Exception {
         ClassSpec asyncClientBatchManagerInterface = new AsyncClientInterface(ClientTestModels.batchManagerModels());
         assertThat(asyncClientBatchManagerInterface, generatesTo("test-batchmanager-async-interface.java"));
+    }
+
+    @Test
+    public void batchFunctionsClass() throws Exception {
+        ClassSpec batchFunctionsClassSpec = new BatchFunctionsClassSpec(ClientTestModels.batchManagerModels());
+        assertThat(batchFunctionsClassSpec, generatesTo("test-batchmanager-batchfunctions.java"));
     }
 }

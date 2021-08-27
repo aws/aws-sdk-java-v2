@@ -189,7 +189,7 @@ public class CustomizationConfig {
 
     private String userAgent;
 
-    private BatchManagerMethod batchManagerMethod;
+    private Map<String, BatchManager> batchManagerMethods;
 
     private CustomizationConfig() {
     }
@@ -488,11 +488,11 @@ public class CustomizationConfig {
         return this;
     }
 
-    public BatchManagerMethod getBatchManagerMethod() {
-        return batchManagerMethod;
+    public Map<String, BatchManager>  getBatchManagerMethods() {
+        return batchManagerMethods;
     }
 
-    public void setBatchManagerMethod(BatchManagerMethod batchManagerMethod) {
-        this.batchManagerMethod = batchManagerMethod;
+    public void setBatchManager(Map<String, BatchManager> batchManagerMethods) {
+        this.batchManagerMethods = batchManagerMethods;
     }
 }

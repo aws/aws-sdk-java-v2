@@ -118,8 +118,8 @@ public class SyncClientClass implements ClassSpec {
             classBuilder.addMethod(utilitiesMethod());
         }
 
-        if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
-            classBuilder.addMethod(batchMangerMethod(model, true));
+        if (model.getCustomizationConfig().getBatchManagerMethods() != null) {
+            classBuilder.addMethod(batchMangerMethod(poetExtensions, true));
             classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
                                            .addModifiers(PRIVATE, FINAL)
                                            .build());
@@ -190,7 +190,7 @@ public class SyncClientClass implements ClassSpec {
             builder.endControlFlow();
         }
 
-        if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
+        if (model.getCustomizationConfig().getBatchManagerMethods() != null) {
             builder.addStatement("this.executorService = clientConfiguration.option($T.SCHEDULED_EXECUTOR_SERVICE)",
                                  SdkClientOption.class);
         }

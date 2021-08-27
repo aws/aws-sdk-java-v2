@@ -39,7 +39,6 @@ import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.docs.WaiterDocs;
-import software.amazon.awssdk.codegen.model.config.customization.BatchManagerMethod;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -109,7 +108,7 @@ public class AsyncClientInterface implements ClassSpec {
             result.addMethod(waiterMethod());
         }
 
-        if (model.getCustomizationConfig().getBatchManagerMethod() != null) {
+        if (model.getCustomizationConfig().getBatchManagerMethods() != null) {
             result.addMethod(batchManagerMethod());
         }
 
@@ -474,9 +473,7 @@ public class AsyncClientInterface implements ClassSpec {
     }
 
     private MethodSpec batchManagerMethod() {
-        BatchManagerMethod config = model.getCustomizationConfig().getBatchManagerMethod();
-        ClassName returnType = PoetUtils.classNameFromFqcn(config.getAsyncReturnType());
-
+        ClassName returnType = poetExtensions.getBatchManagerAsyncReturnType();
         return MethodSpec.methodBuilder("batchManager")
                          .returns(returnType)
                          .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)

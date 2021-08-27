@@ -35,7 +35,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.DefaultSqsAsyncBatchManager;
+import software.amazon.awssdk.services.sqs.batchmanager.internal.DefaultSqsAsyncBatchManager;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;

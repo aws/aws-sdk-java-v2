@@ -69,6 +69,8 @@ public class Metadata {
 
     private String waitersPackageName;
 
+    private String batchManagerPackageName;
+
     private String serviceAbbreviation;
 
     private String serviceFullName;
@@ -682,5 +684,26 @@ public class Metadata {
 
     public String getFullWaitersInternalPackageName() {
         return joinPackageNames(getFullWaitersPackageName(), "internal");
+    }
+
+    public String getBatchManagerPackageName() {
+        return batchManagerPackageName;
+    }
+
+    public void setBatchManagerPackageName(String batchManagerPackageName) {
+        this.batchManagerPackageName = batchManagerPackageName;
+    }
+
+    public Metadata withBatchmanagerPackageName(String batchmanagerPackageName) {
+        setBatchManagerPackageName(batchmanagerPackageName);
+        return this;
+    }
+
+    public String getFullBatchManagerPackageName() {
+        return joinPackageNames(rootPackageName, getBatchManagerPackageName());
+    }
+
+    public String getFullBatchManagerInternalPackageName() {
+        return joinPackageNames(getFullBatchManagerPackageName(), "internal");
     }
 }
