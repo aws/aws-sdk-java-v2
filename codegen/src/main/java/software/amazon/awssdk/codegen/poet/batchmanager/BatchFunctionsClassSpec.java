@@ -44,7 +44,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.xml.bind.ValidationException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -114,12 +113,12 @@ public class BatchFunctionsClassSpec implements ClassSpec {
     private Stream<MethodSpec> safeBatchFunctions(Map.Entry<String, BatchManager> batchFunctions) throws RuntimeException {
         try {
             return batchFunctions(batchFunctions);
-        } catch (ValidationException e) {
+        } catch (IllegalArgumentException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Stream<MethodSpec> batchFunctions(Map.Entry<String, BatchManager> batchFunctions) throws ValidationException {
+    private Stream<MethodSpec> batchFunctions(Map.Entry<String, BatchManager> batchFunctions) throws IllegalArgumentException {
         List<MethodSpec> methods = new ArrayList<>();
         methods.addAll(batchingFunction(batchFunctions));
         methods.addAll(responseMapper(batchFunctions));
@@ -253,7 +252,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
                                          requestClass, batchResponseClass);
     }
 
-    private List<MethodSpec> responseMapper(Map.Entry<String, BatchManager> batchFunctions) throws ValidationException {
+    private List<MethodSpec> responseMapper(Map.Entry<String, BatchManager> batchFunctions) throws IllegalArgumentException {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(responseMapperCore(batchFunctions));
         methods.add(createResponseFromEntry(batchFunctions));
@@ -261,7 +260,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return methods;
     }
 
-    private MethodSpec responseMapperCore(Map.Entry<String, BatchManager> batchFunctions) throws ValidationException {
+    private MethodSpec responseMapperCore(Map.Entry<String, BatchManager> batchFunctions) throws IllegalArgumentException {
         BatchManager batchManager = batchFunctions.getValue();
         String methodName = batchFunctions.getKey() + "ResponseMapper";
         ClassName responseClass = getResponseType(batchFunctions, modelPackage);
@@ -291,7 +290,8 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         String errorEntriesMethod = getErrorEntriesMethod(batchFunctions);
         String errorCodeMethod = batchManager.getErrorCodeMethod();
         if (errorEntriesMethod.equals(batchManager.getSuccessEntriesMethod())) {
-            throw new ValidationException("A batch operation must return a separate list for success and errors in the response");
+            throw new IllegalArgumentException("A batch operation must return a separate list for success and errors in the "
+                                               + "response");
         } else {
             if (errorCodeMethod != null) {
                 builder.addStatement("batchResponse.$L()\n"
