@@ -100,14 +100,29 @@ public class PoetExtensions {
                                                                                    "BatchFunctions");
     }
 
-    public ClassName getBatchManagerSyncReturnType() {
+    public ClassName getBatchManagerSyncClass() {
+        return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(),
+                             "Default" + model.getMetadata().getServiceName() + "BatchManager");
+    }
+
+    public ClassName getBatchManagerSyncInterface() {
         return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(), model.getMetadata().getServiceName() +
                                                                                    "BatchManager");
     }
 
-    public ClassName getBatchManagerAsyncReturnType() {
+    public ClassName getBatchManagerAsyncClass() {
+        return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(),
+                             "Default" + model.getMetadata().getServiceName() + "AsyncBatchManager");
+    }
+
+    public ClassName getBatchManagerAsyncInterface() {
         return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(), model.getMetadata().getServiceName() +
                                                                                    "AsyncBatchManager");
+    }
+
+    public ClassName getConfigurationClass() {
+        return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(), model.getMetadata().getServiceName() +
+                                                                                   "BatchConfiguration");
     }
 
     /**

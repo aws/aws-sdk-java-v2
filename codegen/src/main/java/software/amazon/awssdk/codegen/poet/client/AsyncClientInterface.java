@@ -473,7 +473,7 @@ public class AsyncClientInterface implements ClassSpec {
     }
 
     private MethodSpec batchManagerMethod() {
-        ClassName returnType = poetExtensions.getBatchManagerAsyncReturnType();
+        ClassName returnType = poetExtensions.getBatchManagerAsyncInterface();
         return MethodSpec.methodBuilder("batchManager")
                          .returns(returnType)
                          .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
