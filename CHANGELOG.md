@@ -1,3 +1,20 @@
+# __2.17.29__ __2021-08-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon EMR__
+  - ### Features
+    - Amazon EMR now supports auto-terminating idle EMR clusters. You can specify the idle timeout value when enabling auto-termination for both running and new clusters and Amazon EMR automatically terminates the cluster when idle timeout kicks in.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds the BootMode flag to the ImportImage API and showing the detected BootMode of an ImportImage task.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for Amazon S3.
+
 # __2.17.28__ __2021-08-26__
 ## __AWS Compute Optimizer__
   - ### Features
