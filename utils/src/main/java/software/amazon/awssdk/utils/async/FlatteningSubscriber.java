@@ -15,58 +15,81 @@
 
 package software.amazon.awssdk.utils.async;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkProtectedApi
 public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U> {
     private static final Logger log = Logger.loggerFor(FlatteningSubscriber.class);
 
-    private final AtomicLong demand = new AtomicLong(0);
-    private final Object lock = new Object();
+    /**
+     * The amount of unfulfilled demand open against the upstream subscriber.
+     */
+    private final AtomicLong upstreamDemand = new AtomicLong(0);
 
-    private boolean requestedNextBatch = false;
-    private boolean onCompleteCalledByUpstream = false;
-    private boolean terminalCallMadeDownstream = false;
+    /**
+     * The amount of unfulfilled demand the downstream subscriber has opened against us.
+     */
+    private final AtomicLong downstreamDemand = new AtomicLong(0);
 
-    private Subscription sourceSubscription;
-    private Queue<U> currentBatch;
+    /**
+     * A flag that is used to ensure that only one thread is handling updates to the state of this subscriber at a time. This
+     * allows us to ensure that the downstream onNext, onComplete and onError are only ever invoked serially.
+     */
+    private final AtomicBoolean handlingStateUpdate = new AtomicBoolean(false);
+
+    /**
+     * Items given to us by the upstream subscriber that we will use to fulfill demand of the downstream subscriber.
+     */
+    private final LinkedBlockingQueue<U> allItems = new LinkedBlockingQueue<>();
+
+    /**
+     * Whether we have called onComplete or onNext on the downstream subscriber.
+     */
+    private volatile boolean terminalCallMadeDownstream = false;
+
+    /**
+     * Whether the upstream subscriber has called onComplete on us. After this happens, we'll drain any outstanding items in the
+     * allItems queue and then call onComplete on the downstream subscriber.
+     */
+    private volatile boolean onCompleteCalledByUpstream = false;
+
+    /**
+     * Whether the upstream subscriber has called onError on us. If this is null, we haven't gotten an onError. If it's non-null
+     * this will be the exception that the upstream passed to our onError. After we get an onError, we'll call onError on the
+     * downstream subscriber as soon as possible.
+     */
+    private volatile Throwable onErrorFromUpstream = null;
+
+    /**
+     * The subscription to the upstream subscriber.
+     */
+    private Subscription upstreamSubscription;
 
     public FlatteningSubscriber(Subscriber<? super U> subscriber) {
         super(subscriber);
-        currentBatch = new LinkedList<>();
     }
 
     @Override
     public void onSubscribe(Subscription subscription) {
-        if (sourceSubscription != null) {
-            Exception failure = new IllegalStateException("Duplicate subscription.");
-            log.warn(() -> "Received duplicate subscription, cancelling the duplicate.", failure);
+        if (upstreamSubscription != null) {
+            log.warn(() -> "Received duplicate subscription, cancelling the duplicate.", new IllegalStateException());
             subscription.cancel();
+            return;
         }
 
-        sourceSubscription = subscription;
+        upstreamSubscription = subscription;
         subscriber.onSubscribe(new Subscription() {
             @Override
             public void request(long l) {
-                synchronized (lock) {
-                    demand.addAndGet(l);
-                    // Execution goes into `if` block only once for the initial request
-                    // After that requestedNextBatch is always true and more requests are made in fulfillDemand()
-                    if (!requestedNextBatch) {
-                        requestedNextBatch = true;
-                        sourceSubscription.request(1);
-                    } else {
-                        fulfillDemand();
-                    }
-                }
+                downstreamDemand.addAndGet(l);
+                handleStateUpdate();
             }
 
             @Override
@@ -78,47 +101,153 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
 
     @Override
     public void onNext(Iterable<U> nextItems) {
-        synchronized (lock) {
-            currentBatch = StreamSupport.stream(nextItems.spliterator(), false)
-                                        .collect(Collectors.toCollection(LinkedList::new));
-            fulfillDemand();
-        }
-    }
-
-    private void fulfillDemand() {
-        if (terminalCallMadeDownstream) {
-            return;
-        }
-
-        while (demand.get() > 0 && !currentBatch.isEmpty()) {
-            demand.decrementAndGet();
-            subscriber.onNext(currentBatch.poll());
-        }
-
-        if (onCompleteCalledByUpstream && currentBatch.isEmpty()) {
-            subscriber.onComplete();
-        } else if (currentBatch.isEmpty() && demand.get() > 0) {
-            requestedNextBatch = true;
-            sourceSubscription.request(1);
-        }
+        nextItems.forEach(item -> {
+            Validate.notNull(item, "Items must not be null.");
+            allItems.add(item);
+        });
+        upstreamDemand.decrementAndGet();
+        handleStateUpdate();
     }
 
     @Override
     public void onError(Throwable throwable) {
-        synchronized (lock) {
-            subscriber.onError(throwable);
-            terminalCallMadeDownstream = true;
-        }
+        onErrorFromUpstream = throwable;
+        handleStateUpdate();
     }
 
     @Override
     public void onComplete() {
-        synchronized (lock) {
-            onCompleteCalledByUpstream = true;
-            if (currentBatch.isEmpty()) {
-                subscriber.onComplete();
-                terminalCallMadeDownstream = true;
+        onCompleteCalledByUpstream = true;
+        handleStateUpdate();
+    }
+
+    /**
+     * This is invoked after each downstream request or upstream onNext, onError or onComplete.
+     */
+    private void handleStateUpdate() {
+        do {
+            // Anything that happens after this if statement and before we set handlingStateUpdate to false is guaranteed to only
+            // happen on one thread. For that reason, we should only invoke onNext, onComplete or onError within that block.
+            if (!handlingStateUpdate.compareAndSet(false, true)) {
+                return;
             }
+
+            try {
+                // If we've already called onComplete or onError, don't do anything.
+                if (terminalCallMadeDownstream) {
+                    return;
+                }
+
+                // Call onNext, onComplete and onError as needed based on the current subscriber state.
+                handleOnNextState();
+                handleOnCompleteState();
+                handleOnErrorState();
+            } catch (Error e) {
+                throw e;
+            } catch (Throwable e) {
+                // This should not happen. Perhaps our downstream was naughty?
+                die(e);
+            } finally {
+                handlingStateUpdate.set(false);
+            }
+
+            // It's possible we had an important state change between when we decided to release the state update flag, and we
+            // actually released it. If that seems to have happened, try to handle that state change on this thread, because
+            // another thread is not guaranteed to come around and do so.
+        } while (onNextNeeded() || onCompleteNeeded() || onErrorNeeded());
+    }
+
+    /**
+     * Fulfill downstream demand by pulling items out of the item queue and sending them downstream. Return true if all the
+     * downstream demand was fulfilled by items already in the queue, and false if we stopped for any other reason (e.g. we're
+     * out of items in the queue, we got an onError, etc.)
+     */
+    private void handleOnNextState() {
+        while (onNextNeeded() && !onErrorNeeded()) {
+            downstreamDemand.decrementAndGet();
+            subscriber.onNext(allItems.poll());
+        }
+
+        if (downstreamDemand.get() > 0 && allItems.isEmpty()) {
+            ensureUpstreamDemandExists();
+        }
+    }
+
+    /**
+     * Returns true if we need to call onNext downstream. If this is executed outside the handling-state-update condition, the
+     * result is subject to change.
+     */
+    private boolean onNextNeeded() {
+        return !allItems.isEmpty() && downstreamDemand.get() > 0;
+    }
+
+    /**
+     * If there are zero pending items in the queue and the upstream has called onComplete, then tell the downstream
+     * we're done.
+     */
+    private void handleOnCompleteState() {
+        if (onCompleteNeeded()) {
+            subscriber.onComplete();
+            terminalCallMadeDownstream = true;
+        }
+    }
+
+    /**
+     * Returns true if we need to call onNext downstream. If this is executed outside the handling-state-update condition, the
+     * result is subject to change.
+     */
+    private boolean onCompleteNeeded() {
+        return allItems.isEmpty() && onCompleteCalledByUpstream && !terminalCallMadeDownstream;
+    }
+
+    /**
+     * If the upstream has called onError, then tell the downstream we're done, no matter what state the queue is in.
+     */
+    private void handleOnErrorState() {
+        if (onErrorNeeded()) {
+            subscriber.onError(onErrorFromUpstream);
+            terminalCallMadeDownstream = true;
+        }
+    }
+
+    /**
+     * Returns true if we need to call onError downstream. If this is executed outside the handling-state-update condition, the
+     * result is subject to change.
+     */
+    private boolean onErrorNeeded() {
+        return onErrorFromUpstream != null && !terminalCallMadeDownstream;
+    }
+
+    /**
+     * Ensure that we have at least 1 demand upstream, so that we can get more items.
+     */
+    private void ensureUpstreamDemandExists() {
+        if (this.upstreamDemand.get() < 0) {
+            log.error(() -> "Upstream delivered more data than requested. Resetting state to prevent a frozen stream.",
+                      new IllegalStateException());
+            upstreamDemand.set(1);
+            upstreamSubscription.request(1);
+        } else if (this.upstreamDemand.compareAndSet(0, 1)) {
+            upstreamSubscription.request(1);
+        }
+    }
+
+    private void die(Throwable e) {
+        log.error(() -> "Unexpected exception encountered that violates the reactive streams specification. Attempting to "
+                        + "terminate gracefully.", e);
+        try {
+            quietlyWithoutError(upstreamSubscription::cancel);
+            quietlyWithoutError(() -> subscriber.onError(e));
+        } finally {
+            terminalCallMadeDownstream = true;
+        }
+    }
+
+    private void quietlyWithoutError(Runnable runnable) {
+        try {
+            runnable.run();
+        } catch (RuntimeException t) {
+            // Ignore
         }
     }
 }
