@@ -95,6 +95,28 @@ public class FlatteningSubscriberTest {
     }
 
     @Test
+    public void requestInfinite() {
+        flatteningSubscriber.onSubscribe(mockUpstream);
+
+        Subscription downstream = getDownstreamFromDelegate();
+        downstream.request(1);
+        downstream.request(Long.MAX_VALUE);
+        downstream.request(Long.MAX_VALUE);
+        downstream.request(Long.MAX_VALUE);
+        downstream.request(Long.MAX_VALUE);
+
+        Mockito.verify(mockUpstream, times(1)).request(1);
+
+        flatteningSubscriber.onNext(Arrays.asList("foo", "bar"));
+        flatteningSubscriber.onComplete();
+
+        Mockito.verify(mockDelegate).onNext("foo");
+        Mockito.verify(mockDelegate).onNext("bar");
+        Mockito.verify(mockDelegate).onComplete();
+        Mockito.verifyNoMoreInteractions(mockDelegate);
+    }
+
+    @Test
     public void onCompleteDelayedUntilAllDataDelivered() {
         flatteningSubscriber.onSubscribe(mockUpstream);
 

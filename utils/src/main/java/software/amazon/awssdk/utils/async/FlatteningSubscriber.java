@@ -88,7 +88,7 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
         subscriber.onSubscribe(new Subscription() {
             @Override
             public void request(long l) {
-                downstreamDemand.addAndGet(l);
+                addDownstreamDemand(l);
                 handleStateUpdate();
             }
 
@@ -119,6 +119,17 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
     public void onComplete() {
         onCompleteCalledByUpstream = true;
         handleStateUpdate();
+    }
+
+    /**
+     * Increment the downstream demand by the provided value, accounting for overflow.
+     */
+    private void addDownstreamDemand(long l) {
+        Validate.isTrue(l > 0, "Demand must not be negative.");
+        downstreamDemand.getAndUpdate(current -> {
+            long newValue = current + l;
+            return newValue >= 0 ? newValue : Long.MAX_VALUE;
+        });
     }
 
     /**
