@@ -57,7 +57,7 @@ public abstract class BaseBatchManagerInterfaceSpec implements ClassSpec {
     private final PoetExtensions poetExtensions;
     private final Map<String, BatchManagerMethods> batchFunctions;
 
-    public BaseBatchManagerInterfaceSpec(IntermediateModel model) {
+    protected BaseBatchManagerInterfaceSpec(IntermediateModel model) {
         this.model = model;
         this.modelPackage = model.getMetadata().getFullModelPackageName();
         this.serviceName = model.getMetadata().getServiceName();

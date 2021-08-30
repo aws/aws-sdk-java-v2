@@ -28,6 +28,8 @@ import software.amazon.awssdk.codegen.model.config.customization.BatchManagerMet
 
 public final class BatchManagerDocs {
 
+    private static final String BUILDER_RETURN_DOC = "a reference to this object so that method calls can be chained together.";
+
     private BatchManagerDocs() {
     }
 
@@ -89,7 +91,7 @@ public final class BatchManagerDocs {
                          + "This client must be closed by the caller when it is ready to be disposed. The SDK will not "
                          + "close the client when the BatchManager is closed.")
             .param("client", "the client used to send and receive batch messages.")
-            .returns("a reference to this object so that method calls can be chained together.")
+            .returns(BUILDER_RETURN_DOC)
             .build();
 
         return CodeBlock.builder()
@@ -101,7 +103,7 @@ public final class BatchManagerDocs {
         String javadocs = new DocumentationBuilder()
             .description("Defines overrides to the default BatchManager configuration.")
             .param("overrideConfiguration", "the override configuration to set")
-            .returns("a reference to this object so that method calls can be chained together.")
+            .returns(BUILDER_RETURN_DOC)
             .build();
 
         return CodeBlock.builder()
@@ -116,7 +118,7 @@ public final class BatchManagerDocs {
                          + " If supplied by the user, this {@link ScheduledExecutorService} must be closed by the caller when "
                          + "it is ready to be shut down.")
             .param("scheduledExecutor", "the scheduledExecutor to be used")
-            .returns("a reference to this object so that method calls can be chained together.")
+            .returns(BUILDER_RETURN_DOC)
             .build();
 
         return CodeBlock.builder()
@@ -130,7 +132,7 @@ public final class BatchManagerDocs {
                          + "<p>\n Creating a $L directly from the client will use the client's executor. If supplied by the "
                          + "user, this {@link Executor} must be closed by the caller when it is ready to be shut down.")
             .param("executor", "the executor to be used")
-            .returns("a reference to this object so that method calls can be chained together.")
+            .returns(BUILDER_RETURN_DOC)
             .build();
 
         return CodeBlock.builder()

@@ -109,11 +109,12 @@ public class BatchFunctionsClassSpec implements ClassSpec {
                              .collect(Collectors.toList());
     }
 
-    private Stream<MethodSpec> safeBatchFunctions(Map.Entry<String, BatchManagerMethods> batchFunctions) throws RuntimeException {
+    private Stream<MethodSpec> safeBatchFunctions(Map.Entry<String, BatchManagerMethods> batchFunctions)
+            throws IllegalArgumentException {
         try {
             return batchFunctions(batchFunctions);
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
     }
 
