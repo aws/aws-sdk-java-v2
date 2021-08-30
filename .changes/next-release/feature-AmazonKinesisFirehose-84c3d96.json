@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis Firehose",
+    "contributor": "",
+    "description": "This release adds the Dynamic Partitioning feature to Kinesis Data Firehose service for S3 destinations."
+}
