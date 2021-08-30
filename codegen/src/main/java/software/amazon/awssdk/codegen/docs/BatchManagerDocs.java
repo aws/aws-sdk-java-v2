@@ -16,11 +16,13 @@
 package software.amazon.awssdk.codegen.docs;
 
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getBatchRequestType;
+import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getRequestType;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getResponseType;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.codegen.model.config.customization.BatchManagerMethods;
 
@@ -29,33 +31,42 @@ public final class BatchManagerDocs {
     private BatchManagerDocs() {
     }
 
-    public static CodeBlock batchManagerSyncInterfaceDocs(String serviceName) {
-        String javaDoc = " Batch manager class that implements automatic batching features for a $N sync client. This can be "
-                      + "created using the static {@link #builder()} method.";
+    public static CodeBlock batchManagerSyncInterfaceDocs(String serviceName, boolean isSync) {
+        String syncOrAsync = isSync ? "sync" : "async";
+        String javaDoc = " Batch manager class that implements automatic batching features for a $N $L client. This can be "
+                         + "created using the static {@link #builder()} method.\n"
+                         + "<p>\n"
+                         + "The batch manager's automatic batching features allows for request batching using client-side "
+                         + "buffering. This means that calls made from the client are first buffered and then sent as a batch "
+                         + "request to the service. Client side buffering allows buffering a number of requests up to a service "
+                         + "or user defined limit before being sent as a batch request. Outgoing calls are also periodically "
+                         + "flushed after a defined period of time if batch requests do not reach the defined batch size limit.";
         return CodeBlock.builder()
-                        .add(javaDoc, serviceName)
+                        .add(javaDoc, serviceName, syncOrAsync)
                         .build();
     }
 
     public static CodeBlock batchMethodDocs(String serviceName, Map.Entry<String, BatchManagerMethods> batchFunctions,
-                                            String modelpackage) {
-        String returnStatement = "CompletableFuture of the corresponding " + getResponseType(batchFunctions, modelpackage);
-        String requestType = getResponseType(batchFunctions, modelpackage).simpleName();
+                                            String modelPackage) {
+        String batchKey = batchFunctions.getValue().getBatchKey();
+        String returnStatement = "CompletableFuture of the corresponding {@link $T}";
+        ClassName responseType = getResponseType(batchFunctions, modelPackage);
+        ClassName requestType = getRequestType(batchFunctions, modelPackage);
+        ClassName batchRequestType = getBatchRequestType(batchFunctions, modelPackage);
 
-        String description = String.format("Buffers outgoing %ss on the client and sends them as a "
-                                           + "%s to SQS. Requests are batched together "
-                                           + "according to a batchKey and are sent periodically to %s. If the number of "
-                                           + "requests for a batchKey reaches or exceeds the configured max items, then the "
-                                           + "requests are immediately flushed and the timeout on the periodic flush is reset.",
-                                           requestType, getBatchRequestType(batchFunctions, modelpackage).simpleName(),
-                                           serviceName);
+        String description = "Buffers outgoing {@link $T}s on the client and sends them as a "
+                             + "{@link $T} to $L. Requests are batched together according to a batchKey "
+                             + "calculated from the request's $L and overrideConfiguration which are then "
+                             + "sent periodically to $L. If the number of requests for a batchKey reaches or "
+                             + "exceeds the configured max items, then the requests are immediately flushed and "
+                             + "the timeout on the periodic flush is reset.";
 
         String javadocs = new DocumentationBuilder().description(description)
-                                                    .param("request", "the outgoing " + requestType)
+                                                    .param("request", "the outgoing " + requestType.simpleName())
                                                     .returns(returnStatement)
                                                     .build();
         return CodeBlock.builder()
-                        .add(javadocs)
+                        .add(javadocs, requestType, batchRequestType, serviceName, batchKey, serviceName, responseType)
                         .build();
 
     }
@@ -75,7 +86,7 @@ public final class BatchManagerDocs {
         String javadocs = new DocumentationBuilder()
             .description("Sets a custom {@link $T} that will be used to poll the resource.\n"
                          + "<p>"
-                         + "This SDK client must be closed by the caller when it is ready to be disposed. The SDK will not "
+                         + "This client must be closed by the caller when it is ready to be disposed. The SDK will not "
                          + "close the client when the BatchManager is closed.")
             .param("client", "the client used to send and receive batch messages.")
             .returns("a reference to this object so that method calls can be chained together.")
@@ -102,8 +113,8 @@ public final class BatchManagerDocs {
         String javadocs = new DocumentationBuilder()
             .description("Sets a custom {@link $T} that will be used to schedule periodic buffer flushes.\n "
                          + "<p>\n Creating a $L directly from the client will use the client's scheduled executor."
-                         + " If supplied by the user, this ScheduledExecutorService must be closed by the caller when it is "
-                         + "ready to be shut down.")
+                         + " If supplied by the user, this {@link ScheduledExecutorService} must be closed by the caller when "
+                         + "it is ready to be shut down.")
             .param("scheduledExecutor", "the scheduledExecutor to be used")
             .returns("a reference to this object so that method calls can be chained together.")
             .build();
@@ -117,13 +128,13 @@ public final class BatchManagerDocs {
         String javadocs = new DocumentationBuilder()
             .description("Sets a custom {@link $T} that will be used execute client requests asynchronously.\n "
                          + "<p>\n Creating a $L directly from the client will use the client's executor. If supplied by the "
-                         + "user, this Executor must be closed by the caller when it is ready to be shut down.")
+                         + "user, this {@link Executor} must be closed by the caller when it is ready to be shut down.")
             .param("executor", "the executor to be used")
             .returns("a reference to this object so that method calls can be chained together.")
             .build();
 
         return CodeBlock.builder()
-                        .add(javadocs, ClassName.get(ScheduledExecutorService.class), className)
+                        .add(javadocs, ClassName.get(Executor.class), className)
                         .build();
     }
 }

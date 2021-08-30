@@ -20,7 +20,6 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getBatchRequestEntryType;
-import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getBatchRequestMethod;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getBatchRequestType;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getBatchResponseType;
 import static software.amazon.awssdk.codegen.poet.batchmanager.BatchTypesUtils.getErrorBatchEntry;
@@ -209,7 +208,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         builder.addStatement("    return $T.supplyAsync(() -> client.$L(batchRequest), executor);\n"
                              + "}",
                              ClassName.get(CompletableFuture.class),
-                             getBatchRequestMethod(batchFunctions));
+                             batchFunctions.getValue().getBatchMethod());
     }
 
     private void addBatchFunctionStatementAsync(MethodSpec.Builder builder,
@@ -217,7 +216,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         addBatchFunctionStatementCore(builder, batchFunctions);
         builder.addStatement("    return client.$L(batchRequest);\n"
                              + "}",
-                             getBatchRequestMethod(batchFunctions));
+                             batchFunctions.getValue().getBatchMethod());
     }
 
     private void addBatchFunctionStatementCore(MethodSpec.Builder builder,

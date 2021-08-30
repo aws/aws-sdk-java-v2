@@ -78,7 +78,7 @@ public abstract class BaseBatchManagerInterfaceSpec implements ClassSpec {
                                     .addStatement("return $T.builder()", defaultBatchManagerName())
                                     .build());
         builder.addType(builderInterface());
-        builder.addJavadoc(batchManagerSyncInterfaceDocs(serviceName));
+        builder.addJavadoc(batchManagerSyncInterfaceDocs(serviceName, isSync()));
         return builder.build();
     }
 
@@ -149,6 +149,8 @@ public abstract class BaseBatchManagerInterfaceSpec implements ClassSpec {
     protected abstract ClassName defaultBatchManagerName();
 
     protected abstract ClassName clientClassName();
+
+    protected abstract boolean isSync();
 
     protected void additionalBuilderTypeSpecModification(TypeSpec.Builder type) {
         // no-op

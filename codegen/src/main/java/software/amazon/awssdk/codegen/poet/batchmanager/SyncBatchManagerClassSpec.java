@@ -75,10 +75,8 @@ public class SyncBatchManagerClassSpec extends BaseBatchManagerClassSpec {
 
     @Override
     protected void additionalConstructorInitialization(MethodSpec.Builder builder) {
-        builder.addStatement("$T threadFactory = new $T().threadNamePrefix($S).build()",
-                             ClassName.get(ThreadFactory.class), ClassName.get(ThreadFactoryBuilder.class), className)
-               .beginControlFlow("if (builder.executor == null)")
-               .addStatement("this.executor = createDefaultExecutor(threadFactory)")
+        builder.beginControlFlow("if (builder.executor == null)")
+               .addStatement("this.executor = createDefaultExecutor()")
                .addStatement("this.createdExecutor = true")
                .endControlFlow()
                .beginControlFlow("else")
@@ -119,9 +117,13 @@ public class SyncBatchManagerClassSpec extends BaseBatchManagerClassSpec {
 
     @Override
     protected void additionalExecutorInitialization(TypeSpec.Builder builder) {
+        String threadFactoryName = "sdk-" + model.getMetadata().getServiceId() + "-batchmanager";
         ClassName mathClass = ClassName.get(Math.class);
         ClassName threadPoolExecutorClass = ClassName.get(ThreadPoolExecutor.class);
         CodeBlock codeBlock = CodeBlock.builder()
+                                       .addStatement("$T threadFactory = new $T().threadNamePrefix($S).build()",
+                                                     ClassName.get(ThreadFactory.class),
+                                                     ClassName.get(ThreadFactoryBuilder.class), threadFactoryName)
                                        .addStatement("int processors = $T.getRuntime().availableProcessors()",
                                                      ClassName.get(Runtime.class))
                                        .addStatement("int corePoolSize = $T.max(8, processors)", mathClass)
@@ -137,7 +139,6 @@ public class SyncBatchManagerClassSpec extends BaseBatchManagerClassSpec {
 
         builder.addMethod(MethodSpec.methodBuilder("createDefaultExecutor")
                                     .addModifiers(PRIVATE)
-                                    .addParameter(ClassName.get(ThreadFactory.class), "threadFactory")
                                     .addCode(codeBlock)
                                     .returns(ClassName.get(Executor.class))
                                     .build());

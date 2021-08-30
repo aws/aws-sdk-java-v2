@@ -55,6 +55,11 @@ public class SyncBatchManagerInterfaceSpec extends BaseBatchManagerInterfaceSpec
     }
 
     @Override
+    public boolean isSync() {
+        return true;
+    }
+
+    @Override
     protected void additionalBuilderTypeSpecModification(TypeSpec.Builder type) {
         type.addMethod(MethodSpec.methodBuilder("executor")
                                  .addModifiers(PUBLIC, ABSTRACT)

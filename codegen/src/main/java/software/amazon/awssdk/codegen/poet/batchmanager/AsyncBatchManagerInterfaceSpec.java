@@ -46,4 +46,9 @@ public class AsyncBatchManagerInterfaceSpec extends BaseBatchManagerInterfaceSpe
     public ClassName clientClassName() {
         return poetExtensions.getClientClass(model.getMetadata().getAsyncInterface());
     }
+
+    @Override
+    public boolean isSync() {
+        return false;
+    }
 }

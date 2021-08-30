@@ -54,8 +54,6 @@ public class BatchManagerGeneratorTasks extends BaseGeneratorTasks {
         List<GeneratorTask> internalTasks = new ArrayList<>();
         internalTasks.add(new PoetGeneratorTask(batchManagerInternalClassDir(), model.getFileHeader(),
                                                 new BatchFunctionsClassSpec(model)));
-        // internalTasks.add(new PoetGeneratorTask(batchManagerInternalClassDir(), model.getFileHeader(),
-        //                                         new BatchConfigurationClassSpec(model)));
         return internalTasks;
     }
 

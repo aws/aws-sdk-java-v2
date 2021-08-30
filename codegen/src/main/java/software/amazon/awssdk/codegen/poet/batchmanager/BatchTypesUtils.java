@@ -40,12 +40,8 @@ public final class BatchTypesUtils {
         return getType(requestMethodName, modelPackage);
     }
 
-    public static String getBatchRequestMethod(Map.Entry<String, BatchManagerMethods> batchFunctions) {
-        return batchFunctions.getValue().getBatchMethod();
-    }
-
     public static ClassName getBatchRequestType(Map.Entry<String, BatchManagerMethods> batchFunctions, String modelPackage) {
-        String requestMethodName = uppercaseFirstChar(getBatchRequestMethod(batchFunctions)) + "Request";
+        String requestMethodName = uppercaseFirstChar(batchFunctions.getValue().getBatchMethod()) + "Request";
         return getType(requestMethodName, modelPackage);
     }
 

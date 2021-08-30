@@ -39,11 +39,8 @@ public final class DefaultBatchManagerTestBatchManager implements BatchManagerTe
     private DefaultBatchManagerTestBatchManager(DefaultBuilder builder) {
         this.client = builder.client;
         ScheduledExecutorService scheduledExecutor = builder.scheduledExecutor;
-        ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix(
-            "software.amazon.awssdk.services.batchmanagertest.batchmanager.internal.DefaultBatchManagerTestBatchManager")
-                                                                .build();
         if (builder.executor == null) {
-            this.executor = createDefaultExecutor(threadFactory);
+            this.executor = createDefaultExecutor();
             this.createdExecutor = true;
         } else {
             this.executor = builder.executor;
@@ -125,7 +122,8 @@ public final class DefaultBatchManagerTestBatchManager implements BatchManagerTe
         return new DefaultBuilder();
     }
 
-    private Executor createDefaultExecutor(ThreadFactory threadFactory) {
+    private Executor createDefaultExecutor() {
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("sdk-BatchManagerTest-batchmanager").build();
         int processors = Runtime.getRuntime().availableProcessors();
         int corePoolSize = Math.max(8, processors);
         int maxPoolSize = Math.max(64, processors * 2);
