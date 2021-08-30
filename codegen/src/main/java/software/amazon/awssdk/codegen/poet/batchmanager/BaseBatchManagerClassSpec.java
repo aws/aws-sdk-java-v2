@@ -104,8 +104,9 @@ public abstract class BaseBatchManagerClassSpec implements ClassSpec {
         builder.addStatement("this.client = builder.client")
                .addStatement("$T scheduledExecutor = builder.scheduledExecutor", ClassName.get(ScheduledExecutorService.class));
 
-        // TODO: Figure out how to properly create and pass service configurations. Should it be the same configuration for each
-        //  batchManager (so out here) or a separate configuration for each batchManager (so in the forEach loop).
+        // TODO: Will need to figure out how users can configure separate values for each batchable method. Right now it is
+        //  fine since SQS shares the same default values for its batchable method, but this is not true for other services
+        //  (such as the CloudWatchClient)
 
         additionalConstructorInitialization(builder);
         ClassName batchFunctionsClass = poetExtensions.getBatchFunctionsClass();
