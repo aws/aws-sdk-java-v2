@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs;
+package software.amazon.awssdk.services.sqs.batchmanager.internal;
 
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -34,7 +34,10 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
+import software.amazon.awssdk.services.sqs.batchmanager.internal.BaseSqsBatchManagerTest;
 import software.amazon.awssdk.services.sqs.batchmanager.internal.DefaultSqsAsyncBatchManager;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;

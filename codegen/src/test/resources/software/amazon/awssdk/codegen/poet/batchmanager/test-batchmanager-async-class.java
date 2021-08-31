@@ -44,10 +44,9 @@ public final class DefaultBatchManagerTestAsyncBatchManager implements BatchMana
             .build();
     }
 
-    @SdkInternalApi
-    public DefaultBatchManagerTestAsyncBatchManager(BatchManagerTestAsyncClient client,
-                                                    BatchManager<SendRequestRequest, SendRequestResponse, SendRequestBatchResponse> sendRequestBatchManager,
-                                                    BatchManager<DeleteRequestRequest, DeleteRequestResponse, DeleteRequestBatchResponse> deleteRequestBatchManager) {
+    DefaultBatchManagerTestAsyncBatchManager(BatchManagerTestAsyncClient client,
+                                             BatchManager<SendRequestRequest, SendRequestResponse, SendRequestBatchResponse> sendRequestBatchManager,
+                                             BatchManager<DeleteRequestRequest, DeleteRequestResponse, DeleteRequestBatchResponse> deleteRequestBatchManager) {
         this.sendRequestBatchManager = sendRequestBatchManager;
         this.deleteRequestBatchManager = deleteRequestBatchManager;
         this.client = client;

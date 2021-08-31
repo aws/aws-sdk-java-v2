@@ -144,9 +144,7 @@ public abstract class BaseBatchManagerClassSpec implements ClassSpec {
     }
 
     private MethodSpec internalTestConstructor() {
-        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                                               .addModifiers(PUBLIC)
-                                               .addAnnotation(SdkInternalApi.class);
+        MethodSpec.Builder builder = MethodSpec.constructorBuilder();
 
         ClassName batchManagerType = ClassName.get(BatchManager.class);
         builder.addParameter(clientClassName(), "client");

@@ -105,21 +105,11 @@ public class BatchFunctionsClassSpec implements ClassSpec {
     private List<MethodSpec> batchFunctions() {
         return batchFunctions.entrySet()
                              .stream()
-                             .flatMap(this::safeBatchFunctions)
+                             .flatMap(this::batchFunctions)
                              .collect(Collectors.toList());
     }
 
-    private Stream<MethodSpec> safeBatchFunctions(Map.Entry<String, BatchManagerMethods> batchFunctions)
-            throws IllegalArgumentException {
-        try {
-            return batchFunctions(batchFunctions);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(e);
-        }
-    }
-
-    private Stream<MethodSpec> batchFunctions(Map.Entry<String, BatchManagerMethods> batchFunctions)
-            throws IllegalArgumentException {
+    private Stream<MethodSpec> batchFunctions(Map.Entry<String, BatchManagerMethods> batchFunctions) {
         List<MethodSpec> methods = new ArrayList<>();
         methods.addAll(batchingFunction(batchFunctions));
         methods.addAll(responseMapper(batchFunctions));
@@ -253,8 +243,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
                                          requestClass, batchResponseClass);
     }
 
-    private List<MethodSpec> responseMapper(Map.Entry<String, BatchManagerMethods> batchFunctions)
-            throws IllegalArgumentException {
+    private List<MethodSpec> responseMapper(Map.Entry<String, BatchManagerMethods> batchFunctions) {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(responseMapperCore(batchFunctions));
         methods.add(createResponseFromEntry(batchFunctions));
@@ -262,7 +251,7 @@ public class BatchFunctionsClassSpec implements ClassSpec {
         return methods;
     }
 
-    private MethodSpec responseMapperCore(Map.Entry<String, BatchManagerMethods> batchFunctions) throws IllegalArgumentException {
+    private MethodSpec responseMapperCore(Map.Entry<String, BatchManagerMethods> batchFunctions) {
         BatchManagerMethods batchManagerMethods = batchFunctions.getValue();
         String methodName = batchFunctions.getKey() + "ResponseMapper";
         ClassName responseClass = getResponseType(batchFunctions, modelPackage);

@@ -62,11 +62,10 @@ public final class DefaultBatchManagerTestBatchManager implements BatchManagerTe
             .build();
     }
 
-    @SdkInternalApi
-    public DefaultBatchManagerTestBatchManager(BatchManagerTestClient client,
-                                               BatchManager<SendRequestRequest, SendRequestResponse, SendRequestBatchResponse> sendRequestBatchManager,
-                                               BatchManager<DeleteRequestRequest, DeleteRequestResponse, DeleteRequestBatchResponse> deleteRequestBatchManager,
-                                               Executor executor, boolean createdExecutor) {
+    DefaultBatchManagerTestBatchManager(BatchManagerTestClient client,
+                                        BatchManager<SendRequestRequest, SendRequestResponse, SendRequestBatchResponse> sendRequestBatchManager,
+                                        BatchManager<DeleteRequestRequest, DeleteRequestResponse, DeleteRequestBatchResponse> deleteRequestBatchManager,
+                                        Executor executor, boolean createdExecutor) {
         this.sendRequestBatchManager = sendRequestBatchManager;
         this.deleteRequestBatchManager = deleteRequestBatchManager;
         this.client = client;
