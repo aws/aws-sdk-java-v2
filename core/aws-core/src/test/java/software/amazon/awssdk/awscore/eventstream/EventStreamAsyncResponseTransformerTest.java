@@ -87,6 +87,7 @@ public class EventStreamAsyncResponseTransformerTest {
                                                .executor(Executors.newSingleThreadExecutor())
                                                .future(new CompletableFuture<>())
                                                .build();
+        transformer.prepare();
         transformer.onStream(SdkPublisher.adapt(bytePublisher));
         latch.await();
         assertThat(numEvents)
@@ -327,9 +328,10 @@ public class EventStreamAsyncResponseTransformerTest {
 
         Flowable<ByteBuffer> bytePublisher = Flowable.just(exceptionMessage.toByteBuffer());
 
+        SubscribingResponseHandler handler = new SubscribingResponseHandler();
         AsyncResponseTransformer<SdkResponse, Void> transformer =
             EventStreamAsyncResponseTransformer.builder()
-                                               .eventStreamResponseHandler(new SubscribingResponseHandler())
+                                               .eventStreamResponseHandler(handler)
                                                .exceptionResponseHandler((response, executionAttributes) -> exception)
                                                .executor(Executors.newSingleThreadExecutor())
                                                .future(new CompletableFuture<>())
@@ -343,13 +345,16 @@ public class EventStreamAsyncResponseTransformerTest {
                 cf.join();
             } catch (CompletionException e) {
                 if (e.getCause() instanceof SdkServiceException) {
-                    throw ((SdkServiceException) e.getCause());
+                    throw e.getCause();
                 }
             }
         }).isSameAs(exception);
+
+        assertThat(handler.exceptionOccurredCalled).isTrue();
     }
 
     private static class SubscribingResponseHandler implements EventStreamResponseHandler<Object, Object> {
+        private volatile boolean exceptionOccurredCalled = false;
 
         @Override
         public void responseReceived(Object response) {
@@ -363,6 +368,7 @@ public class EventStreamAsyncResponseTransformerTest {
 
         @Override
         public void exceptionOccurred(Throwable throwable) {
+            exceptionOccurredCalled = true;
         }
 
         @Override

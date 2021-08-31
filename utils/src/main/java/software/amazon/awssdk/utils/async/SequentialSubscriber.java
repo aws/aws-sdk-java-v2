@@ -28,7 +28,6 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @SdkProtectedApi
 public class SequentialSubscriber<T> implements Subscriber<T> {
-
     private final Consumer<T> consumer;
     private final CompletableFuture<?> future;
     private Subscription subscription;
