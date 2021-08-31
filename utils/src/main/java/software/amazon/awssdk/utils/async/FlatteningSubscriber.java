@@ -165,8 +165,8 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
             } catch (Error e) {
                 throw e;
             } catch (Throwable e) {
-                log.error(() -> "Unexpected exception encountered that violates the reactive streams specification. Attempting to "
-                                + "terminate gracefully.", e);
+                log.error(() -> "Unexpected exception encountered that violates the reactive streams specification. Attempting "
+                                + "to terminate gracefully.", e);
                 upstreamSubscription.cancel();
                 onError(e);
             } finally {
