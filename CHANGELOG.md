@@ -1,3 +1,28 @@
+# __2.17.31__ __2021-08-31__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Documentation updates for Compute Optimizer
+
+## __AWS IoT__
+  - ### Features
+    - Added Create/Update/Delete/Describe/List APIs for a new IoT resource named FleetMetric. Added a new Fleet Indexing query API named GetBucketsAggregation. Added a new field named DisconnectedReason in Fleet Indexing query response. Updated their related documentations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Documentation updates for MemoryDB
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new South African English voice - Ayanda. Ayanda is available as Neural voice only.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Amazon SQS adds a new queue attribute, RedriveAllowPolicy, which includes the dead-letter queue redrive permission parameters. It defines which source queues can specify dead-letter queues as a JSON object.
+
 # __2.17.30__ __2021-08-30__
 ## __AWS CloudFormation__
   - ### Features
