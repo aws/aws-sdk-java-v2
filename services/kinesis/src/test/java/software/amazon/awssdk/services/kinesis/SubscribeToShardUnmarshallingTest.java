@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
@@ -201,9 +203,9 @@ public class SubscribeToShardUnmarshallingTest {
                                     SubscribeToShardResponseHandler.builder()
                                                                    .subscriber(events::add)
                                                                    .build())
-                  .join();
+                  .get(10, TimeUnit.SECONDS);
             return events;
-        } catch (CompletionException e) {
+        } catch (ExecutionException e) {
             throw e.getCause();
         }
     }

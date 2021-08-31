@@ -18,6 +18,7 @@ package software.amazon.awssdk.utils.async;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -50,6 +51,13 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
     private final LinkedBlockingQueue<U> allItems = new LinkedBlockingQueue<>();
 
     /**
+     * Whether the upstream subscriber has called onError on us. If this is null, we haven't gotten an onError. If it's non-null
+     * this will be the exception that the upstream passed to our onError. After we get an onError, we'll call onError on the
+     * downstream subscriber as soon as possible.
+     */
+    private final AtomicReference<Throwable> onErrorFromUpstream = new AtomicReference<>(null);
+
+    /**
      * Whether we have called onComplete or onNext on the downstream subscriber.
      */
     private volatile boolean terminalCallMadeDownstream = false;
@@ -59,13 +67,6 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
      * allItems queue and then call onComplete on the downstream subscriber.
      */
     private volatile boolean onCompleteCalledByUpstream = false;
-
-    /**
-     * Whether the upstream subscriber has called onError on us. If this is null, we haven't gotten an onError. If it's non-null
-     * this will be the exception that the upstream passed to our onError. After we get an onError, we'll call onError on the
-     * downstream subscriber as soon as possible.
-     */
-    private volatile Throwable onErrorFromUpstream = null;
 
     /**
      * The subscription to the upstream subscriber.
@@ -101,17 +102,24 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
 
     @Override
     public void onNext(Iterable<U> nextItems) {
-        nextItems.forEach(item -> {
-            Validate.notNull(item, "Items must not be null.");
-            allItems.add(item);
-        });
+        try {
+            nextItems.forEach(item -> {
+                Validate.notNull(nextItems, "Collections flattened by the flattening subscriber must not contain null.");
+                allItems.add(item);
+            });
+        } catch (NullPointerException e) {
+            upstreamSubscription.cancel();
+            onError(e);
+            throw e;
+        }
+
         upstreamDemand.decrementAndGet();
         handleStateUpdate();
     }
 
     @Override
     public void onError(Throwable throwable) {
-        onErrorFromUpstream = throwable;
+        onErrorFromUpstream.compareAndSet(null, throwable);
         handleStateUpdate();
     }
 
@@ -151,13 +159,16 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
 
                 // Call onNext, onComplete and onError as needed based on the current subscriber state.
                 handleOnNextState();
+                handleUpstreamDemandState();
                 handleOnCompleteState();
                 handleOnErrorState();
             } catch (Error e) {
                 throw e;
             } catch (Throwable e) {
-                // This should not happen. Perhaps our downstream was naughty?
-                die(e);
+                log.error(() -> "Unexpected exception encountered that violates the reactive streams specification. Attempting to "
+                                + "terminate gracefully.", e);
+                upstreamSubscription.cancel();
+                onError(e);
             } finally {
                 handlingStateUpdate.set(false);
             }
@@ -165,22 +176,16 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
             // It's possible we had an important state change between when we decided to release the state update flag, and we
             // actually released it. If that seems to have happened, try to handle that state change on this thread, because
             // another thread is not guaranteed to come around and do so.
-        } while (onNextNeeded() || onCompleteNeeded() || onErrorNeeded());
+        } while (onNextNeeded() || upstreamDemandNeeded() || onCompleteNeeded() || onErrorNeeded());
     }
 
     /**
-     * Fulfill downstream demand by pulling items out of the item queue and sending them downstream. Return true if all the
-     * downstream demand was fulfilled by items already in the queue, and false if we stopped for any other reason (e.g. we're
-     * out of items in the queue, we got an onError, etc.)
+     * Fulfill downstream demand by pulling items out of the item queue and sending them downstream.
      */
     private void handleOnNextState() {
         while (onNextNeeded() && !onErrorNeeded()) {
             downstreamDemand.decrementAndGet();
             subscriber.onNext(allItems.poll());
-        }
-
-        if (downstreamDemand.get() > 0 && allItems.isEmpty()) {
-            ensureUpstreamDemandExists();
         }
     }
 
@@ -193,13 +198,29 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
     }
 
     /**
+     * Request more upstream demand if it's needed.
+     */
+    private void handleUpstreamDemandState() {
+        if (upstreamDemandNeeded()) {
+            ensureUpstreamDemandExists();
+        }
+    }
+
+    /**
+     * Returns true if we need to increase our upstream demand.
+     */
+    private boolean upstreamDemandNeeded() {
+        return upstreamDemand.get() <= 0 && downstreamDemand.get() > 0 && allItems.isEmpty();
+    }
+
+    /**
      * If there are zero pending items in the queue and the upstream has called onComplete, then tell the downstream
      * we're done.
      */
     private void handleOnCompleteState() {
         if (onCompleteNeeded()) {
-            subscriber.onComplete();
             terminalCallMadeDownstream = true;
+            subscriber.onComplete();
         }
     }
 
@@ -216,8 +237,8 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
      */
     private void handleOnErrorState() {
         if (onErrorNeeded()) {
-            subscriber.onError(onErrorFromUpstream);
             terminalCallMadeDownstream = true;
+            subscriber.onError(onErrorFromUpstream.get());
         }
     }
 
@@ -226,7 +247,7 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
      * result is subject to change.
      */
     private boolean onErrorNeeded() {
-        return onErrorFromUpstream != null && !terminalCallMadeDownstream;
+        return onErrorFromUpstream.get() != null && !terminalCallMadeDownstream;
     }
 
     /**
@@ -240,25 +261,6 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
             upstreamSubscription.request(1);
         } else if (this.upstreamDemand.compareAndSet(0, 1)) {
             upstreamSubscription.request(1);
-        }
-    }
-
-    private void die(Throwable e) {
-        log.error(() -> "Unexpected exception encountered that violates the reactive streams specification. Attempting to "
-                        + "terminate gracefully.", e);
-        try {
-            quietlyWithoutError(upstreamSubscription::cancel);
-            quietlyWithoutError(() -> subscriber.onError(e));
-        } finally {
-            terminalCallMadeDownstream = true;
-        }
-    }
-
-    private void quietlyWithoutError(Runnable runnable) {
-        try {
-            runnable.run();
-        } catch (RuntimeException t) {
-            // Ignore
         }
     }
 }
