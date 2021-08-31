@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Queue Service",
-    "contributor": "",
-    "description": "Amazon SQS adds a new queue attribute, RedriveAllowPolicy, which includes the dead-letter queue redrive permission parameters. It defines which source queues can specify dead-letter queues as a JSON object."
-}
