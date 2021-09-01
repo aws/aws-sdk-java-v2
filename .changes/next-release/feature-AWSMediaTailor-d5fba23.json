@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS MediaTailor",
-    "contributor": "",
-    "description": "This release adds support for wall clock programs in LINEAR channels."
-}

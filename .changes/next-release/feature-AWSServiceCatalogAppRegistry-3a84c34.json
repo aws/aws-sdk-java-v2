@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Service Catalog App Registry",
-    "contributor": "",
-    "description": "Introduction of GetAssociatedResource API and GetApplication response extension for Resource Groups support."
-}
