@@ -1,0 +1,60 @@
+{
+    "version": "2.17.17",
+    "date": "2021-08-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AmazonNimbleStudio",
+            "contributor": "",
+            "description": "Add new attribute 'ownedBy' in Streaming Session APIs. 'ownedBy' represents the AWS SSO Identity Store User ID of the owner of the Streaming Session resource."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Use \"full jitter\" & updated base delay for STANDARD retry mode defaults"
+        },
+        {
+            "type": "documentation",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Move IntelliJ code style & copyright configuration to project-level settings"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Block Store",
+            "contributor": "",
+            "description": "Documentation updates for Amazon EBS direct APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Documentation updates for ECS."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Snow Device Management",
+            "contributor": "",
+            "description": "AWS Snow Family customers can remotely monitor and operate their connected AWS Snowcone devices."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Documentation updates for route53"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "CodeBuild now allows you to make the build results for your build projects available to the public without requiring access to an AWS account."
+        },
+        {
+            "type": "documentation",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Create a shared, project-level IntelliJ inspection profile"
+        }
+    ]
+}

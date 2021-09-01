@@ -42,7 +42,7 @@ S3TransferManager transferManager =
 ```
 
 ### Download an S3 object to a file
-To download an object, you just need to provide the destion file path and the `GetObjectRequest` that should be used for the download.
+To download an object, you just need to provide the destination file path and the `GetObjectRequest` that should be used for the download.
 
 ```java
 Download download = 

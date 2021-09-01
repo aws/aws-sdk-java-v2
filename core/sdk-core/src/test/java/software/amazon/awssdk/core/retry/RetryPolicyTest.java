@@ -152,4 +152,37 @@ public class RetryPolicyTest {
         assertThat(throttlingBackoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofSeconds(1));
         assertThat(throttlingBackoffStrategy.toBuilder().maxBackoffTime()).isEqualTo(Duration.ofSeconds(20));
     }
+
+    @Test
+    public void adaptiveRetryMode_shouldUseFullJitterOnly() {
+        RetryPolicy standardRetryPolicy = RetryPolicy.forRetryMode(RetryMode.ADAPTIVE);
+
+        assertThat(standardRetryPolicy.backoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
+        FullJitterBackoffStrategy backoffStrategy = (FullJitterBackoffStrategy) standardRetryPolicy.backoffStrategy();
+        assertThat(backoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofSeconds(1));
+        assertThat(backoffStrategy.toBuilder().maxBackoffTime()).isEqualTo(Duration.ofSeconds(20));
+
+        assertThat(standardRetryPolicy.throttlingBackoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
+        FullJitterBackoffStrategy throttlingBackoffStrategy =
+            (FullJitterBackoffStrategy) standardRetryPolicy.throttlingBackoffStrategy();
+        assertThat(throttlingBackoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofSeconds(1));
+        assertThat(throttlingBackoffStrategy.toBuilder().maxBackoffTime()).isEqualTo(Duration.ofSeconds(20));
+    }
+
+    @Test
+    public void fastFailRateLimitingConfigured_retryModeNotAdaptive_throws() {
+        assertThatThrownBy(() -> RetryPolicy.builder(RetryMode.STANDARD).fastFailRateLimiting(true).build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("only valid for the ADAPTIVE retry mode");
+    }
+
+    @Test
+    public void fastFailRateLimitingConfigured_retryModeAdaptive_doesNotThrow() {
+        RetryPolicy.builder(RetryMode.ADAPTIVE).fastFailRateLimiting(true).build();
+    }
+
+    @Test
+    public void hashCodeDoesNotThrow() {
+        RetryPolicy.defaultRetryPolicy().hashCode();
+    }
 }

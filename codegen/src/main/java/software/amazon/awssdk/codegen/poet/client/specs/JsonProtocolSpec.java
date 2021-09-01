@@ -235,6 +235,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(".withMarshaller($L)\n", asyncMarshaller(model, opModel, marshaller, protocolFactory))
                .add(asyncRequestBody(opModel))
                .add(fullDuplex(opModel))
+               .add(hasInitialRequestEvent(opModel, isRestJson))
                .add(".withResponseHandler($L)\n", responseHandlerName(opModel, isRestJson))
                .add(".withErrorResponseHandler(errorResponseHandler)\n")
                .add(".withMetricCollector(apiCallMetricCollector)\n")
@@ -272,6 +273,11 @@ public class JsonProtocolSpec implements ProtocolSpec {
     private CodeBlock fullDuplex(OperationModel opModel) {
         return opModel.hasEventStreamInput() && opModel.hasEventStreamOutput() ? CodeBlock.of(".withFullDuplex(true)")
                                                                                : CodeBlock.of("");
+    }
+
+    private CodeBlock hasInitialRequestEvent(OperationModel opModel, boolean isRestJson) {
+        return opModel.hasEventStreamInput() && !isRestJson ? CodeBlock.of(".withInitialRequestEvent(true)")
+                                                            : CodeBlock.of("");
     }
 
     private CodeBlock asyncRequestBody(OperationModel opModel) {
