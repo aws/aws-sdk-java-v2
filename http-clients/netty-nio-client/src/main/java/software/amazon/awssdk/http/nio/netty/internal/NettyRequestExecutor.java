@@ -40,6 +40,7 @@ import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import io.netty.util.Attribute;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
@@ -184,32 +185,38 @@ public final class NettyRequestExecutor {
     }
 
     private boolean tryConfigurePipeline() {
-        Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
-        ChannelPipeline pipeline = channel.pipeline();
+        Attribute<Boolean> pipelineConfigured = channel.attr(ChannelAttributeKey.PIPELINE_CONFIGURED);
+        if (pipelineConfigured.get() == null || !pipelineConfigured.get()) {
 
-        switch (protocol) {
-            case HTTP2:
-                pipeline.addLast(new Http2ToHttpInboundAdapter());
-                pipeline.addLast(new HttpToHttp2OutboundAdapter());
-                pipeline.addLast(Http2StreamExceptionHandler.create());
-                requestAdapter = REQUEST_ADAPTER_HTTP2;
-                break;
-            case HTTP1_1:
-                requestAdapter = REQUEST_ADAPTER_HTTP1_1;
-                break;
-            default:
-                String errorMsg = "Unknown protocol: " + protocol;
-                closeAndRelease(channel);
-                handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
-                return false;
-        }
+            Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
+            ChannelPipeline pipeline = channel.pipeline();
 
-        pipeline.addLast(LastHttpContentHandler.create());
-        if (Protocol.HTTP2.equals(protocol)) {
-            pipeline.addLast(FlushOnReadHandler.getInstance());
+            switch (protocol) {
+                case HTTP2:
+                    pipeline.addLast(new Http2ToHttpInboundAdapter());
+                    pipeline.addLast(new HttpToHttp2OutboundAdapter());
+                    pipeline.addLast(Http2StreamExceptionHandler.create());
+                    requestAdapter = REQUEST_ADAPTER_HTTP2;
+                    break;
+                case HTTP1_1:
+                    requestAdapter = REQUEST_ADAPTER_HTTP1_1;
+                    break;
+                default:
+                    String errorMsg = "Unknown protocol: " + protocol;
+                    closeAndRelease(channel);
+                    handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
+                    return false;
+            }
+
+            pipeline.addLast(LastHttpContentHandler.create());
+            if (Protocol.HTTP2.equals(protocol)) {
+                pipeline.addLast(FlushOnReadHandler.getInstance());
+            }
+            pipeline.addLast(new HttpStreamsClientHandler());
+            pipeline.addLast(ResponseHandler.getInstance());
+
+            pipelineConfigured.set(true);
         }
-        pipeline.addLast(new HttpStreamsClientHandler());
-        pipeline.addLast(ResponseHandler.getInstance());
 
         // It's possible that the channel could become inactive between checking it out from the pool, and adding our response
         // handler (which will monitor for it going inactive from now on).

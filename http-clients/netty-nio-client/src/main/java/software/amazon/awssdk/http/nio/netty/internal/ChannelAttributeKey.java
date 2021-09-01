@@ -100,6 +100,9 @@ public final class ChannelAttributeKey {
     static final AttributeKey<Long> EXECUTION_ID_KEY = NettyUtils.getOrCreateAttributeKey(
             "aws.http.nio.netty.async.executionId");
 
+    static final AttributeKey<Boolean> PIPELINE_CONFIGURED = NettyUtils.getOrCreateAttributeKey(
+        "aws.http.nio.netty.async.pipelineConfigured");
+
     /**
      * Whether the channel is still in use
      */
