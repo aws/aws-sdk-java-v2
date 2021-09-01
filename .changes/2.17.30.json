@@ -1,0 +1,30 @@
+{
+    "version": "2.17.30",
+    "date": "2021-08-30",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "AWS CloudFormation allows you to iteratively develop your applications when failures are encountered without rolling back successfully provisioned resources. By specifying stack failure options, you can troubleshoot resources in a CREATE_FAILED or UPDATE_FAILED status."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Documentation updates for CodeBuild"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "This release has changes to KMS nomenclature to remove the word master from both the \"Customer master key\" and \"CMK\" abbreviation and replace those naming conventions with \"KMS key\"."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Firehose",
+            "contributor": "",
+            "description": "This release adds the Dynamic Partitioning feature to Kinesis Data Firehose service for S3 destinations."
+        }
+    ]
+}

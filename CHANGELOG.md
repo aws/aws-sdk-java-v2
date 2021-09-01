@@ -1,3 +1,133 @@
+# __2.17.32__ __2021-09-01__
+## __AWS CloudTrail__
+  - ### Features
+    - Documentation updates for CloudTrail
+
+## __AWS Config__
+  - ### Features
+    - Documentation updates for config
+
+## __AWS MediaTailor__
+  - ### Features
+    - This release adds support for wall clock programs in LINEAR channels.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added new convenience methods to SdkPublisher: doAfterOnError, doAfterOnComplete, and doAfterCancel.
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where event streams might fail with ClassCastException or NoSuchElementExceptions
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - Introduction of GetAssociatedResource API and GetApplication response extension for Resource Groups support.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added LaunchTemplate support for the IMDS IPv6 endpoint
+
+# __2.17.31__ __2021-08-31__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Documentation updates for Compute Optimizer
+
+## __AWS IoT__
+  - ### Features
+    - Added Create/Update/Delete/Describe/List APIs for a new IoT resource named FleetMetric. Added a new Fleet Indexing query API named GetBucketsAggregation. Added a new field named DisconnectedReason in Fleet Indexing query response. Updated their related documentations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Documentation updates for MemoryDB
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new South African English voice - Ayanda. Ayanda is available as Neural voice only.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Amazon SQS adds a new queue attribute, RedriveAllowPolicy, which includes the dead-letter queue redrive permission parameters. It defines which source queues can specify dead-letter queues as a JSON object.
+
+# __2.17.30__ __2021-08-30__
+## __AWS CloudFormation__
+  - ### Features
+    - AWS CloudFormation allows you to iteratively develop your applications when failures are encountered without rolling back successfully provisioned resources. By specifying stack failure options, you can troubleshoot resources in a CREATE_FAILED or UPDATE_FAILED status.
+
+## __AWS CodeBuild__
+  - ### Features
+    - Documentation updates for CodeBuild
+
+## __AWS Key Management Service__
+  - ### Features
+    - This release has changes to KMS nomenclature to remove the word master from both the "Customer master key" and "CMK" abbreviation and replace those naming conventions with "KMS key".
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - This release adds the Dynamic Partitioning feature to Kinesis Data Firehose service for S3 destinations.
+
+# __2.17.29__ __2021-08-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon EMR__
+  - ### Features
+    - Amazon EMR now supports auto-terminating idle EMR clusters. You can specify the idle timeout value when enabling auto-termination for both running and new clusters and Amazon EMR automatically terminates the cluster when idle timeout kicks in.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds the BootMode flag to the ImportImage API and showing the detected BootMode of an ImportImage task.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for Amazon S3.
+
+# __2.17.28__ __2021-08-26__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Adds support for 1) the AWS Graviton (AWS_ARM64) recommendation preference for Amazon EC2 instance and Auto Scaling group recommendations, and 2) the ability to get the enrollment statuses for all member accounts of an organization.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Support added for resizing VPC prefix lists
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release added new attributes to Rekognition RecognizeCelebities and GetCelebrityInfo API operations.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for batch transcription in six new languages - Afrikaans, Danish, Mandarin Chinese (Taiwan), New Zealand English, South African English, and Thai.
+
+# __2.17.27__ __2021-08-25__
+## __AWS DataSync__
+  - ### Features
+    - Added include filters to CreateTask and UpdateTask, and added exclude filters to StartTaskExecution, giving customers more granular control over how DataSync transfers files, folders, and objects.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - AWS CWEvents adds an enum of EXTERNAL for EcsParameters LaunchType for PutTargets API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Support added for IMDS IPv6 endpoint
+
+## __Amazon EventBridge__
+  - ### Features
+    - AWS EventBridge adds an enum of EXTERNAL for EcsParameters LaunchType for PutTargets API
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now supports triggering resource cleanup workflow when account or resource goes out of policy scope for AWS WAF, Security group, AWS Network Firewall, and Amazon Route 53 Resolver DNS Firewall policies.
+
 # __2.17.26__ __2021-08-24__
 ## __AWS Elemental MediaConvert__
   - ### Features
