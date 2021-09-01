@@ -133,7 +133,7 @@ public class PoetClientFunctionalTests {
     public void asyncClientBatchManager() throws Exception {
         ClassSpec asyncClientBatchManager = new AsyncClientClass(
             GeneratorTaskParams.create(ClientTestModels.batchManagerModels(), "sources/", "tests/"));
-        assertThat(asyncClientBatchManager, generatesTo("test-async-client-class-with-batchmanager-.java"));
+        assertThat(asyncClientBatchManager, generatesTo("test-async-client-class-with-batchmanager.java"));
     }
 
     @Test
