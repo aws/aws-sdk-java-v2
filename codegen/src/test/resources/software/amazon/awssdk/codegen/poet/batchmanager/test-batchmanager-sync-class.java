@@ -62,6 +62,7 @@ public final class DefaultBatchManagerTestBatchManager implements BatchManagerTe
             .build();
     }
 
+    @SdkInternalApi
     DefaultBatchManagerTestBatchManager(BatchManagerTestClient client,
                                         BatchManager<SendRequestRequest, SendRequestResponse, SendRequestBatchResponse> sendRequestBatchManager,
                                         BatchManager<DeleteRequestRequest, DeleteRequestResponse, DeleteRequestBatchResponse> deleteRequestBatchManager,
