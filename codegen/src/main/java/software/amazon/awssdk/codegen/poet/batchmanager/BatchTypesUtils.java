@@ -19,7 +19,7 @@ import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.uppercase
 
 import com.squareup.javapoet.ClassName;
 import java.util.Map;
-import software.amazon.awssdk.codegen.model.config.customization.BatchManager;
+import software.amazon.awssdk.codegen.model.config.customization.BatchManagerMethods;
 
 /**
  * Conenvience methods to access the batch types and methods listed in the customization.config
@@ -30,40 +30,36 @@ public final class BatchTypesUtils {
     private BatchTypesUtils() {
     }
 
-    public static ClassName getRequestType(Map.Entry<String, BatchManager> batchFunctions, String modelPackage) {
+    public static ClassName getRequestType(Map.Entry<String, BatchManagerMethods> batchFunctions, String modelPackage) {
         String requestMethodName = uppercaseFirstChar(batchFunctions.getKey()) + "Request";
         return getType(requestMethodName, modelPackage);
     }
 
-    public static ClassName getResponseType(Map.Entry<String, BatchManager> batchFunctions, String modelPackage) {
+    public static ClassName getResponseType(Map.Entry<String, BatchManagerMethods> batchFunctions, String modelPackage) {
         String requestMethodName = uppercaseFirstChar(batchFunctions.getKey()) + "Response";
         return getType(requestMethodName, modelPackage);
     }
 
-    public static String getBatchRequestMethod(Map.Entry<String, BatchManager> batchFunctions) {
-        return batchFunctions.getValue().getBatchMethod();
-    }
-
-    public static ClassName getBatchRequestType(Map.Entry<String, BatchManager> batchFunctions, String modelPackage) {
-        String requestMethodName = uppercaseFirstChar(getBatchRequestMethod(batchFunctions)) + "Request";
+    public static ClassName getBatchRequestType(Map.Entry<String, BatchManagerMethods> batchFunctions, String modelPackage) {
+        String requestMethodName = uppercaseFirstChar(batchFunctions.getValue().getBatchMethod()) + "Request";
         return getType(requestMethodName, modelPackage);
     }
 
-    public static ClassName getBatchRequestEntryType(Map.Entry<String, BatchManager> batchFunctions, String modelPackage) {
+    public static ClassName getBatchRequestEntryType(Map.Entry<String, BatchManagerMethods> batchFunctions, String modelPackage) {
         String requestMethodName = batchFunctions.getValue().getBatchRequestEntry();
         return getType(requestMethodName, modelPackage);
     }
 
-    public static ClassName getBatchResponseType(Map.Entry<String, BatchManager> batchFunctions, String modelPackage) {
+    public static ClassName getBatchResponseType(Map.Entry<String, BatchManagerMethods> batchFunctions, String modelPackage) {
         String requestMethodName = uppercaseFirstChar(batchFunctions.getValue().getBatchMethod()) + "Response";
         return getType(requestMethodName, modelPackage);
     }
 
-    public static ClassName getSuccessBatchEntry(Map.Entry<String, BatchManager> batchFunctions, String modelPackage) {
+    public static ClassName getSuccessBatchEntry(Map.Entry<String, BatchManagerMethods> batchFunctions, String modelPackage) {
         return getType(batchFunctions.getValue().getSuccessBatchEntry(), modelPackage);
     }
 
-    public static ClassName getErrorBatchEntry(Map.Entry<String, BatchManager> batchFunctions, String modelPackage) {
+    public static ClassName getErrorBatchEntry(Map.Entry<String, BatchManagerMethods> batchFunctions, String modelPackage) {
         String errorBatchEntry = batchFunctions.getValue().getErrorBatchEntry();
         if (errorBatchEntry == null) {
             return getSuccessBatchEntry(batchFunctions, modelPackage);
@@ -71,7 +67,7 @@ public final class BatchTypesUtils {
         return getType(errorBatchEntry, modelPackage);
     }
 
-    public static String getErrorEntriesMethod(Map.Entry<String, BatchManager> batchFunctions) {
+    public static String getErrorEntriesMethod(Map.Entry<String, BatchManagerMethods> batchFunctions) {
         String errorEntriesMethod = batchFunctions.getValue().getErrorEntriesMethod();
         if (errorEntriesMethod == null) {
             return batchFunctions.getValue().getSuccessEntriesMethod();

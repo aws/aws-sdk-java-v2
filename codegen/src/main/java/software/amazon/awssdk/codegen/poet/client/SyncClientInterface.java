@@ -504,7 +504,7 @@ public final class SyncClientInterface implements ClassSpec {
     }
 
     private MethodSpec batchManagerMethod() {
-        ClassName returnType = poetExtensions.getBatchManagerSyncReturnType();
+        ClassName returnType = poetExtensions.getBatchManagerSyncInterface();
         return MethodSpec.methodBuilder("batchManager")
                          .returns(returnType)
                          .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)

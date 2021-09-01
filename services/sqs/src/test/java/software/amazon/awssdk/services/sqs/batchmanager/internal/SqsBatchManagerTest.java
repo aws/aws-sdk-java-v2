@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs;
+package software.amazon.awssdk.services.sqs.batchmanager.internal;
 
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -22,6 +22,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,8 +35,9 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.batchmanager.BatchManager;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
-import software.amazon.awssdk.services.sqs.batchmanager.internal.DefaultSqsAsyncBatchManager;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.SqsClientBuilder;
+import software.amazon.awssdk.services.sqs.batchmanager.SqsBatchManager;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
@@ -47,13 +49,16 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
+public class SqsBatchManagerTest extends BaseSqsBatchManagerTest {
 
-    private static SqsAsyncClient client;
-    private SqsAsyncBatchManager batchManager;
+    private static SqsClient client;
+    private SqsBatchManager batchManager;
 
     @Mock
-    private SqsAsyncClient mockClient;
+    private SqsClient mockClient;
+
+    @Mock
+    private ExecutorService mockExecutor;
 
     @Mock
     private BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> mockSendMessageBatchManager;
@@ -65,18 +70,18 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
     private BatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
         ChangeMessageVisibilityBatchResponse> mockChangeVisibilityBatchManager;
 
-    private static SqsAsyncClientBuilder getAsyncClientBuilder(URI http_localhost_uri) {
-        return SqsAsyncClient.builder()
-                             .region(Region.US_EAST_1)
-                             .endpointOverride(http_localhost_uri)
-                             .credentialsProvider(
-                                 StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")));
+    private static SqsClientBuilder getSyncClientBuilder(URI http_localhost_uri) {
+        return SqsClient.builder()
+                        .region(Region.US_EAST_1)
+                        .endpointOverride(http_localhost_uri)
+                        .credentialsProvider(
+                            StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")));
     }
 
     @BeforeClass
     public static void oneTimeSetUp() {
         URI http_localhost_uri = URI.create(String.format("http://localhost:%s/", wireMock.port()));
-        client = getAsyncClientBuilder(http_localhost_uri).build();
+        client = getSyncClientBuilder(http_localhost_uri).build();
     }
 
     @AfterClass
@@ -95,16 +100,31 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
     }
 
     @Test
-    public void closeBatchManager_shouldNotCloseExecutorsOrClient() {
-        SqsAsyncBatchManager batchManager = new DefaultSqsAsyncBatchManager(mockClient,
-                                                                            mockSendMessageBatchManager,
-                                                                            mockDeleteMessageBatchManager,
-                                                                            mockChangeVisibilityBatchManager);
+    public void closeBatchManager_shouldCloseExecutorsButNotClient() {
+        SqsBatchManager batchManager = new DefaultSqsBatchManager(mockClient,
+                                                                  mockSendMessageBatchManager,
+                                                                  mockDeleteMessageBatchManager,
+                                                                  mockChangeVisibilityBatchManager, mockExecutor, false);
         batchManager.close();
         verify(mockSendMessageBatchManager).close();
         verify(mockDeleteMessageBatchManager).close();
         verify(mockChangeVisibilityBatchManager).close();
-        verify(mockClient, never()).close();;
+        verify(mockExecutor, never()).shutdownNow();
+        verify(mockClient, never()).close();
+    }
+
+    @Test
+    public void closeBatchManager_shouldNotCloseExecutorsOrClient() {
+        SqsBatchManager batchManager = new DefaultSqsBatchManager(mockClient,
+                                                                  mockSendMessageBatchManager,
+                                                                  mockDeleteMessageBatchManager,
+                                                                  mockChangeVisibilityBatchManager, mockExecutor, true);
+        batchManager.close();
+        verify(mockSendMessageBatchManager).close();
+        verify(mockDeleteMessageBatchManager).close();
+        verify(mockChangeVisibilityBatchManager).close();
+        verify(mockExecutor).shutdownNow();
+        verify(mockClient, never()).close();
     }
 
     @Override

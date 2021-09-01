@@ -272,9 +272,9 @@ final class ClientClassUtils {
         String scheduledExecutor = "executorService";
         ClassName returnType;
         if (isSync) {
-            returnType = poetExtensions.getBatchManagerSyncReturnType();
+            returnType = poetExtensions.getBatchManagerSyncInterface();
         } else {
-            returnType = poetExtensions.getBatchManagerAsyncReturnType();
+            returnType = poetExtensions.getBatchManagerAsyncInterface();
         }
 
         return MethodSpec.methodBuilder("batchManager")

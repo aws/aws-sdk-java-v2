@@ -21,7 +21,7 @@ package software.amazon.awssdk.codegen.model.config.customization;
  * ex. For SQS, we can use a key of: sendMessage, meanwhile the batchFunctionsTypes will store the types
  * SendMessageRequest, SendMessageResponse, and SendMessageBatchResponse.
  */
-public class BatchManager {
+public class BatchManagerMethods {
 
     /**
      * The batch equivalent of the request method. This is required.
@@ -82,6 +82,12 @@ public class BatchManager {
      * Ex. id for SQS
      */
     private String batchRequestIdentifier;
+
+    /** Default value for maximum number of items in a batch request */
+    private Integer maxBatchItems;
+
+    /** Default value for maximum amount of time, in milliseconds, that a batch request is open for before being sent */
+    private Integer maxBatchOpenInMs;
 
     public String getBatchMethod() {
         return batchMethod;
@@ -161,5 +167,21 @@ public class BatchManager {
 
     public void setBatchRequestIdentifier(String requestIdentifier) {
         this.batchRequestIdentifier = requestIdentifier;
+    }
+
+    public Integer getMaxBatchItems() {
+        return maxBatchItems;
+    }
+
+    public void setMaxBatchItems(Integer maxBatchItems) {
+        this.maxBatchItems = maxBatchItems;
+    }
+
+    public Integer getMaxBatchOpenInMs() {
+        return maxBatchOpenInMs;
+    }
+
+    public void setMaxBatchOpenInMs(Integer maxBatchOpenInMs) {
+        this.maxBatchOpenInMs = maxBatchOpenInMs;
     }
 }

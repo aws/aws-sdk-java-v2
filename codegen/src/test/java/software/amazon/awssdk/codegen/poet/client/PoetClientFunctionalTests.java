@@ -23,7 +23,11 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
+import software.amazon.awssdk.codegen.poet.batchmanager.AsyncBatchManagerClassSpec;
+import software.amazon.awssdk.codegen.poet.batchmanager.AsyncBatchManagerInterfaceSpec;
 import software.amazon.awssdk.codegen.poet.batchmanager.BatchFunctionsClassSpec;
+import software.amazon.awssdk.codegen.poet.batchmanager.SyncBatchManagerClassSpec;
+import software.amazon.awssdk.codegen.poet.batchmanager.SyncBatchManagerInterfaceSpec;
 
 public class PoetClientFunctionalTests {
 
@@ -122,31 +126,55 @@ public class PoetClientFunctionalTests {
     @Test
     public void syncClientBatchManager() throws Exception {
         ClassSpec syncClientBatchManager = createSyncClientClass(ClientTestModels.batchManagerModels());
-        assertThat(syncClientBatchManager, generatesTo("test-batchmanager-sync-class.java"));
+        assertThat(syncClientBatchManager, generatesTo("test-sync-client-class-with-batchmanager.java"));
     }
 
     @Test
     public void asyncClientBatchManager() throws Exception {
         ClassSpec asyncClientBatchManager = new AsyncClientClass(
             GeneratorTaskParams.create(ClientTestModels.batchManagerModels(), "sources/", "tests/"));
-        assertThat(asyncClientBatchManager, generatesTo("test-batchmanager-async-class.java"));
+        assertThat(asyncClientBatchManager, generatesTo("test-async-client-class-with-batchmanager.java"));
     }
 
     @Test
     public void syncClientBatchManagerInterface() throws Exception {
         ClassSpec syncClientBatchManagerInterface = new SyncClientInterface(ClientTestModels.batchManagerModels());
-        assertThat(syncClientBatchManagerInterface, generatesTo("test-batchmanager-sync-interface.java"));
+        assertThat(syncClientBatchManagerInterface, generatesTo("test-sync-client-interface-with-batchmanager.java"));
     }
 
     @Test
     public void asyncClientBatchManagerInterface() throws Exception {
         ClassSpec asyncClientBatchManagerInterface = new AsyncClientInterface(ClientTestModels.batchManagerModels());
-        assertThat(asyncClientBatchManagerInterface, generatesTo("test-batchmanager-async-interface.java"));
+        assertThat(asyncClientBatchManagerInterface, generatesTo("test-async-client-interface-with-batchmanager.java"));
     }
 
     @Test
     public void batchFunctionsClass() throws Exception {
         ClassSpec batchFunctionsClassSpec = new BatchFunctionsClassSpec(ClientTestModels.batchManagerModels());
         assertThat(batchFunctionsClassSpec, generatesTo("test-batchmanager-batchfunctions.java"));
+    }
+
+    @Test
+    public void syncBatchManagerClass() throws Exception {
+        ClassSpec syncBatchManagerClassSpec = new SyncBatchManagerClassSpec(ClientTestModels.batchManagerModels());
+        assertThat(syncBatchManagerClassSpec, generatesTo("test-batchmanager-sync-class.java"));
+    }
+
+    @Test
+    public void syncBatchManagerInterface() throws Exception {
+        ClassSpec syncBatchManagerInterfaceSpec = new SyncBatchManagerInterfaceSpec(ClientTestModels.batchManagerModels());
+        assertThat(syncBatchManagerInterfaceSpec, generatesTo("test-batchmanager-sync-interface.java"));
+    }
+
+    @Test
+    public void asyncBatchManagerClass() throws Exception {
+        ClassSpec asyncBatchManagerClassSpec = new AsyncBatchManagerClassSpec(ClientTestModels.batchManagerModels());
+        assertThat(asyncBatchManagerClassSpec, generatesTo("test-batchmanager-async-class.java"));
+    }
+
+    @Test
+    public void asyncBatchManagerInterface() throws Exception {
+        ClassSpec asyncBatchManagerInterfaceSpec = new AsyncBatchManagerInterfaceSpec(ClientTestModels.batchManagerModels());
+        assertThat(asyncBatchManagerInterfaceSpec, generatesTo("test-batchmanager-async-interface.java"));
     }
 }

@@ -21,7 +21,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
+import software.amazon.awssdk.codegen.poet.batchmanager.AsyncBatchManagerClassSpec;
+import software.amazon.awssdk.codegen.poet.batchmanager.AsyncBatchManagerInterfaceSpec;
 import software.amazon.awssdk.codegen.poet.batchmanager.BatchFunctionsClassSpec;
+import software.amazon.awssdk.codegen.poet.batchmanager.SyncBatchManagerClassSpec;
+import software.amazon.awssdk.codegen.poet.batchmanager.SyncBatchManagerInterfaceSpec;
 
 @SdkInternalApi
 public class BatchManagerGeneratorTasks extends BaseGeneratorTasks {
@@ -40,16 +44,42 @@ public class BatchManagerGeneratorTasks extends BaseGeneratorTasks {
     @Override
     protected List<GeneratorTask> createTasks() {
         List<GeneratorTask> generatorTasks = new ArrayList<>();
-        generatorTasks.add(createBatchFunctions());
+        generatorTasks.addAll(createInternalTasks());
+        generatorTasks.addAll(createSyncTasks());
+        generatorTasks.addAll(createAsyncTasks());
         return generatorTasks;
     }
 
-    private GeneratorTask createBatchFunctions() {
-        return new PoetGeneratorTask(batchManagerInternalClassDir(), model.getFileHeader(),
-                                     new BatchFunctionsClassSpec(model));
+    private List<GeneratorTask> createInternalTasks() {
+        List<GeneratorTask> internalTasks = new ArrayList<>();
+        internalTasks.add(new PoetGeneratorTask(batchManagerInternalClassDir(), model.getFileHeader(),
+                                                new BatchFunctionsClassSpec(model)));
+        return internalTasks;
+    }
+
+    private List<GeneratorTask> createSyncTasks() {
+        List<GeneratorTask> syncTasks = new ArrayList<>();
+        syncTasks.add(new PoetGeneratorTask(batchManagerClassDir(), model.getFileHeader(),
+                                            new SyncBatchManagerInterfaceSpec(model)));
+        syncTasks.add(new PoetGeneratorTask(batchManagerInternalClassDir(), model.getFileHeader(),
+                                            new SyncBatchManagerClassSpec(model)));
+        return syncTasks;
+    }
+
+    private List<GeneratorTask> createAsyncTasks() {
+        List<GeneratorTask> asyncTasks = new ArrayList<>();
+        asyncTasks.add(new PoetGeneratorTask(batchManagerClassDir(), model.getFileHeader(),
+                                             new AsyncBatchManagerInterfaceSpec(model)));
+        asyncTasks.add(new PoetGeneratorTask(batchManagerInternalClassDir(), model.getFileHeader(),
+                                             new AsyncBatchManagerClassSpec(model)));
+        return asyncTasks;
     }
 
     private String batchManagerInternalClassDir() {
         return generatorTaskParams.getPathProvider().getBatchManagerInternalDirectory();
+    }
+
+    private String batchManagerClassDir() {
+        return generatorTaskParams.getPathProvider().getBatchManagerDirectory();
     }
 }
