@@ -22,10 +22,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.async.BufferingSubscriber;
-import software.amazon.awssdk.utils.async.EventListeningSubscriber;
 import software.amazon.awssdk.utils.async.FilteringSubscriber;
 import software.amazon.awssdk.utils.async.FlatteningSubscriber;
 import software.amazon.awssdk.utils.async.LimitingSubscriber;
@@ -116,36 +114,6 @@ public interface SdkPublisher<T> extends Publisher<T> {
      */
     default SdkPublisher<T> limit(int limit) {
         return subscriber -> subscribe(new LimitingSubscriber<>(subscriber, limit));
-    }
-
-    /**
-     * Add a callback that will be invoked after this publisher invokes {@link Subscriber#onComplete()}.
-     *
-     * @param afterOnComplete The logic that should be run immediately after onComplete.
-     * @return New publisher that invokes the requested callback.
-     */
-    default SdkPublisher<T> doAfterOnComplete(Runnable afterOnComplete) {
-        return subscriber -> subscribe(new EventListeningSubscriber<>(subscriber, afterOnComplete, null, null));
-    }
-
-    /**
-     * Add a callback that will be invoked after this publisher invokes {@link Subscriber#onError(Throwable)}.
-     *
-     * @param afterOnError The logic that should be run immediately after onError.
-     * @return New publisher that invokes the requested callback.
-     */
-    default SdkPublisher<T> doAfterOnError(Consumer<Throwable> afterOnError) {
-        return subscriber -> subscribe(new EventListeningSubscriber<>(subscriber, null, afterOnError, null));
-    }
-
-    /**
-     * Add a callback that will be invoked after this publisher invokes {@link Subscription#cancel()}.
-     *
-     * @param afterOnCancel The logic that should be run immediately after cancellation of the subscription.
-     * @return New publisher that invokes the requested callback.
-     */
-    default SdkPublisher<T> doAfterOnCancel(Runnable afterOnCancel) {
-        return subscriber -> subscribe(new EventListeningSubscriber<>(subscriber, null, null, afterOnCancel));
     }
 
     /**

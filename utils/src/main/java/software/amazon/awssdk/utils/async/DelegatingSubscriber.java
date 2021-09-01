@@ -15,15 +15,14 @@
 
 package software.amazon.awssdk.utils.async;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
 public abstract class DelegatingSubscriber<T, U> implements Subscriber<T> {
+
     protected final Subscriber<? super U> subscriber;
-    private final AtomicBoolean complete = new AtomicBoolean(false);
 
     protected DelegatingSubscriber(Subscriber<? super U> subscriber) {
         this.subscriber = subscriber;
@@ -36,15 +35,12 @@ public abstract class DelegatingSubscriber<T, U> implements Subscriber<T> {
 
     @Override
     public void onError(Throwable throwable) {
-        if (complete.compareAndSet(false, true)) {
-            subscriber.onError(throwable);
-        }
+        subscriber.onError(throwable);
     }
 
     @Override
     public void onComplete() {
-        if (complete.compareAndSet(false, true)) {
-            subscriber.onComplete();
-        }
+        subscriber.onComplete();
     }
+
 }
