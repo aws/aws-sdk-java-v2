@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Transfer Family",
+    "contributor": "",
+    "description": "AWS Transfer Family introduces Managed Workflows for creating, executing, monitoring, and standardizing post file transfer processing"
+}
