@@ -32,11 +32,11 @@ public class S3AccessPointResourceTest {
     @Test
     public void buildWithAllPropertiesSet() {
         S3AccessPointResource s3AccessPointResource = S3AccessPointResource.builder()
-                                                                      .accessPointName("access_point-name")
-                                                                      .accountId("account-id")
-                                                                      .partition("partition")
-                                                                      .region("region")
-                                                                      .build();
+                                                                           .accessPointName("access_point-name")
+                                                                           .accountId("account-id")
+                                                                           .partition("partition")
+                                                                           .region("region")
+                                                                           .build();
 
         assertEquals("access_point-name", s3AccessPointResource.accessPointName());
         assertEquals(Optional.of("account-id"), s3AccessPointResource.accountId());
@@ -48,13 +48,13 @@ public class S3AccessPointResourceTest {
     @Test
     public void toBuilder() {
         S3AccessPointResource s3AccessPointResource = S3AccessPointResource.builder()
-                                                                      .accessPointName("access_point-name")
-                                                                      .accountId("account-id")
-                                                                      .partition("partition")
-                                                                      .region("region")
-                                                                      .build()
-                                                                      .toBuilder()
-                                                                      .build();
+                                                                           .accessPointName("access_point-name")
+                                                                           .accountId("account-id")
+                                                                           .partition("partition")
+                                                                           .region("region")
+                                                                           .build()
+                                                                           .toBuilder()
+                                                                           .build();
 
         assertEquals("access_point-name", s3AccessPointResource.accessPointName());
         assertEquals(Optional.of("account-id"), s3AccessPointResource.accountId());
@@ -63,14 +63,34 @@ public class S3AccessPointResourceTest {
         assertEquals("accesspoint", s3AccessPointResource.type());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void buildWithBlankRegion() {
-        S3AccessPointResource.builder()
-                             .accessPointName("access_point-name")
-                             .accountId("account-id")
-                             .partition("partition")
-                             .region("")
-                             .build();
+        S3AccessPointResource s3AccessPointResource = S3AccessPointResource.builder()
+                                                                           .accessPointName("access_point-name")
+                                                                           .accountId("account-id")
+                                                                           .partition("partition")
+                                                                           .region("")
+                                                                           .build();
+        assertEquals("access_point-name", s3AccessPointResource.accessPointName());
+        assertEquals(Optional.of("account-id"), s3AccessPointResource.accountId());
+        assertEquals(Optional.of("partition"), s3AccessPointResource.partition());
+        assertEquals(Optional.of(""), s3AccessPointResource.region());
+        assertEquals("accesspoint", s3AccessPointResource.type());
+    }
+
+    @Test
+    public void buildWithMissingRegion() {
+        S3AccessPointResource s3AccessPointResource = S3AccessPointResource.builder()
+                                                                           .accessPointName("access_point-name")
+                                                                           .accountId("account-id")
+                                                                           .partition("partition")
+                                                                           .build();
+
+        assertEquals("access_point-name", s3AccessPointResource.accessPointName());
+        assertEquals(Optional.of("account-id"), s3AccessPointResource.accountId());
+        assertEquals(Optional.of("partition"), s3AccessPointResource.partition());
+        assertEquals(Optional.empty(), s3AccessPointResource.region());
+        assertEquals("accesspoint", s3AccessPointResource.type());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -100,15 +120,6 @@ public class S3AccessPointResourceTest {
                              .partition("partition")
                              .region("region")
                              .accessPointName("")
-                             .build();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void buildWithMissingRegion() {
-        S3AccessPointResource.builder()
-                             .accessPointName("access_point-name")
-                             .accountId("account-id")
-                             .partition("partition")
                              .build();
     }
 
@@ -231,9 +242,9 @@ public class S3AccessPointResourceTest {
                                                             .region("region")
                                                             .build();
         S3AccessPointResource s3AccessPointResource = S3AccessPointResource.builder()
-                                                                         .parentS3Resource(parentResource)
-                                                                         .accessPointName("access-point-name")
-                                                                         .build();
+                                                                           .parentS3Resource(parentResource)
+                                                                           .accessPointName("access-point-name")
+                                                                           .build();
 
         assertEquals("access-point-name", s3AccessPointResource.accessPointName());
         assertEquals(Optional.of("account-id"), s3AccessPointResource.accountId());

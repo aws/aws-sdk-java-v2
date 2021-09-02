@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 import java.util.List;
 import java.util.UUID;
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkGlobalTime;
@@ -55,12 +56,13 @@ import software.amazon.awssdk.services.route53.model.ListResourceRecordSetsReque
 import software.amazon.awssdk.services.route53.model.RRType;
 import software.amazon.awssdk.services.route53.model.ResourceRecord;
 import software.amazon.awssdk.services.route53.model.ResourceRecordSet;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 /**
  * Integration tests that run through the various operations available in the
  * Route 53 API.
  */
-public class Route53IntegrationTest extends IntegrationTestBase {
+public class Route53IntegrationTest extends AwsIntegrationTestBase {
 
     private static final String COMMENT = "comment";
     private static final String ZONE_NAME = "java.sdk.com.";
@@ -68,6 +70,8 @@ public class Route53IntegrationTest extends IntegrationTestBase {
     private static final int PORT_NUM = 22;
     private static final String TYPE = "TCP";
     private static final String IP_ADDRESS = "12.12.12.12";
+
+    private static Route53Client route53;
 
     /**
      * The ID of the zone we created in this test.
@@ -77,13 +81,30 @@ public class Route53IntegrationTest extends IntegrationTestBase {
     /**
      * The ID of the change that created our test zone.
      */
-    private String createdZoneChangeId;
+    private static String createdZoneChangeId;
 
     /**
      * the ID of the health check.
      */
     private String healthCheckId;
 
+    @BeforeClass
+    public static void setup() {
+        route53 = Route53Client.builder()
+                               .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                               .region(Region.AWS_GLOBAL)
+                               .build();
+        // Create Hosted Zone
+        CreateHostedZoneResponse result = route53.createHostedZone(CreateHostedZoneRequest.builder()
+                                                                                          .name(ZONE_NAME)
+                                                                                          .callerReference(CALLER_REFERENCE)
+                                                                                          .hostedZoneConfig(HostedZoneConfig.builder()
+                                                                                                                            .comment(COMMENT).build()).build()
+        );
+
+        createdZoneId = result.hostedZone().id();
+        createdZoneChangeId = result.changeInfo().id();
+    }
 
     /**
      * Ensures the HostedZone we create during this test is correctly released.
@@ -103,22 +124,6 @@ public class Route53IntegrationTest extends IntegrationTestBase {
      */
     @Test
     public void testRoute53() throws Exception {
-        // Create Hosted Zone
-        CreateHostedZoneResponse result = route53.createHostedZone(CreateHostedZoneRequest.builder()
-                                                                         .name(ZONE_NAME)
-                                                                         .callerReference(CALLER_REFERENCE)
-                                                                         .hostedZoneConfig(HostedZoneConfig.builder()
-                                                                                                       .comment(COMMENT).build()).build()
-        );
-
-        createdZoneId = result.hostedZone().id();
-        createdZoneChangeId = result.changeInfo().id();
-
-        assertValidCreatedHostedZone(result.hostedZone());
-        assertValidDelegationSet(result.delegationSet());
-        assertValidChangeInfo(result.changeInfo());
-        assertNotNull(result.location());
-
 
         // Get Hosted Zone
         GetHostedZoneRequest hostedZoneRequest = GetHostedZoneRequest.builder().id(createdZoneId).build();
