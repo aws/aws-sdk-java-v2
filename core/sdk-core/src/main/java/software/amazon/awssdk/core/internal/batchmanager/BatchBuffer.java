@@ -92,14 +92,6 @@ public final class BatchBuffer<RequestT, ResponseT> {
         return requestEntries;
     }
 
-    public RequestT getRequest(String key) {
-        return idToBatchContext.get(key).request();
-    }
-
-    public CompletableFuture<ResponseT> getResponse(String key) {
-        return idToBatchContext.get(key).response();
-    }
-
     public void put(RequestT request, CompletableFuture<ResponseT> response) {
         synchronized (this) {
             if (idToBatchContext.size() == maxBufferSize) {
