@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.Crc32Validation;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
@@ -88,51 +89,47 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
 
         return measureApiCallSuccess(executionParams, () -> {
+            if (executionParams.getCombinedResponseHandler() != null) {
+                // There is no support for catching errors in a body for streaming responses. Our codegen must never
+                // attempt to do this.
+                throw new IllegalArgumentException("A streaming 'asyncResponseTransformer' may not be used when a "
+                                                   + "'combinedResponseHandler' has been specified in a "
+                                                   + "ClientExecutionParams object.");
+            }
+
+            ExecutionAttributes executionAttributes = executionParams.executionAttributes();
+            executionAttributes.putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1);
+
+            AsyncStreamingResponseHandler<OutputT, ReturnT> asyncStreamingResponseHandler =
+                new AsyncStreamingResponseHandler<>(asyncResponseTransformer);
+
+            // For streaming requests, prepare() should be called as early as possible to avoid NPE in client
+            // See https://github.com/aws/aws-sdk-java-v2/issues/1268. We do this with a wrapper that caches the prepare
+            // result until the execution attempt number changes. This guarantees that prepare is only called once per
+            // execution.
+            TransformingAsyncResponseHandler<ReturnT> wrappedAsyncStreamingResponseHandler =
+                IdempotentAsyncResponseHandler.create(
+                    asyncStreamingResponseHandler,
+                    () -> executionAttributes.getAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT),
+                    Integer::equals);
+            wrappedAsyncStreamingResponseHandler.prepare();
+
             // Running beforeExecution interceptors and modifyRequest interceptors.
             ExecutionContext context = invokeInterceptorsAndCreateExecutionContext(executionParams);
 
+            HttpResponseHandler<OutputT> decoratedResponseHandlers =
+                decorateResponseHandlers(executionParams.getResponseHandler(), context);
+
+            asyncStreamingResponseHandler.responseHandler(decoratedResponseHandlers);
+
+            TransformingAsyncResponseHandler<? extends SdkException> errorHandler =
+                resolveErrorResponseHandler(executionParams.getErrorResponseHandler(), context, crc32Validator);
+
             TransformingAsyncResponseHandler<Response<ReturnT>> combinedResponseHandler =
-                createStreamingCombinedResponseHandler(executionParams, asyncResponseTransformer, context);
+                new CombinedResponseAsyncHttpResponseHandler<>(wrappedAsyncStreamingResponseHandler, errorHandler);
 
             return doExecute(executionParams, context, combinedResponseHandler);
         });
-    }
-
-    private <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> TransformingAsyncResponseHandler<Response<ReturnT>>
-        createStreamingCombinedResponseHandler(ClientExecutionParams<InputT, OutputT> executionParams,
-                                               AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer,
-                                               ExecutionContext context) {
-        if (executionParams.getCombinedResponseHandler() != null) {
-            // There is no support for catching errors in a body for streaming responses. Our codegen must never
-            // attempt to do this.
-            throw new IllegalArgumentException("A streaming 'asyncResponseTransformer' may not be used when a "
-                                               + "'combinedResponseHandler' has been specified in a "
-                                               + "ClientExecutionParams object.");
-        }
-
-        AsyncStreamingResponseHandler<OutputT, ReturnT> asyncStreamingResponseHandler =
-            new AsyncStreamingResponseHandler<>(asyncResponseTransformer);
-
-        // For streaming requests, prepare() should be called as early as possible to avoid NPE in client
-        // See https://github.com/aws/aws-sdk-java-v2/issues/1268. We do this with a wrapper that caches the prepare
-        // result until the execution attempt number changes. This guarantees that prepare is only called once per
-        // execution.
-        TransformingAsyncResponseHandler<ReturnT> wrappedAsyncStreamingResponseHandler =
-            IdempotentAsyncResponseHandler.create(
-                asyncStreamingResponseHandler,
-                () -> context.executionAttributes().getAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT),
-                Integer::equals);
-        wrappedAsyncStreamingResponseHandler.prepare();
-
-        HttpResponseHandler<OutputT> decoratedResponseHandlers =
-            decorateResponseHandlers(executionParams.getResponseHandler(), context);
-
-        asyncStreamingResponseHandler.responseHandler(decoratedResponseHandlers);
-
-        TransformingAsyncResponseHandler<? extends SdkException> errorHandler =
-            resolveErrorResponseHandler(executionParams.getErrorResponseHandler(), context, crc32Validator);
-
-        return new CombinedResponseAsyncHttpResponseHandler<>(wrappedAsyncStreamingResponseHandler, errorHandler);
     }
 
     private <InputT extends SdkRequest, OutputT extends SdkResponse> TransformingAsyncResponseHandler<Response<OutputT>>

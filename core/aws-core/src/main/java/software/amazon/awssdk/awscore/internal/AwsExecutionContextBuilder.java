@@ -176,13 +176,9 @@ public final class AwsExecutionContextBuilder {
         ExecutionAttributes clientOverrideExecutionAttributes,
         ExecutionAttributes requestOverrideExecutionAttributes) {
 
-        if (clientOverrideExecutionAttributes != null) {
-            executionAttributes = clientOverrideExecutionAttributes.merge(executionAttributes);
-        }
 
-        if (requestOverrideExecutionAttributes != null) {
-            executionAttributes = requestOverrideExecutionAttributes.merge(executionAttributes);
-        }
+        executionAttributes.putAbsentAttributes(requestOverrideExecutionAttributes);
+        executionAttributes.putAbsentAttributes(clientOverrideExecutionAttributes);
 
         return executionAttributes;
     }
