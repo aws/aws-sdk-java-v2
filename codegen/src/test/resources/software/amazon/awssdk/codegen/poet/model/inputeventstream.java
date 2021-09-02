@@ -1,11 +1,12 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.jsonprotocoltests.model.inputeventstream.DefaultInputEvent;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Base interface for all event types in InputEventStream.
@@ -36,6 +37,8 @@ public interface InputEventStream {
 
         UNKNOWN_TO_SDK_VERSION(null);
 
+        private static final Map<String, EventType> VALUE_MAP = EnumUtils.index(EventType.class, EventType::toString);
+
         private final String value;
 
         private EventType(String value) {
@@ -58,8 +61,7 @@ public interface InputEventStream {
             if (value == null) {
                 return null;
             }
-            return Stream.of(EventType.values()).filter(e -> e.toString().equals(value)).findFirst()
-                    .orElse(UNKNOWN_TO_SDK_VERSION);
+            return VALUE_MAP.getOrDefault(value, UNKNOWN_TO_SDK_VERSION);
         }
 
         /**
@@ -69,7 +71,9 @@ public interface InputEventStream {
          * @return a {@link Set} of known {@link EventType}s
          */
         public static Set<EventType> knownValues() {
-            return Stream.of(values()).filter(v -> v != UNKNOWN_TO_SDK_VERSION).collect(Collectors.toSet());
+            Set<EventType> knownValues = EnumSet.allOf(EventType.class);
+            knownValues.remove(UNKNOWN_TO_SDK_VERSION);
+            return knownValues;
         }
     }
 }

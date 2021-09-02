@@ -17,6 +17,7 @@ package software.amazon.awssdk.utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -138,5 +139,27 @@ public final class CollectionUtils {
      */
     public static <K, V> Map<K, V> inverseMap(Map<V, K> inputMap) {
         return inputMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+    }
+
+    /**
+     * For a collection of values of type {@code V} that can all be converted to type {@code K}, create a map that
+     * indexes all of the values by {@code K}. This requires that no two values map to the same index.
+     * 
+     * @param values the collection of values to index
+     * @param indexFunction the function used to convert a value to its index
+     * @param <K> the index (or key) type
+     * @param <V> the value type
+     * @return a (modifiable) map that indexes K to its unique value V
+     * @throws IllegalArgumentException if any of the values map to the same index
+     */
+    public static <K, V> Map<K, V> index(Iterable<V> values, Function<? super V, K> indexFunction) {
+        Map<K, V> map = new HashMap<>();
+        for (V value : values) {
+            K index = indexFunction.apply(value);
+            V prev = map.put(index, value);
+            Validate.isNull(prev, "No duplicate indices allowed but both %s and %s have the same index: %s",
+                            prev, value, index);
+        }
+        return map;
     }
 }
