@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Outer map maps a batch group ID (ex. queueUrl, overrideConfig etc.) to a nested BatchingGroupMap map.
+ * Outer map maps a batchKey (ex. queueUrl, overrideConfig etc.) to a nested BatchingGroupMap map.
  * @param <RequestT> the type of an outgoing response
  */
 @SdkInternalApi
@@ -40,9 +40,6 @@ public final class BatchingMap<RequestT, ResponseT> {
         this.maxBufferSize = maxBufferSize;
     }
 
-    // put has a happens-before relation with removeBufferIfNeeded which is called by flushableRequests() and
-    // flushableScheduledRequests. This is done because removeBufferIfNeeded removes the underlying buffer and so we want to
-    // guarantee that we don't try to put items into a buffer that is removed.
     public void put(String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
                      CompletableFuture<ResponseT> response) throws IllegalStateException {
         batchContextMap.computeIfAbsent(batchKey, k -> {

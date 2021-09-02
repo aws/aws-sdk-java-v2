@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.batchmanager;
 
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.utils.Either;
 
 /**
