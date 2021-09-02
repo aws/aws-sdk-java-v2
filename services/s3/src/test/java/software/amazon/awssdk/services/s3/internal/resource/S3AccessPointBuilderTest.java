@@ -183,4 +183,59 @@ public class S3AccessPointBuilderTest {
             .hasMessageContaining("accountId")
             .hasMessageContaining("alphanumeric");
     }
+
+    @Test
+    public void toURI_noRegion_returnsGlobalEndpoint() {
+        URI result = S3AccessPointBuilder.create()
+                                         .accessPointName("access-point")
+                                         .accountId("account-id")
+                                         .region("")
+                                         .protocol("protocol")
+                                         .domain("domain")
+                                         .toUri();
+
+        assertThat(result, is(URI.create("protocol://access-point.accesspoint.s3-global.domain")));
+    }
+
+    @Test
+    public void toURI_noRegion_accessPointNameWithDots_returnsGlobalEndpoint() {
+        URI result = S3AccessPointBuilder.create()
+                                         .accessPointName("access-point.foobar")
+                                         .accountId("account-id")
+                                         .region("")
+                                         .protocol("protocol")
+                                         .domain("domain")
+                                         .toUri();
+
+        assertThat(result, is(URI.create("protocol://access-point.foobar.accesspoint.s3-global.domain")));
+    }
+
+    @Test
+    public void toURI_noRegion_accessPointNameWithDots_segmentHasInvalidLength() {
+        assertThatThrownBy(() -> S3AccessPointBuilder.create()
+                                                     .accessPointName("access-point." + LONG_STRING_64)
+                                                     .accountId("account-id")
+                                                     .region("")
+                                                     .protocol("protocol")
+                                                     .domain("domain")
+                                                     .toUri())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("63")
+            .hasMessageContaining(LONG_STRING_64);
+    }
+
+    @Test
+    public void toURI_noRegion_accessPointNameWithDots_segmentHasInvalidCharacters() {
+        assertThatThrownBy(() -> S3AccessPointBuilder.create()
+                                                     .accessPointName("access-point" + "." + "%2ffoobar")
+                                                     .accountId("account-id")
+                                                     .region("")
+                                                     .protocol("protocol")
+                                                     .domain("domain")
+                                                     .toUri())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("alphanumeric")
+            .hasMessageContaining("%2ffoobar");
+    }
+
 }
