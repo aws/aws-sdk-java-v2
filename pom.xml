@@ -519,6 +519,8 @@
                         <onlyModified>true</onlyModified>
                         <excludes>
                             <exclude>*.internal.*</exclude>
+                            <exclude>software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler</exclude>
+                            <exclude>software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler</exclude>
                         </excludes>
 
                         <excludeModules>
