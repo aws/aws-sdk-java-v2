@@ -1324,6 +1324,10 @@
           "shape": "__stringMin20Max1600",
           "documentation": "<p>The ARN of the event bus.</p>"
         },
+        "CrossAccount": {
+          "shape": "__boolean",
+          "documentation": "<p>Support discovery of schemas in events sent to the bus from another account. (default: true).</p>"
+        },
         "Tags": {
           "shape": "Tags",
           "locationName": "tags",
@@ -1344,6 +1348,10 @@
         "SourceArn": {
           "shape": "__stringMin20Max1600",
           "documentation": "<p>The ARN of the event bus.</p>"
+        },
+        "CrossAccount": {
+          "shape": "__boolean",
+          "documentation": "<p>Support discovery of schemas in events sent to the bus from another account. (default: true).</p>"
         },
         "Tags": {
           "shape": "Tags",
@@ -1378,6 +1386,10 @@
         "State": {
           "shape": "DiscovererState",
           "documentation": "<p>The state of the discoverer.</p>"
+        },
+        "CrossAccount": {
+          "shape": "__boolean",
+          "documentation": "<p>The Status if the discoverer will discover schemas from events sent from another account.</p>"
         },
         "Tags": {
           "shape": "Tags",
@@ -1728,6 +1740,10 @@
           "shape": "DiscovererState",
           "documentation": "<p>The state of the discoverer.</p>"
         },
+        "CrossAccount": {
+          "shape": "__boolean",
+          "documentation": "<p>The Status if the discoverer will discover schemas from events sent from another account.</p>"
+        },
         "Tags": {
           "shape": "Tags",
           "locationName": "tags",
@@ -1905,6 +1921,10 @@
           "shape": "DiscovererState",
           "documentation": "<p>The state of the discoverer.</p>"
         },
+        "CrossAccount": {
+          "shape": "__boolean",
+          "documentation": "<p>The Status if the discoverer will discover schemas from events sent from another account.</p>"
+        },
         "Tags": {
           "shape": "Tags",
           "locationName": "tags",
@@ -1950,6 +1970,10 @@
         "State": {
           "shape": "DiscovererState",
           "documentation": "<p>The state of the discoverer.</p>"
+        },
+        "CrossAccount": {
+          "shape": "__boolean",
+          "documentation": "<p>The Status if the discoverer will discover schemas from events sent from another account.</p>"
         },
         "Tags": {
           "shape": "Tags",
@@ -3185,6 +3209,10 @@
         "Description": {
           "shape": "__stringMin0Max256",
           "documentation": "<p>The description of the discoverer to update.</p>"
+        },
+        "CrossAccount": {
+          "shape": "__boolean",
+          "documentation": "<p>Support discovery of schemas in events sent to the bus from another account. (default: true)</p>"
         }
       }
     },
@@ -3200,6 +3228,10 @@
           "location": "uri",
           "locationName": "discovererId",
           "documentation": "<p>The ID of the discoverer.</p>"
+        },
+        "CrossAccount": {
+          "shape": "__boolean",
+          "documentation": "<p>Support discovery of schemas in events sent to the bus from another account. (default: true)</p>"
         }
       },
       "required": [
@@ -3228,6 +3260,10 @@
         "State": {
           "shape": "DiscovererState",
           "documentation": "<p>The state of the discoverer.</p>"
+        },
+        "CrossAccount": {
+          "shape": "__boolean",
+          "documentation": "<p>The Status if the discoverer will discover schemas from events sent from another account.</p>"
         },
         "Tags": {
           "shape": "Tags",
