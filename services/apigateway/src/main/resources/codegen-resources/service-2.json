@@ -20,12 +20,12 @@
       "input":{"shape":"CreateApiKeyRequest"},
       "output":{"shape":"ApiKey"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"LimitExceededException"},
         {"shape":"BadRequestException"},
-        {"shape":"ConflictException"}
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Create an <a>ApiKey</a> resource. </p> <div class=\"seeAlso\"><a href=\"https://docs.aws.amazon.com/cli/latest/reference/apigateway/create-api-key.html\">AWS CLI</a></div>"
     },
@@ -40,9 +40,10 @@
       "output":{"shape":"Authorizer"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Adds a new <a>Authorizer</a> resource to an existing <a>RestApi</a> resource.</p> <div class=\"seeAlso\"><a href=\"https://docs.aws.amazon.com/cli/latest/reference/apigateway/create-authorizer.html\">AWS CLI</a></div>"
@@ -57,10 +58,11 @@
       "input":{"shape":"CreateBasePathMappingRequest"},
       "output":{"shape":"BasePathMapping"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"ConflictException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Creates a new <a>BasePathMapping</a> resource.</p>"
@@ -75,11 +77,11 @@
       "input":{"shape":"CreateDeploymentRequest"},
       "output":{"shape":"Deployment"},
       "errors":[
-        {"shape":"UnauthorizedException"},
         {"shape":"BadRequestException"},
-        {"shape":"NotFoundException"},
         {"shape":"ConflictException"},
         {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"},
         {"shape":"ServiceUnavailableException"}
       ],
@@ -97,9 +99,9 @@
       "errors":[
         {"shape":"BadRequestException"},
         {"shape":"ConflictException"},
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ]
     },
@@ -115,9 +117,9 @@
       "errors":[
         {"shape":"BadRequestException"},
         {"shape":"ConflictException"},
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ]
     },
@@ -131,9 +133,10 @@
       "input":{"shape":"CreateDomainNameRequest"},
       "output":{"shape":"DomainName"},
       "errors":[
-        {"shape":"UnauthorizedException"},
         {"shape":"BadRequestException"},
         {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Creates a new domain name.</p>"
@@ -149,10 +152,10 @@
       "output":{"shape":"Model"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"ConflictException"},
         {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Adds a new <a>Model</a> resource to an existing <a>RestApi</a> resource.</p>"
@@ -168,9 +171,10 @@
       "output":{"shape":"RequestValidator"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Creates a <a>ReqeustValidator</a> of a given <a>RestApi</a>.</p>"
@@ -204,9 +208,10 @@
       "input":{"shape":"CreateRestApiRequest"},
       "output":{"shape":"RestApi"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"LimitExceededException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Creates a new <a>RestApi</a> resource.</p>"
@@ -241,11 +246,11 @@
       "output":{"shape":"UsagePlan"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"LimitExceededException"},
         {"shape":"ConflictException"},
-        {"shape":"NotFoundException"}
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Creates a usage plan with the throttle and quota limits, as well as the associated API stages, specified in the payload. </p>"
     },
@@ -261,8 +266,9 @@
       "errors":[
         {"shape":"BadRequestException"},
         {"shape":"ConflictException"},
-        {"shape":"UnauthorizedException"},
+        {"shape":"LimitExceededException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Creates a usage plan key for adding an existing API key to a usage plan.</p>"
@@ -277,8 +283,10 @@
       "input":{"shape":"CreateVpcLinkRequest"},
       "output":{"shape":"VpcLink"},
       "errors":[
-        {"shape":"UnauthorizedException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Creates a VPC link, under the caller's account in a selected region, in an asynchronous operation that typically takes 2-4 minutes to complete and become operational. The caller must have permissions to create and update VPC Endpoint services.</p>"
@@ -292,8 +300,10 @@
       },
       "input":{"shape":"DeleteApiKeyRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes the <a>ApiKey</a> resource.</p>"
@@ -307,11 +317,11 @@
       },
       "input":{"shape":"DeleteAuthorizerRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"},
-        {"shape":"ConflictException"}
+        {"shape":"ConflictException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes an existing <a>Authorizer</a> resource.</p> <div class=\"seeAlso\"><a href=\"https://docs.aws.amazon.com/cli/latest/reference/apigateway/delete-authorizer.html\">AWS CLI</a></div>"
     },
@@ -324,10 +334,10 @@
       },
       "input":{"shape":"DeleteBasePathMappingRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"ConflictException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes the <a>BasePathMapping</a> resource.</p>"
@@ -341,10 +351,11 @@
       },
       "input":{"shape":"DeleteClientCertificateRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"},
-        {"shape":"NotFoundException"}
+        {"shape":"ConflictException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes the <a>ClientCertificate</a> resource.</p>"
     },
@@ -357,9 +368,11 @@
       },
       "input":{"shape":"DeleteDeploymentRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes a <a>Deployment</a> resource. Deleting a deployment will only succeed if there are no <a>Stage</a> resources associated with it.</p>"
@@ -373,11 +386,11 @@
       },
       "input":{"shape":"DeleteDocumentationPartRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"TooManyRequestsException"},
+        {"shape":"BadRequestException"},
         {"shape":"ConflictException"},
-        {"shape":"BadRequestException"}
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ]
     },
     "DeleteDocumentationVersion":{
@@ -389,10 +402,10 @@
       },
       "input":{"shape":"DeleteDocumentationVersionRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
         {"shape":"ConflictException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ]
     },
@@ -405,10 +418,11 @@
       },
       "input":{"shape":"DeleteDomainNameRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
         {"shape":"NotFoundException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"BadRequestException"}
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes the <a>DomainName</a> resource.</p>"
     },
@@ -421,11 +435,11 @@
       },
       "input":{"shape":"DeleteGatewayResponseRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"},
-        {"shape":"ConflictException"}
+        {"shape":"ConflictException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Clears any customization of a <a>GatewayResponse</a> of a specified response type on the given <a>RestApi</a> and resets it with the default settings.</p>"
     },
@@ -438,10 +452,11 @@
       },
       "input":{"shape":"DeleteIntegrationRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
         {"shape":"NotFoundException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"ConflictException"}
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Represents a delete integration.</p>"
     },
@@ -454,11 +469,11 @@
       },
       "input":{"shape":"DeleteIntegrationResponseRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"},
-        {"shape":"ConflictException"}
+        {"shape":"ConflictException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Represents a delete integration response.</p>"
     },
@@ -504,11 +519,11 @@
       },
       "input":{"shape":"DeleteModelRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"},
-        {"shape":"ConflictException"}
+        {"shape":"ConflictException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes a model.</p>"
     },
@@ -521,11 +536,11 @@
       },
       "input":{"shape":"DeleteRequestValidatorRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"},
-        {"shape":"ConflictException"}
+        {"shape":"ConflictException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes a <a>RequestValidator</a> of a given <a>RestApi</a>.</p>"
     },
@@ -555,10 +570,11 @@
       },
       "input":{"shape":"DeleteRestApiRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
         {"shape":"NotFoundException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"BadRequestException"}
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes the specified API.</p>"
     },
@@ -571,10 +587,12 @@
       },
       "input":{"shape":"DeleteStageRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
         {"shape":"NotFoundException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"BadRequestException"}
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes a <a>Stage</a> resource.</p>"
     },
@@ -587,10 +605,11 @@
       },
       "input":{"shape":"DeleteUsagePlanRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"},
-        {"shape":"NotFoundException"}
+        {"shape":"ConflictException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes a usage plan of a given plan Id.</p>"
     },
@@ -605,8 +624,8 @@
       "errors":[
         {"shape":"BadRequestException"},
         {"shape":"ConflictException"},
-        {"shape":"UnauthorizedException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes a usage plan key and remove the underlying API key from the associated usage plan.</p>"
@@ -620,10 +639,11 @@
       },
       "input":{"shape":"DeleteVpcLinkRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
         {"shape":"NotFoundException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"BadRequestException"}
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes an existing <a>VpcLink</a> of a specified identifier.</p>"
     },
@@ -636,9 +656,11 @@
       },
       "input":{"shape":"FlushStageAuthorizersCacheRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Flushes all authorizer cache entries on a stage.</p>"
@@ -652,9 +674,11 @@
       },
       "input":{"shape":"FlushStageCacheRequest"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Flushes a stage's cache.</p>"
@@ -669,9 +693,11 @@
       "input":{"shape":"GenerateClientCertificateRequest"},
       "output":{"shape":"ClientCertificate"},
       "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
         {"shape":"UnauthorizedException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"LimitExceededException"}
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Generates a <a>ClientCertificate</a> resource.</p>"
     },
@@ -684,8 +710,9 @@
       "input":{"shape":"GetAccountRequest"},
       "output":{"shape":"Account"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets information about the current <a>Account</a> resource.</p>"
@@ -699,8 +726,9 @@
       "input":{"shape":"GetApiKeyRequest"},
       "output":{"shape":"ApiKey"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets information about the current <a>ApiKey</a> resource.</p>"
@@ -715,6 +743,7 @@
       "output":{"shape":"ApiKeys"},
       "errors":[
         {"shape":"BadRequestException"},
+        {"shape":"NotFoundException"},
         {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
@@ -729,8 +758,9 @@
       "input":{"shape":"GetAuthorizerRequest"},
       "output":{"shape":"Authorizer"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Describe an existing <a>Authorizer</a> resource.</p> <div class=\"seeAlso\"><a href=\"https://docs.aws.amazon.com/cli/latest/reference/apigateway/get-authorizer.html\">AWS CLI</a></div>"
@@ -745,8 +775,8 @@
       "output":{"shape":"Authorizers"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Describe an existing <a>Authorizers</a> resource.</p> <div class=\"seeAlso\"><a href=\"https://docs.aws.amazon.com/cli/latest/reference/apigateway/get-authorizers.html\">AWS CLI</a></div>"
@@ -760,8 +790,9 @@
       "input":{"shape":"GetBasePathMappingRequest"},
       "output":{"shape":"BasePathMapping"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Describe a <a>BasePathMapping</a> resource.</p>"
@@ -775,8 +806,9 @@
       "input":{"shape":"GetBasePathMappingsRequest"},
       "output":{"shape":"BasePathMappings"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Represents a collection of <a>BasePathMapping</a> resources.</p>"
@@ -790,8 +822,9 @@
       "input":{"shape":"GetClientCertificateRequest"},
       "output":{"shape":"ClientCertificate"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets information about the current <a>ClientCertificate</a> resource.</p>"
@@ -806,6 +839,7 @@
       "output":{"shape":"ClientCertificates"},
       "errors":[
         {"shape":"BadRequestException"},
+        {"shape":"NotFoundException"},
         {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
@@ -820,8 +854,9 @@
       "input":{"shape":"GetDeploymentRequest"},
       "output":{"shape":"Deployment"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"},
         {"shape":"ServiceUnavailableException"}
       ],
@@ -853,8 +888,9 @@
       "input":{"shape":"GetDocumentationPartRequest"},
       "output":{"shape":"DocumentationPart"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ]
     },
@@ -868,8 +904,8 @@
       "output":{"shape":"DocumentationParts"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ]
     },
@@ -911,9 +947,9 @@
       "input":{"shape":"GetDomainNameRequest"},
       "output":{"shape":"DomainName"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
-        {"shape":"ServiceUnavailableException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Represents a domain name that is contained in a simpler, more intuitive URL that can be called.</p>"
@@ -928,6 +964,7 @@
       "output":{"shape":"DomainNames"},
       "errors":[
         {"shape":"BadRequestException"},
+        {"shape":"NotFoundException"},
         {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
@@ -943,10 +980,11 @@
       "input":{"shape":"GetExportRequest"},
       "output":{"shape":"ExportResponse"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
         {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Exports a deployed version of a <a>RestApi</a> in a specified format.</p>"
@@ -960,8 +998,9 @@
       "input":{"shape":"GetGatewayResponseRequest"},
       "output":{"shape":"GatewayResponse"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets a <a>GatewayResponse</a> of a specified response type on the given <a>RestApi</a>.</p>"
@@ -976,8 +1015,8 @@
       "output":{"shape":"GatewayResponses"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets the <a>GatewayResponses</a> collection on the given <a>RestApi</a>. If an API developer has not added any definitions for gateway responses, the result will be the API Gateway-generated default <a>GatewayResponses</a> collection for the supported response types.</p>"
@@ -991,8 +1030,9 @@
       "input":{"shape":"GetIntegrationRequest"},
       "output":{"shape":"Integration"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Get the integration settings.</p>"
@@ -1006,8 +1046,9 @@
       "input":{"shape":"GetIntegrationResponseRequest"},
       "output":{"shape":"IntegrationResponse"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Represents a get integration response.</p>"
@@ -1051,8 +1092,9 @@
       "input":{"shape":"GetModelRequest"},
       "output":{"shape":"Model"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Describes an existing model defined for a <a>RestApi</a> resource.</p>"
@@ -1098,8 +1140,9 @@
       "input":{"shape":"GetRequestValidatorRequest"},
       "output":{"shape":"RequestValidator"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets a <a>RequestValidator</a> of a given <a>RestApi</a>.</p>"
@@ -1114,8 +1157,8 @@
       "output":{"shape":"RequestValidators"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets the <a>RequestValidators</a> collection of a given <a>RestApi</a>.</p>"
@@ -1160,8 +1203,9 @@
       "input":{"shape":"GetRestApiRequest"},
       "output":{"shape":"RestApi"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Lists the <a>RestApi</a> resource in the collection.</p>"
@@ -1176,6 +1220,7 @@
       "output":{"shape":"RestApis"},
       "errors":[
         {"shape":"BadRequestException"},
+        {"shape":"NotFoundException"},
         {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
@@ -1191,10 +1236,11 @@
       "input":{"shape":"GetSdkRequest"},
       "output":{"shape":"SdkResponse"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
         {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Generates a client SDK for a <a>RestApi</a> and <a>Stage</a>.</p>"
@@ -1208,8 +1254,9 @@
       "input":{"shape":"GetSdkTypeRequest"},
       "output":{"shape":"SdkType"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ]
     },
@@ -1222,6 +1269,8 @@
       "input":{"shape":"GetSdkTypesRequest"},
       "output":{"shape":"SdkTypes"},
       "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"NotFoundException"},
         {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ]
@@ -1235,8 +1284,11 @@
       "input":{"shape":"GetStageRequest"},
       "output":{"shape":"Stage"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets information about a <a>Stage</a> resource.</p>"
@@ -1250,8 +1302,11 @@
       "input":{"shape":"GetStagesRequest"},
       "output":{"shape":"Stages"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets information about one or more <a>Stage</a> resources.</p>"
@@ -1266,10 +1321,9 @@
       "output":{"shape":"Tags"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
-        {"shape":"TooManyRequestsException"},
         {"shape":"NotFoundException"},
-        {"shape":"LimitExceededException"}
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets the <a>Tags</a> collection for a given resource.</p>"
     },
@@ -1299,8 +1353,8 @@
       "output":{"shape":"UsagePlan"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets a usage plan of a given plan identifier.</p>"
@@ -1316,8 +1370,8 @@
       "output":{"shape":"UsagePlanKey"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets a usage plan key of a given key identifier.</p>"
@@ -1332,8 +1386,8 @@
       "output":{"shape":"UsagePlanKeys"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets all the usage plan keys representing the API keys added to a specified usage plan.</p>"
@@ -1348,10 +1402,9 @@
       "output":{"shape":"UsagePlans"},
       "errors":[
         {"shape":"BadRequestException"},
+        {"shape":"NotFoundException"},
         {"shape":"UnauthorizedException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"ConflictException"},
-        {"shape":"NotFoundException"}
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets all the usage plans of the caller's account.</p>"
     },
@@ -1364,8 +1417,9 @@
       "input":{"shape":"GetVpcLinkRequest"},
       "output":{"shape":"VpcLink"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Gets a specified VPC link under the caller's account in a region.</p>"
@@ -1380,6 +1434,7 @@
       "output":{"shape":"VpcLinks"},
       "errors":[
         {"shape":"BadRequestException"},
+        {"shape":"NotFoundException"},
         {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
@@ -1395,12 +1450,12 @@
       "input":{"shape":"ImportApiKeysRequest"},
       "output":{"shape":"ApiKeyIds"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"LimitExceededException"},
         {"shape":"BadRequestException"},
-        {"shape":"ConflictException"}
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Import API keys from an external source, such as a CSV-formatted file.</p>"
     },
@@ -1413,10 +1468,11 @@
       "input":{"shape":"ImportDocumentationPartsRequest"},
       "output":{"shape":"DocumentationPartIds"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
         {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ]
     },
@@ -1430,11 +1486,12 @@
       "input":{"shape":"ImportRestApiRequest"},
       "output":{"shape":"RestApi"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"LimitExceededException"},
         {"shape":"BadRequestException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"ConflictException"}
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>A feature of the API Gateway control service for creating a new API from an external API definition file.</p>"
     },
@@ -1449,9 +1506,10 @@
       "output":{"shape":"GatewayResponse"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Creates a customization of a <a>GatewayResponse</a> of a specified response type and status code on the given <a>RestApi</a>.</p>"
@@ -1466,10 +1524,11 @@
       "input":{"shape":"PutIntegrationRequest"},
       "output":{"shape":"Integration"},
       "errors":[
-        {"shape":"UnauthorizedException"},
         {"shape":"BadRequestException"},
         {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Sets up a method's integration.</p>"
@@ -1484,12 +1543,12 @@
       "input":{"shape":"PutIntegrationResponseRequest"},
       "output":{"shape":"IntegrationResponse"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"LimitExceededException"},
         {"shape":"BadRequestException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"ConflictException"}
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Represents a put integration.</p>"
     },
@@ -1540,12 +1599,12 @@
       "input":{"shape":"PutRestApiRequest"},
       "output":{"shape":"RestApi"},
       "errors":[
-        {"shape":"UnauthorizedException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
         {"shape":"LimitExceededException"},
         {"shape":"NotFoundException"},
-        {"shape":"BadRequestException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"ConflictException"}
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>A feature of the API Gateway control service for updating an existing API with an input of external API definitions. The update can take the form of merging the supplied definition into the existing API or overwriting the existing API.</p>"
     },
@@ -1559,11 +1618,11 @@
       "input":{"shape":"TagResourceRequest"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"NotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"LimitExceededException"},
-        {"shape":"ConflictException"}
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Adds or updates a tag on a given resource.</p>"
     },
@@ -1609,10 +1668,11 @@
       "input":{"shape":"UntagResourceRequest"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
-        {"shape":"TooManyRequestsException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
         {"shape":"NotFoundException"},
-        {"shape":"ConflictException"}
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Removes a tag from a given resource.</p>"
     },
@@ -1625,9 +1685,11 @@
       "input":{"shape":"UpdateAccountRequest"},
       "output":{"shape":"Account"},
       "errors":[
-        {"shape":"UnauthorizedException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
         {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Changes information about the current <a>Account</a> resource.</p>"
@@ -1641,11 +1703,12 @@
       "input":{"shape":"UpdateApiKeyRequest"},
       "output":{"shape":"ApiKey"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"ConflictException"}
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Changes information about an <a>ApiKey</a> resource.</p>"
     },
@@ -1658,9 +1721,11 @@
       "input":{"shape":"UpdateAuthorizerRequest"},
       "output":{"shape":"Authorizer"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Updates an existing <a>Authorizer</a> resource.</p> <div class=\"seeAlso\"><a href=\"https://docs.aws.amazon.com/cli/latest/reference/apigateway/update-authorizer.html\">AWS CLI</a></div>"
@@ -1674,10 +1739,11 @@
       "input":{"shape":"UpdateBasePathMappingRequest"},
       "output":{"shape":"BasePathMapping"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"ConflictException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Changes information about the <a>BasePathMapping</a> resource.</p>"
@@ -1691,10 +1757,12 @@
       "input":{"shape":"UpdateClientCertificateRequest"},
       "output":{"shape":"ClientCertificate"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"},
-        {"shape":"NotFoundException"}
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Changes information about an <a>ClientCertificate</a> resource.</p>"
     },
@@ -1707,9 +1775,11 @@
       "input":{"shape":"UpdateDeploymentRequest"},
       "output":{"shape":"Deployment"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"},
         {"shape":"ServiceUnavailableException"}
       ],
@@ -1725,10 +1795,10 @@
       "output":{"shape":"DocumentationPart"},
       "errors":[
         {"shape":"BadRequestException"},
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"ConflictException"},
         {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ]
     },
@@ -1741,10 +1811,11 @@
       "input":{"shape":"UpdateDocumentationVersionRequest"},
       "output":{"shape":"DocumentationVersion"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"ConflictException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ]
     },
@@ -1757,10 +1828,11 @@
       "input":{"shape":"UpdateDomainNameRequest"},
       "output":{"shape":"DomainName"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
         {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Changes information about the <a>DomainName</a> resource.</p>"
@@ -1774,9 +1846,11 @@
       "input":{"shape":"UpdateGatewayResponseRequest"},
       "output":{"shape":"GatewayResponse"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Updates a <a>GatewayResponse</a> of a specified response type on the given <a>RestApi</a>.</p>"
@@ -1790,11 +1864,12 @@
       "input":{"shape":"UpdateIntegrationRequest"},
       "output":{"shape":"Integration"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
-        {"shape":"TooManyRequestsException"},
-        {"shape":"ConflictException"}
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Represents an update integration.</p>"
     },
@@ -1807,10 +1882,11 @@
       "input":{"shape":"UpdateIntegrationResponseRequest"},
       "output":{"shape":"IntegrationResponse"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"ConflictException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Represents an update integration response.</p>"
@@ -1860,10 +1936,11 @@
       "input":{"shape":"UpdateModelRequest"},
       "output":{"shape":"Model"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
         {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Changes information about a model.</p>"
@@ -1877,9 +1954,11 @@
       "input":{"shape":"UpdateRequestValidatorRequest"},
       "output":{"shape":"RequestValidator"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Updates a <a>RequestValidator</a> of a given <a>RestApi</a>.</p>"
@@ -1910,10 +1989,11 @@
       "input":{"shape":"UpdateRestApiRequest"},
       "output":{"shape":"RestApi"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"ConflictException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Changes information about the specified API.</p>"
@@ -1927,10 +2007,11 @@
       "input":{"shape":"UpdateStageRequest"},
       "output":{"shape":"Stage"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
-        {"shape":"ConflictException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Changes information about a <a>Stage</a> resource.</p>"
@@ -1944,10 +2025,12 @@
       "input":{"shape":"UpdateUsageRequest"},
       "output":{"shape":"Usage"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"},
-        {"shape":"NotFoundException"}
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Grants a temporary extension to the remaining quota of a usage plan associated with a specified API key.</p>"
     },
@@ -1960,11 +2043,12 @@
       "input":{"shape":"UpdateUsagePlanRequest"},
       "output":{"shape":"UsagePlan"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"},
+        {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
         {"shape":"NotFoundException"},
-        {"shape":"ConflictException"}
+        {"shape":"UnauthorizedException"},
+        {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Updates a usage plan of a given plan Id.</p>"
     },
@@ -1977,10 +2061,11 @@
       "input":{"shape":"UpdateVpcLinkRequest"},
       "output":{"shape":"VpcLink"},
       "errors":[
-        {"shape":"UnauthorizedException"},
-        {"shape":"NotFoundException"},
         {"shape":"BadRequestException"},
         {"shape":"ConflictException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedException"},
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Updates an existing <a>VpcLink</a> of a specified identifier.</p>"
@@ -2006,7 +2091,7 @@
       "members":{
         "cloudwatchRoleArn":{
           "shape":"String",
-          "documentation":"<p>The ARN of an Amazon CloudWatch role for the current <a>Account</a>. </p>"
+          "documentation":"<p>The ARN of an Amazon CloudWatch role for the current <a>Account</a>.</p>"
         },
         "throttleSettings":{
           "shape":"ThrottleSettings",
@@ -2613,7 +2698,11 @@
           "shape":"SecurityPolicy",
           "documentation":"<p>The Transport Layer Security (TLS) version + cipher suite for this <a>DomainName</a>. The valid values are <code>TLS_1_0</code> and <code>TLS_1_2</code>.</p>"
         },
-        "mutualTlsAuthentication":{"shape":"MutualTlsAuthenticationInput"}
+        "mutualTlsAuthentication":{"shape":"MutualTlsAuthenticationInput"},
+        "ownershipVerificationCertificateArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the public certificate issued by ACM to validate ownership of your custom domain. Only required when configuring mutual TLS and using an ACM imported or private CA certificate ARN as the regionalCertificateArn.</p>"
+        }
       },
       "documentation":"<p>A request to create a new domain name.</p>"
     },
@@ -3056,7 +3145,7 @@
         },
         "responseType":{
           "shape":"GatewayResponseType",
-          "documentation":"<p>[Required] <p>The response type of the associated <a>GatewayResponse</a>. Valid values are <ul><li>ACCESS_DENIED</li><li>API_CONFIGURATION_ERROR</li><li>AUTHORIZER_FAILURE</li><li> AUTHORIZER_CONFIGURATION_ERROR</li><li>BAD_REQUEST_PARAMETERS</li><li>BAD_REQUEST_BODY</li><li>DEFAULT_4XX</li><li>DEFAULT_5XX</li><li>EXPIRED_TOKEN</li><li>INVALID_SIGNATURE</li><li>INTEGRATION_FAILURE</li><li>INTEGRATION_TIMEOUT</li><li>INVALID_API_KEY</li><li>MISSING_AUTHENTICATION_TOKEN</li><li> QUOTA_EXCEEDED</li><li>REQUEST_TOO_LARGE</li><li>RESOURCE_NOT_FOUND</li><li>THROTTLED</li><li>UNAUTHORIZED</li><li>UNSUPPORTED_MEDIA_TYPE</li></ul> </p></p>",
+          "documentation":"<p>[Required] <p>The response type of the associated <a>GatewayResponse</a>.</p></p>",
           "location":"uri",
           "locationName":"response_type"
         }
@@ -3541,7 +3630,7 @@
         },
         "regionalHostedZoneId":{
           "shape":"String",
-          "documentation":"<p>The region-specific Amazon Route 53 Hosted Zone ID of the regional endpoint. For more information, see <a href=\"https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-regional-api-custom-domain-create.html\">Set up a Regional Custom Domain Name</a> and <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande.html#apigateway_region\">AWS Regions and Endpoints for API Gateway</a>. </p>"
+          "documentation":"<p>The region-specific Amazon Route 53 Hosted Zone ID of the regional endpoint. For more information, see <a href=\"https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-regional-api-custom-domain-create.html\">Set up a Regional Custom Domain Name</a> and <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande.html#apigateway_region\">AWS Regions and Endpoints for API Gateway</a>.</p>"
         },
         "regionalCertificateName":{
           "shape":"String",
@@ -3557,7 +3646,7 @@
         },
         "distributionHostedZoneId":{
           "shape":"String",
-          "documentation":"<p>The region-agnostic Amazon Route 53 Hosted Zone ID of the edge-optimized endpoint. The valid value is <code>Z2FDTNDATAQYW2</code> for all the regions. For more information, see <a href=\"https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-regional-api-custom-domain-create.html\">Set up a Regional Custom Domain Name</a> and <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande.html#apigateway_region\">AWS Regions and Endpoints for API Gateway</a>. </p>"
+          "documentation":"<p>The region-agnostic Amazon Route 53 Hosted Zone ID of the edge-optimized endpoint. The valid value is <code>Z2FDTNDATAQYW2</code> for all the regions. For more information, see <a href=\"https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-regional-api-custom-domain-create.html\">Set up a Regional Custom Domain Name</a> and <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande.html#apigateway_region\">AWS Regions and Endpoints for API Gateway</a>.</p>"
         },
         "endpointConfiguration":{
           "shape":"EndpointConfiguration",
@@ -3565,7 +3654,7 @@
         },
         "domainNameStatus":{
           "shape":"DomainNameStatus",
-          "documentation":"<p>The status of the <a>DomainName</a> migration. The valid values are <code>AVAILABLE</code> and <code>UPDATING</code>. If the status is <code>UPDATING</code>, the domain cannot be modified further until the existing operation is complete. If it is <code>AVAILABLE</code>, the domain can be updated.</p>"
+          "documentation":"<p>The status of the <a>DomainName</a> migration. The valid values are <code>AVAILABLE</code>, <code>UPDATING</code>, <code>PENDING_CERTIFICATE_REIMPORT</code>, and <code>PENDING_OWNERSHIP_VERIFICATION</code>. If the status is <code>UPDATING</code>, the domain cannot be modified further until the existing operation is complete. If it is <code>AVAILABLE</code>, the domain can be updated.</p>"
         },
         "domainNameStatusMessage":{
           "shape":"String",
@@ -3582,6 +3671,10 @@
         "mutualTlsAuthentication":{
           "shape":"MutualTlsAuthentication",
           "documentation":"<p>The mutual TLS authentication configuration for a custom domain name. If specified, API Gateway performs two-way authentication between the client and the server. Clients must present a trusted certificate to access your API.</p>"
+        },
+        "ownershipVerificationCertificateArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the public certificate issued by ACM to validate ownership of your custom domain. Only required when configuring mutual TLS and using an ACM imported or private CA certificate ARN as the regionalCertificateArn.</p>"
         }
       },
       "documentation":"<p>Represents a custom domain name as a user-friendly host name of an API (<a>RestApi</a>).</p> <div class=\"Remarks\"> <p>When you deploy an API, API Gateway creates a default host name for the API. This default API host name is of the <code>{restapi-id}.execute-api.{region}.amazonaws.com</code> format. With the default host name, you can access the API's root resource with the URL of <code>https://{restapi-id}.execute-api.{region}.amazonaws.com/{stage}/</code>. When you set up a custom domain name of <code>apis.example.com</code> for this API, you can then access the same resource using the URL of the <code>https://apis.examples.com/myApi</code>, where <code>myApi</code> is the base path mapping (<a>BasePathMapping</a>) of your API under the custom domain name. </p> </div> <div class=\"seeAlso\"> <a href=\"https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-custom-domains.html\">Set a Custom Host Name for an API</a> </div>"
@@ -3591,7 +3684,9 @@
       "enum":[
         "AVAILABLE",
         "UPDATING",
-        "PENDING"
+        "PENDING",
+        "PENDING_CERTIFICATE_REIMPORT",
+        "PENDING_OWNERSHIP_VERIFICATION"
       ]
     },
     "DomainNames":{
@@ -3702,7 +3797,7 @@
       "members":{
         "responseType":{
           "shape":"GatewayResponseType",
-          "documentation":"<p>The response type of the associated <a>GatewayResponse</a>. Valid values are <ul><li>ACCESS_DENIED</li><li>API_CONFIGURATION_ERROR</li><li>AUTHORIZER_FAILURE</li><li> AUTHORIZER_CONFIGURATION_ERROR</li><li>BAD_REQUEST_PARAMETERS</li><li>BAD_REQUEST_BODY</li><li>DEFAULT_4XX</li><li>DEFAULT_5XX</li><li>EXPIRED_TOKEN</li><li>INVALID_SIGNATURE</li><li>INTEGRATION_FAILURE</li><li>INTEGRATION_TIMEOUT</li><li>INVALID_API_KEY</li><li>MISSING_AUTHENTICATION_TOKEN</li><li> QUOTA_EXCEEDED</li><li>REQUEST_TOO_LARGE</li><li>RESOURCE_NOT_FOUND</li><li>THROTTLED</li><li>UNAUTHORIZED</li><li>UNSUPPORTED_MEDIA_TYPE</li></ul> </p>"
+          "documentation":"<p>The response type of the associated <a>GatewayResponse</a>.</p>"
         },
         "statusCode":{
           "shape":"StatusCode",
@@ -3745,7 +3840,8 @@
         "BAD_REQUEST_BODY",
         "REQUEST_TOO_LARGE",
         "THROTTLED",
-        "QUOTA_EXCEEDED"
+        "QUOTA_EXCEEDED",
+        "WAF_FILTERED"
       ]
     },
     "GatewayResponses":{
@@ -4217,7 +4313,7 @@
         },
         "responseType":{
           "shape":"GatewayResponseType",
-          "documentation":"<p>[Required] <p>The response type of the associated <a>GatewayResponse</a>. Valid values are <ul><li>ACCESS_DENIED</li><li>API_CONFIGURATION_ERROR</li><li>AUTHORIZER_FAILURE</li><li> AUTHORIZER_CONFIGURATION_ERROR</li><li>BAD_REQUEST_PARAMETERS</li><li>BAD_REQUEST_BODY</li><li>DEFAULT_4XX</li><li>DEFAULT_5XX</li><li>EXPIRED_TOKEN</li><li>INVALID_SIGNATURE</li><li>INTEGRATION_FAILURE</li><li>INTEGRATION_TIMEOUT</li><li>INVALID_API_KEY</li><li>MISSING_AUTHENTICATION_TOKEN</li><li> QUOTA_EXCEEDED</li><li>REQUEST_TOO_LARGE</li><li>RESOURCE_NOT_FOUND</li><li>THROTTLED</li><li>UNAUTHORIZED</li><li>UNSUPPORTED_MEDIA_TYPE</li></ul> </p></p>",
+          "documentation":"<p>[Required] <p>The response type of the associated <a>GatewayResponse</a>.</p></p>",
           "location":"uri",
           "locationName":"response_type"
         }
@@ -5521,7 +5617,7 @@
         },
         "responseType":{
           "shape":"GatewayResponseType",
-          "documentation":"<p>[Required] <p>The response type of the associated <a>GatewayResponse</a>. Valid values are <ul><li>ACCESS_DENIED</li><li>API_CONFIGURATION_ERROR</li><li>AUTHORIZER_FAILURE</li><li> AUTHORIZER_CONFIGURATION_ERROR</li><li>BAD_REQUEST_PARAMETERS</li><li>BAD_REQUEST_BODY</li><li>DEFAULT_4XX</li><li>DEFAULT_5XX</li><li>EXPIRED_TOKEN</li><li>INVALID_SIGNATURE</li><li>INTEGRATION_FAILURE</li><li>INTEGRATION_TIMEOUT</li><li>INVALID_API_KEY</li><li>MISSING_AUTHENTICATION_TOKEN</li><li> QUOTA_EXCEEDED</li><li>REQUEST_TOO_LARGE</li><li>RESOURCE_NOT_FOUND</li><li>THROTTLED</li><li>UNAUTHORIZED</li><li>UNSUPPORTED_MEDIA_TYPE</li></ul> </p></p>",
+          "documentation":"<p>[Required] <p>The response type of the associated <a>GatewayResponse</a>.</p></p>",
           "location":"uri",
           "locationName":"response_type"
         },
@@ -6687,7 +6783,7 @@
         },
         "responseType":{
           "shape":"GatewayResponseType",
-          "documentation":"<p>[Required] <p>The response type of the associated <a>GatewayResponse</a>. Valid values are <ul><li>ACCESS_DENIED</li><li>API_CONFIGURATION_ERROR</li><li>AUTHORIZER_FAILURE</li><li> AUTHORIZER_CONFIGURATION_ERROR</li><li>BAD_REQUEST_PARAMETERS</li><li>BAD_REQUEST_BODY</li><li>DEFAULT_4XX</li><li>DEFAULT_5XX</li><li>EXPIRED_TOKEN</li><li>INVALID_SIGNATURE</li><li>INTEGRATION_FAILURE</li><li>INTEGRATION_TIMEOUT</li><li>INVALID_API_KEY</li><li>MISSING_AUTHENTICATION_TOKEN</li><li> QUOTA_EXCEEDED</li><li>REQUEST_TOO_LARGE</li><li>RESOURCE_NOT_FOUND</li><li>THROTTLED</li><li>UNAUTHORIZED</li><li>UNSUPPORTED_MEDIA_TYPE</li></ul> </p></p>",
+          "documentation":"<p>[Required] <p>The response type of the associated <a>GatewayResponse</a>.</p></p>",
           "location":"uri",
           "locationName":"response_type"
         },

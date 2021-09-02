@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.restjsonwithwaiters.RestJsonWithWaitersAsyncClient;
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesRequest;
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesResponse;
@@ -209,6 +210,7 @@ public class WaitersAsyncFunctionalTest {
     public void closeWaiterCreatedWithExecutorService_executorServiceDoesNotClose() {
         ScheduledExecutorService executorService = mock(ScheduledExecutorService.class);
         RestJsonWithWaitersAsyncWaiter newWaiter = RestJsonWithWaitersAsyncWaiter.builder()
+                                                                                 .client(asyncClient)
                                                                                  .scheduledExecutorService(executorService)
                                                                                  .overrideConfiguration(WaiterOverrideConfiguration.builder()
                                                                                                                  .maxAttempts(3)

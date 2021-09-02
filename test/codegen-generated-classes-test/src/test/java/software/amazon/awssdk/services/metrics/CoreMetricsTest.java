@@ -46,6 +46,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.EmptyModeledException;
 
@@ -74,6 +75,7 @@ public class CoreMetricsTest {
     public void setup() throws IOException {
         client = ProtocolRestJsonClient.builder()
                 .httpClient(mockHttpClient)
+                .region(Region.US_WEST_2)
                 .credentialsProvider(mockCredentialsProvider)
                 .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
                 .build();
@@ -121,6 +123,7 @@ public class CoreMetricsTest {
     @Test
     public void testApiCall_noConfiguredPublisher_succeeds() {
         ProtocolRestJsonClient noPublisher = ProtocolRestJsonClient.builder()
+                .region(Region.US_WEST_2)
                 .credentialsProvider(mockCredentialsProvider)
                 .httpClient(mockHttpClient)
                 .build();

@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.auth.credentials.internal;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Arrays;
 import org.junit.After;
 import org.junit.Before;
@@ -67,6 +67,9 @@ public class Ec2MetadataConfigProviderEndpointOverrideTest {
 
     @Before
     public void setup() {
+        ENVIRONMENT_VARIABLE_HELPER.reset();
+        System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
+
         if (testCase.envEndpointOverride != null) {
             ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.environmentVariable(),
                     testCase.envEndpointOverride);
@@ -97,7 +100,7 @@ public class Ec2MetadataConfigProviderEndpointOverrideTest {
     public void resolvesCorrectEndpointOverride() {
         String endpointOverride = Ec2MetadataConfigProvider.builder().build().getEndpointOverride();
 
-        assertThat(endpointOverride, equalTo(testCase.expectedEndpointOverride));
+        assertThat(endpointOverride).isEqualTo(testCase.expectedEndpointOverride);
     }
 
     private static String getTestFilePath(String testFile) {

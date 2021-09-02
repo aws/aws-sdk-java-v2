@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -154,10 +155,13 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         }
         URI cachedEndpoint = null;
         if (endpointDiscoveryEnabled) {
-
-            String key = clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER).resolveCredentials().accessKeyId();
+            String key = testDiscoveryIdentifiersRequiredRequest.overrideConfiguration()
+                                                                .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
+                                                                .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER)).resolveCredentials()
+                                                                .accessKeyId();
             EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(true)
-                                                                                        .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT)).build();
+                                                                                        .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
+                                                                                        .overrideConfiguration(testDiscoveryIdentifiersRequiredRequest.overrideConfiguration().orElse(null)).build();
             cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
         }
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -208,10 +212,13 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         boolean endpointOverridden = clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE;
         URI cachedEndpoint = null;
         if (endpointDiscoveryEnabled) {
-
-            String key = clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER).resolveCredentials().accessKeyId();
+            String key = testDiscoveryOptionalRequest.overrideConfiguration()
+                                                     .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
+                                                     .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER)).resolveCredentials()
+                                                     .accessKeyId();
             EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(false)
-                                                                                        .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT)).build();
+                                                                                        .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
+                                                                                        .overrideConfiguration(testDiscoveryOptionalRequest.overrideConfiguration().orElse(null)).build();
             cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
         }
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, testDiscoveryOptionalRequest
@@ -269,10 +276,13 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         }
         URI cachedEndpoint = null;
         if (endpointDiscoveryEnabled) {
-
-            String key = clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER).resolveCredentials().accessKeyId();
+            String key = testDiscoveryRequiredRequest.overrideConfiguration()
+                                                     .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
+                                                     .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER)).resolveCredentials()
+                                                     .accessKeyId();
             EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(true)
-                                                                                        .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT)).build();
+                                                                                        .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
+                                                                                        .overrideConfiguration(testDiscoveryRequiredRequest.overrideConfiguration().orElse(null)).build();
             cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
         }
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, testDiscoveryRequiredRequest

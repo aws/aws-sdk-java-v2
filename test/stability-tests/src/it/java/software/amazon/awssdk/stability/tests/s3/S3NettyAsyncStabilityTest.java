@@ -27,6 +27,10 @@ public class S3NettyAsyncStabilityTest extends S3BaseStabilityTest {
                 .build();
     }
 
+    public S3NettyAsyncStabilityTest() {
+        super(s3NettyClient);
+    }
+
     @BeforeAll
     public static void setup() {
         s3NettyClient.createBucket(b -> b.bucket(bucketName)).join();
@@ -39,22 +43,7 @@ public class S3NettyAsyncStabilityTest extends S3BaseStabilityTest {
     }
 
     @Override
-    protected S3AsyncClient getTestClient() { return s3NettyClient; }
-
-    @Override
     protected String getTestBucketName() { return bucketName; }
-
-    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
-    public void putObject_getObject_highConcurrency() {
-        putObject();
-        getObject();
-    }
-
-    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
-    public void largeObject_put_get_usingFile() {
-        uploadLargeObjectFromFile();
-        downloadLargeObjectToFile();
-    }
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     public void getBucketAcl_lowTpsLongInterval_Netty() {

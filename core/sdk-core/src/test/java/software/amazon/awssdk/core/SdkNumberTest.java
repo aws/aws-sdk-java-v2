@@ -148,8 +148,8 @@ public class SdkNumberTest {
 
     @Test
     public void numberFromNaNDouble() {
-        final SdkNumber sdkNan = SdkNumber.fromDouble(Double.longBitsToDouble(0x7ff8000000000000L));
-        final Double nanDouble = Double.longBitsToDouble(0x7ff8000000000000L);
+        final SdkNumber sdkNan = SdkNumber.fromDouble(Double.NaN);
+        final Double nanDouble = Double.NaN;
         assertThat(nanDouble.isNaN()).isTrue();
         assertThatThrownBy(() -> sdkNan.bigDecimalValue()).isInstanceOf(NumberFormatException.class);
         assertEqualitySDKNumberWithNumber(sdkNan, nanDouble);
@@ -207,7 +207,8 @@ public class SdkNumberTest {
         assertThat(sdkNan.intValue()).isEqualTo(nanDouble.intValue());
         assertThat(sdkNan).hasToString(nanDouble.toString());
         assertThat(sdkNan.byteValue()).isEqualTo(nanDouble.byteValue());
-        assertThat(sdkNan.doubleValue()).isEqualTo(nanDouble.doubleValue());
+        // convert to nullable Double to prevent comparison of primitives because Double.NaN == Double.NaN is false
+        assertThat(Double.valueOf(sdkNan.doubleValue())).isEqualTo(Double.valueOf(nanDouble.doubleValue()));
         assertThat(sdkNan.byteValue()).isEqualTo(nanDouble.byteValue());
     }
 
