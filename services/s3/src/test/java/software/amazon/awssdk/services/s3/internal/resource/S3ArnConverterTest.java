@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.s3.internal.resource;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Optional;
 
@@ -309,6 +308,63 @@ public class S3ArnConverterTest {
         assertThat(outpostResource.region(), is(Optional.of("us-east-1")));
         assertThat(outpostResource.outpostId(), is("22222"));
         assertThat(outpostResource.type(), is(S3ResourceType.OUTPOST.toString()));
+    }
+
+    @Test
+    public void parseArn_globalAccessPoint_slash() {
+        S3Resource resource = S3_ARN_PARSER.convertArn(Arn.builder()
+                                                          .partition("aws")
+                                                          .service("s3")
+                                                          .region("")
+                                                          .accountId(ACCOUNT_ID)
+                                                          .resource("accesspoint/mfzwi23gnjvgw.mrap")
+                                                          .build());
+
+        assertThat(resource, instanceOf(S3AccessPointResource.class));
+        S3AccessPointResource s3AccessPointResource = (S3AccessPointResource) resource;
+        assertThat(s3AccessPointResource.type(), is(S3ResourceType.ACCESS_POINT.toString()));
+        assertThat(s3AccessPointResource.accessPointName(), is("mfzwi23gnjvgw.mrap"));
+        assertThat(s3AccessPointResource.accountId(), is(Optional.of(ACCOUNT_ID)));
+        assertThat(s3AccessPointResource.partition(), is(Optional.of("aws")));
+        assertThat(s3AccessPointResource.region(), is(Optional.empty()));
+    }
+
+    @Test
+    public void parseArn_globalAccessPoint_colon() {
+        S3Resource resource = S3_ARN_PARSER.convertArn(Arn.builder()
+                                                          .partition("aws")
+                                                          .service("s3")
+                                                          .region("")
+                                                          .accountId(ACCOUNT_ID)
+                                                          .resource("accesspoint:mfzwi23gnjvgw.mrap")
+                                                          .build());
+
+        assertThat(resource, instanceOf(S3AccessPointResource.class));
+        S3AccessPointResource s3AccessPointResource = (S3AccessPointResource) resource;
+        assertThat(s3AccessPointResource.type(), is(S3ResourceType.ACCESS_POINT.toString()));
+        assertThat(s3AccessPointResource.accessPointName(), is("mfzwi23gnjvgw.mrap"));
+        assertThat(s3AccessPointResource.accountId(), is(Optional.of(ACCOUNT_ID)));
+        assertThat(s3AccessPointResource.partition(), is(Optional.of("aws")));
+        assertThat(s3AccessPointResource.region(), is(Optional.empty()));
+    }
+
+    @Test
+    public void parseArn_globalAccessPoint_colon_multiple_dots() {
+        S3Resource resource = S3_ARN_PARSER.convertArn(Arn.builder()
+                                                          .partition("aws")
+                                                          .service("s3")
+                                                          .region("")
+                                                          .accountId(ACCOUNT_ID)
+                                                          .resource("accesspoint:name.with.dot")
+                                                          .build());
+
+        assertThat(resource, instanceOf(S3AccessPointResource.class));
+        S3AccessPointResource s3AccessPointResource = (S3AccessPointResource) resource;
+        assertThat(s3AccessPointResource.type(), is(S3ResourceType.ACCESS_POINT.toString()));
+        assertThat(s3AccessPointResource.accessPointName(), is("name.with.dot"));
+        assertThat(s3AccessPointResource.accountId(), is(Optional.of(ACCOUNT_ID)));
+        assertThat(s3AccessPointResource.partition(), is(Optional.of("aws")));
+        assertThat(s3AccessPointResource.region(), is(Optional.empty()));
     }
 
     @Test

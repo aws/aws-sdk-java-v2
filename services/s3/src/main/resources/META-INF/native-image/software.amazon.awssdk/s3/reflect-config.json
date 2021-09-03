@@ -124,5 +124,14 @@
         "parameterTypes": []
       }
     ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.SignerOverrideInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
   }
 ]
