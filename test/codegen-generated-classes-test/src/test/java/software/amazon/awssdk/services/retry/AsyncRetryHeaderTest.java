@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.retry;
 import java.net.URI;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
@@ -30,6 +31,7 @@ public class AsyncRetryHeaderTest extends RetryHeaderTestSuite<MockAsyncHttpClie
     public AsyncRetryHeaderTest() {
         super(new MockAsyncHttpClient());
         client = ProtocolRestJsonAsyncClient.builder()
+                                            .overrideConfiguration(c -> c.retryPolicy(RetryMode.STANDARD))
                                             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                             .region(Region.US_EAST_1)
                                             .endpointOverride(URI.create("http://localhost"))
