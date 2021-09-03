@@ -146,7 +146,7 @@ public class RetryableStageHelper {
      */
     public SdkHttpFullRequest requestToSend() {
         return request.toBuilder()
-                      .putHeader(SDK_RETRY_INFO_HEADER, "attempt=" + attemptNumber + "; max=" + retryPolicy.numRetries())
+                      .putHeader(SDK_RETRY_INFO_HEADER, "attempt=" + attemptNumber + "; max=" + (retryPolicy.numRetries() + 1))
                       .build();
     }
 

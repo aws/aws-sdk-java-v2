@@ -1,6 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Adds multi-region support for S3 access points as well as Sigv4 Asymmetric signing"
-}
