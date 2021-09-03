@@ -75,7 +75,7 @@ public final class EventListeningSubscriber<T> extends DelegatingSubscriber<T, T
         @Override 
         public void cancel() {
             super.cancel();
-            callListener(afterCompleteListener, "Post-cancel callback failed. This exception will be dropped.");
+            callListener(afterCancelListener, "Post-cancel callback failed. This exception will be dropped.");
         }
     }
 
