@@ -33,7 +33,7 @@ public interface BatchManagerBuilder<RequestT, ResponseT, BatchResponseT, B> {
      * Adds a {@link ScheduledExecutorService} to be used by the BatchManager to schedule periodic flushes of the underlying
      * buffers.
      * <p>
-     * Creating a SqsBatchManager directly from a service client will use the service client's scheduled executor. If supplied by
+     * Creating a BatchManager directly from a service client will use the service client's scheduled executor. If supplied by
      * the user, this ScheduledExecutorService must be closed by the caller when it is ready to be shut down.
      *
      * @param scheduledExecutor the provided scheduled executor.

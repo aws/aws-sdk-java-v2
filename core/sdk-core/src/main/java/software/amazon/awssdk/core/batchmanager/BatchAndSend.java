@@ -18,10 +18,9 @@ package software.amazon.awssdk.core.batchmanager;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.batchmanager.IdentifiableMessage;
 
 /**
- * Takes a list of identified requests in addition to a destination and batches the requests into a batch request.
+ * Takes a list of identified requests in addition to a batchKey and batches the requests into a batch request.
  * It then sends the batch request and returns a CompletableFuture of the response.
  * @param <RequestT> the type of an outgoing request.
  * @param <BatchResponseT> the type of an outgoing batch response.

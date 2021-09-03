@@ -29,8 +29,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.After;
@@ -53,24 +51,18 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Md5Utils;
-import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
 
     private static final int DEFAULT_MAX_BATCH_OPEN = 200;
     private static final String TEST_QUEUE_PREFIX = "myTestQueue";
     private static final Logger log = Logger.loggerFor(BatchManagerSqsIntegrationTest.class);
-    private static ScheduledExecutorService scheduledExecutor;
-    private static ExecutorService executor;
     private static SqsClient client;
     private static String defaultQueueUrl;
     private SqsBatchManager batchManager;
 
     @BeforeClass
     public static void oneTimeSetUp() {
-        ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("SqsBatchManager").build();
-        scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
-        executor = Executors.newSingleThreadExecutor();
         client = createSqsSyncClient();
         defaultQueueUrl = client.createQueue(CreateQueueRequest.builder().queueName(TEST_QUEUE_PREFIX + "0").build()).queueUrl();
     }
@@ -79,17 +71,11 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
     public static void oneTimeTearDown() {
         deleteAllMessagesInQueue(defaultQueueUrl);
         client.close();
-        scheduledExecutor.shutdownNow();
-        executor.shutdownNow();
     }
 
     @Before
     public void setUp() {
-        batchManager = SqsBatchManager.builder()
-                                      .client(client)
-                                      .scheduledExecutor(scheduledExecutor)
-                                      .executor(executor)
-                                      .build();
+        batchManager = client.batchManager();
     }
 
     @After

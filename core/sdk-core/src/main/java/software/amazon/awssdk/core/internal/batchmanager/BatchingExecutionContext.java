@@ -23,7 +23,6 @@ public final class BatchingExecutionContext<RequestT, ResponseT> {
 
     private final RequestT request;
     private final CompletableFuture<ResponseT> response;
-    private final Object lock = new Object();
 
     public BatchingExecutionContext(RequestT request, CompletableFuture<ResponseT> response) {
         this.request = request;
@@ -31,9 +30,7 @@ public final class BatchingExecutionContext<RequestT, ResponseT> {
     }
 
     public RequestT request() {
-        synchronized (this.lock) {
-            return request;
-        }
+        return request;
     }
 
     public CompletableFuture<ResponseT> response() {
