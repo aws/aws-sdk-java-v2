@@ -236,10 +236,10 @@ public class CollectionUtilsTest {
     }
 
     @Test
-    public void index_noDuplicateIndices_correctlyIndexes() {
+    public void uniqueIndex_noDuplicateIndices_correctlyIndexes() {
         Set<String> values = Stream.of("a", "ab", "abc")
                                    .collect(Collectors.toSet());
-        Map<Integer, String> map = CollectionUtils.index(values, String::length);
+        Map<Integer, String> map = CollectionUtils.uniqueIndex(values, String::length);
         assertThat(map).hasSize(3)
                        .containsEntry(1, "a")
                        .containsEntry(2, "ab")
@@ -247,19 +247,19 @@ public class CollectionUtilsTest {
     }
 
     @Test
-    public void index_isModifiable() {
+    public void uniqueIndex_map_isModifiable() {
         Set<String> values = Stream.of("a", "ab", "abc")
                                    .collect(Collectors.toSet());
-        Map<Integer, String> map = CollectionUtils.index(values, String::length);
+        Map<Integer, String> map = CollectionUtils.uniqueIndex(values, String::length);
         map.put(3, "bar");
         assertThat(map).containsEntry(3, "bar");
     }
 
     @Test
-    public void index_duplicateIndices_throws() {
+    public void uniqueIndex_duplicateIndices_throws() {
         Set<String> values = Stream.of("foo", "bar")
                                    .collect(Collectors.toSet());
-        assertThatThrownBy(() -> CollectionUtils.index(values, String::length))
+        assertThatThrownBy(() -> CollectionUtils.uniqueIndex(values, String::length))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContainingAll("foo", "bar", "3");
     }

@@ -81,7 +81,7 @@ public abstract class AbstractEnumClass implements ClassSpec {
                                                                   className());
         return FieldSpec.builder(mapType, VALUE_MAP)
                         .addModifiers(PRIVATE, STATIC, FINAL)
-                        .initializer("$1T.index($2T.class, $2T::toString)", EnumUtils.class, className())
+                        .initializer("$1T.uniqueIndex($2T.class, $2T::toString)", EnumUtils.class, className())
                         .build();
     }
 

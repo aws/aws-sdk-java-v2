@@ -37,7 +37,7 @@ public interface InputEventStreamTwo {
 
         UNKNOWN_TO_SDK_VERSION(null);
 
-        private static final Map<String, EventType> VALUE_MAP = EnumUtils.index(EventType.class, EventType::toString);
+        private static final Map<String, EventType> VALUE_MAP = EnumUtils.uniqueIndex(EventType.class, EventType::toString);
 
         private final String value;
 

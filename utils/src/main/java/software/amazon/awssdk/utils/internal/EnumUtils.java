@@ -33,9 +33,9 @@ public final class EnumUtils {
      * Create a map that indexes all enum values by a given index function. This can offer a faster runtime complexity
      * compared to iterating an enum's {@code values()}.
      *
-     * @see CollectionUtils#index(Iterable, Function)
+     * @see CollectionUtils#uniqueIndex(Iterable, Function)
      */
-    public static <K, V extends Enum<V>> Map<K, V> index(Class<V> enumType, Function<? super V, K> indexFunction) {
-        return CollectionUtils.index(EnumSet.allOf(enumType), indexFunction);
+    public static <K, V extends Enum<V>> Map<K, V> uniqueIndex(Class<V> enumType, Function<? super V, K> indexFunction) {
+        return CollectionUtils.uniqueIndex(EnumSet.allOf(enumType), indexFunction);
     }
 }

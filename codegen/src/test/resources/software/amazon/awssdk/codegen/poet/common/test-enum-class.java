@@ -17,7 +17,7 @@ public enum TestEnumClass {
 
     UNKNOWN_TO_SDK_VERSION(null);
 
-    private static final Map<String, TestEnumClass> VALUE_MAP = EnumUtils.index(TestEnumClass.class, TestEnumClass::toString);
+    private static final Map<String, TestEnumClass> VALUE_MAP = EnumUtils.uniqueIndex(TestEnumClass.class, TestEnumClass::toString);
 
     private final String value;
 

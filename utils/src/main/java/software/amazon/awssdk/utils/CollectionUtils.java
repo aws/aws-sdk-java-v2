@@ -152,7 +152,7 @@ public final class CollectionUtils {
      * @return a (modifiable) map that indexes K to its unique value V
      * @throws IllegalArgumentException if any of the values map to the same index
      */
-    public static <K, V> Map<K, V> index(Iterable<V> values, Function<? super V, K> indexFunction) {
+    public static <K, V> Map<K, V> uniqueIndex(Iterable<V> values, Function<? super V, K> indexFunction) {
         Map<K, V> map = new HashMap<>();
         for (V value : values) {
             K index = indexFunction.apply(value);
