@@ -1,3 +1,32 @@
+# __2.17.34__ __2021-09-03__
+## __AWS Outposts__
+  - ### Features
+    - This release adds a new API CreateOrder.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Chime SDK Identity__
+  - ### Features
+    - Documentation updates for Chime
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - Documentation updates for Chime
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - Added support for CodeInconsistencies detectors
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - Enhanced GetEventPrediction API response to include risk scores from imported SageMaker models
+
+## __Amazon S3__
+  - ### Features
+    - Adds multi-region support for S3 access points as well as Sigv4 Asymmetric signing
+
 # __2.17.33__ __2021-09-02__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
