@@ -43,9 +43,9 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
  *     <li>Delete items</li>
  *     <li>Use a condition check</li>
  * </ul>
- * It's populated with one or more low-level requests, such as {@link PutItemEnhancedRequest} and each low-level action request
- * is associated with with the table where the action should be applied.
- * On initialization, these requests are transformed into {@link TransactWriteItem} and stored in the request.
+ * It's populated with one or more low-level requests, such as {@link TransactPutItemEnhancedRequest} and each low-level action
+ * request is associated with the table where the action should be applied. On initialization, these requests are transformed
+ * into {@link TransactWriteItem} and stored in the request.
  */
 @SdkPublicApi
 public final class TransactWriteItemsEnhancedRequest {
@@ -182,10 +182,10 @@ public final class TransactWriteItemsEnhancedRequest {
         }
 
         /**
-         * Adds a primary lookup key for the item to delete, and it's associated table, to the transaction. For more information
+         * Adds a primary lookup key for the item to delete, and its associated table, to the transaction. For more information
          * on the delete action, see the low-level operation description in for instance
          * {@link DynamoDbTable#deleteItem(DeleteItemEnhancedRequest)} and how to construct the low-level request in
-         * {@link DeleteItemEnhancedRequest}.
+         * {@link TransactDeleteItemEnhancedRequest}.
          *
          * @param mappedTableResource the table where the key is located
          * @param request A {@link TransactDeleteItemEnhancedRequest}
@@ -246,7 +246,7 @@ public final class TransactWriteItemsEnhancedRequest {
         /**
          * Adds an item to be written, and it's associated table, to the transaction. For more information on the put action,
          * see the low-level operation description in for instance {@link DynamoDbTable#putItem(PutItemEnhancedRequest)}
-         * and how to construct the low-level request in {@link PutItemEnhancedRequest}.
+         * and how to construct the low-level request in {@link TransactPutItemEnhancedRequest}.
          *
          * @param mappedTableResource the table to write the item to
          * @param request A {@link TransactPutItemEnhancedRequest}
@@ -301,7 +301,7 @@ public final class TransactWriteItemsEnhancedRequest {
          * Adds an item to be updated, and it's associated table, to the transaction. For more information on the update
          * action, see the low-level operation description in for instance
          * {@link DynamoDbTable#updateItem(UpdateItemEnhancedRequest)} and how to construct the low-level request in
-         * {@link UpdateItemEnhancedRequest}.
+         * {@link TransactUpdateItemEnhancedRequest}.
          *
          * @param mappedTableResource the table to write the item to
          * @param request A {@link UpdateItemEnhancedRequest}

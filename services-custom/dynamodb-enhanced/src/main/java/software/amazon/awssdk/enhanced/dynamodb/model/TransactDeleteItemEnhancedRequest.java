@@ -25,7 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
- * Defines parameters used to delete an item to a DynamoDb table using the
+ * Defines parameters used to delete an item from a DynamoDb table using the
  * {@link DynamoDbEnhancedClient#transactWriteItems(TransactWriteItemsEnhancedRequest)} or
  * {@link DynamoDbEnhancedAsyncClient#transactWriteItems(TransactWriteItemsEnhancedRequest)}
  * operation.
