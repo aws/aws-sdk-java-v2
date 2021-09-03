@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Fraud Detector",
+    "contributor": "",
+    "description": "Enhanced GetEventPrediction API response to include risk scores from imported SageMaker models"
+}
