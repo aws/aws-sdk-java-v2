@@ -134,7 +134,7 @@ public class Http1TunnelConnectionPool implements ChannelPool {
         if (sslHandler != null) {
             ch.pipeline().addLast(sslHandler);
         }
-        ch.pipeline().addLast(initHandlerSupplier.newInitHandler(delegate, this.proxyUser, this.proxyPassword, remoteAddress,
+        ch.pipeline().addLast(initHandlerSupplier.newInitHandler(delegate, proxyUser, proxyPassword, remoteAddress,
                                                                     tunnelEstablishedPromise));
         tunnelEstablishedPromise.addListener((Future<Channel> f) -> {
             if (f.isSuccess()) {
