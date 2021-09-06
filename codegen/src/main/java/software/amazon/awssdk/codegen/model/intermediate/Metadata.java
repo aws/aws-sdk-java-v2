@@ -499,17 +499,12 @@ public class Metadata {
         return this;
     }
 
-    public boolean isIonProtocol() {
-        return protocol == Protocol.ION;
-    }
-
     public boolean isCborProtocol() {
         return protocol == Protocol.CBOR;
     }
 
     public boolean isJsonProtocol() {
         return protocol == Protocol.CBOR ||
-               protocol == Protocol.ION ||
                protocol == Protocol.AWS_JSON ||
                protocol == Protocol.REST_JSON;
     }

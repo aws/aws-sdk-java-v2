@@ -78,6 +78,8 @@ public enum SdkSystemSetting implements SystemSetting {
      */
     AWS_EC2_METADATA_SERVICE_ENDPOINT("aws.ec2MetadataServiceEndpoint", "http://169.254.169.254"),
 
+    AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE("aws.ec2MetadataServiceEndpointMode", "IPv4"),
+
     /**
      * The elastic container metadata service endpoint that should be called by the ContainerCredentialsProvider
      * when loading data from the container metadata service.
