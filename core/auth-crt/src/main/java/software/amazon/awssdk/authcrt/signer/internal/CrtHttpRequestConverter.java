@@ -147,7 +147,6 @@ public final class CrtHttpRequestConverter {
         return crtHeaderList.toArray(new HttpHeader[0]);
     }
 
-    //TODO When CRT can work with SDK format empty paths, this method can be removed
     private static String encodedPathToCrtFormat(String sdkEncodedPath) {
         if (StringUtils.isEmpty(sdkEncodedPath)) {
             return "/";
@@ -155,7 +154,6 @@ public final class CrtHttpRequestConverter {
         return sdkEncodedPath;
     }
 
-    //TODO When CRT can work with SDK empty paths, this method can be removed
     private static String encodedPathFromCrtFormat(String sdkEncodedPath, String crtEncodedPath) {
         if (SLASH.equals(crtEncodedPath) && StringUtils.isEmpty(sdkEncodedPath)) {
             return "";

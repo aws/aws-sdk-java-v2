@@ -56,8 +56,8 @@ public final class AwsExecutionContextBuilder {
     public static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
         invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams,
                                                     SdkClientConfiguration clientConfig) {
-        // Note: This is currently copied to DefaultS3Presigner and other presigners. Don't edit this without considering those
-        // as well. TODO: Probably don't copy all of this manually.
+        // Note: This is currently copied to DefaultS3Presigner and other presigners.
+        // Don't edit this without considering those
 
         SdkRequest originalRequest = executionParams.getInput();
         MetricCollector metricCollector = resolveMetricCollector(executionParams);
