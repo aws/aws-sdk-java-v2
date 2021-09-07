@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS X-Ray",
+    "contributor": "",
+    "description": "Updated references to AWS KMS keys and customer managed keys to reflect current terminology."
+}
