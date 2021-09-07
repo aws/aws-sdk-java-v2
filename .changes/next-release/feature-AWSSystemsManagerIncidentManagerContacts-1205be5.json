@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Systems Manager Incident Manager Contacts",
-    "contributor": "",
-    "description": "Added SDK examples for SSM-Contacts."
-}

@@ -1,6 +1,0 @@
-{
-    "category": "DynamoDB Enhanced Client", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Allow customers to specify `ReturnValuesOnConditionCheckFailure` for `TransactWriteItems`. Addresses [#2283](https://github.com/aws/aws-sdk-java-v2/issues/2283)."
-}

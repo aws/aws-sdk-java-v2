@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "contributor": "",
-    "description": "Adding RegisterCluster and DeregisterCluster operations, to support connecting external clusters to EKS."
-}
