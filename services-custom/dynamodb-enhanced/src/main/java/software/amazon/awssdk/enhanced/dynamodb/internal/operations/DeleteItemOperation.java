@@ -16,15 +16,19 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactDeleteItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -35,6 +39,7 @@ import software.amazon.awssdk.services.dynamodb.model.DeleteRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
+import software.amazon.awssdk.utils.Either;
 
 @SdkInternalApi
 public class DeleteItemOperation<T>
@@ -42,13 +47,21 @@ public class DeleteItemOperation<T>
                TransactableWriteOperation<T>,
                BatchableWriteOperation<T> {
 
-    private final DeleteItemEnhancedRequest request;
+    private final Either<DeleteItemEnhancedRequest, TransactDeleteItemEnhancedRequest> request;
 
     private DeleteItemOperation(DeleteItemEnhancedRequest request) {
-        this.request = request;
+        this.request = Either.left(request);
+    }
+
+    private DeleteItemOperation(TransactDeleteItemEnhancedRequest request) {
+        this.request = Either.right(request);
     }
 
     public static <T> DeleteItemOperation<T> create(DeleteItemEnhancedRequest request) {
+        return new DeleteItemOperation<>(request);
+    }
+
+    public static <T> DeleteItemOperation<T> create(TransactDeleteItemEnhancedRequest request) {
         return new DeleteItemOperation<>(request);
     }
 
@@ -61,10 +74,12 @@ public class DeleteItemOperation<T>
             throw new IllegalArgumentException("DeleteItem cannot be executed against a secondary index.");
         }
 
+        Key key = request.map(DeleteItemEnhancedRequest::key, TransactDeleteItemEnhancedRequest::key);
+
         DeleteItemRequest.Builder requestBuilder =
             DeleteItemRequest.builder()
                              .tableName(operationContext.tableName())
-                             .key(this.request.key().keyMap(tableSchema, operationContext.indexName()))
+                             .key(key.keyMap(tableSchema, operationContext.indexName()))
                              .returnValues(ReturnValue.ALL_OLD);
 
         requestBuilder = addExpressionsIfExist(requestBuilder);
@@ -109,24 +124,31 @@ public class DeleteItemOperation<T>
                                                        DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension) {
         DeleteItemRequest deleteItemRequest = generateRequest(tableSchema, operationContext, dynamoDbEnhancedClientExtension);
 
-        Delete delete = Delete.builder()
-                              .key(deleteItemRequest.key())
-                              .tableName(deleteItemRequest.tableName())
-                              .conditionExpression(deleteItemRequest.conditionExpression())
-                              .expressionAttributeValues(deleteItemRequest.expressionAttributeValues())
-                              .expressionAttributeNames(deleteItemRequest.expressionAttributeNames())
-                              .build();
+        Delete.Builder builder = Delete.builder()
+                                       .key(deleteItemRequest.key())
+                                       .tableName(deleteItemRequest.tableName())
+                                       .conditionExpression(deleteItemRequest.conditionExpression())
+                                       .expressionAttributeValues(deleteItemRequest.expressionAttributeValues())
+                                       .expressionAttributeNames(deleteItemRequest.expressionAttributeNames());
+
+        request.right()
+               .map(TransactDeleteItemEnhancedRequest::returnValuesOnConditionCheckFailureAsString)
+               .ifPresent(builder::returnValuesOnConditionCheckFailure);
 
         return TransactWriteItem.builder()
-                                .delete(delete)
+                                .delete(builder.build())
                                 .build();
     }
 
     private DeleteItemRequest.Builder addExpressionsIfExist(DeleteItemRequest.Builder requestBuilder) {
-        if (this.request.conditionExpression() != null) {
-            requestBuilder = requestBuilder.conditionExpression(this.request.conditionExpression().expression());
-            Map<String, String> expressionNames = this.request.conditionExpression().expressionNames();
-            Map<String, AttributeValue> expressionValues = this.request.conditionExpression().expressionValues();
+        Expression conditionExpression = request.map(r -> Optional.ofNullable(r.conditionExpression()),
+                                                     r -> Optional.ofNullable(r.conditionExpression()))
+                                                .orElse(null);
+
+        if (conditionExpression != null) {
+            requestBuilder = requestBuilder.conditionExpression(conditionExpression.expression());
+            Map<String, String> expressionNames = conditionExpression.expressionNames();
+            Map<String, AttributeValue> expressionValues = conditionExpression.expressionValues();
 
             // Avoiding adding empty collections that the low level SDK will propagate to DynamoDb where it causes error.
             if (expressionNames != null && !expressionNames.isEmpty()) {

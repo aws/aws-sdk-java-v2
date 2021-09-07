@@ -61,11 +61,23 @@ public class PutItemEnhancedRequestTest {
 
     @Test
     public void toBuilder() {
-        PutItemEnhancedRequest<FakeItem> builtObject = PutItemEnhancedRequest.builder(FakeItem.class).build();
+        FakeItem fakeItem = createUniqueFakeItem();
 
-        PutItemEnhancedRequest copiedObject = builtObject.toBuilder().build();
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#key = :value OR #key1 = :value1")
+                                                   .putExpressionName("#key", "attribute")
+                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionValue(":value", stringValue("wrong"))
+                                                   .putExpressionValue(":value1", stringValue("three"))
+                                                   .build();
+
+        PutItemEnhancedRequest<FakeItem> builtObject = PutItemEnhancedRequest.builder(FakeItem.class)
+                                                                             .item(fakeItem)
+                                                                             .conditionExpression(conditionExpression)
+                                                                             .build();
+
+        PutItemEnhancedRequest<FakeItem> copiedObject = builtObject.toBuilder().build();
 
         assertThat(copiedObject, is(builtObject));
     }
-
 }

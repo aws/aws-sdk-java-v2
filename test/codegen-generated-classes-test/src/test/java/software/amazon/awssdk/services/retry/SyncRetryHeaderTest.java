@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.retry;
 import java.net.URI;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
@@ -28,12 +29,13 @@ public class SyncRetryHeaderTest extends RetryHeaderTestSuite<MockSyncHttpClient
     public SyncRetryHeaderTest() {
         super(new MockSyncHttpClient());
         client = ProtocolRestJsonClient.builder()
-                                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid",
-                                                                                                                        "skid")))
-                                       .region(Region.US_EAST_1)
-                                       .endpointOverride(URI.create("http://localhost"))
-                                       .httpClient(mockHttpClient)
-                                       .build();
+            .overrideConfiguration(c -> c.retryPolicy(RetryMode.STANDARD))
+                                         .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid",
+                                                                                                                          "skid")))
+                                         .region(Region.US_EAST_1)
+                                         .endpointOverride(URI.create("http://localhost"))
+                                         .httpClient(mockHttpClient)
+                                         .build();
     }
 
     @Override
