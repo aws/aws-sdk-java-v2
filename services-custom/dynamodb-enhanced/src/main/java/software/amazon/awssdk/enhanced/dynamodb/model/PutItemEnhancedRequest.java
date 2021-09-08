@@ -79,14 +79,19 @@ public final class PutItemEnhancedRequest<T> {
             return false;
         }
 
-        PutItemEnhancedRequest<?> putItem = (PutItemEnhancedRequest<?>) o;
+        PutItemEnhancedRequest<?> that = (PutItemEnhancedRequest<?>) o;
 
-        return item != null ? item.equals(putItem.item) : putItem.item == null;
+        if (item != null ? !item.equals(that.item) : that.item != null) {
+            return false;
+        }
+        return conditionExpression != null ? conditionExpression.equals(that.conditionExpression) : that.conditionExpression == null;
     }
 
     @Override
     public int hashCode() {
-        return item != null ? item.hashCode() : 0;
+        int result = item != null ? item.hashCode() : 0;
+        result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
+        return result;
     }
 
     /**

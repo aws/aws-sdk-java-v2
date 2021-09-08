@@ -1,0 +1,6 @@
+{
+    "category": "DynamoDB Enhanced Client", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fix a bug where `PutItemEnhancedRequest.conditionExpression()` was not being included in `equals` and `hashCode` calculations."
+}
