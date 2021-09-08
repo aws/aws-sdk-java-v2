@@ -79,12 +79,18 @@ public final class DeleteItemEnhancedRequest {
 
         DeleteItemEnhancedRequest that = (DeleteItemEnhancedRequest) o;
 
-        return key != null ? key.equals(that.key) : that.key == null;
+        if (key != null ? !key.equals(that.key) : that.key != null) {
+            return false;
+        }
+        return conditionExpression != null ? conditionExpression.equals(that.conditionExpression) :
+               that.conditionExpression == null;
     }
 
     @Override
     public int hashCode() {
-        return key != null ? key.hashCode() : 0;
+        int result = key != null ? key.hashCode() : 0;
+        result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
+        return result;
     }
 
     /**

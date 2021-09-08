@@ -1,0 +1,6 @@
+{
+    "category": "DynamoDB Enhanced Client", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fix `PutItemEnhancedRequest` and `DeleteItemEnhancedRequest` to include `ConditionExpression` in their `equals()` and `hashCode()` calculations."
+}
