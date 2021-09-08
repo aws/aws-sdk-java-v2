@@ -1,0 +1,30 @@
+{
+    "version": "2.17.36",
+    "date": "2021-09-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Improve performance of generated enum methods"
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "contributor": "",
+            "description": "Amazon MSK has added a new API that allows you to update the encrypting and authentication settings for an existing cluster."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Access Manager",
+            "contributor": "",
+            "description": "A minor text-only update that fixes several customer issues."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Service",
+            "contributor": "",
+            "description": "Updated Configuration APIs for Amazon OpenSearch Service (successor to Amazon Elasticsearch Service)"
+        }
+    ]
+}
