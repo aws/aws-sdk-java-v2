@@ -57,7 +57,7 @@ public final class UpdateItemEnhancedRequest<T> {
      * Returns a builder initialized with all existing values on the request object.
      */
     public Builder<T> toBuilder() {
-        return new Builder<T>().item(item).ignoreNulls(ignoreNulls);
+        return new Builder<T>().item(item).ignoreNulls(ignoreNulls).conditionExpression(conditionExpression);
     }
 
     /**
@@ -92,16 +92,21 @@ public final class UpdateItemEnhancedRequest<T> {
 
         UpdateItemEnhancedRequest<?> that = (UpdateItemEnhancedRequest<?>) o;
 
-        if (item != null ? ! item.equals(that.item) : that.item != null) {
+        if (item != null ? !item.equals(that.item) : that.item != null) {
             return false;
         }
-        return ignoreNulls != null ? ignoreNulls.equals(that.ignoreNulls) : that.ignoreNulls == null;
+        if (ignoreNulls != null ? !ignoreNulls.equals(that.ignoreNulls) : that.ignoreNulls != null) {
+            return false;
+        }
+        return conditionExpression != null ? conditionExpression.equals(that.conditionExpression) :
+               that.conditionExpression == null;
     }
 
     @Override
     public int hashCode() {
         int result = item != null ? item.hashCode() : 0;
         result = 31 * result + (ignoreNulls != null ? ignoreNulls.hashCode() : 0);
+        result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
         return result;
     }
 
