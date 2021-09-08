@@ -1,3 +1,118 @@
+# __2.17.35__ __2021-09-07__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - SPEKE v2 support for live CMAF packaging type. SPEKE v2 is an upgrade to the existing SPEKE API to support multiple encryption keys, it supports live DASH currently.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - Added SDK examples for SSM-Contacts.
+
+## __AWS X-Ray__
+  - ### Features
+    - Updated references to AWS KMS keys and customer managed keys to reflect current terminology.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Doc only update for ElastiCache
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding RegisterCluster and DeregisterCluster operations, to support connecting external clusters to EKS.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - Predictor creation now supports selecting an accuracy metric to optimize in AutoML and hyperparameter optimization. This release adds additional accuracy metrics for predictors - AverageWeightedQuantileLoss, MAPE and MASE.
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - This release adds tagging support for Amazon Managed Service for Prometheus workspace.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Allow customers to specify `ReturnValuesOnConditionCheckFailure` for `TransactWriteItems`. Addresses [#2283](https://github.com/aws/aws-sdk-java-v2/issues/2283).
+
+# __2.17.34__ __2021-09-03__
+## __AWS Outposts__
+  - ### Features
+    - This release adds a new API CreateOrder.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Chime SDK Identity__
+  - ### Features
+    - Documentation updates for Chime
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - Documentation updates for Chime
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - Added support for CodeInconsistencies detectors
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - Enhanced GetEventPrediction API response to include risk scores from imported SageMaker models
+
+## __Amazon S3__
+  - ### Features
+    - Adds multi-region support for S3 access points as well as Sigv4 Asymmetric signing
+
+# __2.17.33__ __2021-09-02__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Private Certificate Authority Service now allows customers to enable an online certificate status protocol (OCSP) responder service on their private certificate authorities. Customers can also optionally configure a custom CNAME for their OCSP responder.
+
+## __AWS S3 Control__
+  - ### Features
+    - S3 Multi-Region Access Points provide a single global endpoint to access a data set that spans multiple S3 buckets in different AWS Regions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - New ASFF Resources: AwsAutoScalingLaunchConfiguration, AwsEc2VpnConnection, AwsEcrContainerImage. Added KeyRotationStatus to AwsKmsKey. Added AccessControlList, BucketLoggingConfiguration,BucketNotificationConfiguration and BucketNotificationConfiguration to AwsS3Bucket.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family introduces Managed Workflows for creating, executing, monitoring, and standardizing post file transfer processing
+
+## __Access Analyzer__
+  - ### Features
+    - Updates service API, documentation, and paginators to support multi-region access points from Amazon S3.
+
+## __Amazon Elastic Block Store__
+  - ### Features
+    - Documentation updates for Amazon EBS direct APIs.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Adds support for EFS Intelligent-Tiering, which uses EFS Lifecycle Management to monitor file access patterns and is designed to automatically transition files to and from your corresponding Infrequent Access (IA) storage classes.
+
+## __Amazon FSx__
+  - ### Features
+    - Announcing Amazon FSx for NetApp ONTAP, a new service that provides fully managed shared storage in the AWS Cloud with the data access and management capabilities of ONTAP.
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Lex now supports Korean (ko-KR) locale.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds support for referencing parent datasets as sources in a child dataset.
+
+## __Schemas__
+  - ### Features
+    - This update include the support for Schema Discoverer to discover the events sent to the bus from another account. The feature will be enabled by default when discoverer is created or updated but can also be opt-in or opt-out by specifying the value for crossAccount.
+
 # __2.17.32__ __2021-09-01__
 ## __AWS CloudTrail__
   - ### Features

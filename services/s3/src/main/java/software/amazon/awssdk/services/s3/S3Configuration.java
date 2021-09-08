@@ -23,7 +23,8 @@ import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.services.s3.internal.FieldWithDefault;
-import software.amazon.awssdk.services.s3.internal.usearnregion.UseArnRegionProviderChain;
+import software.amazon.awssdk.services.s3.internal.settingproviders.DisableMultiRegionProviderChain;
+import software.amazon.awssdk.services.s3.internal.settingproviders.UseArnRegionProviderChain;
 import software.amazon.awssdk.services.s3.model.PutBucketAccelerateConfigurationRequest;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -65,6 +66,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
     private final FieldWithDefault<Boolean> checksumValidationEnabled;
     private final FieldWithDefault<Boolean> chunkedEncodingEnabled;
     private final FieldWithDefault<Boolean> useArnRegionEnabled;
+    private final FieldWithDefault<Boolean> multiRegionEnabled;
     private final FieldWithDefault<ProfileFile> profileFile;
     private final FieldWithDefault<String> profileName;
 
@@ -78,17 +80,24 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         this.profileFile = FieldWithDefault.createLazy(builder.profileFile, ProfileFile::defaultProfileFile);
         this.profileName = FieldWithDefault.create(builder.profileName,
                                                    ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow());
-        this.useArnRegionEnabled = FieldWithDefault.createLazy(builder.useArnRegionEnabled, this::resolveUserArnRegionEnabled);
+        this.useArnRegionEnabled = FieldWithDefault.createLazy(builder.useArnRegionEnabled, this::resolveUseArnRegionEnabled);
+        this.multiRegionEnabled = FieldWithDefault.createLazy(builder.multiRegionEnabled, this::resolveMultiRegionEnabled);
 
         if (accelerateModeEnabled() && pathStyleAccessEnabled()) {
             throw new IllegalArgumentException("Accelerate mode cannot be used with path style addressing");
         }
     }
 
-    private boolean resolveUserArnRegionEnabled() {
+    private boolean resolveUseArnRegionEnabled() {
         return UseArnRegionProviderChain.create(this.profileFile.value(), this.profileName.value())
                                         .resolveUseArnRegion()
                                         .orElse(false);
+    }
+
+    private boolean resolveMultiRegionEnabled() {
+        return !DisableMultiRegionProviderChain.create(this.profileFile.value(), this.profileName.value())
+                                               .resolve()
+                                               .orElse(false);
     }
 
     /**
@@ -180,6 +189,15 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      */
     public boolean useArnRegionEnabled() {
         return useArnRegionEnabled.value();
+    }
+
+    /**
+     * Returns whether the client is allowed to make cross-region calls when using an S3 Multi-Region Access Point ARN.
+     * <p>
+     * @return True if multi-region ARNs is enabled.
+     */
+    public boolean multiRegionEnabled() {
+        return multiRegionEnabled.value();
     }
 
     @Override
@@ -278,11 +296,23 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          */
         Builder useArnRegionEnabled(Boolean useArnRegionEnabled);
 
+        Boolean multiRegionEnabled();
+
+        /**
+         * Option to enable or disable the usage of multi-region access point ARNs. Multi-region access point ARNs
+         * can result in cross-region calls, and can be prevented by setting this flag to false. This option is
+         * enabled by default.
+         *
+         * @see S3Configuration#multiRegionEnabled()
+         */
+        Builder multiRegionEnabled(Boolean multiRegionEnabled);
+
         ProfileFile profileFile();
 
         /**
-         * The profile file that should be consulted to determine the default value of {@link #useArnRegionEnabled(Boolean)}.
-         * This is not used, if the {@link #useArnRegionEnabled(Boolean)} is configured.
+         * The profile file that should be consulted to determine the default value of {@link #useArnRegionEnabled(Boolean)}
+         * or {@link #multiRegionEnabled(Boolean)}.
+         * This is not used, if those parameters are configured.
          *
          * <p>
          * By default, the {@link ProfileFile#defaultProfileFile()} is used.
@@ -293,8 +323,9 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         String profileName();
 
         /**
-         * The profile name that should be consulted to determine the default value of {@link #useArnRegionEnabled(Boolean)}.
-         * This is not used, if the {@link #useArnRegionEnabled(Boolean)} is configured.
+         * The profile name that should be consulted to determine the default value of {@link #useArnRegionEnabled(Boolean)}
+         * or {@link #multiRegionEnabled(Boolean)}.
+         * This is not used, if those parameters are configured.
          *
          * <p>
          * By default, the {@link ProfileFileSystemSetting#AWS_PROFILE} is used.
@@ -310,6 +341,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         private Boolean checksumValidationEnabled;
         private Boolean chunkedEncodingEnabled;
         private Boolean useArnRegionEnabled;
+        private Boolean multiRegionEnabled;
         private ProfileFile profileFile;
         private String profileName;
 
@@ -390,6 +422,16 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
 
         public Builder useArnRegionEnabled(Boolean useArnRegionEnabled) {
             this.useArnRegionEnabled = useArnRegionEnabled;
+            return this;
+        }
+
+        @Override
+        public Boolean multiRegionEnabled() {
+            return multiRegionEnabled;
+        }
+
+        public Builder multiRegionEnabled(Boolean multiRegionEnabled) {
+            this.multiRegionEnabled = multiRegionEnabled;
             return this;
         }
 

@@ -77,6 +77,15 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
     }
 
     /**
+     * Add the provided attributes to this attribute, if the provided attribute does not exist.
+     */
+    public void putAbsentAttributes(ExecutionAttributes lowerPrecedenceExecutionAttributes) {
+        if (lowerPrecedenceExecutionAttributes != null) {
+            lowerPrecedenceExecutionAttributes.getAttributes().forEach(attributes::putIfAbsent);
+        }
+    }
+
+    /**
      * Set the provided attribute in this collection of attributes if it does not already exist in the collection.
      */
     public <U> ExecutionAttributes putAttributeIfAbsent(ExecutionAttribute<U> attribute, U value) {

@@ -59,11 +59,11 @@ public final class S3ArnConverter implements ArnConverter<S3Resource> {
         }
         S3ResourceType s3ResourceType;
 
-        String resourceType = arn.resource().resourceType().orElseThrow(() -> new IllegalArgumentException("Unknown ARN type"));
+        String resourceType = arn.resource().resourceType()
+                                 .orElseThrow(() -> new IllegalArgumentException("Unknown ARN type"));
 
         try {
-            s3ResourceType =
-                S3ResourceType.fromValue(resourceType);
+            s3ResourceType = S3ResourceType.fromValue(resourceType);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Unknown ARN type '" + arn.resource().resourceType().get() + "'");
         }

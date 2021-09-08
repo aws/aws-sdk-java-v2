@@ -23,6 +23,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.internal.util.RegionScope;
 
 /**
  * AWS-specific signing attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and
@@ -40,6 +41,12 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
      * for global services like IAM.
      */
     public static final ExecutionAttribute<Region> SIGNING_REGION = new ExecutionAttribute<>("SigningRegion");
+
+    /**
+     * The AWS {@link Region} that is used for signing a request. This is not always same as the region configured on the client
+     * for global services like IAM.
+     */
+    public static final ExecutionAttribute<RegionScope> SIGNING_REGION_SCOPE = new ExecutionAttribute<>("SigningRegionScope");
 
     /**
      * The signing name of the service to be using in SigV4 signing
