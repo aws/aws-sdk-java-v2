@@ -171,8 +171,7 @@ public abstract class BaseClientHandler {
                     (OutputT) response.toBuilder().sdkHttpResponse(httpFullResponse).build());
     }
 
-    //TODO: Remove/throw exception when called. This method is only called from tests, since the subclasses
-    // in aws-core override it.
+    // This method is only called from tests, since the subclasses in aws-core override it.
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
         invokeInterceptorsAndCreateExecutionContext(
         ClientExecutionParams<InputT, OutputT> params) {
