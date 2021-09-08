@@ -1,3 +1,20 @@
+# __2.17.36__ __2021-09-08__
+## __AWS Resource Access Manager__
+  - ### Features
+    - A minor text-only update that fixes several customer issues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Improve performance of generated enum methods
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Updated Configuration APIs for Amazon OpenSearch Service (successor to Amazon Elasticsearch Service)
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK has added a new API that allows you to update the encrypting and authentication settings for an existing cluster.
+
 # __2.17.35__ __2021-09-07__
 ## __AWS Elemental MediaPackage__
   - ### Features
