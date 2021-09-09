@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -89,17 +90,10 @@ public final class UpdateItemEnhancedRequest<T> {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         UpdateItemEnhancedRequest<?> that = (UpdateItemEnhancedRequest<?>) o;
-
-        if (item != null ? !item.equals(that.item) : that.item != null) {
-            return false;
-        }
-        if (ignoreNulls != null ? !ignoreNulls.equals(that.ignoreNulls) : that.ignoreNulls != null) {
-            return false;
-        }
-        return conditionExpression != null ? conditionExpression.equals(that.conditionExpression) :
-               that.conditionExpression == null;
+        return Objects.equals(item, that.item)
+               && Objects.equals(ignoreNulls, that.ignoreNulls)
+               && Objects.equals(conditionExpression, that.conditionExpression);
     }
 
     @Override
