@@ -66,15 +66,14 @@ public class S3CrtPojoConversionTest {
         PutObjectResponse sdkResponse = S3CrtPojoConversion.fromCrtPutObjectOutput(crtResponse, sdkHttpResponse);
 
         // ignoring fields with different casings and enum fields.
-        assertThat(sdkResponse).isEqualToIgnoringGivenFields(crtResponse,
-                                                             "sseCustomerAlgorithm",
-                                                            "sseCustomerKeyMD5",
-                                                            "ssekmsKeyId",
-                                                             "ssekmsEncryptionContext",
-                                                            "serverSideEncryption",
-                                                            "requestCharged",
-                                                            "responseMetadata",
-                                                            "sdkHttpResponse");
+        assertThat(sdkResponse).usingRecursiveComparison().ignoringFields( "sseCustomerAlgorithm",
+                                                                           "sseCustomerKeyMD5",
+                                                                           "ssekmsKeyId",
+                                                                           "ssekmsEncryptionContext",
+                                                                           "serverSideEncryption",
+                                                                           "requestCharged",
+                                                                           "responseMetadata",
+                                                                           "sdkHttpResponse").isEqualTo(crtResponse);
         assertThat(sdkResponse.serverSideEncryption().name()).isEqualTo(crtResponse.serverSideEncryption().name());
         assertThat(sdkResponse.sseCustomerAlgorithm()).isEqualTo(crtResponse.sSECustomerAlgorithm());
         assertThat(sdkResponse.ssekmsKeyId()).isEqualTo(crtResponse.sSEKMSKeyId());
@@ -120,11 +119,11 @@ public class S3CrtPojoConversionTest {
 
 
         GetObjectResponse getObjectResponse = S3CrtPojoConversion.fromCrtGetObjectOutput(output, response);
-        assertThat(output).isEqualToIgnoringGivenFields(getObjectResponse, "body",
-                                                        "sSECustomerAlgorithm",
-                                                        "sSECustomerKeyMD5",
-                                                        "sSEKMSKeyId",
-                                                        "metadata");
+        assertThat(output).usingRecursiveComparison().ignoringFields("body",
+                                                                     "sSECustomerAlgorithm",
+                                                                     "sSECustomerKeyMD5",
+                                                                     "sSEKMSKeyId",
+                                                                     "metadata").isEqualTo(getObjectResponse);
 
         assertThat(getObjectResponse.sdkHttpResponse()).isEqualTo(response);
         assertThat(getObjectResponse.responseMetadata().requestId()).isEqualTo(expectedRequestId);
@@ -137,20 +136,19 @@ public class S3CrtPojoConversionTest {
         GetObjectResponse sdkResponse = S3CrtPojoConversion.fromCrtGetObjectOutput(crtResponse, SdkHttpResponse.builder().build());
 
         // ignoring fields with different casings and enum fields.
-        assertThat(sdkResponse).isEqualToIgnoringGivenFields(crtResponse,
-                                                             "sseCustomerAlgorithm",
-                                                             "body",
-                                                             "sseCustomerKeyMD5",
-                                                             "ssekmsKeyId",
-                                                             "ssekmsEncryptionContext",
-                                                             "serverSideEncryption",
-                                                             "responseMetadata",
-                                                             "sdkHttpResponse",
-                                                             "storageClass",
-                                                             "requestCharged",
-                                                             "replicationStatus",
-                                                             "objectLockMode",
-                                                             "objectLockLegalHoldStatus");
+        assertThat(sdkResponse).usingRecursiveComparison().ignoringFields("sseCustomerAlgorithm",
+                                                          "body",
+                                                          "sseCustomerKeyMD5",
+                                                          "ssekmsKeyId",
+                                                          "ssekmsEncryptionContext",
+                                                          "serverSideEncryption",
+                                                          "responseMetadata",
+                                                          "sdkHttpResponse",
+                                                          "storageClass",
+                                                          "requestCharged",
+                                                          "replicationStatus",
+                                                          "objectLockMode",
+                                                          "objectLockLegalHoldStatus").isEqualTo(crtResponse);
         assertThat(sdkResponse.serverSideEncryption().name()).isEqualTo(crtResponse.serverSideEncryption().name());
         assertThat(sdkResponse.sseCustomerAlgorithm()).isEqualTo(crtResponse.sSECustomerAlgorithm());
         assertThat(sdkResponse.ssekmsKeyId()).isEqualTo(crtResponse.sSEKMSKeyId());
@@ -182,16 +180,15 @@ public class S3CrtPojoConversionTest {
         com.amazonaws.s3.model.PutObjectRequest crtRequest = S3CrtPojoConversion.toCrtPutObjectRequest(sdkRequest);
 
         // ignoring fields with different casings and enum fields.
-        assertThat(crtRequest).isEqualToIgnoringGivenFields(sdkRequest,
-                                                            "aCL", "body", "sSECustomerAlgorithm",
-                                                            "sSECustomerKey", "sSECustomerKeyMD5",
-                                                            "sSEKMSKeyId", "sSEKMSEncryptionContext",
-                                                            "customHeaders", "customQueryParameters",
-                                                            "serverSideEncryption",
-                                                            "storageClass",
-                                                            "requestPayer",
-                                                            "objectLockMode",
-                                                            "objectLockLegalHoldStatus");
+        assertThat(crtRequest).usingRecursiveComparison().ignoringFields("aCL", "body", "sSECustomerAlgorithm",
+                                                                         "sSECustomerKey", "sSECustomerKeyMD5",
+                                                                         "sSEKMSKeyId", "sSEKMSEncryptionContext",
+                                                                         "customHeaders", "customQueryParameters",
+                                                                         "serverSideEncryption",
+                                                                         "storageClass",
+                                                                         "requestPayer",
+                                                                         "objectLockMode",
+                                                                         "objectLockLegalHoldStatus").isEqualTo(sdkRequest);
         assertThat(crtRequest.aCL().name()).isEqualTo(sdkRequest.acl().name());
         assertThat(crtRequest.serverSideEncryption().name()).isEqualTo(sdkRequest.serverSideEncryption().name());
         assertThat(crtRequest.storageClass().name()).isEqualTo(sdkRequest.storageClass().name());
@@ -219,7 +216,7 @@ public class S3CrtPojoConversionTest {
         com.amazonaws.s3.model.PutObjectRequest crtRequest = S3CrtPojoConversion.toCrtPutObjectRequest(sdkRequest);
         HttpHeader[] headers = crtRequest.customHeaders();
         verifyHeaders(headers);
-        assertThat(crtRequest.customQueryParameters()).isEqualTo("?hello1=world1&hello2=world2");
+        assertThat(crtRequest.customQueryParameters()).isEqualTo("hello1=world1&hello2=world2");
     }
 
     @Test
@@ -240,10 +237,10 @@ public class S3CrtPojoConversionTest {
         com.amazonaws.s3.model.GetObjectRequest crtRequest = S3CrtPojoConversion.toCrtGetObjectRequest(sdkRequest);
 
         // ignoring fields with different casings and enum fields.
-        assertThat(crtRequest).isEqualToIgnoringGivenFields(sdkRequest, "body", "sSECustomerAlgorithm",
-                                                            "sSECustomerKey", "sSECustomerKeyMD5",
-                                                            "customHeaders", "customQueryParameters",
-                                                            "requestPayer");
+        assertThat(crtRequest).usingRecursiveComparison().ignoringFields("body", "sSECustomerAlgorithm",
+                                                                         "sSECustomerKey", "sSECustomerKeyMD5",
+                                                                         "customHeaders", "customQueryParameters",
+                                                                         "requestPayer").isEqualTo(sdkRequest);
         assertThat(crtRequest.requestPayer().name()).isEqualTo(sdkRequest.requestPayer().name());
         assertThat(crtRequest.sSECustomerAlgorithm()).isEqualTo(sdkRequest.sseCustomerAlgorithm());
         assertThat(crtRequest.sSECustomerKey()).isEqualTo(sdkRequest.sseCustomerKey());
@@ -263,7 +260,7 @@ public class S3CrtPojoConversionTest {
 
         HttpHeader[] headers = crtRequest.customHeaders();
         verifyHeaders(headers);
-        assertThat(crtRequest.customQueryParameters()).isEqualTo("?hello1=world1&hello2=world2");
+        assertThat(crtRequest.customQueryParameters()).isEqualTo("hello1=world1&hello2=world2");
     }
 
     @Test
