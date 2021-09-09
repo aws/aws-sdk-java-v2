@@ -1,0 +1,30 @@
+{
+    "version": "2.17.37",
+    "date": "2021-09-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "This release enables customers to login to EMR Studio using AWS Identity and Access Management (IAM) identities or identities in their Identity Provider (IdP) via IAM."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Reviewer",
+            "contributor": "",
+            "description": "The Amazon CodeGuru Reviewer API now includes the RuleMetadata data object and a Severity attribute on a RecommendationSummary object. A RuleMetadata object contains information about a rule that generates a recommendation. Severity indicates how severe the issue associated with a recommendation is."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Equipment",
+            "contributor": "",
+            "description": "Added OffCondition parameter to CreateModel API"
+        }
+    ]
+}
