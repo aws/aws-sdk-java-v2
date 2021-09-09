@@ -1,0 +1,6 @@
+{
+    "category": "S3 Transfer Manager", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Remove extra question mark when query parameters are provided in transfer manager"
+}
