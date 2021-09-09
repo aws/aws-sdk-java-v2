@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -78,15 +79,15 @@ public final class PutItemEnhancedRequest<T> {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
-        PutItemEnhancedRequest<?> putItem = (PutItemEnhancedRequest<?>) o;
-
-        return item != null ? item.equals(putItem.item) : putItem.item == null;
+        PutItemEnhancedRequest<?> that = (PutItemEnhancedRequest<?>) o;
+        return Objects.equals(item, that.item) && Objects.equals(conditionExpression, that.conditionExpression);
     }
 
     @Override
     public int hashCode() {
-        return item != null ? item.hashCode() : 0;
+        int result = item != null ? item.hashCode() : 0;
+        result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
+        return result;
     }
 
     /**

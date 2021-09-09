@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
@@ -76,15 +77,15 @@ public final class DeleteItemEnhancedRequest {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         DeleteItemEnhancedRequest that = (DeleteItemEnhancedRequest) o;
-
-        return key != null ? key.equals(that.key) : that.key == null;
+        return Objects.equals(key, that.key) && Objects.equals(conditionExpression, that.conditionExpression);
     }
 
     @Override
     public int hashCode() {
-        return key != null ? key.hashCode() : 0;
+        int result = key != null ? key.hashCode() : 0;
+        result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
+        return result;
     }
 
     /**
