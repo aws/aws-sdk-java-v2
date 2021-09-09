@@ -114,7 +114,7 @@ public class BatchGetItemTest {
 
         BatchGetResultPage secondPage = iterator.next();
         assertThat(secondPage.resultsForTable(table).size()).isEqualTo(1);
-        assertThat(iterator).isEmpty();
+        assertThat(iterator).isExhausted();
     }
 
     @Test

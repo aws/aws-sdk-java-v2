@@ -26,6 +26,7 @@ import software.amazon.awssdk.utils.ToString;
  * <ol>
  *   <li>Java System Properties - <code>aws.accessKeyId</code> and <code>aws.secretAccessKey</code></li>
  *   <li>Environment Variables - <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code></li>
+ *   <li>Web Identity Token credentials from system properties or environment variables</li>
  *   <li>Credential profiles file at the default location (~/.aws/credentials) shared by all AWS SDKs and the AWS CLI</li>
  *   <li>Credentials delivered through the Amazon EC2 container service if AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" environment
  *   variable is set and security manager has permission to access the variable,</li>

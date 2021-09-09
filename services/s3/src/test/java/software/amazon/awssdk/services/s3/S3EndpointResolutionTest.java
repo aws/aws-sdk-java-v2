@@ -586,7 +586,9 @@ public class S3EndpointResolutionTest {
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("The region field of the ARN being passed as a bucket parameter to an S3 operation does not match the region the client was configured with. Cross region access not allowed for fips region in client or arn. Provided region: 'us-west-1'; client region:'fips-us-gov-east-1'.");
+                .hasMessageContaining("The region field of the ARN being passed as a bucket parameter to an S3 operation does not "
+                                      + "match the region the client was configured with. Cross region access not allowed for fips "
+                                      + "region in client or arn. Provided region: 'us-west-1'; client region:'fips-us-gov-east-1'.");
     }
 
     @Test
@@ -605,23 +607,23 @@ public class S3EndpointResolutionTest {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().region(Region.of("us-west-1"))
                 .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(true).build()).build();
-        String accessPointArn = "arn:aws-us-gov:s3:fips-us-gov-east-1:123456789012:accesspoint:myendpoint";
+        String accessPointArn = "arn:aws:s3:fips-us-west-1:123456789012:accesspoint:myendpoint";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid ARN, FIPS region is not allowed in ARN. Provided arn region: 'fips-us-gov-east-1'.");
+                .hasMessageContaining("Invalid ARN, FIPS region is not allowed in ARN. Provided arn region: 'fips-us-west-1'.");
     }
 
     @Test
     public void accessPointArnRegion_fips_clientRegion_nonFips_useArnRegionFalse_throwsIllegalArgumentException() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().region(Region.of("us-west-1"))
-                .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(true).build()).build();
-        String accessPointArn = "arn:aws-us-gov:s3:fips-us-gov-east-1:123456789012:accesspoint:myendpoint";
+                .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(false).build()).build();
+        String accessPointArn = "arn:aws:s3:fips-us-west-1:123456789012:accesspoint:myendpoint";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid ARN, FIPS region is not allowed in ARN. Provided arn region: 'fips-us-gov-east-1'.");
+                .hasMessageContaining("Invalid ARN, FIPS region is not allowed in ARN. Provided arn region: 'fips-us-west-1'.");
     }
 
 }

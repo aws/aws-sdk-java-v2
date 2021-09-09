@@ -22,6 +22,7 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
+import java.beans.Transient;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
@@ -84,6 +85,7 @@ abstract class AbstractMemberSetters implements MemberSetters {
         return MethodSpec.methodBuilder(methodName)
                          .addParameter(setterParam)
                          .addAnnotation(Override.class)
+                         .addAnnotation(Transient.class)
                          .returns(returnType)
                          .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
     }

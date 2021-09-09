@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.beans.Transient;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Arrays;
@@ -423,8 +424,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         .build();
 
     private static final SdkField<Document> MY_DOCUMENT_FIELD = SdkField.<Document> builder(MarshallingType.DOCUMENT)
-            .memberName("MyDocument").getter(getter(AllTypesResponse::myDocument)).setter(setter(Builder::myDocument))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MyDocument").build()).build();
+                                                                        .memberName("MyDocument").getter(getter(AllTypesResponse::myDocument)).setter(setter(Builder::myDocument))
+                                                                        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MyDocument").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD,
                                                                                                    INTEGER_MEMBER_FIELD, BOOLEAN_MEMBER_FIELD, FLOAT_MEMBER_FIELD, DOUBLE_MEMBER_FIELD, LONG_MEMBER_FIELD,
@@ -607,8 +608,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the SimpleList property was specified by the sender (it may be empty), or false if the sender did
-     * not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the SimpleList property. This DOES NOT check
+     * that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property). This is
+     * useful because the SDK will never return a null collection or map, but you may need to differentiate between the
+     * service returning nothing (or null) and the service returning an empty collection or map. For requests, this
+     * returns true if a value for the property was specified in the request builder, and false if a value was not
+     * specified.
      */
     public final boolean hasSimpleList() {
         return simpleList != null && !(simpleList instanceof SdkAutoConstructList);
@@ -620,7 +625,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasSimpleList()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasSimpleList} method.
      * </p>
      *
      * @return The value of the SimpleList property for this object.
@@ -635,7 +641,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfEnums()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfEnums} method.
      * </p>
      *
      * @return The value of the ListOfEnums property for this object.
@@ -645,8 +652,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the ListOfEnums property was specified by the sender (it may be empty), or false if the sender
-     * did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the ListOfEnums property. This DOES NOT
+     * check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasListOfEnums() {
         return listOfEnums != null && !(listOfEnums instanceof SdkAutoConstructList);
@@ -658,7 +669,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfEnums()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfEnums} method.
      * </p>
      *
      * @return The value of the ListOfEnums property for this object.
@@ -668,8 +680,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the ListOfMaps property was specified by the sender (it may be empty), or false if the sender did
-     * not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the ListOfMaps property. This DOES NOT check
+     * that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property). This is
+     * useful because the SDK will never return a null collection or map, but you may need to differentiate between the
+     * service returning nothing (or null) and the service returning an empty collection or map. For requests, this
+     * returns true if a value for the property was specified in the request builder, and false if a value was not
+     * specified.
      */
     public final boolean hasListOfMaps() {
         return listOfMaps != null && !(listOfMaps instanceof SdkAutoConstructList);
@@ -681,7 +697,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfMaps()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfMaps} method.
      * </p>
      *
      * @return The value of the ListOfMaps property for this object.
@@ -691,8 +708,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the ListOfStructs property was specified by the sender (it may be empty), or false if the sender
-     * did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the ListOfStructs property. This DOES NOT
+     * check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasListOfStructs() {
         return listOfStructs != null && !(listOfStructs instanceof SdkAutoConstructList);
@@ -704,7 +725,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfStructs()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfStructs} method.
      * </p>
      *
      * @return The value of the ListOfStructs property for this object.
@@ -719,7 +741,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfMapOfEnumToString()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfMapOfEnumToString} method.
      * </p>
      *
      * @return The value of the ListOfMapOfEnumToString property for this object.
@@ -729,9 +752,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the ListOfMapOfEnumToString property was specified by the sender (it may be empty), or false if
-     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the ListOfMapOfEnumToString property. This
+     * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasListOfMapOfEnumToString() {
         return listOfMapOfEnumToString != null && !(listOfMapOfEnumToString instanceof SdkAutoConstructList);
@@ -743,7 +769,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfMapOfEnumToString()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfMapOfEnumToString} method.
      * </p>
      *
      * @return The value of the ListOfMapOfEnumToString property for this object.
@@ -753,9 +780,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the ListOfMapOfStringToStruct property was specified by the sender (it may be empty), or false if
-     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the ListOfMapOfStringToStruct property. This
+     * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasListOfMapOfStringToStruct() {
         return listOfMapOfStringToStruct != null && !(listOfMapOfStringToStruct instanceof SdkAutoConstructList);
@@ -767,7 +797,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfMapOfStringToStruct()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfMapOfStringToStruct} method.
      * </p>
      *
      * @return The value of the ListOfMapOfStringToStruct property for this object.
@@ -777,9 +808,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the MapOfStringToIntegerList property was specified by the sender (it may be empty), or false if
-     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfStringToIntegerList property. This
+     * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasMapOfStringToIntegerList() {
         return mapOfStringToIntegerList != null && !(mapOfStringToIntegerList instanceof SdkAutoConstructMap);
@@ -791,7 +825,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfStringToIntegerList()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToIntegerList} method.
      * </p>
      *
      * @return The value of the MapOfStringToIntegerList property for this object.
@@ -801,9 +836,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the MapOfStringToString property was specified by the sender (it may be empty), or false if the
-     * sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfStringToString property. This DOES
+     * NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasMapOfStringToString() {
         return mapOfStringToString != null && !(mapOfStringToString instanceof SdkAutoConstructMap);
@@ -815,7 +853,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfStringToString()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToString} method.
      * </p>
      *
      * @return The value of the MapOfStringToString property for this object.
@@ -825,9 +864,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the MapOfStringToSimpleStruct property was specified by the sender (it may be empty), or false if
-     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfStringToSimpleStruct property. This
+     * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasMapOfStringToSimpleStruct() {
         return mapOfStringToSimpleStruct != null && !(mapOfStringToSimpleStruct instanceof SdkAutoConstructMap);
@@ -839,7 +881,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfStringToSimpleStruct()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToSimpleStruct} method.
      * </p>
      *
      * @return The value of the MapOfStringToSimpleStruct property for this object.
@@ -854,7 +897,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToEnum()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToEnum} method.
      * </p>
      *
      * @return The value of the MapOfEnumToEnum property for this object.
@@ -864,9 +908,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the MapOfEnumToEnum property was specified by the sender (it may be empty), or false if the
-     * sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfEnumToEnum property. This DOES NOT
+     * check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasMapOfEnumToEnum() {
         return mapOfEnumToEnum != null && !(mapOfEnumToEnum instanceof SdkAutoConstructMap);
@@ -878,7 +925,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToEnum()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToEnum} method.
      * </p>
      *
      * @return The value of the MapOfEnumToEnum property for this object.
@@ -893,7 +941,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToString()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToString} method.
      * </p>
      *
      * @return The value of the MapOfEnumToString property for this object.
@@ -903,9 +952,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the MapOfEnumToString property was specified by the sender (it may be empty), or false if the
-     * sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfEnumToString property. This DOES
+     * NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasMapOfEnumToString() {
         return mapOfEnumToString != null && !(mapOfEnumToString instanceof SdkAutoConstructMap);
@@ -917,7 +969,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToString()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToString} method.
      * </p>
      *
      * @return The value of the MapOfEnumToString property for this object.
@@ -932,7 +985,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfStringToEnum()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToEnum} method.
      * </p>
      *
      * @return The value of the MapOfStringToEnum property for this object.
@@ -942,9 +996,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the MapOfStringToEnum property was specified by the sender (it may be empty), or false if the
-     * sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfStringToEnum property. This DOES
+     * NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasMapOfStringToEnum() {
         return mapOfStringToEnum != null && !(mapOfStringToEnum instanceof SdkAutoConstructMap);
@@ -956,7 +1013,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfStringToEnum()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToEnum} method.
      * </p>
      *
      * @return The value of the MapOfStringToEnum property for this object.
@@ -971,7 +1029,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToSimpleStruct()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToSimpleStruct} method.
      * </p>
      *
      * @return The value of the MapOfEnumToSimpleStruct property for this object.
@@ -981,9 +1040,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the MapOfEnumToSimpleStruct property was specified by the sender (it may be empty), or false if
-     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfEnumToSimpleStruct property. This
+     * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasMapOfEnumToSimpleStruct() {
         return mapOfEnumToSimpleStruct != null && !(mapOfEnumToSimpleStruct instanceof SdkAutoConstructMap);
@@ -995,7 +1057,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToSimpleStruct()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToSimpleStruct} method.
      * </p>
      *
      * @return The value of the MapOfEnumToSimpleStruct property for this object.
@@ -1010,7 +1073,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToListOfEnums()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToListOfEnums} method.
      * </p>
      *
      * @return The value of the MapOfEnumToListOfEnums property for this object.
@@ -1020,9 +1084,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the MapOfEnumToListOfEnums property was specified by the sender (it may be empty), or false if
-     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
-     * service.
+     * For responses, this returns true if the service returned a value for the MapOfEnumToListOfEnums property. This
+     * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasMapOfEnumToListOfEnums() {
         return mapOfEnumToListOfEnums != null && !(mapOfEnumToListOfEnums instanceof SdkAutoConstructMap);
@@ -1034,7 +1101,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToListOfEnums()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToListOfEnums} method.
      * </p>
      *
      * @return The value of the MapOfEnumToListOfEnums property for this object.
@@ -1049,7 +1117,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToMapOfStringToEnum()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToMapOfStringToEnum} method.
      * </p>
      *
      * @return The value of the MapOfEnumToMapOfStringToEnum property for this object.
@@ -1059,9 +1128,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the MapOfEnumToMapOfStringToEnum property was specified by the sender (it may be empty), or false
-     * if the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the
-     * AWS service.
+     * For responses, this returns true if the service returned a value for the MapOfEnumToMapOfStringToEnum property.
+     * This DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+     * property). This is useful because the SDK will never return a null collection or map, but you may need to
+     * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+     * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+     * if a value was not specified.
      */
     public final boolean hasMapOfEnumToMapOfStringToEnum() {
         return mapOfEnumToMapOfStringToEnum != null && !(mapOfEnumToMapOfStringToEnum instanceof SdkAutoConstructMap);
@@ -1073,7 +1145,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasMapOfEnumToMapOfStringToEnum()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToMapOfStringToEnum} method.
      * </p>
      *
      * @return The value of the MapOfEnumToMapOfStringToEnum property for this object.
@@ -1119,8 +1192,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the BlobMap property was specified by the sender (it may be empty), or false if the sender did
-     * not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the BlobMap property. This DOES NOT check
+     * that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property). This is
+     * useful because the SDK will never return a null collection or map, but you may need to differentiate between the
+     * service returning nothing (or null) and the service returning an empty collection or map. For requests, this
+     * returns true if a value for the property was specified in the request builder, and false if a value was not
+     * specified.
      */
     public final boolean hasBlobMap() {
         return blobMap != null && !(blobMap instanceof SdkAutoConstructMap);
@@ -1132,7 +1209,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasBlobMap()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasBlobMap} method.
      * </p>
      *
      * @return The value of the BlobMap property for this object.
@@ -1142,8 +1220,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     }
 
     /**
-     * Returns true if the ListOfBlobs property was specified by the sender (it may be empty), or false if the sender
-     * did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * For responses, this returns true if the service returned a value for the ListOfBlobs property. This DOES NOT
+     * check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
      */
     public final boolean hasListOfBlobs() {
         return listOfBlobs != null && !(listOfBlobs instanceof SdkAutoConstructList);
@@ -1155,7 +1237,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      * <p>
-     * You can use {@link #hasListOfBlobs()} to see if a value was sent in this field.
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasListOfBlobs} method.
      * </p>
      *
      * @return The value of the ListOfBlobs property for this object.
@@ -1278,7 +1361,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         hashCode = 31 * hashCode + Objects.hashCode(hasMapOfEnumToSimpleStruct() ? mapOfEnumToSimpleStructAsStrings() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasMapOfEnumToListOfEnums() ? mapOfEnumToListOfEnumsAsStrings() : null);
         hashCode = 31 * hashCode
-                + Objects.hashCode(hasMapOfEnumToMapOfStringToEnum() ? mapOfEnumToMapOfStringToEnumAsStrings() : null);
+                   + Objects.hashCode(hasMapOfEnumToMapOfStringToEnum() ? mapOfEnumToMapOfStringToEnumAsStrings() : null);
         hashCode = 31 * hashCode + Objects.hashCode(timestampMember());
         hashCode = 31 * hashCode + Objects.hashCode(structWithNestedTimestampMember());
         hashCode = 31 * hashCode + Objects.hashCode(blobArg());
@@ -1351,8 +1434,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
                && Objects.equals(polymorphicTypeWithSubTypes(), other.polymorphicTypeWithSubTypes())
                && Objects.equals(polymorphicTypeWithoutSubTypes(), other.polymorphicTypeWithoutSubTypes())
                && Objects.equals(enumTypeAsString(), other.enumTypeAsString())
-                && Objects.equals(underscore_Name_Type(), other.underscore_Name_Type())
-                && Objects.equals(myDocument(), other.myDocument());
+               && Objects.equals(underscore_Name_Type(), other.underscore_Name_Type())
+               && Objects.equals(myDocument(), other.myDocument());
     }
 
     /**
@@ -1392,7 +1475,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             .add("ListOfBlobs", hasListOfBlobs() ? listOfBlobs() : null).add("RecursiveStruct", recursiveStruct())
             .add("PolymorphicTypeWithSubTypes", polymorphicTypeWithSubTypes())
             .add("PolymorphicTypeWithoutSubTypes", polymorphicTypeWithoutSubTypes()).add("EnumType", enumTypeAsString())
-                .add("Underscore_Name_Type", underscore_Name_Type()).add("MyDocument", myDocument()).build();
+            .add("Underscore_Name_Type", underscore_Name_Type()).add("MyDocument", myDocument()).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -2178,98 +2261,105 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return stringMember;
         }
 
+        public final void setStringMember(String stringMember) {
+            this.stringMember = stringMember;
+        }
+
         @Override
+        @Transient
         public final Builder stringMember(String stringMember) {
             this.stringMember = stringMember;
             return this;
-        }
-
-        public final void setStringMember(String stringMember) {
-            this.stringMember = stringMember;
         }
 
         public final Integer getIntegerMember() {
             return integerMember;
         }
 
+        public final void setIntegerMember(Integer integerMember) {
+            this.integerMember = integerMember;
+        }
+
         @Override
+        @Transient
         public final Builder integerMember(Integer integerMember) {
             this.integerMember = integerMember;
             return this;
-        }
-
-        public final void setIntegerMember(Integer integerMember) {
-            this.integerMember = integerMember;
         }
 
         public final Boolean getBooleanMember() {
             return booleanMember;
         }
 
+        public final void setBooleanMember(Boolean booleanMember) {
+            this.booleanMember = booleanMember;
+        }
+
         @Override
+        @Transient
         public final Builder booleanMember(Boolean booleanMember) {
             this.booleanMember = booleanMember;
             return this;
-        }
-
-        public final void setBooleanMember(Boolean booleanMember) {
-            this.booleanMember = booleanMember;
         }
 
         public final Float getFloatMember() {
             return floatMember;
         }
 
+        public final void setFloatMember(Float floatMember) {
+            this.floatMember = floatMember;
+        }
+
         @Override
+        @Transient
         public final Builder floatMember(Float floatMember) {
             this.floatMember = floatMember;
             return this;
-        }
-
-        public final void setFloatMember(Float floatMember) {
-            this.floatMember = floatMember;
         }
 
         public final Double getDoubleMember() {
             return doubleMember;
         }
 
+        public final void setDoubleMember(Double doubleMember) {
+            this.doubleMember = doubleMember;
+        }
+
         @Override
+        @Transient
         public final Builder doubleMember(Double doubleMember) {
             this.doubleMember = doubleMember;
             return this;
-        }
-
-        public final void setDoubleMember(Double doubleMember) {
-            this.doubleMember = doubleMember;
         }
 
         public final Long getLongMember() {
             return longMember;
         }
 
+        public final void setLongMember(Long longMember) {
+            this.longMember = longMember;
+        }
+
         @Override
+        @Transient
         public final Builder longMember(Long longMember) {
             this.longMember = longMember;
             return this;
-        }
-
-        public final void setLongMember(Long longMember) {
-            this.longMember = longMember;
         }
 
         public final Short getShortMember() {
             return shortMember;
         }
 
+        public final void setShortMember(Short shortMember) {
+            this.shortMember = shortMember;
+        }
+
         @Override
+        @Transient
         public final Builder shortMember(Short shortMember) {
             this.shortMember = shortMember;
             return this;
-        }
-
-        public final void setShortMember(Short shortMember) {
-            this.shortMember = shortMember;
         }
 
         public final Collection<String> getSimpleList() {
@@ -2279,21 +2369,23 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return simpleList;
         }
 
+        public final void setSimpleList(Collection<String> simpleList) {
+            this.simpleList = ListOfStringsCopier.copy(simpleList);
+        }
+
         @Override
+        @Transient
         public final Builder simpleList(Collection<String> simpleList) {
             this.simpleList = ListOfStringsCopier.copy(simpleList);
             return this;
         }
 
         @Override
+        @Transient
         @SafeVarargs
         public final Builder simpleList(String... simpleList) {
             simpleList(Arrays.asList(simpleList));
             return this;
-        }
-
-        public final void setSimpleList(Collection<String> simpleList) {
-            this.simpleList = ListOfStringsCopier.copy(simpleList);
         }
 
         public final Collection<String> getListOfEnums() {
@@ -2303,13 +2395,19 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return listOfEnums;
         }
 
+        public final void setListOfEnums(Collection<String> listOfEnums) {
+            this.listOfEnums = ListOfEnumsCopier.copy(listOfEnums);
+        }
+
         @Override
+        @Transient
         public final Builder listOfEnumsWithStrings(Collection<String> listOfEnums) {
             this.listOfEnums = ListOfEnumsCopier.copy(listOfEnums);
             return this;
         }
 
         @Override
+        @Transient
         @SafeVarargs
         public final Builder listOfEnumsWithStrings(String... listOfEnums) {
             listOfEnumsWithStrings(Arrays.asList(listOfEnums));
@@ -2317,20 +2415,18 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
+        @Transient
         public final Builder listOfEnums(Collection<EnumType> listOfEnums) {
             this.listOfEnums = ListOfEnumsCopier.copyEnumToString(listOfEnums);
             return this;
         }
 
         @Override
+        @Transient
         @SafeVarargs
         public final Builder listOfEnums(EnumType... listOfEnums) {
             listOfEnums(Arrays.asList(listOfEnums));
             return this;
-        }
-
-        public final void setListOfEnums(Collection<String> listOfEnums) {
-            this.listOfEnums = ListOfEnumsCopier.copy(listOfEnums);
         }
 
         public final Collection<? extends Map<String, String>> getListOfMaps() {
@@ -2340,21 +2436,23 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return listOfMaps;
         }
 
+        public final void setListOfMaps(Collection<? extends Map<String, String>> listOfMaps) {
+            this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
+        }
+
         @Override
+        @Transient
         public final Builder listOfMaps(Collection<? extends Map<String, String>> listOfMaps) {
             this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
             return this;
         }
 
         @Override
+        @Transient
         @SafeVarargs
         public final Builder listOfMaps(Map<String, String>... listOfMaps) {
             listOfMaps(Arrays.asList(listOfMaps));
             return this;
-        }
-
-        public final void setListOfMaps(Collection<? extends Map<String, String>> listOfMaps) {
-            this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
         }
 
         public final List<SimpleStruct.Builder> getListOfStructs() {
@@ -2365,13 +2463,19 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return result;
         }
 
+        public final void setListOfStructs(Collection<SimpleStruct.BuilderImpl> listOfStructs) {
+            this.listOfStructs = ListOfSimpleStructsCopier.copyFromBuilder(listOfStructs);
+        }
+
         @Override
+        @Transient
         public final Builder listOfStructs(Collection<SimpleStruct> listOfStructs) {
             this.listOfStructs = ListOfSimpleStructsCopier.copy(listOfStructs);
             return this;
         }
 
         @Override
+        @Transient
         @SafeVarargs
         public final Builder listOfStructs(SimpleStruct... listOfStructs) {
             listOfStructs(Arrays.asList(listOfStructs));
@@ -2379,15 +2483,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
+        @Transient
         @SafeVarargs
         public final Builder listOfStructs(Consumer<SimpleStruct.Builder>... listOfStructs) {
             listOfStructs(Stream.of(listOfStructs).map(c -> SimpleStruct.builder().applyMutation(c).build())
                                 .collect(Collectors.toList()));
             return this;
-        }
-
-        public final void setListOfStructs(Collection<SimpleStruct.BuilderImpl> listOfStructs) {
-            this.listOfStructs = ListOfSimpleStructsCopier.copyFromBuilder(listOfStructs);
         }
 
         public final Collection<? extends Map<String, String>> getListOfMapOfEnumToString() {
@@ -2397,21 +2498,23 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return listOfMapOfEnumToString;
         }
 
+        public final void setListOfMapOfEnumToString(Collection<? extends Map<String, String>> listOfMapOfEnumToString) {
+            this.listOfMapOfEnumToString = ListOfMapOfEnumToStringCopier.copy(listOfMapOfEnumToString);
+        }
+
         @Override
+        @Transient
         public final Builder listOfMapOfEnumToStringWithStrings(Collection<? extends Map<String, String>> listOfMapOfEnumToString) {
             this.listOfMapOfEnumToString = ListOfMapOfEnumToStringCopier.copy(listOfMapOfEnumToString);
             return this;
         }
 
         @Override
+        @Transient
         @SafeVarargs
         public final Builder listOfMapOfEnumToStringWithStrings(Map<String, String>... listOfMapOfEnumToString) {
             listOfMapOfEnumToStringWithStrings(Arrays.asList(listOfMapOfEnumToString));
             return this;
-        }
-
-        public final void setListOfMapOfEnumToString(Collection<? extends Map<String, String>> listOfMapOfEnumToString) {
-            this.listOfMapOfEnumToString = ListOfMapOfEnumToStringCopier.copy(listOfMapOfEnumToString);
         }
 
         public final List<Map<String, SimpleStruct.Builder>> getListOfMapOfStringToStruct() {
@@ -2423,22 +2526,24 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return result;
         }
 
+        public final void setListOfMapOfStringToStruct(
+            Collection<? extends Map<String, SimpleStruct.BuilderImpl>> listOfMapOfStringToStruct) {
+            this.listOfMapOfStringToStruct = ListOfMapOfStringToStructCopier.copyFromBuilder(listOfMapOfStringToStruct);
+        }
+
         @Override
+        @Transient
         public final Builder listOfMapOfStringToStruct(Collection<? extends Map<String, SimpleStruct>> listOfMapOfStringToStruct) {
             this.listOfMapOfStringToStruct = ListOfMapOfStringToStructCopier.copy(listOfMapOfStringToStruct);
             return this;
         }
 
         @Override
+        @Transient
         @SafeVarargs
         public final Builder listOfMapOfStringToStruct(Map<String, SimpleStruct>... listOfMapOfStringToStruct) {
             listOfMapOfStringToStruct(Arrays.asList(listOfMapOfStringToStruct));
             return this;
-        }
-
-        public final void setListOfMapOfStringToStruct(
-            Collection<? extends Map<String, SimpleStruct.BuilderImpl>> listOfMapOfStringToStruct) {
-            this.listOfMapOfStringToStruct = ListOfMapOfStringToStructCopier.copyFromBuilder(listOfMapOfStringToStruct);
         }
 
         public final Map<String, ? extends Collection<Integer>> getMapOfStringToIntegerList() {
@@ -2448,14 +2553,15 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return mapOfStringToIntegerList;
         }
 
+        public final void setMapOfStringToIntegerList(Map<String, ? extends Collection<Integer>> mapOfStringToIntegerList) {
+            this.mapOfStringToIntegerList = MapOfStringToIntegerListCopier.copy(mapOfStringToIntegerList);
+        }
+
         @Override
+        @Transient
         public final Builder mapOfStringToIntegerList(Map<String, ? extends Collection<Integer>> mapOfStringToIntegerList) {
             this.mapOfStringToIntegerList = MapOfStringToIntegerListCopier.copy(mapOfStringToIntegerList);
             return this;
-        }
-
-        public final void setMapOfStringToIntegerList(Map<String, ? extends Collection<Integer>> mapOfStringToIntegerList) {
-            this.mapOfStringToIntegerList = MapOfStringToIntegerListCopier.copy(mapOfStringToIntegerList);
         }
 
         public final Map<String, String> getMapOfStringToString() {
@@ -2465,14 +2571,15 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return mapOfStringToString;
         }
 
+        public final void setMapOfStringToString(Map<String, String> mapOfStringToString) {
+            this.mapOfStringToString = MapOfStringToStringCopier.copy(mapOfStringToString);
+        }
+
         @Override
+        @Transient
         public final Builder mapOfStringToString(Map<String, String> mapOfStringToString) {
             this.mapOfStringToString = MapOfStringToStringCopier.copy(mapOfStringToString);
             return this;
-        }
-
-        public final void setMapOfStringToString(Map<String, String> mapOfStringToString) {
-            this.mapOfStringToString = MapOfStringToStringCopier.copy(mapOfStringToString);
         }
 
         public final Map<String, SimpleStruct.Builder> getMapOfStringToSimpleStruct() {
@@ -2484,14 +2591,15 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return result;
         }
 
+        public final void setMapOfStringToSimpleStruct(Map<String, SimpleStruct.BuilderImpl> mapOfStringToSimpleStruct) {
+            this.mapOfStringToSimpleStruct = MapOfStringToSimpleStructCopier.copyFromBuilder(mapOfStringToSimpleStruct);
+        }
+
         @Override
+        @Transient
         public final Builder mapOfStringToSimpleStruct(Map<String, SimpleStruct> mapOfStringToSimpleStruct) {
             this.mapOfStringToSimpleStruct = MapOfStringToSimpleStructCopier.copy(mapOfStringToSimpleStruct);
             return this;
-        }
-
-        public final void setMapOfStringToSimpleStruct(Map<String, SimpleStruct.BuilderImpl> mapOfStringToSimpleStruct) {
-            this.mapOfStringToSimpleStruct = MapOfStringToSimpleStructCopier.copyFromBuilder(mapOfStringToSimpleStruct);
         }
 
         public final Map<String, String> getMapOfEnumToEnum() {
@@ -2501,20 +2609,22 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return mapOfEnumToEnum;
         }
 
+        public final void setMapOfEnumToEnum(Map<String, String> mapOfEnumToEnum) {
+            this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copy(mapOfEnumToEnum);
+        }
+
         @Override
+        @Transient
         public final Builder mapOfEnumToEnumWithStrings(Map<String, String> mapOfEnumToEnum) {
             this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copy(mapOfEnumToEnum);
             return this;
         }
 
         @Override
+        @Transient
         public final Builder mapOfEnumToEnum(Map<EnumType, EnumType> mapOfEnumToEnum) {
             this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copyEnumToString(mapOfEnumToEnum);
             return this;
-        }
-
-        public final void setMapOfEnumToEnum(Map<String, String> mapOfEnumToEnum) {
-            this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copy(mapOfEnumToEnum);
         }
 
         public final Map<String, String> getMapOfEnumToString() {
@@ -2524,20 +2634,22 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return mapOfEnumToString;
         }
 
+        public final void setMapOfEnumToString(Map<String, String> mapOfEnumToString) {
+            this.mapOfEnumToString = MapOfEnumToStringCopier.copy(mapOfEnumToString);
+        }
+
         @Override
+        @Transient
         public final Builder mapOfEnumToStringWithStrings(Map<String, String> mapOfEnumToString) {
             this.mapOfEnumToString = MapOfEnumToStringCopier.copy(mapOfEnumToString);
             return this;
         }
 
         @Override
+        @Transient
         public final Builder mapOfEnumToString(Map<EnumType, String> mapOfEnumToString) {
             this.mapOfEnumToString = MapOfEnumToStringCopier.copyEnumToString(mapOfEnumToString);
             return this;
-        }
-
-        public final void setMapOfEnumToString(Map<String, String> mapOfEnumToString) {
-            this.mapOfEnumToString = MapOfEnumToStringCopier.copy(mapOfEnumToString);
         }
 
         public final Map<String, String> getMapOfStringToEnum() {
@@ -2547,20 +2659,22 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return mapOfStringToEnum;
         }
 
+        public final void setMapOfStringToEnum(Map<String, String> mapOfStringToEnum) {
+            this.mapOfStringToEnum = MapOfStringToEnumCopier.copy(mapOfStringToEnum);
+        }
+
         @Override
+        @Transient
         public final Builder mapOfStringToEnumWithStrings(Map<String, String> mapOfStringToEnum) {
             this.mapOfStringToEnum = MapOfStringToEnumCopier.copy(mapOfStringToEnum);
             return this;
         }
 
         @Override
+        @Transient
         public final Builder mapOfStringToEnum(Map<String, EnumType> mapOfStringToEnum) {
             this.mapOfStringToEnum = MapOfStringToEnumCopier.copyEnumToString(mapOfStringToEnum);
             return this;
-        }
-
-        public final void setMapOfStringToEnum(Map<String, String> mapOfStringToEnum) {
-            this.mapOfStringToEnum = MapOfStringToEnumCopier.copy(mapOfStringToEnum);
         }
 
         public final Map<String, SimpleStruct.Builder> getMapOfEnumToSimpleStruct() {
@@ -2571,20 +2685,22 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return result;
         }
 
+        public final void setMapOfEnumToSimpleStruct(Map<String, SimpleStruct.BuilderImpl> mapOfEnumToSimpleStruct) {
+            this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copyFromBuilder(mapOfEnumToSimpleStruct);
+        }
+
         @Override
+        @Transient
         public final Builder mapOfEnumToSimpleStructWithStrings(Map<String, SimpleStruct> mapOfEnumToSimpleStruct) {
             this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copy(mapOfEnumToSimpleStruct);
             return this;
         }
 
         @Override
+        @Transient
         public final Builder mapOfEnumToSimpleStruct(Map<EnumType, SimpleStruct> mapOfEnumToSimpleStruct) {
             this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copyEnumToString(mapOfEnumToSimpleStruct);
             return this;
-        }
-
-        public final void setMapOfEnumToSimpleStruct(Map<String, SimpleStruct.BuilderImpl> mapOfEnumToSimpleStruct) {
-            this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copyFromBuilder(mapOfEnumToSimpleStruct);
         }
 
         public final Map<String, ? extends Collection<String>> getMapOfEnumToListOfEnums() {
@@ -2594,20 +2710,22 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return mapOfEnumToListOfEnums;
         }
 
+        public final void setMapOfEnumToListOfEnums(Map<String, ? extends Collection<String>> mapOfEnumToListOfEnums) {
+            this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copy(mapOfEnumToListOfEnums);
+        }
+
         @Override
+        @Transient
         public final Builder mapOfEnumToListOfEnumsWithStrings(Map<String, ? extends Collection<String>> mapOfEnumToListOfEnums) {
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copy(mapOfEnumToListOfEnums);
             return this;
         }
 
         @Override
+        @Transient
         public final Builder mapOfEnumToListOfEnums(Map<EnumType, ? extends Collection<EnumType>> mapOfEnumToListOfEnums) {
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copyEnumToString(mapOfEnumToListOfEnums);
             return this;
-        }
-
-        public final void setMapOfEnumToListOfEnums(Map<String, ? extends Collection<String>> mapOfEnumToListOfEnums) {
-            this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copy(mapOfEnumToListOfEnums);
         }
 
         public final Map<String, ? extends Map<String, String>> getMapOfEnumToMapOfStringToEnum() {
@@ -2617,7 +2735,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return mapOfEnumToMapOfStringToEnum;
         }
 
+        public final void setMapOfEnumToMapOfStringToEnum(Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
+            this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
+        }
+
         @Override
+        @Transient
         public final Builder mapOfEnumToMapOfStringToEnumWithStrings(
             Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
@@ -2625,38 +2748,30 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
+        @Transient
         public final Builder mapOfEnumToMapOfStringToEnum(
             Map<EnumType, ? extends Map<String, EnumType>> mapOfEnumToMapOfStringToEnum) {
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copyEnumToString(mapOfEnumToMapOfStringToEnum);
             return this;
         }
 
-        public final void setMapOfEnumToMapOfStringToEnum(Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
-            this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
-        }
-
         public final Instant getTimestampMember() {
             return timestampMember;
-        }
-
-        @Override
-        public final Builder timestampMember(Instant timestampMember) {
-            this.timestampMember = timestampMember;
-            return this;
         }
 
         public final void setTimestampMember(Instant timestampMember) {
             this.timestampMember = timestampMember;
         }
 
-        public final StructWithTimestamp.Builder getStructWithNestedTimestampMember() {
-            return structWithNestedTimestampMember != null ? structWithNestedTimestampMember.toBuilder() : null;
+        @Override
+        @Transient
+        public final Builder timestampMember(Instant timestampMember) {
+            this.timestampMember = timestampMember;
+            return this;
         }
 
-        @Override
-        public final Builder structWithNestedTimestampMember(StructWithTimestamp structWithNestedTimestampMember) {
-            this.structWithNestedTimestampMember = structWithNestedTimestampMember;
-            return this;
+        public final StructWithTimestamp.Builder getStructWithNestedTimestampMember() {
+            return structWithNestedTimestampMember != null ? structWithNestedTimestampMember.toBuilder() : null;
         }
 
         public final void setStructWithNestedTimestampMember(StructWithTimestamp.BuilderImpl structWithNestedTimestampMember) {
@@ -2664,32 +2779,41 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
                 .build() : null;
         }
 
-        public final ByteBuffer getBlobArg() {
-            return blobArg == null ? null : blobArg.asByteBuffer();
+        @Override
+        @Transient
+        public final Builder structWithNestedTimestampMember(StructWithTimestamp structWithNestedTimestampMember) {
+            this.structWithNestedTimestampMember = structWithNestedTimestampMember;
+            return this;
         }
 
-        @Override
-        public final Builder blobArg(SdkBytes blobArg) {
-            this.blobArg = blobArg;
-            return this;
+        public final ByteBuffer getBlobArg() {
+            return blobArg == null ? null : blobArg.asByteBuffer();
         }
 
         public final void setBlobArg(ByteBuffer blobArg) {
             blobArg(blobArg == null ? null : SdkBytes.fromByteBuffer(blobArg));
         }
 
+        @Override
+        @Transient
+        public final Builder blobArg(SdkBytes blobArg) {
+            this.blobArg = blobArg;
+            return this;
+        }
+
         public final StructWithNestedBlobType.Builder getStructWithNestedBlob() {
             return structWithNestedBlob != null ? structWithNestedBlob.toBuilder() : null;
         }
 
+        public final void setStructWithNestedBlob(StructWithNestedBlobType.BuilderImpl structWithNestedBlob) {
+            this.structWithNestedBlob = structWithNestedBlob != null ? structWithNestedBlob.build() : null;
+        }
+
         @Override
+        @Transient
         public final Builder structWithNestedBlob(StructWithNestedBlobType structWithNestedBlob) {
             this.structWithNestedBlob = structWithNestedBlob;
             return this;
-        }
-
-        public final void setStructWithNestedBlob(StructWithNestedBlobType.BuilderImpl structWithNestedBlob) {
-            this.structWithNestedBlob = structWithNestedBlob != null ? structWithNestedBlob.build() : null;
         }
 
         public final Map<String, ByteBuffer> getBlobMap() {
@@ -2700,15 +2824,16 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
                                                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().asByteBuffer()));
         }
 
-        @Override
-        public final Builder blobMap(Map<String, SdkBytes> blobMap) {
-            this.blobMap = BlobMapTypeCopier.copy(blobMap);
-            return this;
-        }
-
         public final void setBlobMap(Map<String, ByteBuffer> blobMap) {
             blobMap(blobMap == null ? null : blobMap.entrySet().stream()
                                                     .collect(Collectors.toMap(e -> e.getKey(), e -> SdkBytes.fromByteBuffer(e.getValue()))));
+        }
+
+        @Override
+        @Transient
+        public final Builder blobMap(Map<String, SdkBytes> blobMap) {
+            this.blobMap = BlobMapTypeCopier.copy(blobMap);
+            return this;
         }
 
         public final List<ByteBuffer> getListOfBlobs() {
@@ -2718,60 +2843,58 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return listOfBlobs == null ? null : listOfBlobs.stream().map(SdkBytes::asByteBuffer).collect(Collectors.toList());
         }
 
+        public final void setListOfBlobs(Collection<ByteBuffer> listOfBlobs) {
+            listOfBlobs(listOfBlobs == null ? null : listOfBlobs.stream().map(SdkBytes::fromByteBuffer)
+                                                                .collect(Collectors.toList()));
+        }
+
         @Override
+        @Transient
         public final Builder listOfBlobs(Collection<SdkBytes> listOfBlobs) {
             this.listOfBlobs = ListOfBlobsTypeCopier.copy(listOfBlobs);
             return this;
         }
 
         @Override
+        @Transient
         @SafeVarargs
         public final Builder listOfBlobs(SdkBytes... listOfBlobs) {
             listOfBlobs(Arrays.asList(listOfBlobs));
             return this;
         }
 
-        public final void setListOfBlobs(Collection<ByteBuffer> listOfBlobs) {
-            listOfBlobs(listOfBlobs == null ? null : listOfBlobs.stream().map(SdkBytes::fromByteBuffer)
-                                                                .collect(Collectors.toList()));
-        }
-
         public final RecursiveStructType.Builder getRecursiveStruct() {
             return recursiveStruct != null ? recursiveStruct.toBuilder() : null;
-        }
-
-        @Override
-        public final Builder recursiveStruct(RecursiveStructType recursiveStruct) {
-            this.recursiveStruct = recursiveStruct;
-            return this;
         }
 
         public final void setRecursiveStruct(RecursiveStructType.BuilderImpl recursiveStruct) {
             this.recursiveStruct = recursiveStruct != null ? recursiveStruct.build() : null;
         }
 
-        public final BaseType.Builder getPolymorphicTypeWithSubTypes() {
-            return polymorphicTypeWithSubTypes != null ? polymorphicTypeWithSubTypes.toBuilder() : null;
+        @Override
+        @Transient
+        public final Builder recursiveStruct(RecursiveStructType recursiveStruct) {
+            this.recursiveStruct = recursiveStruct;
+            return this;
         }
 
-        @Override
-        public final Builder polymorphicTypeWithSubTypes(BaseType polymorphicTypeWithSubTypes) {
-            this.polymorphicTypeWithSubTypes = polymorphicTypeWithSubTypes;
-            return this;
+        public final BaseType.Builder getPolymorphicTypeWithSubTypes() {
+            return polymorphicTypeWithSubTypes != null ? polymorphicTypeWithSubTypes.toBuilder() : null;
         }
 
         public final void setPolymorphicTypeWithSubTypes(BaseType.BuilderImpl polymorphicTypeWithSubTypes) {
             this.polymorphicTypeWithSubTypes = polymorphicTypeWithSubTypes != null ? polymorphicTypeWithSubTypes.build() : null;
         }
 
-        public final SubTypeOne.Builder getPolymorphicTypeWithoutSubTypes() {
-            return polymorphicTypeWithoutSubTypes != null ? polymorphicTypeWithoutSubTypes.toBuilder() : null;
+        @Override
+        @Transient
+        public final Builder polymorphicTypeWithSubTypes(BaseType polymorphicTypeWithSubTypes) {
+            this.polymorphicTypeWithSubTypes = polymorphicTypeWithSubTypes;
+            return this;
         }
 
-        @Override
-        public final Builder polymorphicTypeWithoutSubTypes(SubTypeOne polymorphicTypeWithoutSubTypes) {
-            this.polymorphicTypeWithoutSubTypes = polymorphicTypeWithoutSubTypes;
-            return this;
+        public final SubTypeOne.Builder getPolymorphicTypeWithoutSubTypes() {
+            return polymorphicTypeWithoutSubTypes != null ? polymorphicTypeWithoutSubTypes.toBuilder() : null;
         }
 
         public final void setPolymorphicTypeWithoutSubTypes(SubTypeOne.BuilderImpl polymorphicTypeWithoutSubTypes) {
@@ -2779,52 +2902,63 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
                                                                                          : null;
         }
 
+        @Override
+        @Transient
+        public final Builder polymorphicTypeWithoutSubTypes(SubTypeOne polymorphicTypeWithoutSubTypes) {
+            this.polymorphicTypeWithoutSubTypes = polymorphicTypeWithoutSubTypes;
+            return this;
+        }
+
         public final String getEnumType() {
             return enumType;
-        }
-
-        @Override
-        public final Builder enumType(String enumType) {
-            this.enumType = enumType;
-            return this;
-        }
-
-        @Override
-        public final Builder enumType(EnumType enumType) {
-            this.enumType(enumType == null ? null : enumType.toString());
-            return this;
         }
 
         public final void setEnumType(String enumType) {
             this.enumType = enumType;
         }
 
-        public final Underscore_Name_Type.Builder getUnderscore_Name_Type() {
-            return underscore_Name_Type != null ? underscore_Name_Type.toBuilder() : null;
+        @Override
+        @Transient
+        public final Builder enumType(String enumType) {
+            this.enumType = enumType;
+            return this;
         }
 
         @Override
-        public final Builder underscore_Name_Type(Underscore_Name_Type underscore_Name_Type) {
-            this.underscore_Name_Type = underscore_Name_Type;
+        @Transient
+        public final Builder enumType(EnumType enumType) {
+            this.enumType(enumType == null ? null : enumType.toString());
             return this;
+        }
+
+        public final Underscore_Name_Type.Builder getUnderscore_Name_Type() {
+            return underscore_Name_Type != null ? underscore_Name_Type.toBuilder() : null;
         }
 
         public final void setUnderscore_Name_Type(Underscore_Name_Type.BuilderImpl underscore_Name_Type) {
             this.underscore_Name_Type = underscore_Name_Type != null ? underscore_Name_Type.build() : null;
         }
 
+        @Override
+        @Transient
+        public final Builder underscore_Name_Type(Underscore_Name_Type underscore_Name_Type) {
+            this.underscore_Name_Type = underscore_Name_Type;
+            return this;
+        }
+
         public final Document getMyDocument() {
             return myDocument;
         }
 
+        public final void setMyDocument(Document myDocument) {
+            this.myDocument = myDocument;
+        }
+
         @Override
+        @Transient
         public final Builder myDocument(Document myDocument) {
             this.myDocument = myDocument;
             return this;
-        }
-
-        public final void setMyDocument(Document myDocument) {
-            this.myDocument = myDocument;
         }
 
         @Override

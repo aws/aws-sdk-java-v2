@@ -1,0 +1,54 @@
+{
+    "version": "2.17.32",
+    "date": "2021-09-01",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed an issue where event streams might fail with ClassCastException or NoSuchElementExceptions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "This release adds support for wall clock programs in LINEAR channels."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Added LaunchTemplate support for the IMDS IPv6 endpoint"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog App Registry",
+            "contributor": "",
+            "description": "Introduction of GetAssociatedResource API and GetApplication response extension for Resource Groups support."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Documentation updates for config"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail",
+            "contributor": "",
+            "description": "Documentation updates for CloudTrail"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Added new convenience methods to SdkPublisher: doAfterOnError, doAfterOnComplete, and doAfterCancel."
+        }
+    ]
+}

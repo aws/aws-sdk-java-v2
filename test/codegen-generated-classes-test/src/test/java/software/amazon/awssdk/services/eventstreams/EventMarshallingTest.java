@@ -39,6 +39,7 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.eventstreamrestjson.EventStreamRestJsonAsyncClient;
 import software.amazon.awssdk.services.eventstreamrestjson.model.EventStream;
 import software.amazon.awssdk.services.eventstreamrestjson.model.EventStreamOperationRequest;
@@ -63,6 +64,7 @@ public class EventMarshallingTest {
     public void setup() {
         when(mockHttpClient.execute(any(AsyncExecuteRequest.class))).thenAnswer(this::mockExecute);
         client = EventStreamRestJsonAsyncClient.builder()
+                .region(Region.US_WEST_2)
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                 .httpClient(mockHttpClient)
                 .build();

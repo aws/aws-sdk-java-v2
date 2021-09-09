@@ -29,7 +29,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.Test;
 
 public class CollectionUtilsTest {
@@ -230,5 +233,34 @@ public class CollectionUtilsTest {
         map.put("foo", singletonList("bar"));
 
         mutation.accept(map);
+    }
+
+    @Test
+    public void uniqueIndex_noDuplicateIndices_correctlyIndexes() {
+        Set<String> values = Stream.of("a", "ab", "abc")
+                                   .collect(Collectors.toSet());
+        Map<Integer, String> map = CollectionUtils.uniqueIndex(values, String::length);
+        assertThat(map).hasSize(3)
+                       .containsEntry(1, "a")
+                       .containsEntry(2, "ab")
+                       .containsEntry(3, "abc");
+    }
+
+    @Test
+    public void uniqueIndex_map_isModifiable() {
+        Set<String> values = Stream.of("a", "ab", "abc")
+                                   .collect(Collectors.toSet());
+        Map<Integer, String> map = CollectionUtils.uniqueIndex(values, String::length);
+        map.put(3, "bar");
+        assertThat(map).containsEntry(3, "bar");
+    }
+
+    @Test
+    public void uniqueIndex_duplicateIndices_throws() {
+        Set<String> values = Stream.of("foo", "bar")
+                                   .collect(Collectors.toSet());
+        assertThatThrownBy(() -> CollectionUtils.uniqueIndex(values, String::length))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContainingAll("foo", "bar", "3");
     }
 }

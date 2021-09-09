@@ -36,6 +36,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -71,18 +72,18 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
 
     private final AttributeMap options;
     private final UrlConnectionFactory connectionFactory;
-    private final SSLContext sslContext;
 
     private UrlConnectionHttpClient(AttributeMap options, UrlConnectionFactory connectionFactory) {
         this.options = options;
         if (connectionFactory != null) {
-            this.sslContext = null;
             this.connectionFactory = connectionFactory;
         } else {
-            this.sslContext = getSslContext(options);
-            this.connectionFactory = this::createDefaultConnection;
-        }
+            // Note: This socket factory MUST be reused between requests because the connection pool in the JVM is keyed by both
+            // URL and SSLSocketFactory. If the socket factory is not reused, connections will not be reused between requests.
+            SSLSocketFactory socketFactory = getSslContext(options).getSocketFactory();
 
+            this.connectionFactory = url -> createDefaultConnection(url, socketFactory);
+        }
     }
 
     public static Builder builder() {
@@ -142,7 +143,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         return connection;
     }
 
-    private HttpURLConnection createDefaultConnection(URI uri) {
+    private HttpURLConnection createDefaultConnection(URI uri, SSLSocketFactory socketFactory) {
         HttpURLConnection connection = invokeSafely(() -> (HttpURLConnection) uri.toURL().openConnection());
 
         if (connection instanceof HttpsURLConnection) {
@@ -152,7 +153,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                 httpsConnection.setHostnameVerifier(NoOpHostNameVerifier.INSTANCE);
             }
 
-            httpsConnection.setSSLSocketFactory(sslContext.getSocketFactory());
+            httpsConnection.setSSLSocketFactory(socketFactory);
         }
 
         connection.setConnectTimeout(saturatedCast(options.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT).toMillis()));

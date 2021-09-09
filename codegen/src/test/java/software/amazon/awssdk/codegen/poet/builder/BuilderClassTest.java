@@ -40,7 +40,7 @@ public class BuilderClassTest {
 
     @Test
     public void baseClientBuilderClassWithInternalUserAgent() throws Exception {
-        assertThat(new BaseClientBuilderClass(ClientTestModels.internalConfigModels()), generatesTo("test-client-builder-internal-user-agent-class.java"));
+        assertThat(new BaseClientBuilderClass(ClientTestModels.internalConfigModels()), generatesTo("test-client-builder-internal-defaults-class.java"));
     }
 
     @Test
@@ -69,7 +69,7 @@ public class BuilderClassTest {
     }
 
     private void validateGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {
-        assertThat(generatorConstructor.apply(ClientTestModels.jsonServiceModels()), generatesTo(expectedClassName));
+        assertThat(generatorConstructor.apply(ClientTestModels.restJsonServiceModels()), generatesTo(expectedClassName));
     }
 
     private void validateQueryGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {

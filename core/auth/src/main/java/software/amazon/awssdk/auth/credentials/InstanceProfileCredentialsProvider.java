@@ -24,7 +24,7 @@ import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvide
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.ToString;
@@ -160,7 +160,7 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
         @Override
         public Map<String, String> headers() {
             Map<String, String> requestHeaders = new HashMap<>();
-            requestHeaders.put("User-Agent", UserAgentUtils.getUserAgent());
+            requestHeaders.put("User-Agent", SdkUserAgent.create().userAgent());
             requestHeaders.put("Accept", "*/*");
             requestHeaders.put("Connection", "keep-alive");
 
@@ -195,7 +195,7 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
         @Override
         public Map<String, String> headers() {
             Map<String, String> requestHeaders = new HashMap<>();
-            requestHeaders.put("User-Agent", UserAgentUtils.getUserAgent());
+            requestHeaders.put("User-Agent", SdkUserAgent.create().userAgent());
             requestHeaders.put("Accept", "*/*");
             requestHeaders.put("Connection", "keep-alive");
             requestHeaders.put(EC2_METADATA_TOKEN_TTL_HEADER, DEFAULT_TOKEN_TTL);

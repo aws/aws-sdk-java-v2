@@ -579,6 +579,31 @@ public class ValidateTest  {
     }
 
     @Test
+    public void isPositiveOrNullDouble_null_returnsNull() {
+        assertNull(Validate.isPositiveOrNull((Double) null, "foo"));
+    }
+
+    @Test
+    public void isPositiveOrNullDouble_positive_returnsInteger() {
+        Double num = 100.0;
+        assertEquals(num, Validate.isPositiveOrNull(num, "foo"));
+    }
+
+    @Test
+    public void isPositiveOrNullDouble_zero_throws() {
+        expected.expect(IllegalArgumentException.class);
+        expected.expectMessage("foo");
+        Validate.isPositiveOrNull(0.0, "foo");
+    }
+
+    @Test
+    public void isPositiveOrNullDouble_negative_throws() {
+        expected.expect(IllegalArgumentException.class);
+        expected.expectMessage("foo");
+        Validate.isPositiveOrNull(-1.0, "foo");
+    }
+
+    @Test
     public void isNull_notNull_shouldThrow() {
         expected.expect(IllegalArgumentException.class);
         expected.expectMessage("not null");

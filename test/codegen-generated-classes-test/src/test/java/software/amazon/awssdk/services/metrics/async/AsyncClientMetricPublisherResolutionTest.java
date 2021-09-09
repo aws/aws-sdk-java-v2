@@ -37,6 +37,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClientBuilder;
 import software.amazon.awssdk.services.protocolrestjson.model.ProtocolRestJsonException;
@@ -148,6 +149,7 @@ public class AsyncClientMetricPublisherResolutionTest {
 
     private ProtocolRestJsonAsyncClient clientWithPublishers(MetricPublisher... metricPublishers) {
         ProtocolRestJsonAsyncClientBuilder builder = ProtocolRestJsonAsyncClient.builder()
+                .region(Region.US_WEST_2)
                 .credentialsProvider(mockCredentialsProvider)
                 .endpointOverride(URI.create("http://localhost:" + wireMock.port()));
 

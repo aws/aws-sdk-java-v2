@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.RetryableStageHelper;
+import software.amazon.awssdk.core.internal.retry.RateLimitingTokenBucket;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
@@ -35,15 +37,27 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 public final class RetryableStage<OutputT> implements RequestToResponsePipeline<OutputT> {
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline;
     private final HttpClientDependencies dependencies;
+    private final RateLimitingTokenBucket rateLimitingTokenBucket;
 
     public RetryableStage(HttpClientDependencies dependencies,
                           RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline) {
         this.dependencies = dependencies;
         this.requestPipeline = requestPipeline;
+        this.rateLimitingTokenBucket = new RateLimitingTokenBucket();
+    }
+
+    @SdkTestInternalApi
+    public RetryableStage(HttpClientDependencies dependencies,
+                          RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline,
+                          RateLimitingTokenBucket rateLimitingTokenBucket) {
+        this.dependencies = dependencies;
+        this.requestPipeline = requestPipeline;
+        this.rateLimitingTokenBucket = rateLimitingTokenBucket;
     }
 
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        RetryableStageHelper retryableStageHelper = new RetryableStageHelper(request, context, dependencies);
+        RetryableStageHelper retryableStageHelper = new RetryableStageHelper(request, context, rateLimitingTokenBucket,
+                                                                             dependencies);
 
         while (true) {
             retryableStageHelper.startingAttempt();
@@ -51,6 +65,8 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
             if (!retryableStageHelper.retryPolicyAllowsRetry()) {
                 throw retryableStageHelper.retryPolicyDisallowedRetryException();
             }
+
+            retryableStageHelper.getSendToken();
 
             Duration backoffDelay = retryableStageHelper.getBackoffDelay();
             if (!backoffDelay.isZero()) {
@@ -64,6 +80,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                 response = requestPipeline.execute(retryableStageHelper.requestToSend(), context);
             } catch (SdkException | IOException e) {
                 retryableStageHelper.setLastException(e);
+                retryableStageHelper.updateClientSendingRateForErrorResponse();
                 continue;
             }
 
@@ -72,8 +89,11 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
             if (!response.isSuccess()) {
                 retryableStageHelper.adjustClockIfClockSkew(response);
                 retryableStageHelper.setLastException(response.exception());
+                retryableStageHelper.updateClientSendingRateForErrorResponse();
                 continue;
             }
+
+            retryableStageHelper.updateClientSendingRateForSuccessResponse();
 
             retryableStageHelper.attemptSucceeded();
             return response;
