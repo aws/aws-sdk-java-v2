@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon QuickSight",
+    "contributor": "",
+    "description": "Add new data source type for Amazon OpenSearch (successor to Amazon ElasticSearch)."
+}
