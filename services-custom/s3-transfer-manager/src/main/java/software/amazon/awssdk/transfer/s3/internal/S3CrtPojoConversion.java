@@ -278,7 +278,6 @@ public final class S3CrtPojoConversion {
 
     private static String encodedQueryString(Map<String, List<String>> rawQueryParameters) {
         return SdkHttpUtils.encodeAndFlattenQueryParameters(rawQueryParameters)
-                           .map(value -> "?" + value)
                            .orElse("");
     }
 

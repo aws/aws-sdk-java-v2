@@ -16,7 +16,9 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
@@ -83,5 +85,124 @@ public class UpdateItemEnhancedRequestTest {
         UpdateItemEnhancedRequest<FakeItem> copiedObject = builtObject.toBuilder().build();
 
         assertThat(copiedObject, is(builtObject));
+    }
+
+    @Test
+    public void equals_self() {
+        UpdateItemEnhancedRequest<FakeItem> builtObject = UpdateItemEnhancedRequest.builder(FakeItem.class).build();
+
+        assertThat(builtObject, equalTo(builtObject));
+    }
+
+    @Test
+    public void equals_differentType() {
+        UpdateItemEnhancedRequest<FakeItem> builtObject = UpdateItemEnhancedRequest.builder(FakeItem.class).build();
+
+        assertThat(builtObject, not(equalTo(new Object())));
+    }
+
+    @Test
+    public void equals_itemNotEqual() {
+        FakeItem fakeItem1 = createUniqueFakeItem();
+        FakeItem fakeItem2 = createUniqueFakeItem();
+
+        UpdateItemEnhancedRequest<FakeItem> builtObject1 = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                    .item(fakeItem1)
+                                                                                    .build();
+
+        UpdateItemEnhancedRequest<FakeItem> builtObject2 = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                    .item(fakeItem2)
+                                                                                    .build();
+
+        assertThat(builtObject1, not(equalTo(builtObject2)));
+    }
+
+    @Test
+    public void equals_ignoreNullsNotEqual() {
+        UpdateItemEnhancedRequest<FakeItem> builtObject1 = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                    .ignoreNulls(true)
+                                                                                    .build();
+
+        UpdateItemEnhancedRequest<FakeItem> builtObject2 = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                    .ignoreNulls(false)
+                                                                                    .build();
+
+        assertThat(builtObject1, not(equalTo(builtObject2)));
+    }
+
+    @Test
+    public void equals_conditionExpressionNotEqual() {
+        Expression conditionExpression1 = Expression.builder()
+                                                    .expression("#key = :value OR #key1 = :value1")
+                                                    .putExpressionName("#key", "attribute")
+                                                    .putExpressionName("#key1", "attribute3")
+                                                    .putExpressionValue(":value", stringValue("wrong"))
+                                                    .putExpressionValue(":value1", stringValue("three"))
+                                                    .build();
+
+        Expression conditionExpression2 = Expression.builder()
+                                                    .expression("#key = :value AND #key1 = :value1")
+                                                    .putExpressionName("#key", "attribute")
+                                                    .putExpressionName("#key1", "attribute3")
+                                                    .putExpressionValue(":value", stringValue("wrong"))
+                                                    .putExpressionValue(":value1", stringValue("three"))
+                                                    .build();
+        UpdateItemEnhancedRequest<FakeItem> builtObject1 = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                    .conditionExpression(conditionExpression1)
+                                                                                    .build();
+
+        UpdateItemEnhancedRequest<FakeItem> builtObject2 = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                    .conditionExpression(conditionExpression2)
+                                                                                    .build();
+
+        assertThat(builtObject1, not(equalTo(builtObject2)));
+    }
+
+    @Test
+    public void hashCode_minimal() {
+        UpdateItemEnhancedRequest<FakeItem> emptyRequest = UpdateItemEnhancedRequest.builder(FakeItem.class).build();
+
+        assertThat(emptyRequest.hashCode(), equalTo(0));
+    }
+
+    @Test
+    public void hashCode_includesItem() {
+        UpdateItemEnhancedRequest<FakeItem> emptyRequest = UpdateItemEnhancedRequest.builder(FakeItem.class).build();
+
+        UpdateItemEnhancedRequest<FakeItem> containsItem = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                    .item(createUniqueFakeItem())
+                                                                                    .build();
+
+        assertThat(containsItem.hashCode(), not(equalTo(emptyRequest.hashCode())));
+    }
+
+    @Test
+    public void hashCode_includesIgnoreNulls() {
+        UpdateItemEnhancedRequest<FakeItem> emptyRequest = UpdateItemEnhancedRequest.builder(FakeItem.class).build();
+
+        UpdateItemEnhancedRequest<FakeItem> containsItem = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                    .ignoreNulls(true)
+                                                                                    .build();
+
+        assertThat(containsItem.hashCode(), not(equalTo(emptyRequest.hashCode())));
+    }
+
+    @Test
+    public void hashCode_includesConditionExpression() {
+        UpdateItemEnhancedRequest<FakeItem> emptyRequest = UpdateItemEnhancedRequest.builder(FakeItem.class).build();
+
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#key = :value OR #key1 = :value1")
+                                                   .putExpressionName("#key", "attribute")
+                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionValue(":value", stringValue("wrong"))
+                                                   .putExpressionValue(":value1", stringValue("three"))
+                                                   .build();
+
+        UpdateItemEnhancedRequest<FakeItem> containsExpression = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                          .conditionExpression(conditionExpression)
+                                                                                          .build();
+
+        assertThat(containsExpression.hashCode(), not(equalTo(emptyRequest.hashCode())));
     }
 }
