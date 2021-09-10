@@ -1,6 +1,0 @@
-{
-    "category": "DynamoDB Enhanced Client", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fixes for `UpdateItemEnhancedRequest`:\n - Include `ConditionExpression` in `toBuilder()`\n - Include `ConditionExpression` in `equals()` and `hashCode()` calculations"
-}
