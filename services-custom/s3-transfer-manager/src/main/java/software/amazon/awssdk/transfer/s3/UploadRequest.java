@@ -17,6 +17,7 @@ package software.amazon.awssdk.transfer.s3;
 
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -111,6 +113,19 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder source(Path source);
+
+        /**
+         * The file containing data to send to the service. File will be read entirely and may be read
+         * multiple times in the event of a retry. If the file does not exist or the current user does not have
+         * access to read it then an exception will be thrown.
+         *
+         * @param source the source path
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        default Builder source(File source) {
+            Validate.paramNotNull(source, "source");
+            return this.source(source.toPath());
+        }
 
         /**
          * Configure the {@link PutObjectRequest} that should be used for the upload
