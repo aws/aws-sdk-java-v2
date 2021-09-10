@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudFormation",
+    "contributor": "",
+    "description": "Doc only update for CloudFormation that fixes several customer-reported issues."
+}
