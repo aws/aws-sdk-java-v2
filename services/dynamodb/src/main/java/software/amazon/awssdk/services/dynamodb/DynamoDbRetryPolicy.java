@@ -34,30 +34,23 @@ import software.amazon.awssdk.core.retry.backoff.FullJitterBackoffStrategy;
 final class DynamoDbRetryPolicy {
 
     /**
-     * Default max retry count for DynamoDB client, when using the LEGACY retry mode.
+     * Default max retry count for DynamoDB client, regardless of retry mode.
      **/
-    private static final int LEGACY_MAX_ERROR_RETRY = 8;
+    private static final int MAX_ERROR_RETRY = 8;
     
     /**
-     * Default max retry count for DynamoDB client, when using the STANDARD retry mode.
+     * Default base sleep time for DynamoDB, regardless of retry mode.
      **/
-    private static final int STANDARD_MAX_ERROR_RETRY = LEGACY_MAX_ERROR_RETRY;
-
-    /**
-     * Default base sleep time for DynamoDB, when using the LEGACY retry mode.
-     **/
-    private static final Duration LEGACY_BASE_DELAY = Duration.ofMillis(25);
+    private static final Duration BASE_DELAY = Duration.ofMillis(25);
 
     /**
      * The default back-off strategy for DynamoDB client, which increases
      * exponentially up to a max amount of delay. Compared to the SDK default
      * back-off strategy, it applies a smaller scale factor.
-     *
-     * This is only used when using the LEGACY retry mode.
      */
-    private static final BackoffStrategy LEGACY_BACKOFF_STRATEGY =
+    private static final BackoffStrategy BACKOFF_STRATEGY =
         FullJitterBackoffStrategy.builder()
-                                 .baseDelay(LEGACY_BASE_DELAY)
+                                 .baseDelay(BASE_DELAY)
                                  .maxBackoffTime(SdkDefaultRetrySetting.MAX_BACKOFF)
                                  .build();
 
@@ -76,22 +69,11 @@ final class DynamoDbRetryPolicy {
                                        .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();
 
-        switch (retryMode) {
-            case LEGACY:
-                return AwsRetryPolicy.forRetryMode(RetryMode.LEGACY)
-                        .toBuilder()
-                        .additionalRetryConditionsAllowed(false)
-                        .numRetries(LEGACY_MAX_ERROR_RETRY)
-                        .backoffStrategy(LEGACY_BACKOFF_STRATEGY)
-                        .build();
-            case STANDARD:
-                return AwsRetryPolicy.forRetryMode(retryMode)
-                        .toBuilder()
-                        .additionalRetryConditionsAllowed(false)
-                        .numRetries(STANDARD_MAX_ERROR_RETRY)
-                        .build();
-            default:
-                throw new IllegalArgumentException("Unknown retry mode: " + retryMode);
-        }
+        return AwsRetryPolicy.forRetryMode(retryMode)
+                             .toBuilder()
+                             .additionalRetryConditionsAllowed(false)
+                             .numRetries(MAX_ERROR_RETRY)
+                             .backoffStrategy(BACKOFF_STRATEGY)
+                             .build();
     }
 }

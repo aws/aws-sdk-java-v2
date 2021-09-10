@@ -1,22 +1,35 @@
 package software.amazon.awssdk.services.dynamodb;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.Duration;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
+import software.amazon.awssdk.core.retry.backoff.FullJitterBackoffStrategy;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class DynamoDbRetryPolicyTest {
 
-    private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
+    private EnvironmentVariableHelper environmentVariableHelper;
+
+    @Before
+    public void setup() {
+        environmentVariableHelper = new EnvironmentVariableHelper();
+    }
+
+    @After
+    public void reset() {
+        environmentVariableHelper.reset();
+    }
 
     @Test
     public void test_numRetries_with_standardRetryPolicy() {
-        ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_RETRY_MODE.environmentVariable(), "standard");
-        System.setProperty(ProfileFileSystemSetting.AWS_PROFILE.property(), "default");
+        environmentVariableHelper.set(SdkSystemSetting.AWS_RETRY_MODE.environmentVariable(), "standard");
         final SdkClientConfiguration sdkClientConfiguration = SdkClientConfiguration.builder().build();
         final RetryPolicy retryPolicy = DynamoDbRetryPolicy.resolveRetryPolicy(sdkClientConfiguration);
         assertThat(retryPolicy.numRetries()).isEqualTo(8);
@@ -24,12 +37,22 @@ public class DynamoDbRetryPolicyTest {
 
     @Test
     public void test_numRetries_with_legacyRetryPolicy() {
-        ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_RETRY_MODE.environmentVariable(), "legacy");
-        System.setProperty(ProfileFileSystemSetting.AWS_PROFILE.property(), "default");
+        environmentVariableHelper.set(SdkSystemSetting.AWS_RETRY_MODE.environmentVariable(), "legacy");
         final SdkClientConfiguration sdkClientConfiguration = SdkClientConfiguration.builder().build();
         final RetryPolicy retryPolicy = DynamoDbRetryPolicy.resolveRetryPolicy(sdkClientConfiguration);
         assertThat(retryPolicy.numRetries()).isEqualTo(8);
     }
 
+    @Test
+    public void test_backoffBaseDelay_with_standardRetryPolicy() {
+        environmentVariableHelper.set(SdkSystemSetting.AWS_RETRY_MODE.environmentVariable(), "standard");
+        SdkClientConfiguration sdkClientConfiguration = SdkClientConfiguration.builder().build();
+        RetryPolicy retryPolicy = DynamoDbRetryPolicy.resolveRetryPolicy(sdkClientConfiguration);
+        BackoffStrategy backoffStrategy = retryPolicy.backoffStrategy();
+
+        assertThat(backoffStrategy).isInstanceOfSatisfying(FullJitterBackoffStrategy.class, fjbs -> {
+            assertThat(fjbs.toBuilder().baseDelay()).isEqualTo(Duration.ofMillis(25));
+        });
+    }
 
 }
