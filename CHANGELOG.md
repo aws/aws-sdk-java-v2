@@ -1,3 +1,49 @@
+# __2.17.38__ __2021-09-10__
+## __AWS CloudFormation__
+  - ### Features
+    - Doc only update for CloudFormation that fixes several customer-reported issues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for authenticated corporate proxies
+        - Contributed by: [@guillepb10](https://github.com/guillepb10)
+    - Updated service endpoint metadata.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release updates terminology around KMS keys.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add new data source type for Amazon OpenSearch (successor to Amazon ElasticSearch).
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for providing a custom timeout value for finding a scaling point during autoscaling in Aurora Serverless v1.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for "Lifecycle Configurations" to SageMaker Studio
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds an API option for startTranscriptionJob and startMedicalTranscriptionJob that allows the user to specify encryption context key value pairs for batch jobs.
+
+## __DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix `PutItemEnhancedRequest` and `DeleteItemEnhancedRequest` to include `ConditionExpression` in their `equals()` and `hashCode()` calculations.
+    - Fixes for `UpdateItemEnhancedRequest`:
+       - Include `ConditionExpression` in `toBuilder()`
+       - Include `ConditionExpression` in `equals()` and `hashCode()` calculations
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Remove extra question mark when query parameters are provided in transfer manager
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@guillepb10](https://github.com/guillepb10)
 # __2.17.37__ __2021-09-09__
 ## __AWS SDK for Java v2__
   - ### Features
