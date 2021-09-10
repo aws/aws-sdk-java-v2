@@ -121,6 +121,7 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         default Builder destination(File destination) {
+            Validate.paramNotNull(destination, "destination");
             return destination(destination.toPath());
         }
 

@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -122,6 +123,7 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         default Builder source(File source) {
+            Validate.paramNotNull(source, "source");
             return this.source(source.toPath());
         }
 

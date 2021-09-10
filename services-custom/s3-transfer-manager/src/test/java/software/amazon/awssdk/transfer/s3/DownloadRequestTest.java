@@ -17,6 +17,7 @@ package software.amazon.awssdk.transfer.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.junit.Rule;
@@ -58,6 +59,18 @@ public class DownloadRequestTest {
                                                           .build();
 
         assertThat(requestUsingFile.destination()).isEqualTo(path);
+    }
+
+    @Test
+    public void usingFile_null_shouldThrowException() {
+        thrown.expect(NullPointerException.class);
+        thrown.expectMessage("destination");
+        File file = null;
+        DownloadRequest.builder()
+                       .getObjectRequest(b -> b.bucket("bucket").key("key"))
+                       .destination(file)
+                       .build();
+
     }
 
     @Test
