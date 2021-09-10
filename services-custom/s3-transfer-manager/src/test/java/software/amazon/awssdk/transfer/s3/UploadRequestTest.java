@@ -17,6 +17,7 @@ package software.amazon.awssdk.transfer.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,6 +45,15 @@ public class UploadRequestTest {
         UploadRequest.builder()
                      .putObjectRequest(PutObjectRequest.builder().build())
                      .build();
+    }
+
+    @Test
+    public void sourceUsingFile() {
+        Path path = Paths.get(".");
+        UploadRequest request = UploadRequest.builder()
+                                           .source(path.toFile())
+                                           .build();
+        assertThat(request.source()).isEqualTo(path);
     }
 
     @Test
