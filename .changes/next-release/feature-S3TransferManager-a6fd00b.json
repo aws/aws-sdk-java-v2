@@ -1,0 +1,6 @@
+{
+    "category": "S3 Transfer Manager", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Now users can pass `File` to `DownloadRequest` and `UploadRequest` in `S3TransferManager`."
+}
