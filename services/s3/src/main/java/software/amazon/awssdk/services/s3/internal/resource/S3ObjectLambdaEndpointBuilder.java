@@ -91,7 +91,7 @@ public class S3ObjectLambdaEndpointBuilder {
         validateHostnameCompliant(accountId, "accountId", "object lambda ARN");
         validateHostnameCompliant(accessPointName, "accessPointName", "object lambda ARN");
 
-        String fipsSegment = Boolean.TRUE.equals(fipsEnabled) ? "fips-" : "";
+        String fipsSegment = Boolean.TRUE.equals(fipsEnabled) ? "-fips" : "";
 
         String uriString;
         if (endpointOverride == null) {
@@ -99,7 +99,7 @@ public class S3ObjectLambdaEndpointBuilder {
                 throw new IllegalStateException("S3 Object Lambda does not support Dual stack endpoints.");
             }
 
-            uriString = String.format("%s://%s-%s.s3-object-lambda.%s%s.%s",
+            uriString = String.format("%s://%s-%s.s3-object-lambda%s.%s.%s",
                                       protocol, accessPointName, accountId, fipsSegment, region, domain);
         } else {
             StringBuilder uriSuffix = new StringBuilder(endpointOverride.getHost());

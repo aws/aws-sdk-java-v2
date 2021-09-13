@@ -616,6 +616,60 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "duy3101",
+      "name": "Dewey Nguyen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44629464?v=4",
+      "profile": "http://imdewey.com",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "dleen",
+      "name": "David Leen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1297964?v=4",
+      "profile": "https://github.com/dleen",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "16lim21",
+      "name": "Michael Li",
+      "avatar_url": "https://avatars.githubusercontent.com/u/53011962?v=4",
+      "profile": "http://16lim21.github.io",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Bennett-Lynch",
+      "name": "Bennett Lynch",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11811448?v=4",
+      "profile": "https://github.com/Bennett-Lynch",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "eltociear",
+      "name": "Ikko Ashimine",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22633385?v=4",
+      "profile": "https://bandism.net/",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "jamieliu386",
+      "name": "Jamie Liu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35614552?v=4",
+      "profile": "https://jamieliu.me",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

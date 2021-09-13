@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.16.45-SNAPSHOT</version>
+        <version>2.17.40-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -282,6 +282,22 @@
         <module>lookoutmetrics</module>
         <module>mgn</module>
         <module>lookoutequipment</module>
+        <module>nimble</module>
+        <module>finspacedata</module>
+        <module>finspace</module>
+        <module>ssmincidents</module>
+        <module>ssmcontacts</module>
+        <module>applicationcostprofiler</module>
+        <module>apprunner</module>
+        <module>proton</module>
+        <module>route53recoveryreadiness</module>
+        <module>route53recoverycontrolconfig</module>
+        <module>route53recoverycluster</module>
+        <module>chimesdkmessaging</module>
+        <module>chimesdkidentity</module>
+        <module>snowdevicemanagement</module>
+        <module>memorydb</module>
+        <module>opensearch</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

@@ -229,6 +229,7 @@
         "SimpleList":{"shape":"ListOfStrings"},
         "ListOfEnums":{"shape":"ListOfEnums"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
+        "ListOfListOfMapsOfStringToStruct":{"shape":"ListOfListOfMapOfStringToSimpleStruct"},
         "ListOfMapsOfStringToStruct":{"shape":"ListOfMapOfStringToSimpleStruct"},
         "ListOfStructs":{"shape":"ListOfSimpleStructs"},
         "MapOfStringToIntegerList":{"shape":"MapOfStringToIntegerList"},
@@ -243,7 +244,8 @@
         "ListOfBlobs":{"shape":"ListOfBlobsType"},
         "RecursiveStruct":{"shape":"RecursiveStructType"},
         "PolymorphicTypeWithSubTypes":{"shape":"BaseType"},
-        "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"}
+        "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
+        "SetPrefixedMember":{"shape":"String"}
       }
     },
     "BaseType":{
@@ -326,6 +328,10 @@
     "ListOfMapStringToString":{
       "type":"list",
       "member":{"shape":"MapOfStringToString"}
+    },
+    "ListOfListOfMapOfStringToSimpleStruct":{
+      "type":"list",
+      "member":{"shape":"ListOfMapOfStringToSimpleStruct"}
     },
     "ListOfMapOfStringToSimpleStruct":{
       "type":"list",

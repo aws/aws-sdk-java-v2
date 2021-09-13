@@ -1572,7 +1572,7 @@
         },
         "failureBehavior":{
           "shape":"FailureBehavior",
-          "documentation":"<p>The failure behavior the simulation job.</p> <dl> <dt>Continue</dt> <dd> <p>Restart the simulation job in the same host instance.</p> </dd> <dt>Fail</dt> <dd> <p>Stop the simulation job and terminate the instance.</p> </dd> </dl>"
+          "documentation":"<p>The failure behavior the simulation job.</p> <dl> <dt>Continue</dt> <dd> <p>Leaves the instance running for its maximum timeout duration after a <code>4XX</code> error code.</p> </dd> <dt>Fail</dt> <dd> <p>Stop the simulation job and terminate the instance.</p> </dd> </dl>"
         },
         "robotApplications":{
           "shape":"RobotApplicationConfigs",
@@ -2779,6 +2779,10 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>A map that contains tag keys and tag values that are attached to the world.</p>"
+        },
+        "worldDescriptionBody":{
+          "shape":"Json",
+          "documentation":"<p>Returns the JSON formatted string that describes the contents of your world.</p>"
         }
       }
     },
@@ -2818,6 +2822,10 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>A map that contains tag keys and tag values that are attached to the world template.</p>"
+        },
+        "version":{
+          "shape":"GenericString",
+          "documentation":"<p>The version of the world template that you're using.</p>"
         }
       }
     },
@@ -3892,7 +3900,8 @@
       "enum":[
         "Kinetic",
         "Melodic",
-        "Dashing"
+        "Dashing",
+        "Foxy"
       ]
     },
     "RobotStatus":{
@@ -4100,7 +4109,7 @@
         },
         "failureBehavior":{
           "shape":"FailureBehavior",
-          "documentation":"<p>The failure behavior the simulation job.</p> <dl> <dt>Continue</dt> <dd> <p>Restart the simulation job in the same host instance.</p> </dd> <dt>Fail</dt> <dd> <p>Stop the simulation job and terminate the instance.</p> </dd> </dl>"
+          "documentation":"<p>The failure behavior the simulation job.</p> <dl> <dt>Continue</dt> <dd> <p>Leaves the host running for its maximum timeout duration after a <code>4XX</code> error code.</p> </dd> <dt>Fail</dt> <dd> <p>Stop the simulation job and terminate the instance.</p> </dd> </dl>"
         },
         "failureCode":{
           "shape":"SimulationJobErrorCode",
@@ -4273,7 +4282,7 @@
         },
         "failureBehavior":{
           "shape":"FailureBehavior",
-          "documentation":"<p>The failure behavior the simulation job.</p> <dl> <dt>Continue</dt> <dd> <p>Restart the simulation job in the same host instance.</p> </dd> <dt>Fail</dt> <dd> <p>Stop the simulation job and terminate the instance.</p> </dd> </dl>"
+          "documentation":"<p>The failure behavior the simulation job.</p> <dl> <dt>Continue</dt> <dd> <p>Leaves the host running for its maximum timeout duration after a <code>4XX</code> error code.</p> </dd> <dt>Fail</dt> <dd> <p>Stop the simulation job and terminate the instance.</p> </dd> </dl>"
         },
         "useDefaultApplications":{
           "shape":"BoxedBoolean",
@@ -4387,7 +4396,7 @@
       "type":"string",
       "max":1024,
       "min":0,
-      "pattern":"7|9|Kinetic|Melodic|Dashing"
+      "pattern":"7|9|11|Kinetic|Melodic|Dashing|Foxy"
     },
     "SimulationTimeMillis":{"type":"long"},
     "SimulationUnit":{
@@ -4669,6 +4678,10 @@
         "name":{
           "shape":"TemplateName",
           "documentation":"<p>The name of the template.</p>"
+        },
+        "version":{
+          "shape":"GenericString",
+          "documentation":"<p>The version of the template that you're using.</p>"
         }
       },
       "documentation":"<p>Summary information for a template.</p>"

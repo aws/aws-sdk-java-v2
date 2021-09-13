@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
@@ -54,6 +55,8 @@ public class MemberModel extends DocumentationModel {
     private ParameterHttpMapping http;
 
     private boolean deprecated;
+    
+    private String deprecatedMessage;
 
     private ListModel listModel;
 
@@ -300,6 +303,14 @@ public class MemberModel extends DocumentationModel {
         this.deprecated = deprecated;
     }
 
+    public String getDeprecatedMessage() {
+        return deprecatedMessage;
+    }
+
+    public void setDeprecatedMessage(String deprecatedMessage) {
+        this.deprecatedMessage = deprecatedMessage;
+    }
+
     public boolean isEventPayload() {
         return eventPayload;
     }
@@ -422,7 +433,8 @@ public class MemberModel extends DocumentationModel {
 
         if (getAutoConstructClassIfExists().isPresent()) {
             appendParagraph(docBuilder,
-                            "You can use {@link #%s()} to see if a value was sent in this field.",
+                            "This method will never return null. If you would like to know whether the service returned this "
+                            + "field (so that you can differentiate between null and empty), you can use the {@link #%s} method.",
                             getExistenceCheckMethodName());
         }
 
@@ -615,15 +627,26 @@ public class MemberModel extends DocumentationModel {
     }
 
     @JsonIgnore
-    public boolean isCollectionWithBuilderMember() {
-        return (isList() && getListModel().getListMemberModel() != null && getListModel().getListMemberModel().hasBuilder()) ||
-               (isMap() && getMapModel().getValueModel() != null && getMapModel().getValueModel().hasBuilder());
+    public boolean containsBuildable() {
+        return containsBuildable(true);
     }
 
-    @JsonIgnore
-    public boolean isCollectionWithNestedBuilderMember() {
-        return isList() && getListModel().getListMemberModel() != null && getListModel().isMap() &&
-               getListModel().getListMemberModel().getMapModel().getValueModel().hasBuilder();
+    private boolean containsBuildable(boolean root) {
+        if (!root && hasBuilder()) {
+            return true;
+        }
+
+        if (isList()) {
+            return getListModel().getListMemberModel().containsBuildable(false);
+        }
+
+        if (isMap()) {
+            MapModel mapModel = getMapModel();
+            return mapModel.getKeyModel().containsBuildable(false) ||
+                   mapModel.getValueModel().containsBuildable(false);
+        }
+
+        return false;
     }
 
     @JsonIgnore

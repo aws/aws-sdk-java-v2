@@ -405,6 +405,16 @@
 
         <!-- Checks that no 'final' are added on local variables -->
         <module name="software.amazon.awssdk.buildtools.checkstyle.UnnecessaryFinalOnLocalVariableCheck" />
+
+        <module name="software.amazon.awssdk.buildtools.checkstyle.SdkIllegalImportCheck">
+            <property name="classNameToCheck" value="StaticTableSchema"/>
+            <property name="illegalPkgs" value="java.lang.reflect"/>
+        </module>
+
+        <module name="software.amazon.awssdk.buildtools.checkstyle.SdkIllegalImportCheck">
+            <property name="classNameToCheck" value="StaticImmutableTableSchema"/>
+            <property name="illegalPkgs" value="java.lang.reflect"/>
+        </module>
     </module>
 
         <!-- Enforce maximum line lengths. -->

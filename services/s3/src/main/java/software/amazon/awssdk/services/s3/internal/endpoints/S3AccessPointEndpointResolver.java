@@ -19,7 +19,6 @@ import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUt
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isArnRegionEnabled;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isDualstackEnabled;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isFipsRegion;
-import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isFipsRegionProvided;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isPathStyleAccessEnabled;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.removeFipsIfNeeded;
 
@@ -40,7 +39,6 @@ import software.amazon.awssdk.services.s3.internal.resource.S3ObjectLambdaResour
 import software.amazon.awssdk.services.s3.internal.resource.S3OutpostAccessPointBuilder;
 import software.amazon.awssdk.services.s3.internal.resource.S3OutpostResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
-import software.amazon.awssdk.services.s3.internal.resource.S3ResourceType;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -50,6 +48,8 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkInternalApi
 public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
+    private static final String S3_CONFIG_ERROR_MESSAGE = "An access point ARN cannot be passed as a bucket parameter to "
+                                                          + "an S3 operation if the S3 client has been configured with %s";
     private static final String S3_OUTPOSTS_NAME = "s3-outposts";
     private static final String S3_OBJECT_LAMBDA_NAME = "s3-object-lambda";
 
@@ -64,21 +64,17 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
     public ConfiguredS3SdkHttpRequest applyEndpointConfiguration(S3EndpointResolverContext context) {
 
         S3Resource s3Resource = S3ArnConverter.create().convertArn(Arn.fromString(getBucketName(context)));
-        if (S3ResourceType.fromValue(s3Resource.type()) != S3ResourceType.ACCESS_POINT) {
-            throw new IllegalArgumentException("An ARN was passed as a bucket parameter to an S3 operation, "
-                                               + "however it does not appear to be a valid S3 access point ARN.");
-        }
 
-        Region region = context.region();
-        PartitionMetadata clientPartitionMetadata = PartitionMetadata.of(region);
-
-        String arnRegion = validateConfiguration(context, s3Resource);
-
-        S3AccessPointResource s3EndpointResource = Validate.isInstanceOf(S3AccessPointResource.class, s3Resource,
+        S3AccessPointResource s3EndpointResource =
+            Validate.isInstanceOf(S3AccessPointResource.class, s3Resource,
                                   "An ARN was passed as a bucket parameter to an S3 operation, however it does not "
                                   + "appear to be a valid S3 access point ARN.");
 
-        URI accessPointUri = getUriForAccessPointResource(context, arnRegion, clientPartitionMetadata, s3EndpointResource);
+        PartitionMetadata clientPartitionMetadata = PartitionMetadata.of(context.region());
+
+        validateConfiguration(context, s3EndpointResource);
+
+        URI accessPointUri = getUriForAccessPointResource(context, clientPartitionMetadata, s3EndpointResource);
         String path = buildPath(accessPointUri, context);
 
         SdkHttpRequest httpRequest = context.request().toBuilder()
@@ -88,13 +84,14 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                             .encodedPath(path)
                                             .build();
 
+        Region signingRegionModification = s3EndpointResource.region().map(Region::of).orElse(null);
         String signingServiceModification = s3EndpointResource.parentS3Resource()
                                                               .flatMap(S3AccessPointEndpointResolver::resolveSigningService)
                                                               .orElse(null);
 
         return ConfiguredS3SdkHttpRequest.builder()
                                          .sdkHttpRequest(httpRequest)
-                                         .signingRegionModification(Region.of(arnRegion))
+                                         .signingRegionModification(signingRegionModification)
                                          .signingServiceModification(signingServiceModification)
                                          .build();
     }
@@ -116,47 +113,30 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         return pathBuilder.length() > 0 ? pathBuilder.toString() : null;
     }
 
-    private String validateConfiguration(S3EndpointResolverContext context, S3Resource s3Resource) {
-        Region region = context.region();
-        String arnRegion = s3Resource.region().orElseThrow(() -> new IllegalArgumentException(
-            "An S3 access point ARN must have a region"));
+    private void validateConfiguration(S3EndpointResolverContext context, S3AccessPointResource s3Resource) {
+        S3Configuration serviceConfig = context.serviceConfiguration();
 
-        S3Configuration serviceConfiguration = context.serviceConfiguration();
-        if (isAccelerateEnabled(serviceConfiguration)) {
-            throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3 "
-                                               + "operation if the S3 client has been configured with accelerate mode"
-                                               + " enabled.");
+        Validate.isFalse(isAccelerateEnabled(serviceConfig), S3_CONFIG_ERROR_MESSAGE, "accelerate mode enabled.");
+        Validate.isFalse(isPathStyleAccessEnabled(serviceConfig), S3_CONFIG_ERROR_MESSAGE, "path style addressing enabled.");
+        Validate.isTrue(s3Resource.accountId().isPresent(), "An S3 access point ARN must have an account ID");
+
+        Region clientRegion = context.region();
+        
+        if (s3Resource.region().isPresent()) {
+            validateRegion(s3Resource, serviceConfig, clientRegion);
+        } else {
+            validateGlobalConfiguration(serviceConfig, clientRegion);
         }
-
-        if (isPathStyleAccessEnabled(serviceConfiguration)) {
-            throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3 "
-                                               + "operation if the S3 client has been configured with path style "
-                                               + "addressing enabled.");
-        }
-
-        if (!isArnRegionEnabled(serviceConfiguration) && clientRegionDiffersFromArnRegion(region, arnRegion)) {
-            throw new IllegalArgumentException(
-                String.format("The region field of the ARN being passed as a bucket parameter to an S3 operation "
-                              + "does not match the region the client was configured with. To enable this "
-                              + "behavior and prevent this exception set 'useArnRegionEnabled' to true in the "
-                              + "configuration when building the S3 client. Provided region: '%s'; client region:"
-                              + " '%s'.", arnRegion, region));
-        }
-
-        String clientPartition = PartitionMetadata.of(region).id();
-
-        if (illegalPartitionConfiguration(s3Resource, clientPartition)) {
-            throw new IllegalArgumentException(
-                String.format("The partition field of the ARN being passed as a bucket parameter to an S3 operation "
-                              + "does not match the partition the S3 client has been configured with. Provided "
-                              + "partition: '%s'; client partition: '%s'.", s3Resource.partition().orElse(""),
-                              clientPartition));
-        }
-        return arnRegion;
+        validatePartition(s3Resource, clientRegion);
     }
 
-    private boolean clientRegionDiffersFromArnRegion(Region clientRegion, String arnRegion) {
-        return !removeFipsIfNeeded(clientRegion.id()).equals(removeFipsIfNeeded(arnRegion));
+    private void validatePartition(S3AccessPointResource s3Resource, Region clientRegion) {
+        String clientPartition = PartitionMetadata.of(clientRegion).id();
+        Validate.isFalse(illegalPartitionConfiguration(s3Resource, clientPartition),
+                         "The partition field of the ARN being passed as a bucket parameter to an S3 operation "
+                         + "does not match the partition the S3 client has been configured with. Provided "
+                         + "partition: '%s'; client partition: '%s'.", s3Resource.partition().orElse(""),
+                         clientPartition);
     }
 
     private boolean illegalPartitionConfiguration(S3Resource s3Resource, String clientPartition) {
@@ -164,36 +144,66 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                || !clientPartition.equals(s3Resource.partition().get());
     }
 
+    private void validateRegion(S3AccessPointResource s3Resource, S3Configuration serviceConfig, Region clientRegion) {
+        String arnRegion = s3Resource.region().get();
+        Validate.isFalse(isFipsRegion(arnRegion), "Invalid ARN, FIPS region is not allowed in ARN."
+                                                 + " Provided arn region: '" + arnRegion + "'.");
+
+        Validate.isFalse(isFipsRegion(clientRegion.id()) && clientRegionDiffersFromArnRegion(clientRegion, arnRegion),
+                        String.format("The region field of the ARN being passed as a bucket parameter to an S3 operation "
+                                      + "does not match the region the client was configured with. " +
+                                      "Cross region access not allowed for fips region in client or arn."
+                                      + " Provided region: '%s'; client region:'%s'.", arnRegion, clientRegion));
+
+        Validate.isFalse(!isArnRegionEnabled(serviceConfig) && clientRegionDiffersFromArnRegion(clientRegion, arnRegion),
+                         "The region field of the ARN being passed as a bucket parameter to an S3 operation "
+                         + "does not match the region the client was configured with. To enable this "
+                         + "behavior and prevent this exception set 'useArnRegionEnabled' to true in the "
+                         + "configuration when building the S3 client. Provided region: '%s'; client region:"
+                         + " '%s'.", arnRegion, clientRegion);
+    }
+
+
+    private boolean clientRegionDiffersFromArnRegion(Region clientRegion, String arnRegion) {
+        return !removeFipsIfNeeded(clientRegion.id()).equals(arnRegion);
+    }
+
+    private void validateGlobalConfiguration(S3Configuration serviceConfiguration, Region region) {
+        Validate.isTrue(serviceConfiguration.multiRegionEnabled(), "An Access Point ARN without a region value was passed as "
+                                                                   + "a bucket parameter but multi-region is disabled. Check "
+                                                                   + "client configuration, environment variables and system "
+                                                                   + "configuration for multi-region disable configurations.");
+
+        Validate.isFalse(isDualstackEnabled(serviceConfiguration), S3_CONFIG_ERROR_MESSAGE,
+                         "dualstack, if the ARN contains no region.");
+        Validate.isFalse(isFipsRegion(region.toString()), S3_CONFIG_ERROR_MESSAGE,
+                         "a FIPS enabled region, if the ARN contains no region.");
+    }
+
     private String getBucketName(S3EndpointResolverContext context) {
         return context.originalRequest().getValueForField("Bucket", String.class).orElseThrow(
             () -> new IllegalArgumentException("Bucket name cannot be empty when parsing access points."));
     }
 
-    private URI getUriForAccessPointResource(S3EndpointResolverContext context, String arnRegion,
-                                                    PartitionMetadata clientPartitionMetadata,
-                                                    S3AccessPointResource s3EndpointResource) {
-        String accountId = s3EndpointResource.accountId().orElseThrow(() -> new IllegalArgumentException(
-            "An S3 access point ARN must have an account ID"));
-        String accessPointName = s3EndpointResource.accessPointName();
+    private URI getUriForAccessPointResource(S3EndpointResolverContext context,
+                                             PartitionMetadata clientPartitionMetadata,
+                                             S3AccessPointResource s3EndpointResource) {
 
         if (isOutpostAccessPoint(s3EndpointResource)) {
-            return getOutpostAccessPointUri(context, arnRegion, clientPartitionMetadata, s3EndpointResource);
+            return getOutpostAccessPointUri(context, clientPartitionMetadata, s3EndpointResource);
         } else if (isObjectLambdaAccessPoint(s3EndpointResource)) {
-            return getObjectLambdaAccessPointUri(context, arnRegion, clientPartitionMetadata, s3EndpointResource);
+            return getObjectLambdaAccessPointUri(context, clientPartitionMetadata, s3EndpointResource);
         }
 
-        boolean dualstackEnabled = isDualstackEnabled(context.serviceConfiguration());
-        boolean fipsRegionProvided = isFipsRegionProvided(context.region().toString(), arnRegion,
-                                                          isArnRegionEnabled(context.serviceConfiguration()));
         return S3AccessPointBuilder.create()
                                    .endpointOverride(context.endpointOverride())
-                                   .accessPointName(accessPointName)
-                                   .accountId(accountId)
-                                   .fipsEnabled(fipsRegionProvided)
-                                   .region(removeFipsIfNeeded(arnRegion))
+                                   .accessPointName(s3EndpointResource.accessPointName())
+                                   .accountId(s3EndpointResource.accountId().get())
+                                   .fipsEnabled(isFipsRegion(context.region().toString()))
+                                   .region(s3EndpointResource.region().orElse(null))
                                    .protocol(context.request().protocol())
                                    .domain(clientPartitionMetadata.dnsSuffix())
-                                   .dualstackEnabled(dualstackEnabled)
+                                   .dualstackEnabled(isDualstackEnabled(context.serviceConfiguration()))
                                    .toUri();
     }
 
@@ -205,8 +215,9 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         return s3EndpointResource.parentS3Resource().filter(r -> r instanceof S3ObjectLambdaResource).isPresent();
     }
 
-    private URI getOutpostAccessPointUri(S3EndpointResolverContext context, String arnRegion,
-                                         PartitionMetadata clientPartitionMetadata, S3AccessPointResource s3EndpointResource) {
+    private URI getOutpostAccessPointUri(S3EndpointResolverContext context,
+                                         PartitionMetadata clientPartitionMetadata,
+                                         S3AccessPointResource s3EndpointResource) {
         if (isDualstackEnabled(context.serviceConfiguration())) {
             throw new IllegalArgumentException("An Outpost Access Point ARN cannot be passed as a bucket parameter to an S3 "
                                                + "operation if the S3 client has been configured with dualstack");
@@ -223,14 +234,14 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                           .endpointOverride(context.endpointOverride())
                                           .accountId(s3EndpointResource.accountId().get())
                                           .outpostId(parentResource.outpostId())
-                                          .region(arnRegion)
+                                          .region(s3EndpointResource.region().get())
                                           .accessPointName(s3EndpointResource.accessPointName())
                                           .protocol(context.request().protocol())
                                           .domain(clientPartitionMetadata.dnsSuffix())
                                           .toUri();
     }
 
-    private URI getObjectLambdaAccessPointUri(S3EndpointResolverContext context, String arnRegion,
+    private URI getObjectLambdaAccessPointUri(S3EndpointResolverContext context,
                                               PartitionMetadata clientPartitionMetadata,
                                               S3AccessPointResource s3EndpointResource) {
         if (isDualstackEnabled(context.serviceConfiguration())) {
@@ -241,7 +252,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         return S3ObjectLambdaEndpointBuilder.create()
                                             .endpointOverride(context.endpointOverride())
                                             .accountId(s3EndpointResource.accountId().get())
-                                            .region(arnRegion)
+                                            .region(s3EndpointResource.region().get())
                                             .accessPointName(s3EndpointResource.accessPointName())
                                             .protocol(context.request().protocol())
                                             .fipsEnabled(isFipsRegion(context.region().toString()))
@@ -261,4 +272,5 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
         return Optional.empty();
     }
+
 }

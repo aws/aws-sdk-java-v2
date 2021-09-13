@@ -1,0 +1,30 @@
+{
+    "version": "2.16.94",
+    "date": "2021-07-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Queue Service",
+            "contributor": "",
+            "description": "Documentation updates for Amazon SQS."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "SageMaker model registry now supports up to 5 containers and associated environment variables."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adding a new reserved field to support future infrastructure improvements for Amazon EC2 Fleet."
+        }
+    ]
+}

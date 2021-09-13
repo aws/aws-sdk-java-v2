@@ -26,6 +26,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.CreateTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.GetItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PaginatedTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PutItemOperation;
@@ -232,6 +233,12 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     @Override
     public Key keyFrom(T item) {
         return createKeyFromItem(item, tableSchema, TableMetadata.primaryIndexName());
+    }
+
+    @Override
+    public void deleteTable() {
+        TableOperation<T, ?, ?, Void> operation = DeleteTableOperation.create();
+        operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
     }
 
     @Override

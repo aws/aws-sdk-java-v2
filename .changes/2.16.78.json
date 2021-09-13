@@ -1,0 +1,42 @@
+{
+    "version": "2.16.78",
+    "date": "2021-06-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "Documentation updates for Amazon EC2 Auto Scaling"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QLDB",
+            "contributor": "",
+            "description": "Documentation updates for Amazon QLDB"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Performance Insights",
+            "contributor": "",
+            "description": "The new GetDimensionKeyDetails action retrieves the attributes of the specified dimension group for a DB instance or data source."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Documentation updates for RDS: fixing an outdated link to the RDS documentation in DBInstance$DBInstanceStatus"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail",
+            "contributor": "",
+            "description": "AWS CloudTrail supports data events on new service resources, including Amazon DynamoDB tables and S3 Object Lambda access points."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "Add support for automatically setting the H.264 adaptive quantization and GOP B-frame fields."
+        }
+    ]
+}

@@ -12,18 +12,47 @@ import software.amazon.awssdk.core.util.SdkAutoConstructList;
 
 @Generated("software.amazon.awssdk:codegen")
 final class ListOfSimpleStructsCopier {
-    static List<SimpleStruct> copy(Collection<SimpleStruct> listOfSimpleStructsParam) {
+    static List<SimpleStruct> copy(Collection<? extends SimpleStruct> listOfSimpleStructsParam) {
+        List<SimpleStruct> list;
         if (listOfSimpleStructsParam == null || listOfSimpleStructsParam instanceof SdkAutoConstructList) {
-            return DefaultSdkAutoConstructList.getInstance();
+            list = DefaultSdkAutoConstructList.getInstance();
+        } else {
+            List<SimpleStruct> modifiableList = new ArrayList<>();
+            listOfSimpleStructsParam.forEach(entry -> {
+                modifiableList.add(entry);
+            });
+            list = Collections.unmodifiableList(modifiableList);
         }
-        List<SimpleStruct> listOfSimpleStructsParamCopy = new ArrayList<>(listOfSimpleStructsParam);
-        return Collections.unmodifiableList(listOfSimpleStructsParamCopy);
+        return list;
     }
 
     static List<SimpleStruct> copyFromBuilder(Collection<? extends SimpleStruct.Builder> listOfSimpleStructsParam) {
-        if (listOfSimpleStructsParam == null || listOfSimpleStructsParam instanceof DefaultSdkAutoConstructList) {
-            return DefaultSdkAutoConstructList.getInstance();
+        List<SimpleStruct> list;
+        if (listOfSimpleStructsParam == null || listOfSimpleStructsParam instanceof SdkAutoConstructList) {
+            list = DefaultSdkAutoConstructList.getInstance();
+        } else {
+            List<SimpleStruct> modifiableList = new ArrayList<>();
+            listOfSimpleStructsParam.forEach(entry -> {
+                SimpleStruct member = entry.build();
+                modifiableList.add(member);
+            });
+            list = Collections.unmodifiableList(modifiableList);
         }
-        return copy(listOfSimpleStructsParam.stream().map(SimpleStruct.Builder::build).collect(toList()));
+        return list;
+    }
+
+    static List<SimpleStruct.Builder> copyToBuilder(Collection<? extends SimpleStruct> listOfSimpleStructsParam) {
+        List<SimpleStruct.Builder> list;
+        if (listOfSimpleStructsParam == null || listOfSimpleStructsParam instanceof SdkAutoConstructList) {
+            list = DefaultSdkAutoConstructList.getInstance();
+        } else {
+            List<SimpleStruct.Builder> modifiableList = new ArrayList<>();
+            listOfSimpleStructsParam.forEach(entry -> {
+                SimpleStruct.Builder member = entry.toBuilder();
+                modifiableList.add(member);
+            });
+            list = Collections.unmodifiableList(modifiableList);
+        }
+        return list;
     }
 }

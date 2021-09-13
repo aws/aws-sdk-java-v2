@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME;
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SIGNING_REGION;
 import static software.amazon.awssdk.awscore.AwsExecutionAttribute.AWS_REGION;
@@ -24,6 +25,7 @@ import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncode;
 
 import java.net.URI;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import software.amazon.awssdk.core.interceptor.Context;
@@ -129,4 +131,70 @@ public class EndpointAddressInterceptorTest {
     private URI uri(String expectedEndpoint) {
         return URI.create(String.format("%s/%s", expectedEndpoint, KEY));
     }
+
+
+    @Test
+    public void objectLambdaAccessPointArn_usEast_and_region_s3External1_throwsIllegalArgumentException() {
+        ExecutionAttributes executionAttributes = createExecutionAttributes(S3Configuration.builder().useArnRegionEnabled(false),
+                Region.of("s3-external-1"));
+        assertThatThrownBy(() -> interceptor.modifyHttpRequest(createContext("arn:aws:s3:us-east-1:123456789012:accesspoint:myol"), executionAttributes))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("region");
+
+    }
+
+    @Test
+    public void objectLambdaAccessPointArn_usEast1_and_region_awsGlobalawsGlobal_throwsIllegalArgumentException() {
+        ExecutionAttributes executionAttributes = createExecutionAttributes(S3Configuration.builder().useArnRegionEnabled(false),
+                Region.AWS_GLOBAL);
+        assertThatThrownBy(() -> interceptor.modifyHttpRequest(createContext("arn:aws:s3:us-east-1:123456789012:accesspoint:myol"), executionAttributes))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("region");
+    }
+
+    @Test
+    public void objectLambdaAccessPointArn_usGovEast1_and_region_in_fips_useArnRegionFalse() {
+        ExecutionAttributes executionAttributes = createExecutionAttributes(S3Configuration.builder().useArnRegionEnabled(false),
+                Region.of("fips-us-gov-east-1"));
+        SdkHttpRequest sdkHttpFullRequest = interceptor.modifyHttpRequest(createContext(
+                "arn:aws:s3-object-lambda:us-gov-east-1:123456789012:accesspoint/myol"), executionAttributes);
+        String expectedEndpoint = "http://myol-123456789012.s3-object-lambda-fips.us-gov-east-1.amazonaws.com";
+        assertThat(sdkHttpFullRequest.getUri()).isEqualTo(uri(expectedEndpoint));
+        assertThat(executionAttributes.getAttribute(SIGNING_REGION)).isEqualTo(Region.US_GOV_EAST_1);
+        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME)).isEqualTo(OBJECT_LAMBDA_SIGNING_NAME);
+    }
+
+    @Test
+    public void objectLambdaAccessPointArn_usGovEast1_and_region_in_fips_useArnRegionTrue() {
+        ExecutionAttributes executionAttributes = createExecutionAttributes(S3Configuration.builder().useArnRegionEnabled(true),
+                Region.of("fips-us-gov-east-1"));
+        SdkHttpRequest sdkHttpFullRequest = interceptor.modifyHttpRequest(createContext(
+                "arn:aws:s3-object-lambda:us-gov-east-1:123456789012:accesspoint/myol"), executionAttributes);
+        String expectedEndpoint = "http://myol-123456789012.s3-object-lambda-fips.us-gov-east-1.amazonaws.com";
+        assertThat(sdkHttpFullRequest.getUri()).isEqualTo(uri(expectedEndpoint));
+        assertThat(executionAttributes.getAttribute(SIGNING_REGION)).isEqualTo(Region.US_GOV_EAST_1);
+        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME)).isEqualTo(OBJECT_LAMBDA_SIGNING_NAME);
+    }
+
+    @Test
+    public void objectLambdaAccessPointArn_usGovWest1_and_clientRegion_fips_usEast1_useArnRegionFalse_throwsIllegalArgumentException() {
+        ExecutionAttributes executionAttributes = createExecutionAttributes(S3Configuration.builder().useArnRegionEnabled(false),
+                Region.of("fips-us-gov-east-1"));
+
+        assertThatThrownBy(() -> interceptor.modifyHttpRequest(createContext(
+                "arn:aws:s3-object-lambda:us-gov-west-1:123456789012:accesspoint/myol"), executionAttributes))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Cross region access not allowed for fips region in client or arn.");
+     }
+
+    @Test
+    public void objectLambdaAccessPointArn_usGovWest1_and_clientRegion_fips_usEast1_useArnRegionTrue_throwsIllegalArgumentException() {
+        ExecutionAttributes executionAttributes = createExecutionAttributes(S3Configuration.builder().useArnRegionEnabled(true),
+                Region.of("fips-us-gov-east-1"));
+        assertThatThrownBy(() -> interceptor.modifyHttpRequest(createContext(
+                "arn:aws:s3-object-lambda:us-gov-west-1:123456789012:accesspoint/myol"), executionAttributes))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Cross region access not allowed for fips region in client or arn");
+    }
+
 }

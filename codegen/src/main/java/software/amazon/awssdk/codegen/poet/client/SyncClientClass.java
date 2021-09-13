@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
@@ -235,15 +236,20 @@ public class SyncClientClass implements ClassSpec {
 
             method.addStatement("$T cachedEndpoint = null", URI.class);
             method.beginControlFlow("if (endpointDiscoveryEnabled)");
-            method.addStatement("\n\nString key = clientConfiguration.option($T.CREDENTIALS_PROVIDER)." +
-                                "resolveCredentials().accessKeyId()", AwsClientOption.class);
-            method.addStatement("EndpointDiscoveryRequest endpointDiscoveryRequest = $T.builder().required($L)" +
-                                ".defaultEndpoint(clientConfiguration.option($T.ENDPOINT)).build()",
-                                EndpointDiscoveryRequest.class,
-                                opModel.getInputShape().getEndpointDiscovery().isRequired(),
-                                SdkClientOption.class);
-            method.addStatement("cachedEndpoint = $L.get(key, endpointDiscoveryRequest)",
-                                "endpointDiscoveryCache");
+
+            method.addCode("$T key = $N.overrideConfiguration()", String.class, opModel.getInput().getVariableName())
+                  .addCode("    .flatMap($T::credentialsProvider)", AwsRequestOverrideConfiguration.class)
+                  .addCode("    .orElseGet(() -> clientConfiguration.option($T.CREDENTIALS_PROVIDER))", AwsClientOption.class)
+                  .addCode("    .resolveCredentials().accessKeyId();");
+
+            method.addCode("$1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
+                  .addCode("    .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())
+                  .addCode("    .defaultEndpoint(clientConfiguration.option($T.ENDPOINT))", SdkClientOption.class)
+                  .addCode("    .overrideConfiguration($N.overrideConfiguration().orElse(null))",
+                           opModel.getInput().getVariableName())
+                  .addCode("    .build();");
+
+            method.addStatement("cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest)");
             method.endControlFlow();
         }
 
@@ -339,7 +345,6 @@ public class SyncClientClass implements ClassSpec {
             case AWS_JSON:
             case REST_JSON:
             case CBOR:
-            case ION:
                 return new JsonProtocolSpec(poetExtensions, model);
             default:
                 throw new RuntimeException("Unknown protocol: " + protocol.name());

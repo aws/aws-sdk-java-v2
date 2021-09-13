@@ -130,6 +130,12 @@
     </Match>
 
     <Match>
+        <Class name="software.amazon.awssdk.authcrt.signer.internal.SdkSigningResult" />
+        <Method name="getSignature" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
         <Class name="software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller" />
         <Method name="unmarshallStructured" />
         <Bug pattern="BC_UNCONFIRMED_CAST" />

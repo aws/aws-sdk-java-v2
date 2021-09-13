@@ -28,35 +28,48 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Base64;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Handler that initializes the HTTP tunnel.
  */
 @SdkInternalApi
 public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
+    
     public static final Logger log = Logger.loggerFor(ProxyTunnelInitHandler.class);
     private final ChannelPool sourcePool;
+    private final String username;
+    private final String password;
     private final URI remoteHost;
     private final Promise<Channel> initPromise;
     private final Supplier<HttpClientCodec> httpCodecSupplier;
 
+    public ProxyTunnelInitHandler(ChannelPool sourcePool, String proxyUsername, String proxyPassword, URI remoteHost,
+                                  Promise<Channel> initPromise) {
+        this(sourcePool, proxyUsername, proxyPassword, remoteHost, initPromise, HttpClientCodec::new);
+    }
+
     public ProxyTunnelInitHandler(ChannelPool sourcePool, URI remoteHost, Promise<Channel> initPromise) {
-        this(sourcePool, remoteHost, initPromise, HttpClientCodec::new);
+        this(sourcePool, null, null, remoteHost, initPromise, HttpClientCodec::new);
     }
 
     @SdkTestInternalApi
-    public ProxyTunnelInitHandler(ChannelPool sourcePool, URI remoteHost, Promise<Channel> initPromise,
-                                  Supplier<HttpClientCodec> httpCodecSupplier) {
+    public ProxyTunnelInitHandler(ChannelPool sourcePool, String prosyUsername, String proxyPassword,
+                                  URI remoteHost, Promise<Channel> initPromise, Supplier<HttpClientCodec> httpCodecSupplier) {
         this.sourcePool = sourcePool;
         this.remoteHost = remoteHost;
         this.initPromise = initPromise;
+        this.username = prosyUsername;
+        this.password = proxyPassword;
         this.httpCodecSupplier = httpCodecSupplier;
     }
 
@@ -137,6 +150,13 @@ public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.CONNECT, uri,
                                                          Unpooled.EMPTY_BUFFER, false);
         request.headers().add(HttpHeaderNames.HOST, uri);
+
+        if (!StringUtils.isEmpty(this.username) && !StringUtils.isEmpty(this.password)) {
+            String authToken = String.format("%s:%s", this.username, this.password);
+            String authB64 = Base64.getEncoder().encodeToString(authToken.getBytes(CharsetUtil.UTF_8));
+            request.headers().add(HttpHeaderNames.PROXY_AUTHORIZATION, String.format("Basic %s", authB64));
+        }
+        
         return request;
     }
 

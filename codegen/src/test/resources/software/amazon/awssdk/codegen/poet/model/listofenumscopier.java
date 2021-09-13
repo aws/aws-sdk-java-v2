@@ -13,26 +13,46 @@ import software.amazon.awssdk.core.util.SdkAutoConstructList;
 @Generated("software.amazon.awssdk:codegen")
 final class ListOfEnumsCopier {
     static List<String> copy(Collection<String> listOfEnumsParam) {
+        List<String> list;
         if (listOfEnumsParam == null || listOfEnumsParam instanceof SdkAutoConstructList) {
-            return DefaultSdkAutoConstructList.getInstance();
+            list = DefaultSdkAutoConstructList.getInstance();
+        } else {
+            List<String> modifiableList = new ArrayList<>();
+            listOfEnumsParam.forEach(entry -> {
+                modifiableList.add(entry);
+            });
+            list = Collections.unmodifiableList(modifiableList);
         }
-        List<String> listOfEnumsParamCopy = new ArrayList<>(listOfEnumsParam);
-        return Collections.unmodifiableList(listOfEnumsParamCopy);
+        return list;
     }
 
     static List<String> copyEnumToString(Collection<EnumType> listOfEnumsParam) {
+        List<String> list;
         if (listOfEnumsParam == null || listOfEnumsParam instanceof SdkAutoConstructList) {
-            return DefaultSdkAutoConstructList.getInstance();
+            list = DefaultSdkAutoConstructList.getInstance();
+        } else {
+            List<String> modifiableList = new ArrayList<>();
+            listOfEnumsParam.forEach(entry -> {
+                String result = entry.toString();
+                modifiableList.add(result);
+            });
+            list = Collections.unmodifiableList(modifiableList);
         }
-        List<String> listOfEnumsParamCopy = listOfEnumsParam.stream().map(Object::toString).collect(toList());
-        return Collections.unmodifiableList(listOfEnumsParamCopy);
+        return list;
     }
 
     static List<EnumType> copyStringToEnum(Collection<String> listOfEnumsParam) {
+        List<EnumType> list;
         if (listOfEnumsParam == null || listOfEnumsParam instanceof SdkAutoConstructList) {
-            return DefaultSdkAutoConstructList.getInstance();
+            list = DefaultSdkAutoConstructList.getInstance();
+        } else {
+            List<EnumType> modifiableList = new ArrayList<>();
+            listOfEnumsParam.forEach(entry -> {
+                EnumType result = EnumType.fromValue(entry);
+                modifiableList.add(result);
+            });
+            list = Collections.unmodifiableList(modifiableList);
         }
-        List<EnumType> listOfEnumsParamCopy = listOfEnumsParam.stream().map(EnumType::fromValue).collect(toList());
-        return Collections.unmodifiableList(listOfEnumsParamCopy);
+        return list;
     }
 }

@@ -19,6 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
@@ -37,17 +38,17 @@ import software.amazon.awssdk.services.s3control.S3ControlClient;
 
 
 public class UrlEncodingTest {
-    private static final URI HTTP_LOCALHOST_URI = URI.create("http://localhost:8080/");
     private static final String EXPECTED_URL = "/v20180820/jobs/id";
 
     private S3ControlClient s3Control;
     private ExecutionAttributeInterceptor interceptor;
 
     @Rule
-    public WireMockRule mockServer = new WireMockRule();
+    public WireMockRule mockServer = new WireMockRule(0);
 
     protected S3ControlClient buildClient() {
-        this.interceptor = new ExecutionAttributeInterceptor(HTTP_LOCALHOST_URI);
+        URI uri = URI.create("http://localhost:" + mockServer.port());
+        this.interceptor = new ExecutionAttributeInterceptor(uri);
 
         return S3ControlClient.builder()
                               .credentialsProvider(() -> AwsBasicCredentials.create("test", "test"))

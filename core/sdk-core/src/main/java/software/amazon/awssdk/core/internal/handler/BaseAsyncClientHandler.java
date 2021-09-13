@@ -73,20 +73,11 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         ClientExecutionParams<InputT, OutputT> executionParams) {
 
         return measureApiCallSuccess(executionParams, () -> {
-            validateExecutionParams(executionParams);
-            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(executionParams.executionAttributes());
-            ExecutionContext executionContext = createExecutionContext(executionParams, executionAttributes);
-            TransformingAsyncResponseHandler<Response<OutputT>> combinedResponseHandler;
+            // Running beforeExecution interceptors and modifyRequest interceptors.
+            ExecutionContext executionContext = invokeInterceptorsAndCreateExecutionContext(executionParams);
 
-            /* Decorate and combine provided response handlers into a single decorated response handler */
-            if (executionParams.getCombinedResponseHandler() == null) {
-                combinedResponseHandler = createDecoratedHandler(executionParams.getResponseHandler(),
-                                                                 executionParams.getErrorResponseHandler(),
-                                                                 executionContext);
-            } else {
-                combinedResponseHandler = createDecoratedHandler(executionParams.getCombinedResponseHandler(),
-                                                                 executionContext);
-            }
+            TransformingAsyncResponseHandler<Response<OutputT>> combinedResponseHandler =
+                createCombinedResponseHandler(executionParams, executionContext);
 
             return doExecute(executionParams, executionContext, combinedResponseHandler);
         });
@@ -98,8 +89,6 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
 
         return measureApiCallSuccess(executionParams, () -> {
-            validateExecutionParams(executionParams);
-
             if (executionParams.getCombinedResponseHandler() != null) {
                 // There is no support for catching errors in a body for streaming responses. Our codegen must never
                 // attempt to do this.
@@ -108,7 +97,8 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                                                    + "ClientExecutionParams object.");
             }
 
-            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(executionParams.executionAttributes());
+            ExecutionAttributes executionAttributes = executionParams.executionAttributes();
+            executionAttributes.putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1);
 
             AsyncStreamingResponseHandler<OutputT, ReturnT> asyncStreamingResponseHandler =
                 new AsyncStreamingResponseHandler<>(asyncResponseTransformer);
@@ -124,7 +114,8 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                     Integer::equals);
             wrappedAsyncStreamingResponseHandler.prepare();
 
-            ExecutionContext context = createExecutionContext(executionParams, executionAttributes);
+            // Running beforeExecution interceptors and modifyRequest interceptors.
+            ExecutionContext context = invokeInterceptorsAndCreateExecutionContext(executionParams);
 
             HttpResponseHandler<OutputT> decoratedResponseHandlers =
                 decorateResponseHandlers(executionParams.getResponseHandler(), context);
@@ -139,6 +130,23 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
 
             return doExecute(executionParams, context, combinedResponseHandler);
         });
+    }
+
+    private <InputT extends SdkRequest, OutputT extends SdkResponse> TransformingAsyncResponseHandler<Response<OutputT>>
+        createCombinedResponseHandler(ClientExecutionParams<InputT, OutputT> executionParams,
+                                      ExecutionContext executionContext) {
+        /* Decorate and combine provided response handlers into a single decorated response handler */
+        validateCombinedResponseHandler(executionParams);
+        TransformingAsyncResponseHandler<Response<OutputT>> combinedResponseHandler;
+        if (executionParams.getCombinedResponseHandler() == null) {
+            combinedResponseHandler = createDecoratedHandler(executionParams.getResponseHandler(),
+                                                             executionParams.getErrorResponseHandler(),
+                                                             executionContext);
+        } else {
+            combinedResponseHandler = createDecoratedHandler(executionParams.getCombinedResponseHandler(),
+                                                             executionContext);
+        }
+        return combinedResponseHandler;
     }
 
     /**
@@ -186,9 +194,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
 
         try {
 
-            // Running beforeExecution interceptors and modifyRequest interceptors.
-            InterceptorContext finalizeSdkRequestContext = finalizeSdkRequest(executionContext);
-            InputT inputT = (InputT) finalizeSdkRequestContext.request();
+            InputT inputT = (InputT) executionContext.interceptorContext().request();
 
             // Running beforeMarshalling, afterMarshalling and modifyHttpRequest, modifyHttpContent,
             // modifyAsyncHttpContent interceptors
@@ -283,7 +289,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             return outputFuture;
         } catch (Exception e) {
             reportApiCallSuccess(executionParams, false);
-            throw e;
+            return CompletableFutureUtils.failedFuture(e);
         }
     }
 

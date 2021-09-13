@@ -56,7 +56,7 @@ public final class WaitersRuntimeGeneratorTask extends BaseGeneratorTasks {
     private static String loadWaitersRuntimeCode() {
         try {
             InputStream is = WaitersRuntimeGeneratorTask.class.getResourceAsStream(
-                    "/software/amazon/awssdk/codegen/waiters/WaitersRuntime.java");
+                    "/software/amazon/awssdk/codegen/waiters/WaitersRuntime.java.resource");
             return IoUtils.toUtf8String(is);
         } catch (IOException ioe) {
             throw new UncheckedIOException(ioe);

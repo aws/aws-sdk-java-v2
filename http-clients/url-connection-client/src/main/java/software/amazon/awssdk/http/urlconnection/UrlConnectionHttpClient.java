@@ -36,6 +36,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -71,18 +72,18 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
 
     private final AttributeMap options;
     private final UrlConnectionFactory connectionFactory;
-    private final SSLContext sslContext;
 
     private UrlConnectionHttpClient(AttributeMap options, UrlConnectionFactory connectionFactory) {
         this.options = options;
         if (connectionFactory != null) {
-            this.sslContext = null;
             this.connectionFactory = connectionFactory;
         } else {
-            this.sslContext = getSslContext(options);
-            this.connectionFactory = this::createDefaultConnection;
-        }
+            // Note: This socket factory MUST be reused between requests because the connection pool in the JVM is keyed by both
+            // URL and SSLSocketFactory. If the socket factory is not reused, connections will not be reused between requests.
+            SSLSocketFactory socketFactory = getSslContext(options).getSocketFactory();
 
+            this.connectionFactory = url -> createDefaultConnection(url, socketFactory);
+        }
     }
 
     public static Builder builder() {
@@ -142,7 +143,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         return connection;
     }
 
-    private HttpURLConnection createDefaultConnection(URI uri) {
+    private HttpURLConnection createDefaultConnection(URI uri, SSLSocketFactory socketFactory) {
         HttpURLConnection connection = invokeSafely(() -> (HttpURLConnection) uri.toURL().openConnection());
 
         if (connection instanceof HttpsURLConnection) {
@@ -152,7 +153,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                 httpsConnection.setHostnameVerifier(NoOpHostNameVerifier.INSTANCE);
             }
 
-            httpsConnection.setSSLSocketFactory(sslContext.getSocketFactory());
+            httpsConnection.setSSLSocketFactory(socketFactory);
         }
 
         connection.setConnectTimeout(saturatedCast(options.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT).toMillis()));
@@ -207,7 +208,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
             request.contentStreamProvider().ifPresent(provider ->
                     invokeSafely(() -> IoUtils.copy(provider.newStream(), connection.getOutputStream())));
 
-            int responseCode = connection.getResponseCode();
+            int responseCode = getResponseCodeSafely(connection);
             boolean isErrorResponse = HttpStatusFamily.of(responseCode).isOneOf(CLIENT_ERROR, SERVER_ERROR);
             InputStream content = !isErrorResponse ? connection.getInputStream() : connection.getErrorStream();
             AbortableInputStream responseBody = content != null ?
@@ -222,6 +223,24 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                                                            .build())
                                       .responseBody(responseBody)
                                       .build();
+        }
+
+        /**
+         * {@link sun.net.www.protocol.http.HttpURLConnection#getInputStream0()} has been observed to intermittently throw
+         * {@link NullPointerException}s for reasons that still require further investigation, but are assumed to be due to a
+         * bug in the JDK. Propagating such NPEs is confusing for users and are not subject to being retried on by the default 
+         * retry policy configuration, so instead we bias towards propagating these as {@link IOException}s.
+         * <p>
+         * TODO: Determine precise root cause of intermittent NPEs, submit JDK bug report if applicable, and consider applying
+         * this behavior only on unpatched JVM runtime versions.
+         */
+        private static int getResponseCodeSafely(HttpURLConnection connection) throws IOException {
+            Validate.paramNotNull(connection, "connection");
+            try {
+                return connection.getResponseCode();
+            } catch (NullPointerException e) {
+                throw new IOException("Unexpected NullPointerException when trying to read response from HttpURLConnection", e);
+            }
         }
 
         private Map<String, List<String>> extractHeaders(HttpURLConnection response) {

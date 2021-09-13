@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.beans.Transient;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -13,7 +14,6 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
-import software.amazon.awssdk.core.adapter.StandardMemberCopier;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.LocationTrait;
@@ -25,10 +25,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class StructWithNestedBlobType implements SdkPojo, Serializable,
-        ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
+                                                       ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
     private static final SdkField<SdkBytes> NESTED_BLOB_FIELD = SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
-            .memberName("NestedBlob").getter(getter(StructWithNestedBlobType::nestedBlob)).setter(setter(Builder::nestedBlob))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NestedBlob").build()).build();
+                                                                        .memberName("NestedBlob").getter(getter(StructWithNestedBlobType::nestedBlob)).setter(setter(Builder::nestedBlob))
+                                                                        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NestedBlob").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NESTED_BLOB_FIELD));
 
@@ -42,7 +42,7 @@ public final class StructWithNestedBlobType implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the NestedBlob property for this object.
-     * 
+     *
      * @return The value of the NestedBlob property for this object.
      */
     public final SdkBytes nestedBlob() {
@@ -100,10 +100,10 @@ public final class StructWithNestedBlobType implements SdkPojo, Serializable,
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "NestedBlob":
-            return Optional.ofNullable(clazz.cast(nestedBlob()));
-        default:
-            return Optional.empty();
+            case "NestedBlob":
+                return Optional.ofNullable(clazz.cast(nestedBlob()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -145,14 +145,15 @@ public final class StructWithNestedBlobType implements SdkPojo, Serializable,
             return nestedBlob == null ? null : nestedBlob.asByteBuffer();
         }
 
-        @Override
-        public final Builder nestedBlob(SdkBytes nestedBlob) {
-            this.nestedBlob = StandardMemberCopier.copy(nestedBlob);
-            return this;
-        }
-
         public final void setNestedBlob(ByteBuffer nestedBlob) {
             nestedBlob(nestedBlob == null ? null : SdkBytes.fromByteBuffer(nestedBlob));
+        }
+
+        @Override
+        @Transient
+        public final Builder nestedBlob(SdkBytes nestedBlob) {
+            this.nestedBlob = nestedBlob;
+            return this;
         }
 
         @Override
@@ -166,4 +167,3 @@ public final class StructWithNestedBlobType implements SdkPojo, Serializable,
         }
     }
 }
-

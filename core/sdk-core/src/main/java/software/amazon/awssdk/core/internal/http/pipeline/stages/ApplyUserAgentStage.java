@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.client.config.SdkClientOption.INTERNAL_USER_AGENT;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -27,7 +29,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -69,9 +71,14 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
 
         StringBuilder userAgent = new StringBuilder(StringUtils.trimToEmpty(userDefinedPrefix));
 
-        String systemUserAgent = UserAgentUtils.getUserAgent();
+        String systemUserAgent = SdkUserAgent.create().userAgent();
         if (!systemUserAgent.equals(userDefinedPrefix)) {
             userAgent.append(COMMA).append(systemUserAgent);
+        }
+
+        String internalUserAgent = StringUtils.trimToEmpty(clientConfig.option(INTERNAL_USER_AGENT));
+        if (!internalUserAgent.isEmpty()) {
+            userAgent.append(SPACE).append(internalUserAgent);
         }
 
         if (!StringUtils.isEmpty(awsExecutionEnvironment)) {

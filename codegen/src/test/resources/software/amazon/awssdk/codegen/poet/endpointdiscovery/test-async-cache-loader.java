@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryCacheLoader;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryEndpoint;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
@@ -27,18 +28,18 @@ class EndpointDiscoveryTestAsyncEndpointDiscoveryCacheLoader implements Endpoint
 
     @Override
     public CompletableFuture<EndpointDiscoveryEndpoint> discoverEndpoint(EndpointDiscoveryRequest endpointDiscoveryRequest) {
+        AwsRequestOverrideConfiguration requestConfig = AwsRequestOverrideConfiguration.from(endpointDiscoveryRequest
+                                                                                                 .overrideConfiguration().orElse(null));
         return client.describeEndpoints(
-            software.amazon.awssdk.services.endpointdiscoverytest.model.DescribeEndpointsRequest.builder().build())
-                     .thenApply(
-                         r -> {
-                             List<Endpoint> endpoints = r.endpoints();
-                             Validate.notEmpty(endpoints,
-                                               "Endpoints returned by service for endpoint discovery must not be empty.");
-                             Endpoint endpoint = endpoints.get(0);
-                             return EndpointDiscoveryEndpoint.builder()
-                                                             .endpoint(toUri(endpoint.address(), endpointDiscoveryRequest.defaultEndpoint()))
-                                                             .expirationTime(Instant.now().plus(endpoint.cachePeriodInMinutes(), ChronoUnit.MINUTES))
-                                                             .build();
-                         });
+            software.amazon.awssdk.services.endpointdiscoverytest.model.DescribeEndpointsRequest.builder()
+                                                                                                .overrideConfiguration(requestConfig).build()).thenApply(
+            r -> {
+                List<Endpoint> endpoints = r.endpoints();
+                Validate.notEmpty(endpoints, "Endpoints returned by service for endpoint discovery must not be empty.");
+                Endpoint endpoint = endpoints.get(0);
+                return EndpointDiscoveryEndpoint.builder()
+                                                .endpoint(toUri(endpoint.address(), endpointDiscoveryRequest.defaultEndpoint()))
+                                                .expirationTime(Instant.now().plus(endpoint.cachePeriodInMinutes(), ChronoUnit.MINUTES)).build();
+            });
     }
 }

@@ -37,6 +37,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     private String shapeName;
     // the local variable name inside marshaller/unmarshaller implementation
     private boolean deprecated;
+    private String deprecatedMessage;
     private String type;
     private List<String> required;
     private boolean hasPayloadMember;
@@ -68,6 +69,8 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     private XmlNamespace xmlNamespace;
 
+    private boolean document;
+
     public ShapeModel() {
     }
 
@@ -90,6 +93,14 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
+    }
+
+    public String getDeprecatedMessage() {
+        return deprecatedMessage;
+    }
+
+    public void setDeprecatedMessage(String deprecatedMessage) {
+        this.deprecatedMessage = deprecatedMessage;
     }
 
     public String getC2jName() {
@@ -581,5 +592,14 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public void setXmlNamespace(XmlNamespace xmlNamespace) {
         this.xmlNamespace = xmlNamespace;
+    }
+
+    public boolean isDocument() {
+        return document;
+    }
+
+    public ShapeModel withIsDocument(boolean document) {
+        this.document = document;
+        return this;
     }
 }

@@ -49,7 +49,7 @@ public abstract class SystemSettingsCredentialsProvider implements AwsCredential
         String secretKey = trim(loadSetting(SdkSystemSetting.AWS_SECRET_ACCESS_KEY).orElse(null));
         String sessionToken = trim(loadSetting(SdkSystemSetting.AWS_SESSION_TOKEN).orElse(null));
 
-        if (StringUtils.isEmpty(accessKey)) {
+        if (StringUtils.isBlank(accessKey)) {
             throw SdkClientException.builder()
                                     .message(String.format("Unable to load credentials from system settings. Access key must be" +
                                              " specified either via environment variable (%s) or system property (%s).",
@@ -58,7 +58,7 @@ public abstract class SystemSettingsCredentialsProvider implements AwsCredential
                                     .build();
         }
 
-        if (StringUtils.isEmpty(secretKey)) {
+        if (StringUtils.isBlank(secretKey)) {
             throw SdkClientException.builder()
                                     .message(String.format("Unable to load credentials from system settings. Secret key must be" +
                                              " specified either via environment variable (%s) or system property (%s).",
@@ -67,8 +67,8 @@ public abstract class SystemSettingsCredentialsProvider implements AwsCredential
                                     .build();
         }
 
-        return sessionToken == null ? AwsBasicCredentials.create(accessKey, secretKey)
-                                    : AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
+        return StringUtils.isBlank(sessionToken) ? AwsBasicCredentials.create(accessKey, secretKey)
+                                                 : AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
     }
 
     /**

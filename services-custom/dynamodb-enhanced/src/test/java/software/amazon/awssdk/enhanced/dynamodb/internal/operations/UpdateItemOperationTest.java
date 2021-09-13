@@ -52,6 +52,7 @@ import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -770,6 +771,40 @@ public class UpdateItemOperationTest {
                                                                           .conditionExpression(conditionExpression)
                                                                           .expressionAttributeNames(attributeNames)
                                                                           .expressionAttributeValues(attributeValues)
+                                                                          .build())
+                                                            .build();
+        assertThat(actualResult, is(expectedResult));
+        verify(updateItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
+    }
+
+    @Test
+    public void generateTransactWriteItem_returnValuesOnConditionCheckFailure_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+        String returnValues = "return-values";
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            spy(UpdateItemOperation.create(TransactUpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                            .item(fakeItem)
+                                                                            .returnValuesOnConditionCheckFailure(returnValues)
+                                                                            .build()));
+        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+
+        UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
+                                                               .tableName(TABLE_NAME)
+                                                               .key(fakeItemMap)
+                                                               .build();
+        doReturn(updateItemRequest).when(updateItemOperation).generateRequest(any(), any(), any());
+
+        TransactWriteItem actualResult = updateItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
+                                                                                       context,
+                                                                                       mockDynamoDbEnhancedClientExtension);
+
+        TransactWriteItem expectedResult = TransactWriteItem.builder()
+                                                            .update(Update.builder()
+                                                                          .key(fakeItemMap)
+                                                                          .tableName(TABLE_NAME)
+                                                                          .returnValuesOnConditionCheckFailure(returnValues)
                                                                           .build())
                                                             .build();
         assertThat(actualResult, is(expectedResult));

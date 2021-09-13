@@ -54,6 +54,7 @@ public class BootstrapProvider {
                 .group(sdkEventLoopGroup.eventLoopGroup())
                 .channelFactory(sdkEventLoopGroup.channelFactory())
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyConfiguration.connectTimeoutMillis())
+                .option(ChannelOption.SO_KEEPALIVE, nettyConfiguration.tcpKeepAlive())
                 .remoteAddress(InetSocketAddress.createUnresolved(host, port));
         sdkChannelOptions.channelOptions().forEach(bootstrap::option);
 

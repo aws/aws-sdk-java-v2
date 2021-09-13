@@ -18,7 +18,7 @@ package software.amazon.awssdk.regions;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Internal class for determing where to load region and service
+ * Internal class for determining where to load region and service
  * metadata from. Currently only generated region metadata is supported.
  */
 @SdkInternalApi

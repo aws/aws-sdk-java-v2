@@ -27,6 +27,8 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -46,6 +48,7 @@ public abstract class RequestOverrideConfiguration {
     private final Duration apiCallAttemptTimeout;
     private final Signer signer;
     private final List<MetricPublisher> metricPublishers;
+    private final ExecutionAttributes executionAttributes;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
@@ -55,6 +58,7 @@ public abstract class RequestOverrideConfiguration {
         this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
         this.signer = builder.signer();
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
+        this.executionAttributes = ExecutionAttributes.unmodifiableExecutionAttributes(builder.executionAttributes());
     }
 
     /**
@@ -138,6 +142,16 @@ public abstract class RequestOverrideConfiguration {
         return metricPublishers;
     }
 
+    /**
+     * Returns the additional execution attributes to be added to this request.
+     * This collection of attributes is added in addition to the attributes set on the client.
+     * An attribute value added on the client within the collection of attributes is superseded by an
+     * attribute value added on the request.
+     */
+    public ExecutionAttributes executionAttributes() {
+        return executionAttributes;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -153,7 +167,8 @@ public abstract class RequestOverrideConfiguration {
                Objects.equals(apiCallTimeout, that.apiCallTimeout) &&
                Objects.equals(apiCallAttemptTimeout, that.apiCallAttemptTimeout) &&
                Objects.equals(signer, that.signer) &&
-               Objects.equals(metricPublishers, that.metricPublishers);
+               Objects.equals(metricPublishers, that.metricPublishers) &&
+               Objects.equals(executionAttributes, that.executionAttributes);
     }
 
     @Override
@@ -166,6 +181,7 @@ public abstract class RequestOverrideConfiguration {
         hashCode = 31 * hashCode + Objects.hashCode(apiCallAttemptTimeout);
         hashCode = 31 * hashCode + Objects.hashCode(signer);
         hashCode = 31 * hashCode + Objects.hashCode(metricPublishers);
+        hashCode = 31 * hashCode + Objects.hashCode(executionAttributes);
         return hashCode;
     }
 
@@ -372,6 +388,22 @@ public abstract class RequestOverrideConfiguration {
         List<MetricPublisher> metricPublishers();
 
         /**
+         * Sets the additional execution attributes collection for this request.
+         * @param executionAttributes Execution attributes for this request
+         * @return This object for method chaining.
+         */
+        B executionAttributes(ExecutionAttributes executionAttributes);
+
+        /**
+         * Add an execution attribute to the existing collection of execution attributes.
+         * @param attribute The execution attribute object
+         * @param value The value of the execution attribute.
+         */
+        <T> B putExecutionAttribute(ExecutionAttribute<T> attribute, T value);
+
+        ExecutionAttributes executionAttributes();
+
+        /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
          *
          * @return The new {@code SdkRequestOverrideConfiguration}.
@@ -387,6 +419,7 @@ public abstract class RequestOverrideConfiguration {
         private Duration apiCallAttemptTimeout;
         private Signer signer;
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
+        private ExecutionAttributes.Builder executionAttributesBuilder = ExecutionAttributes.builder();
 
         protected BuilderImpl() {
         }
@@ -525,6 +558,28 @@ public abstract class RequestOverrideConfiguration {
         @Override
         public List<MetricPublisher> metricPublishers() {
             return metricPublishers;
+        }
+
+        @Override
+        public B executionAttributes(ExecutionAttributes executionAttributes) {
+            Validate.paramNotNull(executionAttributes, "executionAttributes");
+            this.executionAttributesBuilder = executionAttributes.toBuilder();
+            return (B) this;
+        }
+
+        @Override
+        public <T> B putExecutionAttribute(ExecutionAttribute<T> executionAttribute, T value) {
+            this.executionAttributesBuilder.put(executionAttribute, value);
+            return (B) this;
+        }
+
+        @Override
+        public ExecutionAttributes executionAttributes() {
+            return executionAttributesBuilder.build();
+        }
+
+        public void setExecutionAttributes(ExecutionAttributes executionAttributes) {
+            executionAttributes(executionAttributes);
         }
     }
 }

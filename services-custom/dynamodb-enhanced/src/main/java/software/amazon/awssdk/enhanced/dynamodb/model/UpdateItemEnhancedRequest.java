@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -57,7 +58,7 @@ public final class UpdateItemEnhancedRequest<T> {
      * Returns a builder initialized with all existing values on the request object.
      */
     public Builder<T> toBuilder() {
-        return new Builder<T>().item(item).ignoreNulls(ignoreNulls);
+        return new Builder<T>().item(item).ignoreNulls(ignoreNulls).conditionExpression(conditionExpression);
     }
 
     /**
@@ -89,19 +90,17 @@ public final class UpdateItemEnhancedRequest<T> {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         UpdateItemEnhancedRequest<?> that = (UpdateItemEnhancedRequest<?>) o;
-
-        if (item != null ? ! item.equals(that.item) : that.item != null) {
-            return false;
-        }
-        return ignoreNulls != null ? ignoreNulls.equals(that.ignoreNulls) : that.ignoreNulls == null;
+        return Objects.equals(item, that.item)
+               && Objects.equals(ignoreNulls, that.ignoreNulls)
+               && Objects.equals(conditionExpression, that.conditionExpression);
     }
 
     @Override
     public int hashCode() {
         int result = item != null ? item.hashCode() : 0;
         result = 31 * result + (ignoreNulls != null ? ignoreNulls.hashCode() : 0);
+        result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
         return result;
     }
 

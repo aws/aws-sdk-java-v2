@@ -15,11 +15,16 @@
 
 package software.amazon.awssdk.protocols.json.internal.marshall;
 
+import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
+
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.JsonValueTrait;
+import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -45,6 +50,19 @@ public final class HeaderMarshaller {
     public static final JsonMarshaller<Instant> INSTANT
         = new SimpleHeaderMarshaller<>(JsonProtocolMarshaller.INSTANT_VALUE_TO_STRING);
 
+    public static final JsonMarshaller<List<?>> LIST = (list, context, paramName, sdkField) -> {
+        // Null or empty lists cannot be meaningfully (or safely) represented in an HTTP header message since header-fields must 
+        // typically have a non-empty field-value. https://datatracker.ietf.org/doc/html/rfc7230#section-3.2
+        if (isNullOrEmpty(list)) {
+            return;
+        }
+        SdkField memberFieldInfo = sdkField.getRequiredTrait(ListTrait.class).memberFieldInfo();
+        for (Object listValue : list) {
+            JsonMarshaller marshaller = context.marshallerRegistry().getMarshaller(MarshallLocation.HEADER, listValue);
+            marshaller.marshall(listValue, context, paramName, memberFieldInfo);
+        }
+    };
+
     private HeaderMarshaller() {
     }
 
@@ -58,8 +76,7 @@ public final class HeaderMarshaller {
 
         @Override
         public void marshall(T val, JsonMarshallerContext context, String paramName, SdkField<T> sdkField) {
-            context.request().putHeader(paramName, converter.convert(val, sdkField));
+            context.request().appendHeader(paramName, converter.convert(val, sdkField));
         }
     }
-
 }

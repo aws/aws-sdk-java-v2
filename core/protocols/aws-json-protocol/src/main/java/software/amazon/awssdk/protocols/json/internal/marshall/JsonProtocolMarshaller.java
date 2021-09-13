@@ -16,14 +16,16 @@
 package software.amazon.awssdk.protocols.json.internal.marshall;
 
 import static software.amazon.awssdk.core.internal.util.Mimetype.MIMETYPE_EVENT_STREAM;
+import static software.amazon.awssdk.http.Header.CHUNKED;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
+import static software.amazon.awssdk.http.Header.TRANSFER_ENCODING;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
@@ -39,6 +41,8 @@ import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter.ValueToString;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
 
 /**
@@ -56,6 +60,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     private final StructuredJsonGenerator jsonGenerator;
     private final SdkHttpFullRequest.Builder request;
     private final String contentType;
+    private final AwsJsonProtocolMetadata protocolMetadata;
     private final boolean hasExplicitPayloadMember;
     private final boolean hasStreamingInput;
 
@@ -66,10 +71,12 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     JsonProtocolMarshaller(URI endpoint,
                            StructuredJsonGenerator jsonGenerator,
                            String contentType,
-                           OperationInfo operationInfo) {
+                           OperationInfo operationInfo,
+                           AwsJsonProtocolMetadata protocolMetadata) {
         this.endpoint = endpoint;
         this.jsonGenerator = jsonGenerator;
         this.contentType = contentType;
+        this.protocolMetadata = protocolMetadata;
         this.hasExplicitPayloadMember = operationInfo.hasExplicitPayloadMember();
         this.hasStreamingInput = operationInfo.hasStreamingInput();
         this.hasEventStreamingInput = operationInfo.hasEventStreamingInput();
@@ -100,6 +107,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .payloadMarshaller(MarshallingType.LIST, SimpleTypeJsonMarshaller.LIST)
             .payloadMarshaller(MarshallingType.MAP, SimpleTypeJsonMarshaller.MAP)
             .payloadMarshaller(MarshallingType.NULL, SimpleTypeJsonMarshaller.NULL)
+            .payloadMarshaller(MarshallingType.DOCUMENT, SimpleTypeJsonMarshaller.DOCUMENT)
 
             .headerMarshaller(MarshallingType.STRING, HeaderMarshaller.STRING)
             .headerMarshaller(MarshallingType.INTEGER, HeaderMarshaller.INTEGER)
@@ -109,6 +117,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .headerMarshaller(MarshallingType.FLOAT, HeaderMarshaller.FLOAT)
             .headerMarshaller(MarshallingType.BOOLEAN, HeaderMarshaller.BOOLEAN)
             .headerMarshaller(MarshallingType.INSTANT, HeaderMarshaller.INSTANT)
+            .headerMarshaller(MarshallingType.LIST, HeaderMarshaller.LIST)
             .headerMarshaller(MarshallingType.NULL, JsonMarshaller.NULL)
 
             .queryParamMarshaller(MarshallingType.STRING, QueryParamMarshaller.STRING)
@@ -135,7 +144,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     }
 
     private static Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
-        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new EnumMap<>(MarshallLocation.class);
         // TODO the default is supposedly rfc822. See JAVA-2949
         // We are using ISO_8601 in v1. Investigate which is the right format
         formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
@@ -220,7 +229,17 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         // and not from the original request
         if (!request.headers().containsKey(CONTENT_TYPE) && !hasEvent) {
             if (hasEventStreamingInput) {
-                request.putHeader(CONTENT_TYPE, MIMETYPE_EVENT_STREAM);
+                AwsJsonProtocol protocol = protocolMetadata.protocol();
+                if (protocol == AwsJsonProtocol.AWS_JSON) {
+                    // For RPC formats, this content type will later be pushed down into the `initial-event` in the body
+                    request.putHeader(CONTENT_TYPE, contentType);
+                } else if (protocol == AwsJsonProtocol.REST_JSON) {
+                    request.putHeader(CONTENT_TYPE, MIMETYPE_EVENT_STREAM);
+                } else {
+                    throw new IllegalArgumentException("Unknown AwsJsonProtocol: " + protocol);
+                }
+                request.removeHeader(CONTENT_LENGTH);
+                request.putHeader(TRANSFER_ENCODING, CHUNKED);
             } else if (contentType != null && !hasStreamingInput && request.contentStreamProvider() != null) {
                 request.putHeader(CONTENT_TYPE, contentType);
             }

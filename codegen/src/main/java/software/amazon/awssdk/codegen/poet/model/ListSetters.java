@@ -120,12 +120,7 @@ class ListSetters extends AbstractMemberSetters {
     @Override
     public List<MethodSpec> beanStyle() {
         MethodSpec.Builder builder = beanStyleSetterBuilder();
-        if (memberModel().isCollectionWithBuilderMember()) {
-            builder.addCode(copySetterBuilderBody());
-        } else {
-            builder.addCode(beanCopySetterBody());
-        }
-
+        builder.addCode(beanCopySetterBody());
         return Collections.singletonList(builder.build());
 
     }

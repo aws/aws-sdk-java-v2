@@ -12,18 +12,47 @@ import software.amazon.awssdk.core.util.SdkAutoConstructList;
 
 @Generated("software.amazon.awssdk:codegen")
 final class RecursiveListTypeCopier {
-    static List<RecursiveStructType> copy(Collection<RecursiveStructType> recursiveListTypeParam) {
+    static List<RecursiveStructType> copy(Collection<? extends RecursiveStructType> recursiveListTypeParam) {
+        List<RecursiveStructType> list;
         if (recursiveListTypeParam == null || recursiveListTypeParam instanceof SdkAutoConstructList) {
-            return DefaultSdkAutoConstructList.getInstance();
+            list = DefaultSdkAutoConstructList.getInstance();
+        } else {
+            List<RecursiveStructType> modifiableList = new ArrayList<>();
+            recursiveListTypeParam.forEach(entry -> {
+                modifiableList.add(entry);
+            });
+            list = Collections.unmodifiableList(modifiableList);
         }
-        List<RecursiveStructType> recursiveListTypeParamCopy = new ArrayList<>(recursiveListTypeParam);
-        return Collections.unmodifiableList(recursiveListTypeParamCopy);
+        return list;
     }
 
     static List<RecursiveStructType> copyFromBuilder(Collection<? extends RecursiveStructType.Builder> recursiveListTypeParam) {
-        if (recursiveListTypeParam == null || recursiveListTypeParam instanceof DefaultSdkAutoConstructList) {
-            return DefaultSdkAutoConstructList.getInstance();
+        List<RecursiveStructType> list;
+        if (recursiveListTypeParam == null || recursiveListTypeParam instanceof SdkAutoConstructList) {
+            list = DefaultSdkAutoConstructList.getInstance();
+        } else {
+            List<RecursiveStructType> modifiableList = new ArrayList<>();
+            recursiveListTypeParam.forEach(entry -> {
+                RecursiveStructType member = entry.build();
+                modifiableList.add(member);
+            });
+            list = Collections.unmodifiableList(modifiableList);
         }
-        return copy(recursiveListTypeParam.stream().map(RecursiveStructType.Builder::build).collect(toList()));
+        return list;
+    }
+
+    static List<RecursiveStructType.Builder> copyToBuilder(Collection<? extends RecursiveStructType> recursiveListTypeParam) {
+        List<RecursiveStructType.Builder> list;
+        if (recursiveListTypeParam == null || recursiveListTypeParam instanceof SdkAutoConstructList) {
+            list = DefaultSdkAutoConstructList.getInstance();
+        } else {
+            List<RecursiveStructType.Builder> modifiableList = new ArrayList<>();
+            recursiveListTypeParam.forEach(entry -> {
+                RecursiveStructType.Builder member = entry.toBuilder();
+                modifiableList.add(member);
+            });
+            list = Collections.unmodifiableList(modifiableList);
+        }
+        return list;
     }
 }
