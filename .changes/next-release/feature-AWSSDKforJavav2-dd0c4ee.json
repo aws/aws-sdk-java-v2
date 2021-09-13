@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "guillepb10", 
-    "type": "feature", 
-    "description": "Add support for authenticated corporate proxies"
-}
