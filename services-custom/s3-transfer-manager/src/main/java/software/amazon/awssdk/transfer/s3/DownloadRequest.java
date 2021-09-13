@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -111,6 +112,18 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder destination(Path destination);
+
+        /**
+         * The file that response contents will be written to. The file must not exist or this method
+         * will throw an exception. If the file is not writable by the current user then an exception will be thrown.
+         *
+         * @param destination the destination path
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        default Builder destination(File destination) {
+            Validate.paramNotNull(destination, "destination");
+            return destination(destination.toPath());
+        }
 
         /**
          * The {@link GetObjectRequest} request that should be used for the download
