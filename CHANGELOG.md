@@ -1,3 +1,20 @@
+# __2.17.39__ __2021-09-13__
+## __AWS IoT__
+  - ### Features
+    - AWS IoT Rules Engine adds OpenSearch action. The OpenSearch rule action lets you stream data from IoT sensors and applications to Amazon OpenSearch Service which is a successor to Amazon Elasticsearch Service.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for T3 instances on Amazon EC2 Dedicated Hosts.
+
+## __S3 Transfer Manager__
+  - ### Features
+    - Now users can pass `File` to `DownloadRequest` and `UploadRequest` in `S3TransferManager`.
+
 # __2.17.38__ __2021-09-10__
 ## __AWS CloudFormation__
   - ### Features
