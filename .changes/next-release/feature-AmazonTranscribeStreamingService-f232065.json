@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Streaming Service",
-    "contributor": "",
-    "description": "Amazon Transcribe now supports PII Identification and Redaction for streaming transcription."
-}

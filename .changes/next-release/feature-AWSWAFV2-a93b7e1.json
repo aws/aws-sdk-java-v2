@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS WAFV2",
-    "contributor": "",
-    "description": "This release adds support for including rate based rules in a rule group."
-}
