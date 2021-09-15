@@ -53,6 +53,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Put;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 
@@ -228,6 +230,122 @@ public class PutItemOperationTest {
                                                        .tableName(TABLE_NAME)
                                                        .item(expectedItemMap)
                                                        .returnValues(returnValues)
+                                                       .build();
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnConsumedCapacity_unknownValue_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setSubclassAttribute("subclass-value");
+
+        String returnConsumedCapacity = UUID.randomUUID().toString();
+
+        PutItemOperation<FakeItem> putItemOperation =
+            PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                                                          .item(fakeItem)
+                                                          .returnConsumedCapacity(returnConsumedCapacity)
+                                                          .build());
+
+        PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                  PRIMARY_CONTEXT,
+                                                                  null);
+
+        Map<String, AttributeValue> expectedItemMap = new HashMap<>();
+        expectedItemMap.put("id", AttributeValue.builder().s(fakeItem.getId()).build());
+        expectedItemMap.put("subclass_attribute", AttributeValue.builder().s("subclass-value").build());
+        PutItemRequest expectedRequest = PutItemRequest.builder()
+                                                       .tableName(TABLE_NAME)
+                                                       .item(expectedItemMap)
+                                                       .returnConsumedCapacity(returnConsumedCapacity)
+                                                       .build();
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnConsumedCapacity_knownValue_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setSubclassAttribute("subclass-value");
+
+        ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.TOTAL;
+
+        PutItemOperation<FakeItem> putItemOperation =
+            PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                                                          .item(fakeItem)
+                                                          .returnConsumedCapacity(returnConsumedCapacity)
+                                                          .build());
+
+        PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                  PRIMARY_CONTEXT,
+                                                                  null);
+
+        Map<String, AttributeValue> expectedItemMap = new HashMap<>();
+        expectedItemMap.put("id", AttributeValue.builder().s(fakeItem.getId()).build());
+        expectedItemMap.put("subclass_attribute", AttributeValue.builder().s("subclass-value").build());
+        PutItemRequest expectedRequest = PutItemRequest.builder()
+                                                       .tableName(TABLE_NAME)
+                                                       .item(expectedItemMap)
+                                                       .returnConsumedCapacity(returnConsumedCapacity)
+                                                       .build();
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnItemCollectionMetrics_unknownValue_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setSubclassAttribute("subclass-value");
+
+        String returnItemCollectionMetrics = UUID.randomUUID().toString();
+
+        PutItemOperation<FakeItem> putItemOperation =
+            PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                                                          .item(fakeItem)
+                                                          .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                          .build());
+
+        PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                  PRIMARY_CONTEXT,
+                                                                  null);
+
+        Map<String, AttributeValue> expectedItemMap = new HashMap<>();
+        expectedItemMap.put("id", AttributeValue.builder().s(fakeItem.getId()).build());
+        expectedItemMap.put("subclass_attribute", AttributeValue.builder().s("subclass-value").build());
+        PutItemRequest expectedRequest = PutItemRequest.builder()
+                                                       .tableName(TABLE_NAME)
+                                                       .item(expectedItemMap)
+                                                       .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                       .build();
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnItemCollectionMetrics_knownValue_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setSubclassAttribute("subclass-value");
+
+        ReturnItemCollectionMetrics returnItemCollectionMetrics = ReturnItemCollectionMetrics.SIZE;
+
+        PutItemOperation<FakeItem> putItemOperation =
+            PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                                                          .item(fakeItem)
+                                                          .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                          .build());
+
+        PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                  PRIMARY_CONTEXT,
+                                                                  null);
+
+        Map<String, AttributeValue> expectedItemMap = new HashMap<>();
+        expectedItemMap.put("id", AttributeValue.builder().s(fakeItem.getId()).build());
+        expectedItemMap.put("subclass_attribute", AttributeValue.builder().s("subclass-value").build());
+        PutItemRequest expectedRequest = PutItemRequest.builder()
+                                                       .tableName(TABLE_NAME)
+                                                       .item(expectedItemMap)
+                                                       .returnItemCollectionMetrics(returnItemCollectionMetrics)
                                                        .build();
 
         assertThat(request, is(expectedRequest));

@@ -36,6 +36,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TableOperati
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
@@ -113,8 +114,8 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
 
     @Override
     public T deleteItem(DeleteItemEnhancedRequest request) {
-        TableOperation<T, ?, ?, T> operation = DeleteItemOperation.create(request);
-        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+        TableOperation<T, ?, ?, DeleteItemEnhancedResponse<T>> operation = DeleteItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient).attributes();
     }
 
     @Override
@@ -132,6 +133,19 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     @Override
     public T deleteItem(T keyItem) {
         return deleteItem(keyFrom(keyItem));
+    }
+
+    @Override
+    public DeleteItemEnhancedResponse<T> deleteItemWithResponse(DeleteItemEnhancedRequest request) {
+        TableOperation<T, ?, ?, DeleteItemEnhancedResponse<T>> operation = DeleteItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+    }
+
+    @Override
+    public DeleteItemEnhancedResponse<T> deleteItemWithResponse(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
+        DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return deleteItemWithResponse(builder.build());
     }
 
     @Override
