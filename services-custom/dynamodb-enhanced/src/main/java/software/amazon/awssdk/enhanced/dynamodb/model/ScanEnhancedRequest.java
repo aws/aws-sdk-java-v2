@@ -238,9 +238,6 @@ public final class ScanEnhancedRequest {
          * application threads to scan a table or an index, then the first thread specifies a Segment value of 0, the second
          * thread specifies 1, and so on.
          *
-         * The value of {@link Page#lastEvaluatedKey()} returned from a parallel Scan request must be used as
-         * {@link #exclusiveStartKey} with the same segment ID in a subsequent Scan operation.
-         *
          * The value for Segment must be greater than or equal to 0, and less than the value provided for TotalSegments.
          *
          * If you provide Segment, you must also provide <em>TotalSegments</em>.
@@ -257,9 +254,13 @@ public final class ScanEnhancedRequest {
          * For a parallel Scan request, TotalSegments represents the total number of segments into
          * which the Scan operation will be divided.
          * <p>
-         * <b>Note:</b>If you specify a TotalSegments value of 1, the Scan operation will be sequential rather than parallel.
+         * <b>Note:</b>If you do not specify this value, the TotalSegements is effectively 1 and Scan operation
+         * will be sequential rather than parallel.
          *
          * If you specify TotalSegments, you must also specify Segment.
+         *
+         * If you specify TotalSegments of 2 and above, you can create separate thread for each segment and scan items
+         * in parallel across segments from multiple threads.
          *
          * @param totalSegments the total number of segments to divide the table.
          * @return a builder of this type
