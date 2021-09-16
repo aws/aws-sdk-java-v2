@@ -1,6 +1,0 @@
-{
-    "category": "DynamoDB Enhanced Client", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "This commit introduces DynamoDbTable#putItemWithResponse() that allows customers to specify additional parameters on the request such as ReturnValues to get additional information the service response."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Managed Streaming for Kafka Connect",
-    "contributor": "",
-    "description": "This is the initial SDK release for Amazon Managed Streaming for Apache Kafka Connect (MSK Connect)."
-}
