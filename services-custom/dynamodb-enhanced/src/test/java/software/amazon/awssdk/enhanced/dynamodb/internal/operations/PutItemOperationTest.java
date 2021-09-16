@@ -32,6 +32,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -52,6 +53,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Put;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -170,6 +172,64 @@ public class PutItemOperationTest {
                           .expressionAttributeNames(CONDITION_EXPRESSION.expressionNames())
                           .expressionAttributeValues(CONDITION_EXPRESSION.expressionValues())
                           .build();
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnValues_unknownValue_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setSubclassAttribute("subclass-value");
+
+        String returnValues = UUID.randomUUID().toString();
+
+        PutItemOperation<FakeItem> putItemOperation =
+            PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                                                          .item(fakeItem)
+                                                          .returnValues(returnValues)
+                                                          .build());
+
+        PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                  PRIMARY_CONTEXT,
+                                                                  null);
+
+        Map<String, AttributeValue> expectedItemMap = new HashMap<>();
+        expectedItemMap.put("id", AttributeValue.builder().s(fakeItem.getId()).build());
+        expectedItemMap.put("subclass_attribute", AttributeValue.builder().s("subclass-value").build());
+        PutItemRequest expectedRequest = PutItemRequest.builder()
+                                                       .tableName(TABLE_NAME)
+                                                       .item(expectedItemMap)
+                                                       .returnValues(returnValues)
+                                                       .build();
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnValues_knownValue_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setSubclassAttribute("subclass-value");
+
+        ReturnValue returnValues = ReturnValue.ALL_OLD;
+
+        PutItemOperation<FakeItem> putItemOperation =
+            PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                                                          .item(fakeItem)
+                                                          .returnValues(returnValues)
+                                                          .build());
+
+        PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                  PRIMARY_CONTEXT,
+                                                                  null);
+
+        Map<String, AttributeValue> expectedItemMap = new HashMap<>();
+        expectedItemMap.put("id", AttributeValue.builder().s(fakeItem.getId()).build());
+        expectedItemMap.put("subclass_attribute", AttributeValue.builder().s("subclass-value").build());
+        PutItemRequest expectedRequest = PutItemRequest.builder()
+                                                       .tableName(TABLE_NAME)
+                                                       .item(expectedItemMap)
+                                                       .returnValues(returnValues)
+                                                       .build();
+
         assertThat(request, is(expectedRequest));
     }
 

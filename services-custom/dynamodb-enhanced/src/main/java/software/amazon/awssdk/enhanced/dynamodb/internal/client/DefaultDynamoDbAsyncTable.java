@@ -40,6 +40,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PagePublisher;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
@@ -174,8 +175,8 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
 
     @Override
     public CompletableFuture<Void> putItem(PutItemEnhancedRequest<T> request) {
-        TableOperation<T, ?, ?, Void> operation = PutItemOperation.create(request);
-        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
+        TableOperation<T, ?, ?, PutItemEnhancedResponse<T>> operation = PutItemOperation.create(request);
+        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient).thenApply(ignored -> null);
     }
 
     @Override
@@ -189,6 +190,21 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     @Override
     public CompletableFuture<Void> putItem(T item) {
         return putItem(r -> r.item(item));
+    }
+
+    @Override
+    public CompletableFuture<PutItemEnhancedResponse<T>> putItemWithResponse(PutItemEnhancedRequest<T> request) {
+        TableOperation<T, ?, ?, PutItemEnhancedResponse<T>> operation = PutItemOperation.create(request);
+        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
+    }
+
+    @Override
+    public CompletableFuture<PutItemEnhancedResponse<T>> putItemWithResponse(
+        Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+        PutItemEnhancedRequest.Builder<T> builder =
+            PutItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
+        requestConsumer.accept(builder);
+        return putItemWithResponse(builder.build());
     }
 
     @Override

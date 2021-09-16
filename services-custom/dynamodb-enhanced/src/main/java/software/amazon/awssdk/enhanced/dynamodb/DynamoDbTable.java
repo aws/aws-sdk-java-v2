@@ -24,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
@@ -492,6 +493,62 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * @param item the modelled item to be inserted into or overwritten in the database table.
      */
     default void putItem(T item) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be
+     * replaced with this item. This is similar to {@link #putItem(PutItemEnhancedRequest)} but returns
+     * {@link PutItemEnhancedResponse} for additional information.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link PutItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API PutItem operation. Consult the PutItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.putItem(PutItemEnhancedRequest.builder(MyItem.class).item(item).build());
+     * }
+     * </pre>
+     *
+     * @param request A {@link PutItemEnhancedRequest} that includes the item to enter into
+     * the table, its class and optional directives.
+     *
+     * @return The response returned by DynamoDB.
+     */
+    default PutItemEnhancedResponse<T> putItemWithResponse(PutItemEnhancedRequest<T> request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be
+     * replaced with this item. This is similar to {@link #putItem(PutItemEnhancedRequest)} but returns
+     * {@link PutItemEnhancedResponse} for additional information.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link PutItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API PutItem operation. Consult the PutItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.putItem(PutItemEnhancedRequest.builder(MyItem.class).item(item).build());
+     * }
+     * </pre>
+     *
+     * @param requestConsumer A {@link Consumer} of {@link PutItemEnhancedRequest.Builder} that includes the item
+     * to enter into the table, its class and optional directives.
+     *
+     * @return The response returned by DynamoDB.
+     */
+    default PutItemEnhancedResponse<T> putItemWithResponse(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 

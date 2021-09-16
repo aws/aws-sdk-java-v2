@@ -26,8 +26,10 @@ import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
+import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactPutItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -44,7 +46,7 @@ import software.amazon.awssdk.utils.Either;
 public class PutItemOperation<T>
     implements BatchableWriteOperation<T>,
                TransactableWriteOperation<T>,
-               TableOperation<T, PutItemRequest, PutItemResponse, Void> {
+               TableOperation<T, PutItemRequest, PutItemResponse, PutItemEnhancedResponse<T>> {
 
     private final Either<PutItemEnhancedRequest<T>, TransactPutItemEnhancedRequest<T>> request;
 
@@ -99,18 +101,31 @@ public class PutItemOperation<T>
                                                               .tableName(operationContext.tableName())
                                                               .item(itemMap);
 
+        if (request.left().isPresent()) {
+            requestBuilder = addPlainPutItemParameters(requestBuilder, request.left().get());
+        }
+
         requestBuilder = addExpressionsIfExist(requestBuilder, transformation);
 
         return requestBuilder.build();
     }
 
     @Override
-    public Void transformResponse(PutItemResponse response,
-                                  TableSchema<T> tableSchema,
-                                  OperationContext operationContext,
-                                  DynamoDbEnhancedClientExtension extension) {
-        // No results are returned by this operation
-        return null;
+    public PutItemEnhancedResponse<T> transformResponse(PutItemResponse response,
+                                                        TableSchema<T> tableSchema,
+                                                        OperationContext operationContext,
+                                                        DynamoDbEnhancedClientExtension extension) {
+        T attributes = null;
+        if (response.hasAttributes()) {
+            attributes = EnhancedClientUtils.readAndTransformSingleItem(response.attributes(), tableSchema, operationContext,
+                                                                        extension);
+        }
+
+        return PutItemEnhancedResponse.<T>builder(null)
+                                      .attributes(attributes)
+                                      .consumedCapacity(response.consumedCapacity())
+                                      .itemCollectionMetrics(response.itemCollectionMetrics())
+                                      .build();
     }
 
     @Override
@@ -194,6 +209,14 @@ public class PutItemOperation<T>
                 requestBuilder = requestBuilder.expressionAttributeNames(mergedConditionExpression.expressionNames());
             }
         }
+        return requestBuilder;
+    }
+
+    private PutItemRequest.Builder addPlainPutItemParameters(PutItemRequest.Builder requestBuilder,
+                                                             PutItemEnhancedRequest<?> enhancedRequest) {
+        requestBuilder = requestBuilder.returnValues(enhancedRequest.returnValuesAsString());
+        requestBuilder = requestBuilder.returnConsumedCapacity(enhancedRequest.returnConsumedCapacityAsString());
+        requestBuilder = requestBuilder.returnItemCollectionMetrics(enhancedRequest.returnItemCollectionMetricsAsString());
         return requestBuilder;
     }
 }
