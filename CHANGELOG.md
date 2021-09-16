@@ -1,3 +1,40 @@
+# __2.17.41__ __2021-09-16__
+## __AWS RoboMaker__
+  - ### Features
+    - Adding support to create container based Robot and Simulation applications by introducing an environment field
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for specifying which managed data identifiers are used by a classification job, and retrieving a list of managed data identifiers that are available.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This SDK release adds a new feature for Pinpoint campaigns, in-app messaging.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add API for users to retry a failed pipeline execution or resume a stopped one.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Add support for access point arn filtering in S3 CW Request Metrics
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for subtitling with Amazon Transcribe batch jobs.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - This commit introduces DynamoDbTable#putItemWithResponse() that allows customers to specify additional parameters on the request such as ReturnValues to get additional information the service response.
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - This is the initial SDK release for Amazon Managed Streaming for Apache Kafka Connect (MSK Connect).
+
 # __2.17.40__ __2021-09-14__
 ## __AWS SDK for Java v2__
   - ### Features
