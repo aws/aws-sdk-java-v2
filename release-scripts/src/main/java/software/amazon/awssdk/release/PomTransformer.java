@@ -16,6 +16,7 @@
 package software.amazon.awssdk.release;
 
 import java.nio.file.Path;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -33,7 +34,7 @@ import org.w3c.dom.NodeList;
 
 public abstract class PomTransformer {
     public final void transform(Path file) throws Exception {
-        DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory docFactory = newSecureDocumentBuilderFactory();
         DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
         Document doc = docBuilder.parse(file.toFile());
 
@@ -50,7 +51,7 @@ public abstract class PomTransformer {
 
         updateDocument(doc);
 
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        TransformerFactory transformerFactory = newSecureTransformerFactory();
         transformerFactory.setAttribute("indent-number", 4);
         Transformer transformer = transformerFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -101,5 +102,49 @@ public abstract class PomTransformer {
         newDependency.appendChild(textElement(doc, "version", "${awsjavasdk.version}"));
 
         return newDependency;
+    }
+
+    private DocumentBuilderFactory newSecureDocumentBuilderFactory() {
+        DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+        docFactory.setXIncludeAware(false);
+        docFactory.setExpandEntityReferences(false);
+        trySetFeature(docFactory, XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        trySetFeature(docFactory, "http://apache.org/xml/features/disallow-doctype-decl", true);
+        trySetFeature(docFactory, "http://xml.org/sax/features/external-general-entities", false);
+        trySetFeature(docFactory, "http://xml.org/sax/features/external-parameter-entities", false);
+        trySetAttribute(docFactory, "http://javax.xml.XMLConstants/property/accessExternalDTD", "");
+        trySetAttribute(docFactory, "http://javax.xml.XMLConstants/property/accessExternalSchema", "");
+        return docFactory;
+    }
+
+    private TransformerFactory newSecureTransformerFactory() {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        trySetAttribute(transformerFactory, XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        trySetAttribute(transformerFactory, XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+        return transformerFactory;
+    }
+
+    private void trySetFeature(DocumentBuilderFactory factory, String feature, boolean value) {
+        try {
+            factory.setFeature(feature, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void trySetAttribute(DocumentBuilderFactory factory, String feature, String value) {
+        try {
+            factory.setAttribute(feature, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void trySetAttribute(TransformerFactory factory, String feature, Object value) {
+        try {
+            factory.setAttribute(feature, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
