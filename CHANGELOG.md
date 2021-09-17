@@ -1,3 +1,20 @@
+# __2.17.42__ __2021-09-17__
+## __AWS Database Migration Service__
+  - ### Features
+    - Optional flag force-planned-failover added to reboot-replication-instance API call. This flag can be used to test a planned failover scenario used during some maintenance operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - This release adds an optional parameter in the ListDomainNames API to filter domains based on the engine type (OpenSearch/Elasticsearch).
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds an optional parameter in the ListDomainNames API to filter domains based on the engine type (OpenSearch/Elasticsearch).
+
 # __2.17.41__ __2021-09-16__
 ## __AWS RoboMaker__
   - ### Features
