@@ -36,7 +36,7 @@ phases:
 
           cat $SETTINGS_XML_TEMPLATE | \
             awk 'BEGIN { var=ENVIRON["SONATYPE_PASSWORD"] } { gsub("\\$SONATYPE_PASSWORD", var, $0); print }' | \
-            awk 'BEGIN { var=ENVIRON["SDK_SIGNING_GPG_PASSPHRASE"] } { gsub("\\$SDK_SIGNING_GPG_PASSPHRASE", var, $0); print }' > \
+            awk 'BEGIN { var=ENVIRON["SDK_SIGNING_GPG_PASSPHRASE"] } { gsub("\\$SDK_SIGNING_GPG_PASSPHRASE", var, $0); print }' | \
             awk 'BEGIN { var=ENVIRON["SDK_SIGNING_GPG_KEYNAME"] } { gsub("\\$SDK_SIGNING_GPG_KEYNAME", var, $0); print }' > \
             $SETTINGS_XML
 
