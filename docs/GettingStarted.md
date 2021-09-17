@@ -7,14 +7,19 @@
   generator][codegen]
 
 ### Development Environment Setup Tips
-If you use IntelliJ IDEA, we include some helpful config files that will make your development experience smoother:
-- [intellij-codestyle.xml](https://raw.githubusercontent.com/aws/aws-sdk-java-v2/master/build-tools/src/main/resources/software/amazon/awssdk/intellij-codestyle.xml)
+If you use IntelliJ IDEA, the following config files will be used by default for your project-level settings:
 
-  This will help ensure your code follows our code style guidelines.
-
-- [intellij-copyright-profile.xml](https://raw.githubusercontent.com/aws/aws-sdk-java-v2/master/build-tools/src/main/resources/software/amazon/awssdk/intellij-copyright-profile.xml)
+- [Copyright](https://raw.githubusercontent.com/aws/aws-sdk-java-v2/master/.idea/copyright/AWS_Java_SDK_2_0.xml)
 
   This automatically inserts the license header to the top of source files that you create.
+
+- [Code style](https://raw.githubusercontent.com/aws/aws-sdk-java-v2/master/.idea/codeStyles/Project.xml)
+  
+  This will help ensure your code follows our code style guidelines.
+
+- [Inspections](https://raw.githubusercontent.com/aws/aws-sdk-java-v2/master/.idea/inspectionProfiles/AWS_Java_SDK_2_0.xml)
+
+  This will help ensure your code is correct and follows our best practices. Please ensure your changes do not generate any new inspection warnings.
 
 If you have Checkstyle integrated with your IDE, we also recommend
 configuring it with our

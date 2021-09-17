@@ -148,7 +148,7 @@ public abstract class BaseAwsJsonProtocolFactory {
     }
 
     @SdkTestInternalApi
-    protected final String getContentType() {
+    public final String getContentType() {
         return protocolMetadata.contentType() != null ? protocolMetadata.contentType()
                 : getContentTypeResolver().resolveContentType(protocolMetadata);
     }
@@ -185,6 +185,7 @@ public abstract class BaseAwsJsonProtocolFactory {
                                             .contentType(getContentType())
                                             .operationInfo(operationInfo)
                                             .sendExplicitNullForPayload(false)
+                                            .protocolMetadata(protocolMetadata)
                                             .build();
     }
 

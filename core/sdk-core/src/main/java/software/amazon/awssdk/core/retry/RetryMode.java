@@ -70,7 +70,24 @@ public enum RetryMode {
      *     {@link TokenBucketRetryCondition}.</li>
      * </ol>
      */
-    STANDARD;
+    STANDARD,
+
+    /**
+     * Adaptive retry mode builds on {@code STANDARD} mode.
+     * <p>
+     * Adaptive retry mode dynamically limits the rate of AWS requests to maximize success rate. This may be at the
+     * expense of request latency. Adaptive retry mode is not recommended when predictable latency is important.
+     * <p>
+     * <b>Warning:</b> Adaptive retry mode assumes that the client is working against a single resource (e.g. one
+     * DynamoDB Table or one S3 Bucket). If you use a single client for multiple resources, throttling or outages
+     * associated with one resource will result in increased latency and failures when accessing all other resources via
+     * the same client. When using adaptive retry mode, we recommend using a single client per resource.
+     *
+     * @see RetryPolicy#isFastFailRateLimiting()
+     */
+    ADAPTIVE,
+
+    ;
 
     /**
      * Retrieve the default retry mode by consulting the locations described in {@link RetryMode}, or LEGACY if no value is
@@ -91,8 +108,11 @@ public enum RetryMode {
      * Allows customizing the variables used during determination of a {@link RetryMode}. Created via {@link #resolver()}.
      */
     public static class Resolver {
+        private static final RetryMode SDK_DEFAULT_RETRY_MODE = LEGACY;
+        
         private Supplier<ProfileFile> profileFile;
         private String profileName;
+        private RetryMode defaultRetryMode;
 
         private Resolver() {
         }
@@ -115,11 +135,19 @@ public enum RetryMode {
         }
 
         /**
+         * Configure the {@link RetryMode} that should be used if the mode is not specified anywhere else.
+         */
+        public Resolver defaultRetryMode(RetryMode defaultRetryMode) {
+            this.defaultRetryMode = defaultRetryMode;
+            return this;
+        }
+
+        /**
          * Resolve which retry mode should be used, based on the configured values.
          */
         public RetryMode resolve() {
             return OptionalUtils.firstPresent(Resolver.fromSystemSettings(), () -> fromProfileFile(profileFile, profileName))
-                                .orElse(RetryMode.LEGACY);
+                                .orElseGet(this::fromDefaultMode);
         }
 
         private static Optional<RetryMode> fromSystemSettings() {
@@ -146,9 +174,15 @@ public enum RetryMode {
                     return Optional.of(LEGACY);
                 case "standard":
                     return Optional.of(STANDARD);
+                case "adaptive":
+                    return Optional.of(ADAPTIVE);
                 default:
                     throw new IllegalStateException("Unsupported retry policy mode configured: " + string);
             }
+        }
+
+        private RetryMode fromDefaultMode() {
+            return defaultRetryMode != null ? defaultRetryMode : SDK_DEFAULT_RETRY_MODE;
         }
     }
 }

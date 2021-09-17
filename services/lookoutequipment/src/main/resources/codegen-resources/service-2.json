@@ -150,7 +150,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Provides information on a specified dataset such as the schema location, status, and so on.</p>"
+      "documentation":"<p>Provides a JSON description of the data that is in each time series dataset, including names, column names, and data types.</p>"
     },
     "DescribeInferenceScheduler":{
       "name":"DescribeInferenceScheduler",
@@ -184,7 +184,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Provides overall information about a specific ML model, including model name and ARN, dataset, training and evaluation information, status, and so on. </p>"
+      "documentation":"<p>Provides a JSON containing the overall information about a specific ML model, including model name and ARN, dataset, training and evaluation information, status, and so on. </p>"
     },
     "ListDataIngestionJobs":{
       "name":"ListDataIngestionJobs",
@@ -446,7 +446,7 @@
         },
         "ServerSideKmsKeyId":{
           "shape":"NameOrArn",
-          "documentation":"<p>Provides the identifier of the AWS KMS customer master key (CMK) used to encrypt dataset data by Amazon Lookout for Equipment. </p>"
+          "documentation":"<p>Provides the identifier of the KMS key used to encrypt dataset data by Amazon Lookout for Equipment. </p>"
         },
         "ClientToken":{
           "shape":"IdempotenceToken",
@@ -498,7 +498,7 @@
         },
         "DataDelayOffsetInMinutes":{
           "shape":"DataDelayOffsetInMinutes",
-          "documentation":"<p> A period of time (in minutes) by which inference on the data is delayed after the data starts. For instance, if you select an offset delay time of five minutes, inference will not begin on the data until the first data measurement after the five minute mark. For example, if five minutes is selected, the inference scheduler will wake up at the configured frequency with the additional five minute delay time to check the customer S3 bucket. The customer can upload data at the same frequency and they don't need to stop and restart the scheduler when uploading new data. </p>"
+          "documentation":"<p>A period of time (in minutes) by which inference on the data is delayed after the data starts. For instance, if you select an offset delay time of five minutes, inference will not begin on the data until the first data measurement after the five minute mark. For example, if five minutes is selected, the inference scheduler will wake up at the configured frequency with the additional five minute delay time to check the customer S3 bucket. The customer can upload data at the same frequency and they don't need to stop and restart the scheduler when uploading new data. </p>"
         },
         "DataUploadFrequency":{
           "shape":"DataUploadFrequency",
@@ -518,7 +518,7 @@
         },
         "ServerSideKmsKeyId":{
           "shape":"NameOrArn",
-          "documentation":"<p>Provides the identifier of the AWS KMS customer master key (CMK) used to encrypt inference scheduler data by Amazon Lookout for Equipment. </p>"
+          "documentation":"<p>Provides the identifier of the KMS key used to encrypt inference scheduler data by Amazon Lookout for Equipment. </p>"
         },
         "ClientToken":{
           "shape":"IdempotenceToken",
@@ -603,11 +603,15 @@
         },
         "ServerSideKmsKeyId":{
           "shape":"NameOrArn",
-          "documentation":"<p>Provides the identifier of the AWS KMS customer master key (CMK) used to encrypt model data by Amazon Lookout for Equipment. </p>"
+          "documentation":"<p>Provides the identifier of the KMS key used to encrypt model data by Amazon Lookout for Equipment. </p>"
         },
         "Tags":{
           "shape":"TagList",
           "documentation":"<p> Any tags associated with the ML model being created. </p>"
+        },
+        "OffCondition":{
+          "shape":"OffCondition",
+          "documentation":"<p>Indicates that the asset associated with this sensor has been shut off. As long as this condition is met, Lookout for Equipment will not use data from this asset for training, evaluation, or inference.</p>"
         }
       }
     },
@@ -855,7 +859,7 @@
         },
         "ServerSideKmsKeyId":{
           "shape":"KmsKeyArn",
-          "documentation":"<p>Provides the identifier of the AWS KMS customer master key (CMK) used to encrypt dataset data by Amazon Lookout for Equipment. </p>"
+          "documentation":"<p>Provides the identifier of the KMS key used to encrypt dataset data by Amazon Lookout for Equipment. </p>"
         },
         "IngestionInputConfiguration":{
           "shape":"IngestionInputConfiguration",
@@ -926,7 +930,7 @@
         },
         "ServerSideKmsKeyId":{
           "shape":"KmsKeyArn",
-          "documentation":"<p>Provides the identifier of the AWS KMS customer master key (CMK) used to encrypt inference scheduler data by Amazon Lookout for Equipment. </p>"
+          "documentation":"<p>Provides the identifier of the KMS key used to encrypt inference scheduler data by Amazon Lookout for Equipment. </p>"
         }
       }
     },
@@ -1023,7 +1027,11 @@
         },
         "ServerSideKmsKeyId":{
           "shape":"KmsKeyArn",
-          "documentation":"<p>Provides the identifier of the AWS KMS customer master key (CMK) used to encrypt model data by Amazon Lookout for Equipment. </p>"
+          "documentation":"<p>Provides the identifier of the KMS key used to encrypt model data by Amazon Lookout for Equipment. </p>"
+        },
+        "OffCondition":{
+          "shape":"OffCondition",
+          "documentation":"<p>Indicates that the asset associated with this sensor has been shut off. As long as this condition is met, Lookout for Equipment will not use data from this asset for training, evaluation, or inference.</p>"
         }
       }
     },
@@ -1122,10 +1130,10 @@
         },
         "InferenceInputNameConfiguration":{
           "shape":"InferenceInputNameConfiguration",
-          "documentation":"<p>&gt; Specifies configuration information for the input data for the inference, including timestamp format and delimiter. </p>"
+          "documentation":"<p>Specifies configuration information for the input data for the inference, including timestamp format and delimiter. </p>"
         }
       },
-      "documentation":"<p>&gt; Specifies configuration information for the input data for the inference, including S3 location of input data.. </p>"
+      "documentation":"<p>Specifies configuration information for the input data for the inference, including S3 location of input data.. </p>"
     },
     "InferenceInputNameConfiguration":{
       "type":"structure",
@@ -1139,7 +1147,7 @@
           "documentation":"<p>Indicates the delimiter character used between items in the data. </p>"
         }
       },
-      "documentation":"<p>&gt;&gt; Specifies configuration information for the input data for the inference, including timestamp format and delimiter. </p>"
+      "documentation":"<p>Specifies configuration information for the input data for the inference, including timestamp format and delimiter. </p>"
     },
     "InferenceOutputConfiguration":{
       "type":"structure",
@@ -1242,7 +1250,7 @@
         },
         "DataDelayOffsetInMinutes":{
           "shape":"DataDelayOffsetInMinutes",
-          "documentation":"<p>&gt; A period of time (in minutes) by which inference on the data is delayed after the data starts. For instance, if an offset delay time of five minutes was selected, inference will not begin on the data until the first data measurement after the five minute mark. For example, if five minutes is selected, the inference scheduler will wake up at the configured frequency with the additional five minute delay time to check the customer S3 bucket. The customer can upload data at the same frequency and they don't need to stop and restart the scheduler when uploading new data. </p>"
+          "documentation":"<p>A period of time (in minutes) by which inference on the data is delayed after the data starts. For instance, if an offset delay time of five minutes was selected, inference will not begin on the data until the first data measurement after the five minute mark. For example, if five minutes is selected, the inference scheduler will wake up at the configured frequency with the additional five minute delay time to check the customer S3 bucket. The customer can upload data at the same frequency and they don't need to stop and restart the scheduler when uploading new data. </p>"
         },
         "DataUploadFrequency":{
           "shape":"DataUploadFrequency",
@@ -1610,6 +1618,11 @@
       "max":8192,
       "pattern":"\\p{ASCII}{0,8192}"
     },
+    "OffCondition":{
+      "type":"string",
+      "max":2048,
+      "min":1
+    },
     "ResourceNotFoundException":{
       "type":"structure",
       "required":["Message"],
@@ -1901,7 +1914,7 @@
         },
         "DataDelayOffsetInMinutes":{
           "shape":"DataDelayOffsetInMinutes",
-          "documentation":"<p>&gt; A period of time (in minutes) by which inference on the data is delayed after the data starts. For instance, if you select an offset delay time of five minutes, inference will not begin on the data until the first data measurement after the five minute mark. For example, if five minutes is selected, the inference scheduler will wake up at the configured frequency with the additional five minute delay time to check the customer S3 bucket. The customer can upload data at the same frequency and they don't need to stop and restart the scheduler when uploading new data.</p>"
+          "documentation":"<p> A period of time (in minutes) by which inference on the data is delayed after the data starts. For instance, if you select an offset delay time of five minutes, inference will not begin on the data until the first data measurement after the five minute mark. For example, if five minutes is selected, the inference scheduler will wake up at the configured frequency with the additional five minute delay time to check the customer S3 bucket. The customer can upload data at the same frequency and they don't need to stop and restart the scheduler when uploading new data.</p>"
         },
         "DataUploadFrequency":{
           "shape":"DataUploadFrequency",

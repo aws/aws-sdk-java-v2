@@ -55,6 +55,8 @@ public class MemberModel extends DocumentationModel {
     private ParameterHttpMapping http;
 
     private boolean deprecated;
+    
+    private String deprecatedMessage;
 
     private ListModel listModel;
 
@@ -301,6 +303,14 @@ public class MemberModel extends DocumentationModel {
         this.deprecated = deprecated;
     }
 
+    public String getDeprecatedMessage() {
+        return deprecatedMessage;
+    }
+
+    public void setDeprecatedMessage(String deprecatedMessage) {
+        this.deprecatedMessage = deprecatedMessage;
+    }
+
     public boolean isEventPayload() {
         return eventPayload;
     }
@@ -423,7 +433,8 @@ public class MemberModel extends DocumentationModel {
 
         if (getAutoConstructClassIfExists().isPresent()) {
             appendParagraph(docBuilder,
-                            "You can use {@link #%s()} to see if a value was sent in this field.",
+                            "This method will never return null. If you would like to know whether the service returned this "
+                            + "field (so that you can differentiate between null and empty), you can use the {@link #%s} method.",
                             getExistenceCheckMethodName());
         }
 

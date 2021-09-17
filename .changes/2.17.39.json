@@ -1,0 +1,30 @@
+{
+    "version": "2.17.39",
+    "date": "2021-09-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Now users can pass `File` to `DownloadRequest` and `UploadRequest` in `S3TransferManager`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "AWS IoT Rules Engine adds OpenSearch action. The OpenSearch rule action lets you stream data from IoT sensors and applications to Amazon OpenSearch Service which is a successor to Amazon Elasticsearch Service."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adds support for T3 instances on Amazon EC2 Dedicated Hosts."
+        }
+    ]
+}

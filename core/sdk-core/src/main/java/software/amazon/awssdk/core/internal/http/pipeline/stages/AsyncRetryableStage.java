@@ -19,18 +19,22 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.OptionalDouble;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.RetryableStageHelper;
+import software.amazon.awssdk.core.internal.retry.RateLimitingTokenBucket;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -45,6 +49,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
     private final RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline;
     private final ScheduledExecutorService scheduledExecutor;
     private final HttpClientDependencies dependencies;
+    private final RateLimitingTokenBucket rateLimitingTokenBucket;
 
     public AsyncRetryableStage(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler,
                                HttpClientDependencies dependencies,
@@ -52,7 +57,20 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         this.responseHandler = responseHandler;
         this.dependencies = dependencies;
         this.scheduledExecutor = dependencies.clientConfiguration().option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
+        this.rateLimitingTokenBucket = new RateLimitingTokenBucket();
         this.requestPipeline = requestPipeline;
+    }
+
+    @SdkTestInternalApi
+    public AsyncRetryableStage(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler,
+                               HttpClientDependencies dependencies,
+                               RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline,
+                               RateLimitingTokenBucket rateLimitingTokenBucket) {
+        this.responseHandler = responseHandler;
+        this.dependencies = dependencies;
+        this.scheduledExecutor = dependencies.clientConfiguration().option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
+        this.requestPipeline = requestPipeline;
+        this.rateLimitingTokenBucket = rateLimitingTokenBucket;
     }
 
     @Override
@@ -69,7 +87,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         private RetryingExecutor(SdkHttpFullRequest request, RequestExecutionContext context) {
             this.originalRequestBody = context.requestProvider();
             this.context = context;
-            this.retryableStageHelper = new RetryableStageHelper(request, context, dependencies);
+            this.retryableStageHelper = new RetryableStageHelper(request, context, rateLimitingTokenBucket, dependencies);
         }
 
         public CompletableFuture<Response<OutputT>> execute() throws Exception {
@@ -95,9 +113,25 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             }
 
             Duration backoffDelay = retryableStageHelper.getBackoffDelay();
+
+            OptionalDouble tokenAcquireTimeSeconds = retryableStageHelper.getSendTokenNonBlocking();
+            if (!tokenAcquireTimeSeconds.isPresent()) {
+                String errorMessage = "Unable to acquire a send token immediately without waiting. This indicates that ADAPTIVE "
+                                      + "retry mode is enabled, fast fail rate limiting is enabled, and that rate limiting is "
+                                      + "engaged because of prior throttled requests. The request will not be executed.";
+                future.completeExceptionally(SdkClientException.create(errorMessage));
+                return;
+            }
+            long tokenAcquireTimeMillis = (long) (tokenAcquireTimeSeconds.getAsDouble() * 1000);
+
             if (!backoffDelay.isZero()) {
                 retryableStageHelper.logBackingOff(backoffDelay);
-                scheduledExecutor.schedule(() -> attemptExecute(future), backoffDelay.toMillis(), MILLISECONDS);
+            }
+
+            long totalDelayMillis = backoffDelay.toMillis() + tokenAcquireTimeMillis;
+
+            if (totalDelayMillis > 0) {
+                scheduledExecutor.schedule(() -> attemptExecute(future), totalDelayMillis, MILLISECONDS);
             } else {
                 attemptExecute(future);
             }
@@ -134,6 +168,8 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                     return;
                 }
 
+                retryableStageHelper.updateClientSendingRateForSuccessResponse();
+
                 retryableStageHelper.attemptSucceeded();
                 future.complete(response);
             });
@@ -141,6 +177,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
 
         private void maybeRetryExecute(CompletableFuture<Response<OutputT>> future, Throwable exception) {
             retryableStageHelper.setLastException(exception);
+            retryableStageHelper.updateClientSendingRateForErrorResponse();
             maybeAttemptExecute(future);
         }
     }

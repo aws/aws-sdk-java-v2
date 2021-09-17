@@ -30,7 +30,7 @@ import java.time.Duration;
 import java.time.Instant;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.sts.model.StsException;
 import software.amazon.awssdk.utils.DateUtils;
@@ -80,7 +80,7 @@ public class ProfileCredentialsProviderIntegrationTest {
         }
 
         String userAgentHeader = "User-Agent";
-        String userAgent = UserAgentUtils.getUserAgent();
+        String userAgent = SdkUserAgent.create().userAgent();
         mockMetadataEndpoint.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
         mockMetadataEndpoint.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
         mockMetadataEndpoint.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).withHeader(userAgentHeader, equalTo(userAgent)));

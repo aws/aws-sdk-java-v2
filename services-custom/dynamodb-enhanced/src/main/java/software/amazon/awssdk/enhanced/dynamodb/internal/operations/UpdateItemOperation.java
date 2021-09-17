@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -46,6 +48,7 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.Update;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
+import software.amazon.awssdk.utils.Either;
 
 @SdkInternalApi
 public class UpdateItemOperation<T>
@@ -62,13 +65,21 @@ public class UpdateItemOperation<T>
         key -> "if_not_exists(" + EXPRESSION_KEY_MAPPER.apply(key) + ", " +
                 EXPRESSION_VALUE_KEY_MAPPER.apply(key) + ")";
 
-    private final UpdateItemEnhancedRequest<T> request;
+    private final Either<UpdateItemEnhancedRequest<T>, TransactUpdateItemEnhancedRequest<T>> request;
 
     private UpdateItemOperation(UpdateItemEnhancedRequest<T> request) {
-        this.request = request;
+        this.request = Either.left(request);
+    }
+
+    private UpdateItemOperation(TransactUpdateItemEnhancedRequest<T> request) {
+        this.request = Either.right(request);
     }
 
     public static <T> UpdateItemOperation<T> create(UpdateItemEnhancedRequest<T> request) {
+        return new UpdateItemOperation<>(request);
+    }
+
+    public static <T> UpdateItemOperation<T> create(TransactUpdateItemEnhancedRequest<T> request) {
         return new UpdateItemOperation<>(request);
     }
 
@@ -80,8 +91,12 @@ public class UpdateItemOperation<T>
             throw new IllegalArgumentException("UpdateItem cannot be executed against a secondary index.");
         }
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(this.request.item(),
-                                                                    Boolean.TRUE.equals(this.request.ignoreNulls()));
+        T item = request.map(UpdateItemEnhancedRequest::item, TransactUpdateItemEnhancedRequest::item);
+        Boolean ignoreNulls = request.map(r -> Optional.ofNullable(r.ignoreNulls()),
+                                          r -> Optional.ofNullable(r.ignoreNulls()))
+                                     .orElse(null);
+
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, Boolean.TRUE.equals(ignoreNulls));
         TableMetadata tableMetadata = tableSchema.tableMetadata();
 
         WriteModification transformation =
@@ -149,17 +164,20 @@ public class UpdateItemOperation<T>
                                                        DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension) {
         UpdateItemRequest updateItemRequest = generateRequest(tableSchema, operationContext, dynamoDbEnhancedClientExtension);
 
-        Update update = Update.builder()
-                              .key(updateItemRequest.key())
-                              .tableName(updateItemRequest.tableName())
-                              .updateExpression(updateItemRequest.updateExpression())
-                              .conditionExpression(updateItemRequest.conditionExpression())
-                              .expressionAttributeValues(updateItemRequest.expressionAttributeValues())
-                              .expressionAttributeNames(updateItemRequest.expressionAttributeNames())
-                              .build();
+        Update.Builder builder = Update.builder()
+                                       .key(updateItemRequest.key())
+                                       .tableName(updateItemRequest.tableName())
+                                       .updateExpression(updateItemRequest.updateExpression())
+                                       .conditionExpression(updateItemRequest.conditionExpression())
+                                       .expressionAttributeValues(updateItemRequest.expressionAttributeValues())
+                                       .expressionAttributeNames(updateItemRequest.expressionAttributeNames());
+
+        request.right()
+               .map(TransactUpdateItemEnhancedRequest::returnValuesOnConditionCheckFailureAsString)
+               .ifPresent(builder::returnValuesOnConditionCheckFailure);
 
         return TransactWriteItem.builder()
-                                .update(update)
+                                .update(builder.build())
                                 .build();
     }
 
@@ -251,11 +269,14 @@ public class UpdateItemOperation<T>
         }
 
         /* Merge in conditional expression from specified 'conditionExpression' if applicable */
-        if (this.request.conditionExpression() != null) {
-            expressionNames = Expression.joinNames(expressionNames, this.request.conditionExpression().expressionNames());
-            expressionValues = Expression.joinValues(expressionValues, this.request.conditionExpression().expressionValues());
+        Expression conditionExpression = request.map(r -> Optional.ofNullable(r.conditionExpression()),
+                                                     r -> Optional.ofNullable(r.conditionExpression()))
+                                                .orElse(null);
+        if (conditionExpression != null) {
+            expressionNames = Expression.joinNames(expressionNames, conditionExpression.expressionNames());
+            expressionValues = Expression.joinValues(expressionValues, conditionExpression.expressionValues());
             conditionExpressionString = Expression.joinExpressions(conditionExpressionString,
-                                                                   this.request.conditionExpression().expression(), " AND ");
+                                                                   conditionExpression.expression(), " AND ");
         }
 
         // Avoiding adding empty collections that the low level SDK will propagate to DynamoDb where it causes error.

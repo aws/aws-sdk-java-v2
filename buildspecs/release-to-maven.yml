@@ -3,30 +3,44 @@ version: 0.2
 phases:
   install:
     commands:
-    - apt-get update
-    - apt-get install python3 python3-pip -y
-    - update-alternatives --install /usr/bin/python python /usr/bin/python3 10
-    - update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 10
-    - pip install awscli==1.19.34 --upgrade --user
-    - pip install rsa
-    - pip install typing
+      - apt-get update
+      - apt-get install python3 python3-pip -y
+      - update-alternatives --install /usr/bin/python python /usr/bin/python3 10
+      - update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 10
+      - pip install awscli==1.19.34 --upgrade --user
+      - pip install rsa
+      - pip install typing
 
   pre_build:
     commands:
-    - ROOT=`pwd`
-    - CREDENTIALS=$ROOT/credentials
-    - SETTINGS_XML=$CREDENTIALS/settings.xml
-    - GPG_HOME=$CREDENTIALS/gpghome
+      - ROOT=`pwd`
+      - SETTINGS_XML_TEMPLATE=buildspecs/resources/release-settings.xml
+      - SETTINGS_XML=release-settings-final.xml
+      - SDK_SIGNING_GPG_SECRING=secring.gpg
+      - SDK_SIGNING_GPG_SECRING_ARN="arn:aws:secretsmanager:us-east-1:103431983078:secret:sdk-signing-gpg-secret-ring-9d0YXc"
+      - SDK_SIGNING_GPG_KEYNAME_ARN="arn:aws:secretsmanager:us-east-1:103431983078:secret:sdk-signing-gpg-keyname-wFsOOg"
+      - SDK_SIGNING_GPG_PASSPHRASE_ARN="arn:aws:secretsmanager:us-east-1:103431983078:secret:sdk-signing-gpg-passphrase-A0H1Kq"
+      - SONATYPE_PASSWORD_ARN="arn:aws:secretsmanager:us-east-1:103431983078:secret:sonatype-password-I2V6Y0"
 
   build:
     commands:
-    - RELEASE_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
-    - SONATYPE_URL="https://aws.oss.sonatype.org/service/local/repositories/releases/content/software/amazon/awssdk/aws-sdk-java/$RELEASE_VERSION/"
-    - |
-      if ! curl -f --head $SONATYPE_URL; then
-        mkdir -p $CREDENTIALS
-        aws s3 cp s3://aws-java-sdk-release-credentials/ $CREDENTIALS/ --recursive
-        mvn clean deploy -B -s $SETTINGS_XML -Dgpg.homedir=$GPG_HOME -Ppublishing -DperformRelease -Dspotbugs.skip -DskipTests -Dcheckstyle.skip -Djapicmp.skip -Ddoclint=none -pl !:protocol-tests,!:protocol-tests-core,!:codegen-generated-classes-test,!:sdk-benchmarks,!:module-path-tests,!:tests-coverage-reporting,!:stability-tests,!:sdk-native-image-test,!:auth-sts-testing -DautoReleaseAfterClose=true -DstagingProgressTimeoutMinutes=30
-      else
-        echo "This version was already released."
-      fi
+      - RELEASE_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
+      - SONATYPE_URL="https://aws.oss.sonatype.org/service/local/repositories/releases/content/software/amazon/awssdk/aws-sdk-java/$RELEASE_VERSION/"
+      - |
+        if ! curl -f --head $SONATYPE_URL; then
+          SONATYPE_PASSWORD=`aws secretsmanager get-secret-value --secret-id $SONATYPE_PASSWORD_ARN --query SecretString --output text`
+          SDK_SIGNING_GPG_KEYNAME=`aws secretsmanager get-secret-value --secret-id $SDK_SIGNING_GPG_KEYNAME_ARN --query SecretString --output text`
+          SDK_SIGNING_GPG_PASSPHRASE=`aws secretsmanager get-secret-value --secret-id $SDK_SIGNING_GPG_PASSPHRASE_ARN --query SecretString --output text`
+          aws secretsmanager get-secret-value --secret-id  $SDK_SIGNING_GPG_SECRING_ARN --query SecretBinary --output text | base64 -d > $SDK_SIGNING_GPG_SECRING
+          gpg --passphrase $SDK_SIGNING_GPG_PASSPHRASE --import $SDK_SIGNING_GPG_SECRING
+
+          cat $SETTINGS_XML_TEMPLATE | \
+            awk 'BEGIN { var=ENVIRON["SONATYPE_PASSWORD"] } { gsub("\\$SONATYPE_PASSWORD", var, $0); print }' | \
+            awk 'BEGIN { var=ENVIRON["SDK_SIGNING_GPG_PASSPHRASE"] } { gsub("\\$SDK_SIGNING_GPG_PASSPHRASE", var, $0); print }' | \
+            awk 'BEGIN { var=ENVIRON["SDK_SIGNING_GPG_KEYNAME"] } { gsub("\\$SDK_SIGNING_GPG_KEYNAME", var, $0); print }' > \
+            $SETTINGS_XML
+
+          mvn clean deploy -B -s $SETTINGS_XML -Ppublishing -DperformRelease -Dspotbugs.skip -DskipTests -Dcheckstyle.skip -Djapicmp.skip -Ddoclint=none -pl !:protocol-tests,!:protocol-tests-core,!:codegen-generated-classes-test,!:sdk-benchmarks,!:module-path-tests,!:tests-coverage-reporting,!:stability-tests,!:sdk-native-image-test,!:auth-sts-testing,!:s3-benchmarks -DautoReleaseAfterClose=true -DstagingProgressTimeoutMinutes=30
+        else
+          echo "This version was already released."
+        fi

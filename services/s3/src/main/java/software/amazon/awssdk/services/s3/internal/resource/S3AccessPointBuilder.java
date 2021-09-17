@@ -20,8 +20,10 @@ import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncode;
 import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -116,39 +118,72 @@ public class S3AccessPointBuilder {
      * Generate an endpoint URI with no path that maps to the Access Point information stored in this builder.
      */
     public URI toUri() {
-        validateHostnameCompliant(accountId, "accountId");
-        validateHostnameCompliant(accessPointName, "accessPointName");
+        validateComponents();
 
-        String uri;
-        if (endpointOverride == null) {
-            String fipsSegment = Boolean.TRUE.equals(fipsEnabled) ? "-fips" : "";
-            String dualStackSegment = Boolean.TRUE.equals(dualstackEnabled) ? ".dualstack" : "";
+        String uriString = hasEndpointOverride() ? createEndpointOverrideUri() : createAccesspointUri();
 
-            uri = String.format("%s://%s-%s.s3-accesspoint%s%s.%s.%s", protocol, urlEncode(accessPointName),
-                                accountId, fipsSegment, dualStackSegment, region, domain);
-        } else {
-            Validate.isTrue(!Boolean.TRUE.equals(fipsEnabled),
-                            "FIPS regions are not supported with an endpoint override specified");
-            Validate.isTrue(!Boolean.TRUE.equals(dualstackEnabled),
-                            "Dual stack is not supported with an endpoint override specified");
-
-            StringBuilder uriSuffix = new StringBuilder(endpointOverride.getHost());
-            if (endpointOverride.getPort() > 0) {
-                uriSuffix.append(":").append(endpointOverride.getPort());
-            }
-            if (endpointOverride.getPath() != null) {
-                uriSuffix.append(endpointOverride.getPath());
-            }
-
-            uri = String.format("%s://%s-%s.%s", protocol, urlEncode(accessPointName), accountId, uriSuffix);
-        }
-
-        URI result = URI.create(uri);
+        URI result = URI.create(uriString);
         if (result.getHost() == null) {
             throw SdkClientException.create("Request resulted in an invalid URI: " + result);
         }
 
         return result;
+    }
+
+    private boolean hasEndpointOverride() {
+        return endpointOverride != null;
+    }
+
+    private String createAccesspointUri() {
+        String uri;
+        if (isGlobal()) {
+            uri = String.format("%s://%s.accesspoint.s3-global.%s", protocol, urlEncode(accessPointName), domain);
+        } else {
+            String fipsSegment = Boolean.TRUE.equals(fipsEnabled) ? "-fips" : "";
+            String dualStackSegment = Boolean.TRUE.equals(dualstackEnabled) ? ".dualstack" : "";
+
+            uri = String.format("%s://%s-%s.s3-accesspoint%s%s.%s.%s", protocol, urlEncode(accessPointName),
+                                accountId, fipsSegment, dualStackSegment, region, domain);
+        }
+        return uri;
+    }
+
+    private String createEndpointOverrideUri() {
+        String uri;
+        Validate.isTrue(!Boolean.TRUE.equals(fipsEnabled),
+                        "FIPS regions are not supported with an endpoint override specified");
+        Validate.isTrue(!Boolean.TRUE.equals(dualstackEnabled),
+                        "Dual stack is not supported with an endpoint override specified");
+
+        StringBuilder uriSuffix = new StringBuilder(endpointOverride.getHost());
+        if (endpointOverride.getPort() > 0) {
+            uriSuffix.append(":").append(endpointOverride.getPort());
+        }
+        if (endpointOverride.getPath() != null) {
+            uriSuffix.append(endpointOverride.getPath());
+        }
+
+        if (isGlobal()) {
+            uri = String.format("%s://%s.%s", protocol, urlEncode(accessPointName), uriSuffix);
+        } else {
+            uri = String.format("%s://%s-%s.%s", protocol, urlEncode(accessPointName), accountId, uriSuffix);
+        }
+        return uri;
+    }
+
+    private boolean isGlobal() {
+        return StringUtils.isEmpty(region);
+    }
+
+    private void validateComponents() {
+        validateHostnameCompliant(accountId, "accountId");
+
+        if (isGlobal()) {
+            Stream.of(accessPointName.split("\\."))
+                  .forEach(segment -> validateHostnameCompliant(segment, segment));
+        } else {
+            validateHostnameCompliant(accessPointName, "accessPointName");
+        }
     }
 
     private static void validateHostnameCompliant(String hostnameComponent, String paramName) {
