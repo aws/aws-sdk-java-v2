@@ -24,6 +24,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -33,7 +34,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.UnaryOperator;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -55,9 +55,6 @@ public final class SdkHttpUtils {
 
     private static final String[] ENCODED_CHARACTERS_WITHOUT_SLASHES = new String[] {"+", "*", "%7E"};
     private static final String[] ENCODED_CHARACTERS_WITHOUT_SLASHES_REPLACEMENTS = new String[] {"%20", "%2A", "~"};
-
-    private static final String QUERY_PARAM_DELIMITER_REGEX = "\\s*&\\s*";
-    private static final Pattern QUERY_PARAM_DELIMITER_PATTERN = Pattern.compile(QUERY_PARAM_DELIMITER_REGEX);
 
     // List of headers that may appear only once in a request; i.e. is not a list of values.
     // Taken from https://github.com/apache/httpcomponents-client/blob/81c1bc4dc3ca5a3134c5c60e8beff08be2fd8792/httpclient5-cache/src/test/java/org/apache/hc/client5/http/impl/cache/HttpTestUtils.java#L69-L85 with modifications:
@@ -335,10 +332,27 @@ public final class SdkHttpUtils {
      * Extracts query parameters from the given URI
      */
     public static Map<String, List<String>> uriParams(URI uri) {
-        return QUERY_PARAM_DELIMITER_PATTERN
-                      .splitAsStream(uri.getRawQuery().trim())
-                      .map(s -> s.contains("=") ? s.split("=", 2) : new String[] {s, null})
-                      .collect(groupingBy(a -> urlDecode(a[0]), mapping(a -> urlDecode(a[1]), toList())));
+        return splitQueryString(uri.getRawQuery())
+            .stream()
+            .map(s -> s.split("="))
+            .map(s -> s.length == 1 ? new String[] { s[0], null } : s)
+            .collect(groupingBy(a -> urlDecode(a[0]), mapping(a -> urlDecode(a[1]), toList())));
+    }
+
+    public static List<String> splitQueryString(String queryString) {
+        List<String> results = new ArrayList<>();
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < queryString.length(); i++) {
+            char character = queryString.charAt(i);
+            if (character != '&') {
+                result.append(character);
+            } else {
+                results.add(StringUtils.trimToEmpty(result.toString()));
+                result.setLength(0);
+            }
+        }
+        results.add(StringUtils.trimToEmpty(result.toString()));
+        return results;
     }
 
 }
