@@ -28,6 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactDeleteItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -43,7 +44,7 @@ import software.amazon.awssdk.utils.Either;
 
 @SdkInternalApi
 public class DeleteItemOperation<T>
-    implements TableOperation<T, DeleteItemRequest, DeleteItemResponse, T>,
+    implements TableOperation<T, DeleteItemRequest, DeleteItemResponse, DeleteItemEnhancedResponse<T>>,
                TransactableWriteOperation<T>,
                BatchableWriteOperation<T> {
 
@@ -82,17 +83,27 @@ public class DeleteItemOperation<T>
                              .key(key.keyMap(tableSchema, operationContext.indexName()))
                              .returnValues(ReturnValue.ALL_OLD);
 
+        if (request.left().isPresent()) {
+            requestBuilder = addPlainDeleteItemParameters(requestBuilder, request.left().get());
+        }
+
         requestBuilder = addExpressionsIfExist(requestBuilder);
 
         return requestBuilder.build();
     }
 
     @Override
-    public T transformResponse(DeleteItemResponse response,
-                               TableSchema<T> tableSchema,
-                               OperationContext operationContext,
-                               DynamoDbEnhancedClientExtension extension) {
-        return EnhancedClientUtils.readAndTransformSingleItem(response.attributes(), tableSchema, operationContext, extension);
+    public DeleteItemEnhancedResponse<T> transformResponse(DeleteItemResponse response,
+                                                     TableSchema<T> tableSchema,
+                                                     OperationContext operationContext,
+                                                     DynamoDbEnhancedClientExtension extension) {
+        T attributes = EnhancedClientUtils.readAndTransformSingleItem(response.attributes(), tableSchema, operationContext,
+                                                                      extension);
+        return DeleteItemEnhancedResponse.<T>builder(null)
+                                         .attributes(attributes)
+                                         .consumedCapacity(response.consumedCapacity())
+                                         .itemCollectionMetrics(response.itemCollectionMetrics())
+                                         .build();
     }
 
     @Override
@@ -162,4 +173,10 @@ public class DeleteItemOperation<T>
         return requestBuilder;
     }
 
+    private DeleteItemRequest.Builder addPlainDeleteItemParameters(DeleteItemRequest.Builder requestBuilder,
+                                                             DeleteItemEnhancedRequest enhancedRequest) {
+        requestBuilder = requestBuilder.returnConsumedCapacity(enhancedRequest.returnConsumedCapacityAsString());
+        requestBuilder = requestBuilder.returnItemCollectionMetrics(enhancedRequest.returnItemCollectionMetricsAsString());
+        return requestBuilder;
+    }
 }
