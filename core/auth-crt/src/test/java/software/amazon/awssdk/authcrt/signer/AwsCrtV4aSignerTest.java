@@ -45,6 +45,45 @@ public class AwsCrtV4aSignerTest {
     }
 
     @Test
+    public void hostHeaderExcludesStandardHttpPort() {
+        SigningTestCase testCase = SignerTestUtils.createBasicHeaderSigningTestCase();
+        ExecutionAttributes executionAttributes = SignerTestUtils.buildBasicExecutionAttributes(testCase);
+
+        SdkHttpFullRequest request = testCase.requestBuilder.protocol("http")
+                                                            .port(80)
+                                                            .build();
+        SdkHttpFullRequest signed = v4aSigner.sign(request, executionAttributes);
+
+        assertThat(signed.firstMatchingHeader("Host")).hasValue("demo.us-east-1.amazonaws.com");
+    }
+
+    @Test
+    public void hostHeaderExcludesStandardHttpsPort() {
+        SigningTestCase testCase = SignerTestUtils.createBasicHeaderSigningTestCase();
+        ExecutionAttributes executionAttributes = SignerTestUtils.buildBasicExecutionAttributes(testCase);
+
+        SdkHttpFullRequest request = testCase.requestBuilder.protocol("https")
+                                                            .port(443)
+                                                            .build();
+        SdkHttpFullRequest signed = v4aSigner.sign(request, executionAttributes);
+
+        assertThat(signed.firstMatchingHeader("Host")).hasValue("demo.us-east-1.amazonaws.com");
+    }
+
+    @Test
+    public void hostHeaderIncludesNonStandardPorts() {
+        SigningTestCase testCase = SignerTestUtils.createBasicHeaderSigningTestCase();
+        ExecutionAttributes executionAttributes = SignerTestUtils.buildBasicExecutionAttributes(testCase);
+
+        SdkHttpFullRequest request = testCase.requestBuilder.protocol("http")
+                                                            .port(443)
+                                                            .build();
+        SdkHttpFullRequest signed = v4aSigner.sign(request, executionAttributes);
+
+        assertThat(signed.firstMatchingHeader("Host")).hasValue("demo.us-east-1.amazonaws.com:443");
+    }
+
+    @Test
     public void testHeaderSigning() {
         SigningTestCase testCase = SignerTestUtils.createBasicHeaderSigningTestCase();
         ExecutionAttributes executionAttributes = SignerTestUtils.buildBasicExecutionAttributes(testCase);
