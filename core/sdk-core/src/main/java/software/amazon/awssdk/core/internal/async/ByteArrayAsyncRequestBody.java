@@ -21,6 +21,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * An implementation of {@link AsyncRequestBody} for providing data from memory. This is created using static
@@ -32,6 +33,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
  */
 @SdkInternalApi
 public final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
+    private static final Logger log = Logger.loggerFor(ByteArrayAsyncRequestBody.class);
 
     private final byte[] bytes;
 
@@ -90,11 +92,7 @@ public final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
                     }
             );
         } catch (Throwable ex) {
-            new IllegalStateException(s + " violated the Reactive Streams rule 2.13 " +
-                    "by throwing an exception from onSubscribe.", ex)
-                    // When onSubscribe fails this way, we don't know what state the
-                    // s is thus calling onError may cause more crashes.
-                    .printStackTrace();
+            log.error(() -> s + " violated the Reactive Streams rule 2.13 by throwing an exception from onSubscribe.", ex);
         }
     }
 }

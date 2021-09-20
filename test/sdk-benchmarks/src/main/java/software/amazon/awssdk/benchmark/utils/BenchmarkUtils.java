@@ -70,7 +70,9 @@ public final class BenchmarkUtils {
 
     public static void awaitCountdownLatchUninterruptibly(CountDownLatch countDownLatch, int timeout, TimeUnit unit) {
         try {
-            countDownLatch.await(timeout, unit);
+            if (!countDownLatch.await(timeout, unit)) {
+                throw new RuntimeException("Countdown latch did not successfully return within " + timeout + " " + unit);
+            }
         } catch (InterruptedException e) {
             // No need to re-interrupt.
             logger.error(() -> "InterruptedException thrown ", e);

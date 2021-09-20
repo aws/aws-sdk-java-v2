@@ -63,7 +63,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates an <i>action</i>. An action is a lineage tracking entity that represents an action or activity. For example, a model deployment or an HPO job. Generally, an action involves at least one input or output artifact. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p> <note> <p> <code>CreateAction</code> can only be invoked from within an SageMaker managed environment. This includes SageMaker training jobs, processing jobs, transform jobs, and SageMaker notebooks. A call to <code>CreateAction</code> from outside one of these environments results in an error.</p> </note>"
+      "documentation":"<p>Creates an <i>action</i>. An action is a lineage tracking entity that represents an action or activity. For example, a model deployment or an HPO job. Generally, an action involves at least one input or output artifact. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p>"
     },
     "CreateAlgorithm":{
       "name":"CreateAlgorithm",
@@ -113,7 +113,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates an <i>artifact</i>. An artifact is a lineage tracking entity that represents a URI addressable object or data. Some examples are the S3 URI of a dataset and the ECR registry path of an image. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p> <note> <p> <code>CreateArtifact</code> can only be invoked from within an SageMaker managed environment. This includes SageMaker training jobs, processing jobs, transform jobs, and SageMaker notebooks. A call to <code>CreateArtifact</code> from outside one of these environments results in an error.</p> </note>"
+      "documentation":"<p>Creates an <i>artifact</i>. An artifact is a lineage tracking entity that represents a URI addressable object or data. Some examples are the S3 URI of a dataset and the ECR registry path of an image. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p>"
     },
     "CreateAutoMLJob":{
       "name":"CreateAutoMLJob",
@@ -164,7 +164,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates a <i>context</i>. A context is a lineage tracking entity that represents a logical grouping of other tracking or experiment entities. Some examples are an endpoint and a model package. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p> <note> <p> <code>CreateContext</code> can only be invoked from within an SageMaker managed environment. This includes SageMaker training jobs, processing jobs, transform jobs, and SageMaker notebooks. A call to <code>CreateContext</code> from outside one of these environments results in an error.</p> </note>"
+      "documentation":"<p>Creates a <i>context</i>. A context is a lineage tracking entity that represents a logical grouping of other tracking or experiment entities. Some examples are an endpoint and a model package. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p>"
     },
     "CreateDataQualityJobDefinition":{
       "name":"CreateDataQualityJobDefinition",
@@ -205,7 +205,7 @@
         {"shape":"ResourceLimitExceeded"},
         {"shape":"ResourceInUse"}
       ],
-      "documentation":"<p>Creates a <code>Domain</code> used by Amazon SageMaker Studio. A domain consists of an associated Amazon Elastic File System (EFS) volume, a list of authorized users, and a variety of security, application, policy, and Amazon Virtual Private Cloud (VPC) configurations. An Amazon Web Services account is limited to one domain per region. Users within a domain can share notebook files and other artifacts with each other.</p> <p> <b>EFS storage</b> </p> <p>When a domain is created, an EFS volume is created for use by all of the users within the domain. Each user receives a private home directory within the EFS volume for notebooks, Git repositories, and data files.</p> <p>SageMaker uses the Amazon Web Services Key Management Service (Amazon Web Services KMS) to encrypt the EFS volume attached to the domain with an Amazon Web Services managed customer master key (CMK) by default. For more control, you can specify a customer managed CMK. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/encryption-at-rest.html\">Protect Data at Rest Using Encryption</a>.</p> <p> <b>VPC configuration</b> </p> <p>All SageMaker Studio traffic between the domain and the EFS volume is through the specified VPC and subnets. For other Studio traffic, you can specify the <code>AppNetworkAccessType</code> parameter. <code>AppNetworkAccessType</code> corresponds to the network access type that you choose when you onboard to Studio. The following options are available:</p> <ul> <li> <p> <code>PublicInternetOnly</code> - Non-EFS traffic goes through a VPC managed by Amazon SageMaker, which allows internet access. This is the default value.</p> </li> <li> <p> <code>VpcOnly</code> - All Studio traffic is through the specified VPC and subnets. Internet access is disabled by default. To allow internet access, you must specify a NAT gateway.</p> <p>When internet access is disabled, you won't be able to run a Studio notebook or to train or host models unless your VPC has an interface endpoint to the SageMaker API and runtime or a NAT gateway and your security groups allow outbound connections.</p> </li> </ul> <important> <p>NFS traffic over TCP on port 2049 needs to be allowed in both inbound and outbound rules in order to launch a SageMaker Studio app successfully.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/studio-notebooks-and-internet-access.html\">Connect SageMaker Studio Notebooks to Resources in a VPC</a>.</p>"
+      "documentation":"<p>Creates a <code>Domain</code> used by Amazon SageMaker Studio. A domain consists of an associated Amazon Elastic File System (EFS) volume, a list of authorized users, and a variety of security, application, policy, and Amazon Virtual Private Cloud (VPC) configurations. An Amazon Web Services account is limited to one domain per region. Users within a domain can share notebook files and other artifacts with each other.</p> <p> <b>EFS storage</b> </p> <p>When a domain is created, an EFS volume is created for use by all of the users within the domain. Each user receives a private home directory within the EFS volume for notebooks, Git repositories, and data files.</p> <p>SageMaker uses the Amazon Web Services Key Management Service (Amazon Web Services KMS) to encrypt the EFS volume attached to the domain with an Amazon Web Services managed key by default. For more control, you can specify a customer managed key. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/encryption-at-rest.html\">Protect Data at Rest Using Encryption</a>.</p> <p> <b>VPC configuration</b> </p> <p>All SageMaker Studio traffic between the domain and the EFS volume is through the specified VPC and subnets. For other Studio traffic, you can specify the <code>AppNetworkAccessType</code> parameter. <code>AppNetworkAccessType</code> corresponds to the network access type that you choose when you onboard to Studio. The following options are available:</p> <ul> <li> <p> <code>PublicInternetOnly</code> - Non-EFS traffic goes through a VPC managed by Amazon SageMaker, which allows internet access. This is the default value.</p> </li> <li> <p> <code>VpcOnly</code> - All Studio traffic is through the specified VPC and subnets. Internet access is disabled by default. To allow internet access, you must specify a NAT gateway.</p> <p>When internet access is disabled, you won't be able to run a Studio notebook or to train or host models unless your VPC has an interface endpoint to the SageMaker API and runtime or a NAT gateway and your security groups allow outbound connections.</p> </li> </ul> <important> <p>NFS traffic over TCP on port 2049 needs to be allowed in both inbound and outbound rules in order to launch a SageMaker Studio app successfully.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/studio-notebooks-and-internet-access.html\">Connect SageMaker Studio Notebooks to Resources in a VPC</a>.</p>"
     },
     "CreateEdgePackagingJob":{
       "name":"CreateEdgePackagingJob",
@@ -243,7 +243,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates an endpoint configuration that Amazon SageMaker hosting services uses to deploy models. In the configuration, you identify one or more models, created using the <code>CreateModel</code> API, to deploy and the resources that you want Amazon SageMaker to provision. Then you call the <a>CreateEndpoint</a> API.</p> <note> <p> Use this API if you want to use Amazon SageMaker hosting services to deploy models into production. </p> </note> <p>In the request, you define a <code>ProductionVariant</code>, for each model that you want to deploy. Each <code>ProductionVariant</code> parameter also describes the resources that you want Amazon SageMaker to provision. This includes the number and type of ML compute instances to deploy. </p> <p>If you are hosting multiple models, you also assign a <code>VariantWeight</code> to specify how much traffic you want to allocate to each model. For example, suppose that you want to host two models, A and B, and you assign traffic weight 2 for model A and 1 for model B. Amazon SageMaker distributes two-thirds of the traffic to Model A, and one-third to model B. </p> <p>For an example that calls this method when deploying a model to Amazon SageMaker hosting services, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/ex1-deploy-model.html#ex1-deploy-model-boto\">Deploy the Model to Amazon SageMaker Hosting Services (Amazon Web Services SDK for Python (Boto 3)).</a> </p> <note> <p>When you call <a>CreateEndpoint</a>, a load call is made to DynamoDB to verify that your endpoint configuration exists. When you read data from a DynamoDB table supporting <a href=\"https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html\"> <code>Eventually Consistent Reads</code> </a>, the response might not reflect the results of a recently completed write operation. The response might include some stale data. If the dependent entities are not yet in DynamoDB, this causes a validation error. If you repeat your read request after a short time, the response should return the latest data. So retry logic is recommended to handle these possible issues. We also recommend that customers call <a>DescribeEndpointConfig</a> before calling <a>CreateEndpoint</a> to minimize the potential impact of a DynamoDB eventually consistent read.</p> </note>"
+      "documentation":"<p>Creates an endpoint configuration that Amazon SageMaker hosting services uses to deploy models. In the configuration, you identify one or more models, created using the <code>CreateModel</code> API, to deploy and the resources that you want Amazon SageMaker to provision. Then you call the <a>CreateEndpoint</a> API.</p> <note> <p> Use this API if you want to use Amazon SageMaker hosting services to deploy models into production. </p> </note> <p>In the request, you define a <code>ProductionVariant</code>, for each model that you want to deploy. Each <code>ProductionVariant</code> parameter also describes the resources that you want Amazon SageMaker to provision. This includes the number and type of ML compute instances to deploy. </p> <p>If you are hosting multiple models, you also assign a <code>VariantWeight</code> to specify how much traffic you want to allocate to each model. For example, suppose that you want to host two models, A and B, and you assign traffic weight 2 for model A and 1 for model B. Amazon SageMaker distributes two-thirds of the traffic to Model A, and one-third to model B. </p> <note> <p>When you call <a>CreateEndpoint</a>, a load call is made to DynamoDB to verify that your endpoint configuration exists. When you read data from a DynamoDB table supporting <a href=\"https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html\"> <code>Eventually Consistent Reads</code> </a>, the response might not reflect the results of a recently completed write operation. The response might include some stale data. If the dependent entities are not yet in DynamoDB, this causes a validation error. If you repeat your read request after a short time, the response should return the latest data. So retry logic is recommended to handle these possible issues. We also recommend that customers call <a>DescribeEndpointConfig</a> before calling <a>CreateEndpoint</a> to minimize the potential impact of a DynamoDB eventually consistent read.</p> </note>"
     },
     "CreateExperiment":{
       "name":"CreateExperiment",
@@ -543,6 +543,19 @@
         {"shape":"ResourceLimitExceeded"}
       ],
       "documentation":"<p>Creates a machine learning (ML) project that can contain one or more templates that set up an ML pipeline from training to deploying an approved model.</p>"
+    },
+    "CreateStudioLifecycleConfig":{
+      "name":"CreateStudioLifecycleConfig",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateStudioLifecycleConfigRequest"},
+      "output":{"shape":"CreateStudioLifecycleConfigResponse"},
+      "errors":[
+        {"shape":"ResourceInUse"}
+      ],
+      "documentation":"<p>Creates a new Studio Lifecycle Configuration.</p>"
     },
     "CreateTrainingJob":{
       "name":"CreateTrainingJob",
@@ -1001,6 +1014,19 @@
         {"shape":"ConflictException"}
       ],
       "documentation":"<p>Delete the specified project.</p>"
+    },
+    "DeleteStudioLifecycleConfig":{
+      "name":"DeleteStudioLifecycleConfig",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteStudioLifecycleConfigRequest"},
+      "errors":[
+        {"shape":"ResourceNotFound"},
+        {"shape":"ResourceInUse"}
+      ],
+      "documentation":"<p>Deletes the Studio Lifecycle Configuration. In order to delete the Lifecycle Configuration, there must be no running apps using the Lifecycle Configuration. You must also remove the Lifecycle Configuration from UserSettings in all Domains and UserProfiles.</p>"
     },
     "DeleteTags":{
       "name":"DeleteTags",
@@ -1546,6 +1572,19 @@
       "input":{"shape":"DescribeProjectInput"},
       "output":{"shape":"DescribeProjectOutput"},
       "documentation":"<p>Describes the details of a project.</p>"
+    },
+    "DescribeStudioLifecycleConfig":{
+      "name":"DescribeStudioLifecycleConfig",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeStudioLifecycleConfigRequest"},
+      "output":{"shape":"DescribeStudioLifecycleConfigResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"}
+      ],
+      "documentation":"<p>Describes the Studio Lifecycle Configuration.</p>"
     },
     "DescribeSubscribedWorkteam":{
       "name":"DescribeSubscribedWorkteam",
@@ -2175,6 +2214,19 @@
       "output":{"shape":"ListProjectsOutput"},
       "documentation":"<p>Gets a list of the projects in an Amazon Web Services account.</p>"
     },
+    "ListStudioLifecycleConfigs":{
+      "name":"ListStudioLifecycleConfigs",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListStudioLifecycleConfigsRequest"},
+      "output":{"shape":"ListStudioLifecycleConfigsResponse"},
+      "errors":[
+        {"shape":"ResourceInUse"}
+      ],
+      "documentation":"<p>Lists the Studio Lifecycle Configurations in your Amazon Web Services Account.</p>"
+    },
     "ListSubscribedWorkteams":{
       "name":"ListSubscribedWorkteams",
       "http":{
@@ -2318,6 +2370,21 @@
         {"shape":"ResourceNotFound"}
       ],
       "documentation":"<p>Renders the UI template so that you can preview the worker's experience. </p>"
+    },
+    "RetryPipelineExecution":{
+      "name":"RetryPipelineExecution",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RetryPipelineExecutionRequest"},
+      "output":{"shape":"RetryPipelineExecutionResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"},
+        {"shape":"ResourceLimitExceeded"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Retry the execution of the pipeline.</p>"
     },
     "Search":{
       "name":"Search",
@@ -5637,7 +5704,7 @@
         },
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>SageMaker uses Amazon Web Services KMS to encrypt the EFS volume attached to the domain with an Amazon Web Services managed customer master key (CMK) by default. For more control, specify a customer managed CMK.</p>"
+          "documentation":"<p>SageMaker uses Amazon Web Services KMS to encrypt the EFS volume attached to the domain with an Amazon Web Services managed key by default. For more control, specify a customer managed key.</p>"
         }
       }
     },
@@ -5691,7 +5758,7 @@
         },
         "ResourceKey":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The CMK to use when encrypting the EBS volume the edge packaging job runs on.</p>"
+          "documentation":"<p>The Amazon Web Services KMS key to use when encrypting the EBS volume the edge packaging job runs on.</p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -6757,6 +6824,41 @@
         "ProjectId":{
           "shape":"ProjectId",
           "documentation":"<p>The ID of the new project.</p>"
+        }
+      }
+    },
+    "CreateStudioLifecycleConfigRequest":{
+      "type":"structure",
+      "required":[
+        "StudioLifecycleConfigName",
+        "StudioLifecycleConfigContent",
+        "StudioLifecycleConfigAppType"
+      ],
+      "members":{
+        "StudioLifecycleConfigName":{
+          "shape":"StudioLifecycleConfigName",
+          "documentation":"<p>The name of the Studio Lifecycle Configuration to create.</p>"
+        },
+        "StudioLifecycleConfigContent":{
+          "shape":"StudioLifecycleConfigContent",
+          "documentation":"<p>The content of your Studio Lifecycle Configuration script. This content must be base64 encoded.</p>"
+        },
+        "StudioLifecycleConfigAppType":{
+          "shape":"StudioLifecycleConfigAppType",
+          "documentation":"<p>The App type that the Lifecycle Configuration is attached to.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags to be associated with the Lifecycle Configuration. Each tag consists of a key and an optional value. Tag keys must be unique per resource. Tags are searchable using the Search API. </p>"
+        }
+      }
+    },
+    "CreateStudioLifecycleConfigResponse":{
+      "type":"structure",
+      "members":{
+        "StudioLifecycleConfigArn":{
+          "shape":"StudioLifecycleConfigArn",
+          "documentation":"<p>The ARN of your created Lifecycle Configuration.</p>"
         }
       }
     },
@@ -7936,6 +8038,16 @@
         }
       }
     },
+    "DeleteStudioLifecycleConfigRequest":{
+      "type":"structure",
+      "required":["StudioLifecycleConfigName"],
+      "members":{
+        "StudioLifecycleConfigName":{
+          "shape":"StudioLifecycleConfigName",
+          "documentation":"<p>The name of the Studio Lifecycle Configuration to delete.</p>"
+        }
+      }
+    },
     "DeleteTagsInput":{
       "type":"structure",
       "required":[
@@ -8938,7 +9050,7 @@
         },
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The Amazon Web Services KMS customer managed CMK used to encrypt the EFS volume attached to the domain.</p>"
+          "documentation":"<p>The Amazon Web Services KMS customer managed key used to encrypt the EFS volume attached to the domain.</p>"
         }
       }
     },
@@ -8990,7 +9102,7 @@
         },
         "ResourceKey":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The CMK to use when encrypting the EBS volume the job run on.</p>"
+          "documentation":"<p>The Amazon Web Services KMS key to use when encrypting the EBS volume the job run on.</p>"
         },
         "EdgePackagingJobStatus":{
           "shape":"EdgePackagingJobStatus",
@@ -10522,6 +10634,45 @@
         }
       }
     },
+    "DescribeStudioLifecycleConfigRequest":{
+      "type":"structure",
+      "required":["StudioLifecycleConfigName"],
+      "members":{
+        "StudioLifecycleConfigName":{
+          "shape":"StudioLifecycleConfigName",
+          "documentation":"<p>The name of the Studio Lifecycle Configuration to describe.</p>"
+        }
+      }
+    },
+    "DescribeStudioLifecycleConfigResponse":{
+      "type":"structure",
+      "members":{
+        "StudioLifecycleConfigArn":{
+          "shape":"StudioLifecycleConfigArn",
+          "documentation":"<p>The ARN of the Lifecycle Configuration to describe.</p>"
+        },
+        "StudioLifecycleConfigName":{
+          "shape":"StudioLifecycleConfigName",
+          "documentation":"<p>The name of the Studio Lifecycle Configuration that is described.</p>"
+        },
+        "CreationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The creation time of the Studio Lifecycle Configuration.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>This value is equivalent to CreationTime because Studio Lifecycle Configurations are immutable.</p>"
+        },
+        "StudioLifecycleConfigContent":{
+          "shape":"StudioLifecycleConfigContent",
+          "documentation":"<p>The content of your Studio Lifecycle Configuration script.</p>"
+        },
+        "StudioLifecycleConfigAppType":{
+          "shape":"StudioLifecycleConfigAppType",
+          "documentation":"<p>The App type that the Lifecycle Configuration is attached to.</p>"
+        }
+      }
+    },
     "DescribeSubscribedWorkteamRequest":{
       "type":"structure",
       "required":["WorkteamArn"],
@@ -10858,7 +11009,7 @@
         },
         "CreatedBy":{
           "shape":"UserContext",
-          "documentation":"<p>Who created the component.</p>"
+          "documentation":"<p>Who created the trial component.</p>"
         },
         "LastModifiedTime":{
           "shape":"Timestamp",
@@ -11912,7 +12063,10 @@
           "shape":"Timestamp",
           "documentation":"<p>When the experiment was created.</p>"
         },
-        "CreatedBy":{"shape":"UserContext"},
+        "CreatedBy":{
+          "shape":"UserContext",
+          "documentation":"<p>Who created the experiment.</p>"
+        },
         "LastModifiedTime":{
           "shape":"Timestamp",
           "documentation":"<p>When the experiment was last modified.</p>"
@@ -13768,6 +13922,10 @@
         "DefaultResourceSpec":{
           "shape":"ResourceSpec",
           "documentation":"<p>The default instance type and the Amazon Resource Name (ARN) of the default SageMaker image used by the JupyterServer app.</p>"
+        },
+        "LifecycleConfigArns":{
+          "shape":"LifecycleConfigArns",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the Lifecycle Configurations attached to the JupyterServerApp.</p>"
         }
       },
       "documentation":"<p>The JupyterServer app settings.</p>"
@@ -13786,6 +13944,10 @@
         "CustomImages":{
           "shape":"CustomImages",
           "documentation":"<p>A list of custom SageMaker images that are configured to run as a KernelGateway app.</p>"
+        },
+        "LifecycleConfigArns":{
+          "shape":"LifecycleConfigArns",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the Lifecycle Configurations attached to the the user profile or domain.</p>"
         }
       },
       "documentation":"<p>The KernelGateway app settings.</p>"
@@ -14041,7 +14203,7 @@
       "members":{
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt data on the storage volume attached to the ML compute instance(s) that run the training and inference jobs used for automated data labeling. </p> <p>You can only specify a <code>VolumeKmsKeyId</code> when you create a labeling job with automated data labeling enabled using the API operation <code>CreateLabelingJob</code>. You cannot specify an Amazon Web Services KMS customer managed CMK to encrypt the storage volume used for automated data labeling model training and inference when you create a labeling job using the console. To learn more, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/sms-security.html\">Output Data and Storage Volume Encryption</a>.</p> <p>The <code>VolumeKmsKeyId</code> can be any of the following formats:</p> <ul> <li> <p>KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt data on the storage volume attached to the ML compute instance(s) that run the training and inference jobs used for automated data labeling. </p> <p>You can only specify a <code>VolumeKmsKeyId</code> when you create a labeling job with automated data labeling enabled using the API operation <code>CreateLabelingJob</code>. You cannot specify an Amazon Web Services KMS key to encrypt the storage volume used for automated data labeling model training and inference when you create a labeling job using the console. To learn more, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/sms-security.html\">Output Data and Storage Volume Encryption</a>.</p> <p>The <code>VolumeKmsKeyId</code> can be any of the following formats:</p> <ul> <li> <p>KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
         }
       },
       "documentation":"<p>Configure encryption on the storage volume attached to the ML compute instance used to run automated data labeling model training and inference. </p>"
@@ -14181,6 +14343,10 @@
       "documentation":"<p>Metadata for a Lambda step.</p>"
     },
     "LastModifiedTime":{"type":"timestamp"},
+    "LifecycleConfigArns":{
+      "type":"list",
+      "member":{"shape":"StudioLifecycleConfigArn"}
+    },
     "LineageEntityParameters":{
       "type":"map",
       "key":{"shape":"StringParameterValue"},
@@ -15886,7 +16052,7 @@
         },
         "NameContains":{
           "shape":"ModelNameContains",
-          "documentation":"<p>A string in the training job name. This filter returns only models in the training job whose name contains the specified string.</p>"
+          "documentation":"<p>A string in the model name. This filter returns only models whose name contains the specified string.</p>"
         },
         "CreationTimeBefore":{
           "shape":"Timestamp",
@@ -16448,6 +16614,64 @@
         "NextToken":{
           "shape":"NextToken",
           "documentation":"<p>If the result of the previous <code>ListCompilationJobs</code> request was truncated, the response includes a <code>NextToken</code>. To retrieve the next set of model compilation jobs, use the token in the next request.</p>"
+        }
+      }
+    },
+    "ListStudioLifecycleConfigsRequest":{
+      "type":"structure",
+      "members":{
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of Studio Lifecycle Configurations to return in the response. The default value is 10.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the previous call to ListStudioLifecycleConfigs didn't return the full set of Lifecycle Configurations, the call returns a token for getting the next set of Lifecycle Configurations.</p>"
+        },
+        "NameContains":{
+          "shape":"StudioLifecycleConfigName",
+          "documentation":"<p>A string in the Lifecycle Configuration name. This filter returns only Lifecycle Configurations whose name contains the specified string.</p>"
+        },
+        "AppTypeEquals":{
+          "shape":"StudioLifecycleConfigAppType",
+          "documentation":"<p>A parameter to search for the App Type to which the Lifecycle Configuration is attached.</p>"
+        },
+        "CreationTimeBefore":{
+          "shape":"Timestamp",
+          "documentation":"<p>A filter that returns only Lifecycle Configurations created on or before the specified time.</p>"
+        },
+        "CreationTimeAfter":{
+          "shape":"Timestamp",
+          "documentation":"<p>A filter that returns only Lifecycle Configurations created on or after the specified time.</p>"
+        },
+        "ModifiedTimeBefore":{
+          "shape":"Timestamp",
+          "documentation":"<p>A filter that returns only Lifecycle Configurations modified before the specified time.</p>"
+        },
+        "ModifiedTimeAfter":{
+          "shape":"Timestamp",
+          "documentation":"<p>A filter that returns only Lifecycle Configurations modified after the specified time.</p>"
+        },
+        "SortBy":{
+          "shape":"StudioLifecycleConfigSortKey",
+          "documentation":"<p>The property used to sort results. The default value is CreationTime.</p>"
+        },
+        "SortOrder":{
+          "shape":"SortOrder",
+          "documentation":"<p>The sort order. The default value is Descending.</p>"
+        }
+      }
+    },
+    "ListStudioLifecycleConfigsResponse":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token for getting the next set of actions, if there are any.</p>"
+        },
+        "StudioLifecycleConfigs":{
+          "shape":"StudioLifecycleConfigsList",
+          "documentation":"<p>A list of Lifecycle Configurations and their properties.</p>"
         }
       }
     },
@@ -18990,7 +19214,7 @@
       "members":{
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt the model artifacts at rest using Amazon S3 server-side encryption. The <code>KmsKeyId</code> can be any of the following formats: </p> <ul> <li> <p>// KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// KMS Key Alias</p> <p> <code>\"alias/ExampleAlias\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key Alias</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias\"</code> </p> </li> </ul> <p>If you use a KMS key ID or an alias of your master key, the Amazon SageMaker execution role must include permissions to call <code>kms:Encrypt</code>. If you don't provide a KMS key ID, Amazon SageMaker uses the default KMS key for Amazon S3 for your role's account. Amazon SageMaker uses server-side encryption with KMS-managed keys for <code>OutputDataConfig</code>. If you use a bucket policy with an <code>s3:PutObject</code> permission that only allows objects with server-side encryption, set the condition key of <code>s3:x-amz-server-side-encryption</code> to <code>\"aws:kms\"</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html\">KMS-Managed Encryption Keys</a> in the <i>Amazon Simple Storage Service Developer Guide.</i> </p> <p>The KMS key policy must grant permission to the IAM role that you specify in your <code>CreateTrainingJob</code>, <code>CreateTransformJob</code>, or <code>CreateHyperParameterTuningJob</code> requests. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html\">Using Key Policies in Amazon Web Services KMS</a> in the <i>Amazon Web Services Key Management Service Developer Guide</i>.</p>"
+          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt the model artifacts at rest using Amazon S3 server-side encryption. The <code>KmsKeyId</code> can be any of the following formats: </p> <ul> <li> <p>// KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// KMS Key Alias</p> <p> <code>\"alias/ExampleAlias\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key Alias</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias\"</code> </p> </li> </ul> <p>If you use a KMS key ID or an alias of your KMS key, the Amazon SageMaker execution role must include permissions to call <code>kms:Encrypt</code>. If you don't provide a KMS key ID, Amazon SageMaker uses the default KMS key for Amazon S3 for your role's account. Amazon SageMaker uses server-side encryption with KMS-managed keys for <code>OutputDataConfig</code>. If you use a bucket policy with an <code>s3:PutObject</code> permission that only allows objects with server-side encryption, set the condition key of <code>s3:x-amz-server-side-encryption</code> to <code>\"aws:kms\"</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html\">KMS-Managed Encryption Keys</a> in the <i>Amazon Simple Storage Service Developer Guide.</i> </p> <p>The KMS key policy must grant permission to the IAM role that you specify in your <code>CreateTrainingJob</code>, <code>CreateTransformJob</code>, or <code>CreateHyperParameterTuningJob</code> requests. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html\">Using Key Policies in Amazon Web Services KMS</a> in the <i>Amazon Web Services Key Management Service Developer Guide</i>.</p>"
         },
         "S3OutputPath":{
           "shape":"S3Uri",
@@ -20038,7 +20262,7 @@
         },
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt the core dump data at rest using Amazon S3 server-side encryption. The <code>KmsKeyId</code> can be any of the following formats: </p> <ul> <li> <p>// KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// KMS Key Alias</p> <p> <code>\"alias/ExampleAlias\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key Alias</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias\"</code> </p> </li> </ul> <p>If you use a KMS key ID or an alias of your master key, the Amazon SageMaker execution role must include permissions to call <code>kms:Encrypt</code>. If you don't provide a KMS key ID, Amazon SageMaker uses the default KMS key for Amazon S3 for your role's account. Amazon SageMaker uses server-side encryption with KMS-managed keys for <code>OutputDataConfig</code>. If you use a bucket policy with an <code>s3:PutObject</code> permission that only allows objects with server-side encryption, set the condition key of <code>s3:x-amz-server-side-encryption</code> to <code>\"aws:kms\"</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingKMSEncryption.html\">KMS-Managed Encryption Keys</a> in the <i>Amazon Simple Storage Service Developer Guide.</i> </p> <p>The KMS key policy must grant permission to the IAM role that you specify in your <code>CreateEndpoint</code> and <code>UpdateEndpoint</code> requests. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html\">Using Key Policies in Amazon Web Services KMS</a> in the <i>Amazon Web Services Key Management Service Developer Guide</i>.</p>"
+          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt the core dump data at rest using Amazon S3 server-side encryption. The <code>KmsKeyId</code> can be any of the following formats: </p> <ul> <li> <p>// KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// KMS Key Alias</p> <p> <code>\"alias/ExampleAlias\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key Alias</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias\"</code> </p> </li> </ul> <p>If you use a KMS key ID or an alias of your KMS key, the Amazon SageMaker execution role must include permissions to call <code>kms:Encrypt</code>. If you don't provide a KMS key ID, Amazon SageMaker uses the default KMS key for Amazon S3 for your role's account. Amazon SageMaker uses server-side encryption with KMS-managed keys for <code>OutputDataConfig</code>. If you use a bucket policy with an <code>s3:PutObject</code> permission that only allows objects with server-side encryption, set the condition key of <code>s3:x-amz-server-side-encryption</code> to <code>\"aws:kms\"</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingKMSEncryption.html\">KMS-Managed Encryption Keys</a> in the <i>Amazon Simple Storage Service Developer Guide.</i> </p> <p>The KMS key policy must grant permission to the IAM role that you specify in your <code>CreateEndpoint</code> and <code>UpdateEndpoint</code> requests. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html\">Using Key Policies in Amazon Web Services KMS</a> in the <i>Amazon Web Services Key Management Service Developer Guide</i>.</p>"
         }
       },
       "documentation":"<p>Specifies configuration for a core dump from the model container when the process crashes.</p>"
@@ -20287,6 +20511,46 @@
         "Enabled",
         "Disabled"
       ]
+    },
+    "Project":{
+      "type":"structure",
+      "members":{
+        "ProjectArn":{
+          "shape":"ProjectArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the project.</p>"
+        },
+        "ProjectName":{
+          "shape":"ProjectEntityName",
+          "documentation":"<p>The name of the project.</p>"
+        },
+        "ProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The ID of the project.</p>"
+        },
+        "ProjectDescription":{
+          "shape":"EntityDescription",
+          "documentation":"<p>The description of the project.</p>"
+        },
+        "ServiceCatalogProvisioningDetails":{"shape":"ServiceCatalogProvisioningDetails"},
+        "ServiceCatalogProvisionedProductDetails":{"shape":"ServiceCatalogProvisionedProductDetails"},
+        "ProjectStatus":{
+          "shape":"ProjectStatus",
+          "documentation":"<p>The status of the project.</p>"
+        },
+        "CreatedBy":{
+          "shape":"UserContext",
+          "documentation":"<p>Who created the project.</p>"
+        },
+        "CreationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>A timestamp specifying when the project was created.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>An array of key-value pairs. You can use tags to categorize your Amazon Web Services resources in different ways, for example, by purpose, owner, or environment. For more information, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html\">Tagging Amazon Web Services Resources</a>.</p>"
+        }
+      },
+      "documentation":"<p>The properties of a project as returned by the Search API.</p>"
     },
     "ProjectArn":{
       "type":"string",
@@ -20805,6 +21069,10 @@
         "InstanceType":{
           "shape":"AppInstanceType",
           "documentation":"<p>The instance type that the image version runs on.</p>"
+        },
+        "LifecycleConfigArn":{
+          "shape":"StudioLifecycleConfigArn",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the Lifecycle Configuration attached to the Resource.</p>"
         }
       },
       "documentation":"<p>Specifies the ARN's of a SageMaker image and SageMaker image version, and the instance type that the version runs on.</p>"
@@ -20821,7 +21089,8 @@
         "ModelPackageGroup",
         "Pipeline",
         "PipelineExecution",
-        "FeatureGroup"
+        "FeatureGroup",
+        "Project"
       ]
     },
     "ResponseMIMEType":{
@@ -20849,6 +21118,33 @@
         "Retain",
         "Delete"
       ]
+    },
+    "RetryPipelineExecutionRequest":{
+      "type":"structure",
+      "required":[
+        "PipelineExecutionArn",
+        "ClientRequestToken"
+      ],
+      "members":{
+        "PipelineExecutionArn":{
+          "shape":"PipelineExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the pipeline execution.</p>"
+        },
+        "ClientRequestToken":{
+          "shape":"IdempotencyToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the operation. An idempotent operation completes no more than once.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "RetryPipelineExecutionResponse":{
+      "type":"structure",
+      "members":{
+        "PipelineExecutionArn":{
+          "shape":"PipelineExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the pipeline execution.</p>"
+        }
+      }
     },
     "RetryStrategy":{
       "type":"structure",
@@ -21052,7 +21348,11 @@
         "ModelPackageGroup":{"shape":"ModelPackageGroup"},
         "Pipeline":{"shape":"Pipeline"},
         "PipelineExecution":{"shape":"PipelineExecution"},
-        "FeatureGroup":{"shape":"FeatureGroup"}
+        "FeatureGroup":{"shape":"FeatureGroup"},
+        "Project":{
+          "shape":"Project",
+          "documentation":"<p>The properties of a project.</p>"
+        }
       },
       "documentation":"<p>A single resource returned as part of the <a>Search</a> API response.</p>"
     },
@@ -21279,7 +21579,7 @@
           "documentation":"<p>A list of key value pairs that you specify when you provision a product.</p>"
         }
       },
-      "documentation":"<p>Details that you specify to provision a service catalog product. For information about service catalog, see .<a href=\"https://docs.aws.amazon.com/servicecatalog/latest/adminguide/introduction.html\">What is Amazon Web Services Service Catalog</a>.</p>"
+      "documentation":"<p>Details that you specify to provision a service catalog product. For information about service catalog, see <a href=\"https://docs.aws.amazon.com/servicecatalog/latest/adminguide/introduction.html\">What is Amazon Web Services Service Catalog</a>.</p>"
     },
     "SessionExpirationDurationInSeconds":{
       "type":"integer",
@@ -21508,7 +21808,7 @@
         },
         "ClientRequestToken":{
           "shape":"IdempotencyToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the operation. An idempotent operation completes no more than one time.</p>",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the operation. An idempotent operation completes no more than once.</p>",
           "idempotencyToken":true
         }
       }
@@ -21627,7 +21927,7 @@
         },
         "ClientRequestToken":{
           "shape":"IdempotencyToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the operation. An idempotent operation completes no more than one time.</p>",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the operation. An idempotent operation completes no more than once.</p>",
           "idempotencyToken":true
         }
       }
@@ -21712,6 +22012,67 @@
       "type":"string",
       "max":256,
       "pattern":".*"
+    },
+    "StudioLifecycleConfigAppType":{
+      "type":"string",
+      "enum":[
+        "JupyterServer",
+        "KernelGateway"
+      ]
+    },
+    "StudioLifecycleConfigArn":{
+      "type":"string",
+      "max":256,
+      "pattern":"arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:studio-lifecycle-config/.*"
+    },
+    "StudioLifecycleConfigContent":{
+      "type":"string",
+      "max":16384,
+      "min":1,
+      "pattern":"[\\S\\s]+"
+    },
+    "StudioLifecycleConfigDetails":{
+      "type":"structure",
+      "members":{
+        "StudioLifecycleConfigArn":{
+          "shape":"StudioLifecycleConfigArn",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the Lifecycle Configuration.</p>"
+        },
+        "StudioLifecycleConfigName":{
+          "shape":"StudioLifecycleConfigName",
+          "documentation":"<p>The name of the Studio Lifecycle Configuration.</p>"
+        },
+        "CreationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The creation time of the Studio Lifecycle Configuration.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>This value is equivalent to CreationTime because Studio Lifecycle Configurations are immutable.</p>"
+        },
+        "StudioLifecycleConfigAppType":{
+          "shape":"StudioLifecycleConfigAppType",
+          "documentation":"<p>The App type to which the Lifecycle Configuration is attached.</p>"
+        }
+      },
+      "documentation":"<p>Details of the Studio Lifecycle Configuration.</p>"
+    },
+    "StudioLifecycleConfigName":{
+      "type":"string",
+      "max":63,
+      "pattern":"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+    },
+    "StudioLifecycleConfigSortKey":{
+      "type":"string",
+      "enum":[
+        "CreationTime",
+        "LastModifiedTime",
+        "Name"
+      ]
+    },
+    "StudioLifecycleConfigsList":{
+      "type":"list",
+      "member":{"shape":"StudioLifecycleConfigDetails"}
     },
     "SubnetId":{
       "type":"string",
@@ -21850,7 +22211,8 @@
         "x86_win32",
         "x86_win64",
         "coreml",
-        "jacinto_tda4vm"
+        "jacinto_tda4vm",
+        "imx8mplus"
       ]
     },
     "TargetObjectiveMetricValue":{"type":"float"},
@@ -22816,7 +23178,10 @@
           "shape":"Timestamp",
           "documentation":"<p>When the trial was created.</p>"
         },
-        "CreatedBy":{"shape":"UserContext"},
+        "CreatedBy":{
+          "shape":"UserContext",
+          "documentation":"<p>Who created the trial.</p>"
+        },
         "LastModifiedTime":{
           "shape":"Timestamp",
           "documentation":"<p>Who last modified the trial.</p>"
@@ -22871,7 +23236,10 @@
           "shape":"Timestamp",
           "documentation":"<p>When the component was created.</p>"
         },
-        "CreatedBy":{"shape":"UserContext"},
+        "CreatedBy":{
+          "shape":"UserContext",
+          "documentation":"<p>Who created the trial component.</p>"
+        },
         "LastModifiedTime":{
           "shape":"Timestamp",
           "documentation":"<p>When the component was last modified.</p>"
@@ -23149,7 +23517,7 @@
         },
         "CreatedBy":{
           "shape":"UserContext",
-          "documentation":"<p>Who created the component.</p>"
+          "documentation":"<p>Who created the trial component.</p>"
         },
         "LastModifiedTime":{
           "shape":"Timestamp",
@@ -24059,7 +24427,7 @@
           "documentation":"<p>The domain associated with the user.</p>"
         }
       },
-      "documentation":"<p>Information about the user who created or modified an experiment, trial, or trial component.</p>"
+      "documentation":"<p>Information about the user who created or modified an experiment, trial, trial component, or project.</p>"
     },
     "UserProfileArn":{
       "type":"string",

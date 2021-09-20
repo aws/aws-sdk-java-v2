@@ -1495,7 +1495,7 @@
       "members":{
         "AllowDeferredExecution":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether a job should be queued by Amazon Transcribe when the concurrent execution limit is exceeded. When the <code>AllowDeferredExecution</code> field is true, jobs are queued and executed when the number of executing jobs falls below the concurrent execution limit. If the field is false, Amazon Transcribe returns a <code>LimitExceededException</code> exception.</p> <p>If you specify the <code>AllowDeferredExecution</code> field, you must specify the <code>DataAccessRoleArn</code> field.</p>"
+          "documentation":"<p>Indicates whether a job should be queued by Amazon Transcribe when the concurrent execution limit is exceeded. When the <code>AllowDeferredExecution</code> field is true, jobs are queued and executed when the number of executing jobs falls below the concurrent execution limit. If the field is false, Amazon Transcribe returns a <code>LimitExceededException</code> exception.</p> <p>Note that job queuing is enabled by default for call analytics jobs.</p> <p>If you specify the <code>AllowDeferredExecution</code> field, you must specify the <code>DataAccessRoleArn</code> field.</p>"
         },
         "DataAccessRoleArn":{
           "shape":"DataAccessRoleArn",
@@ -1503,6 +1503,13 @@
         }
       },
       "documentation":"<p>Provides information about when a transcription job should be executed.</p>"
+    },
+    "KMSEncryptionContextMap":{
+      "type":"map",
+      "key":{"shape":"NonEmptyString"},
+      "value":{"shape":"NonEmptyString"},
+      "max":10,
+      "min":1
     },
     "KMSKeyId":{
       "type":"string",
@@ -2462,6 +2469,10 @@
           "shape":"KMSKeyId",
           "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Web Services Key Management Service (KMS) key used to encrypt the output of the transcription job. The user calling the <a>StartMedicalTranscriptionJob</a> operation must have permission to use the specified KMS key.</p> <p>You use either of the following to identify a KMS key in the current account:</p> <ul> <li> <p>KMS Key ID: \"1234abcd-12ab-34cd-56ef-1234567890ab\"</p> </li> <li> <p>KMS Key Alias: \"alias/ExampleAlias\"</p> </li> </ul> <p>You can use either of the following to identify a KMS key in the current account or another account:</p> <ul> <li> <p>Amazon Resource Name (ARN) of a KMS key in the current account or another account: \"arn:aws:kms:region:account ID:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</p> </li> <li> <p>ARN of a KMS Key Alias: \"arn:aws:kms:region:account ID:alias/ExampleAlias\"</p> </li> </ul> <p>If you don't specify an encryption key, the output of the medical transcription job is encrypted with the default Amazon S3 key (SSE-S3).</p> <p>If you specify a KMS key to encrypt your output, you must also specify an output location in the <code>OutputBucketName</code> parameter.</p>"
         },
+        "KMSEncryptionContext":{
+          "shape":"KMSEncryptionContextMap",
+          "documentation":"<p>A map of plain text, non-secret key:value pairs, known as encryption context pairs, that provide an added layer of security for your data.</p>"
+        },
         "Settings":{
           "shape":"MedicalTranscriptionSetting",
           "documentation":"<p>Optional settings for the medical transcription job.</p>"
@@ -2532,6 +2543,10 @@
           "shape":"KMSKeyId",
           "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Web Services Key Management Service (KMS) key used to encrypt the output of the transcription job. The user calling the <code>StartTranscriptionJob</code> operation must have permission to use the specified KMS key.</p> <p>You can use either of the following to identify a KMS key in the current account:</p> <ul> <li> <p>KMS Key ID: \"1234abcd-12ab-34cd-56ef-1234567890ab\"</p> </li> <li> <p>KMS Key Alias: \"alias/ExampleAlias\"</p> </li> </ul> <p>You can use either of the following to identify a KMS key in the current account or another account:</p> <ul> <li> <p>Amazon Resource Name (ARN) of a KMS Key: \"arn:aws:kms:region:account ID:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</p> </li> <li> <p>ARN of a KMS Key Alias: \"arn:aws:kms:region:account ID:alias/ExampleAlias\"</p> </li> </ul> <p>If you don't specify an encryption key, the output of the transcription job is encrypted with the default Amazon S3 key (SSE-S3).</p> <p>If you specify a KMS key to encrypt your output, you must also specify an output location in the <code>OutputBucketName</code> parameter.</p>"
         },
+        "KMSEncryptionContext":{
+          "shape":"KMSEncryptionContextMap",
+          "documentation":"<p>A map of plain text, non-secret key:value pairs, known as encryption context pairs, that provide an added layer of security for your data.</p>"
+        },
         "Settings":{
           "shape":"Settings",
           "documentation":"<p>A <code>Settings</code> object that provides optional settings for a transcription job.</p>"
@@ -2556,6 +2571,10 @@
           "shape":"LanguageOptions",
           "documentation":"<p>An object containing a list of languages that might be present in your collection of audio files. Automatic language identification chooses a language that best matches the source audio from that list.</p> <p>To transcribe speech in Modern Standard Arabic (ar-SA), your audio or video file must be encoded at a sample rate of 16,000 Hz or higher.</p>"
         },
+        "Subtitles":{
+          "shape":"Subtitles",
+          "documentation":"<p>Add subtitles to your batch transcription job.</p>"
+        },
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>Add tags to an Amazon Transcribe transcription job.</p>"
@@ -2576,6 +2595,45 @@
       "type":"list",
       "member":{"shape":"NonEmptyString"},
       "min":1
+    },
+    "SubtitleFileUris":{
+      "type":"list",
+      "member":{"shape":"Uri"}
+    },
+    "SubtitleFormat":{
+      "type":"string",
+      "enum":[
+        "vtt",
+        "srt"
+      ]
+    },
+    "SubtitleFormats":{
+      "type":"list",
+      "member":{"shape":"SubtitleFormat"}
+    },
+    "Subtitles":{
+      "type":"structure",
+      "members":{
+        "Formats":{
+          "shape":"SubtitleFormats",
+          "documentation":"<p>Specify the output format for your subtitle file.</p>"
+        }
+      },
+      "documentation":"<p>Generate subtitles for your batch transcription job.</p>"
+    },
+    "SubtitlesOutput":{
+      "type":"structure",
+      "members":{
+        "Formats":{
+          "shape":"SubtitleFormats",
+          "documentation":"<p>Specify the output format for your subtitle file; if you select both SRT and VTT formats, two output files are genereated.</p>"
+        },
+        "SubtitleFileUris":{
+          "shape":"SubtitleFileUris",
+          "documentation":"<p>Choose the output location for your subtitle file. This location must be an S3 bucket.</p>"
+        }
+      },
+      "documentation":"<p>Specify the output format for your subtitle file.</p>"
     },
     "Tag":{
       "type":"structure",
@@ -2780,6 +2838,10 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>A key:value pair assigned to a given transcription job.</p>"
+        },
+        "Subtitles":{
+          "shape":"SubtitlesOutput",
+          "documentation":"<p>Generate subtitles for your batch transcription job.</p>"
         }
       },
       "documentation":"<p>Describes an asynchronous transcription job that was created with the <code>StartTranscriptionJob</code> operation. </p>"

@@ -44,7 +44,7 @@
         {"shape":"ConflictException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Starts a bidirectional HTTP2 stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application.</p> <p>The following are encoded as HTTP2 headers:</p> <ul> <li> <p>x-amzn-transcribe-language-code</p> </li> <li> <p>x-amzn-transcribe-media-encoding</p> </li> <li> <p>x-amzn-transcribe-sample-rate</p> </li> <li> <p>x-amzn-transcribe-session-id</p> </li> </ul>"
+      "documentation":"<p>Starts a bidirectional HTTP/2 stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application.</p> <p>The following are encoded as HTTP/2 headers:</p> <ul> <li> <p>x-amzn-transcribe-language-code</p> </li> <li> <p>x-amzn-transcribe-media-encoding</p> </li> <li> <p>x-amzn-transcribe-sample-rate</p> </li> <li> <p>x-amzn-transcribe-session-id</p> </li> </ul> <p>See the <a href=\"https://docs.aws.amazon.com/sdk-for-go/api/service/transcribestreamingservice/#TranscribeStreamingService.StartStreamTranscription\"> SDK for Go API Reference</a> for more detail.</p>"
     }
   },
   "shapes":{
@@ -58,6 +58,10 @@
         "Items":{
           "shape":"ItemList",
           "documentation":"<p>One or more alternative interpretations of the input audio. </p>"
+        },
+        "Entities":{
+          "shape":"EntityList",
+          "documentation":"<p>Contains the entities identified as personally identifiable information (PII) in the transcription output.</p>"
         }
       },
       "documentation":"<p>A list of possible transcriptions for the audio.</p>"
@@ -76,7 +80,7 @@
           "eventpayload":true
         }
       },
-      "documentation":"<p>Provides a wrapper for the audio chunks that you are sending.</p> <p>For information on audio encoding in Amazon Transcribe, see <a>input</a>. For information on audio encoding formats in Amazon Transcribe Medical, see <a>input-med</a>.</p>",
+      "documentation":"<p>Provides a wrapper for the audio chunks that you are sending.</p> <p>For information on audio encoding in Amazon Transcribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/input.html\">Speech input</a>. For information on audio encoding formats in Amazon Transcribe Medical, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/input-med.html\">Speech input</a>.</p>",
       "event":true
     },
     "AudioStream":{
@@ -84,7 +88,7 @@
       "members":{
         "AudioEvent":{
           "shape":"AudioEvent",
-          "documentation":"<p>A blob of audio from your application. You audio stream consists of one or more audio events.</p> <p>For information on audio encoding formats in Amazon Transcribe, see <a>input</a>. For information on audio encoding formats in Amazon Transcribe Medical, see <a>input-med</a>.</p> <p>For more information on stream encoding in Amazon Transcribe, see <a>event-stream</a>. For information on stream encoding in Amazon Transcribe Medical, see <a>event-stream-med</a>.</p>"
+          "documentation":"<p>A blob of audio from your application. You audio stream consists of one or more audio events.</p> <p>For information on audio encoding formats in Amazon Transcribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/input.html\">Speech input</a>. For information on audio encoding formats in Amazon Transcribe Medical, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/input-med.html\">Speech input</a>.</p> <p>For more information on stream encoding in Amazon Transcribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/event-stream.html\">Event stream encoding</a>. For information on stream encoding in Amazon Transcribe Medical, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/event-stream-med.html\">Event stream encoding</a>.</p>"
         }
       },
       "documentation":"<p>Represents the audio stream from your application to Amazon Transcribe.</p>",
@@ -110,7 +114,49 @@
       "error":{"httpStatusCode":409},
       "exception":true
     },
+    "ContentIdentificationType":{
+      "type":"string",
+      "enum":["PII"]
+    },
+    "ContentRedactionType":{
+      "type":"string",
+      "enum":["PII"]
+    },
     "Double":{"type":"double"},
+    "Entity":{
+      "type":"structure",
+      "members":{
+        "StartTime":{
+          "shape":"Double",
+          "documentation":"<p>The start time of speech that was identified as PII.</p>"
+        },
+        "EndTime":{
+          "shape":"Double",
+          "documentation":"<p>The end time of speech that was identified as PII.</p>"
+        },
+        "Category":{
+          "shape":"String",
+          "documentation":"<p>The category of of information identified in this entity; for example, PII.</p>"
+        },
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>The type of PII identified in this entity; for example, name or credit card number.</p>"
+        },
+        "Content":{
+          "shape":"String",
+          "documentation":"<p>The words in the transcription output that have been identified as a PII entity.</p>"
+        },
+        "Confidence":{
+          "shape":"Confidence",
+          "documentation":"<p>A value between zero and one that Amazon Transcribe assigns to PII identified in the source audio. Larger values indicate a higher confidence in PII identification.</p>"
+        }
+      },
+      "documentation":"<p>The entity identified as personally identifiable information (PII).</p>"
+    },
+    "EntityList":{
+      "type":"list",
+      "member":{"shape":"Entity"}
+    },
     "InternalFailureException":{
       "type":"structure",
       "members":{
@@ -382,6 +428,12 @@
         "low"
       ]
     },
+    "PiiEntityTypes":{
+      "type":"string",
+      "max":300,
+      "min":1,
+      "pattern":"^[A-Z_, ]+"
+    },
     "RequestId":{"type":"string"},
     "Result":{
       "type":"structure",
@@ -463,7 +515,7 @@
         },
         "MediaSampleRateHertz":{
           "shape":"MediaSampleRateHertz",
-          "documentation":"<p>The sample rate of the input audio in Hertz. Sample rates of 16000 Hz or higher are accepted.</p>",
+          "documentation":"<p>The sample rate of the input audio in Hertz.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-sample-rate"
         },
@@ -542,7 +594,7 @@
         },
         "MediaSampleRateHertz":{
           "shape":"MediaSampleRateHertz",
-          "documentation":"<p>The sample rate of the input audio in Hertz. Valid value: 16000 Hz.</p>",
+          "documentation":"<p>The sample rate of the input audio in Hertz.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-sample-rate"
         },
@@ -624,7 +676,7 @@
         },
         "MediaSampleRateHertz":{
           "shape":"MediaSampleRateHertz",
-          "documentation":"<p>The sample rate, in Hertz, of the input audio. We suggest that you use 8000 Hz for low quality audio and 16000 Hz for high quality audio.</p>",
+          "documentation":"<p>The sample rate, in Hertz, of the input audio. We suggest that you use 8,000 Hz for low quality audio and 16,000 Hz for high quality audio.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-sample-rate"
         },
@@ -648,17 +700,17 @@
         },
         "AudioStream":{
           "shape":"AudioStream",
-          "documentation":"<p>PCM-encoded stream of audio blobs. The audio stream is encoded as an HTTP2 data frame.</p>"
+          "documentation":"<p>PCM-encoded stream of audio blobs. The audio stream is encoded as an HTTP/2 data frame.</p>"
         },
         "VocabularyFilterName":{
           "shape":"VocabularyFilterName",
-          "documentation":"<p>The name of the vocabulary filter you've created that is unique to your AWS account. Provide the name in this field to successfully use it in a stream.</p>",
+          "documentation":"<p>The name of the vocabulary filter you've created that is unique to your account. Provide the name in this field to successfully use it in a stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-name"
         },
         "VocabularyFilterMethod":{
           "shape":"VocabularyFilterMethod",
-          "documentation":"<p>The manner in which you use your vocabulary filter to filter words in your transcript. <code>Remove</code> removes filtered words from your transcription results. <code>Mask</code> masks those words with a <code>***</code> in your transcription results. <code>Tag</code> keeps the filtered words in your transcription results and tags them. The tag appears as <code>VocabularyFilterMatch</code> equal to <code>True</code> </p>",
+          "documentation":"<p>The manner in which you use your vocabulary filter to filter words in your transcript. <code>Remove</code> removes filtered words from your transcription results. <code>Mask</code> masks filtered words with a <code>***</code> in your transcription results. <code>Tag</code> keeps the filtered words in your transcription results and tags them. The tag appears as <code>VocabularyFilterMatch</code> equal to <code>True</code> </p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-method"
         },
@@ -691,6 +743,24 @@
           "documentation":"<p>You can use this field to set the stability level of the transcription results. A higher stability level means that the transcription results are less likely to change. Higher stability levels can come with lower overall transcription accuracy.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-partial-results-stability"
+        },
+        "ContentIdentificationType":{
+          "shape":"ContentIdentificationType",
+          "documentation":"<p>Set this field to PII to identify personally identifiable information (PII) in the transcription output. Content identification is performed only upon complete transcription of the audio segments.</p> <p>You can’t set both <code>ContentIdentificationType</code> and <code>ContentRedactionType</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-content-identification-type"
+        },
+        "ContentRedactionType":{
+          "shape":"ContentRedactionType",
+          "documentation":"<p>Set this field to PII to redact personally identifiable information (PII) in the transcription output. Content redaction is performed only upon complete transcription of the audio segments.</p> <p>You can’t set both <code>ContentRedactionType</code> and <code>ContentIdentificationType</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-content-redaction-type"
+        },
+        "PiiEntityTypes":{
+          "shape":"PiiEntityTypes",
+          "documentation":"<p>List the PII entity types you want to identify or redact. In order to specify entity types, you must have either <code>ContentIdentificationType</code> or <code>ContentRedactionType</code> enabled.</p> <p> <code>PIIEntityTypes</code> must be comma-separated; the available values are: <code>BANK_ACCOUNT_NUMBER</code>, <code>BANK_ROUTING</code>, <code>CREDIT_DEBIT_NUMBER</code>, <code>CREDIT_DEBIT_CVV</code>, <code>CREDIT_DEBIT_EXPIRY</code>, <code>PIN</code>, <code>EMAIL</code>, <code>ADDRESS</code>, <code>NAME</code>, <code>PHONE</code>, <code>SSN</code>, and <code>ALL</code>.</p> <p> <code>PiiEntityTypes</code> is an optional parameter with a default value of <code>ALL</code>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-pii-entity-types"
         }
       },
       "payload":"AudioStream"
@@ -712,7 +782,7 @@
         },
         "MediaSampleRateHertz":{
           "shape":"MediaSampleRateHertz",
-          "documentation":"<p>The sample rate for the input audio stream. Use 8000 Hz for low quality audio and 16000 Hz for high quality audio.</p>",
+          "documentation":"<p>The sample rate for the input audio stream. Use 8,000 Hz for low quality audio and 16,000 Hz for high quality audio.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-sample-rate"
         },
@@ -779,6 +849,24 @@
           "documentation":"<p>If partial results stabilization has been enabled in the stream, shows the stability level.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-partial-results-stability"
+        },
+        "ContentIdentificationType":{
+          "shape":"ContentIdentificationType",
+          "documentation":"<p>Shows whether content identification was enabled in this stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-content-identification-type"
+        },
+        "ContentRedactionType":{
+          "shape":"ContentRedactionType",
+          "documentation":"<p>Shows whether content redaction was enabled in this stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-content-redaction-type"
+        },
+        "PiiEntityTypes":{
+          "shape":"PiiEntityTypes",
+          "documentation":"<p>Lists the PII entity types you specified in your request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-pii-entity-types"
         }
       },
       "payload":"TranscriptResultStream"

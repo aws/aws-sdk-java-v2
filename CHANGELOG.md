@@ -1,3 +1,183 @@
+# __2.17.42__ __2021-09-17__
+## __AWS Database Migration Service__
+  - ### Features
+    - Optional flag force-planned-failover added to reboot-replication-instance API call. This flag can be used to test a planned failover scenario used during some maintenance operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - This release adds an optional parameter in the ListDomainNames API to filter domains based on the engine type (OpenSearch/Elasticsearch).
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds an optional parameter in the ListDomainNames API to filter domains based on the engine type (OpenSearch/Elasticsearch).
+
+# __2.17.41__ __2021-09-16__
+## __AWS RoboMaker__
+  - ### Features
+    - Adding support to create container based Robot and Simulation applications by introducing an environment field
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for specifying which managed data identifiers are used by a classification job, and retrieving a list of managed data identifiers that are available.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This SDK release adds a new feature for Pinpoint campaigns, in-app messaging.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add API for users to retry a failed pipeline execution or resume a stopped one.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Add support for access point arn filtering in S3 CW Request Metrics
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for subtitling with Amazon Transcribe batch jobs.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - This commit introduces DynamoDbTable#putItemWithResponse() that allows customers to specify additional parameters on the request such as ReturnValues to get additional information the service response.
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - This is the initial SDK release for Amazon Managed Streaming for Apache Kafka Connect (MSK Connect).
+
+# __2.17.40__ __2021-09-14__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Upgrade Netty to 4.1.68
+
+## __AWS WAFV2__
+  - ### Features
+    - This release adds support for including rate based rules in a rule group.
+
+## __Amazon Chime__
+  - ### Features
+    - Adds support for SipHeaders parameter for CreateSipMediaApplicationCall.
+
+## __Amazon Comprehend__
+  - ### Features
+    - Amazon Comprehend now allows you to train and run PDF and Word documents for custom entity recognition. With PDF and Word formats, you can extract information from documents containing headers, lists and tables.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for vt1 3xlarge, 6xlarge and 24xlarge instances powered by Xilinx Alveo U30 Media Accelerators for video transcoding workloads
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for "Project Search"
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - Amazon Transcribe now supports PII Identification and Redaction for streaming transcription.
+
+# __2.17.39__ __2021-09-13__
+## __AWS IoT__
+  - ### Features
+    - AWS IoT Rules Engine adds OpenSearch action. The OpenSearch rule action lets you stream data from IoT sensors and applications to Amazon OpenSearch Service which is a successor to Amazon Elasticsearch Service.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for T3 instances on Amazon EC2 Dedicated Hosts.
+
+## __S3 Transfer Manager__
+  - ### Features
+    - Now users can pass `File` to `DownloadRequest` and `UploadRequest` in `S3TransferManager`.
+
+# __2.17.38__ __2021-09-10__
+## __AWS CloudFormation__
+  - ### Features
+    - Doc only update for CloudFormation that fixes several customer-reported issues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for authenticated corporate proxies
+        - Contributed by: [@guillepb10](https://github.com/guillepb10)
+    - Updated service endpoint metadata.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release updates terminology around KMS keys.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add new data source type for Amazon OpenSearch (successor to Amazon ElasticSearch).
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for providing a custom timeout value for finding a scaling point during autoscaling in Aurora Serverless v1.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for "Lifecycle Configurations" to SageMaker Studio
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds an API option for startTranscriptionJob and startMedicalTranscriptionJob that allows the user to specify encryption context key value pairs for batch jobs.
+
+## __DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix `PutItemEnhancedRequest` and `DeleteItemEnhancedRequest` to include `ConditionExpression` in their `equals()` and `hashCode()` calculations.
+    - Fixes for `UpdateItemEnhancedRequest`:
+       - Include `ConditionExpression` in `toBuilder()`
+       - Include `ConditionExpression` in `equals()` and `hashCode()` calculations
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Remove extra question mark when query parameters are provided in transfer manager
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@guillepb10](https://github.com/guillepb10)
+# __2.17.37__ __2021-09-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - The Amazon CodeGuru Reviewer API now includes the RuleMetadata data object and a Severity attribute on a RecommendationSummary object. A RuleMetadata object contains information about a rule that generates a recommendation. Severity indicates how severe the issue associated with a recommendation is.
+
+## __Amazon EMR__
+  - ### Features
+    - This release enables customers to login to EMR Studio using AWS Identity and Access Management (IAM) identities or identities in their Identity Provider (IdP) via IAM.
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - Added OffCondition parameter to CreateModel API
+
+# __2.17.36__ __2021-09-08__
+## __AWS Resource Access Manager__
+  - ### Features
+    - A minor text-only update that fixes several customer issues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Improve performance of generated enum methods
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Updated Configuration APIs for Amazon OpenSearch Service (successor to Amazon Elasticsearch Service)
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK has added a new API that allows you to update the encrypting and authentication settings for an existing cluster.
+
 # __2.17.35__ __2021-09-07__
 ## __AWS Elemental MediaPackage__
   - ### Features
