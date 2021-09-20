@@ -39,12 +39,14 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
     public DefaultS3TransferManager(DefaultBuilder builder) {
         S3CrtAsyncClient.S3CrtAsyncClientBuilder clientBuilder = S3CrtAsyncClient.builder();
-        builder.s3ClientConfiguration.credentialsProvider().ifPresent(clientBuilder::credentialsProvider);
-        builder.s3ClientConfiguration.maxConcurrency().ifPresent(clientBuilder::maxConcurrency);
-        builder.s3ClientConfiguration.minimumPartSizeInBytes().ifPresent(clientBuilder::minimumPartSizeInBytes);
-        builder.s3ClientConfiguration.region().ifPresent(clientBuilder::region);
-        builder.s3ClientConfiguration.targetThroughputInGbps().ifPresent(clientBuilder::targetThroughputInGbps);
-        builder.s3ClientConfiguration.asyncConfiguration().ifPresent(clientBuilder::asyncConfiguration);
+        if (builder.s3ClientConfiguration != null) {
+            builder.s3ClientConfiguration.credentialsProvider().ifPresent(clientBuilder::credentialsProvider);
+            builder.s3ClientConfiguration.maxConcurrency().ifPresent(clientBuilder::maxConcurrency);
+            builder.s3ClientConfiguration.minimumPartSizeInBytes().ifPresent(clientBuilder::minimumPartSizeInBytes);
+            builder.s3ClientConfiguration.region().ifPresent(clientBuilder::region);
+            builder.s3ClientConfiguration.targetThroughputInGbps().ifPresent(clientBuilder::targetThroughputInGbps);
+            builder.s3ClientConfiguration.asyncConfiguration().ifPresent(clientBuilder::asyncConfiguration);
+        }
 
         s3CrtAsyncClient = clientBuilder.build();
     }

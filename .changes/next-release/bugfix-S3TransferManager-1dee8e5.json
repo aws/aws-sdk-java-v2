@@ -1,0 +1,6 @@
+{
+    "category": "S3 Transfer Manager", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fix the NPE thrown when calling `S3TransferManager.create()`"
+}
