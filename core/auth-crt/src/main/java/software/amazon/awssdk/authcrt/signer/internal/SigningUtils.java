@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.authcrt.signer.internal;
 
-import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
-
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
@@ -35,6 +33,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
 public class SigningUtils {
@@ -116,18 +115,18 @@ public class SigningUtils {
 
         builder.clearHeaders();
 
-        // Add host if missing
-        Map<String, List<String>> headers = request.headers();
-        if (isNullOrEmpty(headers.get(HOST_HEADER))) {
-            builder.putHeader(HOST_HEADER, request.host());
-        }
-
         // Filter headers that will cause signing to fail
-        for (Map.Entry<String, List<String>> header: headers.entrySet()) {
+        for (Map.Entry<String, List<String>> header: request.headers().entrySet()) {
             if (!FORBIDDEN_HEADERS.contains(header.getKey())) {
                 builder.putHeader(header.getKey(), header.getValue());
             }
         }
+
+        // Add host, which must be signed. We ignore any pre-existing Host header to match the behavior of the SigV4 signer.
+        String hostHeader = SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
+                            ? request.host()
+                            : request.host() + ":" + request.port();
+        builder.putHeader(HOST_HEADER, hostHeader);
 
         builder.clearQueryParameters();
 
