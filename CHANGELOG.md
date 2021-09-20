@@ -1,3 +1,86 @@
+# __2.17.42__ __2021-09-17__
+## __AWS Database Migration Service__
+  - ### Features
+    - Optional flag force-planned-failover added to reboot-replication-instance API call. This flag can be used to test a planned failover scenario used during some maintenance operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - This release adds an optional parameter in the ListDomainNames API to filter domains based on the engine type (OpenSearch/Elasticsearch).
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds an optional parameter in the ListDomainNames API to filter domains based on the engine type (OpenSearch/Elasticsearch).
+
+# __2.17.41__ __2021-09-16__
+## __AWS RoboMaker__
+  - ### Features
+    - Adding support to create container based Robot and Simulation applications by introducing an environment field
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for specifying which managed data identifiers are used by a classification job, and retrieving a list of managed data identifiers that are available.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This SDK release adds a new feature for Pinpoint campaigns, in-app messaging.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add API for users to retry a failed pipeline execution or resume a stopped one.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Add support for access point arn filtering in S3 CW Request Metrics
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for subtitling with Amazon Transcribe batch jobs.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - This commit introduces DynamoDbTable#putItemWithResponse() that allows customers to specify additional parameters on the request such as ReturnValues to get additional information the service response.
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - This is the initial SDK release for Amazon Managed Streaming for Apache Kafka Connect (MSK Connect).
+
+# __2.17.40__ __2021-09-14__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Upgrade Netty to 4.1.68
+
+## __AWS WAFV2__
+  - ### Features
+    - This release adds support for including rate based rules in a rule group.
+
+## __Amazon Chime__
+  - ### Features
+    - Adds support for SipHeaders parameter for CreateSipMediaApplicationCall.
+
+## __Amazon Comprehend__
+  - ### Features
+    - Amazon Comprehend now allows you to train and run PDF and Word documents for custom entity recognition. With PDF and Word formats, you can extract information from documents containing headers, lists and tables.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for vt1 3xlarge, 6xlarge and 24xlarge instances powered by Xilinx Alveo U30 Media Accelerators for video transcoding workloads
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for "Project Search"
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - Amazon Transcribe now supports PII Identification and Redaction for streaming transcription.
+
 # __2.17.39__ __2021-09-13__
 ## __AWS IoT__
   - ### Features

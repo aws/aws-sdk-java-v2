@@ -40,6 +40,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
@@ -94,6 +95,9 @@ public class EmptyBinaryTest {
         TestBean testBean = new TestBean();
         testBean.setId("id123");
         testBean.setB(EMPTY_BYTES);
+
+        PutItemResponse response = PutItemResponse.builder().build();
+        when(mockDynamoDbClient.putItem(any(PutItemRequest.class))).thenReturn(response);
 
         dynamoDbTable.putItem(testBean);
 
