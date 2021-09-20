@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 
 /**
  * Synchronous interface for running commands against an object that is linked to a specific DynamoDb table resource
@@ -232,6 +234,64 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * @return The item that was persisted in the database before it was deleted.
      */
     default T deleteItem(T keyItem) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using a supplied primary {@link Key}.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link DeleteItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints. Unlike {@link #deleteItem(DeleteItemEnhancedRequest)}, this returns a response object,
+     * allowing the user to retrieve additional information from DynamoDB related to the API call, such as
+     * {@link ConsumedCapacity} if specified on the request.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder().key(key).build();
+     * DeleteItemEnhancedResponse<MyItem> response = mappedTable.deleteItemWithResponse(request);
+     * }
+     * </pre>
+     *
+     * @param request A {@link DeleteItemEnhancedRequest} with key and optional directives for deleting an item from the
+     *                table.
+     * @return The response returned by DynamoDB.
+     */
+    default DeleteItemEnhancedResponse<T> deleteItemWithResponse(DeleteItemEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using a supplied primary {@link Key}.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link DeleteItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints. Unlike {@link #deleteItem(Consumer)}, this returns a response object, allowing the user to
+     * retrieve additional information from DynamoDB related to the API call, such as {@link ConsumedCapacity} if specified on
+     * the request.
+     * <p>
+     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to
+     * create one manually via {@link DeleteItemEnhancedRequest#builder()}.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * DeleteItemEnhancedResponse<MyItem> response = mappedTable.deleteWithResponse(r -> r.key(key));
+     * }
+     * </pre>
+     *
+     * @param requestConsumer A {@link Consumer} of {@link DeleteItemEnhancedRequest} with key and
+     * optional directives for deleting an item from the table.
+     * @return The response returned by DynamoDB.
+     */
+    default DeleteItemEnhancedResponse<T>  deleteItemWithResponse(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
