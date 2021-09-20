@@ -66,10 +66,12 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
         ConfiguredS3SdkHttpRequest configuredRequest = S3EndpointResolverFactory.getEndpointResolver(resolverFactoryContext)
                                                                                 .applyEndpointConfiguration(resolverContext);
 
-        configuredRequest.signingRegionModification()
-                         .map(region -> executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, region))
-                         .orElseGet(() -> executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE,
-                                                                           RegionScope.GLOBAL));
+        if (configuredRequest.signingRegionModification().isPresent()) {
+            executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION,
+                                             configuredRequest.signingRegionModification().get());
+        } else {
+            executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE, RegionScope.GLOBAL);
+        }
 
         configuredRequest.signingServiceModification().ifPresent(
             name -> executionAttributes.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, name));
