@@ -37,15 +37,15 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 public final class DefaultS3TransferManager implements S3TransferManager {
     private final S3CrtAsyncClient s3CrtAsyncClient;
 
-    public DefaultS3TransferManager(DefaultBuilder builder) {
+    public DefaultS3TransferManager(DefaultBuilder tmBuilder) {
         S3CrtAsyncClient.S3CrtAsyncClientBuilder clientBuilder = S3CrtAsyncClient.builder();
-        if (builder.s3ClientConfiguration != null) {
-            builder.s3ClientConfiguration.credentialsProvider().ifPresent(clientBuilder::credentialsProvider);
-            builder.s3ClientConfiguration.maxConcurrency().ifPresent(clientBuilder::maxConcurrency);
-            builder.s3ClientConfiguration.minimumPartSizeInBytes().ifPresent(clientBuilder::minimumPartSizeInBytes);
-            builder.s3ClientConfiguration.region().ifPresent(clientBuilder::region);
-            builder.s3ClientConfiguration.targetThroughputInGbps().ifPresent(clientBuilder::targetThroughputInGbps);
-            builder.s3ClientConfiguration.asyncConfiguration().ifPresent(clientBuilder::asyncConfiguration);
+        if (tmBuilder.s3ClientConfiguration != null) {
+            tmBuilder.s3ClientConfiguration.credentialsProvider().ifPresent(clientBuilder::credentialsProvider);
+            tmBuilder.s3ClientConfiguration.maxConcurrency().ifPresent(clientBuilder::maxConcurrency);
+            tmBuilder.s3ClientConfiguration.minimumPartSizeInBytes().ifPresent(clientBuilder::minimumPartSizeInBytes);
+            tmBuilder.s3ClientConfiguration.region().ifPresent(clientBuilder::region);
+            tmBuilder.s3ClientConfiguration.targetThroughputInGbps().ifPresent(clientBuilder::targetThroughputInGbps);
+            tmBuilder.s3ClientConfiguration.asyncConfiguration().ifPresent(clientBuilder::asyncConfiguration);
         }
 
         s3CrtAsyncClient = clientBuilder.build();
