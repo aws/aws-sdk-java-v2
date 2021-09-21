@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Update Sigv4a signer to include the port in the Host header, when the port does not match the standard port for the protocol. This allows requests to endpoints with non-standard ports to succeed."
-}
