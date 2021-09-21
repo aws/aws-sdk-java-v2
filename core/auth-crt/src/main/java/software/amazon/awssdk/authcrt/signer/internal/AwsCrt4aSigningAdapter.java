@@ -43,11 +43,11 @@ public class AwsCrt4aSigningAdapter {
         try {
             HttpRequest signedRequest = future.get();
             return requestConverter.crtRequestToHttp(request, signedRequest);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw SdkClientException.create("The thread got interrupted while attempting to sign request: " + e.getMessage(), e);
         } catch (Exception e) {
-            throw SdkClientException.builder()
-                    .message("Unable to sign request: " + e.getMessage())
-                    .cause(e)
-                    .build();
+            throw SdkClientException.create("Unable to sign request: " + e.getMessage(), e);
         }
     }
 
@@ -57,11 +57,11 @@ public class AwsCrt4aSigningAdapter {
         try {
             AwsSigningResult signingResult = future.get();
             return requestConverter.crtResultToAws(request, signingResult);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw SdkClientException.create("The thread got interrupted while attempting to sign request: " + e.getMessage(), e);
         } catch (Exception e) {
-            throw SdkClientException.builder()
-                                    .message("Unable to sign request: " + e.getMessage())
-                                    .cause(e)
-                                    .build();
+            throw SdkClientException.create("Unable to sign request: " + e.getMessage(), e);
         }
     }
 
@@ -70,11 +70,11 @@ public class AwsCrt4aSigningAdapter {
         CompletableFuture<byte[]> future = AwsSigner.signChunk(crtBody, previousSignature, signingConfig);
         try {
             return future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw SdkClientException.create("The thread got interrupted while attempting to sign request: " + e.getMessage(), e);
         } catch (Exception e) {
-            throw SdkClientException.builder()
-                                    .message("Unable to sign chunk: " + e.getMessage())
-                                    .cause(e)
-                                    .build();
+            throw SdkClientException.create("Unable to sign request: " + e.getMessage(), e);
         }
     }
 

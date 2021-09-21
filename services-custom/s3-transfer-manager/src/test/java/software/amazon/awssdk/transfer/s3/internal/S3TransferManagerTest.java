@@ -42,9 +42,6 @@ public class S3TransferManagerTest {
     private S3CrtAsyncClient mockS3Crt;
     private S3TransferManager tm;
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
     @Before
     public void methodSetup() {
         mockS3Crt = mock(S3CrtAsyncClient.class);
@@ -54,6 +51,12 @@ public class S3TransferManagerTest {
     @After
     public void methodTeardown() {
         tm.close();
+    }
+
+    @Test
+    public void defaultTransferManager_shouldNotThrowException() {
+        S3TransferManager transferManager = S3TransferManager.create();
+        transferManager.close();
     }
 
     @Test

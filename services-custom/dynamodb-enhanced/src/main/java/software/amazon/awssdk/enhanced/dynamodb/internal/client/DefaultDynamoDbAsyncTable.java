@@ -37,6 +37,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TableOperati
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PagePublisher;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
@@ -111,8 +112,9 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
 
     @Override
     public CompletableFuture<T> deleteItem(DeleteItemEnhancedRequest request) {
-        TableOperation<T, ?, ?, T> operation = DeleteItemOperation.create(request);
-        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
+        TableOperation<T, ?, ?, DeleteItemEnhancedResponse<T>> operation = DeleteItemOperation.create(request);
+        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient)
+                        .thenApply(DeleteItemEnhancedResponse::attributes);
     }
 
     @Override
@@ -130,6 +132,20 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     @Override
     public CompletableFuture<T> deleteItem(T keyItem) {
         return deleteItem(keyFrom(keyItem));
+    }
+
+    @Override
+    public CompletableFuture<DeleteItemEnhancedResponse<T>> deleteItemWithResponse(DeleteItemEnhancedRequest request) {
+        TableOperation<T, ?, ?, DeleteItemEnhancedResponse<T>> operation = DeleteItemOperation.create(request);
+        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
+    }
+
+    @Override
+    public CompletableFuture<DeleteItemEnhancedResponse<T>> deleteItemWithResponse(
+        Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
+        DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return deleteItemWithResponse(builder.build());
     }
 
     @Override

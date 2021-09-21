@@ -27,6 +27,8 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DeleteItemEnhancedRequestTest {
@@ -37,6 +39,10 @@ public class DeleteItemEnhancedRequestTest {
 
         assertThat(builtObject.key(), is(nullValue()));
         assertThat(builtObject.conditionExpression(), is(nullValue()));
+        assertThat(builtObject.returnConsumedCapacity(), is(nullValue()));
+        assertThat(builtObject.returnConsumedCapacityAsString(), is(nullValue()));
+        assertThat(builtObject.returnItemCollectionMetrics(), is(nullValue()));
+        assertThat(builtObject.returnItemCollectionMetricsAsString(), is(nullValue()));
     }
 
     @Test
@@ -51,20 +57,45 @@ public class DeleteItemEnhancedRequestTest {
                                                    .putExpressionValue(":value1", stringValue("three"))
                                                    .build();
 
+        ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.TOTAL;
+        ReturnItemCollectionMetrics returnItemCollectionMetrics = ReturnItemCollectionMetrics.SIZE;
+
         DeleteItemEnhancedRequest builtObject = DeleteItemEnhancedRequest.builder()
                                                                          .key(key)
                                                                          .conditionExpression(conditionExpression)
+                                                                         .returnConsumedCapacity(returnConsumedCapacity)
+                                                                         .returnItemCollectionMetrics(returnItemCollectionMetrics)
                                                                          .build();
 
         assertThat(builtObject.key(), is(key));
         assertThat(builtObject.conditionExpression(), is(conditionExpression));
+        assertThat(builtObject.returnConsumedCapacity(), is(returnConsumedCapacity));
+        assertThat(builtObject.returnConsumedCapacityAsString(), is(returnConsumedCapacity.toString()));
+        assertThat(builtObject.returnItemCollectionMetrics(), is(returnItemCollectionMetrics));
+        assertThat(builtObject.returnItemCollectionMetricsAsString(), is(returnItemCollectionMetrics.toString()));
     }
 
     @Test
     public void toBuilder() {
         Key key = Key.builder().partitionValue("key").build();
 
-        DeleteItemEnhancedRequest builtObject = DeleteItemEnhancedRequest.builder().key(key).build();
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#key = :value OR #key1 = :value1")
+                                                   .putExpressionName("#key", "attribute")
+                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionValue(":value", stringValue("wrong"))
+                                                   .putExpressionValue(":value1", stringValue("three"))
+                                                   .build();
+
+        ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.TOTAL;
+        ReturnItemCollectionMetrics returnItemCollectionMetrics = ReturnItemCollectionMetrics.SIZE;
+
+        DeleteItemEnhancedRequest builtObject = DeleteItemEnhancedRequest.builder()
+                                                                         .key(key)
+                                                                         .conditionExpression(conditionExpression)
+                                                                         .returnConsumedCapacity(returnConsumedCapacity)
+                                                                         .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                                         .build();
 
         DeleteItemEnhancedRequest copiedObject = builtObject.toBuilder().build();
 
@@ -112,6 +143,36 @@ public class DeleteItemEnhancedRequestTest {
     }
 
     @Test
+    public void equals_returnConsumedCapacityNotEqual() {
+        ReturnConsumedCapacity returnConsumedCapacity1 = ReturnConsumedCapacity.TOTAL;
+        ReturnConsumedCapacity returnConsumedCapacity2 = ReturnConsumedCapacity.NONE;
+
+        DeleteItemEnhancedRequest builtObject1 = DeleteItemEnhancedRequest.builder()
+                                                                          .returnConsumedCapacity(returnConsumedCapacity1)
+                                                                          .build();
+        DeleteItemEnhancedRequest builtObject2 = DeleteItemEnhancedRequest.builder()
+                                                                          .returnConsumedCapacity(returnConsumedCapacity2)
+                                                                          .build();
+
+        assertThat(builtObject1, not(equalTo(builtObject2)));
+    }
+
+    @Test
+    public void equals_returnItemCollectionMetricsNotEqual() {
+        ReturnItemCollectionMetrics returnItemCollectionMetrics1 = ReturnItemCollectionMetrics.SIZE;
+        ReturnItemCollectionMetrics returnItemCollectionMetrics2 = ReturnItemCollectionMetrics.NONE;
+
+        DeleteItemEnhancedRequest builtObject1 = DeleteItemEnhancedRequest.builder()
+                                                                          .returnItemCollectionMetrics(returnItemCollectionMetrics1)
+                                                                          .build();
+        DeleteItemEnhancedRequest builtObject2 = DeleteItemEnhancedRequest.builder()
+                                                                          .returnItemCollectionMetrics(returnItemCollectionMetrics2)
+                                                                          .build();
+
+        assertThat(builtObject1, not(equalTo(builtObject2)));
+    }
+
+    @Test
     public void hashCode_minimal() {
         DeleteItemEnhancedRequest emptyRequest = DeleteItemEnhancedRequest.builder().build();
 
@@ -143,6 +204,32 @@ public class DeleteItemEnhancedRequestTest {
 
         DeleteItemEnhancedRequest containsKey = DeleteItemEnhancedRequest.builder()
                                                                          .conditionExpression(conditionExpression)
+                                                                         .build();
+
+        assertThat(containsKey.hashCode(), not(equalTo(emptyRequest.hashCode())));
+    }
+
+    @Test
+    public void hashCode_includesReturnConsumedCapacity() {
+        DeleteItemEnhancedRequest emptyRequest = DeleteItemEnhancedRequest.builder().build();
+
+        ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.TOTAL;
+
+        DeleteItemEnhancedRequest containsKey = DeleteItemEnhancedRequest.builder()
+                                                                         .returnConsumedCapacity(returnConsumedCapacity)
+                                                                         .build();
+
+        assertThat(containsKey.hashCode(), not(equalTo(emptyRequest.hashCode())));
+    }
+
+    @Test
+    public void hashCode_includesReturnItemCollectionMetrics() {
+        DeleteItemEnhancedRequest emptyRequest = DeleteItemEnhancedRequest.builder().build();
+
+        ReturnItemCollectionMetrics returnItemCollectionMetrics = ReturnItemCollectionMetrics.SIZE;
+
+        DeleteItemEnhancedRequest containsKey = DeleteItemEnhancedRequest.builder()
+                                                                         .returnItemCollectionMetrics(returnItemCollectionMetrics)
                                                                          .build();
 
         assertThat(containsKey.hashCode(), not(equalTo(emptyRequest.hashCode())));
