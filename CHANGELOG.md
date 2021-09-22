@@ -1,3 +1,36 @@
+# __2.17.44__ __2021-09-22__
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - MediaPackage VOD will now return the current processing statuses of an asset's endpoints. The status can be QUEUED, PROCESSING, PLAYABLE, or FAILED.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Added changes to OIDC API about not using port numbers in the URL.
+
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now allows customers to change their Windows Server or SQL license types from Bring-Your-Own-License (BYOL) to License Included or vice-versa (using the customer's media).
+
+## __AWS MediaTailor__
+  - ### Features
+    - This release adds support to configure logs for playback configuration.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Added the regex match rule statement, for matching web requests against a single regular expression.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release adds support for utterances statistics for bots built using Lex V2 console and APIs. For details, see: https://docs.aws.amazon.com/lexv2/latest/dg/monitoring-utterances.html
+
+## __EC2 Image Builder__
+  - ### Features
+    - This feature adds support for specifying GP3 volume throughput and configuring instance metadata options for instances launched by EC2 Image Builder.
+
 # __2.17.43__ __2021-09-21__
 ## __AWS IoT__
   - ### Features
