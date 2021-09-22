@@ -1,6 +1,6 @@
 **Design:** New Feature,
-**Parent feature:** [TransferManager](../README.md),
-**Status:** [In Development](../README.md)
+**Parent feature:** [TransferManager](..),
+**Status:** [In Development](..)
 
 # v2 Transfer Manager Progress Listeners
 
