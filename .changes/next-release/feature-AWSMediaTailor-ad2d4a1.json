@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS MediaTailor",
+    "contributor": "",
+    "description": "This release adds support to configure logs for playback configuration."
+}
