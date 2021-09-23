@@ -1,3 +1,20 @@
+# __2.17.45__ __2021-09-23__
+## __AWS AppSync__
+  - ### Features
+    - Documented the new OpenSearchServiceDataSourceConfig data type. Added deprecation notes to the ElasticsearchDataSourceConfig data type.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds style and positioning support for caption or subtitle burn-in from rich text sources such as TTML. This release also introduces configurable image-based trick play track generation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Added cutoff behavior support for preventing new task invocations from starting when the maintenance window cutoff time is reached.
+
 # __2.17.44__ __2021-09-22__
 ## __AWS Elemental MediaPackage VOD__
   - ### Features
