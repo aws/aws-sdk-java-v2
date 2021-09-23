@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
@@ -32,9 +33,12 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmut
 public class ImmutableIntrospector {
     private static final String BUILD_METHOD = "build";
     private static final String BUILDER_METHOD = "builder";
+    private static final String TO_BUILDER_METHOD = "toBuilder";
     private static final String GET_PREFIX = "get";
     private static final String IS_PREFIX = "is";
     private static final String SET_PREFIX = "set";
+
+    private static final String[] METHODS_TO_IGNORE = { TO_BUILDER_METHOD };
 
     private static volatile ImmutableIntrospector INSTANCE = null;
 
@@ -43,9 +47,9 @@ public class ImmutableIntrospector {
     private final Set<String> namesToExclude;
 
     private ImmutableIntrospector() {
-        this.namesToExclude = Collections.unmodifiableSet(Arrays.stream(Object.class.getMethods())
-                                                                .map(Method::getName)
-                                                                .collect(Collectors.toSet()));
+        this.namesToExclude = Collections.unmodifiableSet(
+            Stream.concat(Arrays.stream(Object.class.getMethods()).map(Method::getName), Arrays.stream(METHODS_TO_IGNORE))
+                  .collect(Collectors.toSet()));
     }
 
     public static <T> ImmutableInfo<T> getImmutableInfo(Class<T> immutableClass) {
