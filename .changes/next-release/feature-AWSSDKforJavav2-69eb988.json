@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Remove SDK usage of global execution.interceptors files. This reduces the need for customers to use a special transformer for execution.interceptors files when they are creating an uber-jar of all SDK modules. Customers should still consider using such an appender, in case other libraries rely on execution.interceptors files."
+}
