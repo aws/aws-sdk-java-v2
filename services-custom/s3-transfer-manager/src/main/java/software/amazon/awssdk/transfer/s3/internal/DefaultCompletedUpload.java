@@ -18,18 +18,46 @@ package software.amazon.awssdk.transfer.s3.internal;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedUpload;
+import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultCompletedUpload implements CompletedUpload {
     private final PutObjectResponse response;
 
     private DefaultCompletedUpload(BuilderImpl builder) {
-        this.response = builder.response;
+        this.response = Validate.paramNotNull(builder.response, "response");
     }
 
     @Override
     public PutObjectResponse response() {
         return response;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultCompletedUpload that = (DefaultCompletedUpload) o;
+
+        return response.equals(that.response);
+    }
+
+    @Override
+    public int hashCode() {
+        return response.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("CompletedUpload")
+                       .add("response", response)
+                       .build();
     }
 
     /**

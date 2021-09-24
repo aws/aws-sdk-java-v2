@@ -161,6 +161,56 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
+     * Upload the given directory to the S3 bucket under the given prefix.
+     *
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * UploadDirectory uploadDirectory =
+     *       transferManager.uploadDirectory(UploadDirectoryRequest.builder()
+     *                                                             .sourceDirectory(Paths.get("."))
+     *                                                             .bucket("bucket")
+     *                                                             .prefix("prefix")
+     *                                                             .build());
+     * // Wait for the transfer to complete
+     * uploadDirectory.completionFuture().join();
+     * }
+     * </pre>
+     *
+     * @param uploadDirectoryRequest the upload directory request
+     * @see #uploadDirectory(UploadDirectoryRequest)
+     */
+    default UploadDirectory uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Upload the given directory to the S3 bucket under the given prefix.
+     *
+     * <p>
+     * This is a convenience method that creates an instance of the {@link UploadDirectoryRequest} builder avoiding the
+     * need to create one manually via {@link UploadDirectoryRequest#builder()}.
+     *
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * UploadDirectory uploadDirectory =
+     *       transferManager.uploadDirectory(b -> b.sourceDirectory(Paths.get("."))
+     *                                             .bucket("key")
+     *                                             .prefix("prefix"));
+     * // Wait for the transfer to complete
+     * uploadDirectory.completionFuture().join();
+     * }
+     * </pre>
+     * @param requestBuilder the upload directory request builder
+     */
+    default UploadDirectory uploadDirectory(Consumer<UploadDirectoryRequest.Builder> requestBuilder) {
+        return uploadDirectory(UploadDirectoryRequest.builder().applyMutation(requestBuilder).build());
+    }
+
+    /**
      * Create an {@code S3TransferManager} using the default values.
      */
     static S3TransferManager create() {

@@ -105,6 +105,7 @@ public class S3ClientConfigurationTest {
                                                                     .maxConcurrency(100)
                                                                     .targetThroughputInGbps(10.0)
                                                                     .region(Region.US_WEST_2)
+                                                                    .uploadDirectoryConfiguration(b -> b.recursive(true))
                                                                     .minimumPartSizeInBytes(5 * MB)
                                                                     .build();
 
@@ -114,12 +115,14 @@ public class S3ClientConfigurationTest {
                                                                     .targetThroughputInGbps(10.0)
                                                                     .region(Region.US_WEST_2)
                                                                     .minimumPartSizeInBytes(5 * MB)
+                                                                    .uploadDirectoryConfiguration(b -> b.recursive(true))
                                                                     .build();
 
         S3ClientConfiguration configuration3 = configuration1.toBuilder()
                                                              .credentialsProvider(AnonymousCredentialsProvider.create())
                                                              .maxConcurrency(50)
                                                              .targetThroughputInGbps(1.0)
+                                                             .uploadDirectoryConfiguration(b -> b.recursive(false))
                                                              .asyncConfiguration(c -> c.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
                                                                                                        Runnable::run))
                                                              .build();
