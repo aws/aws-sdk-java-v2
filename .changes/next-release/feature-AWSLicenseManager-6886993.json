@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS License Manager",
-    "contributor": "",
-    "description": "AWS License Manager now allows customers to get the LicenseArn in the Checkout API Response."
-}
