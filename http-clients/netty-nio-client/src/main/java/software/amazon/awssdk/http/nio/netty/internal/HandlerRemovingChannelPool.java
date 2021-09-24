@@ -22,12 +22,14 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
@@ -55,14 +57,13 @@ public class HandlerRemovingChannelPool implements SdkChannelPool {
 
     @Override
     public Future<Void> release(Channel channel) {
-        removePerRequestHandlers(channel);
-        return delegate.release(channel);
+        return release(channel, new DefaultPromise<>(channel.eventLoop()));
     }
 
     @Override
     public Future<Void> release(Channel channel, Promise<Void> promise) {
-        removePerRequestHandlers(channel);
-        return delegate.release(channel, promise);
+        removePerRequestHandlers(channel).addListener(future -> delegate.release(channel, promise));
+        return promise;
     }
 
     @Override
@@ -70,22 +71,24 @@ public class HandlerRemovingChannelPool implements SdkChannelPool {
         delegate.close();
     }
 
-    private void removePerRequestHandlers(Channel channel) {
-        channel.attr(IN_USE).set(false);
+    private Future<?> removePerRequestHandlers(Channel channel) {
+        return NettyUtils.doInEventLoop(channel.eventLoop(), () -> {
+            channel.attr(IN_USE).set(false);
 
-        // Only remove per request handler if the channel is registered
-        // or open since DefaultChannelPipeline would remove handlers if
-        // channel is closed and unregistered
-        // See DefaultChannelPipeline.java#L1403
-        if (channel.isOpen() || channel.isRegistered()) {
-            removeIfExists(channel.pipeline(),
-                           HttpStreamsClientHandler.class,
-                           LastHttpContentHandler.class,
-                           FlushOnReadHandler.class,
-                           ResponseHandler.class,
-                           ReadTimeoutHandler.class,
-                           WriteTimeoutHandler.class);
-        }
+            // Only remove per request handler if the channel is registered
+            // or open since DefaultChannelPipeline would remove handlers if
+            // channel is closed and unregistered
+            // See DefaultChannelPipeline.java#L1403
+            if (channel.isOpen() || channel.isRegistered()) {
+                removeIfExists(channel.pipeline(),
+                               HttpStreamsClientHandler.class,
+                               LastHttpContentHandler.class,
+                               FlushOnReadHandler.class,
+                               ResponseHandler.class,
+                               ReadTimeoutHandler.class,
+                               WriteTimeoutHandler.class);
+            }
+        });
     }
 
     @Override
