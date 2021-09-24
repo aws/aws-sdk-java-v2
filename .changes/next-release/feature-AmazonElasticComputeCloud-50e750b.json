@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "DescribeInstances now returns Platform Details, Usage Operation, and Usage Operation Update Time."
+}
