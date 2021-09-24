@@ -1,3 +1,26 @@
+# __2.17.46__ __2021-09-24__
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now allows customers to get the LicenseArn in the Checkout API Response.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Remove SDK usage of global execution.interceptors files. This reduces the need for customers to use a special transformer for execution.interceptors files when they are creating an uber-jar of all SDK modules. Customers should still consider using such an appender, in case other libraries rely on execution.interceptors files.
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - DescribeInstances now returns Platform Details, Usage Operation, and Usage Operation Update Time.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Annotated immutable class introspector now ignores 'toBuilder' method allowing easier integration with libraries that auto-generate this method on immutable data classes.
+        - Contributed by: [@bmaizels](https://github.com/bmaizels)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@bmaizels](https://github.com/bmaizels)
 # __2.17.45__ __2021-09-23__
 ## __AWS AppSync__
   - ### Features

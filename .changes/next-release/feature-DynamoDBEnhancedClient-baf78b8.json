@@ -1,6 +1,0 @@
-{
-    "category": "DynamoDB Enhanced Client", 
-    "contributor": "bmaizels", 
-    "type": "feature", 
-    "description": "Annotated immutable class introspector now ignores 'toBuilder' method allowing easier integration with libraries that auto-generate this method on immutable data classes."
-}
