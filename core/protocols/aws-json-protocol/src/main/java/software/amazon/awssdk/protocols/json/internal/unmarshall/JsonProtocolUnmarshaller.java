@@ -127,7 +127,10 @@ public final class JsonProtocolUnmarshaller {
     private static Document unmarshallDocument(JsonUnmarshallerContext context,
                                                JsonNode jsonContent,
                                                SdkField<Document> field) {
-        return jsonContent != null && !jsonContent.isNull() ? getDocumentFromJsonContent(jsonContent) : null;
+        if (jsonContent == null) {
+            return null;
+        }
+        return jsonContent.isNull() ? Document.fromNull() : getDocumentFromJsonContent(jsonContent);
     }
 
     private static Document getDocumentFromJsonContent(JsonNode jsonContent) {
@@ -238,8 +241,11 @@ public final class JsonProtocolUnmarshaller {
         if (jsonContent == null) {
             return null;
         }
-        return isExplicitPayloadMember(field) ? jsonContent : jsonContent.field(field.locationName())
-                                                                         .orElse(null);
+        return isFieldExplicitlyTransferredAsJson(field) ? jsonContent : jsonContent.field(field.locationName()).orElse(null);
+    }
+
+    private static boolean isFieldExplicitlyTransferredAsJson(SdkField<?> field) {
+        return isExplicitPayloadMember(field) && !MarshallingType.DOCUMENT.equals(field.marshallingType());
     }
 
     /**
