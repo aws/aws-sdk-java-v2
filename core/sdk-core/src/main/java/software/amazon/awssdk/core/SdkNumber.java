@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.Validate;
  * @see #fromShort(short) to create from a short.
  * @see #fromInteger(int) to create from an integer.
  * @see #fromString(String)  to create from a Stringl,
- * Thus by doing this, this class is able to preserve arbitary precison of any given number.
+ * Thus by doing this, this class is able to preserve arbitrary precison of any given number.
  *
  * If {@link SdkNumber} is expected in a particular number format then its corresponding getter methods can be used.
  * Example for a {@link SdkNumber} created with {@link BigDecimal} the

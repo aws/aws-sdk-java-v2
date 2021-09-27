@@ -1,3 +1,32 @@
+# __2.17.47__ __2021-09-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - The Amazon AppIntegrations service enables you to configure and reuse connections to external applications.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates a set of APIs: CreateIntegrationAssociation, ListIntegrationAssociations, CreateUseCase, and StartOutboundVoiceContact. You can use it to create integrations with Amazon Pinpoint for the Amazon Connect Campaigns use case, Amazon Connect Voice ID, and Amazon Connect Wisdom.
+
+## __Amazon Connect Wisdom Service__
+  - ### Features
+    - Released Amazon Connect Wisdom, a feature of Amazon Connect, which provides real-time recommendations and search functionality in general availability (GA). For more information, see https://docs.aws.amazon.com/wisdom/latest/APIReference/Welcome.html.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Added support for journey with contact center activity
+
+## __Amazon Voice ID__
+  - ### Features
+    - Released the Amazon Voice ID SDK, for usage with the Amazon Connect Voice ID feature released for Amazon Connect.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Adds new ALB-type target group to facilitate forwarding traffic from NLB to ALB
+
 # __2.17.46__ __2021-09-24__
 ## __AWS License Manager__
   - ### Features
