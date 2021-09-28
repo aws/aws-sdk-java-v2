@@ -180,13 +180,15 @@ public class ShapeModelReflector {
      * @param currentNode JsonNode containing value of member.
      */
     private Object getMemberValue(JsonNode currentNode, MemberModel memberModel) {
-        // Streaming members are not in the POJO
-        if (currentNode.isNull()) {
-            return null;
-        }
+
         String simpleType = memberModel.getVariable().getSimpleType();
+
         if (simpleType.equals("Document")) {
             return new JsonNodeToDocumentConvertor().visit(currentNode);
+        }
+        // Streaming members are not in the POJO, for Document type null Json Nodes are represented as NullDocument
+        if (currentNode.isNull()) {
+            return null;
         }
         if (memberModel.isSimple()) {
             return getSimpleMemberValue(currentNode, memberModel);

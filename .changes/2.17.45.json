@@ -1,0 +1,30 @@
+{
+    "version": "2.17.45",
+    "date": "2021-09-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release adds style and positioning support for caption or subtitle burn-in from rich text sources such as TTML. This release also introduces configurable image-based trick play track generation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "contributor": "",
+            "description": "Documented the new OpenSearchServiceDataSourceConfig data type. Added deprecation notes to the ElasticsearchDataSourceConfig data type."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Added cutoff behavior support for preventing new task invocations from starting when the maintenance window cutoff time is reached."
+        }
+    ]
+}

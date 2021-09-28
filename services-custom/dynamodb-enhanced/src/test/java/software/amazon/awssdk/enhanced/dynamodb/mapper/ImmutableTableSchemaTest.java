@@ -33,6 +33,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedBeanIm
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedImmutableImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedImmutableIgnoreNulls;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ToBuilderImmutable;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class ImmutableTableSchemaTest {
@@ -280,5 +281,21 @@ public class ImmutableTableSchemaTest {
 
         assertThat(itemMap, hasEntry("innerBean1", expectedMapForInnerBean1));
         assertThat(itemMap.get("innerBean2").m(), hasEntry("attribute2", nullAttributeValue()));
+    }
+
+    @Test
+    public void toBuilderImmutable_ignoresToBuilderMethod() {
+        ImmutableTableSchema<ToBuilderImmutable> toBuilderImmutableTableSchema =
+            ImmutableTableSchema.create(ToBuilderImmutable.class);
+
+        ToBuilderImmutable toBuilderImmutable = ToBuilderImmutable.builder()
+                                                                  .id("id-value")
+                                                                  .attribute1("one")
+                                                                  .build();
+
+        Map<String, AttributeValue> itemMap = toBuilderImmutableTableSchema.itemToMap(toBuilderImmutable, true);
+        assertThat(itemMap.size(), is(2));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
     }
 }

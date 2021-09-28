@@ -16,7 +16,7 @@
 package software.amazon.awssdk.awscore.client.builder;
 
 import java.net.URI;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -26,6 +26,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.eventstream.EventStreamInitialRequestInterceptor;
 import software.amazon.awssdk.awscore.interceptor.HelpfulUnknownHostExceptionInterceptor;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
@@ -267,6 +268,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     private List<ExecutionInterceptor> awsInterceptors() {
-        return Collections.singletonList(new HelpfulUnknownHostExceptionInterceptor());
+        return Arrays.asList(new HelpfulUnknownHostExceptionInterceptor(),
+                             new EventStreamInitialRequestInterceptor());
     }
 }

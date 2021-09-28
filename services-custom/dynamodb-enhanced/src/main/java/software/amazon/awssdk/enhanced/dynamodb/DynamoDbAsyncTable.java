@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PagePublisher;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 
 /**
  * Asynchronous interface for running commands against an object that is linked to a specific DynamoDb table resource
@@ -233,6 +235,65 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
      */
     default CompletableFuture<T> deleteItem(T keyItem) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using a supplied primary {@link Key}.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link DeleteItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints. Unlike {@link #deleteItem(DeleteItemEnhancedRequest)}, this returns a response object,
+     * allowing the user to retrieve additional information from DynamoDB related to the API call, such as
+     * {@link ConsumedCapacity} if specified on the request.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder().key(key).build();
+     * DeleteItemEnhancedResponse<MyItem> response = mappedTable.deleteItemWithResponse(request).join();
+     * }
+     * </pre>
+     *
+     * @param request A {@link DeleteItemEnhancedRequest} with key and optional directives for deleting an item from the
+     *                table.
+     * @return A {@code CompletableFuture} containing the response returned by DynamoDB.
+     */
+    default CompletableFuture<DeleteItemEnhancedResponse<T>> deleteItemWithResponse(DeleteItemEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using a supplied primary {@link Key}.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link DeleteItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints. Unlike {@link #deleteItem(Consumer)}, this returns a response object, allowing the user to
+     * retrieve additional information from DynamoDB related to the API call, such as {@link ConsumedCapacity} if specified on
+     * the request.
+     * <p>
+     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to
+     * create one manually via {@link DeleteItemEnhancedRequest#builder()}.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * DeleteItemEnhancedResponse<MyItem> response = mappedTable.deleteWithResponse(r -> r.key(key)).join();
+     * }
+     * </pre>
+     *
+     * @param requestConsumer A {@link Consumer} of {@link DeleteItemEnhancedRequest} with key and
+     * optional directives for deleting an item from the table.
+     * @return A {@code CompletableFuture} containing the response returned by DynamoDB.
+     */
+    default CompletableFuture<DeleteItemEnhancedResponse<T>> deleteItemWithResponse(
+        Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 

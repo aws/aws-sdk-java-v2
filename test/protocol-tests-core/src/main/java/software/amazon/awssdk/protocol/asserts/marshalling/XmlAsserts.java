@@ -25,7 +25,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -42,7 +41,7 @@ public final class XmlAsserts {
     }
 
     private static DocumentBuilder getDocumentBuilder() {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory dbf = newSecureDocumentBuilderFactory();
         try {
             return dbf.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
@@ -74,7 +73,7 @@ public final class XmlAsserts {
     }
 
     private static String formatXml(Document xmlDocument) throws Exception {
-        Transformer transformer = transformerFactory().newTransformer();
+        Transformer transformer = newSecureTransformerFactory().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         StreamResult result = new StreamResult(new StringWriter());
         DOMSource source = new DOMSource(xmlDocument);
@@ -84,12 +83,47 @@ public final class XmlAsserts {
         }
     }
 
-    private static TransformerFactory transformerFactory() throws TransformerConfigurationException {
-        TransformerFactory factory = TransformerFactory.newInstance();
-        factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        if (factory.getFeature(XMLConstants.ACCESS_EXTERNAL_DTD)) {
-            factory.setFeature(XMLConstants.ACCESS_EXTERNAL_DTD, false);
+    private static DocumentBuilderFactory newSecureDocumentBuilderFactory() {
+        DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+        docFactory.setXIncludeAware(false);
+        docFactory.setExpandEntityReferences(false);
+        trySetFeature(docFactory, XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        trySetFeature(docFactory, "http://apache.org/xml/features/disallow-doctype-decl", true);
+        trySetFeature(docFactory, "http://xml.org/sax/features/external-general-entities", false);
+        trySetFeature(docFactory, "http://xml.org/sax/features/external-parameter-entities", false);
+        trySetAttribute(docFactory, "http://javax.xml.XMLConstants/property/accessExternalDTD", "");
+        trySetAttribute(docFactory, "http://javax.xml.XMLConstants/property/accessExternalSchema", "");
+        return docFactory;
+    }
+
+    private static TransformerFactory newSecureTransformerFactory() {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        trySetAttribute(transformerFactory, XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        trySetAttribute(transformerFactory, XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+        return transformerFactory;
+    }
+
+    private static void trySetFeature(DocumentBuilderFactory factory, String feature, boolean value) {
+        try {
+            factory.setFeature(feature, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        return factory;
+    }
+
+    private static void trySetAttribute(DocumentBuilderFactory factory, String feature, String value) {
+        try {
+            factory.setAttribute(feature, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void trySetAttribute(TransformerFactory factory, String feature, Object value) {
+        try {
+            factory.setAttribute(feature, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

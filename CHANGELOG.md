@@ -1,3 +1,168 @@
+# __2.17.48__ __2021-09-28__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Bug fix to handle DocumentType for Explicit payload members.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Added changes for managed workflows feature APIs.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Fix description for AmiDistributionConfiguration Name property, which actually refers to the output AMI name. Also updated for consistent terminology to use "base" image, and another update to fix description text.
+
+# __2.17.47__ __2021-09-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - The Amazon AppIntegrations service enables you to configure and reuse connections to external applications.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates a set of APIs: CreateIntegrationAssociation, ListIntegrationAssociations, CreateUseCase, and StartOutboundVoiceContact. You can use it to create integrations with Amazon Pinpoint for the Amazon Connect Campaigns use case, Amazon Connect Voice ID, and Amazon Connect Wisdom.
+
+## __Amazon Connect Wisdom Service__
+  - ### Features
+    - Released Amazon Connect Wisdom, a feature of Amazon Connect, which provides real-time recommendations and search functionality in general availability (GA). For more information, see https://docs.aws.amazon.com/wisdom/latest/APIReference/Welcome.html.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Added support for journey with contact center activity
+
+## __Amazon Voice ID__
+  - ### Features
+    - Released the Amazon Voice ID SDK, for usage with the Amazon Connect Voice ID feature released for Amazon Connect.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Adds new ALB-type target group to facilitate forwarding traffic from NLB to ALB
+
+# __2.17.46__ __2021-09-24__
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now allows customers to get the LicenseArn in the Checkout API Response.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Remove SDK usage of global execution.interceptors files. This reduces the need for customers to use a special transformer for execution.interceptors files when they are creating an uber-jar of all SDK modules. Customers should still consider using such an appender, in case other libraries rely on execution.interceptors files.
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - DescribeInstances now returns Platform Details, Usage Operation, and Usage Operation Update Time.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Annotated immutable class introspector now ignores 'toBuilder' method allowing easier integration with libraries that auto-generate this method on immutable data classes.
+        - Contributed by: [@bmaizels](https://github.com/bmaizels)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@bmaizels](https://github.com/bmaizels)
+# __2.17.45__ __2021-09-23__
+## __AWS AppSync__
+  - ### Features
+    - Documented the new OpenSearchServiceDataSourceConfig data type. Added deprecation notes to the ElasticsearchDataSourceConfig data type.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds style and positioning support for caption or subtitle burn-in from rich text sources such as TTML. This release also introduces configurable image-based trick play track generation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Added cutoff behavior support for preventing new task invocations from starting when the maintenance window cutoff time is reached.
+
+# __2.17.44__ __2021-09-22__
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - MediaPackage VOD will now return the current processing statuses of an asset's endpoints. The status can be QUEUED, PROCESSING, PLAYABLE, or FAILED.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Added changes to OIDC API about not using port numbers in the URL.
+
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now allows customers to change their Windows Server or SQL license types from Bring-Your-Own-License (BYOL) to License Included or vice-versa (using the customer's media).
+
+## __AWS MediaTailor__
+  - ### Features
+    - This release adds support to configure logs for playback configuration.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Added the regex match rule statement, for matching web requests against a single regular expression.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release adds support for utterances statistics for bots built using Lex V2 console and APIs. For details, see: https://docs.aws.amazon.com/lexv2/latest/dg/monitoring-utterances.html
+
+## __EC2 Image Builder__
+  - ### Features
+    - This feature adds support for specifying GP3 volume throughput and configuring instance metadata options for instances launched by EC2 Image Builder.
+
+# __2.17.43__ __2021-09-21__
+## __AWS IoT__
+  - ### Features
+    - This release adds support for verifying, viewing and filtering AWS IoT Device Defender detect violations with four verification states.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Update Sigv4a signer to include the port in the Host header, when the port does not match the standard port for the protocol. This allows requests to endpoints with non-standard ports to succeed.
+
+## __Amazon Comprehend__
+  - ### Features
+    - Amazon Comprehend now supports versioning of custom models, improved training with ONE_DOC_PER_FILE text documents for custom entity recognition, ability to provide specific test sets during training, and live migration to new model endpoints.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds additional support for repository replication
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This update adds support for downloading configuration templates using new APIs (GetVpnConnectionDeviceTypes and GetVpnConnectionDeviceSampleConfiguration) and Internet Key Exchange version 2 (IKEv2) parameters for many popular CGW devices.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - This commit introduces DynamoDbTable#deleteItemWithResponse() that allows customers to specify additional parameters on the request such as ReturnConsumedCapacity to get additional information the service response.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Added StateInfo to ClusterInfo
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix the NPE thrown when calling `S3TransferManager.create()`
+
+# __2.17.42__ __2021-09-17__
+## __AWS Database Migration Service__
+  - ### Features
+    - Optional flag force-planned-failover added to reboot-replication-instance API call. This flag can be used to test a planned failover scenario used during some maintenance operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - This release adds an optional parameter in the ListDomainNames API to filter domains based on the engine type (OpenSearch/Elasticsearch).
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds an optional parameter in the ListDomainNames API to filter domains based on the engine type (OpenSearch/Elasticsearch).
+
 # __2.17.41__ __2021-09-16__
 ## __AWS RoboMaker__
   - ### Features

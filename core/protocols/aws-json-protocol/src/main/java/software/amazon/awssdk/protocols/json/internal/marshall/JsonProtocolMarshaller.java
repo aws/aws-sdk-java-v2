@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocols.json.internal.marshall;
 
 import static software.amazon.awssdk.core.internal.util.Mimetype.MIMETYPE_EVENT_STREAM;
+import static software.amazon.awssdk.core.protocol.MarshallingType.DOCUMENT;
 import static software.amazon.awssdk.http.Header.CHUNKED;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
@@ -177,6 +178,8 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             Object val = field.getValueOrDefault(pojo);
             if (isBinary(field, val)) {
                 request.contentStreamProvider(((SdkBytes) val)::asInputStream);
+            } else if (isDocumentType(field) && val != null) {
+                marshalDocumentType(field, val);
             } else {
                 if (val != null && field.containsTrait(PayloadTrait.class)) {
                     jsonGenerator.writeStartObject();
@@ -248,4 +251,19 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         return request.build();
     }
 
+    private boolean isDocumentType(SdkField<?> field) {
+        return DOCUMENT.equals(field.marshallingType());
+    }
+
+    private void marshalDocumentType(SdkField<?> field, Object val) {
+        boolean isExplicitPayloadField = hasExplicitPayloadMember && field.containsTrait(PayloadTrait.class);
+        if (isExplicitPayloadField) {
+            jsonGenerator.writeStartObject();
+        }
+        MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val)
+                           .marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
+        if (isExplicitPayloadField) {
+            jsonGenerator.writeEndObject();
+        }
+    }
 }
