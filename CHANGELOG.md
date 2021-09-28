@@ -1,3 +1,16 @@
+# __2.17.48__ __2021-09-28__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Bug fix to handle DocumentType for Explicit payload members.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Added changes for managed workflows feature APIs.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Fix description for AmiDistributionConfiguration Name property, which actually refers to the output AMI name. Also updated for consistent terminology to use "base" image, and another update to fix description text.
+
 # __2.17.47__ __2021-09-27__
 ## __AWS SDK for Java v2__
   - ### Features

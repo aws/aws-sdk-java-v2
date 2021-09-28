@@ -1,0 +1,395 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"customresponsemetadata",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"AmazonDocumentTypeJson",
+    "serviceFullName":"Amazon Protocol Rest Json",
+    "serviceId":"AmazonDocumentTypeJson",
+    "signatureVersion":"v4",
+    "targetPrefix":"ProtocolTestsService",
+    "timestampFormat":"unixTimestamp",
+    "uid":"restjson-2016-03-11"
+  },
+  "operations":{
+    "AllTypes":{
+      "name":"AllTypes",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/allTypes"
+      },
+      "input":{"shape":"AllTypesImplicitPayload"},
+      "output":{"shape":"AllTypesImplicitPayload"},
+      "errors":[
+        {"shape":"EmptyModeledException"}
+      ]
+    },
+    "AllTypesWithPayload":{
+      "name":"AllTypesWithPayload",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/allTypesPayload"
+      },
+      "input":{"shape":"TypesWithExplicitPayload"},
+      "output":{"shape":"TypesWithExplicitPayload"},
+      "errors":[
+        {"shape":"EmptyModeledException"}
+      ]
+    },
+    "WithExplicitDocumentPayload":{
+      "name":"WithExplicitDocumentPayload",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/allTypesPayload"
+      },
+      "input":{"shape":"TypeWithExplicitDocumentPayload"},
+      "output":{"shape":"TypeWithExplicitDocumentPayload"},
+      "errors":[
+        {"shape":"EmptyModeledException"}
+      ]
+    },
+    "ImplicitNestedDocumentPayload":{
+      "name":"ImplicitNestedDocumentPayload",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/allTypesPayload"
+      },
+      "input":{"shape":"TypesWithImplicitNestedDocumentPayload"},
+      "output":{"shape":"TypesWithImplicitNestedDocumentPayload"},
+      "errors":[
+        {"shape":"EmptyModeledException"}
+      ]
+    },
+    "ExplicitRecursivePayload":{
+      "name":"ExplicitRecursivePayload",
+      "http":{
+        "method":"POST",
+        "requestUri": "/v1/policy"
+      },
+      "input":{"shape":"TypeWithExplicitRecursivePayload"},
+      "output":{"shape":"TypeWithExplicitRecursivePayload"},
+      "errors":[
+        {"shape":"EmptyModeledException"}
+      ]
+    },
+    "ImplicitRecursivePayload":{
+      "name":"ImplicitRecursivePayload",
+      "http":{
+        "method":"POST",
+        "requestUri": "/v1/policy"
+      },
+      "input":{"shape":"TypeWithImplicitRecursivePayload"},
+      "output":{"shape":"TypeWithImplicitRecursivePayload"},
+      "errors":[
+        {"shape":"EmptyModeledException"}
+      ]
+    },
+    "ImplicitOnlyDocumentPayload":{
+      "name":"ImplicitOnlyDocumentPayload",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/allTypesPayload"
+      },
+      "input":{"shape":"TypesWithImplicitOnlyDocumentPayload"},
+      "output":{"shape":"TypesWithImplicitOnlyDocumentPayload"},
+      "errors":[
+        {"shape":"EmptyModeledException"}
+      ]
+    }
+  },
+  "shapes":{
+    "AllTypesImplicitPayload":{
+      "type":"structure",
+      "members":{
+        "StringMember":{"shape":"String"},
+        "IntegerMember":{"shape":"Integer"},
+        "BooleanMember":{"shape":"Boolean"},
+        "FloatMember":{"shape":"Float"},
+        "DoubleMember":{"shape":"Double"},
+        "LongMember":{"shape":"Long"},
+        "ShortMember":{"shape":"Short"},
+        "EnumMember":{"shape":"EnumType"},
+        "SimpleList":{"shape":"ListOfStrings"},
+        "ListOfEnums":{"shape":"ListOfEnums"},
+        "ListOfMaps":{"shape":"ListOfMapStringToString"},
+        "ListOfListOfMapsOfStringToStruct":{"shape":"ListOfListOfMapOfStringToSimpleStruct"},
+        "ListOfMapsOfStringToStruct":{"shape":"ListOfMapOfStringToSimpleStruct"},
+        "ListOfStructs":{"shape":"ListOfSimpleStructs"},
+        "MapOfStringToIntegerList":{"shape":"MapOfStringToIntegerList"},
+        "MapOfStringToString":{"shape":"MapOfStringToString"},
+        "MapOfStringToStruct":{"shape":"MapOfStringToSimpleStruct"},
+        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
+        "TimestampMember":{"shape":"Timestamp"},
+        "StructWithNestedTimestampMember":{"shape":"StructWithTimestamp"},
+        "BlobArg":{"shape":"BlobType"},
+        "StructWithNestedBlob":{"shape":"StructWithNestedBlobType"},
+        "BlobMap":{"shape":"BlobMapType"},
+        "ListOfBlobs":{"shape":"ListOfBlobsType"},
+        "RecursiveStruct":{"shape":"RecursiveStructType"},
+        "PolymorphicTypeWithSubTypes":{"shape":"StringPayload"},
+        "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
+        "SetPrefixedMember":{"shape":"String"},
+        "MyDocument":{"shape":"MyDocument"}
+      }
+    },
+    "TypesWithExplicitPayload":{
+      "type":"structure",
+      "members":{
+        "StringPayload":{"shape":"StringPayload"},
+        "Accept": {
+          "shape": "AcceptHeader",
+          "location": "header",
+          "locationName": "accept",
+          "documentation": "The HTTP Accept header. Indicates the requested type for the thumbnail."
+        }
+      },
+      "payload": "StringPayload"
+    },
+    "TypeWithExplicitDocumentPayload":{
+      "type":"structure",
+      "members":{
+        "MyDocument":{"shape":"MyDocument"},
+        "Accept": {
+          "shape": "AcceptHeader",
+          "location": "header",
+          "locationName": "accept",
+          "documentation": "The HTTP Accept header. Indicates the requested type for the thumbnail."
+        }
+      },
+      "payload": "MyDocument"
+    },
+    "TypeWithExplicitRecursivePayload":{
+      "type":"structure",
+      "members":{
+        "RecursiveStructType":{"shape":"RecursiveStructType"},
+        "Accept": {
+          "shape": "AcceptHeader",
+          "location": "header",
+          "locationName": "accept",
+          "documentation": "The HTTP Accept header. Indicates the requested type for the thumbnail."
+        },
+        "RegistryName": {
+          "shape": "String",
+          "location": "uri",
+          "locationName": "registryName",
+          "documentation": "<p>The name of the registry.</p>"
+        }
+      },
+      "payload": "RecursiveStructType"
+    },
+    "TypeWithImplicitRecursivePayload":{
+      "type":"structure",
+      "members":{
+        "MyDocument":{"shape":"MyDocument"},
+        "MapOfStringToString":{"shape":"MapOfStringToString"},
+        "RecursiveStructType":{"shape":"RecursiveStructType"},
+        "Accept": {
+          "shape": "AcceptHeader",
+          "location": "header",
+          "locationName": "accept",
+          "documentation": "The HTTP Accept header. Indicates the requested type for the thumbnail."
+        },
+        "RegistryName": {
+          "shape": "String",
+          "location": "uri",
+          "locationName": "registryName",
+          "documentation": "<p>The name of the registry.</p>"
+        }
+      }
+    },
+    "TypesWithImplicitNestedDocumentPayload":{
+      "type":"structure",
+      "members":{
+        "NestedDocumentPayload":{"shape":"NestedDocumentPayload"},
+        "Accept": {
+          "shape": "AcceptHeader",
+          "location": "header",
+          "locationName": "accept",
+          "documentation": "The HTTP Accept header. Indicates the requested type for the thumbnail."
+        }
+      }
+    },
+    "TypesWithImplicitOnlyDocumentPayload":{
+      "type":"structure",
+      "members":{
+        "MyDocument":{"shape":"MyDocument"},
+        "Accept": {
+          "shape": "AcceptHeader",
+          "location": "header",
+          "locationName": "accept",
+          "documentation": "The HTTP Accept header. Indicates the requested type for the thumbnail."
+        }
+      }
+    },
+    "StringPayload":{
+      "type":"structure",
+      "members":{
+        "StringMember":{"shape":"String"}
+      }
+    },
+    "StringNonPayload":{
+      "type":"structure",
+      "members":{
+        "StringMember":{"shape":"String"}
+      }
+    },
+    "NestedDocumentPayload":{
+      "type":"structure",
+      "members":{
+        "StringMember":{"shape":"String"},
+        "MyDocument":{"shape":"MyDocument"}
+      }
+    },
+    "BlobMapType":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"BlobType"}
+    },
+    "BlobType":{"type":"blob"},
+    "Boolean":{"type":"boolean"},
+    "Double":{"type":"double"},
+    "EmptyModeledException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true
+    },
+    "Float":{"type":"float"},
+    "Integer":{"type":"integer"},
+    "ListOfBlobsType":{
+      "type":"list",
+      "member":{"shape":"BlobType"}
+    },
+    "ListOfIntegers":{
+      "type":"list",
+      "member":{"shape":"Integer"}
+    },
+    "ListOfListOfListsOfStrings":{
+      "type":"list",
+      "member":{"shape":"ListOfListsOfStrings"}
+    },
+    "ListOfListsOfStrings":{
+      "type":"list",
+      "member":{"shape":"ListOfStrings"}
+    },
+    "ListOfMapStringToString":{
+      "type":"list",
+      "member":{"shape":"MapOfStringToString"}
+    },
+    "ListOfListOfMapOfStringToSimpleStruct":{
+      "type":"list",
+      "member":{"shape":"ListOfMapOfStringToSimpleStruct"}
+    },
+    "ListOfMapOfStringToSimpleStruct":{
+      "type":"list",
+      "member":{"shape":"MapOfStringToSimpleStruct"}
+    },
+    "ListOfSimpleStructs":{
+      "type":"list",
+      "member":{"shape":"SimpleStruct"}
+    },
+    "ListOfStrings":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
+    "ListOfEnums":{
+      "type":"list",
+      "member":{"shape":"EnumType"}
+    },
+    "Long":{"type":"long"},
+    "Short":{"type":"short"},
+    "MapOfStringToIntegerList":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"ListOfIntegers"}
+    },
+    "MapOfStringToListOfListsOfStrings":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"ListOfListsOfStrings"}
+    },
+    "MapOfStringToSimpleStruct":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"SimpleStruct"}
+    },
+    "MapOfStringToString":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"String"}
+    },
+    "MapOfEnumToEnum":{
+      "type":"map",
+      "key":{"shape":"EnumType"},
+      "value":{"shape":"EnumType"}
+    },
+    "SimpleStruct":{
+      "type":"structure",
+      "members":{
+        "StringMember":{"shape":"String"}
+      }
+    },
+    "StreamType":{
+      "type":"blob",
+      "streaming":true
+    },
+    "String":{"type":"string"},
+    "StructWithNestedBlobType":{
+      "type":"structure",
+      "members":{
+        "NestedBlob":{"shape":"BlobType"}
+      }
+    },
+    "StructWithTimestamp":{
+      "type":"structure",
+      "members":{
+        "NestedTimestamp":{"shape":"Timestamp"}
+      }
+    },
+    "SubTypeOne":{
+      "type":"structure",
+      "members":{
+        "SubTypeOneMember":{"shape":"String"}
+      }
+    },
+    "RecursiveListType":{
+      "type":"list",
+      "member":{"shape":"RecursiveStructType"}
+    },
+    "RecursiveStructType":{
+      "type":"structure",
+      "members":{
+        "NoRecurse":{"shape":"String"},
+        "MyDocument":{"shape":"MyDocument"},
+        "RecursiveStruct":{"shape":"RecursiveStructType"},
+        "RecursiveList":{"shape":"RecursiveListType"},
+        "RecursiveMap":{"shape":"RecursiveMapType"}
+      }
+    },
+    "RecursiveMapType":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"RecursiveStructType"}
+    },
+    "Timestamp":{"type":"timestamp"},
+    "EnumType": {
+      "type":"string",
+      "enum": [
+        "EnumValue1", "EnumValue2"
+      ]
+    },
+    "MyDocument": {
+      "type": "structure",
+      "document": true
+    },
+    "AcceptHeader": {
+      "type": "string",
+      "enum": [
+        "image/jpeg"
+      ],
+      "documentation": "The HTTP Accept header. Indicates the requested type fothe thumbnail."
+    }
+  }
+}
