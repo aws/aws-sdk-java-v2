@@ -1,3 +1,24 @@
+# __2.17.49__ __2021-09-29__
+## __AWS Lambda__
+  - ### Features
+    - Adds support for Lambda functions powered by AWS Graviton2 processors. Customers can now select the CPU architecture for their functions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - This release adds alert manager and rule group namespace APIs
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release includes the ability to use 2048 bits RSA key pairs for DKIM in SES, either with Easy DKIM or Bring Your Own DKIM.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Update `netty-tcnative-boringssl-static` to `2.0.43.Final` to fix issues loading the native libraries on some platforms.
+
 # __2.17.48__ __2021-09-28__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
