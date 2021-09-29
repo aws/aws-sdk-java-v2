@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Prometheus Service",
-    "contributor": "",
-    "description": "This release adds alert manager and rule group namespace APIs"
-}

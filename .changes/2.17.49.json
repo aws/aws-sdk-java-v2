@@ -1,0 +1,36 @@
+{
+    "version": "2.17.49",
+    "date": "2021-09-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Prometheus Service",
+            "contributor": "",
+            "description": "This release adds alert manager and rule group namespace APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "This release includes the ability to use 2048 bits RSA key pairs for DKIM in SES, either with Easy DKIM or Bring Your Own DKIM."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Adds support for Lambda functions powered by AWS Graviton2 processors. Customers can now select the CPU architecture for their functions."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Update `netty-tcnative-boringssl-static` to `2.0.43.Final` to fix issues loading the native libraries on some platforms."
+        }
+    ]
+}

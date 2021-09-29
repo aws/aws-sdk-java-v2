@@ -1,6 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Update `netty-tcnative-boringssl-static` to `2.0.43.Final` to fix issues loading the native libraries on some platforms."
-}
