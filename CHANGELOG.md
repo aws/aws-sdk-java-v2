@@ -1,3 +1,36 @@
+# __2.17.50__ __2021-09-30__
+## __AWS Account__
+  - ### Features
+    - This release of the Account Management API enables customers to manage the alternate contacts for their AWS accounts. For more information, see https://docs.aws.amazon.com/accounts/latest/reference/accounts-welcome.html
+
+## __AWS Cloud Control API__
+  - ### Features
+    - Initial release of the SDK for AWS Cloud Control API
+
+## __AWS Data Exchange__
+  - ### Features
+    - This release enables subscribers to set up automatic exports of newly published revisions using the new EventAction API.
+
+## __AWS Network Firewall__
+  - ### Features
+    - This release adds support for strict ordering for stateful rule groups. Using strict ordering, stateful rules are evaluated in the exact order in which you provide them.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Macie 2__
+  - ### Features
+    - Amazon S3 bucket metadata now indicates whether an error or a bucket's permissions settings prevented Amazon Macie from retrieving data about the bucket or the bucket's objects.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release adds support for mobile device access overrides management in Amazon WorkMail.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added CreateUpdatedWorkspaceImage API to update WorkSpace images with latest software and drivers. Updated DescribeWorkspaceImages API to display if there are updates available for WorkSpace images.
+
 # __2.17.49__ __2021-09-29__
 ## __AWS Lambda__
   - ### Features

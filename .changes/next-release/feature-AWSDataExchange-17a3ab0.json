@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Data Exchange",
-    "contributor": "",
-    "description": "This release enables subscribers to set up automatic exports of newly published revisions using the new EventAction API."
-}
