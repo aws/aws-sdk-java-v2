@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -39,15 +41,15 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.CompletedUploadDirectory;
 import software.amazon.awssdk.transfer.s3.Upload;
-import software.amazon.awssdk.transfer.s3.UploadDirectory;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.UploadDirectoryTransfer;
 import software.amazon.awssdk.transfer.s3.UploadRequest;
 
-public class UploadDirectoryManagerTest {
+public class UploadDirectoryHelperTest {
     private static FileSystem jimfs;
     private static Path directory;
     private Function<UploadRequest, Upload> singleUploadFunction;
-    private UploadDirectoryManager tm;
+    private UploadDirectoryHelper tm;
 
     @BeforeClass
     public static void setUp() throws IOException {
@@ -66,7 +68,7 @@ public class UploadDirectoryManagerTest {
     @Before
     public void methodSetup() {
         singleUploadFunction = mock(Function.class);
-        tm = new UploadDirectoryManager(TransferConfiguration.builder().build(), singleUploadFunction);
+        tm = new UploadDirectoryHelper(TransferManagerConfiguration.builder().build(), singleUploadFunction);
     }
 
     @Test
@@ -79,33 +81,40 @@ public class UploadDirectoryManagerTest {
 
         when(singleUploadFunction.apply(any(UploadRequest.class))).thenReturn(upload, upload2);
 
-        UploadDirectory uploadDirectory =
+        UploadDirectoryTransfer uploadDirectory =
             tm.uploadDirectory(UploadDirectoryRequest.builder()
                                                      .sourceDirectory(directory)
                                                      .bucket("bucket")
                                                      .build());
 
         uploadDirectory.completionFuture().cancel(true);
-        assertThat(future).isCancelled();
-        assertThat(future2).isCancelled();
+
+        assertThatThrownBy(() -> future.get(1, TimeUnit.SECONDS))
+            .isInstanceOf(CancellationException.class);
+
+        assertThatThrownBy(() -> future2.get(1, TimeUnit.SECONDS))
+            .isInstanceOf(CancellationException.class);
     }
 
     @Test
-    public void uploadDirectory_allUploadSucceed_failedUploadShouldBeEmpty() throws ExecutionException, InterruptedException,
+    public void uploadDirectory_allUploadsSucceed_failedUploadsShouldBeEmpty() throws ExecutionException, InterruptedException,
                                                                                     TimeoutException {
-        CompletedUpload completedUpload = DefaultCompletedUpload.builder().response(PutObjectResponse.builder().build()).build();
+        PutObjectResponse putObjectResponse = PutObjectResponse.builder().eTag("1234").build();
+        CompletedUpload completedUpload = DefaultCompletedUpload.builder().response(putObjectResponse).build();
         CompletableFuture<CompletedUpload> successfulFuture = new CompletableFuture<>();
+
         Upload upload = new DefaultUpload(successfulFuture);
         successfulFuture.complete(completedUpload);
 
-        CompletedUpload completedUpload2 = DefaultCompletedUpload.builder().response(PutObjectResponse.builder().build()).build();
+        PutObjectResponse putObjectResponse2 = PutObjectResponse.builder().eTag("5678").build();
+        CompletedUpload completedUpload2 = DefaultCompletedUpload.builder().response(putObjectResponse2).build();
         CompletableFuture<CompletedUpload> failedFuture = new CompletableFuture<>();
         Upload upload2 = new DefaultUpload(failedFuture);
         failedFuture.complete(completedUpload2);
 
         when(singleUploadFunction.apply(any(UploadRequest.class))).thenReturn(upload, upload2);
 
-        UploadDirectory uploadDirectory =
+        UploadDirectoryTransfer uploadDirectory =
             tm.uploadDirectory(UploadDirectoryRequest.builder()
                                                      .sourceDirectory(directory)
                                                      .bucket("bucket")
@@ -114,13 +123,13 @@ public class UploadDirectoryManagerTest {
         CompletedUploadDirectory completedUploadDirectory = uploadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
 
         assertThat(completedUploadDirectory.failedUploads()).isEmpty();
-        assertThat(completedUploadDirectory.successfulObjects()).hasSize(2).containsOnly(completedUpload, completedUpload2);
     }
 
     @Test
     public void uploadDirectory_partialSuccess_shouldProvideFailedUploads() throws ExecutionException, InterruptedException,
                                                                                    TimeoutException {
-        CompletedUpload completedUpload = DefaultCompletedUpload.builder().response(PutObjectResponse.builder().build()).build();
+        PutObjectResponse putObjectResponse = PutObjectResponse.builder().eTag("1234").build();
+        CompletedUpload completedUpload = DefaultCompletedUpload.builder().response(putObjectResponse).build();
         CompletableFuture<CompletedUpload> successfulFuture = new CompletableFuture<>();
         Upload upload = new DefaultUpload(successfulFuture);
         successfulFuture.complete(completedUpload);
@@ -132,7 +141,7 @@ public class UploadDirectoryManagerTest {
 
         when(singleUploadFunction.apply(any(UploadRequest.class))).thenReturn(upload, upload2);
 
-        UploadDirectory uploadDirectory =
+        UploadDirectoryTransfer uploadDirectory =
             tm.uploadDirectory(UploadDirectoryRequest.builder()
                                                      .sourceDirectory(directory)
                                                      .bucket("bucket")
@@ -141,8 +150,7 @@ public class UploadDirectoryManagerTest {
         CompletedUploadDirectory completedUploadDirectory = uploadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
 
         assertThat(completedUploadDirectory.failedUploads()).hasSize(1);
-        assertThat(completedUploadDirectory.failedUploads().get(0).exception()).isEqualTo(exception);
-        assertThat(completedUploadDirectory.failedUploads().get(0).path().toString()).isEqualTo("test/2");
-        assertThat(completedUploadDirectory.successfulObjects()).hasSize(1).containsOnly(completedUpload);
+        assertThat(completedUploadDirectory.failedUploads().iterator().next().exception()).isEqualTo(exception);
+        assertThat(completedUploadDirectory.failedUploads().iterator().next().request().source().toString()).isEqualTo("test/2");
     }
 }

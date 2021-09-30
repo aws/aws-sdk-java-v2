@@ -15,9 +15,14 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import java.util.concurrent.Executor;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.utils.AttributeMap;
 
+/**
+ * A set of internal options required by the {@link S3TransferManager} via {@link TransferManagerConfiguration}.
+ */
 @SdkInternalApi
 public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final TransferConfigurationOption<Integer> UPLOAD_DIRECTORY_MAX_DEPTH =
@@ -29,7 +34,10 @@ public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final TransferConfigurationOption<Boolean> UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS =
         new TransferConfigurationOption<>("UploadDirectoryFileVisitOption", Boolean.class);
 
+    public static final TransferConfigurationOption<Executor> EXECUTOR =
+        new TransferConfigurationOption<>("Executor", Executor.class);
 
+    // TODO: revisit
     private static final int DEFAULT_UPLOAD_DIRECTORY_MAX_DEPTH = Integer.MAX_VALUE;
     private static final Boolean DEFAULT_UPLOAD_DIRECTORY_RECURSIVE = Boolean.TRUE;
     // TODO: revisit

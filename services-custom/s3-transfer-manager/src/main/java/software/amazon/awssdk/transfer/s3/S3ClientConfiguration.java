@@ -17,11 +17,9 @@ package software.amazon.awssdk.transfer.s3;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -41,8 +39,6 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
     private final Long minimumPartSizeInBytes;
     private final Double targetThroughputInGbps;
     private final Integer maxConcurrency;
-    private final ClientAsyncConfiguration asyncConfiguration;
-    private final UploadDirectoryConfiguration uploadDirectoryConfiguration;
 
     private S3ClientConfiguration(DefaultBuilder builder) {
         this.credentialsProvider = builder.credentialsProvider;
@@ -51,8 +47,6 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         this.targetThroughputInGbps = Validate.isPositiveOrNull(builder.targetThroughputInGbps, "targetThroughputInGbps");
         this.maxConcurrency = Validate.isPositiveOrNull(builder.maxConcurrency,
                                                         "maxConcurrency");
-        this.asyncConfiguration = builder.asyncConfiguration;
-        this.uploadDirectoryConfiguration = builder.uploadDirectoryConfiguration;
     }
 
     /**
@@ -90,20 +84,6 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         return Optional.ofNullable(maxConcurrency);
     }
 
-    /**
-     * @return the optional SDK async configuration specified
-     */
-    public Optional<ClientAsyncConfiguration> asyncConfiguration() {
-        return Optional.ofNullable(asyncConfiguration);
-    }
-
-    /**
-     * @return the optional upload directory configuration specified
-     */
-    public Optional<UploadDirectoryConfiguration> uploadDirectoryConfiguration() {
-        return Optional.ofNullable(uploadDirectoryConfiguration);
-    }
-
     @Override
     public Builder toBuilder() {
         return new DefaultBuilder(this);
@@ -132,13 +112,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         if (!Objects.equals(targetThroughputInGbps, that.targetThroughputInGbps)) {
             return false;
         }
-        if (!Objects.equals(maxConcurrency, that.maxConcurrency)) {
-            return false;
-        }
-        if (!Objects.equals(asyncConfiguration, that.asyncConfiguration)) {
-            return false;
-        }
-        return Objects.equals(uploadDirectoryConfiguration, that.uploadDirectoryConfiguration);
+        return Objects.equals(maxConcurrency, that.maxConcurrency);
     }
 
     @Override
@@ -148,8 +122,6 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         result = 31 * result + (minimumPartSizeInBytes != null ? minimumPartSizeInBytes.hashCode() : 0);
         result = 31 * result + (targetThroughputInGbps != null ? targetThroughputInGbps.hashCode() : 0);
         result = 31 * result + (maxConcurrency != null ? maxConcurrency.hashCode() : 0);
-        result = 31 * result + (asyncConfiguration != null ? asyncConfiguration.hashCode() : 0);
-        result = 31 * result + (uploadDirectoryConfiguration != null ? uploadDirectoryConfiguration.hashCode() : 0);
         return result;
     }
 
@@ -244,37 +216,6 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
          * @see #targetThroughputInGbps(Double)
          */
         Builder maxConcurrency(Integer maxConcurrency);
-
-        /**
-         * Specify overrides to the default SDK async configuration that should be used for clients created by this builder.
-         *
-         * @param asyncConfiguration the async configuration
-         * @return this builder for method chaining.
-         * @see #asyncConfiguration(Consumer)
-         */
-        Builder asyncConfiguration(ClientAsyncConfiguration asyncConfiguration);
-
-        /**
-         * Similar to {@link #asyncConfiguration(ClientAsyncConfiguration)}, but takes a lambda to configure a new
-         * {@link ClientAsyncConfiguration.Builder}. This removes the need to call {@link ClientAsyncConfiguration#builder()}
-         * and {@link ClientAsyncConfiguration.Builder#build()}.
-         *
-         * @param configuration the async configuration
-         * @return this builder for method chaining.
-         * @see #asyncConfiguration(ClientAsyncConfiguration)
-         */
-        default Builder asyncConfiguration(Consumer<ClientAsyncConfiguration.Builder> configuration) {
-            return asyncConfiguration(ClientAsyncConfiguration.builder().applyMutation(configuration).build());
-        }
-
-        Builder uploadDirectoryConfiguration(UploadDirectoryConfiguration uploadDirectoryConfiguration);
-
-        default Builder uploadDirectoryConfiguration(Consumer<UploadDirectoryConfiguration.Builder> uploadConfigurationBuilder) {
-            Validate.paramNotNull(uploadConfigurationBuilder, "uploadConfigurationBuilder");
-            return uploadDirectoryConfiguration(UploadDirectoryConfiguration.builder()
-                                                                     .applyMutation(uploadConfigurationBuilder)
-                                                                     .build());
-        }
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -283,8 +224,6 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         private Long minimumPartSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
-        private ClientAsyncConfiguration asyncConfiguration;
-        private UploadDirectoryConfiguration uploadDirectoryConfiguration;
 
         private DefaultBuilder() {
         }
@@ -295,7 +234,6 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
             this.minimumPartSizeInBytes = configuration.minimumPartSizeInBytes;
             this.targetThroughputInGbps = configuration.targetThroughputInGbps;
             this.maxConcurrency = configuration.maxConcurrency;
-            this.asyncConfiguration = configuration.asyncConfiguration;
         }
 
         @Override
@@ -325,18 +263,6 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         @Override
         public Builder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
-            return this;
-        }
-
-        @Override
-        public Builder asyncConfiguration(ClientAsyncConfiguration asyncConfiguration) {
-            this.asyncConfiguration = asyncConfiguration;
-            return this;
-        }
-
-        @Override
-        public Builder uploadDirectoryConfiguration(UploadDirectoryConfiguration uploadDirectoryConfiguration) {
-            this.uploadDirectoryConfiguration = uploadDirectoryConfiguration;
             return this;
         }
 

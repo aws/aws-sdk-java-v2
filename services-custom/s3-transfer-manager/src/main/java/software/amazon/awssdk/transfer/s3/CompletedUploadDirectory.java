@@ -15,26 +15,109 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 
 /**
- * A completed download directory transfer.
+ * Represents a completed upload directory transfer to Amazon S3. It can be used to track
+ * failed single file uploads.
+ *
+ * @see S3TransferManager#uploadDirectory(UploadDirectoryRequest)
  */
 @SdkPublicApi
 @SdkPreviewApi
-public interface CompletedUploadDirectory extends CompletedTransfer {
+public final class CompletedUploadDirectory implements CompletedTransfer {
+    private final List<FailedSingleFileUpload> failedUploads;
+
+    private CompletedUploadDirectory(DefaultBuilder builder) {
+        this.failedUploads = Collections.unmodifiableList(new ArrayList<>(Validate.paramNotNull(builder.failedUploads,
+                                                                                                "failedUploads")));
+    }
 
     /**
-     * A list of failed single file uploads associated with one upload directory transfer
-     * @return A list of failed uploads
+     * Return failed uploads with error details, request metadata about each file that is failed to upload.
+     *
+     * @return a list of failed uploads
      */
-    List<FailedUpload> failedUploads();
+    public Collection<FailedSingleFileUpload> failedUploads() {
+        return failedUploads;
+    }
 
     /**
-     * A list of successful single file uploads associated with one upload directory transfer
-     * @return a list of successful  uploads
+     * Creates a default builder for {@link CompletedUpload}.
      */
-    List<CompletedUpload> successfulObjects();
+    public static Builder builder() {
+        return new DefaultBuilder();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        CompletedUploadDirectory that = (CompletedUploadDirectory) o;
+
+        return failedUploads.equals(that.failedUploads);
+    }
+
+    @Override
+    public int hashCode() {
+        return failedUploads.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("CompletedUploadDirectory")
+                       .add("failedUploads", failedUploads)
+                       .build();
+    }
+
+    public interface Builder {
+
+        /**
+         * Sets a collection of {@link FailedSingleFileUpload}s
+         *
+         * @param failedUploads failed uploads
+         * @return This builder for method chaining.
+         */
+        Builder failedUploads(Collection<FailedSingleFileUpload> failedUploads);
+
+        /**
+         * Builds a {@link CompletedUploadDirectory} based on the properties supplied to this builder
+         * @return An initialized {@link CompletedUploadDirectory}
+         */
+        CompletedUploadDirectory build();
+    }
+
+    private static final class DefaultBuilder implements Builder {
+        private Collection<FailedSingleFileUpload> failedUploads = Collections.emptyList();
+
+        private DefaultBuilder() {
+        }
+
+        @Override
+        public Builder failedUploads(Collection<FailedSingleFileUpload> failedUploads) {
+            this.failedUploads = failedUploads;
+            return this;
+        }
+
+        public void setFailedUploads(Collection<FailedSingleFileUpload> failedUploads) {
+            failedUploads(failedUploads);
+        }
+
+        @Override
+        public CompletedUploadDirectory build() {
+            return new CompletedUploadDirectory(this);
+        }
+    }
 }

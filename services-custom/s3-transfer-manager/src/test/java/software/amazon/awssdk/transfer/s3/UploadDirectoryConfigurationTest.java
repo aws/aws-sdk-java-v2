@@ -24,7 +24,7 @@ public class UploadDirectoryConfigurationTest {
 
     @Test
     public void getters_allPropertiesSet() {
-        UploadDirectoryConfiguration object = UploadDirectoryConfiguration
+        UploadDirectoryOverrideConfiguration object = UploadDirectoryOverrideConfiguration
             .builder()
             .maxDepth(100)
             .followSymbolicLinks(true)
@@ -38,7 +38,7 @@ public class UploadDirectoryConfigurationTest {
 
     @Test
     public void getters_allPropertiesAbsent() {
-        UploadDirectoryConfiguration object = UploadDirectoryConfiguration
+        UploadDirectoryOverrideConfiguration object = UploadDirectoryOverrideConfiguration
             .builder().build();
 
         assertThat(object.followSymbolicLinks()).isEmpty();
@@ -48,16 +48,16 @@ public class UploadDirectoryConfigurationTest {
 
     @Test
     public void equalsHashCode() {
-        UploadDirectoryConfiguration object1 = UploadDirectoryConfiguration
+        UploadDirectoryOverrideConfiguration object1 = UploadDirectoryOverrideConfiguration
             .builder()
             .maxDepth(100)
             .followSymbolicLinks(true)
             .recursive(false)
             .build();
 
-        UploadDirectoryConfiguration object2 = object1.toBuilder().build();
+        UploadDirectoryOverrideConfiguration object2 = object1.toBuilder().build();
 
-        UploadDirectoryConfiguration object3 = object1.toBuilder().recursive(true).build();
+        UploadDirectoryOverrideConfiguration object3 = object1.toBuilder().recursive(true).build();
         assertThat(object1).isEqualTo(object2);
         assertThat(object1.hashCode()).isEqualTo(object2.hashCode());
         assertThat(object1).isNotEqualTo(object3);

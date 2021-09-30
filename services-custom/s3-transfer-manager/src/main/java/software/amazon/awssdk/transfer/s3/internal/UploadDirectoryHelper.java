@@ -17,89 +17,113 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Phaser;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.CompletedUploadDirectory;
-import software.amazon.awssdk.transfer.s3.FailedUpload;
+import software.amazon.awssdk.transfer.s3.FailedSingleFileUpload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.Upload;
-import software.amazon.awssdk.transfer.s3.UploadDirectory;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.UploadDirectoryTransfer;
 import software.amazon.awssdk.transfer.s3.UploadRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 
+/**
+ * An internal helper class that traverses the file tree and send the upload request
+ * for each file.
+ */
 @SdkInternalApi
-public class UploadDirectoryManager {
+public class UploadDirectoryHelper {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
+    private static final String DEFAULT_DELIMITER = "/";
 
-    private final TransferConfiguration transferConfiguration;
+    private final TransferManagerConfiguration transferConfiguration;
     private final Function<UploadRequest, Upload> uploadFunction;
+    private final FileSystem fileSystem;
 
-    public UploadDirectoryManager(TransferConfiguration transferConfiguration,
-                                  Function<UploadRequest, Upload> uploadFunction) {
+    public UploadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
+                                 Function<UploadRequest, Upload> uploadFunction) {
 
         this.transferConfiguration = transferConfiguration;
         this.uploadFunction = uploadFunction;
+        this.fileSystem = FileSystems.getDefault();
     }
 
-    public UploadDirectory uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
-        CompletableFuture<CompletedUploadDirectory> returnFuture = new CompletableFuture<>();
-        Path directory = uploadDirectoryRequest.sourceDirectory();
+    @SdkTestInternalApi
+    UploadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
+                          Function<UploadRequest, Upload> uploadFunction,
+                          FileSystem fileSystem) {
 
-        List<CompletedUpload> uploads = new ArrayList<>();
-        List<FailedUpload> failedUploads = new ArrayList<>();
-        List<CompletableFuture<CompletedUpload>> uploadFutures;
+        this.transferConfiguration = transferConfiguration;
+        this.uploadFunction = uploadFunction;
+        this.fileSystem = fileSystem;
+    }
+
+    public UploadDirectoryTransfer uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
+
+        CompletableFuture<CompletedUploadDirectory> returnFuture = new CompletableFuture<>();
+        CompletableFuture.runAsync(() -> doUploadDirectory(returnFuture, uploadDirectoryRequest),
+                                   transferConfiguration.option(TransferConfigurationOption.EXECUTOR));
+
+        return UploadDirectoryTransfer.builder().completionFuture(returnFuture).build();
+    }
+
+    private void doUploadDirectory(CompletableFuture<CompletedUploadDirectory> returnFuture,
+                                   UploadDirectoryRequest uploadDirectoryRequest) {
+
+        Path directory = uploadDirectoryRequest.sourceDirectory();
+        List<FailedSingleFileUpload> failedUploads = Collections.synchronizedList(new ArrayList<>());
+        Phaser phaser = new Phaser(1);
 
         try (Stream<Path> entries = listFiles(directory, uploadDirectoryRequest)) {
-            uploadFutures =
-                entries.map(path -> {
-                    CompletableFuture<CompletedUpload> future =
-                        uploadSingleFile(uploadDirectoryRequest, uploads, failedUploads, path);
-                    // Forward cancellation of the return future to all individual futures.
-                    CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
-                    return future;
-                }).collect(Collectors.toList());
+            entries.forEach(path -> {
+                CompletableFuture<CompletedUpload> future =
+                    uploadSingleFile(uploadDirectoryRequest, failedUploads, path, phaser);
+
+                // Forward cancellation of the return future to all individual futures.
+                CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            });
         }
 
-        CompletableFuture.allOf(uploadFutures.toArray(new CompletableFuture[0]))
-                         .whenComplete((r, t) -> returnFuture.complete(
-                             DefaultCompletedUploadDirectory.builder()
-                                                            .failedUploads(failedUploads)
-                                                            .successfulUploads(uploads)
-                                                            .build()));
-        return new DefaultUploadDirectory(returnFuture);
+        phaser.arriveAndAwaitAdvance();
+        phaser.arriveAndDeregister();
+        returnFuture.complete(CompletedUploadDirectory.builder().failedUploads(failedUploads).build());
     }
 
     private CompletableFuture<CompletedUpload> uploadSingleFile(UploadDirectoryRequest uploadDirectoryRequest,
-                                                                List<CompletedUpload> uploads,
-                                                                List<FailedUpload> failedUploads,
-                                                                Path path) {
+                                                                List<FailedSingleFileUpload> failedUploads,
+                                                                Path path,
+                                                                Phaser phaser) {
+        phaser.register();
         int nameCount = uploadDirectoryRequest.sourceDirectory().getNameCount();
         UploadRequest uploadRequest = constructUploadRequest(uploadDirectoryRequest, nameCount, path);
-        CompletableFuture<CompletedUpload> future = uploadFunction.apply(uploadRequest)
-                                                                  .completionFuture();
+        log.debug(() -> "Sending upload request: " + uploadRequest);
+        CompletableFuture<CompletedUpload> future = uploadFunction.apply(uploadRequest).completionFuture();
         future.whenComplete((r, t) -> {
+            phaser.arriveAndDeregister();
             if (t != null) {
-                failedUploads.add(DefaultFailedUpload.builder()
-                                                     .exception(t)
-                                                     .path(path)
-                                                     .build());
-            } else {
-                uploads.add(r);
+                failedUploads.add(FailedSingleFileUpload.builder()
+                                                        .exception(t)
+                                                        .request(uploadRequest)
+                                                        .build());
             }
         });
         return future;
@@ -133,25 +157,33 @@ public class UploadDirectoryManager {
         }
     }
 
-    private static String processPrefix(String prefix) {
+    private static String processPrefix(String prefix, String delimiter) {
         if (StringUtils.isEmpty(prefix)) {
             return "";
         }
-        return prefix.endsWith("/") ? prefix : prefix + "/";
+        return prefix.endsWith(delimiter) ? prefix : prefix + delimiter;
     }
 
-    private static String getRelativePathName(int directoryNameCount, Path path) {
+    private String getRelativePathName(int directoryNameCount, Path path, String delimiter) {
         String relativePathName = path.subpath(directoryNameCount,
                                                path.getNameCount()).toString();
 
-        // Replace "\" (Windows FS) with "/"
-        return relativePathName.replace('\\', '/');
+        String separator = fileSystem.getSeparator();
+        return relativePathName.replace(separator, delimiter);
     }
 
-    private static UploadRequest constructUploadRequest(UploadDirectoryRequest uploadDirectoryRequest, int directoryNameCount,
+    private UploadRequest constructUploadRequest(UploadDirectoryRequest uploadDirectoryRequest, int directoryNameCount,
                                                         Path path) {
-        String prefix = processPrefix(uploadDirectoryRequest.prefix());
-        String relativePathName = getRelativePathName(directoryNameCount, path);
+        String delimiter =
+            uploadDirectoryRequest.delimiter()
+                                  .filter(s -> !s.isEmpty())
+                                  .orElse(DEFAULT_DELIMITER);
+
+        String prefix = uploadDirectoryRequest.prefix()
+                                              .map(s -> processPrefix(s, delimiter))
+                                              .orElse("");
+
+        String relativePathName = getRelativePathName(directoryNameCount, path, delimiter);
         String key = prefix + relativePathName;
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()

@@ -21,29 +21,34 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.transfer.s3.CompletedUpload;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.transfer.s3.CompletedUploadDirectory;
-import software.amazon.awssdk.transfer.s3.FailedUpload;
+import software.amazon.awssdk.transfer.s3.FailedSingleFileUpload;
+import software.amazon.awssdk.transfer.s3.UploadRequest;
 
 public class CompletedUploadDirectoryTest {
 
     @Test
     public void equalsHashcode() {
-        List<FailedUpload> failedUploads = Arrays.asList(DefaultFailedUpload.builder().path(Paths.get(".")).build());
-        List<CompletedUpload> completedUploads = Arrays.asList(DefaultCompletedUpload.builder().response(PutObjectResponse.builder().build()).build());
-        CompletedUploadDirectory completedUploadDirectory = DefaultCompletedUploadDirectory.builder()
-                                                                                           .failedUploads(failedUploads)
-                                                                                           .successfulUploads(completedUploads)
-                                                                                           .build();
+        List<FailedSingleFileUpload> failedUploads = Arrays.asList(FailedSingleFileUpload.builder()
+                                                                                         .request(UploadRequest.builder()
+                                                                                                               .source(Paths.get("."))
+                                                                                                               .putObjectRequest(b -> b.bucket("bucket").key("key")
+                                                                                                               )
+                                                                                                               .build())
+                                                                                         .exception(SdkClientException.create(
+                                                                                             "helloworld"))
+                                                                                         .build());
+        CompletedUploadDirectory completedUploadDirectory = CompletedUploadDirectory.builder()
+                                                                                    .failedUploads(failedUploads)
+                                                                                    .build();
 
-        CompletedUploadDirectory completedUploadDirectory2 = DefaultCompletedUploadDirectory.builder()
-                                                                                           .failedUploads(failedUploads)
-                                                                                           .successfulUploads(completedUploads)
-                                                                                           .build();
+        CompletedUploadDirectory completedUploadDirectory2 = CompletedUploadDirectory.builder()
+                                                                                     .failedUploads(failedUploads)
+                                                                                     .build();
 
-        CompletedUploadDirectory completedUploadDirectory3 = DefaultCompletedUploadDirectory.builder()
-                                                                                           .build();
+        CompletedUploadDirectory completedUploadDirectory3 = CompletedUploadDirectory.builder()
+                                                                                     .build();
 
         assertThat(completedUploadDirectory).isEqualTo(completedUploadDirectory2);
         assertThat(completedUploadDirectory.hashCode()).isEqualTo(completedUploadDirectory2.hashCode());

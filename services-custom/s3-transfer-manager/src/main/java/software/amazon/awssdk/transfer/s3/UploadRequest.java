@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -95,6 +96,14 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         int result = putObjectRequest != null ? putObjectRequest.hashCode() : 0;
         result = 31 * result + (source != null ? source.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("UploadRequest")
+                       .add("putObjectRequest", putObjectRequest)
+                       .add("source", source)
+                       .build();
     }
 
     /**

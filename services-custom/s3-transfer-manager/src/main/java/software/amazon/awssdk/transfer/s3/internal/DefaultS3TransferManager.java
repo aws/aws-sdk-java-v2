@@ -22,6 +22,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -31,42 +33,58 @@ import software.amazon.awssdk.transfer.s3.Download;
 import software.amazon.awssdk.transfer.s3.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.S3ClientConfiguration;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.S3TransferManagerOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.Upload;
-import software.amazon.awssdk.transfer.s3.UploadDirectory;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.UploadDirectoryTransfer;
 import software.amazon.awssdk.transfer.s3.UploadRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultS3TransferManager implements S3TransferManager {
     private final S3CrtAsyncClient s3CrtAsyncClient;
-    private final TransferConfiguration transferConfiguration;
-    private final UploadDirectoryManager uploadDirectoryManager;
+    private final TransferManagerConfiguration transferConfiguration;
+    private final UploadDirectoryHelper uploadDirectoryManager;
 
     public DefaultS3TransferManager(DefaultBuilder tmBuilder) {
-        S3CrtAsyncClient.S3CrtAsyncClientBuilder clientBuilder = S3CrtAsyncClient.builder();
-        TransferConfiguration.Builder transferConfigBuilder = TransferConfiguration.builder();
-        if (tmBuilder.s3ClientConfiguration != null) {
-            tmBuilder.s3ClientConfiguration.credentialsProvider().ifPresent(clientBuilder::credentialsProvider);
-            tmBuilder.s3ClientConfiguration.maxConcurrency().ifPresent(clientBuilder::maxConcurrency);
-            tmBuilder.s3ClientConfiguration.minimumPartSizeInBytes().ifPresent(clientBuilder::minimumPartSizeInBytes);
-            tmBuilder.s3ClientConfiguration.region().ifPresent(clientBuilder::region);
-            tmBuilder.s3ClientConfiguration.targetThroughputInGbps().ifPresent(clientBuilder::targetThroughputInGbps);
-            tmBuilder.s3ClientConfiguration.asyncConfiguration().ifPresent(clientBuilder::asyncConfiguration);
-
-            tmBuilder.s3ClientConfiguration.uploadDirectoryConfiguration().ifPresent(transferConfigBuilder::configuration);
-        }
-
-        s3CrtAsyncClient = clientBuilder.build();
-        transferConfiguration = transferConfigBuilder.build();
-        uploadDirectoryManager = new UploadDirectoryManager(transferConfiguration, this::upload);
+        transferConfiguration = resolveTransferManagerConfiguration(tmBuilder);
+        s3CrtAsyncClient = initializeS3CrtClient(tmBuilder);
+        uploadDirectoryManager = new UploadDirectoryHelper(transferConfiguration, this::upload);
     }
 
     @SdkTestInternalApi
-    DefaultS3TransferManager(S3CrtAsyncClient s3CrtAsyncClient, UploadDirectoryManager uploadDirectoryManager) {
+    DefaultS3TransferManager(S3CrtAsyncClient s3CrtAsyncClient,
+                             UploadDirectoryHelper uploadDirectoryManager,
+                             TransferManagerConfiguration configuration) {
         this.s3CrtAsyncClient = s3CrtAsyncClient;
-        this.transferConfiguration = TransferConfiguration.builder().build();
+        this.transferConfiguration = configuration;
         this.uploadDirectoryManager = uploadDirectoryManager;
+    }
+
+    private TransferManagerConfiguration resolveTransferManagerConfiguration(DefaultBuilder tmBuilder) {
+        TransferManagerConfiguration.Builder transferConfigBuilder = TransferManagerConfiguration.builder();
+        tmBuilder.transferManagerConfiguration.uploadDirectoryConfiguration()
+                                              .ifPresent(transferConfigBuilder::uploadDirectoryConfiguration);
+        tmBuilder.transferManagerConfiguration.executor().ifPresent(transferConfigBuilder::executor);
+        return transferConfigBuilder.build();
+    }
+
+    private S3CrtAsyncClient initializeS3CrtClient(DefaultBuilder tmBuilder) {
+        S3CrtAsyncClient.S3CrtAsyncClientBuilder clientBuilder = S3CrtAsyncClient.builder();
+        tmBuilder.s3ClientConfiguration.credentialsProvider().ifPresent(clientBuilder::credentialsProvider);
+        tmBuilder.s3ClientConfiguration.maxConcurrency().ifPresent(clientBuilder::maxConcurrency);
+        tmBuilder.s3ClientConfiguration.minimumPartSizeInBytes().ifPresent(clientBuilder::minimumPartSizeInBytes);
+        tmBuilder.s3ClientConfiguration.region().ifPresent(clientBuilder::region);
+        tmBuilder.s3ClientConfiguration.targetThroughputInGbps().ifPresent(clientBuilder::targetThroughputInGbps);
+        ClientAsyncConfiguration clientAsyncConfiguration =
+            ClientAsyncConfiguration.builder()
+                                    .advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
+                                                    transferConfiguration.option(TransferConfigurationOption.EXECUTOR))
+                                    .build();
+        clientBuilder.asyncConfiguration(clientAsyncConfiguration);
+
+        return clientBuilder.build();
     }
 
     @Override
@@ -89,18 +107,18 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public UploadDirectory uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
+    public UploadDirectoryTransfer uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
         try {
             Path directory = uploadDirectoryRequest.sourceDirectory();
 
-            if (!Files.exists(directory) || Files.isRegularFile(directory)) {
-                throw new IllegalArgumentException("The source directory provided either does not exist or is not a directory");
-            }
+            Validate.isTrue(Files.exists(directory), "The source directory (%s) provided does not exist", directory);
+            Validate.isFalse(Files.isRegularFile(directory), "The source directory (%s) provided is not a directory", directory);
+
             assertNotObjectLambdaArn(uploadDirectoryRequest.bucket(), "downloadDirectory");
 
             return uploadDirectoryManager.uploadDirectory(uploadDirectoryRequest);
         } catch (Throwable throwable) {
-            return new DefaultUploadDirectory(CompletableFutureUtils.failedFuture(throwable));
+            return UploadDirectoryTransfer.builder().completionFuture(CompletableFutureUtils.failedFuture(throwable)).build();
         }
     }
 
@@ -124,6 +142,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     @Override
     public void close() {
         s3CrtAsyncClient.close();
+        transferConfiguration.close();
     }
 
     public static Builder builder() {
@@ -150,11 +169,22 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     }
 
     private static class DefaultBuilder implements S3TransferManager.Builder {
-        private S3ClientConfiguration s3ClientConfiguration;
+        private S3ClientConfiguration s3ClientConfiguration = S3ClientConfiguration.builder().build();
+        private S3TransferManagerOverrideConfiguration transferManagerConfiguration =
+            S3TransferManagerOverrideConfiguration.builder().build();
+
+        private DefaultBuilder() {
+        }
 
         @Override
         public Builder s3ClientConfiguration(S3ClientConfiguration configuration) {
             this.s3ClientConfiguration = configuration;
+            return this;
+        }
+
+        @Override
+        public Builder transferConfiguration(S3TransferManagerOverrideConfiguration transferManagerConfiguration) {
+            this.transferManagerConfiguration = transferManagerConfiguration;
             return this;
         }
 

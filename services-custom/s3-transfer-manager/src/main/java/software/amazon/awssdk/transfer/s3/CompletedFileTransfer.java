@@ -15,15 +15,20 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-import java.util.concurrent.CompletableFuture;
+import java.nio.file.Path;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * An upload transfer of an directory to S3.
+ * Represents a completed file transfer.
  */
 @SdkPublicApi
-public interface UploadDirectory extends Transfer {
+@SdkPreviewApi
+public interface CompletedFileTransfer extends CompletedTransfer {
 
-    @Override
-    CompletableFuture<CompletedUploadDirectory> completionFuture();
+    /**
+     * Returns the path of the file that was upload from or downloaded to
+     * @return the path
+     */
+    Path path();
 }

@@ -45,22 +45,22 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.transfer.s3.Upload;
-import software.amazon.awssdk.transfer.s3.UploadDirectory;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.UploadDirectoryTransfer;
 import software.amazon.awssdk.transfer.s3.UploadRequest;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
- * Testing {@link UploadDirectoryManager} with different file systems.
+ * Testing {@link UploadDirectoryHelper} with different file systems.
  */
 @RunWith(Parameterized.class)
-public class UploadDirectoryManagerParameterizedTest {
+public class UploadDirectoryHelperParameterizedTest {
     private static final Set<Configuration> FILE_SYSTEMS = Sets.newHashSet(Arrays.asList(Configuration.unix(),
                                                                                          Configuration.osX(),
                                                                                          Configuration.windows(),
                                                                                          Configuration.forCurrentPlatform()));
     private Function<UploadRequest, Upload> singleUploadFunction;
-    private UploadDirectoryManager tm;
+    private UploadDirectoryHelper tm;
     private Path directory;
 
     @Parameterized.Parameter
@@ -76,12 +76,13 @@ public class UploadDirectoryManagerParameterizedTest {
     @Before
     public void methodSetup() throws IOException {
         singleUploadFunction = mock(Function.class);
-        tm = new UploadDirectoryManager(TransferConfiguration.builder().build(), singleUploadFunction);
 
         if (!configuration.equals(Configuration.forCurrentPlatform())) {
             jimfs = Jimfs.newFileSystem(configuration);
+            tm = new UploadDirectoryHelper(TransferManagerConfiguration.builder().build(), singleUploadFunction, jimfs);
+        } else {
+            tm = new UploadDirectoryHelper(TransferManagerConfiguration.builder().build(), singleUploadFunction);
         }
-
         directory = createTestDirectory();
     }
 
@@ -100,7 +101,7 @@ public class UploadDirectoryManagerParameterizedTest {
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture()))
             .thenReturn(completedUpload());
-        UploadDirectory uploadDirectory =
+        UploadDirectoryTransfer uploadDirectory =
             tm.uploadDirectory(UploadDirectoryRequest.builder()
                                                      .sourceDirectory(directory)
                                                      .bucket("bucket")
@@ -125,7 +126,7 @@ public class UploadDirectoryManagerParameterizedTest {
         ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
-        UploadDirectory uploadDirectory =
+        UploadDirectoryTransfer uploadDirectory =
             tm.uploadDirectory(UploadDirectoryRequest.builder()
                                                      .sourceDirectory(directory)
                                                      .bucket("bucket")
@@ -149,7 +150,7 @@ public class UploadDirectoryManagerParameterizedTest {
         ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
-        UploadDirectory uploadDirectory =
+        UploadDirectoryTransfer uploadDirectory =
             tm.uploadDirectory(UploadDirectoryRequest.builder()
                                                      .sourceDirectory(directory)
                                                      .bucket("bucket")
@@ -173,7 +174,7 @@ public class UploadDirectoryManagerParameterizedTest {
         ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
-        UploadDirectory uploadDirectory =
+        UploadDirectoryTransfer uploadDirectory =
             tm.uploadDirectory(UploadDirectoryRequest.builder()
                                                      .sourceDirectory(directory)
                                                      .bucket("bucket")
@@ -190,12 +191,34 @@ public class UploadDirectoryManagerParameterizedTest {
     }
 
     @Test
+    public void uploadDirectory_withDelimiter_shouldHonor() {
+        ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
+
+        when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
+        UploadDirectoryTransfer uploadDirectory =
+            tm.uploadDirectory(UploadDirectoryRequest.builder()
+                                                     .sourceDirectory(directory)
+                                                     .bucket("bucket")
+                                                     .delimiter(",")
+                                                     .prefix("yolo")
+                                                     .build());
+        uploadDirectory.completionFuture().join();
+
+        List<String> keys =
+            requestArgumentCaptor.getAllValues().stream().map(u -> u.putObjectRequest().key())
+                                 .collect(Collectors.toList());
+
+        assertThat(keys.size()).isEqualTo(3);
+        assertThat(keys).containsOnly("yolo,foo,2.txt", "yolo,foo,1.txt", "yolo,bar.txt");
+    }
+
+    @Test
     public void uploadDirectory_maxLengthOne_shouldOnlyUploadTopLevel() {
         ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture()))
             .thenReturn(completedUpload());
-        UploadDirectory uploadDirectory =
+        UploadDirectoryTransfer uploadDirectory =
             tm.uploadDirectory(UploadDirectoryRequest.builder()
                                                      .sourceDirectory(directory)
                                                      .bucket("bucket")

@@ -20,6 +20,7 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -31,16 +32,16 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class UploadDirectoryConfiguration implements ToCopyableBuilder<UploadDirectoryConfiguration.Builder,
-    UploadDirectoryConfiguration> {
+public final class UploadDirectoryOverrideConfiguration implements ToCopyableBuilder<UploadDirectoryOverrideConfiguration.Builder,
+    UploadDirectoryOverrideConfiguration> {
 
     private final Boolean followSymbolicLinks;
     private final Integer maxDepth;
     private final Boolean recursive;
 
-    public UploadDirectoryConfiguration(DefaultBuilder builder) {
+    public UploadDirectoryOverrideConfiguration(DefaultBuilder builder) {
         this.followSymbolicLinks = builder.followSymbolicLinks;
-        this.maxDepth = builder.maxDepth;
+        this.maxDepth = Validate.isPositiveOrNull(builder.maxDepth, "maxDepth");
         this.recursive = builder.recursive;
     }
 
@@ -79,7 +80,7 @@ public final class UploadDirectoryConfiguration implements ToCopyableBuilder<Upl
             return false;
         }
 
-        UploadDirectoryConfiguration that = (UploadDirectoryConfiguration) o;
+        UploadDirectoryOverrideConfiguration that = (UploadDirectoryOverrideConfiguration) o;
 
         if (!Objects.equals(followSymbolicLinks, that.followSymbolicLinks)) {
             return false;
@@ -111,10 +112,13 @@ public final class UploadDirectoryConfiguration implements ToCopyableBuilder<Upl
         return new DefaultBuilder();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, UploadDirectoryConfiguration> {
+    public interface Builder extends CopyableBuilder<Builder, UploadDirectoryOverrideConfiguration> {
 
         /**
          * Specify whether to recursively upload all files under the specified directory
+         *
+         * <p>
+         * Default to true
          *
          * @param recursive whether enable recursive upload
          * @return This builder for method chaining.
@@ -122,7 +126,7 @@ public final class UploadDirectoryConfiguration implements ToCopyableBuilder<Upl
         Builder recursive(Boolean recursive);
 
         /**
-         * Specify whether to follow Follow symbolic links when traverse the directory tree.
+         * Specify whether to follow symbolic links when traversing the file tree.
          * <p>
          * Default to false
          *
@@ -132,14 +136,19 @@ public final class UploadDirectoryConfiguration implements ToCopyableBuilder<Upl
         Builder followSymbolicLinks(Boolean followSymbolicLinks);
 
         /**
-         * Specify the maximum number of directory levels to traverse
-         * @param maxDepth the maximum number of directory levels
+         * Specify the maximum number of levels of directories to visit. Must be positive.
+         * 1 means only the files directly under the provided source directory are visited.
+         *
+         * <p>
+         * Default to {@code Integer.MAX_VALUE}
+         *
+         * @param maxDepth the maximum number of directory levels to visit
          * @return This builder for method chaining.
          */
         Builder maxDepth(Integer maxDepth);
 
         @Override
-        UploadDirectoryConfiguration build();
+        UploadDirectoryOverrideConfiguration build();
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -147,7 +156,7 @@ public final class UploadDirectoryConfiguration implements ToCopyableBuilder<Upl
         private Integer maxDepth;
         private Boolean recursive;
 
-        private DefaultBuilder(UploadDirectoryConfiguration configuration) {
+        private DefaultBuilder(UploadDirectoryOverrideConfiguration configuration) {
             this.followSymbolicLinks = configuration.followSymbolicLinks;
             this.maxDepth = configuration.maxDepth;
             this.recursive = configuration.recursive;
@@ -157,26 +166,38 @@ public final class UploadDirectoryConfiguration implements ToCopyableBuilder<Upl
         }
 
         @Override
-        public DefaultBuilder recursive(Boolean recursive) {
+        public Builder recursive(Boolean recursive) {
             this.recursive = recursive;
             return this;
         }
 
+        public void setRecursive(Boolean recursive) {
+            recursive(recursive);
+        }
+
         @Override
-        public DefaultBuilder followSymbolicLinks(Boolean followSymbolicLinks) {
+        public Builder followSymbolicLinks(Boolean followSymbolicLinks) {
             this.followSymbolicLinks = followSymbolicLinks;
             return this;
         }
 
+        public void setFollowSymbolicLinks(Boolean followSymbolicLinks) {
+            followSymbolicLinks(followSymbolicLinks);
+        }
+
         @Override
-        public DefaultBuilder maxDepth(Integer maxDepth) {
+        public Builder maxDepth(Integer maxDepth) {
             this.maxDepth = maxDepth;
             return this;
         }
 
+        public void setMaxDepth(Integer maxDepth) {
+            maxDepth(maxDepth);
+        }
+
         @Override
-        public UploadDirectoryConfiguration build() {
-            return new UploadDirectoryConfiguration(this);
+        public UploadDirectoryOverrideConfiguration build() {
+            return new UploadDirectoryOverrideConfiguration(this);
         }
 
     }

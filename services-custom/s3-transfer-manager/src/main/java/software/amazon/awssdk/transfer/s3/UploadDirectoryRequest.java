@@ -28,6 +28,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Request object to upload a local directory to S3 using the Transfer Manager.
+ *
+ * @see S3TransferManager#uploadDirectory(UploadDirectoryRequest)
  */
 @SdkPublicApi
 @SdkPreviewApi
@@ -37,13 +39,15 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
     private final Path sourceDirectory;
     private final String bucket;
     private final String prefix;
-    private final UploadDirectoryConfiguration overrideConfiguration;
+    private final UploadDirectoryOverrideConfiguration overrideConfiguration;
+    private final String delimiter;
 
     public UploadDirectoryRequest(DefaultBuilder builder) {
         this.sourceDirectory = Validate.paramNotNull(builder.sourceDirectory, "sourceDirectory");
-        this.bucket = Validate.paramNotNull(builder.bucket, "bucketName");
+        this.bucket = Validate.paramNotNull(builder.bucket, "bucket");
         this.prefix = builder.prefix;
         this.overrideConfiguration = builder.configuration;
+        this.delimiter = builder.delimiter;
     }
 
     /**
@@ -65,16 +69,20 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
     }
 
     /**
-     * @return the key prefix of the virtual directory to upload to
+     * @return the optional key prefix
      */
-    public String prefix() {
-        return prefix;
+    public Optional<String> prefix() {
+        return Optional.ofNullable(prefix);
+    }
+
+    public Optional<String> delimiter() {
+        return Optional.ofNullable(delimiter);
     }
 
     /**
      * @return the optional override configuration
      */
-    public Optional<UploadDirectoryConfiguration> overrideConfiguration() {
+    public Optional<UploadDirectoryOverrideConfiguration> overrideConfiguration() {
         return Optional.ofNullable(overrideConfiguration);
     }
 
@@ -138,8 +146,11 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
         Builder bucket(String bucket);
 
         /**
-         * Specify the key prefix of the virtual directory to upload to.
-         * If not provided, files will be uploaded to the root of the bucket
+         * Specify the key prefix to use for the objects. If not provided, files will be uploaded to the root of the bucket
+         * <p>
+         * See <a
+         * href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-prefixes.html">Organizing objects using
+         * prefixes</a>
          *
          * @param prefix the key prefix
          * @return This builder for method chaining.
@@ -147,27 +158,41 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
         Builder prefix(String prefix);
 
         /**
+         * Specify the delimiter. A delimiter causes a list operation to roll up all the keys that share a common prefix into a
+         * single summary list result. If not provided, {@code "/"} will be used.
+         *
+         * See <a
+         * href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-prefixes.html">Organizing objects using
+         * prefixes</a>
+         *
+         * @param delimiter the delimiter
+         * @return This builder for method chaining.
+         */
+        Builder delimiter(String delimiter);
+
+        /**
          * Add an optional request override configuration.
          *
          * @param configuration The override configuration.
          * @return This builder for method chaining.
          */
-        Builder overrideConfiguration(UploadDirectoryConfiguration configuration);
+        Builder overrideConfiguration(UploadDirectoryOverrideConfiguration configuration);
 
         /**
-         * Similar to {@link #overrideConfiguration(UploadDirectoryConfiguration)}, but takes a lambda to configure a new
-         * {@link UploadDirectoryConfiguration.Builder}. This removes the need to call
-         * {@link UploadDirectoryConfiguration#builder()} and {@link UploadDirectoryConfiguration.Builder#build()}.
+         * Similar to {@link #overrideConfiguration(UploadDirectoryOverrideConfiguration)}, but takes a lambda to configure a new
+         * {@link UploadDirectoryOverrideConfiguration.Builder}. This removes the need to call
+         * {@link UploadDirectoryOverrideConfiguration#builder()} and
+         * {@link UploadDirectoryOverrideConfiguration.Builder#build()}.
          *
          * @param uploadConfigurationBuilder the upload configuration
          * @return this builder for method chaining.
-         * @see #overrideConfiguration(UploadDirectoryConfiguration)
+         * @see #overrideConfiguration(UploadDirectoryOverrideConfiguration)
          */
-        default Builder overrideConfiguration(Consumer<UploadDirectoryConfiguration.Builder> uploadConfigurationBuilder) {
+        default Builder overrideConfiguration(Consumer<UploadDirectoryOverrideConfiguration.Builder> uploadConfigurationBuilder) {
             Validate.paramNotNull(uploadConfigurationBuilder, "uploadConfigurationBuilder");
-            return overrideConfiguration(UploadDirectoryConfiguration.builder()
-                                                                     .applyMutation(uploadConfigurationBuilder)
-                                                                     .build());
+            return overrideConfiguration(UploadDirectoryOverrideConfiguration.builder()
+                                                                             .applyMutation(uploadConfigurationBuilder)
+                                                                             .build());
         }
 
         @Override
@@ -179,7 +204,8 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
         private Path sourceDirectory;
         private String bucket;
         private String prefix;
-        private UploadDirectoryConfiguration configuration;
+        private UploadDirectoryOverrideConfiguration configuration;
+        private String delimiter;
 
         private DefaultBuilder() {
         }
@@ -210,7 +236,13 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
         }
 
         @Override
-        public Builder overrideConfiguration(UploadDirectoryConfiguration configuration) {
+        public Builder delimiter(String delimiter) {
+            this.delimiter = delimiter;
+            return this;
+        }
+
+        @Override
+        public Builder overrideConfiguration(UploadDirectoryOverrideConfiguration configuration) {
             this.configuration = configuration;
             return this;
         }

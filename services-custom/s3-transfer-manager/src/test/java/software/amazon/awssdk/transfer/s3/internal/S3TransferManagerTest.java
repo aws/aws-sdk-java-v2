@@ -19,51 +19,39 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.metrics.MetricCollection;
-import software.amazon.awssdk.transfer.s3.CompletedDownload;
-import software.amazon.awssdk.transfer.s3.CompletedUpload;
-import software.amazon.awssdk.transfer.s3.DownloadRequest;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.UploadDirectory;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.UploadRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.transfer.s3.CompletedDownload;
+import software.amazon.awssdk.transfer.s3.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.DownloadRequest;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.UploadRequest;
 
 public class S3TransferManagerTest {
     private S3CrtAsyncClient mockS3Crt;
     private S3TransferManager tm;
-    private UploadDirectoryManager uploadDirectoryManager;
+    private UploadDirectoryHelper uploadDirectoryManager;
+    private TransferManagerConfiguration configuration;
 
     @Before
     public void methodSetup() {
         mockS3Crt = mock(S3CrtAsyncClient.class);
-        uploadDirectoryManager = mock(UploadDirectoryManager.class);
-        tm = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryManager);
+        uploadDirectoryManager = mock(UploadDirectoryHelper.class);
+        configuration = mock(TransferManagerConfiguration.class);
+        tm = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryManager, configuration);
     }
 
     @After
@@ -163,7 +151,7 @@ public class S3TransferManagerTest {
     public void uploadDirectory_directoryNotExist_shouldCompleteFutureExceptionally() {
         assertThatThrownBy(() -> tm.uploadDirectory(u -> u.sourceDirectory(Paths.get("randomstringneverexistas234ersaf1231"))
                                  .bucket("bucketName")).completionFuture().join())
-            .hasMessageContaining("The source directory provided either").hasCauseInstanceOf(IllegalArgumentException.class);
+            .hasMessageContaining("does not exist").hasCauseInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -174,5 +162,13 @@ public class S3TransferManagerTest {
         assertThatThrownBy(() -> tm.uploadDirectory(u -> u.sourceDirectory(Paths.get("/"))
                                                           .bucket("bucketName")).completionFuture().join())
             .hasCause(exception);
+    }
+
+    @Test
+    public void close_shouldCloseResources() {
+        S3TransferManager transferManager = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryManager, configuration);
+        transferManager.close();
+        verify(mockS3Crt).close();
+        verify(configuration).close();
     }
 }
