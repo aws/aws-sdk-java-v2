@@ -186,10 +186,10 @@ public class IdleConnectionCountingChannelPoolTest {
     }
 
     private void stubDelegatePoolReleasesForSuccess() {
-        Mockito.when(delegatePool.release(any())).thenAnswer((Answer<Future<Channel>>) invocation -> {
-            Channel channel = invocation.getArgumentAt(0, Channel.class);
-            Promise<Channel> result = channel.eventLoop().newPromise();
-            return result.setSuccess(channel);
+        Mockito.when(delegatePool.release(any(Channel.class), any(Promise.class))).thenAnswer((Answer<Future<Void>>) invocation -> {
+            Promise<Void> promise = invocation.getArgumentAt(1, Promise.class);
+            promise.setSuccess(null);
+            return promise;
         });
     }
 

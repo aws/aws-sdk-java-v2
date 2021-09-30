@@ -78,7 +78,6 @@ public class HandlerRemovingChannelPool implements SdkChannelPool {
             // Only remove per request handler if the channel is registered
             // or open since DefaultChannelPipeline would remove handlers if
             // channel is closed and unregistered
-            // See DefaultChannelPipeline.java#L1403
             if (channel.isOpen() || channel.isRegistered()) {
                 removeIfExists(channel.pipeline(),
                                HttpStreamsClientHandler.class,
