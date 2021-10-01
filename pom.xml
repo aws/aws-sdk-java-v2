@@ -524,7 +524,6 @@
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler</exclude>
                             <exclude>software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler</exclude>
-                            <exclude>software.amazon.awssdk.regions.servicemetadata.*</exclude>
                         </excludes>
 
                         <excludeModules>
