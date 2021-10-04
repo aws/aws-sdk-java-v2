@@ -1,3 +1,16 @@
+# __2.17.52__ __2021-10-04__
+## __AWS CodeBuild__
+  - ### Features
+    - CodeBuild now allows you to select how batch build statuses are sent to the source provider for a project.
+
+## __AWS Key Management Service__
+  - ### Features
+    - Added SDK examples for ConnectCustomKeyStore, CreateCustomKeyStore, CreateKey, DeleteCustomKeyStore, DescribeCustomKeyStores, DisconnectCustomKeyStore, GenerateDataKeyPair, GenerateDataKeyPairWithoutPlaintext, GetPublicKey, ReplicateKey, Sign, UpdateCustomKeyStore and Verify APIs
+
+## __Amazon Elastic File System__
+  - ### Features
+    - EFS adds a new exception for short identifiers to be thrown after its migration to long resource identifiers.
+
 # __2.17.51__ __2021-10-01__
 ## __AWS App Runner__
   - ### Features
