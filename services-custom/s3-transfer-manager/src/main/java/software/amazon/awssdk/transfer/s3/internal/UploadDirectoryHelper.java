@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -80,6 +79,8 @@ public class UploadDirectoryHelper {
     public UploadDirectoryTransfer uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
 
         CompletableFuture<CompletedUploadDirectory> returnFuture = new CompletableFuture<>();
+
+        // offload the execution to the transfer manager executor
         CompletableFuture.runAsync(() -> doUploadDirectory(returnFuture, uploadDirectoryRequest),
                                    transferConfiguration.option(TransferConfigurationOption.EXECUTOR));
 
@@ -103,6 +104,7 @@ public class UploadDirectoryHelper {
             });
         }
 
+        // Wait for all sub transfers to complete
         phaser.arriveAndAwaitAdvance();
         phaser.arriveAndDeregister();
         returnFuture.complete(CompletedUploadDirectory.builder().failedUploads(failedUploads).build());
@@ -115,10 +117,12 @@ public class UploadDirectoryHelper {
         phaser.register();
         int nameCount = uploadDirectoryRequest.sourceDirectory().getNameCount();
         UploadRequest uploadRequest = constructUploadRequest(uploadDirectoryRequest, nameCount, path);
-        log.debug(() -> "Sending upload request: " + uploadRequest);
+        log.debug(() -> String.format("Sending upload request (%s) for path (%s)", uploadRequest, path));
         CompletableFuture<CompletedUpload> future = uploadFunction.apply(uploadRequest).completionFuture();
         future.whenComplete((r, t) -> {
+            // notify the future is completed
             phaser.arriveAndDeregister();
+
             if (t != null) {
                 failedUploads.add(FailedSingleFileUpload.builder()
                                                         .exception(t)
@@ -133,28 +137,34 @@ public class UploadDirectoryHelper {
 
         try {
             boolean recursive = transferConfiguration.resolveUploadDirectoryRecursive(request);
+            boolean followSymbolicLinks = transferConfiguration.resolveUploadDirectoryFollowSymbolicLinks(request);
 
             if (!recursive) {
-                return Files.list(directory).filter(Files::isRegularFile);
+                return Files.list(directory)
+                            .filter(p -> isRegularFile(p, followSymbolicLinks));
             }
-
-            boolean followSymbolicLinks = transferConfiguration.resolveUploadDirectoryFollowSymbolicLinks(request);
 
             int maxDepth = transferConfiguration.resolveUploadDirectoryMaxDepth(request);
 
             if (followSymbolicLinks) {
                 return Files.walk(directory, maxDepth, FileVisitOption.FOLLOW_LINKS)
-                            .peek(p -> log.trace(() -> "Processing path: " + p))
-                            .filter(Files::isRegularFile);
+                            .filter(path -> isRegularFile(path, true));
             }
 
             return Files.walk(directory, maxDepth)
-                        .peek(p -> log.trace(() -> "Processing path: " + p))
-                        .filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS));
+                        .filter(path -> isRegularFile(path, false));
 
         } catch (IOException e) {
             throw SdkClientException.create("Failed to list files under the provided directory", e);
         }
+    }
+
+    private boolean isRegularFile(Path path, boolean followSymlinks) {
+        if (followSymlinks) {
+            return Files.isRegularFile(path);
+        }
+
+        return Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS);
     }
 
     private static String processPrefix(String prefix, String delimiter) {

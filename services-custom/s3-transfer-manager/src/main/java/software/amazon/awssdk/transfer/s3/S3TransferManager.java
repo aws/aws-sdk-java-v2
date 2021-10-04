@@ -198,7 +198,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * // Print out the failed uploads
      * completedUploadDirectory.failedUploads().forEach(System.out::println);
      *
-     * // Retrying failed uploads if the exceptions are retryable
+     * // Retrying failed uploads if the exception is retryable
      * List<CompletableFuture<CompletedUpload>> futures =
      *     completedUploadDirectory.failedUploads()
      *                             .stream()
@@ -207,6 +207,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *                                  tm.upload(failedSingleFileUpload.request()).completionFuture())
      *                             .collect(Collectors.toList());
      * CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+     * }
      * </pre>
      *
      * @param uploadDirectoryRequest the upload directory request
@@ -252,7 +253,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * // Print out the failed uploads
      * completedUploadDirectory.failedUploads().forEach(System.out::println);
      *
-     * // Retrying failed uploads if the exceptions are retryable
+     * // Retrying failed uploads if the exception is retryable
      * List<CompletableFuture<CompletedUpload>> futures =
      *     completedUploadDirectory.failedUploads()
      *                             .stream()
@@ -261,6 +262,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *                                  tm.upload(failedSingleFileUpload.request()).completionFuture())
      *                             .collect(Collectors.toList());
      * CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+     * }
      * </pre>
      * @param requestBuilder the upload directory request builder
      * @see #uploadDirectory(UploadDirectoryRequest)
@@ -342,6 +344,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
          * @see #transferConfiguration(S3TransferManagerOverrideConfiguration)
          */
         default Builder transferConfiguration(Consumer<S3TransferManagerOverrideConfiguration.Builder> configuration) {
+            Validate.paramNotNull(configuration, "configuration");
             S3TransferManagerOverrideConfiguration.Builder builder = S3TransferManagerOverrideConfiguration.builder();
             configuration.accept(builder);
             transferConfiguration(builder.build());

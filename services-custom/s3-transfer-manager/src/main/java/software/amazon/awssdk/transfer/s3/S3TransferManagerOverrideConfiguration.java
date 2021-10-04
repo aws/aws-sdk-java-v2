@@ -102,10 +102,15 @@ public final class S3TransferManagerOverrideConfiguration implements
     public interface Builder extends CopyableBuilder<Builder, S3TransferManagerOverrideConfiguration> {
 
         /**
-         * Specify the executor that will be used in {@link S3TransferManager} to offload
-         * execution
+         * Specify the executor that {@link S3TransferManager} will use to execute
+         * the request that might take some time to process before handing it off to the underlying S3 async client such as
+         * visiting file tree in {@link S3TransferManager#uploadDirectory(UploadDirectoryRequest)} operation.
          *
-         * @param executor the async configuration
+         * <p>
+         * <b>This executor must be shut down by the user when it is ready to be disposed. The SDK will not close the executor
+         * when the s3 transfer manager is closed.</b>
+         *
+         * @param executor the executor to use
          * @return this builder for method chaining.
          */
         Builder executor(Executor executor);

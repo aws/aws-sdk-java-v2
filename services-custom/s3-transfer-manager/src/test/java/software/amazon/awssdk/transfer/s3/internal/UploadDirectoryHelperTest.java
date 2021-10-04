@@ -100,14 +100,14 @@ public class UploadDirectoryHelperTest {
     public void uploadDirectory_allUploadsSucceed_failedUploadsShouldBeEmpty() throws ExecutionException, InterruptedException,
                                                                                     TimeoutException {
         PutObjectResponse putObjectResponse = PutObjectResponse.builder().eTag("1234").build();
-        CompletedUpload completedUpload = DefaultCompletedUpload.builder().response(putObjectResponse).build();
+        CompletedUpload completedUpload = CompletedUpload.builder().response(putObjectResponse).build();
         CompletableFuture<CompletedUpload> successfulFuture = new CompletableFuture<>();
 
         Upload upload = new DefaultUpload(successfulFuture);
         successfulFuture.complete(completedUpload);
 
         PutObjectResponse putObjectResponse2 = PutObjectResponse.builder().eTag("5678").build();
-        CompletedUpload completedUpload2 = DefaultCompletedUpload.builder().response(putObjectResponse2).build();
+        CompletedUpload completedUpload2 = CompletedUpload.builder().response(putObjectResponse2).build();
         CompletableFuture<CompletedUpload> failedFuture = new CompletableFuture<>();
         Upload upload2 = new DefaultUpload(failedFuture);
         failedFuture.complete(completedUpload2);
@@ -129,7 +129,7 @@ public class UploadDirectoryHelperTest {
     public void uploadDirectory_partialSuccess_shouldProvideFailedUploads() throws ExecutionException, InterruptedException,
                                                                                    TimeoutException {
         PutObjectResponse putObjectResponse = PutObjectResponse.builder().eTag("1234").build();
-        CompletedUpload completedUpload = DefaultCompletedUpload.builder().response(putObjectResponse).build();
+        CompletedUpload completedUpload = CompletedUpload.builder().response(putObjectResponse).build();
         CompletableFuture<CompletedUpload> successfulFuture = new CompletableFuture<>();
         Upload upload = new DefaultUpload(successfulFuture);
         successfulFuture.complete(completedUpload);

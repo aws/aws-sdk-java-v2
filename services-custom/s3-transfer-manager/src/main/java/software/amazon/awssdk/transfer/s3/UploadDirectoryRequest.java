@@ -54,6 +54,7 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
      * The source directory to upload
      *
      * @return the source directory
+     * @see Builder#sourceDirectory(Path)
      */
     public Path sourceDirectory() {
         return sourceDirectory;
@@ -63,6 +64,7 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
      * The name of the bucket to upload objects to.
      *
      * @return bucket name
+     * @see Builder#bucket(String)
      */
     public String bucket() {
         return bucket;
@@ -70,17 +72,23 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
 
     /**
      * @return the optional key prefix
+     * @see Builder#prefix(String)
      */
     public Optional<String> prefix() {
         return Optional.ofNullable(prefix);
     }
 
+    /**
+     * @return the optional delimiter
+     * @see Builder#delimiter(String)
+     */
     public Optional<String> delimiter() {
         return Optional.ofNullable(delimiter);
     }
 
     /**
      * @return the optional override configuration
+     * @see Builder#overrideConfiguration(UploadDirectoryOverrideConfiguration)
      */
     public Optional<UploadDirectoryOverrideConfiguration> overrideConfiguration() {
         return Optional.ofNullable(overrideConfiguration);
@@ -134,10 +142,16 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
     public interface Builder extends CopyableBuilder<Builder, UploadDirectoryRequest> {
 
         /**
-         * Specify the source directory to upload
+         * Specify the source directory to upload. The source directory must exist.
+         * Fle wildcards are not supported and treated literally. Hidden files/directories are visited.
+         *
+         * <p>
+         * Note that the current user must have read access to all directories and files,
+         * otherwise {@link SecurityException} will be thrown.
          *
          * @param sourceDirectory the source directory
          * @return This builder for method chaining.
+         * @see UploadDirectoryOverrideConfiguration
          */
         Builder sourceDirectory(Path sourceDirectory);
 

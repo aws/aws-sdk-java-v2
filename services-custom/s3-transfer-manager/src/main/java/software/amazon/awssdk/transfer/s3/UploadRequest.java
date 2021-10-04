@@ -32,6 +32,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Upload an object to S3 using {@link S3TransferManager}.
+ * @see S3TransferManager#upload(UploadRequest)
  */
 @SdkPublicApi
 @SdkPreviewApi

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -98,9 +99,9 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
             CompletableFuture<PutObjectResponse> putObjFuture = s3CrtAsyncClient.putObject(putObjectRequest, requestBody);
 
-            CompletableFuture<CompletedUpload> future = putObjFuture.thenApply(r -> DefaultCompletedUpload.builder()
-                                                                                                          .response(r)
-                                                                                                          .build());
+            CompletableFuture<CompletedUpload> future = putObjFuture.thenApply(r -> CompletedUpload.builder()
+                                                                                                   .response(r)
+                                                                                                   .build());
             return new DefaultUpload(CompletableFutureUtils.forwardExceptionTo(future, putObjFuture));
         } catch (Throwable throwable) {
             return new DefaultUpload(CompletableFutureUtils.failedFuture(throwable));
@@ -114,7 +115,15 @@ public final class DefaultS3TransferManager implements S3TransferManager {
             Path directory = uploadDirectoryRequest.sourceDirectory();
 
             Validate.isTrue(Files.exists(directory), "The source directory (%s) provided does not exist", directory);
-            Validate.isFalse(Files.isRegularFile(directory), "The source directory (%s) provided is not a directory", directory);
+            boolean followSymbolicLinks = transferConfiguration.resolveUploadDirectoryFollowSymbolicLinks(uploadDirectoryRequest);
+            if (followSymbolicLinks) {
+                Validate.isFalse(Files.isRegularFile(directory), "The source directory (%s) provided is not a "
+                                                                 + "directory", directory);
+            } else {
+                Validate.isFalse(Files.isRegularFile(directory, LinkOption.NOFOLLOW_LINKS), "The source directory (%s) provided"
+                                                                                            + " is not a "
+                                                                                            + "directory", directory);
+            }
 
             assertNotObjectLambdaArn(uploadDirectoryRequest.bucket(), "uploadDirectory");
 
@@ -134,7 +143,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
                 s3CrtAsyncClient.getObject(downloadRequest.getObjectRequest(),
                                            AsyncResponseTransformer.toFile(downloadRequest.destination()));
             CompletableFuture<CompletedDownload> future =
-                getObjectFuture.thenApply(r -> DefaultCompletedDownload.builder().response(r).build());
+                getObjectFuture.thenApply(r -> CompletedDownload.builder().response(r).build());
 
             return new DefaultDownload(CompletableFutureUtils.forwardExceptionTo(future, getObjectFuture));
         } catch (Throwable throwable) {

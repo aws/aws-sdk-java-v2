@@ -44,6 +44,23 @@ public final class CompletedUploadDirectory implements CompletedTransfer {
      * An immutable collection of failed uploads with error details, request metadata about each file that is failed to
      * upload.
      *
+     * <p>
+     * Failed single file uploads can be retried by calling {@link S3TransferManager#upload(UploadRequest)}
+     *
+     * <pre>
+     * {@code
+     * // Retrying failed uploads if the exception is retryable
+     * List<CompletableFuture<CompletedUpload>> futures =
+     *     completedUploadDirectory.failedUploads()
+     *                             .stream()
+     *                             .filter(failedSingleFileUpload -> isRetryable(failedSingleFileUpload.exception()))
+     *                             .map(failedSingleFileUpload ->
+     *                                  tm.upload(failedSingleFileUpload.request()).completionFuture())
+     *                             .collect(Collectors.toList());
+     * CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+     * }
+     * </pre>
+     *
      * @return a list of failed uploads
      */
     public Collection<FailedSingleFileUpload> failedUploads() {
@@ -51,7 +68,7 @@ public final class CompletedUploadDirectory implements CompletedTransfer {
     }
 
     /**
-     * Creates a default builder for {@link CompletedUpload}.
+     * Creates a default builder for {@link CompletedUploadDirectory}.
      */
     public static Builder builder() {
         return new DefaultBuilder();

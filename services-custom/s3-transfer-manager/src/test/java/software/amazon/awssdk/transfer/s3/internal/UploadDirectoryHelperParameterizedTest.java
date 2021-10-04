@@ -44,6 +44,7 @@ import org.junit.runners.Parameterized;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.FileUtils;
+import software.amazon.awssdk.transfer.s3.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.Upload;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryTransfer;
@@ -143,6 +144,30 @@ public class UploadDirectoryHelperParameterizedTest {
     }
 
     @Test
+    public void uploadDirectory_recursiveFalseFollowSymlinkTrue_shouldOnlyUploadTopLevel() {
+        // skip the test if we are using jimfs because it doesn't work well with symlink
+        assumeTrue(configuration.equals(Configuration.forCurrentPlatform()));
+        ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
+
+        when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
+        UploadDirectoryTransfer uploadDirectory =
+            tm.uploadDirectory(UploadDirectoryRequest.builder()
+                                                     .sourceDirectory(directory)
+                                                     .bucket("bucket")
+                                                     .overrideConfiguration(o -> o.recursive(false).followSymbolicLinks(true))
+                                                     .build());
+        uploadDirectory.completionFuture().join();
+
+        List<UploadRequest> actualRequests = requestArgumentCaptor.getAllValues();
+        List<String> keys =
+            actualRequests.stream().map(u -> u.putObjectRequest().key())
+                          .collect(Collectors.toList());
+
+        assertThat(keys.size()).isEqualTo(2);
+        assertThat(keys).containsOnly("bar.txt", "symlink2");
+    }
+
+    @Test
     public void uploadDirectory_FollowSymlinkTrue_shouldIncludeLinkedFiles()  {
         // skip the test if we are using jimfs because it doesn't work well with symlink
         assumeTrue(configuration.equals(Configuration.forCurrentPlatform()));
@@ -165,8 +190,8 @@ public class UploadDirectoryHelperParameterizedTest {
             actualRequests.stream().map(u -> u.putObjectRequest().key())
                                  .collect(Collectors.toList());
 
-        assertThat(keys.size()).isEqualTo(4);
-        assertThat(keys).containsOnly("bar.txt", "foo/1.txt", "foo/2.txt", "symlink/3.txt");
+        assertThat(keys.size()).isEqualTo(5);
+        assertThat(keys).containsOnly("bar.txt", "foo/1.txt", "foo/2.txt", "symlink/2.txt", "symlink2");
     }
 
     @Test
@@ -239,9 +264,9 @@ public class UploadDirectoryHelperParameterizedTest {
     }
 
     private DefaultUpload completedUpload() {
-        return new DefaultUpload(CompletableFuture.completedFuture(DefaultCompletedUpload.builder()
-                                                                                         .response(PutObjectResponse.builder().build())
-                                                                                         .build()));
+        return new DefaultUpload(CompletableFuture.completedFuture(CompletedUpload.builder()
+                                                                                  .response(PutObjectResponse.builder().build())
+                                                                                  .build()));
     }
 
     private Path createTestDirectory() throws IOException {
@@ -261,12 +286,16 @@ public class UploadDirectoryHelperParameterizedTest {
      *        - 2.txt
      *     - bar.txt
      *     - symlink -> test2
+     *     - symlink2 -> test3/4.txt
      * - test2
-     *     - 3.txt
+     *     - 2.txt
+     * - test3
+     *     - 4.txt
      */
     private Path createLocalTestDirectoryWithSymLink() throws IOException {
         Path directory = Files.createTempDirectory("test1");
         Path anotherDirectory = Files.createTempDirectory("test2");
+        Path thirdDirectory = Files.createTempDirectory("test3");
 
         String directoryName = directory.toString();
         String anotherDirectoryName = anotherDirectory.toString();
@@ -277,9 +306,11 @@ public class UploadDirectoryHelperParameterizedTest {
         Files.write(Paths.get(directoryName, "foo/1.txt"), "1".getBytes(StandardCharsets.UTF_8));
         Files.write(Paths.get(directoryName, "foo/2.txt"), "2".getBytes(StandardCharsets.UTF_8));
 
-        Files.write(Paths.get(anotherDirectoryName, "3.txt"), "3".getBytes(StandardCharsets.UTF_8));
+        Files.write(Paths.get(anotherDirectoryName, "2.txt"), "2".getBytes(StandardCharsets.UTF_8));
+        Files.write(Paths.get(thirdDirectory.toString(), "3.txt"), "3".getBytes(StandardCharsets.UTF_8));
 
         Files.createSymbolicLink(Paths.get(directoryName, "symlink"), anotherDirectory);
+        Files.createSymbolicLink(Paths.get(directoryName, "symlink2"), Paths.get(thirdDirectory.toString(), "3.txt"));
         return directory;
     }
 
