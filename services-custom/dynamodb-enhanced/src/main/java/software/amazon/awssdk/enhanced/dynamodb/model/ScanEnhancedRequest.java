@@ -44,10 +44,14 @@ public final class ScanEnhancedRequest {
     private final Boolean consistentRead;
     private final Expression filterExpression;
     private final List<NestedAttributeName> attributesToProject;
+    private final Integer segment;
+    private final Integer totalSegments;
 
     private ScanEnhancedRequest(Builder builder) {
         this.exclusiveStartKey = builder.exclusiveStartKey;
         this.limit = builder.limit;
+        this.segment = builder.segment;
+        this.totalSegments = builder.totalSegments;
         this.consistentRead = builder.consistentRead;
         this.filterExpression = builder.filterExpression;
         this.attributesToProject = builder.attributesToProject != null
@@ -85,6 +89,20 @@ public final class ScanEnhancedRequest {
      */
     public Integer limit() {
         return limit;
+    }
+
+    /**
+     * Returns the value of segment set on this request object, or null if it doesn't exist.
+     */
+    public Integer segment() {
+        return segment;
+    }
+
+    /**
+     * Returns the value of totalSegments set on this request object, or null if it doesn't exist.
+     */
+    public Integer totalSegments() {
+        return totalSegments;
     }
 
     /**
@@ -141,6 +159,12 @@ public final class ScanEnhancedRequest {
         if (limit != null ? ! limit.equals(scan.limit) : scan.limit != null) {
             return false;
         }
+        if (segment != null ? ! segment.equals(scan.segment) : scan.segment != null) {
+            return false;
+        }
+        if (totalSegments != null ? ! totalSegments.equals(scan.totalSegments) : scan.totalSegments != null) {
+            return false;
+        }
         if (consistentRead != null ? ! consistentRead.equals(scan.consistentRead) : scan.consistentRead != null) {
             return false;
         }
@@ -155,6 +179,8 @@ public final class ScanEnhancedRequest {
     public int hashCode() {
         int result = exclusiveStartKey != null ? exclusiveStartKey.hashCode() : 0;
         result = 31 * result + (limit != null ? limit.hashCode() : 0);
+        result = 31 * result + (segment != null ? segment.hashCode() : 0);
+        result = 31 * result + (totalSegments != null ? totalSegments.hashCode() : 0);
         result = 31 * result + (consistentRead != null ? consistentRead.hashCode() : 0);
         result = 31 * result + (filterExpression != null ? filterExpression.hashCode() : 0);
         result = 31 * result + (attributesToProject != null ? attributesToProject.hashCode() : 0);
@@ -170,6 +196,8 @@ public final class ScanEnhancedRequest {
         private Boolean consistentRead;
         private Expression filterExpression;
         private List<NestedAttributeName> attributesToProject;
+        private Integer segment;
+        private Integer totalSegments;
 
         private Builder() {
         }
@@ -200,6 +228,45 @@ public final class ScanEnhancedRequest {
          */
         public Builder limit(Integer limit) {
             this.limit = limit;
+            return this;
+        }
+
+        /**
+         * For a parallel Scan request, Segment identifies an individual segment to be scanned by an application worker.
+         * <p>
+         * <b>Note:</b>Segment IDs are zero-based, so the first segment is always 0. For example, if you want to use four
+         * application threads to scan a table or an index, then the first thread specifies a Segment value of 0, the second
+         * thread specifies 1, and so on.
+         *
+         * The value for Segment must be greater than or equal to 0, and less than the value provided for TotalSegments.
+         *
+         * If you provide Segment, you must also provide <em>TotalSegments</em>.
+         *
+         * @param segment  identifies an individual segment to be scanned
+         * @return a builder of this type
+         */
+        public Builder segment(Integer segment) {
+            this.segment = segment;
+            return this;
+        }
+
+        /**
+         * For a parallel Scan request, TotalSegments represents the total number of segments into
+         * which the Scan operation will be divided.
+         * <p>
+         * <b>Note:</b>If you do not specify this value, the TotalSegements is effectively 1 and Scan operation
+         * will be sequential rather than parallel.
+         *
+         * If you specify TotalSegments, you must also specify Segment.
+         *
+         * If you specify TotalSegments of 2 and above, you can create separate thread for each segment and scan items
+         * in parallel across segments from multiple threads.
+         *
+         * @param totalSegments the total number of segments to divide the table.
+         * @return a builder of this type
+         */
+        public Builder totalSegments(Integer totalSegments) {
+            this.totalSegments = totalSegments;
             return this;
         }
 
