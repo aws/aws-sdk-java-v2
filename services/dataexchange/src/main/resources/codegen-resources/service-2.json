@@ -83,6 +83,44 @@
       ],
       "documentation": "<p>This operation creates a data set.</p>"
     },
+    "CreateEventAction": {
+      "name": "CreateEventAction",
+      "http": {
+        "method": "POST",
+        "requestUri": "/v1/event-actions",
+        "responseCode": 201
+      },
+      "input": {
+        "shape": "CreateEventActionRequest"
+      },
+      "output": {
+        "shape": "CreateEventActionResponse",
+        "documentation": "<p>201 response</p>"
+      },
+      "errors": [
+        {
+          "shape": "ThrottlingException",
+          "documentation": "<p>429 response</p>"
+        },
+        {
+          "shape": "ValidationException",
+          "documentation": "<p>400 response</p>"
+        },
+        {
+          "shape": "InternalServerException",
+          "documentation": "<p>500 response</p>"
+        },
+        {
+          "shape": "ServiceLimitExceededException",
+          "documentation": "<p>402 response</p>"
+        },
+        {
+          "shape": "AccessDeniedException",
+          "documentation": "<p>403 response</p>"
+        }
+      ],
+      "documentation": "<p>This operation creates an event action.</p>"
+    },
     "CreateJob": {
       "name": "CreateJob",
       "http": {
@@ -99,14 +137,6 @@
       },
       "errors": [
         {
-          "shape": "ResourceNotFoundException",
-          "documentation": "<p>404 response</p>"
-        },
-        {
-          "shape": "ThrottlingException",
-          "documentation": "<p>429 response</p>"
-        },
-        {
           "shape": "ValidationException",
           "documentation": "<p>400 response</p>"
         },
@@ -117,6 +147,14 @@
         {
           "shape": "AccessDeniedException",
           "documentation": "<p>403 response</p>"
+        },
+        {
+          "shape": "ResourceNotFoundException",
+          "documentation": "<p>404 response</p>"
+        },
+        {
+          "shape": "ThrottlingException",
+          "documentation": "<p>429 response</p>"
         }
       ],
       "documentation": "<p>This operation creates a job.</p>"
@@ -235,6 +273,36 @@
       ],
       "documentation": "<p>This operation deletes a data set.</p>"
     },
+    "DeleteEventAction": {
+      "name": "DeleteEventAction",
+      "http": {
+        "method": "DELETE",
+        "requestUri": "/v1/event-actions/{EventActionId}",
+        "responseCode": 204
+      },
+      "input": {
+        "shape": "DeleteEventActionRequest"
+      },
+      "errors": [
+        {
+          "shape": "ResourceNotFoundException",
+          "documentation": "<p>404 response</p>"
+        },
+        {
+          "shape": "ThrottlingException",
+          "documentation": "<p>429 response</p>"
+        },
+        {
+          "shape": "ValidationException",
+          "documentation": "<p>400 response</p>"
+        },
+        {
+          "shape": "InternalServerException",
+          "documentation": "<p>500 response</p>"
+        }
+      ],
+      "documentation": "<p>This operation deletes the event action.</p>"
+    },
     "DeleteRevision": {
       "name": "DeleteRevision",
       "http": {
@@ -340,6 +408,40 @@
         }
       ],
       "documentation": "<p>This operation returns information about a data set.</p>"
+    },
+    "GetEventAction": {
+      "name": "GetEventAction",
+      "http": {
+        "method": "GET",
+        "requestUri": "/v1/event-actions/{EventActionId}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "GetEventActionRequest"
+      },
+      "output": {
+        "shape": "GetEventActionResponse",
+        "documentation": "<p>200 response</p>"
+      },
+      "errors": [
+        {
+          "shape": "ResourceNotFoundException",
+          "documentation": "<p>404 response</p>"
+        },
+        {
+          "shape": "ThrottlingException",
+          "documentation": "<p>429 response</p>"
+        },
+        {
+          "shape": "ValidationException",
+          "documentation": "<p>400 response</p>"
+        },
+        {
+          "shape": "InternalServerException",
+          "documentation": "<p>500 response</p>"
+        }
+      ],
+      "documentation": "<p>This operation retrieves information about an event action.</p>"
     },
     "GetJob": {
       "name": "GetJob",
@@ -476,6 +578,40 @@
         }
       ],
       "documentation": "<p>This operation lists your data sets. When listing by origin OWNED, results are sorted by CreatedAt in descending order. When listing by origin ENTITLED, there is no order and the maxResults parameter is ignored.</p>"
+    },
+    "ListEventActions": {
+      "name": "ListEventActions",
+      "http": {
+        "method": "GET",
+        "requestUri": "/v1/event-actions",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "ListEventActionsRequest"
+      },
+      "output": {
+        "shape": "ListEventActionsResponse",
+        "documentation": "<p>200 response</p>"
+      },
+      "errors": [
+        {
+          "shape": "ResourceNotFoundException",
+          "documentation": "<p>404 response</p>"
+        },
+        {
+          "shape": "ThrottlingException",
+          "documentation": "<p>429 response</p>"
+        },
+        {
+          "shape": "ValidationException",
+          "documentation": "<p>400 response</p>"
+        },
+        {
+          "shape": "InternalServerException",
+          "documentation": "<p>500 response</p>"
+        }
+      ],
+      "documentation": "<p>This operation lists your event actions.</p>"
     },
     "ListJobs": {
       "name": "ListJobs",
@@ -710,6 +846,44 @@
       ],
       "documentation": "<p>This operation updates a data set.</p>"
     },
+    "UpdateEventAction": {
+      "name": "UpdateEventAction",
+      "http": {
+        "method": "PATCH",
+        "requestUri": "/v1/event-actions/{EventActionId}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "UpdateEventActionRequest"
+      },
+      "output": {
+        "shape": "UpdateEventActionResponse",
+        "documentation": "<p>200 response</p>"
+      },
+      "errors": [
+        {
+          "shape": "ResourceNotFoundException",
+          "documentation": "<p>404 response</p>"
+        },
+        {
+          "shape": "ThrottlingException",
+          "documentation": "<p>429 response</p>"
+        },
+        {
+          "shape": "ValidationException",
+          "documentation": "<p>400 response</p>"
+        },
+        {
+          "shape": "InternalServerException",
+          "documentation": "<p>500 response</p>"
+        },
+        {
+          "shape": "AccessDeniedException",
+          "documentation": "<p>403 response</p>"
+        }
+      ],
+      "documentation": "<p>This operation updates the event action.</p>"
+    },
     "UpdateRevision": {
       "name": "UpdateRevision",
       "http": {
@@ -769,6 +943,14 @@
       "exception": true,
       "error": {
         "httpStatusCode": 403
+      }
+    },
+    "Action": {
+      "type": "structure",
+      "members": {
+        "ExportRevisionToS3": {
+          "shape": "AutoExportRevisionToS3RequestDetails"
+        }
       }
     },
     "Arn": {
@@ -889,6 +1071,38 @@
       "documentation": "<p>The type of file your data is stored in. Currently, the supported asset type is S3_SNAPSHOT.</p>",
       "enum": [
         "S3_SNAPSHOT"
+      ]
+    },
+    "AutoExportRevisionDestinationEntry": {
+      "type": "structure",
+      "members": {
+        "Bucket": {
+          "shape": "__string",
+          "documentation": "<p>The S3 bucket that is the destination for the event action.</p>"
+        },
+        "KeyPattern": {
+          "shape": "__string",
+          "documentation": "<p>A string representing the pattern for generated names of the individual assets in the revision. For more information about key patterns, see <a href=\"https://docs.aws.amazon.com/data-exchange/latest/userguide/jobs.html#revision-export-keypatterns\">Key patterns when exporting revisions</a>.</p>"
+        }
+      },
+      "documentation": "<p>A revision destination is the Amazon S3 bucket folder destination to where the export will be sent.</p>",
+      "required": [
+        "Bucket"
+      ]
+    },
+    "AutoExportRevisionToS3RequestDetails": {
+      "type": "structure",
+      "members": {
+        "Encryption": {
+          "shape": "ExportServerSideEncryption"
+        },
+        "RevisionDestination": {
+          "shape": "AutoExportRevisionDestinationEntry"
+        }
+      },
+      "documentation": "<p>Details of the operation to be performed by the job.</p>",
+      "required": [
+        "RevisionDestination"
       ]
     },
     "CancelJobRequest": {
@@ -1015,6 +1229,53 @@
         "UpdatedAt": {
           "shape": "Timestamp",
           "documentation": "<p>The date and time that the data set was last updated, in ISO 8601 format.</p>"
+        }
+      }
+    },
+    "CreateEventActionRequest": {
+      "type": "structure",
+      "members": {
+        "Action": {
+          "shape": "Action",
+          "documentation": "<p>What occurs after a certain event.</p>"
+        },
+        "Event": {
+          "shape": "Event",
+          "documentation": "<p>What occurs to start an action.</p>"
+        }
+      },
+      "documentation": "<p>The request body for CreateEventAction.</p>",
+      "required": [
+        "Action",
+        "Event"
+      ]
+    },
+    "CreateEventActionResponse": {
+      "type": "structure",
+      "members": {
+        "Action": {
+          "shape": "Action",
+          "documentation": "<p>What occurs after a certain event.</p>"
+        },
+        "Arn": {
+          "shape": "Arn",
+          "documentation": "<p>The ARN for the event action.</p>"
+        },
+        "CreatedAt": {
+          "shape": "Timestamp",
+          "documentation": "<p>The date and time that the event action was created, in ISO 8601 format.</p>"
+        },
+        "Event": {
+          "shape": "Event",
+          "documentation": "<p>What occurs to start an action.</p>"
+        },
+        "Id": {
+          "shape": "Id",
+          "documentation": "<p>The unique identifier for the event action.</p>"
+        },
+        "UpdatedAt": {
+          "shape": "Timestamp",
+          "documentation": "<p>The date and time that the event action was last updated, in ISO 8601 format.</p>"
         }
       }
     },
@@ -1235,6 +1496,20 @@
         "DataSetId"
       ]
     },
+    "DeleteEventActionRequest": {
+      "type": "structure",
+      "members": {
+        "EventActionId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "EventActionId",
+          "documentation": "<p>The unique identifier for the event action.</p>"
+        }
+      },
+      "required": [
+        "EventActionId"
+      ]
+    },
     "DeleteRevisionRequest": {
       "type": "structure",
       "members": {
@@ -1270,6 +1545,59 @@
           "shape": "ListOfAssetSourceEntry"
         }
       }
+    },
+    "Event": {
+      "type": "structure",
+      "members": {
+        "RevisionPublished": {
+          "shape": "RevisionPublished"
+        }
+      }
+    },
+    "EventActionEntry": {
+      "type": "structure",
+      "members": {
+        "Action": {
+          "shape": "Action",
+          "documentation": "<p>What occurs after a certain event.</p>"
+        },
+        "Arn": {
+          "shape": "Arn",
+          "documentation": "<p>The ARN for the event action.</p>"
+        },
+        "CreatedAt": {
+          "shape": "Timestamp",
+          "documentation": "<p>The date and time that the event action was created, in ISO 8601 format.</p>"
+        },
+        "Event": {
+          "shape": "Event",
+          "documentation": "<p>What occurs to start an action.</p>"
+        },
+        "Id": {
+          "shape": "Id",
+          "documentation": "<p>The unique identifier for the event action.</p>"
+        },
+        "UpdatedAt": {
+          "shape": "Timestamp",
+          "documentation": "<p>The date and time that the event action was last updated, in ISO 8601 format.</p>"
+        }
+      },
+      "documentation": "<p>An event action is an object that defines the relationship between a specific event and an automated action that will be taken on behalf of the customer.</p>",
+      "required": [
+        "Action",
+        "CreatedAt",
+        "Event",
+        "Id",
+        "Arn",
+        "UpdatedAt"
+      ]
+    },
+    "ExceptionCause": {
+      "type": "string",
+      "enum": [
+        "InsufficientS3BucketPolicy",
+        "S3AccessDenied"
+      ]
     },
     "ExportAssetToSignedUrlRequestDetails": {
       "type": "structure",
@@ -1428,14 +1756,14 @@
       "members": {
         "KmsKeyArn": {
           "shape": "__string",
-          "documentation": "<p>The Amazon Resource Name (ARN) of the the AWS KMS key you want to use to encrypt the Amazon S3 objects. This parameter is required if you choose aws:kms as an encryption type.</p>"
+          "documentation": "<p>The Amazon Resource Name (ARN) of the AWS KMS key you want to use to encrypt the Amazon S3 objects. This parameter is required if you choose aws:kms as an encryption type.</p>"
         },
         "Type": {
           "shape": "ServerSideEncryptionTypes",
           "documentation": "<p>The type of server side encryption used for encrypting the objects in Amazon S3.</p>"
         }
       },
-      "documentation": "<p>Encryption configuration of the export job. Includes the encryption type as well as the AWS KMS key. The KMS key is only necessary if you chose the KMS encryption type.</p>",
+      "documentation": "<p>Encryption configuration of the export job. Includes the encryption type in addition to the AWS KMS key. The KMS key is only necessary if you chose the KMS encryption. type.</p>",
       "required": [
         "Type"
       ]
@@ -1573,6 +1901,49 @@
         "UpdatedAt": {
           "shape": "Timestamp",
           "documentation": "<p>The date and time that the data set was last updated, in ISO 8601 format.</p>"
+        }
+      }
+    },
+    "GetEventActionRequest": {
+      "type": "structure",
+      "members": {
+        "EventActionId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "EventActionId",
+          "documentation": "<p>The unique identifier for the event action.</p>"
+        }
+      },
+      "required": [
+        "EventActionId"
+      ]
+    },
+    "GetEventActionResponse": {
+      "type": "structure",
+      "members": {
+        "Action": {
+          "shape": "Action",
+          "documentation": "<p>What occurs after a certain event.</p>"
+        },
+        "Arn": {
+          "shape": "Arn",
+          "documentation": "<p>The ARN for the event action.</p>"
+        },
+        "CreatedAt": {
+          "shape": "Timestamp",
+          "documentation": "<p>The date and time that the event action was created, in ISO 8601 format.</p>"
+        },
+        "Event": {
+          "shape": "Event",
+          "documentation": "<p>What occurs to start an action.</p>"
+        },
+        "Id": {
+          "shape": "Id",
+          "documentation": "<p>The unique identifier for the event action.</p>"
+        },
+        "UpdatedAt": {
+          "shape": "Timestamp",
+          "documentation": "<p>The date and time that the event action was last updated, in ISO 8601 format.</p>"
         }
       }
     },
@@ -1728,8 +2099,8 @@
       "required": [
         "DataSetId",
         "Md5Hash",
-        "RevisionId",
-        "AssetName"
+        "AssetName",
+        "RevisionId"
       ]
     },
     "ImportAssetFromSignedUrlResponseDetails": {
@@ -1927,7 +2298,8 @@
       "documentation": "The types of resource which the job error can apply to.",
       "enum": [
         "REVISION",
-        "ASSET"
+        "ASSET",
+        "DATA_SET"
       ]
     },
     "LimitName": {
@@ -1944,7 +2316,10 @@
         "Concurrent in progress jobs to import assets from Amazon S3",
         "Concurrent in progress jobs to import assets from a signed URL",
         "Concurrent in progress jobs to export assets to Amazon S3",
-        "Concurrent in progress jobs to export assets to a signed URL"
+        "Concurrent in progress jobs to export assets to a signed URL",
+        "Concurrent in progress jobs to export revisions to Amazon S3",
+        "Event actions per account",
+        "Auto export event actions per data set"
       ]
     },
     "ListDataSetRevisionsRequest": {
@@ -2015,6 +2390,42 @@
         "DataSets": {
           "shape": "ListOfDataSetEntry",
           "documentation": "<p>The data set objects listed by the request.</p>"
+        },
+        "NextToken": {
+          "shape": "NextToken",
+          "documentation": "<p>The token value retrieved from a previous call to access the next page of results.</p>"
+        }
+      }
+    },
+    "ListEventActionsRequest": {
+      "type": "structure",
+      "members": {
+        "EventSourceId": {
+          "shape": "__string",
+          "location": "querystring",
+          "locationName": "eventSourceId",
+          "documentation": "<p>The unique identifier for the event source.</p>"
+        },
+        "MaxResults": {
+          "shape": "MaxResults",
+          "location": "querystring",
+          "locationName": "maxResults",
+          "documentation": "<p>The maximum number of results returned by a single call.</p>"
+        },
+        "NextToken": {
+          "shape": "__string",
+          "location": "querystring",
+          "locationName": "nextToken",
+          "documentation": "<p>The token value retrieved from a previous call to access the next page of results.</p>"
+        }
+      }
+    },
+    "ListEventActionsResponse": {
+      "type": "structure",
+      "members": {
+        "EventActions": {
+          "shape": "ListOfEventActionEntry",
+          "documentation": "<p>The event action objects listed by the request.</p>"
         },
         "NextToken": {
           "shape": "NextToken",
@@ -2244,7 +2655,8 @@
         "DATA_SET",
         "REVISION",
         "ASSET",
-        "JOB"
+        "JOB",
+        "EVENT_ACTION"
       ]
     },
     "ResponseDetails": {
@@ -2338,6 +2750,17 @@
         "Id",
         "Arn",
         "UpdatedAt"
+      ]
+    },
+    "RevisionPublished": {
+      "type": "structure",
+      "members": {
+        "DataSetId": {
+          "shape": "Id"
+        }
+      },
+      "required": [
+        "DataSetId"
       ]
     },
     "S3SnapshotAsset": {
@@ -2636,6 +3059,54 @@
         }
       }
     },
+    "UpdateEventActionRequest": {
+      "type": "structure",
+      "members": {
+        "Action": {
+          "shape": "Action",
+          "documentation": "<p>What occurs after a certain event.</p>"
+        },
+        "EventActionId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "EventActionId",
+          "documentation": "<p>The unique identifier for the event action.</p>"
+        }
+      },
+      "documentation": "<p>The request body for UpdateEventAction.</p>",
+      "required": [
+        "EventActionId"
+      ]
+    },
+    "UpdateEventActionResponse": {
+      "type": "structure",
+      "members": {
+        "Action": {
+          "shape": "Action",
+          "documentation": "<p>What occurs after a certain event.</p>"
+        },
+        "Arn": {
+          "shape": "Arn",
+          "documentation": "<p>The ARN for the event action.</p>"
+        },
+        "CreatedAt": {
+          "shape": "Timestamp",
+          "documentation": "<p>The date and time that the event action was created, in ISO 8601 format.</p>"
+        },
+        "Event": {
+          "shape": "Event",
+          "documentation": "<p>What occurs to start an action.</p>"
+        },
+        "Id": {
+          "shape": "Id",
+          "documentation": "<p>The unique identifier for the event action.</p>"
+        },
+        "UpdatedAt": {
+          "shape": "Timestamp",
+          "documentation": "<p>The date and time that the event action was last updated, in ISO 8601 format.</p>"
+        }
+      }
+    },
     "UpdateRevisionRequest": {
       "type": "structure",
       "members": {
@@ -2709,6 +3180,10 @@
         "Message": {
           "shape": "__string",
           "documentation": "<p>The message that informs you about what was invalid about the request.</p>"
+        },
+        "ExceptionCause": {
+          "shape": "ExceptionCause",
+          "documentation": "<p>The message that informs you about what the exception was.</p>"
         }
       },
       "documentation": "<p>The request was invalid.</p>",
@@ -2739,6 +3214,12 @@
       "type": "list",
       "member": {
         "shape": "DataSetEntry"
+      }
+    },
+    "ListOfEventActionEntry": {
+      "type": "list",
+      "member": {
+        "shape": "EventActionEntry"
       }
     },
     "ListOfJobEntry": {
