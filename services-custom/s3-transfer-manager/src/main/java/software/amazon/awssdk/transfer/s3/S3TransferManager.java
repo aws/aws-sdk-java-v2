@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.transfer.s3.internal.DefaultS3TransferManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * The S3 Transfer Manager is a library that allows users to easily and
@@ -266,6 +267,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * @see UploadDirectoryOverrideConfiguration
      */
     default UploadDirectoryTransfer uploadDirectory(Consumer<UploadDirectoryRequest.Builder> requestBuilder) {
+        Validate.paramNotNull(requestBuilder, "requestBuilder");
         return uploadDirectory(UploadDirectoryRequest.builder().applyMutation(requestBuilder).build());
     }
 

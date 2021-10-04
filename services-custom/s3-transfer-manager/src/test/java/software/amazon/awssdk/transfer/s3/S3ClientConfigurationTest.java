@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -97,33 +97,7 @@ public class S3ClientConfigurationTest {
 
     @Test
     public void equalsHashCode() {
-        AwsCredentialsProvider credentials = () -> AwsBasicCredentials.create("test"
-            , "test");
-        S3ClientConfiguration configuration1 = S3ClientConfiguration.builder()
-                                                                    .credentialsProvider(credentials)
-                                                                    .maxConcurrency(100)
-                                                                    .targetThroughputInGbps(10.0)
-                                                                    .region(Region.US_WEST_2)
-                                                                    .minimumPartSizeInBytes(5 * MB)
-                                                                    .build();
-
-        S3ClientConfiguration configuration2 = S3ClientConfiguration.builder()
-                                                                    .credentialsProvider(credentials)
-                                                                    .maxConcurrency(100)
-                                                                    .targetThroughputInGbps(10.0)
-                                                                    .region(Region.US_WEST_2)
-                                                                    .minimumPartSizeInBytes(5 * MB)
-                                                                    .build();
-
-        S3ClientConfiguration configuration3 = configuration1.toBuilder()
-                                                             .credentialsProvider(AnonymousCredentialsProvider.create())
-                                                             .maxConcurrency(50)
-                                                             .targetThroughputInGbps(1.0)
-                                                             .build();
-
-        assertThat(configuration1).isEqualTo(configuration2);
-        assertThat(configuration1.hashCode()).isEqualTo(configuration2.hashCode());
-        assertThat(configuration1).isNotEqualTo(configuration3);
-        assertThat(configuration1.hashCode()).isNotEqualTo(configuration3.hashCode());
+        EqualsVerifier.forClass(S3ClientConfiguration.class)
+                      .verify();
     }
 }

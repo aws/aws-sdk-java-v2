@@ -41,7 +41,8 @@ public final class CompletedUploadDirectory implements CompletedTransfer {
     }
 
     /**
-     * Return failed uploads with error details, request metadata about each file that is failed to upload.
+     * An immutable collection of failed uploads with error details, request metadata about each file that is failed to
+     * upload.
      *
      * @return a list of failed uploads
      */
@@ -109,6 +110,10 @@ public final class CompletedUploadDirectory implements CompletedTransfer {
         public Builder failedUploads(Collection<FailedSingleFileUpload> failedUploads) {
             this.failedUploads = failedUploads;
             return this;
+        }
+
+        public Collection<FailedSingleFileUpload> getFailedUploads() {
+            return failedUploads;
         }
 
         public void setFailedUploads(Collection<FailedSingleFileUpload> failedUploads) {

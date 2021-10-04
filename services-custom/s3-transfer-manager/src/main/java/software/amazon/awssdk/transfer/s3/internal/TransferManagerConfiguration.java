@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.TRANSFER_DEFAULTS;
+import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.TRANSFER_MANAGER_DEFAULTS;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_MAX_DEPTH;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_RECURSIVE;
@@ -55,7 +55,7 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
                             uploadDirectoryConfiguration.recursive().orElse(null));
         finalizeExecutor(builder, standardOptions);
 
-        options = standardOptions.build().merge(TRANSFER_DEFAULTS);
+        options = standardOptions.build().merge(TRANSFER_MANAGER_DEFAULTS);
     }
 
     private void finalizeExecutor(Builder builder, AttributeMap.Builder standardOptions) {

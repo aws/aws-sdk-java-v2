@@ -115,6 +115,9 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
         if (!Objects.equals(prefix, that.prefix)) {
             return false;
         }
+        if (!Objects.equals(delimiter, that.delimiter)) {
+            return false;
+        }
         return Objects.equals(overrideConfiguration, that.overrideConfiguration);
     }
 
@@ -123,6 +126,7 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
         int result = sourceDirectory.hashCode();
         result = 31 * result + bucket.hashCode();
         result = 31 * result + (prefix != null ? prefix.hashCode() : 0);
+        result = 31 * result + (delimiter != null ? delimiter.hashCode() : 0);
         result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
         return result;
     }
@@ -223,10 +227,26 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
             return this;
         }
 
+        public void setSourceDirectory(Path sourceDirectory) {
+            sourceDirectory(sourceDirectory);
+        }
+
+        public Path getSourceDirectory() {
+            return sourceDirectory;
+        }
+
         @Override
         public Builder bucket(String bucket) {
             this.bucket = bucket;
             return this;
+        }
+
+        public void setBucket(String bucket) {
+            bucket(bucket);
+        }
+
+        public String getBucket() {
+            return bucket;
         }
 
         @Override
@@ -235,16 +255,40 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
             return this;
         }
 
+        public void setPrefix(String prefix) {
+            prefix(prefix);
+        }
+
+        public String getPrefix() {
+            return prefix;
+        }
+
         @Override
         public Builder delimiter(String delimiter) {
             this.delimiter = delimiter;
             return this;
         }
 
+        public void setDelimiter(String delimiter) {
+            delimiter(delimiter);
+        }
+
+        public String getDelimiter() {
+            return delimiter;
+        }
+
         @Override
         public Builder overrideConfiguration(UploadDirectoryOverrideConfiguration configuration) {
             this.configuration = configuration;
             return this;
+        }
+
+        public void setOverrideConfiguration(UploadDirectoryOverrideConfiguration configuration) {
+            overrideConfiguration(configuration);
+        }
+
+        public UploadDirectoryOverrideConfiguration getOverrideConfiguration() {
+            return configuration;
         }
 
         @Override

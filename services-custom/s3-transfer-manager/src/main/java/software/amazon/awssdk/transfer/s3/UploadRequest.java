@@ -179,10 +179,26 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
             return this;
         }
 
+        public Path getSource() {
+            return source;
+        }
+
+        public void setSource(Path source) {
+            source(source);
+        }
+
         @Override
         public Builder putObjectRequest(PutObjectRequest putObjectRequest) {
             this.putObjectRequest = putObjectRequest;
             return this;
+        }
+
+        public PutObjectRequest getPutObjectRequest() {
+            return putObjectRequest;
+        }
+
+        public void setPutObjectRequest(PutObjectRequest putObjectRequest) {
+            putObjectRequest(putObjectRequest);
         }
 
         @Override

@@ -30,9 +30,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * <p>
  * All values are optional, and not specifying them will use default values provided bt the SDK.
  *
- * <p>Use {@link #builder()} to create a set of options.</p>
+ * <p>Use {@link #builder()} to create a set of options.
+ * @see S3TransferManager.Builder#transferConfiguration(S3TransferManagerOverrideConfiguration)
  */
-
 @SdkPublicApi
 @SdkPreviewApi
 public final class S3TransferManagerOverrideConfiguration implements
@@ -102,7 +102,8 @@ public final class S3TransferManagerOverrideConfiguration implements
     public interface Builder extends CopyableBuilder<Builder, S3TransferManagerOverrideConfiguration> {
 
         /**
-         * Specify the executor that will be used in {@link S3TransferManager}
+         * Specify the executor that will be used in {@link S3TransferManager} to offload
+         * execution
          *
          * @param executor the async configuration
          * @return this builder for method chaining.
@@ -159,6 +160,10 @@ public final class S3TransferManagerOverrideConfiguration implements
             executor(executor);
         }
 
+        public Executor getExecutor() {
+            return executor;
+        }
+
         @Override
         public Builder uploadDirectoryConfiguration(UploadDirectoryOverrideConfiguration uploadDirectoryConfiguration) {
             this.uploadDirectoryConfiguration = uploadDirectoryConfiguration;
@@ -167,6 +172,10 @@ public final class S3TransferManagerOverrideConfiguration implements
 
         public void setUploadDirectoryConfiguration(UploadDirectoryOverrideConfiguration uploadDirectoryConfiguration) {
             uploadDirectoryConfiguration(uploadDirectoryConfiguration);
+        }
+
+        public UploadDirectoryOverrideConfiguration getUploadDirectoryConfiguration() {
+            return uploadDirectoryConfiguration;
         }
 
         @Override

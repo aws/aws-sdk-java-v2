@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.file.Paths;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
 
 public class UploadDirectoryRequestTest {
@@ -26,7 +26,7 @@ public class UploadDirectoryRequestTest {
     @Test
     public void noSourceDirectory_throws() {
         assertThatThrownBy(() ->
-            UploadDirectoryRequest.builder().bucket("bucket").build()
+                               UploadDirectoryRequest.builder().bucket("bucket").build()
         ).isInstanceOf(NullPointerException.class).hasMessageContaining("sourceDirectory");
     }
 
@@ -39,23 +39,8 @@ public class UploadDirectoryRequestTest {
 
     @Test
     public void equals_hashcode() {
-        UploadDirectoryRequest request1 = UploadDirectoryRequest
-            .builder()
-            .bucket("bucket")
-            .sourceDirectory(Paths.get("."))
-            .overrideConfiguration(o -> o.recursive(true))
-            .build();
-
-        UploadDirectoryRequest request2 = request1.toBuilder()
-            .build();
-
-        UploadDirectoryRequest request3 = request1.toBuilder()
-            .bucket("anotherBucket")
-            .build();
-
-        assertThat(request1).isEqualTo(request2);
-        assertThat(request1.hashCode()).isEqualTo(request2.hashCode());
-        assertThat(request1).isNotEqualTo(request3);
-        assertThat(request1.hashCode()).isNotEqualTo(request3.hashCode());
+        EqualsVerifier.forClass(UploadDirectoryRequest.class)
+                      .withNonnullFields("sourceDirectory", "bucket")
+                      .verify();
     }
 }

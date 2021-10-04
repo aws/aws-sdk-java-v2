@@ -15,44 +15,16 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.transfer.s3.CompletedUploadDirectory;
-import software.amazon.awssdk.transfer.s3.FailedSingleFileUpload;
-import software.amazon.awssdk.transfer.s3.UploadRequest;
 
 public class CompletedUploadDirectoryTest {
 
     @Test
     public void equalsHashcode() {
-        List<FailedSingleFileUpload> failedUploads = Arrays.asList(FailedSingleFileUpload.builder()
-                                                                                         .request(UploadRequest.builder()
-                                                                                                               .source(Paths.get("."))
-                                                                                                               .putObjectRequest(b -> b.bucket("bucket").key("key")
-                                                                                                               )
-                                                                                                               .build())
-                                                                                         .exception(SdkClientException.create(
-                                                                                             "helloworld"))
-                                                                                         .build());
-        CompletedUploadDirectory completedUploadDirectory = CompletedUploadDirectory.builder()
-                                                                                    .failedUploads(failedUploads)
-                                                                                    .build();
-
-        CompletedUploadDirectory completedUploadDirectory2 = CompletedUploadDirectory.builder()
-                                                                                     .failedUploads(failedUploads)
-                                                                                     .build();
-
-        CompletedUploadDirectory completedUploadDirectory3 = CompletedUploadDirectory.builder()
-                                                                                     .build();
-
-        assertThat(completedUploadDirectory).isEqualTo(completedUploadDirectory2);
-        assertThat(completedUploadDirectory.hashCode()).isEqualTo(completedUploadDirectory2.hashCode());
-        assertThat(completedUploadDirectory2).isNotEqualTo(completedUploadDirectory3);
-        assertThat(completedUploadDirectory2.hashCode()).isNotEqualTo(completedUploadDirectory3);
+        EqualsVerifier.forClass(CompletedUploadDirectory.class)
+                      .withNonnullFields("failedUploads")
+                      .verify();
     }
 }

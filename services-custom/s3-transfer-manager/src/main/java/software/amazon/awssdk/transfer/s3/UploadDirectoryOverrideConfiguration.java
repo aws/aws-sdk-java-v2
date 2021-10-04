@@ -28,7 +28,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * Configuration options for {@link S3TransferManager#uploadDirectory}. All values are optional, and not specifying them will
  * use the SDK default values.
  *
- * <p>Use {@link #builder()} to create a set of options.</p>
+ * <p>Use {@link #builder()} to create a set of options.
+ * @see S3TransferManager#uploadDirectory(UploadDirectoryRequest)
  */
 @SdkPublicApi
 @SdkPreviewApi
@@ -47,6 +48,7 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
 
     /**
      * @return whether to follow symbolic links
+     * @see Builder#followSymbolicLinks(Boolean)
      */
     public Optional<Boolean> followSymbolicLinks() {
         return Optional.ofNullable(followSymbolicLinks);
@@ -54,6 +56,7 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
 
     /**
      * @return the maximum number of directory levels to traverse
+     * @see Builder#maxDepth(Integer)
      */
     public Optional<Integer> maxDepth() {
         return Optional.ofNullable(maxDepth);
@@ -61,6 +64,7 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
 
     /**
      * @return whether to recursively upload all files under the specified directory
+     * @see Builder#recursive(Boolean)
      */
     public Optional<Boolean> recursive() {
         return Optional.ofNullable(recursive);
@@ -171,6 +175,10 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
             return this;
         }
 
+        public Boolean getRecursive() {
+            return recursive;
+        }
+
         public void setRecursive(Boolean recursive) {
             recursive(recursive);
         }
@@ -185,6 +193,10 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
             followSymbolicLinks(followSymbolicLinks);
         }
 
+        public Boolean getFollowSymbolicLinks() {
+            return followSymbolicLinks;
+        }
+
         @Override
         public Builder maxDepth(Integer maxDepth) {
             this.maxDepth = maxDepth;
@@ -193,6 +205,10 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
 
         public void setMaxDepth(Integer maxDepth) {
             maxDepth(maxDepth);
+        }
+
+        public Integer getMaxDepth() {
+            return maxDepth;
         }
 
         @Override

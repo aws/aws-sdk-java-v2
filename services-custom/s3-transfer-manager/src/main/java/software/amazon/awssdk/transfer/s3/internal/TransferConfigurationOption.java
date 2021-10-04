@@ -17,11 +17,12 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import java.util.concurrent.Executor;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
- * A set of internal options required by the {@link S3TransferManager} via {@link TransferManagerConfiguration}.
+ * A set of internal options required by the {@link DefaultS3TransferManager} via {@link TransferManagerConfiguration}.
+ * It contains the default settings
+ *
  */
 @SdkInternalApi
 public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
@@ -37,13 +38,13 @@ public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final TransferConfigurationOption<Executor> EXECUTOR =
         new TransferConfigurationOption<>("Executor", Executor.class);
 
-    // TODO: revisit
     private static final int DEFAULT_UPLOAD_DIRECTORY_MAX_DEPTH = Integer.MAX_VALUE;
     private static final Boolean DEFAULT_UPLOAD_DIRECTORY_RECURSIVE = Boolean.TRUE;
-    // TODO: revisit
+
     private static final Boolean DEFAULT_UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS = Boolean.FALSE;
 
-    public static final AttributeMap TRANSFER_DEFAULTS = AttributeMap
+    // TODO: revisit default settings before GA
+    public static final AttributeMap TRANSFER_MANAGER_DEFAULTS = AttributeMap
         .builder()
         .put(UPLOAD_DIRECTORY_MAX_DEPTH, DEFAULT_UPLOAD_DIRECTORY_MAX_DEPTH)
         .put(UPLOAD_DIRECTORY_RECURSIVE, DEFAULT_UPLOAD_DIRECTORY_RECURSIVE)

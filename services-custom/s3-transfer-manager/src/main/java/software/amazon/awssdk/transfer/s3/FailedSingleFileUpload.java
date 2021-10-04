@@ -113,7 +113,6 @@ public final class FailedSingleFileUpload implements FailedSingleFileTransfer<Up
         }
 
         private DefaultBuilder() {
-
         }
 
         @Override
@@ -122,10 +121,26 @@ public final class FailedSingleFileUpload implements FailedSingleFileTransfer<Up
             return this;
         }
 
+        public void setException(Throwable exception) {
+            exception(exception);
+        }
+
+        public Throwable getException() {
+            return exception;
+        }
+
         @Override
         public Builder request(UploadRequest request) {
             this.request = request;
             return this;
+        }
+
+        public void setRequest(UploadRequest request) {
+            request(request);
+        }
+
+        public UploadRequest getRequest() {
+            return request;
         }
 
         @Override

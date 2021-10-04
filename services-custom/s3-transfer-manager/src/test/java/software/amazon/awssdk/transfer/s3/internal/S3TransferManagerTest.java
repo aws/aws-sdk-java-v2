@@ -165,10 +165,32 @@ public class S3TransferManagerTest {
     }
 
     @Test
-    public void close_shouldCloseResources() {
+    public void close_shouldCloseUnderlyingResources() {
         S3TransferManager transferManager = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryManager, configuration);
         transferManager.close();
         verify(mockS3Crt).close();
         verify(configuration).close();
+    }
+
+    @Test
+    public void uploadDirectory_requestNull_shouldThrowException() {
+        UploadDirectoryRequest request = null;
+        assertThatThrownBy(() -> tm.uploadDirectory(request).completionFuture().join())
+            .hasCauseInstanceOf(NullPointerException.class)
+            .hasMessageContaining("must not be null");
+    }
+
+    @Test
+    public void upload_requestNull_shouldThrowException() {
+        UploadRequest request = null;
+        assertThatThrownBy(() -> tm.upload(request).completionFuture().join()).hasCauseInstanceOf(NullPointerException.class)
+                                                                              .hasMessageContaining("must not be null");
+    }
+
+    @Test
+    public void download_requestNull_shouldThrowException() {
+        DownloadRequest request = null;
+        assertThatThrownBy(() -> tm.download(request).completionFuture().join()).hasCauseInstanceOf(NullPointerException.class)
+                                                                              .hasMessageContaining("must not be null");
     }
 }

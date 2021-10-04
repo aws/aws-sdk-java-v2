@@ -90,6 +90,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     @Override
     public Upload upload(UploadRequest uploadRequest) {
         try {
+            Validate.paramNotNull(uploadRequest, "uploadRequest");
             assertNotObjectLambdaArn(uploadRequest.putObjectRequest().bucket(), "upload");
 
             PutObjectRequest putObjectRequest = uploadRequest.putObjectRequest();
@@ -109,12 +110,13 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     @Override
     public UploadDirectoryTransfer uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
         try {
+            Validate.paramNotNull(uploadDirectoryRequest, "uploadDirectoryRequest");
             Path directory = uploadDirectoryRequest.sourceDirectory();
 
             Validate.isTrue(Files.exists(directory), "The source directory (%s) provided does not exist", directory);
             Validate.isFalse(Files.isRegularFile(directory), "The source directory (%s) provided is not a directory", directory);
 
-            assertNotObjectLambdaArn(uploadDirectoryRequest.bucket(), "downloadDirectory");
+            assertNotObjectLambdaArn(uploadDirectoryRequest.bucket(), "uploadDirectory");
 
             return uploadDirectoryManager.uploadDirectory(uploadDirectoryRequest);
         } catch (Throwable throwable) {
@@ -125,6 +127,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     @Override
     public Download download(DownloadRequest downloadRequest) {
         try {
+            Validate.paramNotNull(downloadRequest, "downloadRequest");
             assertNotObjectLambdaArn(downloadRequest.getObjectRequest().bucket(), "download");
 
             CompletableFuture<GetObjectResponse> getObjectFuture =
