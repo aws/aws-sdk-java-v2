@@ -45,6 +45,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 @SdkInternalApi
@@ -242,8 +243,8 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
 
     @Override
     public T updateItem(UpdateItemEnhancedRequest<T> request) {
-        TableOperation<T, ?, ?, T> operation = UpdateItemOperation.create(request);
-        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+        TableOperation<T, ?, ?, UpdateItemEnhancedResponse<T>> operation = UpdateItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient).attributes();
     }
 
     @Override
@@ -257,6 +258,20 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     @Override
     public T updateItem(T item) {
         return updateItem(r -> r.item(item));
+    }
+
+    @Override
+    public UpdateItemEnhancedResponse<T> updateItemWithResponse(UpdateItemEnhancedRequest<T> request) {
+        TableOperation<T, ?, ?, UpdateItemEnhancedResponse<T>> operation = UpdateItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+    }
+
+    @Override
+    public UpdateItemEnhancedResponse<T> updateItemWithResponse(Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+        UpdateItemEnhancedRequest.Builder<T> builder =
+            UpdateItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
+        requestConsumer.accept(builder);
+        return updateItemWithResponse(builder.build());
     }
 
     @Override

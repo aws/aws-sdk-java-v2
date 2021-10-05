@@ -20,6 +20,11 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
 /**
  * Defines parameters used to update an item to a DynamoDb table using the updateItem() operation (such as
@@ -36,11 +41,16 @@ public final class UpdateItemEnhancedRequest<T> {
     private final T item;
     private final Boolean ignoreNulls;
     private final Expression conditionExpression;
+    private final String returnConsumedCapacity;
+    private final String returnItemCollectionMetrics;
+
 
     private UpdateItemEnhancedRequest(Builder<T> builder) {
         this.item = builder.item;
         this.ignoreNulls = builder.ignoreNulls;
         this.conditionExpression = builder.conditionExpression;
+        this.returnConsumedCapacity = builder.returnConsumedCapacity;
+        this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
     }
 
     /**
@@ -58,7 +68,11 @@ public final class UpdateItemEnhancedRequest<T> {
      * Returns a builder initialized with all existing values on the request object.
      */
     public Builder<T> toBuilder() {
-        return new Builder<T>().item(item).ignoreNulls(ignoreNulls).conditionExpression(conditionExpression);
+        return new Builder<T>().item(item)
+                               .ignoreNulls(ignoreNulls)
+                               .conditionExpression(conditionExpression)
+                               .returnConsumedCapacity(returnConsumedCapacity)
+                               .returnItemCollectionMetrics(returnItemCollectionMetrics);
     }
 
     /**
@@ -82,6 +96,45 @@ public final class UpdateItemEnhancedRequest<T> {
         return conditionExpression;
     }
 
+    /**
+     * Whether to return the capacity consumed by this operation.
+     *
+     * @see PutItemRequest#returnConsumedCapacity()
+     */
+    public ReturnConsumedCapacity returnConsumedCapacity() {
+        return ReturnConsumedCapacity.fromValue(returnConsumedCapacity);
+    }
+
+    /**
+     * Whether to return the capacity consumed by this operation.
+     * <p>
+     * Similar to {@link #returnConsumedCapacity()} but return the value as a string. This is useful in situations where the
+     * value is not defined in {@link ReturnConsumedCapacity}.
+     */
+    public String returnConsumedCapacityAsString() {
+        return returnConsumedCapacity;
+    }
+
+    /**
+     * Whether to return the item collection metrics.
+     *
+     * @see DeleteItemRequest#returnItemCollectionMetrics()
+     */
+    public ReturnItemCollectionMetrics returnItemCollectionMetrics() {
+        return ReturnItemCollectionMetrics.fromValue(returnItemCollectionMetrics);
+    }
+
+    /**
+     * Whether to return the item collection metrics.
+     * <p>
+     * Similar to {@link #returnItemCollectionMetrics()} but return the value as a string. This is useful in situations
+     * where the
+     * value is not defined in {@link ReturnItemCollectionMetrics}.
+     */
+    public String returnItemCollectionMetricsAsString() {
+        return returnItemCollectionMetrics;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -93,7 +146,9 @@ public final class UpdateItemEnhancedRequest<T> {
         UpdateItemEnhancedRequest<?> that = (UpdateItemEnhancedRequest<?>) o;
         return Objects.equals(item, that.item)
                && Objects.equals(ignoreNulls, that.ignoreNulls)
-               && Objects.equals(conditionExpression, that.conditionExpression);
+               && Objects.equals(conditionExpression, that.conditionExpression)
+               && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity)
+               && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics);
     }
 
     @Override
@@ -101,6 +156,8 @@ public final class UpdateItemEnhancedRequest<T> {
         int result = item != null ? item.hashCode() : 0;
         result = 31 * result + (ignoreNulls != null ? ignoreNulls.hashCode() : 0);
         result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
+        result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
+        result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);
         return result;
     }
 
@@ -113,6 +170,8 @@ public final class UpdateItemEnhancedRequest<T> {
         private T item;
         private Boolean ignoreNulls;
         private Expression conditionExpression;
+        private String returnConsumedCapacity;
+        private String returnItemCollectionMetrics;
 
         private Builder() {
         }
@@ -154,6 +213,47 @@ public final class UpdateItemEnhancedRequest<T> {
          */
         public Builder<T> item(T item) {
             this.item = item;
+            return this;
+        }
+
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see UpdateItemRequest.Builder#returnConsumedCapacity(ReturnConsumedCapacity)
+         */
+        public Builder<T> returnConsumedCapacity(ReturnConsumedCapacity returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity == null ? null : returnConsumedCapacity.toString();
+            return this;
+        }
+
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see UpdateItemRequest.Builder#returnConsumedCapacity(String)
+         */
+        public Builder<T> returnConsumedCapacity(String returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity;
+            return this;
+        }
+
+        /**
+         * Whether to return the item collection metrics.
+         *
+         * @see UpdateItemRequest.Builder#returnItemCollectionMetrics(ReturnItemCollectionMetrics)
+         */
+        public Builder<T> returnItemCollectionMetrics(ReturnItemCollectionMetrics returnItemCollectionMetrics) {
+            this.returnItemCollectionMetrics = returnItemCollectionMetrics == null ? null :
+                                               returnItemCollectionMetrics.toString();
+            return this;
+        }
+
+        /**
+         * Whether to return the item collection metrics.
+         *
+         * @see UpdateItemRequest.Builder#returnItemCollectionMetrics(String)
+         */
+        public Builder<T> returnItemCollectionMetrics(String returnItemCollectionMetrics) {
+            this.returnItemCollectionMetrics = returnItemCollectionMetrics;
             return this;
         }
 
