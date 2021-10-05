@@ -156,7 +156,6 @@ public class S3PresignerTest {
                                                                        .key("bar")
                                                                        .overrideConfiguration(overrideConfiguration)));
 
-        System.out.println(presignedWithClientCredentials.url());
 
         assertThat(presignedWithClientCredentials.httpRequest().rawQueryParameters().get("X-Amz-Credential").get(0))
             .startsWith("a");
@@ -268,8 +267,6 @@ public class S3PresignerTest {
                                                                        .key("bar")
                                                                        .overrideConfiguration(overrideConfiguration)));
 
-        System.out.println(presignedWithClientCredentials.url());
-
         assertThat(presignedWithClientCredentials.httpRequest().rawQueryParameters().get("X-Amz-Credential").get(0))
             .startsWith("a");
         assertThat(presignedWithRequestCredentials.httpRequest().rawQueryParameters().get("X-Amz-Credential").get(0))
@@ -342,9 +339,6 @@ public class S3PresignerTest {
                 presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
                         .getObjectRequest(go -> go.bucket("foo34343434")
                                 .key("bar")));
-
-
-        System.out.println(presignedRequest.url());
 
         assertThat(presignedRequest.httpRequest().host()).contains(".s3-accelerate.");
     }
