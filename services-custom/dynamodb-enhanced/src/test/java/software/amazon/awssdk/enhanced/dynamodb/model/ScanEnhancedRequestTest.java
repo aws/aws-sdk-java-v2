@@ -47,6 +47,8 @@ public class ScanEnhancedRequestTest {
         assertThat(builtObject.filterExpression(), is(nullValue()));
         assertThat(builtObject.attributesToProject(), is(nullValue()));
         assertThat(builtObject.limit(), is(nullValue()));
+        assertThat(builtObject.segment(), is(nullValue()));
+        assertThat(builtObject.totalSegments(), is(nullValue()));
     }
 
     @Test
@@ -73,6 +75,8 @@ public class ScanEnhancedRequestTest {
                                                              .attributesToProject(attributesToProjectArray)
                                                              .addAttributeToProject(additionalElement)
                                                              .limit(3)
+                                                             .segment(0)
+                                                             .totalSegments(5)
                                                              .build();
 
         assertThat(builtObject.exclusiveStartKey(), is(exclusiveStartKey));
@@ -80,6 +84,8 @@ public class ScanEnhancedRequestTest {
         assertThat(builtObject.filterExpression(), is(filterExpression));
         assertThat(builtObject.attributesToProject(), is(attributesToProject));
         assertThat(builtObject.limit(), is(3));
+        assertThat(builtObject.segment(), is(0));
+        assertThat(builtObject.totalSegments(), is(5));
     }
 
     @Test

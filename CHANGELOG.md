@@ -1,3 +1,51 @@
+# __2.17.53__ __2021-10-05__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup Audit Manager framework report.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds tag as an input of CreateConnection
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Allow parallel scan via DynamoDBEnhanced client and modify ScanEnhancedRequest to support totalSegments and segment parameters.
+      The corresponding github issue is https://github.com/aws/aws-sdk-java-v2/issues/1851
+        - Contributed by: [@asanthan-amazon](https://github.com/asanthan-amazon)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Released Capacity Reservation Fleet, a feature of Amazon EC2 Capacity Reservations, which provides a way to manage reserved capacity across instance types. For more information: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/cr-fleets.html
+
+## __Amazon Location Service__
+  - ### Features
+    - Add support for PositionFiltering.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release allows customers to change their inbound DMARC settings in Amazon WorkMail.
+
+## __Application Auto Scaling__
+  - ### Features
+    - With this release, Application Auto Scaling adds support for Amazon Neptune. Customers can now automatically add or remove Read Replicas of their Neptune clusters to keep the average CPU Utilization at the target value specified by the customers.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@asanthan-amazon](https://github.com/asanthan-amazon)
+# __2.17.52__ __2021-10-04__
+## __AWS CodeBuild__
+  - ### Features
+    - CodeBuild now allows you to select how batch build statuses are sent to the source provider for a project.
+
+## __AWS Key Management Service__
+  - ### Features
+    - Added SDK examples for ConnectCustomKeyStore, CreateCustomKeyStore, CreateKey, DeleteCustomKeyStore, DescribeCustomKeyStores, DisconnectCustomKeyStore, GenerateDataKeyPair, GenerateDataKeyPairWithoutPlaintext, GetPublicKey, ReplicateKey, Sign, UpdateCustomKeyStore and Verify APIs
+
+## __Amazon Elastic File System__
+  - ### Features
+    - EFS adds a new exception for short identifiers to be thrown after its migration to long resource identifiers.
+
 # __2.17.51__ __2021-10-01__
 ## __AWS App Runner__
   - ### Features
