@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkMail",
+    "contributor": "",
+    "description": "This release allows customers to change their inbound DMARC settings in Amazon WorkMail."
+}
