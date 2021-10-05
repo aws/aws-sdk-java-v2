@@ -1,6 +1,0 @@
-{
-    "category": "Amazon DynamoDB", 
-    "contributor": "asanthan-amazon", 
-    "type": "feature", 
-    "description": "Allow parallel scan via DynamoDBEnhanced client and modify ScanEnhancedRequest to support totalSegments and segment parameters.\nThe corresponding github issue is https://github.com/aws/aws-sdk-java-v2/issues/1851"
-}
