@@ -80,7 +80,7 @@
         {"shape":"MissingParameterValueException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Creates a framework with one or more controls. A framework is a collection of controls that you can use to evaluate your backup practices. By using pre-built customizable controls to define your policies, you can evaluate whether your backup practices comply with your policies. To get insights into the compliance status of your frameworks, you can set up automatic daily reports.</p>",
+      "documentation":"<p>Creates a framework with one or more controls. A framework is a collection of controls that you can use to evaluate your backup practices. By using pre-built customizable controls to define your policies, you can evaluate whether your backup practices comply with your policies and which resources are not yet in compliance.</p>",
       "idempotent":true
     },
     "CreateReportPlan":{
@@ -990,6 +990,7 @@
       "input":{"shape":"UpdateFrameworkInput"},
       "output":{"shape":"UpdateFrameworkOutput"},
       "errors":[
+        {"shape":"AlreadyExistsException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"LimitExceededException"},
         {"shape":"InvalidParameterValueException"},
@@ -1272,7 +1273,7 @@
           "documentation":"<p>Specifies a list of <code>BackupOptions</code> for each resource type. These settings are only available for Windows Volume Shadow Copy Service (VSS) backup jobs.</p>"
         }
       },
-      "documentation":"<p>Contains an optional backup plan display name and an array of <code>BackupRule</code> objects, each of which specifies a backup rule. Each rule in a backup plan is a separate scheduled task and can back up a different selection of Amazon Web Services resources. </p>"
+      "documentation":"<p>Contains an optional backup plan display name and an array of <code>BackupRule</code> objects, each of which specifies a backup rule. Each rule in a backup plan is a separate scheduled task. </p>"
     },
     "BackupPlanName":{"type":"string"},
     "BackupPlanTemplatesList":{
@@ -1632,8 +1633,14 @@
       "members":{
         "Code":{"shape":"string"},
         "Message":{"shape":"string"},
-        "Type":{"shape":"string"},
-        "Context":{"shape":"string"}
+        "Type":{
+          "shape":"string",
+          "documentation":"<p/>"
+        },
+        "Context":{
+          "shape":"string",
+          "documentation":"<p/>"
+        }
       },
       "documentation":"<p>Backup can't perform the action that you requested until it finishes performing a previous action. Try again later.</p>",
       "exception":true
@@ -1662,7 +1669,7 @@
       "members":{
         "ComplianceResourceIds":{
           "shape":"ComplianceResourceIdList",
-          "documentation":"<p>Describes whether the control scope includes a specific resource identified by its unique Amazon Resource Name (ARN).</p>"
+          "documentation":"<p>The ID of the only Amazon Web Services resource that you want your control scope to contain.</p>"
         },
         "ComplianceResourceTypes":{
           "shape":"ResourceTypeList",
@@ -1956,11 +1963,11 @@
         },
         "ReportSetting":{
           "shape":"ReportSetting",
-          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
+          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>RESOURCE_COMPLIANCE_REPORT | CONTROL_COMPLIANCE_REPORT | BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p> <p>If the report template is <code>RESOURCE_COMPLIANCE_REPORT</code> or <code>CONTROL_COMPLIANCE_REPORT</code>, this API resource also describes the report coverage by Amazon Web Services Regions and frameworks.</p>"
         },
         "ReportPlanTags":{
           "shape":"stringMap",
-          "documentation":"<p>Metadata that you can assign to help organize the frameworks that you create. Each tag is a key-value pair.</p>"
+          "documentation":"<p>Metadata that you can assign to help organize the report plans that you create. Each tag is a key-value pair.</p>"
         },
         "IdempotencyToken":{
           "shape":"string",
@@ -1979,6 +1986,10 @@
         "ReportPlanArn":{
           "shape":"ARN",
           "documentation":"<p>An Amazon Resource Name (ARN) that uniquely identifies a resource. The format of the ARN depends on the resource type.</p>"
+        },
+        "CreationTime":{
+          "shape":"timestamp",
+          "documentation":"<p>The date and time a backup vault is created, in Unix format and Coordinated Universal Time (UTC). The value of <code>CreationTime</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
         }
       }
     },
@@ -2983,7 +2994,7 @@
       "members":{
         "ResourceTypes":{
           "shape":"ResourceTypes",
-          "documentation":"<p>Contains a string with the supported Amazon Web Services resource types:</p> <ul> <li> <p> <code>DynamoDB</code> for Amazon DynamoDB</p> </li> <li> <p> <code>EBS</code> for Amazon Elastic Block Store</p> </li> <li> <p> <code>EC2</code> for Amazon Elastic Compute Cloud</p> </li> <li> <p> <code>EFS</code> for Amazon Elastic File System</p> </li> <li> <p> <code>RDS</code> for Amazon Relational Database Service</p> </li> <li> <p> <code>Aurora</code> for Amazon Aurora</p> </li> <li> <p> <code>Storage Gateway</code> for Storage Gateway</p> </li> </ul>"
+          "documentation":"<p>Contains a string with the supported Amazon Web Services resource types:</p> <ul> <li> <p> <code>Aurora</code> for Amazon Aurora</p> </li> <li> <p> <code>DynamoDB</code> for Amazon DynamoDB</p> </li> <li> <p> <code>EBS</code> for Amazon Elastic Block Store</p> </li> <li> <p> <code>EC2</code> for Amazon Elastic Compute Cloud</p> </li> <li> <p> <code>EFS</code> for Amazon Elastic File System</p> </li> <li> <p> <code>FSX</code> for Amazon FSx</p> </li> <li> <p> <code>RDS</code> for Amazon Relational Database Service</p> </li> <li> <p> <code>Storage Gateway</code> for Storage Gateway</p> </li> </ul>"
         }
       }
     },
@@ -4033,7 +4044,7 @@
         },
         "ReportTemplate":{
           "shape":"string",
-          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are: </p> <p> <code>BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
+          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are: </p> <p> <code>RESOURCE_COMPLIANCE_REPORT | CONTROL_COMPLIANCE_REPORT | BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
         },
         "CreationTime":{
           "shape":"timestamp",
@@ -4080,7 +4091,7 @@
         },
         "ReportSetting":{
           "shape":"ReportSetting",
-          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
+          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>RESOURCE_COMPLIANCE_REPORT | CONTROL_COMPLIANCE_REPORT | BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p> <p>If the report template is <code>RESOURCE_COMPLIANCE_REPORT</code> or <code>CONTROL_COMPLIANCE_REPORT</code>, this API resource also describes the report coverage by Amazon Web Services Regions and frameworks.</p>"
         },
         "ReportDeliveryChannel":{
           "shape":"ReportDeliveryChannel",
@@ -4127,7 +4138,15 @@
       "members":{
         "ReportTemplate":{
           "shape":"string",
-          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
+          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>RESOURCE_COMPLIANCE_REPORT | CONTROL_COMPLIANCE_REPORT | BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
+        },
+        "FrameworkArns":{
+          "shape":"stringList",
+          "documentation":"<p>The Amazon Resource Names (ARNs) of the frameworks a report covers.</p>"
+        },
+        "NumberOfFrameworks":{
+          "shape":"integer",
+          "documentation":"<p>The number of frameworks a report covers.</p>"
         }
       },
       "documentation":"<p>Contains detailed information about a report setting.</p>"
@@ -4675,7 +4694,7 @@
         },
         "ReportSetting":{
           "shape":"ReportSetting",
-          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
+          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>RESOURCE_COMPLIANCE_REPORT | CONTROL_COMPLIANCE_REPORT | BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p> <p>If the report template is <code>RESOURCE_COMPLIANCE_REPORT</code> or <code>CONTROL_COMPLIANCE_REPORT</code>, this API resource also describes the report coverage by Amazon Web Services Regions and frameworks.</p>"
         },
         "IdempotencyToken":{
           "shape":"string",

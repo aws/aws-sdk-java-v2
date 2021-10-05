@@ -142,6 +142,21 @@ public class ScanOperationTest {
     }
 
     @Test
+    public void generateRequest_segment_totalSegments() {
+        ScanOperation<FakeItem> operation = ScanOperation.create(ScanEnhancedRequest.builder().segment(0).totalSegments(5).build());
+        ScanRequest request = operation.generateRequest(FakeItem.getTableSchema(),
+            PRIMARY_CONTEXT,
+            null);
+
+        ScanRequest expectedRequest = ScanRequest.builder()
+            .tableName(TABLE_NAME)
+            .segment(0)
+            .totalSegments(5)
+            .build();
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
     public void generateRequest_filterCondition_expressionAndValues() {
         Map<String, AttributeValue> expressionValues = singletonMap(":test-key", stringValue("test-value"));
         Expression filterExpression =
