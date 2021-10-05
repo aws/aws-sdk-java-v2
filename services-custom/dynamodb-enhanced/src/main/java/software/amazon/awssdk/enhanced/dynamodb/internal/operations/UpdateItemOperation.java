@@ -40,6 +40,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTa
 import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -52,7 +53,7 @@ import software.amazon.awssdk.utils.Either;
 
 @SdkInternalApi
 public class UpdateItemOperation<T>
-    implements TableOperation<T, UpdateItemRequest, UpdateItemResponse, T>,
+    implements TableOperation<T, UpdateItemRequest, UpdateItemResponse, UpdateItemEnhancedResponse<T>>,
                TransactableWriteOperation<T> {
 
     private static final Function<String, String> EXPRESSION_VALUE_KEY_MAPPER =
@@ -125,18 +126,28 @@ public class UpdateItemOperation<T>
             .filter(entry -> !primaryKeys.contains(entry.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+        if (request.left().isPresent()) {
+            addPlainUpdateItemParameters(requestBuilder, request.left().get());
+        }
+
         requestBuilder = addExpressionsIfExist(transformation, filteredAttributeValues, requestBuilder, tableMetadata);
 
         return requestBuilder.build();
     }
 
     @Override
-    public T transformResponse(UpdateItemResponse response,
+    public UpdateItemEnhancedResponse<T> transformResponse(UpdateItemResponse response,
                                TableSchema<T> tableSchema,
                                OperationContext operationContext,
                                DynamoDbEnhancedClientExtension extension) {
         try {
-            return readAndTransformSingleItem(response.attributes(), tableSchema, operationContext, extension);
+            T attributes = readAndTransformSingleItem(response.attributes(), tableSchema, operationContext, extension);
+
+            return UpdateItemEnhancedResponse.<T>builder(null)
+                .attributes(attributes)
+                .consumedCapacity(response.consumedCapacity())
+                .itemCollectionMetrics(response.itemCollectionMetrics())
+                .build();
         } catch (RuntimeException e) {
             // With a partial update it's possible to update the record into a state that the mapper can no longer
             // read or validate. This is more likely to happen with signed and encrypted records that undergo partial
@@ -291,4 +302,10 @@ public class UpdateItemOperation<T>
         return requestBuilder.conditionExpression(conditionExpressionString);
     }
 
+    private UpdateItemRequest.Builder addPlainUpdateItemParameters(UpdateItemRequest.Builder requestBuilder,
+                                                                   UpdateItemEnhancedRequest<?> enhancedRequest) {
+        requestBuilder = requestBuilder.returnConsumedCapacity(enhancedRequest.returnConsumedCapacityAsString());
+        requestBuilder = requestBuilder.returnItemCollectionMetrics(enhancedRequest.returnItemCollectionMetricsAsString());
+        return requestBuilder;
+    }
 }
