@@ -18,11 +18,11 @@ jobs:
           attention as it deserves. We encourage you to check if this is still an issue in
           the latest release and if you find that this is still a problem, please feel free
           to provide a comment or open a new issue.
-        stale-issue-message: It looks like this issue has not received a response in five days.
+        stale-issue-message: It looks like this issue has not been active for more than five days.
           In the absence of more information, we will be closing this issue soon. If you find
           that this is still a problem, please add a comment to prevent automatic closure, or
           if the issue is already closed please feel free to reopen it.
-        stale-pr-message: It looks like this PR has not received a response in five days. In
+        stale-pr-message: It looks like this PR has not been active for more than five days. In
           the absence of more information, we will be closing this PR soon. Please add a
           comment to prevent automatic closure, or if the PR is already closed please feel
           free to open a new one.
