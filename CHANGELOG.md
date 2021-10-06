@@ -1,3 +1,28 @@
+# __2.17.54__ __2021-10-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports integration with AWS SSO
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for Lustre 2.12 to FSx for Lustre.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds a new TrainingInputMode FastFile for SageMaker Training APIs.
+
+## __AmplifyBackend__
+  - ### Features
+    - Adding a new field 'AmplifyFeatureFlags' to the response of the GetBackend operation. It will return a stringified version of the cli.json file for the given Amplify project.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - This commit introduces DynamoDbTable#updateItemWithResponse() that allows customers to specify additional parameters on the request such as ReturnConsumedCapacity to get additional information the service response.
+
 # __2.17.53__ __2021-10-05__
 ## __AWS Backup__
   - ### Features
