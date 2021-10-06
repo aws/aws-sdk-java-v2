@@ -38,6 +38,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -56,6 +57,8 @@ import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhanced
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.Update;
@@ -448,10 +451,11 @@ public class UpdateItemOperationTest {
             UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(fakeItem1).build());
 
         FakeItem result = updateItemOperation.transformResponse(
-            UpdateItemResponse.builder().attributes(fakeItem2Attributes).build(),
-            FakeItem.getTableSchema(),
-            PRIMARY_CONTEXT,
-            null);
+                                                 UpdateItemResponse.builder().attributes(fakeItem2Attributes).build(),
+                                                 FakeItem.getTableSchema(),
+                                                 PRIMARY_CONTEXT,
+                                                 null)
+                                             .attributes();
 
         assertThat(result, is(fakeItem2));
     }
@@ -630,6 +634,118 @@ public class UpdateItemOperationTest {
     }
 
     @Test
+    public void generateRequest_withReturnConsumedCapacity_unknownValue_generatesCorrectRequest() {
+        FakeItem item = createUniqueFakeItem();
+        String returnConsumedCapacity = UUID.randomUUID().toString();
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                .item(item)
+                                                                .ignoreNulls(true)
+                                                                .returnConsumedCapacity(returnConsumedCapacity)
+                                                                .build());
+
+        Map<String, AttributeValue> expectedKey = new HashMap<>();
+        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
+
+        UpdateItemRequest expectedRequest = UpdateItemRequest.builder()
+                                                             .tableName(TABLE_NAME)
+                                                             .key(expectedKey).returnValues(ReturnValue.ALL_NEW)
+                                                             .returnConsumedCapacity(returnConsumedCapacity)
+                                                             .build();
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnConsumedCapacity_knownValue_generatesCorrectRequest() {
+        FakeItem item = createUniqueFakeItem();
+        ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.TOTAL;
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                .item(item)
+                                                                .ignoreNulls(true)
+                                                                .returnConsumedCapacity(returnConsumedCapacity)
+                                                                .build());
+
+        Map<String, AttributeValue> expectedKey = new HashMap<>();
+        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
+
+        UpdateItemRequest expectedRequest = UpdateItemRequest.builder()
+                                                             .tableName(TABLE_NAME)
+                                                             .key(expectedKey).returnValues(ReturnValue.ALL_NEW)
+                                                             .returnConsumedCapacity(returnConsumedCapacity)
+                                                             .build();
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnItemCollectionMetrics_unknownValue_generatesCorrectRequest() {
+        FakeItem item = createUniqueFakeItem();
+        String returnItemCollectionMetrics = UUID.randomUUID().toString();
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                .item(item)
+                                                                .ignoreNulls(true)
+                                                                .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                                .build());
+
+        Map<String, AttributeValue> expectedKey = new HashMap<>();
+        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
+
+        UpdateItemRequest expectedRequest = UpdateItemRequest.builder()
+                                                             .tableName(TABLE_NAME)
+                                                             .key(expectedKey).returnValues(ReturnValue.ALL_NEW)
+                                                             .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                             .build();
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnItemCollectionMetrics_knownValue_generatesCorrectRequest() {
+        FakeItem item = createUniqueFakeItem();
+        ReturnItemCollectionMetrics returnItemCollectionMetrics = ReturnItemCollectionMetrics.SIZE;
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                .item(item)
+                                                                .ignoreNulls(true)
+                                                                .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                                .build());
+
+        Map<String, AttributeValue> expectedKey = new HashMap<>();
+        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
+
+        UpdateItemRequest expectedRequest = UpdateItemRequest.builder()
+                                                             .tableName(TABLE_NAME)
+                                                             .key(expectedKey).returnValues(ReturnValue.ALL_NEW)
+                                                             .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                             .build();
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
     public void transformResponse_withExtension_returnsCorrectTransformedItem() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
@@ -650,7 +766,8 @@ public class UpdateItemOperationTest {
 
         FakeItem resultItem = updateItemOperation.transformResponse(response, FakeItem.getTableSchema(),
                                                                     PRIMARY_CONTEXT,
-                                                                    mockDynamoDbEnhancedClientExtension);
+                                                                    mockDynamoDbEnhancedClientExtension)
+                                                 .attributes();
 
         assertThat(resultItem, is(fakeItem));
         verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
@@ -677,7 +794,8 @@ public class UpdateItemOperationTest {
                                                         .build();
 
         FakeItem resultItem = updateItemOperation.transformResponse(response, FakeItem.getTableSchema(),
-                                                                    PRIMARY_CONTEXT, mockDynamoDbEnhancedClientExtension);
+                                                                    PRIMARY_CONTEXT, mockDynamoDbEnhancedClientExtension)
+                                                 .attributes();
 
         assertThat(resultItem, is(baseFakeItem));
         verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()

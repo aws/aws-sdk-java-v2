@@ -46,6 +46,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 @SdkInternalApi
@@ -243,8 +244,9 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
 
     @Override
     public CompletableFuture<T> updateItem(UpdateItemEnhancedRequest<T> request) {
-        TableOperation<T, ?, ?, T> operation = UpdateItemOperation.create(request);
-        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
+        TableOperation<T, ?, ?, UpdateItemEnhancedResponse<T>> operation = UpdateItemOperation.create(request);
+        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient)
+                        .thenApply(UpdateItemEnhancedResponse::attributes);
     }
 
     @Override
@@ -253,6 +255,21 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
             UpdateItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
         requestConsumer.accept(builder);
         return updateItem(builder.build());
+    }
+
+    @Override
+    public CompletableFuture<UpdateItemEnhancedResponse<T>> updateItemWithResponse(UpdateItemEnhancedRequest<T> request) {
+        TableOperation<T, ?, ?, UpdateItemEnhancedResponse<T>> operation = UpdateItemOperation.create(request);
+        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
+    }
+
+    @Override
+    public CompletableFuture<UpdateItemEnhancedResponse<T>> updateItemWithResponse(
+        Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+        UpdateItemEnhancedRequest.Builder<T> builder =
+            UpdateItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
+        requestConsumer.accept(builder);
+        return updateItemWithResponse(builder.build());
     }
 
     @Override
