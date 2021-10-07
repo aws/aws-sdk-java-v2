@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Managed Grafana",
+    "contributor": "",
+    "description": "Initial release of the SDK for Amazon Managed Grafana API."
+}
