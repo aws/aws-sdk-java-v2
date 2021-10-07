@@ -2540,65 +2540,6 @@
         }
       }
     },
-    "LockServiceLinkedRoleInput": {
-      "type": "structure",
-      "members": {
-        "RoleArn": {
-          "shape": "__stringMin1Max1600"
-        },
-        "Timeout": {
-          "shape": "__integerMin1Max29000"
-        }
-      },
-      "required": [
-        "Timeout",
-        "RoleArn"
-      ]
-    },
-    "LockServiceLinkedRoleOutput": {
-      "type": "structure",
-      "members": {
-        "CanBeDeleted": {
-          "shape": "__boolean"
-        },
-        "ReasonOfFailure": {
-          "shape": "__stringMin1Max1600"
-        },
-        "RelatedResources": {
-          "shape": "__listOfDiscovererSummary"
-        }
-      }
-    },
-    "LockServiceLinkedRoleRequest": {
-      "type": "structure",
-      "members": {
-        "RoleArn": {
-          "shape": "__stringMin1Max1600"
-        },
-        "Timeout": {
-          "shape": "__integerMin1Max29000"
-        }
-      },
-      "documentation": "",
-      "required": [
-        "Timeout",
-        "RoleArn"
-      ]
-    },
-    "LockServiceLinkedRoleResponse": {
-      "type": "structure",
-      "members": {
-        "CanBeDeleted": {
-          "shape": "__boolean"
-        },
-        "ReasonOfFailure": {
-          "shape": "__stringMin1Max1600"
-        },
-        "RelatedResources": {
-          "shape": "__listOfDiscovererSummary"
-        }
-      }
-    },
     "NotFoundException": {
       "type": "structure",
       "members": {
@@ -3155,32 +3096,6 @@
       "error": {
         "httpStatusCode": 401
       }
-    },
-    "UnlockServiceLinkedRoleInput": {
-      "type": "structure",
-      "members": {
-        "RoleArn": {
-          "shape": "__stringMin1Max1600"
-        }
-      },
-      "required": [
-        "RoleArn"
-      ]
-    },
-    "UnlockServiceLinkedRoleRequest": {
-      "type": "structure",
-      "members": {
-        "RoleArn": {
-          "shape": "__stringMin1Max1600"
-        }
-      },
-      "required": [
-        "RoleArn"
-      ]
-    },
-    "UnlockServiceLinkedRoleResponse": {
-      "type": "structure",
-      "members": {}
     },
     "UntagResourceRequest": {
       "type": "structure",

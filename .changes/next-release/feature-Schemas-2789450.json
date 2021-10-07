@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Schemas",
+    "contributor": "",
+    "description": "Removing unused request/response objects."
+}
