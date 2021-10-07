@@ -1,3 +1,155 @@
+# __2.17.55__ __2021-10-07__
+## __AWS Backup__
+  - ### Features
+    - Launch of AWS Backup Vault Lock, which protects your backups from malicious and accidental actions, works with existing backup policies, and helps you meet compliance requirements.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports indexing and querying documents in different languages.
+
+## __Amazon Chime__
+  - ### Features
+    - This release enables customers to configure Chime MediaCapturePipeline via API.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Allow support for Amazon Opensearch Service(successor to Amazon Elasticsearch Service) as a Kinesis Data Firehose delivery destination.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - Initial release of the SDK for Amazon Managed Grafana API.
+
+## __Schemas__
+  - ### Features
+    - Removing unused request/response objects.
+
+# __2.17.54__ __2021-10-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports integration with AWS SSO
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for Lustre 2.12 to FSx for Lustre.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds a new TrainingInputMode FastFile for SageMaker Training APIs.
+
+## __AmplifyBackend__
+  - ### Features
+    - Adding a new field 'AmplifyFeatureFlags' to the response of the GetBackend operation. It will return a stringified version of the cli.json file for the given Amplify project.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - This commit introduces DynamoDbTable#updateItemWithResponse() that allows customers to specify additional parameters on the request such as ReturnConsumedCapacity to get additional information the service response.
+
+# __2.17.53__ __2021-10-05__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup Audit Manager framework report.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds tag as an input of CreateConnection
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Allow parallel scan via DynamoDBEnhanced client and modify ScanEnhancedRequest to support totalSegments and segment parameters.
+      The corresponding github issue is https://github.com/aws/aws-sdk-java-v2/issues/1851
+        - Contributed by: [@asanthan-amazon](https://github.com/asanthan-amazon)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Released Capacity Reservation Fleet, a feature of Amazon EC2 Capacity Reservations, which provides a way to manage reserved capacity across instance types. For more information: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/cr-fleets.html
+
+## __Amazon Location Service__
+  - ### Features
+    - Add support for PositionFiltering.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release allows customers to change their inbound DMARC settings in Amazon WorkMail.
+
+## __Application Auto Scaling__
+  - ### Features
+    - With this release, Application Auto Scaling adds support for Amazon Neptune. Customers can now automatically add or remove Read Replicas of their Neptune clusters to keep the average CPU Utilization at the target value specified by the customers.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@asanthan-amazon](https://github.com/asanthan-amazon)
+# __2.17.52__ __2021-10-04__
+## __AWS CodeBuild__
+  - ### Features
+    - CodeBuild now allows you to select how batch build statuses are sent to the source provider for a project.
+
+## __AWS Key Management Service__
+  - ### Features
+    - Added SDK examples for ConnectCustomKeyStore, CreateCustomKeyStore, CreateKey, DeleteCustomKeyStore, DescribeCustomKeyStores, DisconnectCustomKeyStore, GenerateDataKeyPair, GenerateDataKeyPairWithoutPlaintext, GetPublicKey, ReplicateKey, Sign, UpdateCustomKeyStore and Verify APIs
+
+## __Amazon Elastic File System__
+  - ### Features
+    - EFS adds a new exception for short identifiers to be thrown after its migration to long resource identifiers.
+
+# __2.17.51__ __2021-10-01__
+## __AWS App Runner__
+  - ### Features
+    - This release contains several minor bug fixes.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - When "AutoApprovable" is true for a Change Template, then specifying --auto-approve (boolean) in Start-Change-Request-Execution will create a change request that bypasses approver review. (except for change calendar restrictions)
+
+## __Synthetics__
+  - ### Features
+    - CloudWatch Synthetics now enables customers to choose a customer managed AWS KMS key or an Amazon S3-managed key instead of an AWS managed key (default) for the encryption of artifacts that the canary stores in Amazon S3. CloudWatch Synthetics also supports artifact S3 location updation now.
+
+# __2.17.50__ __2021-09-30__
+## __AWS Account__
+  - ### Features
+    - This release of the Account Management API enables customers to manage the alternate contacts for their AWS accounts. For more information, see https://docs.aws.amazon.com/accounts/latest/reference/accounts-welcome.html
+
+## __AWS Cloud Control API__
+  - ### Features
+    - Initial release of the SDK for AWS Cloud Control API
+
+## __AWS Data Exchange__
+  - ### Features
+    - This release enables subscribers to set up automatic exports of newly published revisions using the new EventAction API.
+
+## __AWS Network Firewall__
+  - ### Features
+    - This release adds support for strict ordering for stateful rule groups. Using strict ordering, stateful rules are evaluated in the exact order in which you provide them.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Macie 2__
+  - ### Features
+    - Amazon S3 bucket metadata now indicates whether an error or a bucket's permissions settings prevented Amazon Macie from retrieving data about the bucket or the bucket's objects.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release adds support for mobile device access overrides management in Amazon WorkMail.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added CreateUpdatedWorkspaceImage API to update WorkSpace images with latest software and drivers. Updated DescribeWorkspaceImages API to display if there are updates available for WorkSpace images.
+
 # __2.17.49__ __2021-09-29__
 ## __AWS Lambda__
   - ### Features

@@ -58,13 +58,6 @@ public class ExceptionUnmarshallingIntegrationTest extends S3IntegrationTestBase
     }
 
     @Test
-    public void createBucketAlreadyExists() {
-        assertThatThrownBy(() -> s3.createBucket(b -> b.bucket("development")))
-            .isInstanceOf(BucketAlreadyExistsException.class)
-            .satisfies(e -> assertMetadata((S3Exception) e, "BucketAlreadyExists"));
-    }
-
-    @Test
     public void getObjectNoSuchKey() {
         assertThatThrownBy(() -> s3.getObject(GetObjectRequest.builder().bucket(BUCKET).key(KEY).build()))
             .isInstanceOf(NoSuchKeyException.class)

@@ -30,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 
@@ -768,6 +769,55 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * @return The updated item
      */
     default T updateItem(T item) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Updates an item in the mapped table, or adds it if it doesn't exist. This is similar to
+     * {@link #updateItem(UpdateItemEnhancedRequest)}} but returns {@link UpdateItemEnhancedResponse} for additional information.
+     * <p>
+     * This operation calls the low-level DynamoDB API UpdateItem operation. Consult the UpdateItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     * UpdateItemEnhancedRequest<MyItem> request = UpdateItemEnhancedRequest.builder(MyItem.class).item(myItem).build();
+     * UpdateItemEnhancedResponse<MyItem> response = mappedTable.updateItemWithResponse(request);
+     * }
+     * </pre>
+     * <p>
+     *
+     *
+     * @param request the modelled item to be inserted into or updated in the database table.
+     * @return The response returned by DynamoDB.
+     */
+    default UpdateItemEnhancedResponse<T> updateItemWithResponse(UpdateItemEnhancedRequest<T> request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Updates an item in the mapped table, or adds it if it doesn't exist. This is similar to
+     * {@link #updateItem(Consumer)} but returns {@link UpdateItemEnhancedResponse} for additional information.
+     * <p>
+     * This operation calls the low-level DynamoDB API UpdateItem operation. Consult the UpdateItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * UpdateItemEnhancedResponse<MyItem> response = mappedTable.updateItemWithResponse(r ->r.item(myItem));
+     * }
+     * </pre>
+     * <p>
+     *
+     *
+     * @param requestConsumer A {@link Consumer} of {@link UpdateItemEnhancedRequest.Builder} that includes the item
+     *      * to be updated, its class and optional directives.
+     * @return The response from DynamoDB.
+     */
+    default UpdateItemEnhancedResponse<T> updateItemWithResponse(Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
