@@ -17,8 +17,14 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
+import io.netty.channel.Channel;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.Promise;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.Times;
@@ -52,5 +58,37 @@ public class HonorCloseOnReleaseChannelPoolTest {
         assertThat(channel.isOpen()).isFalse();
         Mockito.verify(channelPool, new Times(0)).release(any());
         Mockito.verify(channelPool, new Times(1)).release(any(), any());
+    }
+
+    @Test
+    public void release_delegateReleaseFails_futureFailed() throws Exception {
+        NioEventLoopGroup nioEventLoopGroup = new NioEventLoopGroup();
+        try {
+            ChannelPool mockDelegatePool = Mockito.mock(ChannelPool.class);
+            MockChannel channel = new MockChannel();
+
+            nioEventLoopGroup.register(channel);
+
+            HonorCloseOnReleaseChannelPool channelPool = new HonorCloseOnReleaseChannelPool(mockDelegatePool);
+
+            RuntimeException errorToThrow = new RuntimeException("failed!");
+            when(mockDelegatePool.release(any(Channel.class), any(Promise.class))).thenThrow(errorToThrow);
+
+            Promise<Void> promise = channel.eventLoop().newPromise();
+
+            Future<Void> releasePromise = channelPool.release(channel, promise);
+            try {
+                releasePromise.get(1, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                if (e instanceof InterruptedException) {
+                    throw e;
+                }
+                // ignore any other exception
+            }
+            assertThat(releasePromise.isSuccess()).isFalse();
+            assertThat(releasePromise.cause()).isSameAs(errorToThrow);
+        } finally {
+            nioEventLoopGroup.shutdownGracefully();
+        }
     }
 }
