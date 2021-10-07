@@ -16,7 +16,9 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
 import io.netty.channel.Channel;
@@ -26,6 +28,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -168,6 +172,20 @@ public class IdleConnectionCountingChannelPoolTest {
             idleCountingPool.release(channel).await();
             assertThat(getIdleConnectionCount()).isEqualTo(0);
         }
+    }
+
+    @Test
+    public void collectChannelPoolMetrics_failes_futureFailed() throws Exception {
+        MockChannel channel = new MockChannel();
+        eventLoopGroup.register(channel);
+
+        RuntimeException errorToThrow = new RuntimeException("failed!");
+        MetricCollector mockMetricCollector = mock(MetricCollector.class);
+        doThrow(errorToThrow).when(mockMetricCollector).reportMetric(any(), any());
+
+        CompletableFuture<Void> collectFuture = idleCountingPool.collectChannelPoolMetrics(mockMetricCollector);
+
+        assertThatThrownBy(() -> collectFuture.get(1, TimeUnit.SECONDS)).hasCause(errorToThrow);
     }
 
     private int getIdleConnectionCount() {
