@@ -2833,6 +2833,11 @@
     "GetBackendRespObj": {
       "type": "structure",
       "members": {
+        "AmplifyFeatureFlags": {
+          "shape": "__string",
+          "locationName": "amplifyFeatureFlags",
+          "documentation": "<p>A stringified version of the cli.json file for your Amplify project.</p>"
+        },
         "AmplifyMetaConfig": {
           "shape": "__string",
           "locationName": "amplifyMetaConfig",
@@ -2872,6 +2877,11 @@
     "GetBackendResponse": {
       "type": "structure",
       "members": {
+        "AmplifyFeatureFlags": {
+          "shape": "__string",
+          "locationName": "amplifyFeatureFlags",
+          "documentation": "<p>A stringified version of the cli.json file for your Amplify project.</p>"
+        },
         "AmplifyMetaConfig": {
           "shape": "__string",
           "locationName": "amplifyMetaConfig",
