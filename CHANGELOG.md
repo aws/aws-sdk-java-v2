@@ -1,3 +1,32 @@
+# __2.17.55__ __2021-10-07__
+## __AWS Backup__
+  - ### Features
+    - Launch of AWS Backup Vault Lock, which protects your backups from malicious and accidental actions, works with existing backup policies, and helps you meet compliance requirements.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports indexing and querying documents in different languages.
+
+## __Amazon Chime__
+  - ### Features
+    - This release enables customers to configure Chime MediaCapturePipeline via API.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Allow support for Amazon Opensearch Service(successor to Amazon Elasticsearch Service) as a Kinesis Data Firehose delivery destination.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - Initial release of the SDK for Amazon Managed Grafana API.
+
+## __Schemas__
+  - ### Features
+    - Removing unused request/response objects.
+
 # __2.17.54__ __2021-10-06__
 ## __AWS SDK for Java v2__
   - ### Features
