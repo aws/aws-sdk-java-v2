@@ -488,6 +488,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         return builder == null ? null : buildItemFunction.apply(builder);
     }
 
+
     @Override
     public T mapToItem(Map<String, AttributeValue> attributeMap) {
         return mapToItem(attributeMap, false);
@@ -579,5 +580,13 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         }
 
         return newBuilderSupplier.get();
+    }
+
+    @Override
+    public AttributeConverter<T> converterForAttribute(Object key) {
+        ResolvedImmutableAttribute<T, B> resolvedImmutableAttribute = indexedMappers.get(key);
+        return resolvedImmutableAttribute != null
+               ? resolvedImmutableAttribute.attributeConverter()
+               : null;
     }
 }

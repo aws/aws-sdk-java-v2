@@ -32,7 +32,7 @@ public class LocalDynamoDbAsyncTestBase extends LocalDynamoDbTestBase {
     public static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {
         BufferingSubscriber<T> subscriber = new BufferingSubscriber<>();
         publisher.subscribe(subscriber);
-        subscriber.waitForCompletion(1000L);
+        subscriber.waitForCompletion(5000L);
 
         assertThat(subscriber.isCompleted(), is(true));
         assertThat(subscriber.bufferedError(), is(nullValue()));

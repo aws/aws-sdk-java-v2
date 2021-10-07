@@ -24,6 +24,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.mocktests.BatchGetTestUti
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.util.List;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -69,6 +70,11 @@ public class AsyncBatchGetItemTest {
                                                                                      .tags(primaryPartitionKey()))
                                                                  .build();
         table = enhancedClient.table("table", tableSchema);
+    }
+
+    @After
+    public void cleanup() {
+        wireMock.resetAll();
     }
 
     @Test

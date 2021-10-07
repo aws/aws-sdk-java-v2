@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -81,6 +82,11 @@ public class MetaTableSchema<T> implements TableSchema<T> {
     @Override
     public boolean isAbstract() {
         return concreteTableSchema().isAbstract();
+    }
+
+    @Override
+    public AttributeConverter<T> converterForAttribute(Object key) {
+        return concreteTableSchema.converterForAttribute(key);
     }
 
     public void initialize(TableSchema<T> realTableSchema) {
