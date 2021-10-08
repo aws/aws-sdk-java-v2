@@ -23,6 +23,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.io.IOException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Closes the channel if the execution future has been cancelled.
@@ -30,6 +31,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 @ChannelHandler.Sharable
 public final class FutureCancelHandler extends ChannelInboundHandlerAdapter {
+    private static final Logger LOG = Logger.loggerFor(FutureCancelHandler.class);
     private static final FutureCancelHandler INSTANCE = new FutureCancelHandler();
 
     private FutureCancelHandler() {
@@ -37,14 +39,25 @@ public final class FutureCancelHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) {
-        if (cancelled(ctx, e)) {
+        if (!(e instanceof FutureCancelledException)) {
+            ctx.fireExceptionCaught(e);
+            return;
+        }
+
+        FutureCancelledException cancelledException = (FutureCancelledException) e;
+
+        if (currentRequestCancelled(ctx, cancelledException)) {
             RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
             requestContext.handler().onError(e);
             ctx.fireExceptionCaught(new IOException("Request cancelled"));
             ctx.close();
             requestContext.channelPool().release(ctx.channel());
         } else {
-            ctx.fireExceptionCaught(e);
+            LOG.debug(() -> String.format("Received a cancellation exception but it did not match the current execution ID. "
+                                          + "Exception's execution ID is %d, but the current ID on the channel is %d. Exception"
+                                          + " is being ignored.",
+                                          cancelledException.getExecutionId(),
+                                          executionId(ctx)));
         }
     }
 
@@ -52,13 +65,11 @@ public final class FutureCancelHandler extends ChannelInboundHandlerAdapter {
         return INSTANCE;
     }
 
-    private boolean cancelled(ChannelHandlerContext ctx, Throwable t) {
-        if (!(t instanceof FutureCancelledException)) {
-            return false;
-        }
+    private boolean currentRequestCancelled(ChannelHandlerContext ctx, FutureCancelledException e) {
+        return e.getExecutionId() == executionId(ctx);
+    }
 
-        FutureCancelledException e = (FutureCancelledException) t;
-
-        return e.getExecutionId() == ctx.channel().attr(EXECUTION_ID_KEY).get();
+    private Long executionId(ChannelHandlerContext ctx) {
+        return ctx.channel().attr(EXECUTION_ID_KEY).get();
     }
 }

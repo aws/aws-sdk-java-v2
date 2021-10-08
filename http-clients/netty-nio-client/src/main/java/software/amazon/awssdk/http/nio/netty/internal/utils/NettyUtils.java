@@ -130,13 +130,19 @@ public final class NettyUtils {
      *
      * @param eventExecutor Executor to run task in.
      * @param runnable Task to run.
+     *
+     * @return The {@code Future} from from the executor.
      */
-    public static void doInEventLoop(EventExecutor eventExecutor, Runnable runnable) {
+    public static Future<?> doInEventLoop(EventExecutor eventExecutor, Runnable runnable) {
         if (eventExecutor.inEventLoop()) {
-            runnable.run();
-        } else {
-            eventExecutor.submit(runnable);
+            try {
+                runnable.run();
+                return eventExecutor.newSucceededFuture(null);
+            } catch (Throwable t) {
+                return eventExecutor.newFailedFuture(t);
+            }
         }
+        return eventExecutor.submit(runnable);
     }
 
     /**
