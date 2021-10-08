@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "This release removes a requirement for filters on SearchLocalGatewayRoutes operations."
-}

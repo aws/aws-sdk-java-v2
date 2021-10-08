@@ -1,6 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "When executing a request, it's possible for multiple threads to interact and modify the channel pipeline without synchronizing which can cause issues. This commit fixes this issue by ensuring that code that modifies the pipeline all run within the context of the channel's event loop."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lex Model Building V2",
-    "contributor": "",
-    "description": "Added configuration support for an Amazon Lex bot to provide fulfillment progress updates to users while their requests are being processed. See documentation for more details: https://docs.aws.amazon.com/lexv2/latest/dg/streaming-progress.html"
-}
