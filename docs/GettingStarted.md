@@ -32,7 +32,7 @@ install` commands are all you need to build the SDK.
 
 One important thing to note is that if you're working on the [code
 generator][codegen], be sure to do a `mvn install` rather than a phase that
-comes earlier such as `compile` or `test` so that the build uses the uses the
+comes earlier such as `compile` or `test` so that the build uses the
 correct code generator JAR (i.e. the one including your changes). When in
 doubt, just use `mvn package`.
 

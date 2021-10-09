@@ -95,7 +95,7 @@ Internally, `TransferManager` uses its own implementation of a `ProgressListener
 
 ## Java SDK v2 Background
 
-While v2 does not currently support the concept of a `ProgressListener`, it does make extensive use of `ExecutionInterceptor`s, which offers some similar functionality. The `ExecutionInterceptor` interface is an implementation of the [intercepting filter design pattern](https://en.wikipedia.org/wiki/Intercepting_filter_pattern), which offers an composable way to respond to different events and apply resulting transformations. The key difference here is that `ExecutionInterceptor`s tend to be targeted towards mutating operations, and the interface method names further reinforce this, e.g.: `modifyRequest`, `modifyHttpContent`, etc.
+While v2 does not currently support the concept of a `ProgressListener`, it does make extensive use of `ExecutionInterceptor`s, which offers some similar functionality. The `ExecutionInterceptor` interface is an implementation of the [intercepting filter design pattern](https://en.wikipedia.org/wiki/Intercepting_filter_pattern), which offers a composable way to respond to different events and apply resulting transformations. The key difference here is that `ExecutionInterceptor`s tend to be targeted towards mutating operations, and the interface method names further reinforce this, e.g.: `modifyRequest`, `modifyHttpContent`, etc.
 
 The v2 `ExecutionInterceptor` interface can be summarized as follows:
 

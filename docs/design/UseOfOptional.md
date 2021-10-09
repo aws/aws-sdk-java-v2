@@ -10,7 +10,7 @@ This page describes a general guideline for the use of
   - `Optional` SHOULD be used when it is not obvious to a caller whether a
   result will be null, e.g, `public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz)`in [SdkResponse.java](https://github.com/aws/aws-sdk-java-v2/blob/aa161c564c580ced4a0381d3ed7d4d13120916fc/core/sdk-core/src/main/java/software/amazon/awssdk/core/SdkResponse.java#L59-L61)
   - `Optional` MUST NOT be used for "getters" in generated service model classes such as service Builders or POJOs.
-- For memember variables: `Optional` SHOULD NOT be used, e.g., `private final Optional<String> field;`
+- For member variables: `Optional` SHOULD NOT be used, e.g., `private final Optional<String> field;`
 - For method parameters: `Optional` MUST NOT be used, e.g., `private void test(Optional<String> value)`
 
 

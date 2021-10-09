@@ -82,10 +82,10 @@ Waiter<DescribeTableResponse> waiter =
          .overrideConfiguration(p -> p.maxAttemps(20).backoffStrategy(BackoffStrategy.defaultStrategy())
          .build();
 
-// run synchronousely 
+// run synchronously 
 WaiterResponse<DescribeTableResponse> response = waiter.run(() -> client.describeTable(describeTableRequest));
 
-// run asychronousely
+// run asynchronously
 CompletableFuture<WaiterResponse<DescribeTableResponse>> responseFuture =
       waiter.runAsync(() -> asyncClient.describeTable(describeTableRequest));
 ```

@@ -13,7 +13,7 @@ standard metrics collected by the SDK.
 
 ### Metric Collector
 
-* `MetricCollector` is a typesafe aggregator of of metrics. This is the primary
+* `MetricCollector` is a typesafe aggregator of metrics. This is the primary
   interface through which other SDK components report metrics they emit, using
   the `reportMetric(SdkMetric,Object)` method.
 
@@ -31,7 +31,7 @@ standard metrics collected by the SDK.
   returns an immutable version of the tree formed by the collector and its
   children, which are also represented by `MetricCollection` objects.
 
-  Note that calling `collect()` implies that child collectors are are also
+  Note that calling `collect()` implies that child collectors are also
   collected.
 
 * Each collector has a name. Often this is will be used to describe the class of
@@ -240,12 +240,12 @@ New modules are created to support metrics feature.
 ### metrics-publishers
 * This is a new module that contains implementations of all SDK supported publishers
 * Under this module, a new sub-module is created for each publisher (`cloudwatch-publisher`, `csm-publisher`)
-* Customers has to **explicitly add dependency** on these modules to use the sdk provided publishers
+* Customers have to **explicitly add dependency** on these modules to use the sdk provided publishers
 
 ## Performance
-One of the main tenets for metrics is “Enabling default metrics should have
+One of the main tenets for metrics is "Enabling default metrics should have
 minimal impact on the application performance". The following design choices are
-made to ensure enabling metrics does not effect performance significantly.
+made to ensure enabling metrics does not affect performance significantly.
 
 * When collecting metrics, a No-op metric collector is used if metrics are
   disabled. All methods in this collector are no-op and return immediately.
