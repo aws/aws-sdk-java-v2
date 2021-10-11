@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Reduce base delay of STANDARD retry mode to 100ms for non-throttling responses. This reduces tail latency in the event of transient failures."
+}

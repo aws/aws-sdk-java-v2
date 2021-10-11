@@ -143,7 +143,7 @@ public class RetryPolicyTest {
 
         assertThat(standardRetryPolicy.backoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
         FullJitterBackoffStrategy backoffStrategy = (FullJitterBackoffStrategy) standardRetryPolicy.backoffStrategy();
-        assertThat(backoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofSeconds(1));
+        assertThat(backoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofMillis(100));
         assertThat(backoffStrategy.toBuilder().maxBackoffTime()).isEqualTo(Duration.ofSeconds(20));
 
         assertThat(standardRetryPolicy.throttlingBackoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
@@ -159,7 +159,7 @@ public class RetryPolicyTest {
 
         assertThat(standardRetryPolicy.backoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
         FullJitterBackoffStrategy backoffStrategy = (FullJitterBackoffStrategy) standardRetryPolicy.backoffStrategy();
-        assertThat(backoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofSeconds(1));
+        assertThat(backoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofMillis(100));
         assertThat(backoffStrategy.toBuilder().maxBackoffTime()).isEqualTo(Duration.ofSeconds(20));
 
         assertThat(standardRetryPolicy.throttlingBackoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
