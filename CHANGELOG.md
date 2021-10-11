@@ -1,3 +1,20 @@
+# __2.17.57__ __2021-10-11__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This release adds support for Transport Stream files as an input type to MediaLive encoders.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation update for Amazon EC2.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - New model type: Transaction Fraud Insights, which is optimized for online transaction fraud. Stored Events, which allows customers to send and store data directly within Amazon Fraud Detector. Batch Import, which allows customers to upload a CSV file of historic event data for processing and storage
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Enable support for ALB IPv6 Target Groups (IP Address Type)
+
 # __2.17.56__ __2021-10-08__
 ## __AWS Elemental MediaConvert__
   - ### Features
