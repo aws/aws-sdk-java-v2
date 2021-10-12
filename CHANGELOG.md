@@ -1,3 +1,42 @@
+# __2.17.58__ __2021-10-12__
+## __AWS MediaTailor__
+  - ### Features
+    - MediaTailor now supports ad prefetching.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Reduce base delay of STANDARD retry mode to 100ms for non-throttling responses. This reduces tail latency in the event of transient failures.
+    - Updated service endpoint metadata.
+
+## __Amazon CloudSearch__
+  - ### Features
+    - Adds an additional validation exception for Amazon CloudSearch configuration APIs for better error handling.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only update to address tickets.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EncryptionSupport for InstanceStorageInfo added to DescribeInstanceTypes API
+
+# __2.17.57__ __2021-10-11__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This release adds support for Transport Stream files as an input type to MediaLive encoders.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation update for Amazon EC2.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - New model type: Transaction Fraud Insights, which is optimized for online transaction fraud. Stored Events, which allows customers to send and store data directly within Amazon Fraud Detector. Batch Import, which allows customers to upload a CSV file of historic event data for processing and storage
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Enable support for ALB IPv6 Target Groups (IP Address Type)
+
 # __2.17.56__ __2021-10-08__
 ## __AWS Elemental MediaConvert__
   - ### Features
