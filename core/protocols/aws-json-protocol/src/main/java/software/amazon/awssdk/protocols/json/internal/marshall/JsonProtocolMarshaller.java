@@ -16,7 +16,6 @@
 package software.amazon.awssdk.protocols.json.internal.marshall;
 
 import static software.amazon.awssdk.core.internal.util.Mimetype.MIMETYPE_EVENT_STREAM;
-import static software.amazon.awssdk.core.protocol.MarshallingType.DOCUMENT;
 import static software.amazon.awssdk.http.Header.CHUNKED;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
@@ -176,25 +175,30 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     void doMarshall(SdkPojo pojo) {
         for (SdkField<?> field : pojo.sdkFields()) {
             Object val = field.getValueOrDefault(pojo);
-            if (isBinary(field, val)) {
-                request.contentStreamProvider(((SdkBytes) val)::asInputStream);
-            } else if (isDocumentType(field) && val != null) {
-                marshalDocumentType(field, val);
-            } else {
-                if (val != null && field.containsTrait(PayloadTrait.class)) {
-                    jsonGenerator.writeStartObject();
-                    doMarshall((SdkPojo) val);
-                    jsonGenerator.writeEndObject();
-                } else {
-                    MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val)
-                                       .marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
+            if (isExplicitBinaryPayload(field)) {
+                if (val != null) {
+                    request.contentStreamProvider(((SdkBytes) val)::asInputStream);
                 }
+            } else if (isExplicitPayloadMember(field)) {
+                // Explicit JSON payloads are always marshalled as an object,
+                // even if they're null, in which case it's an empty object.
+                jsonGenerator.writeStartObject();
+                if (val != null) {
+                    if (field.marshallingType().equals(MarshallingType.DOCUMENT)) {
+                        marshallField(field, val);
+                    } else {
+                        doMarshall((SdkPojo) val);
+                    }
+                }
+                jsonGenerator.writeEndObject();
+            } else {
+                marshallField(field, val);
             }
         }
     }
 
-    private boolean isBinary(SdkField<?> field, Object val) {
-        return isExplicitPayloadMember(field) && val instanceof SdkBytes;
+    private boolean isExplicitBinaryPayload(SdkField<?> field) {
+        return isExplicitPayloadMember(field) && MarshallingType.SDK_BYTES.equals(field.marshallingType());
     }
 
     private boolean isExplicitPayloadMember(SdkField<?> field) {
@@ -243,7 +247,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 }
                 request.removeHeader(CONTENT_LENGTH);
                 request.putHeader(TRANSFER_ENCODING, CHUNKED);
-            } else if (contentType != null && !hasStreamingInput && request.contentStreamProvider() != null) {
+            } else if (contentType != null && !hasStreamingInput && request.headers().containsKey(CONTENT_LENGTH)) {
                 request.putHeader(CONTENT_TYPE, contentType);
             }
         }
@@ -251,19 +255,8 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         return request.build();
     }
 
-    private boolean isDocumentType(SdkField<?> field) {
-        return DOCUMENT.equals(field.marshallingType());
-    }
-
-    private void marshalDocumentType(SdkField<?> field, Object val) {
-        boolean isExplicitPayloadField = hasExplicitPayloadMember && field.containsTrait(PayloadTrait.class);
-        if (isExplicitPayloadField) {
-            jsonGenerator.writeStartObject();
-        }
+    private void marshallField(SdkField<?> field, Object val) {
         MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val)
                            .marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
-        if (isExplicitPayloadField) {
-            jsonGenerator.writeEndObject();
-        }
     }
 }
