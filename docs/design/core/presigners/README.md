@@ -226,7 +226,7 @@ public interface GetObjectPresignRequest extends PresignRequest {
 
 public interface PresignRequest {
     /**
-     * The duration for which this presigned request should be valid. After this time has expird,
+     * The duration for which this presigned request should be valid. After this time has expired,
      * attempting to use the presigned request will fail.
      */
     Duration signatureDuration();
