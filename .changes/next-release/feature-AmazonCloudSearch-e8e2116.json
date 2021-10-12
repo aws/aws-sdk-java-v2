@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudSearch",
-    "contributor": "",
-    "description": "Adds an additional validation exception for Amazon CloudSearch configuration APIs for better error handling."
-}
