@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "EncryptionSupport for InstanceStorageInfo added to DescribeInstanceTypes API"
+}
