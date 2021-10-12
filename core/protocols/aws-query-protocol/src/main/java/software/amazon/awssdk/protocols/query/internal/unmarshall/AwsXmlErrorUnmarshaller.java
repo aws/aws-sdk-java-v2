@@ -19,6 +19,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -175,7 +177,16 @@ public final class AwsXmlErrorUnmarshaller {
                                        .orElse(document.getElementByName("RequestID"));
         return requestId != null ?
                requestId.textContent() :
-               response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER).orElse(null);
+               matchRequestIdHeaders(response);
+    }
+
+    private String matchRequestIdHeaders(SdkHttpFullResponse response) {
+        return HttpResponseHandler.X_AMZN_REQUEST_ID_HEADERS.stream()
+                                                            .map(h -> response.firstMatchingHeader(h))
+                                                            .filter(Optional::isPresent)
+                                                            .map(Optional::get)
+                                                            .findFirst()
+                                                            .orElse(null);
     }
 
     /**
