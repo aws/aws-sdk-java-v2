@@ -96,15 +96,22 @@ public final class S3TransferManagerOverrideConfiguration implements
         return new DefaultBuilder();
     }
 
+    public static Class<? extends Builder> serializableBuilderClass() {
+        return DefaultBuilder.class;
+    }
+
     /**
      * The builder definition for a {@link S3TransferManagerOverrideConfiguration}.
      */
     public interface Builder extends CopyableBuilder<Builder, S3TransferManagerOverrideConfiguration> {
 
         /**
-         * Specify the executor that {@link S3TransferManager} will use to execute
-         * the request that might take some time to process before handing it off to the underlying S3 async client such as
-         * visiting file tree in {@link S3TransferManager#uploadDirectory(UploadDirectoryRequest)} operation.
+         * Specify the executor that {@link S3TransferManager} will use to execute background tasks before handing them off to
+         * the underlying S3 async client, such as visiting file tree in a
+         * {@link S3TransferManager#uploadDirectory(UploadDirectoryRequest)} operation
+         *
+         * <p>
+         * The SDK will create an executor if not provided
          *
          * <p>
          * <b>This executor must be shut down by the user when it is ready to be disposed. The SDK will not close the executor

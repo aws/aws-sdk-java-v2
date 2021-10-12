@@ -176,8 +176,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * source directory provided does not exist for example). The future completes successfully for partial successful
      * requests, i.e., there might be failed uploads in the successfully completed response. As a result,
      * you should check for errors in the response via {@link CompletedUploadDirectory#failedUploads()}
-     * even when the future completes successfully. Failed single file uploads can be retried by calling
-     * {@link S3TransferManager#upload(UploadRequest)}
+     * even when the future completes successfully.
      *
      * <p>
      * The current user must have read access to all directories and files
@@ -186,7 +185,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * <b>Usage Example:</b>
      * <pre>
      * {@code
-     * UploadDirectory uploadDirectory =
+     * UploadDirectoryTransfer uploadDirectory =
      *       transferManager.uploadDirectory(UploadDirectoryRequest.builder()
      *                                                             .sourceDirectory(Paths.get("."))
      *                                                             .bucket("bucket")
@@ -198,15 +197,6 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * // Print out the failed uploads
      * completedUploadDirectory.failedUploads().forEach(System.out::println);
      *
-     * // Retrying failed uploads if the exception is retryable
-     * List<CompletableFuture<CompletedUpload>> futures =
-     *     completedUploadDirectory.failedUploads()
-     *                             .stream()
-     *                             .filter(failedSingleFileUpload -> isRetryable(failedSingleFileUpload.exception()))
-     *                             .map(failedSingleFileUpload ->
-     *                                  tm.upload(failedSingleFileUpload.request()).completionFuture())
-     *                             .collect(Collectors.toList());
-     * CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
      * }
      * </pre>
      *
@@ -232,8 +222,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * source directory provided does not exist for example). The future completes successfully for partial successful
      * requests, i.e., there might be failed uploads in the successfully completed response. As a result,
      * you should check for errors in the response via {@link CompletedUploadDirectory#failedUploads()}
-     * even when the future completes successfully. Failed single file uploads can be retried by calling
-     * {@link S3TransferManager#upload(UploadRequest)}
+     * even when the future completes successfully.
      *
      * <p>
      * The current user must have read access to all directories and files
@@ -246,22 +235,13 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * <b>Usage Example:</b>
      * <pre>
      * {@code
-     * UploadDirectory uploadDirectory =
+     * UploadDirectoryTransfer uploadDirectory =
      *       transferManager.uploadDirectory(b -> b.sourceDirectory(Paths.get("."))
      *                                             .bucket("key")
      *                                             .prefix("prefix"));
      * // Print out the failed uploads
      * completedUploadDirectory.failedUploads().forEach(System.out::println);
      *
-     * // Retrying failed uploads if the exception is retryable
-     * List<CompletableFuture<CompletedUpload>> futures =
-     *     completedUploadDirectory.failedUploads()
-     *                             .stream()
-     *                             .filter(failedSingleFileUpload -> isRetryable(failedSingleFileUpload.exception()))
-     *                             .map(failedSingleFileUpload ->
-     *                                  tm.upload(failedSingleFileUpload.request()).completionFuture())
-     *                             .collect(Collectors.toList());
-     * CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
      * }
      * </pre>
      * @param requestBuilder the upload directory request builder

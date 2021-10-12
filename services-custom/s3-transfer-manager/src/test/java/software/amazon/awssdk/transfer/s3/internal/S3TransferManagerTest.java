@@ -148,13 +148,6 @@ public class S3TransferManagerTest {
     }
 
     @Test
-    public void uploadDirectory_directoryNotExist_shouldCompleteFutureExceptionally() {
-        assertThatThrownBy(() -> tm.uploadDirectory(u -> u.sourceDirectory(Paths.get("randomstringneverexistas234ersaf1231"))
-                                 .bucket("bucketName")).completionFuture().join())
-            .hasMessageContaining("does not exist").hasCauseInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
     public void uploadDirectory_throwException_shouldCompleteFutureExceptionally() {
         RuntimeException exception = new RuntimeException("test");
         when(uploadDirectoryManager.uploadDirectory(any(UploadDirectoryRequest.class))).thenThrow(exception);

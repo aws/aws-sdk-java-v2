@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -112,19 +109,6 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     public UploadDirectoryTransfer uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
         try {
             Validate.paramNotNull(uploadDirectoryRequest, "uploadDirectoryRequest");
-            Path directory = uploadDirectoryRequest.sourceDirectory();
-
-            Validate.isTrue(Files.exists(directory), "The source directory (%s) provided does not exist", directory);
-            boolean followSymbolicLinks = transferConfiguration.resolveUploadDirectoryFollowSymbolicLinks(uploadDirectoryRequest);
-            if (followSymbolicLinks) {
-                Validate.isFalse(Files.isRegularFile(directory), "The source directory (%s) provided is not a "
-                                                                 + "directory", directory);
-            } else {
-                Validate.isFalse(Files.isRegularFile(directory, LinkOption.NOFOLLOW_LINKS), "The source directory (%s) provided"
-                                                                                            + " is not a "
-                                                                                            + "directory", directory);
-            }
-
             assertNotObjectLambdaArn(uploadDirectoryRequest.bucket(), "uploadDirectory");
 
             return uploadDirectoryManager.uploadDirectory(uploadDirectoryRequest);

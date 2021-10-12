@@ -71,6 +71,10 @@ public final class CompletedUpload implements CompletedTransfer {
                        .build();
     }
 
+    public static Class<? extends Builder> serializableBuilderClass() {
+        return DefaultBuilder.class;
+    }
+
     /**
      * Creates a default builder for {@link CompletedUpload}.
      */

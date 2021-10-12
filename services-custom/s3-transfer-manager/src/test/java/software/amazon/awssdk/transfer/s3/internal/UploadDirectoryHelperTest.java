@@ -49,7 +49,7 @@ public class UploadDirectoryHelperTest {
     private static FileSystem jimfs;
     private static Path directory;
     private Function<UploadRequest, Upload> singleUploadFunction;
-    private UploadDirectoryHelper tm;
+    private UploadDirectoryHelper uploadDirectoryHelper;
 
     @BeforeClass
     public static void setUp() throws IOException {
@@ -68,7 +68,7 @@ public class UploadDirectoryHelperTest {
     @Before
     public void methodSetup() {
         singleUploadFunction = mock(Function.class);
-        tm = new UploadDirectoryHelper(TransferManagerConfiguration.builder().build(), singleUploadFunction);
+        uploadDirectoryHelper = new UploadDirectoryHelper(TransferManagerConfiguration.builder().build(), singleUploadFunction);
     }
 
     @Test
@@ -82,10 +82,10 @@ public class UploadDirectoryHelperTest {
         when(singleUploadFunction.apply(any(UploadRequest.class))).thenReturn(upload, upload2);
 
         UploadDirectoryTransfer uploadDirectory =
-            tm.uploadDirectory(UploadDirectoryRequest.builder()
-                                                     .sourceDirectory(directory)
-                                                     .bucket("bucket")
-                                                     .build());
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .sourceDirectory(directory)
+                                                                        .bucket("bucket")
+                                                                        .build());
 
         uploadDirectory.completionFuture().cancel(true);
 
@@ -115,10 +115,10 @@ public class UploadDirectoryHelperTest {
         when(singleUploadFunction.apply(any(UploadRequest.class))).thenReturn(upload, upload2);
 
         UploadDirectoryTransfer uploadDirectory =
-            tm.uploadDirectory(UploadDirectoryRequest.builder()
-                                                     .sourceDirectory(directory)
-                                                     .bucket("bucket")
-                                                     .build());
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .sourceDirectory(directory)
+                                                                        .bucket("bucket")
+                                                                        .build());
 
         CompletedUploadDirectory completedUploadDirectory = uploadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
 
@@ -142,10 +142,10 @@ public class UploadDirectoryHelperTest {
         when(singleUploadFunction.apply(any(UploadRequest.class))).thenReturn(upload, upload2);
 
         UploadDirectoryTransfer uploadDirectory =
-            tm.uploadDirectory(UploadDirectoryRequest.builder()
-                                                     .sourceDirectory(directory)
-                                                     .bucket("bucket")
-                                                     .build());
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .sourceDirectory(directory)
+                                                                        .bucket("bucket")
+                                                                        .build());
 
         CompletedUploadDirectory completedUploadDirectory = uploadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
 

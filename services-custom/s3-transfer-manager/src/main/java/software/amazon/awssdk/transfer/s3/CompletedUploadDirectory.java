@@ -15,10 +15,8 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
@@ -33,11 +31,10 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 @SdkPreviewApi
 public final class CompletedUploadDirectory implements CompletedTransfer {
-    private final List<FailedSingleFileUpload> failedUploads;
+    private final Collection<FailedSingleFileUpload> failedUploads;
 
     private CompletedUploadDirectory(DefaultBuilder builder) {
-        this.failedUploads = Collections.unmodifiableList(new ArrayList<>(Validate.paramNotNull(builder.failedUploads,
-                                                                                                "failedUploads")));
+        this.failedUploads = Collections.unmodifiableCollection(Validate.paramNotNull(builder.failedUploads, "failedUploads"));
     }
 
     /**
@@ -98,6 +95,10 @@ public final class CompletedUploadDirectory implements CompletedTransfer {
         return ToString.builder("CompletedUploadDirectory")
                        .add("failedUploads", failedUploads)
                        .build();
+    }
+
+    public static Class<? extends Builder> serializableBuilderClass() {
+        return DefaultBuilder.class;
     }
 
     public interface Builder {

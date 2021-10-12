@@ -116,6 +116,10 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
         return new DefaultBuilder();
     }
 
+    public static Class<? extends Builder> serializableBuilderClass() {
+        return DefaultBuilder.class;
+    }
+
     public interface Builder extends CopyableBuilder<Builder, UploadDirectoryOverrideConfiguration> {
 
         /**
@@ -141,7 +145,7 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
 
         /**
          * Specify the maximum number of levels of directories to visit. Must be positive.
-         * 1 means only the files directly under the provided source directory are visited.
+         * 1 means only the files directly within the provided source directory are visited.
          *
          * <p>
          * Default to {@code Integer.MAX_VALUE}

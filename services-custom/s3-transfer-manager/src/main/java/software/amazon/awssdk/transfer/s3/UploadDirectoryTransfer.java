@@ -37,6 +37,10 @@ public final class UploadDirectoryTransfer implements Transfer {
         return new DefaultBuilder();
     }
 
+    public static Class<? extends Builder> serializableBuilderClass() {
+        return DefaultBuilder.class;
+    }
+
     public interface Builder {
 
         /**

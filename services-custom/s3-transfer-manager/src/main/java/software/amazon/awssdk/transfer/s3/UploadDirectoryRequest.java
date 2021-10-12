@@ -98,6 +98,10 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
         return new DefaultBuilder();
     }
 
+    public static Class<? extends Builder> serializableBuilderClass() {
+        return DefaultBuilder.class;
+    }
+
     @Override
     public Builder toBuilder() {
         return new DefaultBuilder(this);

@@ -85,6 +85,10 @@ public final class FailedSingleFileUpload implements FailedSingleFileTransfer<Up
         return new DefaultBuilder();
     }
 
+    public static Class<? extends Builder> serializableBuilderClass() {
+        return DefaultBuilder.class;
+    }
+
     @Override
     public Builder toBuilder() {
         return new DefaultBuilder(this);

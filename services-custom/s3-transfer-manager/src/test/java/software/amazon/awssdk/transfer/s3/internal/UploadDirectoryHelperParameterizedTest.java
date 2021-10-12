@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -61,7 +62,7 @@ public class UploadDirectoryHelperParameterizedTest {
                                                                                          Configuration.windows(),
                                                                                          Configuration.forCurrentPlatform()));
     private Function<UploadRequest, Upload> singleUploadFunction;
-    private UploadDirectoryHelper tm;
+    private UploadDirectoryHelper uploadDirectoryHelper;
     private Path directory;
 
     @Parameterized.Parameter
@@ -80,9 +81,9 @@ public class UploadDirectoryHelperParameterizedTest {
 
         if (!configuration.equals(Configuration.forCurrentPlatform())) {
             jimfs = Jimfs.newFileSystem(configuration);
-            tm = new UploadDirectoryHelper(TransferManagerConfiguration.builder().build(), singleUploadFunction, jimfs);
+            uploadDirectoryHelper = new UploadDirectoryHelper(TransferManagerConfiguration.builder().build(), singleUploadFunction, jimfs);
         } else {
-            tm = new UploadDirectoryHelper(TransferManagerConfiguration.builder().build(), singleUploadFunction);
+            uploadDirectoryHelper = new UploadDirectoryHelper(TransferManagerConfiguration.builder().build(), singleUploadFunction);
         }
         directory = createTestDirectory();
     }
@@ -103,11 +104,11 @@ public class UploadDirectoryHelperParameterizedTest {
         when(singleUploadFunction.apply(requestArgumentCaptor.capture()))
             .thenReturn(completedUpload());
         UploadDirectoryTransfer uploadDirectory =
-            tm.uploadDirectory(UploadDirectoryRequest.builder()
-                                                     .sourceDirectory(directory)
-                                                     .bucket("bucket")
-                                                     .overrideConfiguration(o -> o.followSymbolicLinks(false))
-                                                     .build());
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .sourceDirectory(directory)
+                                                                        .bucket("bucket")
+                                                                        .overrideConfiguration(o -> o.followSymbolicLinks(false))
+                                                                        .build());
         uploadDirectory.completionFuture().join();
 
         List<UploadRequest> actualRequests = requestArgumentCaptor.getAllValues();
@@ -128,11 +129,11 @@ public class UploadDirectoryHelperParameterizedTest {
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
         UploadDirectoryTransfer uploadDirectory =
-            tm.uploadDirectory(UploadDirectoryRequest.builder()
-                                                     .sourceDirectory(directory)
-                                                     .bucket("bucket")
-                                                     .overrideConfiguration(o -> o.recursive(false))
-                                                     .build());
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .sourceDirectory(directory)
+                                                                        .bucket("bucket")
+                                                                        .overrideConfiguration(o -> o.recursive(false))
+                                                                        .build());
         uploadDirectory.completionFuture().join();
 
         List<UploadRequest> actualRequests = requestArgumentCaptor.getAllValues();
@@ -151,11 +152,11 @@ public class UploadDirectoryHelperParameterizedTest {
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
         UploadDirectoryTransfer uploadDirectory =
-            tm.uploadDirectory(UploadDirectoryRequest.builder()
-                                                     .sourceDirectory(directory)
-                                                     .bucket("bucket")
-                                                     .overrideConfiguration(o -> o.recursive(false).followSymbolicLinks(true))
-                                                     .build());
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .sourceDirectory(directory)
+                                                                        .bucket("bucket")
+                                                                        .overrideConfiguration(o -> o.recursive(false).followSymbolicLinks(true))
+                                                                        .build());
         uploadDirectory.completionFuture().join();
 
         List<UploadRequest> actualRequests = requestArgumentCaptor.getAllValues();
@@ -176,11 +177,11 @@ public class UploadDirectoryHelperParameterizedTest {
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
         UploadDirectoryTransfer uploadDirectory =
-            tm.uploadDirectory(UploadDirectoryRequest.builder()
-                                                     .sourceDirectory(directory)
-                                                     .bucket("bucket")
-                                                     .overrideConfiguration(o -> o.followSymbolicLinks(true))
-                                                     .build());
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .sourceDirectory(directory)
+                                                                        .bucket("bucket")
+                                                                        .overrideConfiguration(o -> o.followSymbolicLinks(true))
+                                                                        .build());
         uploadDirectory.completionFuture().join();
 
         List<UploadRequest> actualRequests = requestArgumentCaptor.getAllValues();
@@ -200,11 +201,11 @@ public class UploadDirectoryHelperParameterizedTest {
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
         UploadDirectoryTransfer uploadDirectory =
-            tm.uploadDirectory(UploadDirectoryRequest.builder()
-                                                     .sourceDirectory(directory)
-                                                     .bucket("bucket")
-                                                     .prefix("yolo")
-                                                     .build());
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .sourceDirectory(directory)
+                                                                        .bucket("bucket")
+                                                                        .prefix("yolo")
+                                                                        .build());
         uploadDirectory.completionFuture().join();
 
         List<String> keys =
@@ -221,12 +222,12 @@ public class UploadDirectoryHelperParameterizedTest {
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
         UploadDirectoryTransfer uploadDirectory =
-            tm.uploadDirectory(UploadDirectoryRequest.builder()
-                                                     .sourceDirectory(directory)
-                                                     .bucket("bucket")
-                                                     .delimiter(",")
-                                                     .prefix("yolo")
-                                                     .build());
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .sourceDirectory(directory)
+                                                                        .bucket("bucket")
+                                                                        .delimiter(",")
+                                                                        .prefix("yolo")
+                                                                        .build());
         uploadDirectory.completionFuture().join();
 
         List<String> keys =
@@ -244,11 +245,11 @@ public class UploadDirectoryHelperParameterizedTest {
         when(singleUploadFunction.apply(requestArgumentCaptor.capture()))
             .thenReturn(completedUpload());
         UploadDirectoryTransfer uploadDirectory =
-            tm.uploadDirectory(UploadDirectoryRequest.builder()
-                                                     .sourceDirectory(directory)
-                                                     .bucket("bucket")
-                                                     .overrideConfiguration(o -> o.maxDepth(1))
-                                                     .build());
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .sourceDirectory(directory)
+                                                                        .bucket("bucket")
+                                                                        .overrideConfiguration(o -> o.maxDepth(1))
+                                                                        .build());
         uploadDirectory.completionFuture().join();
 
         List<UploadRequest> actualRequests = requestArgumentCaptor.getAllValues();
@@ -261,6 +262,50 @@ public class UploadDirectoryHelperParameterizedTest {
                           .collect(Collectors.toList());
 
         assertThat(keys).containsOnly("bar.txt");
+    }
+
+
+    @Test
+    public void uploadDirectory_directoryNotExist_shouldCompleteFutureExceptionally() {
+        assertThatThrownBy(() -> uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder().sourceDirectory(Paths.get(
+                                                                                                 "randomstringneverexistas234ersaf1231"))
+                                                                                             .bucket("bucketName").build()).completionFuture().join())
+            .hasMessageContaining("does not exist").hasCauseInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void uploadDirectory_notDirectory_shouldCompleteFutureExceptionally() {
+        // skip the test if we are using jimfs because it doesn't work well with symlink
+        assumeTrue(configuration.equals(Configuration.forCurrentPlatform()));
+        assertThatThrownBy(() -> uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder().sourceDirectory(Paths.get(directory.toString(), "symlink"))
+                                                                                             .bucket("bucketName").build()).completionFuture().join())
+            .hasMessageContaining("is not a directory").hasCauseInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void uploadDirectory_notDirectoryFollowSymlinkTrue_shouldCompleteSuccessfully() {
+        // skip the test if we are using jimfs because it doesn't work well with symlink
+        assumeTrue(configuration.equals(Configuration.forCurrentPlatform()));
+        ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
+
+        when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
+        UploadDirectoryTransfer uploadDirectory = uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                                                              .overrideConfiguration(o -> o.followSymbolicLinks(true))
+                                                                                                              .sourceDirectory(Paths.get(directory.toString(), "symlink"))
+                                                                                                              .bucket("bucket").build());
+
+        uploadDirectory.completionFuture().join();
+
+        List<UploadRequest> actualRequests = requestArgumentCaptor.getAllValues();
+        actualRequests.forEach(r -> assertThat(r.putObjectRequest().bucket()).isEqualTo("bucket"));
+
+        assertThat(actualRequests.size()).isEqualTo(1);
+
+        List<String> keys =
+            actualRequests.stream().map(u -> u.putObjectRequest().key())
+                          .collect(Collectors.toList());
+
+        assertThat(keys).containsOnly("2.txt");
     }
 
     private DefaultUpload completedUpload() {

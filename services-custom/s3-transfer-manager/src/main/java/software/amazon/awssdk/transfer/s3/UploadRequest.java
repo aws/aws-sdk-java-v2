@@ -70,6 +70,10 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         return new BuilderImpl();
     }
 
+    public static Class<? extends Builder> serializableBuilderClass() {
+        return BuilderImpl.class;
+    }
+
     @Override
     public Builder toBuilder() {
         return new BuilderImpl();

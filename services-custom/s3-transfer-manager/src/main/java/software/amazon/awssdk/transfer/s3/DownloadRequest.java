@@ -96,6 +96,10 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         return result;
     }
 
+    public static Class<? extends Builder> serializableBuilderClass() {
+        return BuilderImpl.class;
+    }
+
     /**
      * A builder for a {@link DownloadRequest}, created with {@link #builder()}
      */

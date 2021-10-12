@@ -38,6 +38,10 @@ public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final TransferConfigurationOption<Executor> EXECUTOR =
         new TransferConfigurationOption<>("Executor", Executor.class);
 
+
+    public static final Character DEFAULT_DELIMITER_CHARACTER = '/';
+    public static final String DEFAULT_DELIMITER = DEFAULT_DELIMITER_CHARACTER.toString();
+
     private static final int DEFAULT_UPLOAD_DIRECTORY_MAX_DEPTH = Integer.MAX_VALUE;
     private static final Boolean DEFAULT_UPLOAD_DIRECTORY_RECURSIVE = Boolean.TRUE;
 

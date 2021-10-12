@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DELIMITER;
+import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DELIMITER_CHARACTER;
+
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -22,12 +25,12 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Phaser;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -44,6 +47,7 @@ import software.amazon.awssdk.transfer.s3.UploadRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * An internal helper class that traverses the file tree and send the upload request
@@ -52,7 +56,6 @@ import software.amazon.awssdk.utils.StringUtils;
 @SdkInternalApi
 public class UploadDirectoryHelper {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
-    private static final String DEFAULT_DELIMITER = "/";
 
     private final TransferManagerConfiguration transferConfiguration;
     private final Function<UploadRequest, Upload> uploadFunction;
@@ -82,7 +85,12 @@ public class UploadDirectoryHelper {
 
         // offload the execution to the transfer manager executor
         CompletableFuture.runAsync(() -> doUploadDirectory(returnFuture, uploadDirectoryRequest),
-                                   transferConfiguration.option(TransferConfigurationOption.EXECUTOR));
+                                   transferConfiguration.option(TransferConfigurationOption.EXECUTOR))
+            .handle((ignore, t) -> {
+                // should never execute this
+                returnFuture.completeExceptionally(t);
+                return ignore;
+            });
 
         return UploadDirectoryTransfer.builder().completionFuture(returnFuture).build();
     }
@@ -90,39 +98,55 @@ public class UploadDirectoryHelper {
     private void doUploadDirectory(CompletableFuture<CompletedUploadDirectory> returnFuture,
                                    UploadDirectoryRequest uploadDirectoryRequest) {
 
-        Path directory = uploadDirectoryRequest.sourceDirectory();
-        List<FailedSingleFileUpload> failedUploads = Collections.synchronizedList(new ArrayList<>());
-        Phaser phaser = new Phaser(1);
+        try {
+            Path directory = uploadDirectoryRequest.sourceDirectory();
 
-        try (Stream<Path> entries = listFiles(directory, uploadDirectoryRequest)) {
-            entries.forEach(path -> {
-                CompletableFuture<CompletedUpload> future =
-                    uploadSingleFile(uploadDirectoryRequest, failedUploads, path, phaser);
+            validateDirectory(uploadDirectoryRequest);
 
-                // Forward cancellation of the return future to all individual futures.
-                CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            Queue<FailedSingleFileUpload> failedUploads = new ConcurrentLinkedQueue<>();
+            List<CompletableFuture<CompletedUpload>> futures;
+
+            try (Stream<Path> entries = listFiles(directory, uploadDirectoryRequest)) {
+                futures = entries.map(path -> {
+                    CompletableFuture<CompletedUpload> future = uploadSingleFile(uploadDirectoryRequest,
+                                                                                 failedUploads, path);
+
+                    // Forward cancellation of the return future to all individual futures.
+                    CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+                    return future;
+                }).collect(Collectors.toList());
+            }
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((r, t) -> {
+                returnFuture.complete(CompletedUploadDirectory.builder().failedUploads(failedUploads).build());
             });
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
         }
+    }
 
-        // Wait for all sub transfers to complete
-        phaser.arriveAndAwaitAdvance();
-        phaser.arriveAndDeregister();
-        returnFuture.complete(CompletedUploadDirectory.builder().failedUploads(failedUploads).build());
+    private void validateDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
+        Path directory = uploadDirectoryRequest.sourceDirectory();
+        Validate.isTrue(Files.exists(directory), "The source directory (%s) provided does not exist", directory);
+        boolean followSymbolicLinks = transferConfiguration.resolveUploadDirectoryFollowSymbolicLinks(uploadDirectoryRequest);
+        if (followSymbolicLinks) {
+            Validate.isTrue(Files.isDirectory(directory), "The source directory (%s) provided is not a "
+                                                             + "directory", directory);
+        } else {
+            Validate.isTrue(Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS), "The source directory (%s) provided"
+                                                                                        + " is not a "
+                                                                                        + "directory", directory);
+        }
     }
 
     private CompletableFuture<CompletedUpload> uploadSingleFile(UploadDirectoryRequest uploadDirectoryRequest,
-                                                                List<FailedSingleFileUpload> failedUploads,
-                                                                Path path,
-                                                                Phaser phaser) {
-        phaser.register();
+                                                                Queue<FailedSingleFileUpload> failedUploads,
+                                                                Path path) {
         int nameCount = uploadDirectoryRequest.sourceDirectory().getNameCount();
         UploadRequest uploadRequest = constructUploadRequest(uploadDirectoryRequest, nameCount, path);
         log.debug(() -> String.format("Sending upload request (%s) for path (%s)", uploadRequest, path));
         CompletableFuture<CompletedUpload> future = uploadFunction.apply(uploadRequest).completionFuture();
         future.whenComplete((r, t) -> {
-            // notify the future is completed
-            phaser.arriveAndDeregister();
-
             if (t != null) {
                 failedUploads.add(FailedSingleFileUpload.builder()
                                                         .exception(t)
@@ -155,7 +179,7 @@ public class UploadDirectoryHelper {
                         .filter(path -> isRegularFile(path, false));
 
         } catch (IOException e) {
-            throw SdkClientException.create("Failed to list files under the provided directory", e);
+            throw SdkClientException.create("Failed to list files within the provided directory: " + directory, e);
         }
     }
 
@@ -167,7 +191,7 @@ public class UploadDirectoryHelper {
         return Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS);
     }
 
-    private static String processPrefix(String prefix, String delimiter) {
+    private static String normalizePrefix(String prefix, String delimiter) {
         if (StringUtils.isEmpty(prefix)) {
             return "";
         }
@@ -179,6 +203,12 @@ public class UploadDirectoryHelper {
                                                path.getNameCount()).toString();
 
         String separator = fileSystem.getSeparator();
+
+        if (delimiter.equals(DEFAULT_DELIMITER)) {
+            // Optimizing for the default case: if delimiter is not overridden, skip replacing unless it's Windows
+            return separator.equals("\\") ? relativePathName.replace('\\', DEFAULT_DELIMITER_CHARACTER) : relativePathName;
+        }
+
         return relativePathName.replace(separator, delimiter);
     }
 
@@ -190,7 +220,7 @@ public class UploadDirectoryHelper {
                                   .orElse(DEFAULT_DELIMITER);
 
         String prefix = uploadDirectoryRequest.prefix()
-                                              .map(s -> processPrefix(s, delimiter))
+                                              .map(s -> normalizePrefix(s, delimiter))
                                               .orElse("");
 
         String relativePathName = getRelativePathName(directoryNameCount, path, delimiter);
