@@ -18,10 +18,14 @@ package software.amazon.awssdk.transfer.s3.internal;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
+import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
+import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -89,7 +93,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     public Upload upload(UploadRequest uploadRequest) {
         try {
             Validate.paramNotNull(uploadRequest, "uploadRequest");
-            assertNotObjectLambdaArn(uploadRequest.putObjectRequest().bucket(), "upload");
+            assertNotUnsupportedArn(uploadRequest.putObjectRequest().bucket(), "upload");
 
             PutObjectRequest putObjectRequest = uploadRequest.putObjectRequest();
             AsyncRequestBody requestBody = requestBodyFor(uploadRequest);
@@ -109,7 +113,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     public UploadDirectoryTransfer uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
         try {
             Validate.paramNotNull(uploadDirectoryRequest, "uploadDirectoryRequest");
-            assertNotObjectLambdaArn(uploadDirectoryRequest.bucket(), "uploadDirectory");
+            assertNotUnsupportedArn(uploadDirectoryRequest.bucket(), "uploadDirectory");
 
             return uploadDirectoryManager.uploadDirectory(uploadDirectoryRequest);
         } catch (Throwable throwable) {
@@ -121,7 +125,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     public Download download(DownloadRequest downloadRequest) {
         try {
             Validate.paramNotNull(downloadRequest, "downloadRequest");
-            assertNotObjectLambdaArn(downloadRequest.getObjectRequest().bucket(), "download");
+            assertNotUnsupportedArn(downloadRequest.getObjectRequest().bucket(), "download");
 
             CompletableFuture<GetObjectResponse> getObjectFuture =
                 s3CrtAsyncClient.getObject(downloadRequest.getObjectRequest(),
@@ -145,19 +149,37 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         return new DefaultBuilder();
     }
 
-    private static void assertNotObjectLambdaArn(String arn, String operation) {
-        if (isObjectLambdaArn(arn)) {
+    private static void assertNotUnsupportedArn(String bucket, String operation) {
+        if (!bucket.startsWith("arn:")) {
+            return;
+        }
+
+        if (isObjectLambdaArn(bucket)) {
             String error = String.format("%s does not support S3 Object Lambda resources", operation);
+            throw new IllegalArgumentException(error);
+        }
+
+        Arn arn = Arn.fromString(bucket);
+
+        if (isMrapArn(arn)) {
+            String error = String.format("%s does not support S3 multi-region access point ARN", operation);
             throw new IllegalArgumentException(error);
         }
     }
 
     private static boolean isObjectLambdaArn(String arn) {
-        if (arn == null) {
-            return false;
-        }
+        return arn.contains(":s3-object-lambda");
+    }
 
-        return arn.startsWith("arn:") && arn.contains(":s3-object-lambda");
+    private static boolean isMrapArn(Arn arn) {
+        S3Resource s3Resource = S3ArnConverter.create().convertArn(arn);
+
+        S3AccessPointResource s3EndpointResource =
+            Validate.isInstanceOf(S3AccessPointResource.class, s3Resource,
+                                  "An ARN was passed as a bucket parameter to an S3 operation, however it does not "
+                                  + "appear to be a valid S3 access point ARN.");
+
+        return !s3EndpointResource.region().isPresent();
     }
 
     private AsyncRequestBody requestBodyFor(UploadRequest uploadRequest) {

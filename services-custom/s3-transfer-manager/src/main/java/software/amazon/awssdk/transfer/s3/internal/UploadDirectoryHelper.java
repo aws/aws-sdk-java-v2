@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DELIMITER;
-import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DELIMITER_CHARACTER;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -191,6 +190,9 @@ public class UploadDirectoryHelper {
         return Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS);
     }
 
+    /**
+     * If the prefix already ends with the same string as delimiter, there is no need to add delimiter.
+     */
     private static String normalizePrefix(String prefix, String delimiter) {
         if (StringUtils.isEmpty(prefix)) {
             return "";
@@ -204,9 +206,10 @@ public class UploadDirectoryHelper {
 
         String separator = fileSystem.getSeparator();
 
-        if (delimiter.equals(DEFAULT_DELIMITER)) {
-            // Optimizing for the default case: if delimiter is not overridden, skip replacing unless it's Windows
-            return separator.equals("\\") ? relativePathName.replace('\\', DEFAULT_DELIMITER_CHARACTER) : relativePathName;
+        // Optimization for the case where separator equals to the delimiter: there is no need to call String#replace which
+        // invokes Pattern#compile in Java 8
+        if (delimiter.equals(separator)) {
+            return relativePathName;
         }
 
         return relativePathName.replace(separator, delimiter);

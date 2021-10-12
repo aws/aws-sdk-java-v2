@@ -97,12 +97,11 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
         options.close();
     }
 
+    // TODO: revisit this before GA
     private Executor defaultExecutor() {
-        int processors = Runtime.getRuntime().availableProcessors();
-        int corePoolSize = Math.max(8, processors);
-        int maxPoolSize = Math.max(64, processors * 2);
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, maxPoolSize,
-                                                             10, TimeUnit.SECONDS,
+        int maxPoolSize = 100;
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(0, maxPoolSize,
+                                                             60, TimeUnit.SECONDS,
                                                              new LinkedBlockingQueue<>(1_000),
                                                              new ThreadFactoryBuilder()
                                                                  .threadNamePrefix("s3-transfer-manager").build());

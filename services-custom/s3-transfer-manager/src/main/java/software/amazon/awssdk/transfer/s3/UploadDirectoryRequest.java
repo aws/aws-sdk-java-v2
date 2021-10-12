@@ -174,8 +174,22 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
          * href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-prefixes.html">Organizing objects using
          * prefixes</a>
          *
+         * <p>
+         * Note: if the provided prefix ends with the same string as delimiter, it will get "normalized" when generating the key
+         * name. For example, assuming the prefix provided is "foo/" and the delimiter is "/" and the source directory has the
+         * following structure:
+         *
+         * <pre>
+         * |- test
+         *     |- obj1.txt
+         *     |- obj2.txt
+         * </pre>
+         *
+         * the object keys will be "foo/obj1.txt" and "foo/obj2.txt" as apposed to "foo//obj1.txt" and "foo//obj2.txt"
+         *
          * @param prefix the key prefix
          * @return This builder for method chaining.
+         * @see #delimiter(String)
          */
         Builder prefix(String prefix);
 
@@ -187,8 +201,22 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
          * href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-prefixes.html">Organizing objects using
          * prefixes</a>
          *
+         * <p>
+         * Note: if the provided prefix ends with the same string as delimiter, it will get "normalized" when generating the key
+         * name. For example, assuming the prefix provided is "foo/" and the delimiter is "/" and the source directory has the
+         * following structure:
+         *
+         * <pre>
+         * |- test
+         *     |- obj1.txt
+         *     |- obj2.txt
+         * </pre>
+         *
+         * the object keys will be "foo/obj1.txt" and "foo/obj2.txt" as apposed to "foo//obj1.txt" and "foo//obj2.txt"
+         *
          * @param delimiter the delimiter
          * @return This builder for method chaining.
+         * @see #prefix(String)
          */
         Builder delimiter(String delimiter);
 

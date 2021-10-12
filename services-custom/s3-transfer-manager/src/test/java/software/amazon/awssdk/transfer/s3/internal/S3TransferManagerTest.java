@@ -148,6 +148,22 @@ public class S3TransferManagerTest {
     }
 
     @Test
+    public void mrapArnProvided_shouldThrowException() {
+        String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+        assertThatThrownBy(() -> tm.upload(b -> b.putObjectRequest(p -> p.bucket(mrapArn)
+                                                                         .key("key")).source(Paths.get(".")))
+                                   .completionFuture().join())
+            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> tm.download(b -> b.getObjectRequest(p -> p.bucket(mrapArn)
+                                                                           .key("key")).destination(Paths.get("."))).completionFuture().join())
+            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> tm.uploadDirectory(b -> b.bucket(mrapArn).sourceDirectory(Paths.get("."))).completionFuture().join())
+            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     public void uploadDirectory_throwException_shouldCompleteFutureExceptionally() {
         RuntimeException exception = new RuntimeException("test");
         when(uploadDirectoryManager.uploadDirectory(any(UploadDirectoryRequest.class))).thenThrow(exception);

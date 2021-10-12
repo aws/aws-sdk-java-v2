@@ -120,6 +120,7 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
         return DefaultBuilder.class;
     }
 
+    // TODO: consider consolidating maxDepth and recursive
     public interface Builder extends CopyableBuilder<Builder, UploadDirectoryOverrideConfiguration> {
 
         /**
