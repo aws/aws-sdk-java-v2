@@ -4,7 +4,7 @@
 [![Gitter](https://badges.gitter.im/aws/aws-sdk-java-v2.svg)](https://gitter.im/aws/aws-sdk-java-v2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) 
 [![codecov](https://codecov.io/gh/aws/aws-sdk-java-v2/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-sdk-java-v2)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-75-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-76-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The **AWS SDK for Java 2.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
@@ -277,6 +277,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://bandism.net/"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ikko Ashimine</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=eltociear" title="Documentation">📖</a></td>
     <td align="center"><a href="https://jamieliu.me"><img src="https://avatars.githubusercontent.com/u/35614552?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jamie Liu</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=jamieliu386" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/guillepb10"><img src="https://avatars.githubusercontent.com/u/28654665?v=4?s=100" width="100px;" alt=""/><br /><sub><b>guillepb10</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=guillepb10" title="Code">💻</a></td>
+    <td align="center"><a href="https://www.linkedin.com/in/lorenznickel/"><img src="https://avatars.githubusercontent.com/u/29959150?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Lorenz Nickel</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=LorenzNickel" title="Documentation">📖</a></td>
   </tr>
 </table>
 
