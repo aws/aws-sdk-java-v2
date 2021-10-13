@@ -1,0 +1,291 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package software.amazon.awssdk.transfer.s3.internal;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import java.nio.ByteBuffer;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ThreadLocalRandom;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.stubbing.Answer;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.DrainingSubscriber;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.transfer.s3.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.Context;
+import software.amazon.awssdk.transfer.s3.Download;
+import software.amazon.awssdk.transfer.s3.DownloadRequest;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.TransferListener;
+import software.amazon.awssdk.transfer.s3.Upload;
+import software.amazon.awssdk.transfer.s3.UploadRequest;
+
+public class S3TransferManagerListenerTest {
+    private final FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+    private S3CrtAsyncClient s3Crt;
+    private S3TransferManager tm;
+    private long contentLength;
+
+    @Before
+    public void methodSetup() {
+        s3Crt = mock(S3CrtAsyncClient.class);
+        tm = new DefaultS3TransferManager(s3Crt);
+        contentLength = 1024L;
+        when(s3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
+            .thenAnswer(drainPutRequestBody());
+        when(s3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenAnswer(randomGetResponseBody(contentLength));
+    }
+
+    @After
+    public void methodTeardown() {
+        tm.close();
+    }
+
+    @Test
+    public void upload_success_shouldInvokeListener() throws Exception {
+        TransferListener listener = mock(TransferListener.class);
+
+        Path path = newTempFile();
+        Files.write(path, randomBytes(contentLength));
+
+        UploadRequest uploadRequest = UploadRequest.builder()
+                                                   .putObjectRequest(r -> r.bucket("bucket")
+                                                                           .key("key"))
+                                                   .source(path)
+                                                   .listeners(listener)
+                                                   .build();
+        Upload upload = tm.upload(uploadRequest);
+        upload.completionFuture().join();
+
+        ArgumentCaptor<Context.TransferInitiated> captor1 = ArgumentCaptor.forClass(Context.TransferInitiated.class);
+        verify(listener, times(1)).transferInitiated(captor1.capture());
+        Context.TransferInitiated ctx1 = captor1.getValue();
+        assertThat(ctx1.request()).isSameAs(uploadRequest);
+        assertThat(ctx1.progressSnapshot().totalTransferSize()).hasValue(contentLength);
+        assertThat(ctx1.progressSnapshot().totalBytesTransferred()).isZero();
+
+        ArgumentCaptor<Context.BytesTransferred> captor2 = ArgumentCaptor.forClass(Context.BytesTransferred.class);
+        verify(listener, times(1)).bytesTransferred(captor2.capture());
+        Context.BytesTransferred ctx2 = captor2.getValue();
+        assertThat(ctx2.request()).isSameAs(uploadRequest);
+        assertThat(ctx2.progressSnapshot().totalTransferSize()).hasValue(contentLength);
+        assertThat(ctx2.progressSnapshot().totalBytesTransferred()).isPositive();
+
+        ArgumentCaptor<Context.TransferComplete> captor3 = ArgumentCaptor.forClass(Context.TransferComplete.class);
+        verify(listener, times(1)).transferComplete(captor3.capture());
+        Context.TransferComplete ctx3 = captor3.getValue();
+        assertThat(ctx3.request()).isSameAs(uploadRequest);
+        assertThat(ctx3.progressSnapshot().totalTransferSize()).hasValue(contentLength);
+        assertThat(ctx3.progressSnapshot().totalBytesTransferred()).isEqualTo(contentLength);
+        assertThat(ctx3.completedTransfer()).isSameAs(upload.completionFuture().get());
+
+        verifyNoMoreInteractions(listener);
+    }
+
+    @Test
+    public void download_success_shouldInvokeListener() throws Exception {
+        TransferListener listener = mock(TransferListener.class);
+
+        DownloadRequest downloadRequest = DownloadRequest.builder()
+                                                         .getObjectRequest(r -> r.bucket("bucket")
+                                                                                 .key("key"))
+                                                         .destination(newTempFile())
+                                                         .listeners(listener)
+                                                         .build();
+        Download download = tm.download(downloadRequest);
+        download.completionFuture().join();
+
+        ArgumentCaptor<Context.TransferInitiated> captor1 = ArgumentCaptor.forClass(Context.TransferInitiated.class);
+        verify(listener, times(1)).transferInitiated(captor1.capture());
+        Context.TransferInitiated ctx1 = captor1.getValue();
+        assertThat(ctx1.request()).isSameAs(downloadRequest);
+        // totalTransferSize is not known until we receive GetObjectResponse header
+        assertThat(ctx1.progressSnapshot().totalTransferSize()).isNotPresent();
+        assertThat(ctx1.progressSnapshot().totalBytesTransferred()).isZero();
+
+        ArgumentCaptor<Context.BytesTransferred> captor2 = ArgumentCaptor.forClass(Context.BytesTransferred.class);
+        verify(listener, times(1)).bytesTransferred(captor2.capture());
+        Context.BytesTransferred ctx2 = captor2.getValue();
+        assertThat(ctx2.request()).isSameAs(downloadRequest);
+        // totalTransferSize should now be known
+        assertThat(ctx2.progressSnapshot().totalTransferSize()).hasValue(contentLength);
+        assertThat(ctx2.progressSnapshot().totalBytesTransferred()).isPositive();
+
+        ArgumentCaptor<Context.TransferComplete> captor3 = ArgumentCaptor.forClass(Context.TransferComplete.class);
+        verify(listener, times(1)).transferComplete(captor3.capture());
+        Context.TransferComplete ctx3 = captor3.getValue();
+        assertThat(ctx3.request()).isSameAs(downloadRequest);
+        assertThat(ctx3.progressSnapshot().totalTransferSize()).hasValue(contentLength);
+        assertThat(ctx3.progressSnapshot().totalBytesTransferred()).isEqualTo(contentLength);
+        assertThat(ctx3.completedTransfer()).isSameAs(download.completionFuture().get());
+
+        verifyNoMoreInteractions(listener);
+    }
+
+    @Test
+    public void upload_failure_shouldInvokeListener() throws Exception {
+        TransferListener listener = mock(TransferListener.class);
+
+        Path path = newTempFile();
+        Files.write(path, randomBytes(contentLength));
+
+        UploadRequest uploadRequest = UploadRequest.builder()
+                                                   .putObjectRequest(r -> r.bucket("bucket")
+                                                                           .key("key"))
+                                                   .source(Paths.get("/some/nonexistent/path"))
+                                                   .listeners(listener)
+                                                   .build();
+        Upload upload = tm.upload(uploadRequest);
+
+        CompletableFuture<CompletedUpload> future = upload.completionFuture();
+        assertThatThrownBy(future::join)
+            .isInstanceOf(CompletionException.class)
+            .hasCauseInstanceOf(NoSuchFileException.class);
+
+        ArgumentCaptor<Context.TransferInitiated> captor1 = ArgumentCaptor.forClass(Context.TransferInitiated.class);
+        verify(listener, times(1)).transferInitiated(captor1.capture());
+        Context.TransferInitiated ctx1 = captor1.getValue();
+        assertThat(ctx1.request()).isSameAs(uploadRequest);
+        // totalTransferSize is not known since file did not exist
+        assertThat(ctx1.progressSnapshot().totalTransferSize()).isNotPresent();
+        assertThat(ctx1.progressSnapshot().totalBytesTransferred()).isZero();
+
+        ArgumentCaptor<Context.TransferFailed> captor2 = ArgumentCaptor.forClass(Context.TransferFailed.class);
+        verify(listener, times(1)).transferFailed(captor2.capture());
+        Context.TransferFailed ctx2 = captor2.getValue();
+        assertThat(ctx2.request()).isSameAs(uploadRequest);
+        assertThat(ctx2.progressSnapshot().totalTransferSize()).isNotPresent();
+        assertThat(ctx2.progressSnapshot().totalBytesTransferred()).isZero();
+        assertThat(ctx2.exception()).isInstanceOf(NoSuchFileException.class);
+
+        verifyNoMoreInteractions(listener);
+    }
+
+    @Test
+    public void listener_exception_shouldBeSuppressed() throws Exception {
+        TransferListener listener = new TransferListener() {
+            @Override
+            public void transferInitiated(Context.TransferInitiated context) {
+                throwException();
+            }
+
+            @Override
+            public void bytesTransferred(Context.BytesTransferred context) {
+                throwException();
+            }
+
+            @Override
+            public void transferComplete(Context.TransferComplete context) {
+                throwException();
+            }
+
+            @Override
+            public void transferFailed(Context.TransferFailed context) {
+                throwException();
+            }
+
+            private void throwException() {
+                throw new RuntimeException("Intentional exception for testing purposes");
+            }
+        };
+        listener = spy(listener);
+
+        Path path = newTempFile();
+        Files.write(path, randomBytes(contentLength));
+
+        UploadRequest uploadRequest = UploadRequest.builder()
+                                                   .putObjectRequest(r -> r.bucket("bucket")
+                                                                           .key("key"))
+                                                   .source(path)
+                                                   .listeners(listener)
+                                                   .build();
+        Upload upload = tm.upload(uploadRequest);
+        upload.completionFuture().join();
+
+        verify(listener, times(1)).transferInitiated(any());
+        verify(listener, times(1)).bytesTransferred(any());
+        verify(listener, times(1)).transferComplete(any());
+        verifyNoMoreInteractions(listener);
+    }
+
+    private static Answer<CompletableFuture<PutObjectResponse>> drainPutRequestBody() {
+        return invocationOnMock -> {
+            AsyncRequestBody requestBody = invocationOnMock.getArgumentAt(1, AsyncRequestBody.class);
+            CompletableFuture<PutObjectResponse> cf = new CompletableFuture<>();
+            requestBody.subscribe(new DrainingSubscriber<ByteBuffer>() {
+                @Override
+                public void onError(Throwable t) {
+                    cf.completeExceptionally(t);
+                }
+
+                @Override
+                public void onComplete() {
+                    cf.complete(PutObjectResponse.builder().build());
+                }
+            });
+            return cf;
+        };
+    }
+
+    private static Answer<CompletableFuture<GetObjectResponse>> randomGetResponseBody(long contentLength) {
+        return invocationOnMock -> {
+            AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
+                invocationOnMock.getArgumentAt(1, AsyncResponseTransformer.class);
+            CompletableFuture<GetObjectResponse> cf = responseTransformer.prepare();
+            responseTransformer.onResponse(GetObjectResponse.builder()
+                                                            .contentLength(contentLength)
+                                                            .build());
+            responseTransformer.onStream(AsyncRequestBody.fromBytes(randomBytes(contentLength)));
+            return cf;
+        };
+    }
+
+    private Path newTempFile() {
+        return fs.getPath("/", UUID.randomUUID().toString());
+    }
+
+    private static byte[] randomBytes(long size) {
+        byte[] bytes = new byte[Math.toIntExact(size)];
+        ThreadLocalRandom.current().nextBytes(bytes);
+        return bytes;
+    }
+}

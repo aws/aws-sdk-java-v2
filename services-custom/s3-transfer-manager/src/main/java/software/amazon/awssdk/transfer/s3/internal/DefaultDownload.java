@@ -19,17 +19,25 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.Download;
+import software.amazon.awssdk.transfer.s3.TransferProgress;
 
 @SdkInternalApi
 public final class DefaultDownload implements Download {
     private final CompletableFuture<CompletedDownload> completionFuture;
+    private final TransferProgress progress;
 
-    public DefaultDownload(CompletableFuture<CompletedDownload> completionFuture) {
+    public DefaultDownload(CompletableFuture<CompletedDownload> completionFuture, TransferProgress progress) {
         this.completionFuture = completionFuture;
+        this.progress = progress;
     }
 
     @Override
     public CompletableFuture<CompletedDownload> completionFuture() {
         return completionFuture;
+    }
+
+    @Override
+    public TransferProgress progress() {
+        return progress;
     }
 }

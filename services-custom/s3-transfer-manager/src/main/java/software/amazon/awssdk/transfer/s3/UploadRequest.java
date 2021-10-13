@@ -19,6 +19,11 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -39,10 +44,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class UploadRequest implements TransferRequest, ToCopyableBuilder<UploadRequest.Builder, UploadRequest> {
     private final PutObjectRequest putObjectRequest;
     private final Path source;
+    private final List<TransferListener> listeners; 
 
     private UploadRequest(BuilderImpl builder) {
         this.putObjectRequest = paramNotNull(builder.putObjectRequest, "putObjectRequest");
         this.source = paramNotNull(builder.source, "source");
+        this.listeners = builder.listeners != null ? builder.listeners : Collections.emptyList();
     }
 
     /**
@@ -59,6 +66,10 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
      */
     public Path source() {
         return source;
+    }
+
+    public List<TransferListener> listeners() {
+        return listeners;
     }
 
     /**
@@ -80,6 +91,15 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
     }
 
     @Override
+    public String toString() {
+        return ToString.builder("UploadRequest")
+                       .add("putObjectRequest", putObjectRequest)
+                       .add("source", source)
+                       .add("listeners", listeners)
+                       .build();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -93,13 +113,17 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         if (!Objects.equals(putObjectRequest, that.putObjectRequest)) {
             return false;
         }
-        return Objects.equals(source, that.source);
+        if (!Objects.equals(source, that.source)) {
+            return false;
+        }
+        return Objects.equals(listeners, that.listeners);
     }
 
     @Override
     public int hashCode() {
         int result = putObjectRequest != null ? putObjectRequest.hashCode() : 0;
         result = 31 * result + (source != null ? source.hashCode() : 0);
+        result = 31 * result + (listeners != null ? listeners.hashCode() : 0);
         return result;
     }
 
@@ -168,6 +192,24 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         }
 
         /**
+         * The {@link TransferListener}s that will be notified as part of this request.
+         * See the {@link TransferListener} documentation for usage instructions.
+         *
+         * @param listeners the collection of listeners
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder listeners(Collection<TransferListener> listeners);
+
+        /**
+         * The {@link TransferListener}s that will be notified as part of this request.
+         * See the {@link TransferListener} documentation for usage instructions.
+         *
+         * @param listeners the variable amount of listeners
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder listeners(TransferListener... listeners);
+
+        /**
          * @return The built request.
          */
         @Override
@@ -177,6 +219,7 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
     private static class BuilderImpl implements Builder {
         private PutObjectRequest putObjectRequest;
         private Path source;
+        private List<TransferListener> listeners;
 
         @Override
         public Builder source(Path source) {
@@ -204,6 +247,18 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
 
         public void setPutObjectRequest(PutObjectRequest putObjectRequest) {
             putObjectRequest(putObjectRequest);
+        }
+
+        @Override
+        public Builder listeners(Collection<TransferListener> listeners) {
+            this.listeners = Collections.unmodifiableList(new ArrayList<>(listeners));
+            return this;
+        }
+
+        @Override
+        public Builder listeners(TransferListener... listeners) {
+            this.listeners = Collections.unmodifiableList(Arrays.asList(listeners));
+            return this;
         }
 
         @Override

@@ -30,8 +30,8 @@ import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBase {
     private static final String TEST_BUCKET = temporaryBucketName(S3TransferManagerUploadIntegrationTest.class);
-    private static final String TEST_KEY = "8mib_file.dat";
-    private static final int OBJ_SIZE = 8 * 1024 * 1024;
+    private static final String TEST_KEY = "16mib_file.dat";
+    private static final int OBJ_SIZE = 16 * 1024 * 1024;
 
     private static RandomTempFile testFile;
     private static S3TransferManager tm;
@@ -64,6 +64,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         Upload upload = tm.upload(UploadRequest.builder()
                                                .putObjectRequest(b -> b.bucket(TEST_BUCKET).key(TEST_KEY))
                                                .source(testFile.toPath())
+                                               .listeners(new ProgressPrintingTransferListener())
                                                .build());
 
         CompletedUpload completedUpload = upload.completionFuture().join();

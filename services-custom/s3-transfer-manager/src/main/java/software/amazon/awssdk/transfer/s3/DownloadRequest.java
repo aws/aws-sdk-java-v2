@@ -17,12 +17,18 @@ package software.amazon.awssdk.transfer.s3;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -35,10 +41,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class DownloadRequest implements TransferRequest, ToCopyableBuilder<DownloadRequest.Builder, DownloadRequest> {
     private final Path destination;
     private final GetObjectRequest getObjectRequest;
+    private final List<TransferListener> listeners;
 
     private DownloadRequest(BuilderImpl builder) {
         this.destination = Validate.paramNotNull(builder.destination, "destination");
         this.getObjectRequest = Validate.paramNotNull(builder.getObjectRequest, "getObjectRequest");
+        this.listeners = builder.listeners != null ? builder.listeners : Collections.emptyList();
     }
 
     /**
@@ -72,6 +80,22 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         return getObjectRequest;
     }
 
+    /**
+     * @return The {@link TransferListener}s associated with this download
+     */
+    public List<TransferListener> listeners() {
+        return listeners;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("DownloadRequest")
+                       .add("destination", destination)
+                       .add("getObjectRequest", getObjectRequest)
+                       .add("listeners", listeners)
+                       .build();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -86,13 +110,17 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         if (!Objects.equals(destination, that.destination)) {
             return false;
         }
-        return Objects.equals(getObjectRequest, that.getObjectRequest);
+        if (!Objects.equals(getObjectRequest, that.getObjectRequest)) {
+            return false;
+        }
+        return Objects.equals(listeners, that.listeners);
     }
 
     @Override
     public int hashCode() {
         int result = destination != null ? destination.hashCode() : 0;
         result = 31 * result + (getObjectRequest != null ? getObjectRequest.hashCode() : 0);
+        result = 31 * result + (listeners != null ? listeners.hashCode() : 0);
         return result;
     }
 
@@ -158,6 +186,24 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         }
 
         /**
+         * The {@link TransferListener}s that will be notified as part of this request.
+         * See the {@link TransferListener} documentation for usage instructions.
+         *
+         * @param listeners the collection of listeners
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder listeners(Collection<TransferListener> listeners);
+
+        /**
+         * The {@link TransferListener}s that will be notified as part of this request.
+         * See the {@link TransferListener} documentation for usage instructions.
+         *
+         * @param listeners the variable amount of listeners
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder listeners(TransferListener... listeners);
+
+        /**
          * @return The built request.
          */
         @Override
@@ -167,6 +213,7 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
     private static final class BuilderImpl implements Builder {
         private Path destination;
         private GetObjectRequest getObjectRequest;
+        private List<TransferListener> listeners;
 
         private BuilderImpl() {
         }
@@ -197,6 +244,18 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
 
         public void setGetObjectRequest(GetObjectRequest getObjectRequest) {
             getObjectRequest(getObjectRequest);
+        }
+
+        @Override
+        public Builder listeners(Collection<TransferListener> listeners) {
+            this.listeners = Collections.unmodifiableList(new ArrayList<>(listeners));
+            return this;
+        }
+
+        @Override
+        public Builder listeners(TransferListener... listeners) {
+            this.listeners = Collections.unmodifiableList(Arrays.asList(listeners));
+            return this;
         }
 
         @Override

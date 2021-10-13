@@ -29,4 +29,9 @@ public interface Transfer {
      * @return The future that will be completed when this transfer is complete.
      */
     CompletableFuture<? extends CompletedTransfer> completionFuture();
+
+    /**
+     * The stateful {@link TransferProgress} associated with this transfer.
+     */
+    TransferProgress progress();
 }

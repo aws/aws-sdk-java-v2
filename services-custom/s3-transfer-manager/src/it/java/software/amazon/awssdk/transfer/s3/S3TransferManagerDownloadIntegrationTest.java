@@ -31,13 +31,14 @@ import software.amazon.awssdk.utils.Md5Utils;
 public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(S3TransferManagerDownloadIntegrationTest.class);
     private static final String KEY = "key";
+    private static final int OBJ_SIZE = 16 * 1024 * 1024;
     private static S3TransferManager transferManager;
     private static File file;
 
     @BeforeClass
     public static void setup() throws IOException {
         createBucket(BUCKET);
-        file = new RandomTempFile(10_000);
+        file = new RandomTempFile(OBJ_SIZE);
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
@@ -59,7 +60,8 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     public void download_shouldWork() throws IOException {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         Download download = transferManager.download(b -> b.getObjectRequest(r -> r.bucket(BUCKET).key(KEY))
-                                                           .destination(path));
+                                                           .destination(path)
+                                                           .listeners(new ProgressPrintingTransferListener()));
         CompletedDownload completedDownload = download.completionFuture().join();
         assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
         assertThat(completedDownload.response().responseMetadata().requestId()).isNotNull();
