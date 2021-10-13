@@ -216,6 +216,19 @@ public class RestXmlExceptionTests {
                                      IllegalArgumentException.class);
     }
 
+    @Test
+    public void alternateRequestIdInHeader_IsSetOnException() {
+        stubFor(post(urlEqualTo(ALL_TYPES_PATH)).willReturn(
+            aResponse()
+                .withStatus(404)
+                .withHeader("x-amz-request-id", "1234")));
+        try {
+            client.allTypes();
+        } catch (ProtocolRestXmlException e) {
+            assertThat(e.requestId()).isEqualTo("1234");
+        }
+    }
+
     private void callAllTypes() {
         client.allTypes(AllTypesRequest.builder().build());
     }

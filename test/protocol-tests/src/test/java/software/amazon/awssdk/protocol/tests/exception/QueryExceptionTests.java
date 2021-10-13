@@ -286,6 +286,19 @@ public class QueryExceptionTests {
         }
     }
 
+    @Test
+    public void alternateRequestIdInHeader_IsSetOnException() {
+        stubFor(post(urlEqualTo(PATH)).willReturn(
+            aResponse()
+                .withStatus(404)
+                .withHeader("x-amz-request-id", "1234")));
+        try {
+            client.allTypes();
+        } catch (ProtocolQueryException e) {
+            assertThat(e.requestId()).isEqualTo("1234");
+        }
+    }
+
     private void callAllTypes() {
         client.allTypes(AllTypesRequest.builder().build());
     }
