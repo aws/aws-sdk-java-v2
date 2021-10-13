@@ -180,17 +180,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                     request.contentStreamProvider(((SdkBytes) val)::asInputStream);
                 }
             } else if (isExplicitPayloadMember(field)) {
-                // Explicit JSON payloads are always marshalled as an object,
-                // even if they're null, in which case it's an empty object.
-                jsonGenerator.writeStartObject();
-                if (val != null) {
-                    if (field.marshallingType().equals(MarshallingType.DOCUMENT)) {
-                        marshallField(field, val);
-                    } else {
-                        doMarshall((SdkPojo) val);
-                    }
-                }
-                jsonGenerator.writeEndObject();
+                marshallExplicitJsonPayload(field, val);
             } else {
                 marshallField(field, val);
             }
@@ -203,6 +193,20 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
 
     private boolean isExplicitPayloadMember(SdkField<?> field) {
         return field.containsTrait(PayloadTrait.class);
+    }
+
+    private void marshallExplicitJsonPayload(SdkField<?> field, Object val) {
+        // Explicit JSON payloads are always marshalled as an object,
+        // even if they're null, in which case it's an empty object.
+        jsonGenerator.writeStartObject();
+        if (val != null) {
+            if (MarshallingType.DOCUMENT.equals(field.marshallingType())) {
+                marshallField(field, val);
+            } else {
+                doMarshall((SdkPojo) val);
+            }
+        }
+        jsonGenerator.writeEndObject();
     }
 
     @Override
