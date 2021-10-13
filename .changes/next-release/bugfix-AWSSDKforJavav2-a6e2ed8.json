@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixes a bug in XML error unmarshalling where error responses with empty body won't populate the requestId field. Affects Amazon S3 API calls such as Head object"
+}
