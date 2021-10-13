@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class FailedFileUpload implements FailedSingleFileTransfer<UploadRequest>,
+public final class FailedFileUpload implements FailedFileTransfer<UploadRequest>,
                                                ToCopyableBuilder<FailedFileUpload.Builder,
                                                    FailedFileUpload> {
     private final Throwable exception;
@@ -95,7 +95,7 @@ public final class FailedFileUpload implements FailedSingleFileTransfer<UploadRe
     }
 
     public interface Builder extends CopyableBuilder<Builder, FailedFileUpload>,
-                                     FailedSingleFileTransfer.Builder<UploadRequest> {
+                                     FailedFileTransfer.Builder<UploadRequest> {
 
         @Override
         Builder exception(Throwable exception);

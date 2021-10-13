@@ -123,15 +123,15 @@ public class UploadDirectoryHelper {
 
     private void validateDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
         Path directory = uploadDirectoryRequest.sourceDirectory();
-        Validate.isTrue(Files.exists(directory), "The source directory (%s) provided does not exist", directory);
+        Validate.isTrue(Files.exists(directory), "The source directory provided (%s) does not exist", directory);
         boolean followSymbolicLinks = transferConfiguration.resolveUploadDirectoryFollowSymbolicLinks(uploadDirectoryRequest);
         if (followSymbolicLinks) {
             Validate.isTrue(Files.isDirectory(directory), "The source directory provided (%s) is not a "
-                                                             + "directory", directory);
+                                                          + "directory", directory);
         } else {
-            Validate.isTrue(Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS), "The source directory (%s) provided"
-                                                                                        + " is not a "
-                                                                                        + "directory", directory);
+            Validate.isTrue(Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS), "The source directory provided (%s)"
+                                                                                     + " is not a "
+                                                                                     + "directory", directory);
         }
     }
 
