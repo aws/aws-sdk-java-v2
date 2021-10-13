@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkMail",
+    "contributor": "",
+    "description": "This release adds APIs for adding, removing and retrieving details of mail domains"
+}
