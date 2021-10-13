@@ -28,13 +28,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class FailedSingleFileUpload implements FailedSingleFileTransfer<UploadRequest>,
-                                                     ToCopyableBuilder<FailedSingleFileUpload.Builder,
-                                                         FailedSingleFileUpload> {
+public final class FailedFileUpload implements FailedSingleFileTransfer<UploadRequest>,
+                                               ToCopyableBuilder<FailedFileUpload.Builder,
+                                                   FailedFileUpload> {
     private final Throwable exception;
     private final UploadRequest request;
 
-    FailedSingleFileUpload(DefaultBuilder builder) {
+    FailedFileUpload(DefaultBuilder builder) {
         this.exception = Validate.paramNotNull(builder.exception, "exception");
         this.request = Validate.paramNotNull(builder.request, "request");
     }
@@ -58,7 +58,7 @@ public final class FailedSingleFileUpload implements FailedSingleFileTransfer<Up
             return false;
         }
 
-        FailedSingleFileUpload that = (FailedSingleFileUpload) o;
+        FailedFileUpload that = (FailedFileUpload) o;
 
         if (!exception.equals(that.exception)) {
             return false;
@@ -94,7 +94,7 @@ public final class FailedSingleFileUpload implements FailedSingleFileTransfer<Up
         return new DefaultBuilder(this);
     }
 
-    public interface Builder extends CopyableBuilder<Builder, FailedSingleFileUpload>,
+    public interface Builder extends CopyableBuilder<Builder, FailedFileUpload>,
                                      FailedSingleFileTransfer.Builder<UploadRequest> {
 
         @Override
@@ -104,14 +104,14 @@ public final class FailedSingleFileUpload implements FailedSingleFileTransfer<Up
         Builder request(UploadRequest request);
 
         @Override
-        FailedSingleFileUpload build();
+        FailedFileUpload build();
     }
 
     private static final class DefaultBuilder implements Builder {
         private UploadRequest request;
         private Throwable exception;
 
-        private DefaultBuilder(FailedSingleFileUpload failedSingleFileUpload) {
+        private DefaultBuilder(FailedFileUpload failedSingleFileUpload) {
             this.request = failedSingleFileUpload.request;
             this.exception = failedSingleFileUpload.exception;
         }
@@ -148,8 +148,8 @@ public final class FailedSingleFileUpload implements FailedSingleFileTransfer<Up
         }
 
         @Override
-        public FailedSingleFileUpload build() {
-            return new FailedSingleFileUpload(this);
+        public FailedFileUpload build() {
+            return new FailedFileUpload(this);
         }
     }
 }

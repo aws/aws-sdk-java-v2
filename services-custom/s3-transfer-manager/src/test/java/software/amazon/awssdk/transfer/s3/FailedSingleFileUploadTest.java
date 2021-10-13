@@ -26,8 +26,8 @@ public class FailedSingleFileUploadTest {
 
     @Test
     public void requestNull_mustThrowException() {
-        assertThatThrownBy(() -> FailedSingleFileUpload.builder()
-                                                       .exception(SdkClientException.create("xxx")).build())
+        assertThatThrownBy(() -> FailedFileUpload.builder()
+                                                 .exception(SdkClientException.create("xxx")).build())
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("request must not be null");
     }
@@ -36,15 +36,15 @@ public class FailedSingleFileUploadTest {
     public void exceptionNull_mustThrowException() {
         UploadRequest uploadRequest =
             UploadRequest.builder().source(Paths.get(".")).putObjectRequest(p -> p.bucket("bucket").key("key")).build();
-        assertThatThrownBy(() -> FailedSingleFileUpload.builder()
-                                                       .request(uploadRequest).build())
+        assertThatThrownBy(() -> FailedFileUpload.builder()
+                                                 .request(uploadRequest).build())
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("exception must not be null");
     }
 
     @Test
     public void equalsHashcode() {
-        EqualsVerifier.forClass(FailedSingleFileUpload.class)
+        EqualsVerifier.forClass(FailedFileUpload.class)
                       .withNonnullFields("exception", "request")
                       .verify();
     }

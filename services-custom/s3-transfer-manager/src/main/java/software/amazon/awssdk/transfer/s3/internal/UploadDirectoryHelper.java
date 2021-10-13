@@ -24,8 +24,8 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
@@ -37,7 +37,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.CompletedUploadDirectory;
-import software.amazon.awssdk.transfer.s3.FailedSingleFileUpload;
+import software.amazon.awssdk.transfer.s3.FailedFileUpload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.Upload;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
@@ -85,11 +85,11 @@ public class UploadDirectoryHelper {
         // offload the execution to the transfer manager executor
         CompletableFuture.runAsync(() -> doUploadDirectory(returnFuture, uploadDirectoryRequest),
                                    transferConfiguration.option(TransferConfigurationOption.EXECUTOR))
-            .handle((ignore, t) -> {
-                // should never execute this
-                returnFuture.completeExceptionally(t);
-                return ignore;
-            });
+                         .whenComplete((r, t) -> {
+                             if (t != null) {
+                                 returnFuture.completeExceptionally(t);
+                             }
+                         });
 
         return UploadDirectoryTransfer.builder().completionFuture(returnFuture).build();
     }
@@ -97,31 +97,28 @@ public class UploadDirectoryHelper {
     private void doUploadDirectory(CompletableFuture<CompletedUploadDirectory> returnFuture,
                                    UploadDirectoryRequest uploadDirectoryRequest) {
 
-        try {
-            Path directory = uploadDirectoryRequest.sourceDirectory();
+        Path directory = uploadDirectoryRequest.sourceDirectory();
 
-            validateDirectory(uploadDirectoryRequest);
+        validateDirectory(uploadDirectoryRequest);
 
-            Queue<FailedSingleFileUpload> failedUploads = new ConcurrentLinkedQueue<>();
-            List<CompletableFuture<CompletedUpload>> futures;
+        Collection<FailedFileUpload> failedUploads = new ConcurrentLinkedQueue<>();
+        List<CompletableFuture<CompletedUpload>> futures;
 
-            try (Stream<Path> entries = listFiles(directory, uploadDirectoryRequest)) {
-                futures = entries.map(path -> {
-                    CompletableFuture<CompletedUpload> future = uploadSingleFile(uploadDirectoryRequest,
-                                                                                 failedUploads, path);
+        try (Stream<Path> entries = listFiles(directory, uploadDirectoryRequest)) {
+            futures = entries.map(path -> {
+                CompletableFuture<CompletedUpload> future = uploadSingleFile(uploadDirectoryRequest,
+                                                                             failedUploads, path);
 
-                    // Forward cancellation of the return future to all individual futures.
-                    CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
-                    return future;
-                }).collect(Collectors.toList());
-            }
-
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((r, t) -> {
-                returnFuture.complete(CompletedUploadDirectory.builder().failedUploads(failedUploads).build());
-            });
-        } catch (Throwable throwable) {
-            returnFuture.completeExceptionally(throwable);
+                // Forward cancellation of the return future to all individual futures.
+                CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+                return future;
+            }).collect(Collectors.toList());
         }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                         .whenComplete((r, t) -> returnFuture.complete(CompletedUploadDirectory.builder()
+                                                                                               .failedUploads(failedUploads)
+                                                                                               .build()));
     }
 
     private void validateDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
@@ -129,7 +126,7 @@ public class UploadDirectoryHelper {
         Validate.isTrue(Files.exists(directory), "The source directory (%s) provided does not exist", directory);
         boolean followSymbolicLinks = transferConfiguration.resolveUploadDirectoryFollowSymbolicLinks(uploadDirectoryRequest);
         if (followSymbolicLinks) {
-            Validate.isTrue(Files.isDirectory(directory), "The source directory (%s) provided is not a "
+            Validate.isTrue(Files.isDirectory(directory), "The source directory provided (%s) is not a "
                                                              + "directory", directory);
         } else {
             Validate.isTrue(Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS), "The source directory (%s) provided"
@@ -139,7 +136,7 @@ public class UploadDirectoryHelper {
     }
 
     private CompletableFuture<CompletedUpload> uploadSingleFile(UploadDirectoryRequest uploadDirectoryRequest,
-                                                                Queue<FailedSingleFileUpload> failedUploads,
+                                                                Collection<FailedFileUpload> failedUploads,
                                                                 Path path) {
         int nameCount = uploadDirectoryRequest.sourceDirectory().getNameCount();
         UploadRequest uploadRequest = constructUploadRequest(uploadDirectoryRequest, nameCount, path);
@@ -147,10 +144,10 @@ public class UploadDirectoryHelper {
         CompletableFuture<CompletedUpload> future = uploadFunction.apply(uploadRequest).completionFuture();
         future.whenComplete((r, t) -> {
             if (t != null) {
-                failedUploads.add(FailedSingleFileUpload.builder()
-                                                        .exception(t)
-                                                        .request(uploadRequest)
-                                                        .build());
+                failedUploads.add(FailedFileUpload.builder()
+                                                  .exception(t)
+                                                  .request(uploadRequest)
+                                                  .build());
             }
         });
         return future;

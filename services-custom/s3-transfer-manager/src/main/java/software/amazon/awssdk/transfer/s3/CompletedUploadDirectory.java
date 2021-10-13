@@ -31,7 +31,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 @SdkPreviewApi
 public final class CompletedUploadDirectory implements CompletedTransfer {
-    private final Collection<FailedSingleFileUpload> failedUploads;
+    private final Collection<FailedFileUpload> failedUploads;
 
     private CompletedUploadDirectory(DefaultBuilder builder) {
         this.failedUploads = Collections.unmodifiableCollection(Validate.paramNotNull(builder.failedUploads, "failedUploads"));
@@ -60,7 +60,7 @@ public final class CompletedUploadDirectory implements CompletedTransfer {
      *
      * @return a list of failed uploads
      */
-    public Collection<FailedSingleFileUpload> failedUploads() {
+    public Collection<FailedFileUpload> failedUploads() {
         return failedUploads;
     }
 
@@ -104,12 +104,12 @@ public final class CompletedUploadDirectory implements CompletedTransfer {
     public interface Builder {
 
         /**
-         * Sets a collection of {@link FailedSingleFileUpload}s
+         * Sets a collection of {@link FailedFileUpload}s
          *
          * @param failedUploads failed uploads
          * @return This builder for method chaining.
          */
-        Builder failedUploads(Collection<FailedSingleFileUpload> failedUploads);
+        Builder failedUploads(Collection<FailedFileUpload> failedUploads);
 
         /**
          * Builds a {@link CompletedUploadDirectory} based on the properties supplied to this builder
@@ -119,22 +119,22 @@ public final class CompletedUploadDirectory implements CompletedTransfer {
     }
 
     private static final class DefaultBuilder implements Builder {
-        private Collection<FailedSingleFileUpload> failedUploads = Collections.emptyList();
+        private Collection<FailedFileUpload> failedUploads = Collections.emptyList();
 
         private DefaultBuilder() {
         }
 
         @Override
-        public Builder failedUploads(Collection<FailedSingleFileUpload> failedUploads) {
+        public Builder failedUploads(Collection<FailedFileUpload> failedUploads) {
             this.failedUploads = failedUploads;
             return this;
         }
 
-        public Collection<FailedSingleFileUpload> getFailedUploads() {
+        public Collection<FailedFileUpload> getFailedUploads() {
             return failedUploads;
         }
 
-        public void setFailedUploads(Collection<FailedSingleFileUpload> failedUploads) {
+        public void setFailedUploads(Collection<FailedFileUpload> failedUploads) {
             failedUploads(failedUploads);
         }
 
