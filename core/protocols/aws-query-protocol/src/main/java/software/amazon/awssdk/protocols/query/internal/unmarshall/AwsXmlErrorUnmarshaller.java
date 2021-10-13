@@ -19,7 +19,6 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -41,7 +40,6 @@ import software.amazon.awssdk.protocols.query.unmarshall.XmlErrorUnmarshaller;
  */
 @SdkInternalApi
 public final class AwsXmlErrorUnmarshaller {
-    private static final String X_AMZN_REQUEST_ID_HEADER = "x-amzn-RequestId";
     private static final String X_AMZ_ID_2_HEADER = "x-amz-id-2";
 
     private final List<ExceptionMetadata> exceptions;
