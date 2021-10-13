@@ -1,3 +1,50 @@
+# __2.17.59__ __2021-10-13__
+## __AWS Config__
+  - ### Features
+    - Adding Config support for AWS::OpenSearch::Domain
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adding support for Audit Logs on NFS shares and Force Closing Files on SMB shares.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for additional VPC Flow Logs delivery options to S3, such as Apache Parquet formatted files, Hourly partitions and Hive-compatible S3 prefixes
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Apache Flink 1.13 in Kinesis Data Analytics. Changed the required status of some Update properties to better fit the corresponding Create properties.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release adds APIs for adding, removing and retrieving details of mail domains
+
+# __2.17.58__ __2021-10-12__
+## __AWS MediaTailor__
+  - ### Features
+    - MediaTailor now supports ad prefetching.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Reduce base delay of STANDARD retry mode to 100ms for non-throttling responses. This reduces tail latency in the event of transient failures.
+    - Updated service endpoint metadata.
+
+## __Amazon CloudSearch__
+  - ### Features
+    - Adds an additional validation exception for Amazon CloudSearch configuration APIs for better error handling.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only update to address tickets.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EncryptionSupport for InstanceStorageInfo added to DescribeInstanceTypes API
+
 # __2.17.57__ __2021-10-11__
 ## __AWS Elemental MediaLive__
   - ### Features

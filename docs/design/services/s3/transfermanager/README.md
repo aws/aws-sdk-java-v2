@@ -45,8 +45,8 @@ S3 `S3TransferManager`, a high level library built on the S3 client.
 * The size of resources used by Transfermanager and configured by the user
   should not affect its stability.
 
-  For example, the configured size of a threadpool should be irellevant to its
-  ability to successfuly perform an operation.
+  For example, the configured size of a threadpool should be irrelevant to its
+  ability to successfully perform an operation.
 
   Ref: https://github.com/aws/aws-sdk-java/issues/939
 
