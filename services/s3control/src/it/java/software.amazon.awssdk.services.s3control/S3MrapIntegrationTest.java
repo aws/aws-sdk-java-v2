@@ -16,7 +16,6 @@ package software.amazon.awssdk.services.s3control;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.StringUtils.isEmpty;
 
@@ -27,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
@@ -38,7 +36,10 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.waiters.Waiter;
+import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -48,68 +49,90 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.Bucket;
+import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
-import software.amazon.awssdk.services.s3control.model.AsyncOperation;
+import software.amazon.awssdk.services.s3control.model.BucketAlreadyExistsException;
 import software.amazon.awssdk.services.s3control.model.CreateMultiRegionAccessPointInput;
 import software.amazon.awssdk.services.s3control.model.CreateMultiRegionAccessPointResponse;
-import software.amazon.awssdk.services.s3control.model.DeleteMultiRegionAccessPointResponse;
-import software.amazon.awssdk.services.s3control.model.DescribeMultiRegionAccessPointOperationResponse;
 import software.amazon.awssdk.services.s3control.model.GetMultiRegionAccessPointResponse;
 import software.amazon.awssdk.services.s3control.model.ListMultiRegionAccessPointsResponse;
-import software.amazon.awssdk.services.s3control.model.MultiRegionAccessPointReport;
 import software.amazon.awssdk.services.s3control.model.MultiRegionAccessPointStatus;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
+    private static final Logger log = Logger.loggerFor(S3MrapIntegrationTest.class);
 
     private static final String CHUNKED_PAYLOAD_SIGNING = "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD";
     private static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
 
     private static final Region REGION = Region.US_WEST_2;
-    private static final String BUCKET = temporaryBucketName(S3MrapIntegrationTest.class);
-    private static final String MRAP_NAME = "javaintegtest" + System.currentTimeMillis();
+    private static String bucket;
+    private static String mrapName;
     private static final String KEY = "aws-java-sdk-small-test-object";
     private static final String CONTENT = "A short string for a small test object";
 
-    private static final int RETRY_TIMES = 20;
-    private static final int RETRY_DELAY_IN_MS = 15 * 1000;
+    private static final int RETRY_TIMES = 10;
+    private static final int RETRY_DELAY_IN_SECONDS = 30;
 
     private static S3ControlClient s3control;
     private static CaptureRequestInterceptor captureInterceptor;
     private static String mrapAlias;
+    private static StsClient stsClient;
+    private static S3Client s3Client;
 
     @BeforeClass
-    public static void setupFixture() throws Exception {
+    public static void setupFixture() {
         captureInterceptor = new CaptureRequestInterceptor();
-        createBucket(BUCKET);
 
         s3control = S3ControlClient.builder()
                                    .region(REGION)
                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                    .build();
 
-        String resourceTokenArn = createMrap(MRAP_NAME);
-        waitForResourceCreation(resourceTokenArn);
+        s3Client = S3Client.builder()
+                           .region(REGION)
+                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                           .build();
+
+        stsClient = StsClient.builder()
+                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                             .region(REGION)
+                             .build();
+        String accountId = getAccountId();
+        bucket = "do-not-delete-s3mraptest-" + accountId;
+        mrapName = "javaintegtest" + accountId;
+        log.info(() -> "bucket " + bucket);
+        createBucketIfNotExist(bucket);
+        createMrapIfNotExist(mrapName);
+
         mrapAlias = getMrapAliasAndVerify();
     }
 
-    @AfterClass
-    public static void tearDown() throws Exception {
-        String resourceTokenArn = deleteMrap(MRAP_NAME);
-        waitForResourceDeletion(resourceTokenArn);
-        deleteBucketAndAllContents(BUCKET);
+    private static void createBucketIfNotExist(String bucket) {
+        try {
+            s3Client.createBucket(b -> b.bucket(bucket));
+            s3Client.waiter().waitUntilBucketExists(b -> b.bucket(bucket));
+        } catch (BucketAlreadyOwnedByYouException | BucketAlreadyExistsException e) {
+            // ignore
+        }
+    }
+
+    private static String getAccountId() {
+        return stsClient.getCallerIdentity().account();
     }
 
     public static String getMrapAliasAndVerify() {
-        GetMultiRegionAccessPointResponse mrap = s3control.getMultiRegionAccessPoint(r -> r.accountId(accountId).name(MRAP_NAME));
+        GetMultiRegionAccessPointResponse mrap = s3control.getMultiRegionAccessPoint(r -> r.accountId(accountId).name(mrapName));
         assertThat(mrap.accessPoint()).isNotNull();
-        assertThat(mrap.accessPoint().name()).isEqualTo(MRAP_NAME);
-        System.out.println("Alias: " + mrap.accessPoint().alias());
+        assertThat(mrap.accessPoint().name()).isEqualTo(mrapName);
+        log.info(() -> "Alias: " + mrap.accessPoint().alias());
         return mrap.accessPoint().alias();
     }
 
@@ -136,7 +159,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
 
     private void listAndVerify(S3Client s3) {
         List<Bucket> buckets = s3.listBuckets().buckets();
-        assertThat(buckets.stream().map(Bucket::name)).contains(BUCKET);
+        assertThat(buckets.stream().map(Bucket::name)).contains(bucket);
         verifySigv4SignedRequest(captureInterceptor.request());
     }
 
@@ -224,96 +247,36 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
                           .build();
     }
 
-    private static String createMrap(String mrapName) {
+    private static void createMrapIfNotExist(String mrapName) {
         software.amazon.awssdk.services.s3control.model.Region mrapRegion =
-            software.amazon.awssdk.services.s3control.model.Region.builder().bucket(BUCKET).build();
+            software.amazon.awssdk.services.s3control.model.Region.builder().bucket(bucket).build();
 
-        CreateMultiRegionAccessPointInput details = CreateMultiRegionAccessPointInput.builder()
-                                                                                     .name(mrapName)
-                                                                                     .regions(mrapRegion)
-                                                                                     .build();
-        System.out.println("Creating MRAP: " + mrapName);
-        CreateMultiRegionAccessPointResponse response = s3control.createMultiRegionAccessPoint(r -> r.accountId(accountId)
-                                                                                                     .details(details));
-        return response.requestTokenARN();
-    }
 
-    private static String deleteMrap(String mrapName) {
-        System.out.println("Deleting MRAP: " + mrapName + " with alias " + mrapAlias);
-        DeleteMultiRegionAccessPointResponse response =
-            s3control.deleteMultiRegionAccessPoint(r -> r.accountId(accountId).details(d -> d.name(mrapName)));
-
-        return response.requestTokenARN();
-    }
-
-    private static void waitForResourceCreation(String resourceTokenArn) throws InterruptedException, IllegalStateException {
-        int retryCounter = 0;
-        MultiRegionAccessPointStatus status = null;
-
-        System.out.println("Polling status every " + RETRY_DELAY_IN_MS / 1000  + " s.");
-
-        while (retryCounter++ < RETRY_TIMES && !MultiRegionAccessPointStatus.READY.equals(status)) {
-            Thread.sleep(RETRY_DELAY_IN_MS);
-
-            System.out.println("Async operation request status: " + getRequestStatus(resourceTokenArn));
-
-            Optional<MultiRegionAccessPointReport> testReport = getMrapReport(MRAP_NAME);
-            if (testReport.isPresent()) {
-                status = testReport.get().status();
-            }
-            System.out.println("MRAP status: " + status);
+        if (s3control.listMultiRegionAccessPoints(r -> r.accountId(accountId))
+                      .accessPoints().stream().noneMatch(a -> a.name().equals(S3MrapIntegrationTest.mrapName))) {
+            CreateMultiRegionAccessPointInput details = CreateMultiRegionAccessPointInput.builder()
+                                                                                         .name(mrapName)
+                                                                                         .regions(mrapRegion)
+                                                                                         .build();
+            log.info(() -> "Creating MRAP: " + mrapName);
+            CreateMultiRegionAccessPointResponse response = s3control.createMultiRegionAccessPoint(r -> r.accountId(accountId)
+                                                                                                         .details(details));
+            waitForResourceCreation(mrapName);
         }
-
-        if (!MultiRegionAccessPointStatus.READY.equals(status)) {
-            throw new IllegalStateException("MRAP isn't in ready state, aborting");
-        }
-        System.out.println("Created MRAP in " + retryCounter * RETRY_DELAY_IN_MS / 1000 + " s.");
     }
 
-    private static void waitForResourceDeletion(String resourceTokenArn) throws InterruptedException, IllegalStateException {
-        int retryCounter = 0;
-        boolean deleted = false;
+    private static void waitForResourceCreation(String mrapName) throws IllegalStateException {
 
-        System.out.println("Polling status every " + RETRY_DELAY_IN_MS / 1000  + " s.");
+        Waiter<ListMultiRegionAccessPointsResponse> waiter =
+            Waiter.builder(ListMultiRegionAccessPointsResponse.class)
+                  .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(r ->
+                      r.accessPoints().stream().findFirst().filter(mrap -> mrap.name().equals(mrapName) && mrap.status().equals(MultiRegionAccessPointStatus.READY)).isPresent()
+                  ))
+                  .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(i -> true))
+                .overrideConfiguration(b -> b.maxAttempts(RETRY_TIMES).backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(RETRY_DELAY_IN_SECONDS))))
+                .build();
 
-        while (retryCounter++ < RETRY_TIMES && !deleted) {
-            Thread.sleep(RETRY_DELAY_IN_MS);
-
-            System.out.println("Async operation request status: " + getRequestStatus(resourceTokenArn));
-
-            Optional<MultiRegionAccessPointReport> testReport = getMrapReport(MRAP_NAME);
-            MultiRegionAccessPointStatus status = null;
-            if (testReport.isPresent()) {
-                status = testReport.get().status();
-            } else {
-                deleted = true;
-            }
-            System.out.println("MRAP status: " + status);
-        }
-
-        if (!deleted) {
-            throw new IllegalStateException("Something went wrong with deleting MRAP " + MRAP_NAME);
-        }
-        System.out.println("Deleted MRAP in " + retryCounter * RETRY_DELAY_IN_MS / 1000 + " s.");
-    }
-
-    private static String getRequestStatus(String resourceTokenArn) {
-        DescribeMultiRegionAccessPointOperationResponse response =
-            s3control.describeMultiRegionAccessPointOperation(r -> r.accountId(accountId).requestTokenARN(resourceTokenArn));
-        AsyncOperation operationDetails = response.asyncOperation();
-        return operationDetails.requestStatus();
-    }
-
-    private static Optional<MultiRegionAccessPointReport> getMrapReport(String name) {
-        List<MultiRegionAccessPointReport> mrapReports = getMrapReportList();
-        return mrapReports.stream()
-                          .filter(mrap -> mrap.name().equals(name))
-                          .findFirst();
-    }
-
-    private static List<MultiRegionAccessPointReport> getMrapReportList() {
-        ListMultiRegionAccessPointsResponse listResponse = s3control.listMultiRegionAccessPoints(r -> r.accountId(accountId));
-        return listResponse.accessPoints();
+        waiter.run(() -> s3control.listMultiRegionAccessPoints(r -> r.accountId(accountId)));
     }
 
     private String applyPresignedUrl(PresignedRequest presignedRequest, String content) {
@@ -328,7 +291,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
                            .map(stream -> invokeSafely(() -> IoUtils.toUtf8String(stream)))
                            .orElseThrow(() -> new IOException("No input stream"));
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(() -> "Error occurred ", e);
         }
         return null;
     }

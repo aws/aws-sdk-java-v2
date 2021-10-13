@@ -80,7 +80,7 @@
         {"shape":"MissingParameterValueException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Creates a framework with one or more controls. A framework is a collection of controls that you can use to evaluate your backup practices. By using pre-built customizable controls to define your policies, you can evaluate whether your backup practices comply with your policies. To get insights into the compliance status of your frameworks, you can set up automatic daily reports.</p>",
+      "documentation":"<p>Creates a framework with one or more controls. A framework is a collection of controls that you can use to evaluate your backup practices. By using pre-built customizable controls to define your policies, you can evaluate whether your backup practices comply with your policies and which resources are not yet in compliance.</p>",
       "idempotent":true
     },
     "CreateReportPlan":{
@@ -163,6 +163,23 @@
         {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Deletes the policy document that manages permissions on a backup vault.</p>",
+      "idempotent":true
+    },
+    "DeleteBackupVaultLockConfiguration":{
+      "name":"DeleteBackupVaultLockConfiguration",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/backup-vaults/{backupVaultName}/vault-lock"
+      },
+      "input":{"shape":"DeleteBackupVaultLockConfigurationInput"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"MissingParameterValueException"},
+        {"shape":"InvalidRequestException"},
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>Deletes Backup Vault Lock from a backup vault specified by a backup vault name.</p> <p>If the Vault Lock configuration is immutable, then you cannot delete Vault Lock using API operations, and you will receive an <code>InvalidRequestException</code> if you attempt to do so. For more information, see <a href=\"https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html\">Vault Lock</a> in the <i>Backup Developer Guide</i>.</p>",
       "idempotent":true
     },
     "DeleteBackupVaultNotifications":{
@@ -827,6 +844,23 @@
       "documentation":"<p>Sets a resource-based policy that is used to manage access permissions on the target backup vault. Requires a backup vault name and an access policy document in JSON format.</p>",
       "idempotent":true
     },
+    "PutBackupVaultLockConfiguration":{
+      "name":"PutBackupVaultLockConfiguration",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/backup-vaults/{backupVaultName}/vault-lock"
+      },
+      "input":{"shape":"PutBackupVaultLockConfigurationInput"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"MissingParameterValueException"},
+        {"shape":"InvalidRequestException"},
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>Applies Backup Vault Lock to a backup vault, preventing attempts to delete any recovery point stored in or created in a backup vault. Vault Lock also prevents attempts to update the lifecycle policy that controls the retention period of any recovery point currently stored in a backup vault. If specified, Vault Lock enforces a minimum and maximum retention period for future backup and copy jobs that target a backup vault.</p>",
+      "idempotent":true
+    },
     "PutBackupVaultNotifications":{
       "name":"PutBackupVaultNotifications",
       "http":{
@@ -990,6 +1024,7 @@
       "input":{"shape":"UpdateFrameworkInput"},
       "output":{"shape":"UpdateFrameworkOutput"},
       "errors":[
+        {"shape":"AlreadyExistsException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"LimitExceededException"},
         {"shape":"InvalidParameterValueException"},
@@ -1272,7 +1307,7 @@
           "documentation":"<p>Specifies a list of <code>BackupOptions</code> for each resource type. These settings are only available for Windows Volume Shadow Copy Service (VSS) backup jobs.</p>"
         }
       },
-      "documentation":"<p>Contains an optional backup plan display name and an array of <code>BackupRule</code> objects, each of which specifies a backup rule. Each rule in a backup plan is a separate scheduled task and can back up a different selection of Amazon Web Services resources. </p>"
+      "documentation":"<p>Contains an optional backup plan display name and an array of <code>BackupRule</code> objects, each of which specifies a backup rule. Each rule in a backup plan is a separate scheduled task. </p>"
     },
     "BackupPlanName":{"type":"string"},
     "BackupPlanTemplatesList":{
@@ -1569,6 +1604,22 @@
         "NumberOfRecoveryPoints":{
           "shape":"long",
           "documentation":"<p>The number of recovery points that are stored in a backup vault.</p>"
+        },
+        "Locked":{
+          "shape":"Boolean",
+          "documentation":"<p>A Boolean value that indicates whether Backup Vault Lock applies to the selected backup vault. If <code>true</code>, Vault Lock prevents delete and update operations on the recovery points in the selected vault.</p>"
+        },
+        "MinRetentionDays":{
+          "shape":"Long",
+          "documentation":"<p>The Backup Vault Lock setting that specifies the minimum retention period that the vault retains its recovery points. If this parameter is not specified, Vault Lock does not enforce a minimum retention period.</p> <p>If specified, any backup or copy job to the vault must have a lifecycle policy with a retention period equal to or longer than the minimum retention period. If the job's retention period is shorter than that minimum retention period, then the vault fails the backup or copy job, and you should either modify your lifecycle settings or use a different vault. Recovery points already stored in the vault prior to Vault Lock are not affected.</p>"
+        },
+        "MaxRetentionDays":{
+          "shape":"Long",
+          "documentation":"<p>The Backup Vault Lock setting that specifies the maximum retention period that the vault retains its recovery points. If this parameter is not specified, Vault Lock does not enforce a maximum retention period on the recovery points in the vault (allowing indefinite storage).</p> <p>If specified, any backup or copy job to the vault must have a lifecycle policy with a retention period equal to or shorter than the maximum retention period. If the job's retention period is longer than that maximum retention period, then the vault fails the backup or copy job, and you should either modify your lifecycle settings or use a different vault. Recovery points already stored in the vault prior to Vault Lock are not affected.</p>"
+        },
+        "LockDate":{
+          "shape":"timestamp",
+          "documentation":"<p>The date and time when Backup Vault Lock configuration becomes immutable, meaning it cannot be changed or deleted.</p> <p>If you applied Vault Lock to your vault without specifying a lock date, you can change your Vault Lock settings, or delete Vault Lock from the vault entirely, at any time.</p> <p>This value is in Unix format, Coordinated Universal Time (UTC), and accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
         }
       },
       "documentation":"<p>Contains metadata about a backup vault.</p>"
@@ -1632,8 +1683,14 @@
       "members":{
         "Code":{"shape":"string"},
         "Message":{"shape":"string"},
-        "Type":{"shape":"string"},
-        "Context":{"shape":"string"}
+        "Type":{
+          "shape":"string",
+          "documentation":"<p/>"
+        },
+        "Context":{
+          "shape":"string",
+          "documentation":"<p/>"
+        }
       },
       "documentation":"<p>Backup can't perform the action that you requested until it finishes performing a previous action. Try again later.</p>",
       "exception":true
@@ -1662,7 +1719,7 @@
       "members":{
         "ComplianceResourceIds":{
           "shape":"ComplianceResourceIdList",
-          "documentation":"<p>Describes whether the control scope includes a specific resource identified by its unique Amazon Resource Name (ARN).</p>"
+          "documentation":"<p>The ID of the only Amazon Web Services resource that you want your control scope to contain.</p>"
         },
         "ComplianceResourceTypes":{
           "shape":"ResourceTypeList",
@@ -1956,11 +2013,11 @@
         },
         "ReportSetting":{
           "shape":"ReportSetting",
-          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
+          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>RESOURCE_COMPLIANCE_REPORT | CONTROL_COMPLIANCE_REPORT | BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p> <p>If the report template is <code>RESOURCE_COMPLIANCE_REPORT</code> or <code>CONTROL_COMPLIANCE_REPORT</code>, this API resource also describes the report coverage by Amazon Web Services Regions and frameworks.</p>"
         },
         "ReportPlanTags":{
           "shape":"stringMap",
-          "documentation":"<p>Metadata that you can assign to help organize the frameworks that you create. Each tag is a key-value pair.</p>"
+          "documentation":"<p>Metadata that you can assign to help organize the report plans that you create. Each tag is a key-value pair.</p>"
         },
         "IdempotencyToken":{
           "shape":"string",
@@ -1979,6 +2036,10 @@
         "ReportPlanArn":{
           "shape":"ARN",
           "documentation":"<p>An Amazon Resource Name (ARN) that uniquely identifies a resource. The format of the ARN depends on the resource type.</p>"
+        },
+        "CreationTime":{
+          "shape":"timestamp",
+          "documentation":"<p>The date and time a backup vault is created, in Unix format and Coordinated Universal Time (UTC). The value of <code>CreationTime</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
         }
       }
     },
@@ -2056,6 +2117,18 @@
         "BackupVaultName":{
           "shape":"string",
           "documentation":"<p>The name of a logical container where backups are stored. Backup vaults are identified by names that are unique to the account used to create them and the Amazon Web Services Region where they are created. They consist of lowercase letters, numbers, and hyphens.</p>",
+          "location":"uri",
+          "locationName":"backupVaultName"
+        }
+      }
+    },
+    "DeleteBackupVaultLockConfigurationInput":{
+      "type":"structure",
+      "required":["BackupVaultName"],
+      "members":{
+        "BackupVaultName":{
+          "shape":"BackupVaultName",
+          "documentation":"<p>The name of the backup vault from which to delete Backup Vault Lock.</p>",
           "location":"uri",
           "locationName":"backupVaultName"
         }
@@ -2271,6 +2344,22 @@
         "NumberOfRecoveryPoints":{
           "shape":"long",
           "documentation":"<p>The number of recovery points that are stored in a backup vault.</p>"
+        },
+        "Locked":{
+          "shape":"Boolean",
+          "documentation":"<p>A Boolean that indicates whether Backup Vault Lock is currently protecting the backup vault. <code>True</code> means that Vault Lock causes delete or update operations on the recovery points stored in the vault to fail.</p>"
+        },
+        "MinRetentionDays":{
+          "shape":"Long",
+          "documentation":"<p>The Backup Vault Lock setting that specifies the minimum retention period that the vault retains its recovery points. If this parameter is not specified, Vault Lock does not enforce a minimum retention period.</p> <p>If specified, any backup or copy job to the vault must have a lifecycle policy with a retention period equal to or longer than the minimum retention period. If the job's retention period is shorter than that minimum retention period, then the vault fails the backup or copy job, and you should either modify your lifecycle settings or use a different vault. Recovery points already stored in the vault prior to Vault Lock are not affected.</p>"
+        },
+        "MaxRetentionDays":{
+          "shape":"Long",
+          "documentation":"<p>The Backup Vault Lock setting that specifies the maximum retention period that the vault retains its recovery points. If this parameter is not specified, Vault Lock does not enforce a maximum retention period on the recovery points in the vault (allowing indefinite storage).</p> <p>If specified, any backup or copy job to the vault must have a lifecycle policy with a retention period equal to or shorter than the maximum retention period. If the job's retention period is longer than that maximum retention period, then the vault fails the backup or copy job, and you should either modify your lifecycle settings or use a different vault. Recovery points already stored in the vault prior to Vault Lock are not affected.</p>"
+        },
+        "LockDate":{
+          "shape":"timestamp",
+          "documentation":"<p>The date and time when Backup Vault Lock configuration cannot be changed or deleted.</p> <p>If you applied Vault Lock to your vault without specifying a lock date, you can change any of your Vault Lock settings, or delete Vault Lock from the vault entirely, at any time.</p> <p>This value is in Unix format, Coordinated Universal Time (UTC), and accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
         }
       }
     },
@@ -2983,7 +3072,7 @@
       "members":{
         "ResourceTypes":{
           "shape":"ResourceTypes",
-          "documentation":"<p>Contains a string with the supported Amazon Web Services resource types:</p> <ul> <li> <p> <code>DynamoDB</code> for Amazon DynamoDB</p> </li> <li> <p> <code>EBS</code> for Amazon Elastic Block Store</p> </li> <li> <p> <code>EC2</code> for Amazon Elastic Compute Cloud</p> </li> <li> <p> <code>EFS</code> for Amazon Elastic File System</p> </li> <li> <p> <code>RDS</code> for Amazon Relational Database Service</p> </li> <li> <p> <code>Aurora</code> for Amazon Aurora</p> </li> <li> <p> <code>Storage Gateway</code> for Storage Gateway</p> </li> </ul>"
+          "documentation":"<p>Contains a string with the supported Amazon Web Services resource types:</p> <ul> <li> <p> <code>Aurora</code> for Amazon Aurora</p> </li> <li> <p> <code>DynamoDB</code> for Amazon DynamoDB</p> </li> <li> <p> <code>EBS</code> for Amazon Elastic Block Store</p> </li> <li> <p> <code>EC2</code> for Amazon Elastic Compute Cloud</p> </li> <li> <p> <code>EFS</code> for Amazon Elastic File System</p> </li> <li> <p> <code>FSX</code> for Amazon FSx</p> </li> <li> <p> <code>RDS</code> for Amazon Relational Database Service</p> </li> <li> <p> <code>Storage Gateway</code> for Storage Gateway</p> </li> </ul>"
         }
       }
     },
@@ -3812,6 +3901,30 @@
         }
       }
     },
+    "PutBackupVaultLockConfigurationInput":{
+      "type":"structure",
+      "required":["BackupVaultName"],
+      "members":{
+        "BackupVaultName":{
+          "shape":"BackupVaultName",
+          "documentation":"<p>The Backup Vault Lock configuration that specifies the name of the backup vault it protects.</p>",
+          "location":"uri",
+          "locationName":"backupVaultName"
+        },
+        "MinRetentionDays":{
+          "shape":"Long",
+          "documentation":"<p>The Backup Vault Lock configuration that specifies the minimum retention period that the vault retains its recovery points. This setting can be useful if, for example, your organization's policies require you to retain certain data for at least seven years (2555 days).</p> <p>If this parameter is not specified, Vault Lock will not enforce a minimum retention period.</p> <p>If this parameter is specified, any backup or copy job to the vault must have a lifecycle policy with a retention period equal to or longer than the minimum retention period. If the job's retention period is shorter than that minimum retention period, then the vault fails that backup or copy job, and you should either modify your lifecycle settings or use a different vault. Recovery points already saved in the vault prior to Vault Lock are not affected.</p>"
+        },
+        "MaxRetentionDays":{
+          "shape":"Long",
+          "documentation":"<p>The Backup Vault Lock configuration that specifies the maximum retention period that the vault retains its recovery points. This setting can be useful if, for example, your organization's policies require you to destroy certain data after retaining it for four years (1460 days).</p> <p>If this parameter is not included, Vault Lock does not enforce a maximum retention period on the recovery points in the vault. If this parameter is included without a value, Vault Lock will not enforce a maximum retention period.</p> <p>If this parameter is specified, any backup or copy job to the vault must have a lifecycle policy with a retention period equal to or shorter than the maximum retention period. If the job's retention period is longer than that maximum retention period, then the vault fails the backup or copy job, and you should either modify your lifecycle settings or use a different vault. Recovery points already saved in the vault prior to Vault Lock are not affected.</p>"
+        },
+        "ChangeableForDays":{
+          "shape":"Long",
+          "documentation":"<p>The Backup Vault Lock configuration that specifies the number of days before the lock date. For example, setting <code>ChangeableForDays</code> to 30 on Jan. 1, 2022 at 8pm UTC will set the lock date to Jan. 31, 2022 at 8pm UTC.</p> <p>Backup enforces a 72-hour cooling-off period before Vault Lock takes effect and becomes immutable. Therefore, you must set <code>ChangeableForDays</code> to 3 or greater.</p> <p>Before the lock date, you can delete Vault Lock from the vault using <code>DeleteBackupVaultLockConfiguration</code> or change the Vault Lock configuration using <code>PutBackupVaultLockConfiguration</code>. On and after the lock date, the Vault Lock becomes immutable and cannot be changed or deleted.</p> <p>If this parameter is not specified, you can delete Vault Lock from the vault using <code>DeleteBackupVaultLockConfiguration</code> or change the Vault Lock configuration using <code>PutBackupVaultLockConfiguration</code> at any time.</p>"
+        }
+      }
+    },
     "PutBackupVaultNotificationsInput":{
       "type":"structure",
       "required":[
@@ -4033,7 +4146,7 @@
         },
         "ReportTemplate":{
           "shape":"string",
-          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are: </p> <p> <code>BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
+          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are: </p> <p> <code>RESOURCE_COMPLIANCE_REPORT | CONTROL_COMPLIANCE_REPORT | BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
         },
         "CreationTime":{
           "shape":"timestamp",
@@ -4080,7 +4193,7 @@
         },
         "ReportSetting":{
           "shape":"ReportSetting",
-          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
+          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>RESOURCE_COMPLIANCE_REPORT | CONTROL_COMPLIANCE_REPORT | BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p> <p>If the report template is <code>RESOURCE_COMPLIANCE_REPORT</code> or <code>CONTROL_COMPLIANCE_REPORT</code>, this API resource also describes the report coverage by Amazon Web Services Regions and frameworks.</p>"
         },
         "ReportDeliveryChannel":{
           "shape":"ReportDeliveryChannel",
@@ -4127,7 +4240,15 @@
       "members":{
         "ReportTemplate":{
           "shape":"string",
-          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
+          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>RESOURCE_COMPLIANCE_REPORT | CONTROL_COMPLIANCE_REPORT | BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
+        },
+        "FrameworkArns":{
+          "shape":"stringList",
+          "documentation":"<p>The Amazon Resource Names (ARNs) of the frameworks a report covers.</p>"
+        },
+        "NumberOfFrameworks":{
+          "shape":"integer",
+          "documentation":"<p>The number of frameworks a report covers.</p>"
         }
       },
       "documentation":"<p>Contains detailed information about a report setting.</p>"
@@ -4675,7 +4796,7 @@
         },
         "ReportSetting":{
           "shape":"ReportSetting",
-          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p>"
+          "documentation":"<p>Identifies the report template for the report. Reports are built using a report template. The report templates are:</p> <p> <code>RESOURCE_COMPLIANCE_REPORT | CONTROL_COMPLIANCE_REPORT | BACKUP_JOB_REPORT | COPY_JOB_REPORT | RESTORE_JOB_REPORT</code> </p> <p>If the report template is <code>RESOURCE_COMPLIANCE_REPORT</code> or <code>CONTROL_COMPLIANCE_REPORT</code>, this API resource also describes the report coverage by Amazon Web Services Regions and frameworks.</p>"
         },
         "IdempotencyToken":{
           "shape":"string",

@@ -10,7 +10,7 @@ jobs:
     name: Stale issue job
     runs-on: ubuntu-latest
     steps:
-    - uses: aws-actions/stale-issue-cleanup@v3
+    - uses: aws-actions/stale-issue-cleanup@v4
       with:
         # Setting messages to an empty string will cause the automation to skip
         # that category
@@ -18,20 +18,20 @@ jobs:
           attention as it deserves. We encourage you to check if this is still an issue in
           the latest release and if you find that this is still a problem, please feel free
           to provide a comment or open a new issue.
-        stale-issue-message: It looks like this issue hasn’t been active in longer than a week.
+        stale-issue-message: It looks like this issue has not been active for more than five days.
           In the absence of more information, we will be closing this issue soon. If you find
           that this is still a problem, please add a comment to prevent automatic closure, or
           if the issue is already closed please feel free to reopen it.
-        stale-pr-message: It looks like this PR hasn’t been active in longer than a week. In
+        stale-pr-message: It looks like this PR has not been active for more than five days. In
           the absence of more information, we will be closing this PR soon. Please add a
           comment to prevent automatic closure, or if the PR is already closed please feel
           free to open a new one.
 
         # These labels are required
         stale-issue-label: closing-soon
-        exempt-issue-label: no-auto-closure
+        exempt-issue-labels: no-auto-closure, feature-request, bug
         stale-pr-label: closing-soon
-        exempt-pr-label: no-auto-closure
+        exempt-pr-labels: no-auto-closure
         response-requested-label: response-requested
 
         # Don't set closed-for-staleness label to skip closing very old issues
@@ -39,8 +39,8 @@ jobs:
         closed-for-staleness-label: closed-for-staleness
 
         # Issue timing
-        days-before-stale: 7
-        days-before-close: 4
+        days-before-stale: 5
+        days-before-close: 2
         days-before-ancient: 1095
 
         # If you don't want to mark a issue as being ancient based on a

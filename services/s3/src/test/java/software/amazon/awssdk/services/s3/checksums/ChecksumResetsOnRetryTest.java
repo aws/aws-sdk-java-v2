@@ -53,8 +53,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
  */
 public class ChecksumResetsOnRetryTest {
     @Rule
-    public WireMockRule mockServer = new WireMockRule(new WireMockConfiguration().port(0)
-                                                                                 .notifier(new ConsoleNotifier(true)));
+    public WireMockRule mockServer = new WireMockRule(new WireMockConfiguration().port(0));
 
     private S3Client s3Client;
 

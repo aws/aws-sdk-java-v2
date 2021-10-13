@@ -298,7 +298,7 @@
       },
       "input":{"shape":"AttachVpnGatewayRequest"},
       "output":{"shape":"AttachVpnGatewayResult"},
-      "documentation":"<p>Attaches a virtual private gateway to a VPC. You can attach one virtual private gateway to one VPC at a time.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">AWS Site-to-Site VPN</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p>"
+      "documentation":"<p>Attaches a virtual private gateway to a VPC. You can attach one virtual private gateway to one VPC at a time.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">Amazon Web Services Site-to-Site VPN</a> in the <i>Amazon Web Services Site-to-Site VPN User Guide</i>.</p>"
     },
     "AuthorizeClientVpnIngress":{
       "name":"AuthorizeClientVpnIngress",
@@ -308,7 +308,7 @@
       },
       "input":{"shape":"AuthorizeClientVpnIngressRequest"},
       "output":{"shape":"AuthorizeClientVpnIngressResult"},
-      "documentation":"<p>Adds an ingress authorization rule to a Client VPN endpoint. Ingress authorization rules act as firewall rules that grant access to networks. You must configure ingress authorization rules to enable clients to access resources in AWS or on-premises networks.</p>"
+      "documentation":"<p>Adds an ingress authorization rule to a Client VPN endpoint. Ingress authorization rules act as firewall rules that grant access to networks. You must configure ingress authorization rules to enable clients to access resources in Amazon Web Services or on-premises networks.</p>"
     },
     "AuthorizeSecurityGroupEgress":{
       "name":"AuthorizeSecurityGroupEgress",
@@ -359,6 +359,16 @@
       "input":{"shape":"CancelCapacityReservationRequest"},
       "output":{"shape":"CancelCapacityReservationResult"},
       "documentation":"<p>Cancels the specified Capacity Reservation, releases the reserved capacity, and changes the Capacity Reservation's state to <code>cancelled</code>.</p> <p>Instances running in the reserved capacity continue running until you stop them. Stopped instances that target the Capacity Reservation can no longer launch. Modify these instances to either target a different Capacity Reservation, launch On-Demand Instance capacity, or run in any open Capacity Reservation that has matching attributes and sufficient capacity.</p>"
+    },
+    "CancelCapacityReservationFleets":{
+      "name":"CancelCapacityReservationFleets",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CancelCapacityReservationFleetsRequest"},
+      "output":{"shape":"CancelCapacityReservationFleetsResult"},
+      "documentation":"<p>Cancels one or more Capacity Reservation Fleets. When you cancel a Capacity Reservation Fleet, the following happens:</p> <ul> <li> <p>The Capacity Reservation Fleet's status changes to <code>cancelled</code>.</p> </li> <li> <p>The individual Capacity Reservations in the Fleet are cancelled. Instances running in the Capacity Reservations at the time of cancelling the Fleet continue to run in shared capacity.</p> </li> <li> <p>The Fleet stops creating new Capacity Reservations.</p> </li> </ul>"
     },
     "CancelConversionTask":{
       "name":"CancelConversionTask",
@@ -468,6 +478,16 @@
       "output":{"shape":"CreateCapacityReservationResult"},
       "documentation":"<p>Creates a new Capacity Reservation with the specified attributes.</p> <p>Capacity Reservations enable you to reserve capacity for your Amazon EC2 instances in a specific Availability Zone for any duration. This gives you the flexibility to selectively add capacity reservations and still get the Regional RI discounts for that usage. By creating Capacity Reservations, you ensure that you always have access to Amazon EC2 capacity when you need it, for as long as you need it. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-reservations.html\">Capacity Reservations</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>Your request to create a Capacity Reservation could fail if Amazon EC2 does not have sufficient capacity to fulfill the request. If your request fails due to Amazon EC2 capacity constraints, either try again at a later time, try in a different Availability Zone, or request a smaller capacity reservation. If your application is flexible across instance types and sizes, try to create a Capacity Reservation with different instance attributes.</p> <p>Your request could also fail if the requested quantity exceeds your On-Demand Instance limit for the selected instance type. If your request fails due to limit constraints, increase your On-Demand Instance limit for the required instance type and try again. For more information about increasing your instance limits, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-resource-limits.html\">Amazon EC2 Service Quotas</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
+    "CreateCapacityReservationFleet":{
+      "name":"CreateCapacityReservationFleet",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateCapacityReservationFleetRequest"},
+      "output":{"shape":"CreateCapacityReservationFleetResult"},
+      "documentation":"<p>Creates a Capacity Reservation Fleet. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/work-with-cr-fleets.html#create-crfleet\">Create a Capacity Reservation Fleet</a> in the Amazon EC2 User Guide.</p>"
+    },
     "CreateCarrierGateway":{
       "name":"CreateCarrierGateway",
       "http":{
@@ -506,7 +526,7 @@
       },
       "input":{"shape":"CreateCustomerGatewayRequest"},
       "output":{"shape":"CreateCustomerGatewayResult"},
-      "documentation":"<p>Provides information to AWS about your VPN customer gateway device. The customer gateway is the appliance at your end of the VPN connection. (The device on the AWS side of the VPN connection is the virtual private gateway.) You must provide the internet-routable IP address of the customer gateway's external interface. The IP address must be static and can be behind a device performing network address translation (NAT).</p> <p>For devices that use Border Gateway Protocol (BGP), you can also provide the device's BGP Autonomous System Number (ASN). You can use an existing ASN assigned to your network. If you don't have an ASN already, you can use a private ASN (in the 64512 - 65534 range).</p> <note> <p>Amazon EC2 supports all 4-byte ASN numbers in the range of 1 - 2147483647, with the exception of the following:</p> <ul> <li> <p>7224 - reserved in the <code>us-east-1</code> Region</p> </li> <li> <p>9059 - reserved in the <code>eu-west-1</code> Region</p> </li> <li> <p>17943 - reserved in the <code>ap-southeast-1</code> Region</p> </li> <li> <p>10124 - reserved in the <code>ap-northeast-1</code> Region</p> </li> </ul> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">AWS Site-to-Site VPN</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p> <important> <p>To create more than one customer gateway with the same VPN type, IP address, and BGP ASN, specify a unique device name for each customer gateway. Identical requests return information about the existing customer gateway and do not create new customer gateways.</p> </important>"
+      "documentation":"<p>Provides information to Amazon Web Services about your VPN customer gateway device. The customer gateway is the appliance at your end of the VPN connection. (The device on the Amazon Web Services side of the VPN connection is the virtual private gateway.) You must provide the internet-routable IP address of the customer gateway's external interface. The IP address must be static and can be behind a device performing network address translation (NAT).</p> <p>For devices that use Border Gateway Protocol (BGP), you can also provide the device's BGP Autonomous System Number (ASN). You can use an existing ASN assigned to your network. If you don't have an ASN already, you can use a private ASN (in the 64512 - 65534 range).</p> <note> <p>Amazon EC2 supports all 4-byte ASN numbers in the range of 1 - 2147483647, with the exception of the following:</p> <ul> <li> <p>7224 - reserved in the <code>us-east-1</code> Region</p> </li> <li> <p>9059 - reserved in the <code>eu-west-1</code> Region</p> </li> <li> <p>17943 - reserved in the <code>ap-southeast-1</code> Region</p> </li> <li> <p>10124 - reserved in the <code>ap-northeast-1</code> Region</p> </li> </ul> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">Amazon Web Services Site-to-Site VPN</a> in the <i>Amazon Web Services Site-to-Site VPN User Guide</i>.</p> <important> <p>To create more than one customer gateway with the same VPN type, IP address, and BGP ASN, specify a unique device name for each customer gateway. Identical requests return information about the existing customer gateway and do not create new customer gateways.</p> </important>"
     },
     "CreateDefaultSubnet":{
       "name":"CreateDefaultSubnet",
@@ -576,7 +596,7 @@
       },
       "input":{"shape":"CreateFpgaImageRequest"},
       "output":{"shape":"CreateFpgaImageResult"},
-      "documentation":"<p>Creates an Amazon FPGA Image (AFI) from the specified design checkpoint (DCP).</p> <p>The create operation is asynchronous. To verify that the AFI is ready for use, check the output logs.</p> <p>An AFI contains the FPGA bitstream that is ready to download to an FPGA. You can securely deploy an AFI on multiple FPGA-accelerated instances. For more information, see the <a href=\"https://github.com/aws/aws-fpga/\">AWS FPGA Hardware Development Kit</a>.</p>"
+      "documentation":"<p>Creates an Amazon FPGA Image (AFI) from the specified design checkpoint (DCP).</p> <p>The create operation is asynchronous. To verify that the AFI is ready for use, check the output logs.</p> <p>An AFI contains the FPGA bitstream that is ready to download to an FPGA. You can securely deploy an AFI on multiple FPGA-accelerated instances. For more information, see the <a href=\"https://github.com/aws/aws-fpga/\">Amazon Web Services FPGA Hardware Development Kit</a>.</p>"
     },
     "CreateImage":{
       "name":"CreateImage",
@@ -636,7 +656,7 @@
       },
       "input":{"shape":"CreateLaunchTemplateRequest"},
       "output":{"shape":"CreateLaunchTemplateResult"},
-      "documentation":"<p>Creates a launch template. A launch template contains the parameters to launch an instance. When you launch an instance using <a>RunInstances</a>, you can specify a launch template instead of providing the launch parameters in the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html\">Launching an instance from a launch template</a>in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+      "documentation":"<p>Creates a launch template. A launch template contains the parameters to launch an instance. When you launch an instance using <a>RunInstances</a>, you can specify a launch template instead of providing the launch parameters in the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html\">Launching an instance from a launch template</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
     },
     "CreateLaunchTemplateVersion":{
       "name":"CreateLaunchTemplateVersion",
@@ -894,7 +914,7 @@
       },
       "input":{"shape":"CreateTrafficMirrorFilterRuleRequest"},
       "output":{"shape":"CreateTrafficMirrorFilterRuleResult"},
-      "documentation":"<p>Creates a Traffic Mirror filter rule. </p> <p>A Traffic Mirror rule defines the Traffic Mirror source traffic to mirror.</p> <p>You need the Traffic Mirror filter ID when you create the rule.</p>"
+      "documentation":"<p>Creates a Traffic Mirror filter rule.</p> <p>A Traffic Mirror rule defines the Traffic Mirror source traffic to mirror.</p> <p>You need the Traffic Mirror filter ID when you create the rule.</p>"
     },
     "CreateTrafficMirrorSession":{
       "name":"CreateTrafficMirrorSession",
@@ -1034,7 +1054,7 @@
       },
       "input":{"shape":"CreateVpcEndpointRequest"},
       "output":{"shape":"CreateVpcEndpointResult"},
-      "documentation":"<p>Creates a VPC endpoint for a specified service. An endpoint enables you to create a private connection between your VPC and the service. The service may be provided by AWS, an AWS Marketplace Partner, or another AWS account. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html\">VPC Endpoints</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p> <p>A <code>gateway</code> endpoint serves as a target for a route in your route table for traffic destined for the AWS service. You can specify an endpoint policy to attach to the endpoint, which will control access to the service from your VPC. You can also specify the VPC route tables that use the endpoint.</p> <p>An <code>interface</code> endpoint is a network interface in your subnet that serves as an endpoint for communicating with the specified service. You can specify the subnets in which to create an endpoint, and the security groups to associate with the endpoint network interface.</p> <p>A <code>GatewayLoadBalancer</code> endpoint is a network interface in your subnet that serves an endpoint for communicating with a Gateway Load Balancer that you've configured as a VPC endpoint service.</p> <p>Use <a>DescribeVpcEndpointServices</a> to get a list of supported services.</p>"
+      "documentation":"<p>Creates a VPC endpoint for a specified service. An endpoint enables you to create a private connection between your VPC and the service. The service may be provided by Amazon Web Services, an Amazon Web Services Marketplace Partner, or another Amazon Web Services account. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html\">VPC Endpoints</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p> <p>A <code>gateway</code> endpoint serves as a target for a route in your route table for traffic destined for the Amazon Web Service. You can specify an endpoint policy to attach to the endpoint, which will control access to the service from your VPC. You can also specify the VPC route tables that use the endpoint.</p> <p>An <code>interface</code> endpoint is a network interface in your subnet that serves as an endpoint for communicating with the specified service. You can specify the subnets in which to create an endpoint, and the security groups to associate with the endpoint network interface.</p> <p>A <code>GatewayLoadBalancer</code> endpoint is a network interface in your subnet that serves an endpoint for communicating with a Gateway Load Balancer that you've configured as a VPC endpoint service.</p> <p>Use <a>DescribeVpcEndpointServices</a> to get a list of supported services.</p>"
     },
     "CreateVpcEndpointConnectionNotification":{
       "name":"CreateVpcEndpointConnectionNotification",
@@ -1054,7 +1074,7 @@
       },
       "input":{"shape":"CreateVpcEndpointServiceConfigurationRequest"},
       "output":{"shape":"CreateVpcEndpointServiceConfigurationResult"},
-      "documentation":"<p>Creates a VPC endpoint service configuration to which service consumers (AWS accounts, IAM users, and IAM roles) can connect.</p> <p>To create an endpoint service configuration, you must first create one of the following for your service:</p> <ul> <li> <p>A <a href=\"https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html\">Network Load Balancer</a>. Service consumers connect to your service using an interface endpoint.</p> </li> <li> <p>A <a href=\"https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/introduction.html\">Gateway Load Balancer</a>. Service consumers connect to your service using a Gateway Load Balancer endpoint.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-service.html\">VPC Endpoint Services</a> in the <i>Amazon Virtual Private Cloud User Guide</i>. </p> <p>If you set the private DNS name, you must prove that you own the private DNS domain name. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-services-dns-validation.html\">VPC Endpoint Service Private DNS Name Verification</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>"
+      "documentation":"<p>Creates a VPC endpoint service configuration to which service consumers (Amazon Web Services accounts, IAM users, and IAM roles) can connect.</p> <p>To create an endpoint service configuration, you must first create one of the following for your service:</p> <ul> <li> <p>A <a href=\"https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html\">Network Load Balancer</a>. Service consumers connect to your service using an interface endpoint.</p> </li> <li> <p>A <a href=\"https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/introduction.html\">Gateway Load Balancer</a>. Service consumers connect to your service using a Gateway Load Balancer endpoint.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-service.html\">VPC Endpoint Services</a> in the <i>Amazon Virtual Private Cloud User Guide</i>. </p> <p>If you set the private DNS name, you must prove that you own the private DNS domain name. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-services-dns-validation.html\">VPC Endpoint Service Private DNS Name Verification</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>"
     },
     "CreateVpcPeeringConnection":{
       "name":"CreateVpcPeeringConnection",
@@ -1074,7 +1094,7 @@
       },
       "input":{"shape":"CreateVpnConnectionRequest"},
       "output":{"shape":"CreateVpnConnectionResult"},
-      "documentation":"<p>Creates a VPN connection between an existing virtual private gateway or transit gateway and a customer gateway. The supported connection type is <code>ipsec.1</code>.</p> <p>The response includes information that you need to give to your network administrator to configure your customer gateway.</p> <important> <p>We strongly recommend that you use HTTPS when calling this operation because the response contains sensitive cryptographic information for configuring your customer gateway device.</p> </important> <p>If you decide to shut down your VPN connection for any reason and later create a new VPN connection, you must reconfigure your customer gateway with the new information returned from this call.</p> <p>This is an idempotent operation. If you perform the operation more than once, Amazon EC2 doesn't return an error.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">AWS Site-to-Site VPN</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p>"
+      "documentation":"<p>Creates a VPN connection between an existing virtual private gateway or transit gateway and a customer gateway. The supported connection type is <code>ipsec.1</code>.</p> <p>The response includes information that you need to give to your network administrator to configure your customer gateway.</p> <important> <p>We strongly recommend that you use HTTPS when calling this operation because the response contains sensitive cryptographic information for configuring your customer gateway device.</p> </important> <p>If you decide to shut down your VPN connection for any reason and later create a new VPN connection, you must reconfigure your customer gateway with the new information returned from this call.</p> <p>This is an idempotent operation. If you perform the operation more than once, Amazon EC2 doesn't return an error.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">Amazon Web Services Site-to-Site VPN</a> in the <i>Amazon Web Services Site-to-Site VPN User Guide</i>.</p>"
     },
     "CreateVpnConnectionRoute":{
       "name":"CreateVpnConnectionRoute",
@@ -1083,7 +1103,7 @@
         "requestUri":"/"
       },
       "input":{"shape":"CreateVpnConnectionRouteRequest"},
-      "documentation":"<p>Creates a static route associated with a VPN connection between an existing virtual private gateway and a VPN customer gateway. The static route allows traffic to be routed from the virtual private gateway to the VPN customer gateway.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">AWS Site-to-Site VPN</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p>"
+      "documentation":"<p>Creates a static route associated with a VPN connection between an existing virtual private gateway and a VPN customer gateway. The static route allows traffic to be routed from the virtual private gateway to the VPN customer gateway.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">Amazon Web Services Site-to-Site VPN</a> in the <i>Amazon Web Services Site-to-Site VPN User Guide</i>.</p>"
     },
     "CreateVpnGateway":{
       "name":"CreateVpnGateway",
@@ -1093,7 +1113,7 @@
       },
       "input":{"shape":"CreateVpnGatewayRequest"},
       "output":{"shape":"CreateVpnGatewayResult"},
-      "documentation":"<p>Creates a virtual private gateway. A virtual private gateway is the endpoint on the VPC side of your VPN connection. You can create a virtual private gateway before creating the VPC itself.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">AWS Site-to-Site VPN</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p>"
+      "documentation":"<p>Creates a virtual private gateway. A virtual private gateway is the endpoint on the VPC side of your VPN connection. You can create a virtual private gateway before creating the VPC itself.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">Amazon Web Services Site-to-Site VPN</a> in the <i>Amazon Web Services Site-to-Site VPN User Guide</i>.</p>"
     },
     "DeleteCarrierGateway":{
       "name":"DeleteCarrierGateway",
@@ -1615,7 +1635,7 @@
         "requestUri":"/"
       },
       "input":{"shape":"DeleteVpnConnectionRequest"},
-      "documentation":"<p>Deletes the specified VPN connection.</p> <p>If you're deleting the VPC and its associated components, we recommend that you detach the virtual private gateway from the VPC and delete the VPC before deleting the VPN connection. If you believe that the tunnel credentials for your VPN connection have been compromised, you can delete the VPN connection and create a new one that has new keys, without needing to delete the VPC or virtual private gateway. If you create a new VPN connection, you must reconfigure the customer gateway device using the new configuration information returned with the new VPN connection ID.</p> <p>For certificate-based authentication, delete all AWS Certificate Manager (ACM) private certificates used for the AWS-side tunnel endpoints for the VPN connection before deleting the VPN connection.</p>"
+      "documentation":"<p>Deletes the specified VPN connection.</p> <p>If you're deleting the VPC and its associated components, we recommend that you detach the virtual private gateway from the VPC and delete the VPC before deleting the VPN connection. If you believe that the tunnel credentials for your VPN connection have been compromised, you can delete the VPN connection and create a new one that has new keys, without needing to delete the VPC or virtual private gateway. If you create a new VPN connection, you must reconfigure the customer gateway device using the new configuration information returned with the new VPN connection ID.</p> <p>For certificate-based authentication, delete all Certificate Manager (ACM) private certificates used for the Amazon Web Services-side tunnel endpoints for the VPN connection before deleting the VPN connection.</p>"
     },
     "DeleteVpnConnectionRoute":{
       "name":"DeleteVpnConnectionRoute",
@@ -1732,7 +1752,7 @@
       },
       "input":{"shape":"DescribeAvailabilityZonesRequest"},
       "output":{"shape":"DescribeAvailabilityZonesResult"},
-      "documentation":"<p>Describes the Availability Zones, Local Zones, and Wavelength Zones that are available to you. If there is an event impacting a zone, you can use this request to view the state and any provided messages for that zone.</p> <p>For more information about Availability Zones, Local Zones, and Wavelength Zones, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html\">Regions, Zones and Outposts</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+      "documentation":"<p>Describes the Availability Zones, Local Zones, and Wavelength Zones that are available to you. If there is an event impacting a zone, you can use this request to view the state and any provided messages for that zone.</p> <p>For more information about Availability Zones, Local Zones, and Wavelength Zones, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html\">Regions and zones</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
     },
     "DescribeBundleTasks":{
       "name":"DescribeBundleTasks",
@@ -1753,6 +1773,16 @@
       "input":{"shape":"DescribeByoipCidrsRequest"},
       "output":{"shape":"DescribeByoipCidrsResult"},
       "documentation":"<p>Describes the IP address ranges that were specified in calls to <a>ProvisionByoipCidr</a>.</p> <p>To describe the address pools that were created when you provisioned the address ranges, use <a>DescribePublicIpv4Pools</a> or <a>DescribeIpv6Pools</a>.</p>"
+    },
+    "DescribeCapacityReservationFleets":{
+      "name":"DescribeCapacityReservationFleets",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeCapacityReservationFleetsRequest"},
+      "output":{"shape":"DescribeCapacityReservationFleetsResult"},
+      "documentation":"<p>Describes one or more Capacity Reservation Fleets.</p>"
     },
     "DescribeCapacityReservations":{
       "name":"DescribeCapacityReservations",
@@ -1862,7 +1892,7 @@
       },
       "input":{"shape":"DescribeCustomerGatewaysRequest"},
       "output":{"shape":"DescribeCustomerGatewaysResult"},
-      "documentation":"<p>Describes one or more of your VPN customer gateways.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">AWS Site-to-Site VPN</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p>"
+      "documentation":"<p>Describes one or more of your VPN customer gateways.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">Amazon Web Services Site-to-Site VPN</a> in the <i>Amazon Web Services Site-to-Site VPN User Guide</i>.</p>"
     },
     "DescribeDhcpOptions":{
       "name":"DescribeDhcpOptions",
@@ -1932,7 +1962,7 @@
       },
       "input":{"shape":"DescribeFleetHistoryRequest"},
       "output":{"shape":"DescribeFleetHistoryResult"},
-      "documentation":"<p>Describes the events for the specified EC2 Fleet during the specified time.</p> <p>EC2 Fleet events are delayed by up to 30 seconds before they can be described. This ensures that you can query by the last evaluated time and not miss a recorded event. EC2 Fleet events are available for 48 hours.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet.html#monitor-ec2-fleet\">Monitoring your EC2 Fleet</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Describes the events for the specified EC2 Fleet during the specified time.</p> <p>EC2 Fleet events are delayed by up to 30 seconds before they can be described. This ensures that you can query by the last evaluated time and not miss a recorded event. EC2 Fleet events are available for 48 hours.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/fleet-monitor.html\">Monitor fleet events using Amazon EventBridge</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "DescribeFleetInstances":{
       "name":"DescribeFleetInstances",
@@ -1982,7 +2012,7 @@
       },
       "input":{"shape":"DescribeFpgaImagesRequest"},
       "output":{"shape":"DescribeFpgaImagesResult"},
-      "documentation":"<p>Describes the Amazon FPGA Images (AFIs) available to you. These include public AFIs, private AFIs that you own, and AFIs owned by other AWS accounts for which you have load permissions.</p>"
+      "documentation":"<p>Describes the Amazon FPGA Images (AFIs) available to you. These include public AFIs, private AFIs that you own, and AFIs owned by other Amazon Web Services accounts for which you have load permissions.</p>"
     },
     "DescribeHostReservationOfferings":{
       "name":"DescribeHostReservationOfferings",
@@ -2032,7 +2062,7 @@
       },
       "input":{"shape":"DescribeIdFormatRequest"},
       "output":{"shape":"DescribeIdFormatResult"},
-      "documentation":"<p>Describes the ID format settings for your resources on a per-Region basis, for example, to view which resource types are enabled for longer IDs. This request only returns information about resource types whose ID formats can be modified; it does not return information about other resource types.</p> <p>The following resource types support longer IDs: <code>bundle</code> | <code>conversion-task</code> | <code>customer-gateway</code> | <code>dhcp-options</code> | <code>elastic-ip-allocation</code> | <code>elastic-ip-association</code> | <code>export-task</code> | <code>flow-log</code> | <code>image</code> | <code>import-task</code> | <code>instance</code> | <code>internet-gateway</code> | <code>network-acl</code> | <code>network-acl-association</code> | <code>network-interface</code> | <code>network-interface-attachment</code> | <code>prefix-list</code> | <code>reservation</code> | <code>route-table</code> | <code>route-table-association</code> | <code>security-group</code> | <code>snapshot</code> | <code>subnet</code> | <code>subnet-cidr-block-association</code> | <code>volume</code> | <code>vpc</code> | <code>vpc-cidr-block-association</code> | <code>vpc-endpoint</code> | <code>vpc-peering-connection</code> | <code>vpn-connection</code> | <code>vpn-gateway</code>. </p> <p>These settings apply to the IAM user who makes the request; they do not apply to the entire AWS account. By default, an IAM user defaults to the same settings as the root user, unless they explicitly override the settings by running the <a>ModifyIdFormat</a> command. Resources created with longer IDs are visible to all IAM users, regardless of these settings and provided that they have permission to use the relevant <code>Describe</code> command for the resource type.</p>"
+      "documentation":"<p>Describes the ID format settings for your resources on a per-Region basis, for example, to view which resource types are enabled for longer IDs. This request only returns information about resource types whose ID formats can be modified; it does not return information about other resource types.</p> <p>The following resource types support longer IDs: <code>bundle</code> | <code>conversion-task</code> | <code>customer-gateway</code> | <code>dhcp-options</code> | <code>elastic-ip-allocation</code> | <code>elastic-ip-association</code> | <code>export-task</code> | <code>flow-log</code> | <code>image</code> | <code>import-task</code> | <code>instance</code> | <code>internet-gateway</code> | <code>network-acl</code> | <code>network-acl-association</code> | <code>network-interface</code> | <code>network-interface-attachment</code> | <code>prefix-list</code> | <code>reservation</code> | <code>route-table</code> | <code>route-table-association</code> | <code>security-group</code> | <code>snapshot</code> | <code>subnet</code> | <code>subnet-cidr-block-association</code> | <code>volume</code> | <code>vpc</code> | <code>vpc-cidr-block-association</code> | <code>vpc-endpoint</code> | <code>vpc-peering-connection</code> | <code>vpn-connection</code> | <code>vpn-gateway</code>. </p> <p>These settings apply to the IAM user who makes the request; they do not apply to the entire Amazon Web Services account. By default, an IAM user defaults to the same settings as the root user, unless they explicitly override the settings by running the <a>ModifyIdFormat</a> command. Resources created with longer IDs are visible to all IAM users, regardless of these settings and provided that they have permission to use the relevant <code>Describe</code> command for the resource type.</p>"
     },
     "DescribeIdentityIdFormat":{
       "name":"DescribeIdentityIdFormat",
@@ -2412,7 +2442,7 @@
       },
       "input":{"shape":"DescribeRegionsRequest"},
       "output":{"shape":"DescribeRegionsResult"},
-      "documentation":"<p>Describes the Regions that are enabled for your account, or all Regions.</p> <p>For a list of the Regions supported by Amazon EC2, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande.html#ec2_region\"> Regions and Endpoints</a>.</p> <p>For information about enabling and disabling Regions for your account, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande-manage.html\">Managing AWS Regions</a> in the <i>AWS General Reference</i>.</p>"
+      "documentation":"<p>Describes the Regions that are enabled for your account, or all Regions.</p> <p>For a list of the Regions supported by Amazon EC2, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/ec2-service.html\"> Amazon Elastic Compute Cloud endpoints and quotas</a>.</p> <p>For information about enabling and disabling Regions for your account, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande-manage.html\">Managing Amazon Web Services Regions</a> in the <i>Amazon Web Services General Reference</i>.</p>"
     },
     "DescribeReplaceRootVolumeTasks":{
       "name":"DescribeReplaceRootVolumeTasks",
@@ -2572,7 +2602,7 @@
       },
       "input":{"shape":"DescribeSpotFleetRequestHistoryRequest"},
       "output":{"shape":"DescribeSpotFleetRequestHistoryResponse"},
-      "documentation":"<p>Describes the events for the specified Spot Fleet request during the specified time.</p> <p>Spot Fleet events are delayed by up to 30 seconds before they can be described. This ensures that you can query by the last evaluated time and not miss a recorded event. Spot Fleet events are available for 48 hours.</p>"
+      "documentation":"<p>Describes the events for the specified Spot Fleet request during the specified time.</p> <p>Spot Fleet events are delayed by up to 30 seconds before they can be described. This ensures that you can query by the last evaluated time and not miss a recorded event. Spot Fleet events are available for 48 hours.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/fleet-monitor.html\">Monitor fleet events using Amazon EventBridge</a> in the <i>Amazon EC2 User Guide for Linux Instances</i>.</p>"
     },
     "DescribeSpotFleetRequests":{
       "name":"DescribeSpotFleetRequests",
@@ -2922,7 +2952,7 @@
       },
       "input":{"shape":"DescribeVpnConnectionsRequest"},
       "output":{"shape":"DescribeVpnConnectionsResult"},
-      "documentation":"<p>Describes one or more of your VPN connections.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">AWS Site-to-Site VPN</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p>"
+      "documentation":"<p>Describes one or more of your VPN connections.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">Amazon Web Services Site-to-Site VPN</a> in the <i>Amazon Web Services Site-to-Site VPN User Guide</i>.</p>"
     },
     "DescribeVpnGateways":{
       "name":"DescribeVpnGateways",
@@ -2932,7 +2962,7 @@
       },
       "input":{"shape":"DescribeVpnGatewaysRequest"},
       "output":{"shape":"DescribeVpnGatewaysResult"},
-      "documentation":"<p>Describes one or more of your virtual private gateways.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">AWS Site-to-Site VPN</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p>"
+      "documentation":"<p>Describes one or more of your virtual private gateways.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">Amazon Web Services Site-to-Site VPN</a> in the <i>Amazon Web Services Site-to-Site VPN User Guide</i>.</p>"
     },
     "DetachClassicLinkVpc":{
       "name":"DetachClassicLinkVpc",
@@ -3536,6 +3566,26 @@
       "output":{"shape":"GetTransitGatewayRouteTablePropagationsResult"},
       "documentation":"<p>Gets information about the route table propagations for the specified transit gateway route table.</p>"
     },
+    "GetVpnConnectionDeviceSampleConfiguration":{
+      "name":"GetVpnConnectionDeviceSampleConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetVpnConnectionDeviceSampleConfigurationRequest"},
+      "output":{"shape":"GetVpnConnectionDeviceSampleConfigurationResult"},
+      "documentation":"<p>Download an Amazon Web Services-provided sample configuration file to be used with the customer gateway device specified for your Site-to-Site VPN connection.</p>"
+    },
+    "GetVpnConnectionDeviceTypes":{
+      "name":"GetVpnConnectionDeviceTypes",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetVpnConnectionDeviceTypesRequest"},
+      "output":{"shape":"GetVpnConnectionDeviceTypesResult"},
+      "documentation":"<p>Obtain a list of customer gateway devices for which sample configuration files can be provided. The request has no additional parameters. You can also see the list of device types with sample configuration files available under <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/your-cgw.html\">Your customer gateway device</a> in the <i>Amazon Web Services Site-to-Site VPN User Guide</i>.</p>"
+    },
     "ImportClientVpnClientCertificateRevocationList":{
       "name":"ImportClientVpnClientCertificateRevocationList",
       "http":{
@@ -3626,6 +3676,16 @@
       "output":{"shape":"ModifyCapacityReservationResult"},
       "documentation":"<p>Modifies a Capacity Reservation's capacity and the conditions under which it is to be released. You cannot change a Capacity Reservation's instance type, EBS optimization, instance store settings, platform, Availability Zone, or instance eligibility. If you need to modify any of these attributes, we recommend that you cancel the Capacity Reservation, and then create a new one with the required attributes.</p>"
     },
+    "ModifyCapacityReservationFleet":{
+      "name":"ModifyCapacityReservationFleet",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ModifyCapacityReservationFleetRequest"},
+      "output":{"shape":"ModifyCapacityReservationFleetResult"},
+      "documentation":"<p>Modifies a Capacity Reservation Fleet.</p> <p>When you modify the total target capacity of a Capacity Reservation Fleet, the Fleet automatically creates new Capacity Reservations, or modifies or cancels existing Capacity Reservations in the Fleet to meet the new total target capacity. When you modify the end date for the Fleet, the end dates for all of the individual Capacity Reservations in the Fleet are updated accordingly.</p>"
+    },
     "ModifyClientVpnEndpoint":{
       "name":"ModifyClientVpnEndpoint",
       "http":{
@@ -3693,7 +3753,7 @@
         "requestUri":"/"
       },
       "input":{"shape":"ModifyIdFormatRequest"},
-      "documentation":"<p>Modifies the ID format for the specified resource on a per-Region basis. You can specify that resources should receive longer IDs (17-character IDs) when they are created.</p> <p>This request can only be used to modify longer ID settings for resource types that are within the opt-in period. Resources currently in their opt-in period include: <code>bundle</code> | <code>conversion-task</code> | <code>customer-gateway</code> | <code>dhcp-options</code> | <code>elastic-ip-allocation</code> | <code>elastic-ip-association</code> | <code>export-task</code> | <code>flow-log</code> | <code>image</code> | <code>import-task</code> | <code>internet-gateway</code> | <code>network-acl</code> | <code>network-acl-association</code> | <code>network-interface</code> | <code>network-interface-attachment</code> | <code>prefix-list</code> | <code>route-table</code> | <code>route-table-association</code> | <code>security-group</code> | <code>subnet</code> | <code>subnet-cidr-block-association</code> | <code>vpc</code> | <code>vpc-cidr-block-association</code> | <code>vpc-endpoint</code> | <code>vpc-peering-connection</code> | <code>vpn-connection</code> | <code>vpn-gateway</code>.</p> <p>This setting applies to the IAM user who makes the request; it does not apply to the entire AWS account. By default, an IAM user defaults to the same settings as the root user. If you're using this action as the root user, then these settings apply to the entire account, unless an IAM user explicitly overrides these settings for themselves. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/resource-ids.html\">Resource IDs</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>Resources created with longer IDs are visible to all IAM roles and users, regardless of these settings and provided that they have permission to use the relevant <code>Describe</code> command for the resource type.</p>"
+      "documentation":"<p>Modifies the ID format for the specified resource on a per-Region basis. You can specify that resources should receive longer IDs (17-character IDs) when they are created.</p> <p>This request can only be used to modify longer ID settings for resource types that are within the opt-in period. Resources currently in their opt-in period include: <code>bundle</code> | <code>conversion-task</code> | <code>customer-gateway</code> | <code>dhcp-options</code> | <code>elastic-ip-allocation</code> | <code>elastic-ip-association</code> | <code>export-task</code> | <code>flow-log</code> | <code>image</code> | <code>import-task</code> | <code>internet-gateway</code> | <code>network-acl</code> | <code>network-acl-association</code> | <code>network-interface</code> | <code>network-interface-attachment</code> | <code>prefix-list</code> | <code>route-table</code> | <code>route-table-association</code> | <code>security-group</code> | <code>subnet</code> | <code>subnet-cidr-block-association</code> | <code>vpc</code> | <code>vpc-cidr-block-association</code> | <code>vpc-endpoint</code> | <code>vpc-peering-connection</code> | <code>vpn-connection</code> | <code>vpn-gateway</code>.</p> <p>This setting applies to the IAM user who makes the request; it does not apply to the entire Amazon Web Services account. By default, an IAM user defaults to the same settings as the root user. If you're using this action as the root user, then these settings apply to the entire account, unless an IAM user explicitly overrides these settings for themselves. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/resource-ids.html\">Resource IDs</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>Resources created with longer IDs are visible to all IAM roles and users, regardless of these settings and provided that they have permission to use the relevant <code>Describe</code> command for the resource type.</p>"
     },
     "ModifyIdentityIdFormat":{
       "name":"ModifyIdentityIdFormat",
@@ -3780,7 +3840,7 @@
       },
       "input":{"shape":"ModifyInstancePlacementRequest"},
       "output":{"shape":"ModifyInstancePlacementResult"},
-      "documentation":"<p>Modifies the placement attributes for a specified instance. You can do the following:</p> <ul> <li> <p>Modify the affinity between an instance and a <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-overview.html\">Dedicated Host</a>. When affinity is set to <code>host</code> and the instance is not associated with a specific Dedicated Host, the next time the instance is launched, it is automatically associated with the host on which it lands. If the instance is restarted or rebooted, this relationship persists.</p> </li> <li> <p>Change the Dedicated Host with which an instance is associated.</p> </li> <li> <p>Change the instance tenancy of an instance from <code>host</code> to <code>dedicated</code>, or from <code>dedicated</code> to <code>host</code>.</p> </li> <li> <p>Move an instance to or from a <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html\">placement group</a>.</p> </li> </ul> <p>At least one attribute for affinity, host ID, tenancy, or placement group name must be specified in the request. Affinity and tenancy can be modified in the same request.</p> <p>To modify the host ID, tenancy, placement group, or partition for an instance, the instance must be in the <code>stopped</code> state.</p>"
+      "documentation":"<p>Modifies the placement attributes for a specified instance. You can do the following:</p> <ul> <li> <p>Modify the affinity between an instance and a <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-overview.html\">Dedicated Host</a>. When affinity is set to <code>host</code> and the instance is not associated with a specific Dedicated Host, the next time the instance is launched, it is automatically associated with the host on which it lands. If the instance is restarted or rebooted, this relationship persists.</p> </li> <li> <p>Change the Dedicated Host with which an instance is associated.</p> </li> <li> <p>Change the instance tenancy of an instance.</p> </li> <li> <p>Move an instance to or from a <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html\">placement group</a>.</p> </li> </ul> <p>At least one attribute for affinity, host ID, tenancy, or placement group name must be specified in the request. Affinity and tenancy can be modified in the same request.</p> <p>To modify the host ID, tenancy, placement group, or partition for an instance, the instance must be in the <code>stopped</code> state.</p>"
     },
     "ModifyLaunchTemplate":{
       "name":"ModifyLaunchTemplate",
@@ -3867,7 +3927,7 @@
       },
       "input":{"shape":"ModifyTrafficMirrorFilterNetworkServicesRequest"},
       "output":{"shape":"ModifyTrafficMirrorFilterNetworkServicesResult"},
-      "documentation":"<p>Allows or restricts mirroring network services.</p> <p> By default, Amazon DNS network services are not eligible for Traffic Mirror. Use <code>AddNetworkServices</code> to add network services to a Traffic Mirror filter. When a network service is added to the Traffic Mirror filter, all traffic related to that network service will be mirrored. When you no longer want to mirror network services, use <code>RemoveNetworkServices</code> to remove the network services from the Traffic Mirror filter. </p> <p>For information about filter rule properties, see <a href=\"https://docs.aws.amazon.com/vpc/latest/mirroring/traffic-mirroring-considerations.html\">Network Services</a> in the <i>Traffic Mirroring User Guide </i>.</p>"
+      "documentation":"<p>Allows or restricts mirroring network services.</p> <p> By default, Amazon DNS network services are not eligible for Traffic Mirror. Use <code>AddNetworkServices</code> to add network services to a Traffic Mirror filter. When a network service is added to the Traffic Mirror filter, all traffic related to that network service will be mirrored. When you no longer want to mirror network services, use <code>RemoveNetworkServices</code> to remove the network services from the Traffic Mirror filter. </p>"
     },
     "ModifyTrafficMirrorFilterRule":{
       "name":"ModifyTrafficMirrorFilterRule",
@@ -3985,7 +4045,7 @@
       },
       "input":{"shape":"ModifyVpcEndpointServicePermissionsRequest"},
       "output":{"shape":"ModifyVpcEndpointServicePermissionsResult"},
-      "documentation":"<p>Modifies the permissions for your <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-service.html\">VPC endpoint service</a>. You can add or remove permissions for service consumers (IAM users, IAM roles, and AWS accounts) to connect to your endpoint service.</p> <p>If you grant permissions to all principals, the service is public. Any users who know the name of a public service can send a request to attach an endpoint. If the service does not require manual approval, attachments are automatically approved.</p>"
+      "documentation":"<p>Modifies the permissions for your <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-service.html\">VPC endpoint service</a>. You can add or remove permissions for service consumers (IAM users, IAM roles, and Amazon Web Services accounts) to connect to your endpoint service.</p> <p>If you grant permissions to all principals, the service is public. Any users who know the name of a public service can send a request to attach an endpoint. If the service does not require manual approval, attachments are automatically approved.</p>"
     },
     "ModifyVpcPeeringConnectionOptions":{
       "name":"ModifyVpcPeeringConnectionOptions",
@@ -4015,7 +4075,7 @@
       },
       "input":{"shape":"ModifyVpnConnectionRequest"},
       "output":{"shape":"ModifyVpnConnectionResult"},
-      "documentation":"<p>Modifies the customer gateway or the target gateway of an AWS Site-to-Site VPN connection. To modify the target gateway, the following migration options are available:</p> <ul> <li> <p>An existing virtual private gateway to a new virtual private gateway</p> </li> <li> <p>An existing virtual private gateway to a transit gateway</p> </li> <li> <p>An existing transit gateway to a new transit gateway</p> </li> <li> <p>An existing transit gateway to a virtual private gateway</p> </li> </ul> <p>Before you perform the migration to the new gateway, you must configure the new gateway. Use <a>CreateVpnGateway</a> to create a virtual private gateway, or <a>CreateTransitGateway</a> to create a transit gateway.</p> <p>This step is required when you migrate from a virtual private gateway with static routes to a transit gateway. </p> <p>You must delete the static routes before you migrate to the new gateway.</p> <p>Keep a copy of the static route before you delete it. You will need to add back these routes to the transit gateway after the VPN connection migration is complete.</p> <p>After you migrate to the new gateway, you might need to modify your VPC route table. Use <a>CreateRoute</a> and <a>DeleteRoute</a> to make the changes described in <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/modify-vpn-target.html#step-update-routing\">VPN Gateway Target Modification Required VPC Route Table Updates</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p> <p> When the new gateway is a transit gateway, modify the transit gateway route table to allow traffic between the VPC and the AWS Site-to-Site VPN connection. Use <a>CreateTransitGatewayRoute</a> to add the routes.</p> <p> If you deleted VPN static routes, you must add the static routes to the transit gateway route table.</p> <p>After you perform this operation, the AWS VPN endpoint's IP addresses on the AWS side and the tunnel options remain intact. Your AWS Site-to-Site VPN connection will be temporarily unavailable for a brief period while we provision the new endpoints.</p>"
+      "documentation":"<p>Modifies the customer gateway or the target gateway of an Amazon Web Services Site-to-Site VPN connection. To modify the target gateway, the following migration options are available:</p> <ul> <li> <p>An existing virtual private gateway to a new virtual private gateway</p> </li> <li> <p>An existing virtual private gateway to a transit gateway</p> </li> <li> <p>An existing transit gateway to a new transit gateway</p> </li> <li> <p>An existing transit gateway to a virtual private gateway</p> </li> </ul> <p>Before you perform the migration to the new gateway, you must configure the new gateway. Use <a>CreateVpnGateway</a> to create a virtual private gateway, or <a>CreateTransitGateway</a> to create a transit gateway.</p> <p>This step is required when you migrate from a virtual private gateway with static routes to a transit gateway. </p> <p>You must delete the static routes before you migrate to the new gateway.</p> <p>Keep a copy of the static route before you delete it. You will need to add back these routes to the transit gateway after the VPN connection migration is complete.</p> <p>After you migrate to the new gateway, you might need to modify your VPC route table. Use <a>CreateRoute</a> and <a>DeleteRoute</a> to make the changes described in <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/modify-vpn-target.html#step-update-routing\">Update VPC route tables</a> in the <i>Amazon Web Services Site-to-Site VPN User Guide</i>.</p> <p>When the new gateway is a transit gateway, modify the transit gateway route table to allow traffic between the VPC and the Amazon Web Services Site-to-Site VPN connection. Use <a>CreateTransitGatewayRoute</a> to add the routes.</p> <p> If you deleted VPN static routes, you must add the static routes to the transit gateway route table.</p> <p>After you perform this operation, the VPN endpoint's IP addresses on the Amazon Web Services side and the tunnel options remain intact. Your Amazon Web Services Site-to-Site VPN connection will be temporarily unavailable for a brief period while we provision the new endpoints.</p>"
     },
     "ModifyVpnConnectionOptions":{
       "name":"ModifyVpnConnectionOptions",
@@ -4025,7 +4085,7 @@
       },
       "input":{"shape":"ModifyVpnConnectionOptionsRequest"},
       "output":{"shape":"ModifyVpnConnectionOptionsResult"},
-      "documentation":"<p>Modifies the connection options for your Site-to-Site VPN connection.</p> <p>When you modify the VPN connection options, the VPN endpoint IP addresses on the AWS side do not change, and the tunnel options do not change. Your VPN connection will be temporarily unavailable for a brief period while the VPN connection is updated.</p>"
+      "documentation":"<p>Modifies the connection options for your Site-to-Site VPN connection.</p> <p>When you modify the VPN connection options, the VPN endpoint IP addresses on the Amazon Web Services side do not change, and the tunnel options do not change. Your VPN connection will be temporarily unavailable for a brief period while the VPN connection is updated.</p>"
     },
     "ModifyVpnTunnelCertificate":{
       "name":"ModifyVpnTunnelCertificate",
@@ -4045,7 +4105,7 @@
       },
       "input":{"shape":"ModifyVpnTunnelOptionsRequest"},
       "output":{"shape":"ModifyVpnTunnelOptionsResult"},
-      "documentation":"<p>Modifies the options for a VPN tunnel in an AWS Site-to-Site VPN connection. You can modify multiple options for a tunnel in a single request, but you can only modify one tunnel at a time. For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPNTunnels.html\">Site-to-Site VPN Tunnel Options for Your Site-to-Site VPN Connection</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p>"
+      "documentation":"<p>Modifies the options for a VPN tunnel in an Amazon Web Services Site-to-Site VPN connection. You can modify multiple options for a tunnel in a single request, but you can only modify one tunnel at a time. For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPNTunnels.html\">Site-to-Site VPN tunnel options for your Site-to-Site VPN connection</a> in the <i>Amazon Web Services Site-to-Site VPN User Guide</i>.</p>"
     },
     "MonitorInstances":{
       "name":"MonitorInstances",
@@ -4948,7 +5008,7 @@
         },
         "NetworkBorderGroup":{
           "shape":"String",
-          "documentation":"<p>The name of the unique set of Availability Zones, Local Zones, or Wavelength Zones from which AWS advertises IP addresses. </p>",
+          "documentation":"<p>The name of the unique set of Availability Zones, Local Zones, or Wavelength Zones from which Amazon Web Services advertises IP addresses.</p>",
           "locationName":"networkBorderGroup"
         },
         "CustomerOwnedIp":{
@@ -5066,7 +5126,7 @@
         },
         "NetworkBorderGroup":{
           "shape":"String",
-          "documentation":"<p> A unique set of Availability Zones, Local Zones, or Wavelength Zones from which AWS advertises IP addresses. Use this parameter to limit the IP address to this location. IP addresses cannot move between network border groups.</p> <p>Use <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeAvailabilityZones.html\">DescribeAvailabilityZones</a> to view the network border groups.</p> <note> <p>You cannot use a network border group with EC2 Classic. If you attempt this operation on EC2 classic, you will receive an <code>InvalidParameterCombination</code> error. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html\">Error Codes</a>.</p> </note>"
+          "documentation":"<p> A unique set of Availability Zones, Local Zones, or Wavelength Zones from which Amazon Web Services advertises IP addresses. Use this parameter to limit the IP address to this location. IP addresses cannot move between network border groups.</p> <p>Use <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeAvailabilityZones.html\">DescribeAvailabilityZones</a> to view the network border groups.</p> <p>You cannot use a network border group with EC2 Classic. If you attempt this operation on EC2 Classic, you receive an <code>InvalidParameterCombination</code> error.</p>"
         },
         "CustomerOwnedIpv4Pool":{
           "shape":"String",
@@ -5104,7 +5164,7 @@
         },
         "NetworkBorderGroup":{
           "shape":"String",
-          "documentation":"<p>The set of Availability Zones, Local Zones, or Wavelength Zones from which AWS advertises IP addresses.</p>",
+          "documentation":"<p>The set of Availability Zones, Local Zones, or Wavelength Zones from which Amazon Web Services advertises IP addresses.</p>",
           "locationName":"networkBorderGroup"
         },
         "Domain":{
@@ -5556,7 +5616,8 @@
       "enum":[
         "i386",
         "x86_64",
-        "arm64"
+        "arm64",
+        "x86_64_mac"
       ]
     },
     "ArchitectureTypeList":{
@@ -5770,7 +5831,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>",
           "idempotencyToken":true
         },
         "DryRun":{
@@ -6555,7 +6616,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>",
           "idempotencyToken":true
         },
         "DryRun":{
@@ -7174,6 +7235,54 @@
       },
       "documentation":"<p>Contains the output of CancelBundleTask.</p>"
     },
+    "CancelCapacityReservationFleetError":{
+      "type":"structure",
+      "members":{
+        "Code":{
+          "shape":"CancelCapacityReservationFleetErrorCode",
+          "documentation":"<p>The error code.</p>",
+          "locationName":"code"
+        },
+        "Message":{
+          "shape":"CancelCapacityReservationFleetErrorMessage",
+          "documentation":"<p>The error message.</p>",
+          "locationName":"message"
+        }
+      },
+      "documentation":"<p>Describes a Capacity Reservation Fleet cancellation error.</p>"
+    },
+    "CancelCapacityReservationFleetErrorCode":{"type":"string"},
+    "CancelCapacityReservationFleetErrorMessage":{"type":"string"},
+    "CancelCapacityReservationFleetsRequest":{
+      "type":"structure",
+      "required":["CapacityReservationFleetIds"],
+      "members":{
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        },
+        "CapacityReservationFleetIds":{
+          "shape":"CapacityReservationFleetIdSet",
+          "documentation":"<p>The IDs of the Capacity Reservation Fleets to cancel.</p>",
+          "locationName":"CapacityReservationFleetId"
+        }
+      }
+    },
+    "CancelCapacityReservationFleetsResult":{
+      "type":"structure",
+      "members":{
+        "SuccessfulFleetCancellations":{
+          "shape":"CapacityReservationFleetCancellationStateSet",
+          "documentation":"<p>Information about the Capacity Reservation Fleets that were successfully cancelled.</p>",
+          "locationName":"successfulFleetCancellationSet"
+        },
+        "FailedFleetCancellations":{
+          "shape":"FailedCapacityReservationFleetCancellationResultSet",
+          "documentation":"<p>Information about the Capacity Reservation Fleets that could not be cancelled.</p>",
+          "locationName":"failedFleetCancellationSet"
+        }
+      }
+    },
     "CancelCapacityReservationRequest":{
       "type":"structure",
       "required":["CapacityReservationId"],
@@ -7561,9 +7670,137 @@
           "shape":"OutpostArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the Outpost on which the Capacity Reservation was created.</p>",
           "locationName":"outpostArn"
+        },
+        "CapacityReservationFleetId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the Capacity Reservation Fleet to which the Capacity Reservation belongs. Only valid for Capacity Reservations that were created by a Capacity Reservation Fleet.</p>",
+          "locationName":"capacityReservationFleetId"
         }
       },
       "documentation":"<p>Describes a Capacity Reservation.</p>"
+    },
+    "CapacityReservationFleet":{
+      "type":"structure",
+      "members":{
+        "CapacityReservationFleetId":{
+          "shape":"CapacityReservationFleetId",
+          "documentation":"<p>The ID of the Capacity Reservation Fleet.</p>",
+          "locationName":"capacityReservationFleetId"
+        },
+        "CapacityReservationFleetArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the Capacity Reservation Fleet.</p>",
+          "locationName":"capacityReservationFleetArn"
+        },
+        "State":{
+          "shape":"CapacityReservationFleetState",
+          "documentation":"<p>The state of the Capacity Reservation Fleet. Possible states include:</p> <ul> <li> <p> <code>submitted</code> - The Capacity Reservation Fleet request has been submitted and Amazon Elastic Compute Cloud is preparing to create the Capacity Reservations.</p> </li> <li> <p> <code>modifying</code> - The Capacity Reservation Fleet is being modified. The Fleet remains in this state until the modification is complete.</p> </li> <li> <p> <code>active</code> - The Capacity Reservation Fleet has fulfilled its total target capacity and it is attempting to maintain this capacity. The Fleet remains in this state until it is modified or deleted.</p> </li> <li> <p> <code>partially_fulfilled</code> - The Capacity Reservation Fleet has partially fulfilled its total target capacity. There is insufficient Amazon EC2 to fulfill the total target capacity. The Fleet is attempting to asynchronously fulfill its total target capacity.</p> </li> <li> <p> <code>expiring</code> - The Capacity Reservation Fleet has reach its end date and it is in the process of expiring. One or more of its Capacity reservations might still be active.</p> </li> <li> <p> <code>expired</code> - The Capacity Reservation Fleet has reach its end date. The Fleet and its Capacity Reservations are expired. The Fleet can't create new Capacity Reservations.</p> </li> <li> <p> <code>cancelling</code> - The Capacity Reservation Fleet is in the process of being cancelled. One or more of its Capacity reservations might still be active.</p> </li> <li> <p> <code>cancelled</code> - The Capacity Reservation Fleet has been manually cancelled. The Fleet and its Capacity Reservations are cancelled and the Fleet can't create new Capacity Reservations.</p> </li> <li> <p> <code>failed</code> - The Capacity Reservation Fleet failed to reserve capacity for the specified instance types.</p> </li> </ul>",
+          "locationName":"state"
+        },
+        "TotalTargetCapacity":{
+          "shape":"Integer",
+          "documentation":"<p>The total number of capacity units for which the Capacity Reservation Fleet reserves capacity. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/crfleet-concepts.html#target-capacity\">Total target capacity</a> in the Amazon EC2 User Guide.</p>",
+          "locationName":"totalTargetCapacity"
+        },
+        "TotalFulfilledCapacity":{
+          "shape":"Double",
+          "documentation":"<p>The capacity units that have been fulfilled.</p>",
+          "locationName":"totalFulfilledCapacity"
+        },
+        "Tenancy":{
+          "shape":"FleetCapacityReservationTenancy",
+          "documentation":"<p>The tenancy of the Capacity Reservation Fleet. Tenancies include:</p> <ul> <li> <p> <code>default</code> - The Capacity Reservation Fleet is created on hardware that is shared with other Amazon Web Services accounts.</p> </li> <li> <p> <code>dedicated</code> - The Capacity Reservation Fleet is created on single-tenant hardware that is dedicated to a single Amazon Web Services account.</p> </li> </ul>",
+          "locationName":"tenancy"
+        },
+        "EndDate":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The date and time at which the Capacity Reservation Fleet expires.</p>",
+          "locationName":"endDate"
+        },
+        "CreateTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The date and time at which the Capacity Reservation Fleet was created.</p>",
+          "locationName":"createTime"
+        },
+        "InstanceMatchCriteria":{
+          "shape":"FleetInstanceMatchCriteria",
+          "documentation":"<p>Indicates the type of instance launches that the Capacity Reservation Fleet accepts. All Capacity Reservations in the Fleet inherit this instance matching criteria.</p> <p>Currently, Capacity Reservation Fleets support <code>open</code> instance matching criteria only. This means that instances that have matching attributes (instance type, platform, and Availability Zone) run in the Capacity Reservations automatically. Instances do not need to explicitly target a Capacity Reservation Fleet to use its reserved capacity.</p>",
+          "locationName":"instanceMatchCriteria"
+        },
+        "AllocationStrategy":{
+          "shape":"String",
+          "documentation":"<p>The strategy used by the Capacity Reservation Fleet to determine which of the specified instance types to use. For more information, see For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/crfleet-concepts.html#allocation-strategy\"> Allocation strategy</a> in the Amazon EC2 User Guide.</p>",
+          "locationName":"allocationStrategy"
+        },
+        "InstanceTypeSpecifications":{
+          "shape":"FleetCapacityReservationSet",
+          "documentation":"<p>Information about the instance types for which to reserve the capacity.</p>",
+          "locationName":"instanceTypeSpecificationSet"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags assigned to the Capacity Reservation Fleet.</p>",
+          "locationName":"tagSet"
+        }
+      },
+      "documentation":"<p>Information about a Capacity Reservation Fleet.</p>"
+    },
+    "CapacityReservationFleetCancellationState":{
+      "type":"structure",
+      "members":{
+        "CurrentFleetState":{
+          "shape":"CapacityReservationFleetState",
+          "documentation":"<p>The current state of the Capacity Reservation Fleet.</p>",
+          "locationName":"currentFleetState"
+        },
+        "PreviousFleetState":{
+          "shape":"CapacityReservationFleetState",
+          "documentation":"<p>The previous state of the Capacity Reservation Fleet.</p>",
+          "locationName":"previousFleetState"
+        },
+        "CapacityReservationFleetId":{
+          "shape":"CapacityReservationFleetId",
+          "documentation":"<p>The ID of the Capacity Reservation Fleet that was successfully cancelled.</p>",
+          "locationName":"capacityReservationFleetId"
+        }
+      },
+      "documentation":"<p>Describes a Capacity Reservation Fleet that was successfully cancelled.</p>"
+    },
+    "CapacityReservationFleetCancellationStateSet":{
+      "type":"list",
+      "member":{
+        "shape":"CapacityReservationFleetCancellationState",
+        "locationName":"item"
+      }
+    },
+    "CapacityReservationFleetId":{"type":"string"},
+    "CapacityReservationFleetIdSet":{
+      "type":"list",
+      "member":{
+        "shape":"CapacityReservationFleetId",
+        "locationName":"item"
+      }
+    },
+    "CapacityReservationFleetSet":{
+      "type":"list",
+      "member":{
+        "shape":"CapacityReservationFleet",
+        "locationName":"item"
+      }
+    },
+    "CapacityReservationFleetState":{
+      "type":"string",
+      "enum":[
+        "submitted",
+        "modifying",
+        "active",
+        "partially_fulfilled",
+        "expiring",
+        "expired",
+        "cancelling",
+        "cancelled",
+        "failed"
+      ]
     },
     "CapacityReservationGroup":{
       "type":"structure",
@@ -7797,7 +8034,7 @@
       "members":{
         "ClientRootCertificateChainArn":{
           "shape":"String",
-          "documentation":"<p>The ARN of the client certificate. The certificate must be signed by a certificate authority (CA) and it must be provisioned in AWS Certificate Manager (ACM).</p>"
+          "documentation":"<p>The ARN of the client certificate. The certificate must be signed by a certificate authority (CA) and it must be provisioned in Certificate Manager (ACM).</p>"
         }
       },
       "documentation":"<p>Information about the client certificate to be used for authentication.</p>"
@@ -7957,7 +8194,7 @@
         },
         "LambdaFunctionArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the AWS Lambda function used for connection authorization.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Lambda function used for connection authorization.</p>"
         }
       },
       "documentation":"<p>The options for managing connection authorization for new client connections.</p>"
@@ -7972,7 +8209,7 @@
         },
         "LambdaFunctionArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the AWS Lambda function used for connection authorization.</p>",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Lambda function used for connection authorization.</p>",
           "locationName":"lambdaFunctionArn"
         },
         "Status":{
@@ -8030,7 +8267,7 @@
           "locationName":"federatedAuthentication"
         }
       },
-      "documentation":"<p>Describes the authentication methods used by a Client VPN endpoint. For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/client-authentication.html\">Authentication</a> in the <i>AWS Client VPN Administrator Guide</i>.</p>"
+      "documentation":"<p>Describes the authentication methods used by a Client VPN endpoint. For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/client-authentication.html\">Authentication</a> in the <i>Client VPN Administrator Guide</i>.</p>"
     },
     "ClientVpnAuthenticationList":{
       "type":"list",
@@ -8059,7 +8296,7 @@
           "documentation":"<p>Information about the IAM SAML identity provider to be used, if applicable. You must provide this information if <b>Type</b> is <code>federated-authentication</code>.</p>"
         }
       },
-      "documentation":"<p>Describes the authentication method to be used by a Client VPN endpoint. For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/authentication-authrization.html#client-authentication\">Authentication</a> in the <i>AWS Client VPN Administrator Guide</i>.</p>"
+      "documentation":"<p>Describes the authentication method to be used by a Client VPN endpoint. For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/authentication-authrization.html#client-authentication\">Authentication</a> in the <i>Client VPN Administrator Guide</i>.</p>"
     },
     "ClientVpnAuthenticationRequestList":{
       "type":"list",
@@ -8251,7 +8488,7 @@
         },
         "SplitTunnel":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether split-tunnel is enabled in the AWS Client VPN endpoint.</p> <p>For information about split-tunnel VPN endpoints, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/split-tunnel-vpn.html\">Split-Tunnel AWS Client VPN Endpoint</a> in the <i>AWS Client VPN Administrator Guide</i>.</p>",
+          "documentation":"<p>Indicates whether split-tunnel is enabled in the Client VPN endpoint.</p> <p>For information about split-tunnel VPN endpoints, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/split-tunnel-vpn.html\">Split-Tunnel Client VPN endpoint</a> in the <i>Client VPN Administrator Guide</i>.</p>",
           "locationName":"splitTunnel"
         },
         "VpnProtocol":{
@@ -8465,12 +8702,12 @@
         },
         "AwsAccountId":{
           "shape":"String",
-          "documentation":"<p>The AWS account ID.</p>",
+          "documentation":"<p>The Amazon Web Services account ID.</p>",
           "locationName":"awsAccountId"
         },
         "AwsService":{
           "shape":"String",
-          "documentation":"<p>The AWS service.</p>",
+          "documentation":"<p>The Amazon Web Services service.</p>",
           "locationName":"awsService"
         },
         "CoIp":{
@@ -8777,7 +9014,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Run_Instance_Idempotency.html\">Ensuring Idempotency</a>.</p>"
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Run_Instance_Idempotency.html\">Ensuring idempotency</a>.</p>"
         }
       }
     },
@@ -8964,6 +9201,114 @@
       },
       "documentation":"<p>The CPU options for the instance. Both the core count and threads per core must be specified in the request.</p>"
     },
+    "CreateCapacityReservationFleetRequest":{
+      "type":"structure",
+      "required":[
+        "InstanceTypeSpecifications",
+        "TotalTargetCapacity"
+      ],
+      "members":{
+        "AllocationStrategy":{
+          "shape":"String",
+          "documentation":"<p>The strategy used by the Capacity Reservation Fleet to determine which of the specified instance types to use. Currently, only the <code>prioritized</code> allocation strategy is supported. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/crfleet-concepts.html#allocation-strategy\"> Allocation strategy</a> in the Amazon EC2 User Guide.</p> <p>Valid values: <code>prioritized</code> </p>"
+        },
+        "ClientToken":{
+          "shape":"String",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">Ensure Idempotency</a>.</p>",
+          "idempotencyToken":true
+        },
+        "InstanceTypeSpecifications":{
+          "shape":"ReservationFleetInstanceSpecificationList",
+          "documentation":"<p>Information about the instance types for which to reserve the capacity.</p>",
+          "locationName":"InstanceTypeSpecification"
+        },
+        "Tenancy":{
+          "shape":"FleetCapacityReservationTenancy",
+          "documentation":"<p>Indicates the tenancy of the Capacity Reservation Fleet. All Capacity Reservations in the Fleet inherit this tenancy. The Capacity Reservation Fleet can have one of the following tenancy settings:</p> <ul> <li> <p> <code>default</code> - The Capacity Reservation Fleet is created on hardware that is shared with other Amazon Web Services accounts.</p> </li> <li> <p> <code>dedicated</code> - The Capacity Reservations are created on single-tenant hardware that is dedicated to a single Amazon Web Services account.</p> </li> </ul>"
+        },
+        "TotalTargetCapacity":{
+          "shape":"Integer",
+          "documentation":"<p>The total number of capacity units to be reserved by the Capacity Reservation Fleet. This value, together with the instance type weights that you assign to each instance type used by the Fleet determine the number of instances for which the Fleet reserves capacity. Both values are based on units that make sense for your workload. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/crfleet-concepts.html#target-capacity\"> Total target capacity</a> in the Amazon EC2 User Guide.</p>"
+        },
+        "EndDate":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The date and time at which the Capacity Reservation Fleet expires. When the Capacity Reservation Fleet expires, its state changes to <code>expired</code> and all of the Capacity Reservations in the Fleet expire.</p> <p>The Capacity Reservation Fleet expires within an hour after the specified time. For example, if you specify <code>5/31/2019</code>, <code>13:30:55</code>, the Capacity Reservation Fleet is guaranteed to expire between <code>13:30:55</code> and <code>14:30:55</code> on <code>5/31/2019</code>. </p>"
+        },
+        "InstanceMatchCriteria":{
+          "shape":"FleetInstanceMatchCriteria",
+          "documentation":"<p>Indicates the type of instance launches that the Capacity Reservation Fleet accepts. All Capacity Reservations in the Fleet inherit this instance matching criteria.</p> <p>Currently, Capacity Reservation Fleets support <code>open</code> instance matching criteria only. This means that instances that have matching attributes (instance type, platform, and Availability Zone) run in the Capacity Reservations automatically. Instances do not need to explicitly target a Capacity Reservation Fleet to use its reserved capacity.</p>"
+        },
+        "TagSpecifications":{
+          "shape":"TagSpecificationList",
+          "documentation":"<p>The tags to assign to the Capacity Reservation Fleet. The tags are automatically assigned to the Capacity Reservations in the Fleet.</p>",
+          "locationName":"TagSpecification"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "CreateCapacityReservationFleetResult":{
+      "type":"structure",
+      "members":{
+        "CapacityReservationFleetId":{
+          "shape":"CapacityReservationFleetId",
+          "documentation":"<p>The ID of the Capacity Reservation Fleet.</p>",
+          "locationName":"capacityReservationFleetId"
+        },
+        "State":{
+          "shape":"CapacityReservationFleetState",
+          "documentation":"<p>The status of the Capacity Reservation Fleet.</p>",
+          "locationName":"state"
+        },
+        "TotalTargetCapacity":{
+          "shape":"Integer",
+          "documentation":"<p>The total number of capacity units for which the Capacity Reservation Fleet reserves capacity.</p>",
+          "locationName":"totalTargetCapacity"
+        },
+        "TotalFulfilledCapacity":{
+          "shape":"Double",
+          "documentation":"<p>The requested capacity units that have been successfully reserved.</p>",
+          "locationName":"totalFulfilledCapacity"
+        },
+        "InstanceMatchCriteria":{
+          "shape":"FleetInstanceMatchCriteria",
+          "documentation":"<p>The instance matching criteria for the Capacity Reservation Fleet.</p>",
+          "locationName":"instanceMatchCriteria"
+        },
+        "AllocationStrategy":{
+          "shape":"String",
+          "documentation":"<p>The allocation strategy used by the Capacity Reservation Fleet.</p>",
+          "locationName":"allocationStrategy"
+        },
+        "CreateTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The date and time at which the Capacity Reservation Fleet was created.</p>",
+          "locationName":"createTime"
+        },
+        "EndDate":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The date and time at which the Capacity Reservation Fleet expires.</p>",
+          "locationName":"endDate"
+        },
+        "Tenancy":{
+          "shape":"FleetCapacityReservationTenancy",
+          "documentation":"<p>Indicates the tenancy of Capacity Reservation Fleet.</p>",
+          "locationName":"tenancy"
+        },
+        "FleetCapacityReservations":{
+          "shape":"FleetCapacityReservationSet",
+          "documentation":"<p>Information about the individual Capacity Reservations in the Capacity Reservation Fleet.</p>",
+          "locationName":"fleetCapacityReservationSet"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags assigned to the Capacity Reservation Fleet.</p>",
+          "locationName":"tagSet"
+        }
+      }
+    },
     "CreateCapacityReservationRequest":{
       "type":"structure",
       "required":[
@@ -9093,7 +9438,7 @@
         },
         "ServerCertificateArn":{
           "shape":"String",
-          "documentation":"<p>The ARN of the server certificate. For more information, see the <a href=\"https://docs.aws.amazon.com/acm/latest/userguide/\">AWS Certificate Manager User Guide</a>.</p>"
+          "documentation":"<p>The ARN of the server certificate. For more information, see the <a href=\"https://docs.aws.amazon.com/acm/latest/userguide/\">Certificate Manager User Guide</a>.</p>"
         },
         "AuthenticationOptions":{
           "shape":"ClientVpnAuthenticationRequestList",
@@ -9122,7 +9467,7 @@
         },
         "SplitTunnel":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether split-tunnel is enabled on the AWS Client VPN endpoint.</p> <p>By default, split-tunnel on a VPN endpoint is disabled.</p> <p>For information about split-tunnel VPN endpoints, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/split-tunnel-vpn.html\">Split-Tunnel AWS Client VPN Endpoint</a> in the <i>AWS Client VPN Administrator Guide</i>.</p>"
+          "documentation":"<p>Indicates whether split-tunnel is enabled on the Client VPN endpoint.</p> <p>By default, split-tunnel on a VPN endpoint is disabled.</p> <p>For information about split-tunnel VPN endpoints, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/split-tunnel-vpn.html\">Split-tunnel Client VPN endpoint</a> in the <i>Client VPN Administrator Guide</i>.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -9130,7 +9475,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>",
           "idempotencyToken":true
         },
         "TagSpecifications":{
@@ -9191,7 +9536,7 @@
         },
         "DestinationCidrBlock":{
           "shape":"String",
-          "documentation":"<p>The IPv4 address range, in CIDR notation, of the route destination. For example:</p> <ul> <li> <p>To add a route for Internet access, enter <code>0.0.0.0/0</code> </p> </li> <li> <p>To add a route for a peered VPC, enter the peered VPC's IPv4 CIDR range</p> </li> <li> <p>To add a route for an on-premises network, enter the AWS Site-to-Site VPN connection's IPv4 CIDR range</p> </li> <li> <p>To add a route for the local network, enter the client CIDR range</p> </li> </ul>"
+          "documentation":"<p>The IPv4 address range, in CIDR notation, of the route destination. For example:</p> <ul> <li> <p>To add a route for Internet access, enter <code>0.0.0.0/0</code> </p> </li> <li> <p>To add a route for a peered VPC, enter the peered VPC's IPv4 CIDR range</p> </li> <li> <p>To add a route for an on-premises network, enter the Amazon Web Services Site-to-Site VPN connection's IPv4 CIDR range</p> </li> <li> <p>To add a route for the local network, enter the client CIDR range</p> </li> </ul>"
         },
         "TargetVpcSubnetId":{
           "shape":"SubnetId",
@@ -9203,7 +9548,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>",
           "idempotencyToken":true
         },
         "DryRun":{
@@ -9590,7 +9935,7 @@
         },
         "LogFormat":{
           "shape":"String",
-          "documentation":"<p>The fields to include in the flow log record, in the order in which they should appear. For a list of available fields, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html#flow-log-records\">Flow log records</a>. If you omit this parameter, the flow log is created using the default format. If you specify this parameter, you must specify at least one field.</p> <p>Specify the fields using the <code>${field-id}</code> format, separated by spaces. For the CLI, use single quotation marks (' ') to surround the parameter value.</p>"
+          "documentation":"<p>The fields to include in the flow log record, in the order in which they should appear. For a list of available fields, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html#flow-log-records\">Flow log records</a>. If you omit this parameter, the flow log is created using the default format. If you specify this parameter, you must specify at least one field.</p> <p>Specify the fields using the <code>${field-id}</code> format, separated by spaces. For the CLI, surround this parameter value with single quotes on Linux or double quotes on Windows.</p>"
         },
         "TagSpecifications":{
           "shape":"TagSpecificationList",
@@ -9972,13 +10317,13 @@
           "shape":"LocalGatewayRoutetableId",
           "documentation":"<p>The ID of the local gateway route table.</p>"
         },
-        "DryRun":{
-          "shape":"Boolean",
-          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
-        },
         "LocalGatewayVirtualInterfaceGroupId":{
           "shape":"LocalGatewayVirtualInterfaceGroupId",
           "documentation":"<p>The ID of the virtual interface group.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
         }
       }
     },
@@ -10928,8 +11273,8 @@
     "CreateSubnetRequest":{
       "type":"structure",
       "required":[
-        "VpcId",
-        "CidrBlock"
+        "CidrBlock",
+        "VpcId"
       ],
       "members":{
         "TagSpecifications":{
@@ -10944,6 +11289,10 @@
         "AvailabilityZoneId":{
           "shape":"String",
           "documentation":"<p>The AZ ID or the Local Zone ID of the subnet.</p>"
+        },
+        "CidrBlock":{
+          "shape":"String",
+          "documentation":"<p>The IPv4 network range for the subnet, in CIDR notation. For example, <code>10.0.0.0/24</code>. We modify the specified CIDR block to its canonical form; for example, if you specify <code>100.68.0.18/18</code>, we modify it to <code>100.68.0.0/18</code>.</p>"
         },
         "Ipv6CidrBlock":{
           "shape":"String",
@@ -10961,10 +11310,6 @@
           "shape":"Boolean",
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
-        },
-        "CidrBlock":{
-          "shape":"String",
-          "documentation":"<p>The IPv4 network range for the subnet, in CIDR notation. For example, <code>10.0.0.0/24</code>. We modify the specified CIDR block to its canonical form; for example, if you specify <code>100.68.0.18/18</code>, we modify it to <code>100.68.0.0/18</code>.</p>"
         }
       }
     },
@@ -11020,7 +11365,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>",
           "idempotencyToken":true
         }
       }
@@ -11035,7 +11380,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>",
           "locationName":"clientToken"
         }
       }
@@ -11057,7 +11402,7 @@
         },
         "TrafficDirection":{
           "shape":"TrafficDirection",
-          "documentation":"<p>The type of traffic (<code>ingress</code> | <code>egress</code>).</p>"
+          "documentation":"<p>The type of traffic.</p>"
         },
         "RuleNumber":{
           "shape":"Integer",
@@ -11065,7 +11410,7 @@
         },
         "RuleAction":{
           "shape":"TrafficMirrorRuleAction",
-          "documentation":"<p>The action to take (<code>accept</code> | <code>reject</code>) on the filtered traffic.</p>"
+          "documentation":"<p>The action to take on the filtered traffic.</p>"
         },
         "DestinationPortRange":{
           "shape":"TrafficMirrorPortRangeRequest",
@@ -11097,7 +11442,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>",
           "idempotencyToken":true
         }
       }
@@ -11112,7 +11457,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>",
           "locationName":"clientToken"
         }
       }
@@ -11165,7 +11510,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>",
           "idempotencyToken":true
         }
       }
@@ -11180,7 +11525,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>",
           "locationName":"clientToken"
         }
       }
@@ -11211,7 +11556,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>",
           "idempotencyToken":true
         }
       }
@@ -11226,7 +11571,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>",
           "locationName":"clientToken"
         }
       }
@@ -11752,7 +12097,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>"
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>"
         }
       }
     },
@@ -11815,7 +12160,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>"
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>"
         },
         "PrivateDnsEnabled":{
           "shape":"Boolean",
@@ -11872,7 +12217,7 @@
         },
         "ClientToken":{
           "shape":"String",
-          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Run_Instance_Idempotency.html\">How to Ensure Idempotency</a>.</p>"
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>"
         },
         "TagSpecifications":{
           "shape":"TagSpecificationList",
@@ -14082,6 +14427,53 @@
         }
       }
     },
+    "DescribeCapacityReservationFleetsMaxResults":{
+      "type":"integer",
+      "max":100,
+      "min":1
+    },
+    "DescribeCapacityReservationFleetsRequest":{
+      "type":"structure",
+      "members":{
+        "CapacityReservationFleetIds":{
+          "shape":"CapacityReservationFleetIdSet",
+          "documentation":"<p>The IDs of the Capacity Reservation Fleets to describe.</p>",
+          "locationName":"CapacityReservationFleetId"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token to use to retrieve the next page of results.</p>"
+        },
+        "MaxResults":{
+          "shape":"DescribeCapacityReservationFleetsMaxResults",
+          "documentation":"<p>The maximum number of results to return for the request in a single page. The remaining results can be seen by sending another request with the returned <code>nextToken</code> value. This value can be between 5 and 500. If <code>maxResults</code> is given a larger value than 500, you receive an error.</p>"
+        },
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>One or more filters.</p> <ul> <li> <p> <code>state</code> - The state of the Fleet (<code>submitted</code> | <code>modifying</code> | <code>active</code> | <code>partially_fulfilled</code> | <code>expiring</code> | <code>expired</code> | <code>cancelling</code> | <code>cancelled</code> | <code>failed</code>).</p> </li> <li> <p> <code>instance-match-criteria</code> - The instance matching criteria for the Fleet. Only <code>open</code> is supported.</p> </li> <li> <p> <code>tenancy</code> - The tenancy of the Fleet (<code>default</code> | <code>dedicated</code>).</p> </li> <li> <p> <code>allocation-strategy</code> - The allocation strategy used by the Fleet. Only <code>prioritized</code> is supported.</p> </li> </ul>",
+          "locationName":"Filter"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "DescribeCapacityReservationFleetsResult":{
+      "type":"structure",
+      "members":{
+        "CapacityReservationFleets":{
+          "shape":"CapacityReservationFleetSet",
+          "documentation":"<p>Information about the Capacity Reservation Fleets.</p>",
+          "locationName":"capacityReservationFleetSet"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
+          "locationName":"nextToken"
+        }
+      }
+    },
     "DescribeCapacityReservationsMaxResults":{
       "type":"integer",
       "max":1000,
@@ -15209,12 +15601,12 @@
         },
         "Owners":{
           "shape":"OwnerStringList",
-          "documentation":"<p>Filters the AFI by owner. Specify an AWS account ID, <code>self</code> (owner is the sender of the request), or an AWS owner alias (valid values are <code>amazon</code> | <code>aws-marketplace</code>).</p>",
+          "documentation":"<p>Filters the AFI by owner. Specify an Amazon Web Services account ID, <code>self</code> (owner is the sender of the request), or an Amazon Web Services owner alias (valid values are <code>amazon</code> | <code>aws-marketplace</code>).</p>",
           "locationName":"Owner"
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>create-time</code> - The creation time of the AFI.</p> </li> <li> <p> <code>fpga-image-id</code> - The FPGA image identifier (AFI ID).</p> </li> <li> <p> <code>fpga-image-global-id</code> - The global FPGA image identifier (AGFI ID).</p> </li> <li> <p> <code>name</code> - The name of the AFI.</p> </li> <li> <p> <code>owner-id</code> - The AWS account ID of the AFI owner.</p> </li> <li> <p> <code>product-code</code> - The product code.</p> </li> <li> <p> <code>shell-version</code> - The version of the AWS Shell that was used to create the bitstream.</p> </li> <li> <p> <code>state</code> - The state of the AFI (<code>pending</code> | <code>failed</code> | <code>available</code> | <code>unavailable</code>).</p> </li> <li> <p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.</p> </li> <li> <p> <code>update-time</code> - The time of the most recent update.</p> </li> </ul>",
+          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>create-time</code> - The creation time of the AFI.</p> </li> <li> <p> <code>fpga-image-id</code> - The FPGA image identifier (AFI ID).</p> </li> <li> <p> <code>fpga-image-global-id</code> - The global FPGA image identifier (AGFI ID).</p> </li> <li> <p> <code>name</code> - The name of the AFI.</p> </li> <li> <p> <code>owner-id</code> - The Amazon Web Services account ID of the AFI owner.</p> </li> <li> <p> <code>product-code</code> - The product code.</p> </li> <li> <p> <code>shell-version</code> - The version of the Amazon Web Services Shell that was used to create the bitstream.</p> </li> <li> <p> <code>state</code> - The state of the AFI (<code>pending</code> | <code>failed</code> | <code>available</code> | <code>unavailable</code>).</p> </li> <li> <p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.</p> </li> <li> <p> <code>update-time</code> - The time of the most recent update.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "NextToken":{
@@ -15840,7 +16232,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. Filter names and values are case-sensitive.</p> <ul> <li> <p> <code>auto-recovery-supported</code> - Indicates whether auto recovery is supported (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>bare-metal</code> - Indicates whether it is a bare metal instance type (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>burstable-performance-supported</code> - Indicates whether it is a burstable performance instance type (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>current-generation</code> - Indicates whether this instance type is the latest generation instance type of an instance family (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-bandwidth-in-mbps</code> - The baseline bandwidth performance for an EBS-optimized instance type, in Mbps.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-iops</code> - The baseline input/output storage operations per second for an EBS-optimized instance type.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-throughput-in-mbps</code> - The baseline throughput performance for an EBS-optimized instance type, in MB/s.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-bandwidth-in-mbps</code> - The maximum bandwidth performance for an EBS-optimized instance type, in Mbps.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-iops</code> - The maximum input/output storage operations per second for an EBS-optimized instance type.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-throughput-in-mbps</code> - The maximum throughput performance for an EBS-optimized instance type, in MB/s.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-support</code> - Indicates whether the instance type is EBS-optimized (<code>supported</code> | <code>unsupported</code> | <code>default</code>).</p> </li> <li> <p> <code>ebs-info.encryption-support</code> - Indicates whether EBS encryption is supported (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>ebs-info.nvme-support</code> - Indicates whether non-volatile memory express (NVMe) is supported for EBS volumes (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>free-tier-eligible</code> - Indicates whether the instance type is eligible to use in the free tier (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>hibernation-supported</code> - Indicates whether On-Demand hibernation is supported (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>hypervisor</code> - The hypervisor (<code>nitro</code> | <code>xen</code>).</p> </li> <li> <p> <code>instance-storage-info.disk.count</code> - The number of local disks.</p> </li> <li> <p> <code>instance-storage-info.disk.size-in-gb</code> - The storage size of each instance storage disk, in GB.</p> </li> <li> <p> <code>instance-storage-info.disk.type</code> - The storage technology for the local instance storage disks (<code>hdd</code> | <code>ssd</code>).</p> </li> <li> <p> <code>instance-storage-info.nvme-support</code> - Indicates whether non-volatile memory express (NVMe) is supported for instance store (<code>required</code> | <code>supported</code>) | <code>unsupported</code>).</p> </li> <li> <p> <code>instance-storage-info.total-size-in-gb</code> - The total amount of storage available from all local instance storage, in GB.</p> </li> <li> <p> <code>instance-storage-supported</code> - Indicates whether the instance type has local instance storage (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>instance-type</code> - The instance type (for example <code>c5.2xlarge</code> or c5*).</p> </li> <li> <p> <code>memory-info.size-in-mib</code> - The memory size.</p> </li> <li> <p> <code>network-info.efa-info.maximum-efa-interfaces</code> - The maximum number of Elastic Fabric Adapters (EFAs) per instance.</p> </li> <li> <p> <code>network-info.efa-supported</code> - Indicates whether the instance type supports Elastic Fabric Adapter (EFA) (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.ena-support</code> - Indicates whether Elastic Network Adapter (ENA) is supported or required (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>network-info.encryption-in-transit-supported</code> - Indicates whether the instance type automatically encrypts in-transit traffic between instances (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.ipv4-addresses-per-interface</code> - The maximum number of private IPv4 addresses per network interface.</p> </li> <li> <p> <code>network-info.ipv6-addresses-per-interface</code> - The maximum number of private IPv6 addresses per network interface.</p> </li> <li> <p> <code>network-info.ipv6-supported</code> - Indicates whether the instance type supports IPv6 (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.maximum-network-interfaces</code> - The maximum number of network interfaces per instance.</p> </li> <li> <p> <code>network-info.network-performance</code> - The network performance (for example, \"25 Gigabit\").</p> </li> <li> <p> <code>processor-info.supported-architecture</code> - The CPU architecture (<code>arm64</code> | <code>i386</code> | <code>x86_64</code>).</p> </li> <li> <p> <code>processor-info.sustained-clock-speed-in-ghz</code> - The CPU clock speed, in GHz.</p> </li> <li> <p> <code>supported-boot-mode</code> - The boot mode (<code>legacy-bios</code> | <code>uefi</code>).</p> </li> <li> <p> <code>supported-root-device-type</code> - The root device type (<code>ebs</code> | <code>instance-store</code>).</p> </li> <li> <p> <code>supported-usage-class</code> - The usage class (<code>on-demand</code> | <code>spot</code>).</p> </li> <li> <p> <code>supported-virtualization-type</code> - The virtualization type (<code>hvm</code> | <code>paravirtual</code>).</p> </li> <li> <p> <code>vcpu-info.default-cores</code> - The default number of cores for the instance type.</p> </li> <li> <p> <code>vcpu-info.default-threads-per-core</code> - The default number of threads per core for the instance type.</p> </li> <li> <p> <code>vcpu-info.default-vcpus</code> - The default number of vCPUs for the instance type.</p> </li> <li> <p> <code>vcpu-info.valid-cores</code> - The number of cores that can be configured for the instance type.</p> </li> <li> <p> <code>vcpu-info.valid-threads-per-core</code> - The number of threads per core that can be configured for the instance type. For example, \"1\" or \"1,2\".</p> </li> </ul>",
+          "documentation":"<p>One or more filters. Filter names and values are case-sensitive.</p> <ul> <li> <p> <code>auto-recovery-supported</code> - Indicates whether auto recovery is supported (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>bare-metal</code> - Indicates whether it is a bare metal instance type (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>burstable-performance-supported</code> - Indicates whether it is a burstable performance instance type (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>current-generation</code> - Indicates whether this instance type is the latest generation instance type of an instance family (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-bandwidth-in-mbps</code> - The baseline bandwidth performance for an EBS-optimized instance type, in Mbps.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-iops</code> - The baseline input/output storage operations per second for an EBS-optimized instance type.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-throughput-in-mbps</code> - The baseline throughput performance for an EBS-optimized instance type, in MB/s.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-bandwidth-in-mbps</code> - The maximum bandwidth performance for an EBS-optimized instance type, in Mbps.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-iops</code> - The maximum input/output storage operations per second for an EBS-optimized instance type.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-throughput-in-mbps</code> - The maximum throughput performance for an EBS-optimized instance type, in MB/s.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-support</code> - Indicates whether the instance type is EBS-optimized (<code>supported</code> | <code>unsupported</code> | <code>default</code>).</p> </li> <li> <p> <code>ebs-info.encryption-support</code> - Indicates whether EBS encryption is supported (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>ebs-info.nvme-support</code> - Indicates whether non-volatile memory express (NVMe) is supported for EBS volumes (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>free-tier-eligible</code> - Indicates whether the instance type is eligible to use in the free tier (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>hibernation-supported</code> - Indicates whether On-Demand hibernation is supported (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>hypervisor</code> - The hypervisor (<code>nitro</code> | <code>xen</code>).</p> </li> <li> <p> <code>instance-storage-info.disk.count</code> - The number of local disks.</p> </li> <li> <p> <code>instance-storage-info.disk.size-in-gb</code> - The storage size of each instance storage disk, in GB.</p> </li> <li> <p> <code>instance-storage-info.disk.type</code> - The storage technology for the local instance storage disks (<code>hdd</code> | <code>ssd</code>).</p> </li> <li> <p> <code>instance-storage-info.encryption-supported</code> - Indicates whether data is encrypted at rest (<code>required</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>instance-storage-info.nvme-support</code> - Indicates whether non-volatile memory express (NVMe) is supported for instance store (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>instance-storage-info.total-size-in-gb</code> - The total amount of storage available from all local instance storage, in GB.</p> </li> <li> <p> <code>instance-storage-supported</code> - Indicates whether the instance type has local instance storage (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>instance-type</code> - The instance type (for example <code>c5.2xlarge</code> or c5*).</p> </li> <li> <p> <code>memory-info.size-in-mib</code> - The memory size.</p> </li> <li> <p> <code>network-info.efa-info.maximum-efa-interfaces</code> - The maximum number of Elastic Fabric Adapters (EFAs) per instance.</p> </li> <li> <p> <code>network-info.efa-supported</code> - Indicates whether the instance type supports Elastic Fabric Adapter (EFA) (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.ena-support</code> - Indicates whether Elastic Network Adapter (ENA) is supported or required (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>network-info.encryption-in-transit-supported</code> - Indicates whether the instance type automatically encrypts in-transit traffic between instances (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.ipv4-addresses-per-interface</code> - The maximum number of private IPv4 addresses per network interface.</p> </li> <li> <p> <code>network-info.ipv6-addresses-per-interface</code> - The maximum number of private IPv6 addresses per network interface.</p> </li> <li> <p> <code>network-info.ipv6-supported</code> - Indicates whether the instance type supports IPv6 (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.maximum-network-interfaces</code> - The maximum number of network interfaces per instance.</p> </li> <li> <p> <code>network-info.network-performance</code> - The network performance (for example, \"25 Gigabit\").</p> </li> <li> <p> <code>processor-info.supported-architecture</code> - The CPU architecture (<code>arm64</code> | <code>i386</code> | <code>x86_64</code>).</p> </li> <li> <p> <code>processor-info.sustained-clock-speed-in-ghz</code> - The CPU clock speed, in GHz.</p> </li> <li> <p> <code>supported-boot-mode</code> - The boot mode (<code>legacy-bios</code> | <code>uefi</code>).</p> </li> <li> <p> <code>supported-root-device-type</code> - The root device type (<code>ebs</code> | <code>instance-store</code>).</p> </li> <li> <p> <code>supported-usage-class</code> - The usage class (<code>on-demand</code> | <code>spot</code>).</p> </li> <li> <p> <code>supported-virtualization-type</code> - The virtualization type (<code>hvm</code> | <code>paravirtual</code>).</p> </li> <li> <p> <code>vcpu-info.default-cores</code> - The default number of cores for the instance type.</p> </li> <li> <p> <code>vcpu-info.default-threads-per-core</code> - The default number of threads per core for the instance type.</p> </li> <li> <p> <code>vcpu-info.default-vcpus</code> - The default number of vCPUs for the instance type.</p> </li> <li> <p> <code>vcpu-info.valid-cores</code> - The number of cores that can be configured for the instance type.</p> </li> <li> <p> <code>vcpu-info.valid-threads-per-core</code> - The number of threads per core that can be configured for the instance type. For example, \"1\" or \"1,2\".</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -18973,7 +19365,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters.</p> <ul> <li> <p> <code>service-id</code> - The ID of the service.</p> </li> <li> <p> <code>vpc-endpoint-owner</code> - The AWS account number of the owner of the endpoint.</p> </li> <li> <p> <code>vpc-endpoint-state</code> - The state of the endpoint (<code>pendingAcceptance</code> | <code>pending</code> | <code>available</code> | <code>deleting</code> | <code>deleted</code> | <code>rejected</code> | <code>failed</code>).</p> </li> <li> <p> <code>vpc-endpoint-id</code> - The ID of the endpoint.</p> </li> </ul>",
+          "documentation":"<p>One or more filters.</p> <ul> <li> <p> <code>service-id</code> - The ID of the service.</p> </li> <li> <p> <code>vpc-endpoint-owner</code> - The ID of the Amazon Web Services account ID that owns the endpoint.</p> </li> <li> <p> <code>vpc-endpoint-state</code> - The state of the endpoint (<code>pendingAcceptance</code> | <code>pending</code> | <code>available</code> | <code>deleting</code> | <code>deleted</code> | <code>rejected</code> | <code>failed</code>).</p> </li> <li> <p> <code>vpc-endpoint-id</code> - The ID of the endpoint.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -20314,7 +20706,7 @@
           "locationName":"type"
         }
       },
-      "documentation":"<p>Describes the disk.</p>"
+      "documentation":"<p>Describes a disk.</p>"
     },
     "DiskInfoList":{
       "type":"list",
@@ -20391,6 +20783,11 @@
       ]
     },
     "Double":{"type":"double"},
+    "DoubleWithConstraints":{
+      "type":"double",
+      "max":99.999,
+      "min":0.001
+    },
     "EbsBlockDevice":{
       "type":"structure",
       "members":{
@@ -21260,7 +21657,7 @@
         },
         "EventSubType":{
           "shape":"String",
-          "documentation":"<p>The event.</p> <p>The following are the <code>error</code> events:</p> <ul> <li> <p> <code>iamFleetRoleInvalid</code> - The EC2 Fleet or Spot Fleet did not have the required permissions either to launch or terminate an instance.</p> </li> <li> <p> <code>spotFleetRequestConfigurationInvalid</code> - The configuration is not valid. For more information, see the description of the event.</p> </li> <li> <p> <code>spotInstanceCountLimitExceeded</code> - You've reached the limit on the number of Spot Instances that you can launch.</p> </li> </ul> <p>The following are the <code>fleetRequestChange</code> events:</p> <ul> <li> <p> <code>active</code> - The EC2 Fleet or Spot Fleet request has been validated and Amazon EC2 is attempting to maintain the target number of running Spot Instances.</p> </li> <li> <p> <code>cancelled</code> - The EC2 Fleet or Spot Fleet request is canceled and has no running Spot Instances. The EC2 Fleet or Spot Fleet will be deleted two days after its instances were terminated.</p> </li> <li> <p> <code>cancelled_running</code> - The EC2 Fleet or Spot Fleet request is canceled and does not launch additional Spot Instances. Existing Spot Instances continue to run until they are interrupted or terminated.</p> </li> <li> <p> <code>cancelled_terminating</code> - The EC2 Fleet or Spot Fleet request is canceled and its Spot Instances are terminating.</p> </li> <li> <p> <code>expired</code> - The EC2 Fleet or Spot Fleet request has expired. A subsequent event indicates that the instances were terminated, if the request was created with <code>TerminateInstancesWithExpiration</code> set.</p> </li> <li> <p> <code>modify_in_progress</code> - A request to modify the EC2 Fleet or Spot Fleet request was accepted and is in progress.</p> </li> <li> <p> <code>modify_succeeded</code> - The EC2 Fleet or Spot Fleet request was modified.</p> </li> <li> <p> <code>submitted</code> - The EC2 Fleet or Spot Fleet request is being evaluated and Amazon EC2 is preparing to launch the target number of Spot Instances.</p> </li> </ul> <p>The following are the <code>instanceChange</code> events:</p> <ul> <li> <p> <code>launched</code> - A request was fulfilled and a new instance was launched.</p> </li> <li> <p> <code>terminated</code> - An instance was terminated by the user.</p> </li> </ul> <p>The following are the <code>Information</code> events:</p> <ul> <li> <p> <code>launchSpecTemporarilyBlacklisted</code> - The configuration is not valid and several attempts to launch instances have failed. For more information, see the description of the event.</p> </li> <li> <p> <code>launchSpecUnusable</code> - The price in a launch specification is not valid because it is below the Spot price or the Spot price is above the On-Demand price.</p> </li> <li> <p> <code>fleetProgressHalted</code> - The price in every launch specification is not valid. A launch specification might become valid if the Spot price changes.</p> </li> </ul>",
+          "documentation":"<p>The event.</p> <p> <code>error</code> events:</p> <ul> <li> <p> <code>iamFleetRoleInvalid</code> - The EC2 Fleet or Spot Fleet does not have the required permissions either to launch or terminate an instance.</p> </li> <li> <p> <code>allLaunchSpecsTemporarilyBlacklisted</code> - None of the configurations are valid, and several attempts to launch instances have failed. For more information, see the description of the event.</p> </li> <li> <p> <code>spotInstanceCountLimitExceeded</code> - You've reached the limit on the number of Spot Instances that you can launch.</p> </li> <li> <p> <code>spotFleetRequestConfigurationInvalid</code> - The configuration is not valid. For more information, see the description of the event.</p> </li> </ul> <p> <code>fleetRequestChange</code> events:</p> <ul> <li> <p> <code>active</code> - The EC2 Fleet or Spot Fleet request has been validated and Amazon EC2 is attempting to maintain the target number of running instances.</p> </li> <li> <p> <code>cancelled</code> - The EC2 Fleet or Spot Fleet request is canceled and has no running instances. The EC2 Fleet or Spot Fleet will be deleted two days after its instances are terminated.</p> </li> <li> <p> <code>cancelled_running</code> - The EC2 Fleet or Spot Fleet request is canceled and does not launch additional instances. Its existing instances continue to run until they are interrupted or terminated. The request remains in this state until all instances are interrupted or terminated.</p> </li> <li> <p> <code>cancelled_terminating</code> - The EC2 Fleet or Spot Fleet request is canceled and its instances are terminating. The request remains in this state until all instances are terminated.</p> </li> <li> <p> <code>expired</code> - The EC2 Fleet or Spot Fleet request has expired. If the request was created with <code>TerminateInstancesWithExpiration</code> set, a subsequent <code>terminated</code> event indicates that the instances are terminated.</p> </li> <li> <p> <code>modify_in_progress</code> - The EC2 Fleet or Spot Fleet request is being modified. The request remains in this state until the modification is fully processed.</p> </li> <li> <p> <code>modify_succeeded</code> - The EC2 Fleet or Spot Fleet request was modified.</p> </li> <li> <p> <code>submitted</code> - The EC2 Fleet or Spot Fleet request is being evaluated and Amazon EC2 is preparing to launch the target number of instances.</p> </li> <li> <p> <code>progress</code> - The EC2 Fleet or Spot Fleet request is in the process of being fulfilled.</p> </li> </ul> <p> <code>instanceChange</code> events:</p> <ul> <li> <p> <code>launched</code> - A new instance was launched.</p> </li> <li> <p> <code>terminated</code> - An instance was terminated by the user.</p> </li> <li> <p> <code>termination_notified</code> - An instance termination notification was sent when a Spot Instance was terminated by Amazon EC2 during scale-down, when the target capacity of the fleet was modified down, for example, from a target capacity of 4 to a target capacity of 3.</p> </li> </ul> <p> <code>Information</code> events:</p> <ul> <li> <p> <code>fleetProgressHalted</code> - The price in every launch specification is not valid because it is below the Spot price (all the launch specifications have produced <code>launchSpecUnusable</code> events). A launch specification might become valid if the Spot price changes.</p> </li> <li> <p> <code>launchSpecTemporarilyBlacklisted</code> - The configuration is not valid and several attempts to launch instances have failed. For more information, see the description of the event.</p> </li> <li> <p> <code>launchSpecUnusable</code> - The price in a launch specification is not valid because it is below the Spot price.</p> </li> <li> <p> <code>registerWithLoadBalancersFailed</code> - An attempt to register instances with load balancers failed. For more information, see the description of the event.</p> </li> </ul>",
           "locationName":"eventSubType"
         },
         "InstanceId":{
@@ -21938,6 +22335,29 @@
       }
     },
     "ExportVmTaskId":{"type":"string"},
+    "FailedCapacityReservationFleetCancellationResult":{
+      "type":"structure",
+      "members":{
+        "CapacityReservationFleetId":{
+          "shape":"CapacityReservationFleetId",
+          "documentation":"<p>The ID of the Capacity Reservation Fleet that could not be cancelled.</p>",
+          "locationName":"capacityReservationFleetId"
+        },
+        "CancelCapacityReservationFleetError":{
+          "shape":"CancelCapacityReservationFleetError",
+          "documentation":"<p>Information about the Capacity Reservation Fleet cancellation error.</p>",
+          "locationName":"cancelCapacityReservationFleetError"
+        }
+      },
+      "documentation":"<p>Describes a Capacity Reservation Fleet that could not be cancelled.</p>"
+    },
+    "FailedCapacityReservationFleetCancellationResultSet":{
+      "type":"list",
+      "member":{
+        "shape":"FailedCapacityReservationFleetCancellationResult",
+        "locationName":"item"
+      }
+    },
     "FailedQueuedPurchaseDeletion":{
       "type":"structure",
       "members":{
@@ -22031,6 +22451,78 @@
         "pending_termination",
         "fulfilled"
       ]
+    },
+    "FleetCapacityReservation":{
+      "type":"structure",
+      "members":{
+        "CapacityReservationId":{
+          "shape":"CapacityReservationId",
+          "documentation":"<p>The ID of the Capacity Reservation.</p>",
+          "locationName":"capacityReservationId"
+        },
+        "AvailabilityZoneId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the Availability Zone in which the Capacity Reservation reserves capacity.</p>",
+          "locationName":"availabilityZoneId"
+        },
+        "InstanceType":{
+          "shape":"InstanceType",
+          "documentation":"<p>The instance type for which the Capacity Reservation reserves capacity.</p>",
+          "locationName":"instanceType"
+        },
+        "InstancePlatform":{
+          "shape":"CapacityReservationInstancePlatform",
+          "documentation":"<p>The type of operating system for which the Capacity Reservation reserves capacity.</p>",
+          "locationName":"instancePlatform"
+        },
+        "AvailabilityZone":{
+          "shape":"String",
+          "documentation":"<p>The Availability Zone in which the Capacity Reservation reserves capacity.</p>",
+          "locationName":"availabilityZone"
+        },
+        "TotalInstanceCount":{
+          "shape":"Integer",
+          "documentation":"<p>The total number of instances for which the Capacity Reservation reserves capacity.</p>",
+          "locationName":"totalInstanceCount"
+        },
+        "FulfilledCapacity":{
+          "shape":"Double",
+          "documentation":"<p>The number of capacity units fulfilled by the Capacity Reservation. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/crfleet-concepts.html#target-capacity\"> Total target capacity</a> in the Amazon EC2 User Guide.</p>",
+          "locationName":"fulfilledCapacity"
+        },
+        "EbsOptimized":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the Capacity Reservation reserves capacity for EBS-optimized instance types.</p>",
+          "locationName":"ebsOptimized"
+        },
+        "CreateDate":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The date and time at which the Capacity Reservation was created.</p>",
+          "locationName":"createDate"
+        },
+        "Weight":{
+          "shape":"DoubleWithConstraints",
+          "documentation":"<p>The weight of the instance type in the Capacity Reservation Fleet. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/crfleet-concepts.html#instance-weight\"> Instance type weight</a> in the Amazon EC2 User Guide.</p>",
+          "locationName":"weight"
+        },
+        "Priority":{
+          "shape":"IntegerWithConstraints",
+          "documentation":"<p>The priority of the instance type in the Capacity Reservation Fleet. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/crfleet-concepts.html#instance-priority\"> Instance type priority</a> in the Amazon EC2 User Guide.</p>",
+          "locationName":"priority"
+        }
+      },
+      "documentation":"<p>Information about a Capacity Reservation in a Capacity Reservation Fleet.</p>"
+    },
+    "FleetCapacityReservationSet":{
+      "type":"list",
+      "member":{
+        "shape":"FleetCapacityReservation",
+        "locationName":"item"
+      }
+    },
+    "FleetCapacityReservationTenancy":{
+      "type":"string",
+      "enum":["default"]
     },
     "FleetCapacityReservationUsageStrategy":{
       "type":"string",
@@ -22166,6 +22658,10 @@
     "FleetIdSet":{
       "type":"list",
       "member":{"shape":"FleetId"}
+    },
+    "FleetInstanceMatchCriteria":{
+      "type":"string",
+      "enum":["open"]
     },
     "FleetLaunchTemplateConfig":{
       "type":"structure",
@@ -22601,7 +23097,7 @@
         },
         "ShellVersion":{
           "shape":"String",
-          "documentation":"<p>The version of the AWS Shell that was used to create the bitstream.</p>",
+          "documentation":"<p>The version of the Amazon Web Services Shell that was used to create the bitstream.</p>",
           "locationName":"shellVersion"
         },
         "PciId":{
@@ -22626,7 +23122,7 @@
         },
         "OwnerId":{
           "shape":"String",
-          "documentation":"<p>The AWS account ID of the AFI owner.</p>",
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the AFI.</p>",
           "locationName":"ownerId"
         },
         "OwnerAlias":{
@@ -22754,6 +23250,11 @@
       "documentation":"<p>Describes the FPGAs for the instance type.</p>"
     },
     "FreeTierEligibleFlag":{"type":"boolean"},
+    "GVCDMaxResults":{
+      "type":"integer",
+      "max":1000,
+      "min":200
+    },
     "GatewayType":{
       "type":"string",
       "enum":["ipsec.1"]
@@ -23681,6 +24182,73 @@
         }
       }
     },
+    "GetVpnConnectionDeviceSampleConfigurationRequest":{
+      "type":"structure",
+      "required":[
+        "VpnConnectionId",
+        "VpnConnectionDeviceTypeId"
+      ],
+      "members":{
+        "VpnConnectionId":{
+          "shape":"VpnConnectionId",
+          "documentation":"<p>The <code>VpnConnectionId</code> specifies the Site-to-Site VPN connection used for the sample configuration.</p>"
+        },
+        "VpnConnectionDeviceTypeId":{
+          "shape":"VpnConnectionDeviceTypeId",
+          "documentation":"<p>Device identifier provided by the <code>GetVpnConnectionDeviceTypes</code> API.</p>"
+        },
+        "InternetKeyExchangeVersion":{
+          "shape":"String",
+          "documentation":"<p>The IKE version to be used in the sample configuration file for your customer gateway device. You can specify one of the following versions: <code>ikev1</code> or <code>ikev2</code>.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "GetVpnConnectionDeviceSampleConfigurationResult":{
+      "type":"structure",
+      "members":{
+        "VpnConnectionDeviceSampleConfiguration":{
+          "shape":"VpnConnectionDeviceSampleConfiguration",
+          "documentation":"<p>Sample configuration file for the specified customer gateway device.</p>",
+          "locationName":"vpnConnectionDeviceSampleConfiguration"
+        }
+      }
+    },
+    "GetVpnConnectionDeviceTypesRequest":{
+      "type":"structure",
+      "members":{
+        "MaxResults":{
+          "shape":"GVCDMaxResults",
+          "documentation":"<p>The maximum number of results returned by <code>GetVpnConnectionDeviceTypes</code> in paginated output. When this parameter is used, <code>GetVpnConnectionDeviceTypes</code> only returns <code>MaxResults</code> results in a single page along with a <code>NextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>GetVpnConnectionDeviceTypes</code> request with the returned <code>NextToken</code> value. This value can be between 200 and 1000. If this parameter is not used, then <code>GetVpnConnectionDeviceTypes</code> returns all results.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The <code>NextToken</code> value returned from a previous paginated <code>GetVpnConnectionDeviceTypes</code> request where <code>MaxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>NextToken</code> value. This value is null when there are no more results to return. </p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "GetVpnConnectionDeviceTypesResult":{
+      "type":"structure",
+      "members":{
+        "VpnConnectionDeviceTypes":{
+          "shape":"VpnConnectionDeviceTypeList",
+          "documentation":"<p>List of customer gateway devices that have a sample configuration file available for use.</p>",
+          "locationName":"vpnConnectionDeviceTypeSet"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The <code>NextToken</code> value to include in a future <code>GetVpnConnectionDeviceTypes</code> request. When the results of a <code>GetVpnConnectionDeviceTypes</code> request exceed <code>MaxResults</code>, this value can be used to retrieve the next page of results. This value is null when there are no more results to return.</p>",
+          "locationName":"nextToken"
+        }
+      }
+    },
     "GpuDeviceCount":{"type":"integer"},
     "GpuDeviceInfo":{
       "type":"structure",
@@ -23748,7 +24316,7 @@
     "GroupIdStringList":{
       "type":"list",
       "member":{
-        "shape":"String",
+        "shape":"SecurityGroupId",
         "locationName":"groupId"
       }
     },
@@ -24670,7 +25238,7 @@
         },
         "CertificateRevocationList":{
           "shape":"String",
-          "documentation":"<p>The client certificate revocation list file. For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/cvpn-working-certificates.html#cvpn-working-certificates-generate\">Generate a Client Certificate Revocation List</a> in the <i>AWS Client VPN Administrator Guide</i>.</p>"
+          "documentation":"<p>The client certificate revocation list file. For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/cvpn-working-certificates.html#cvpn-working-certificates-generate\">Generate a Client Certificate Revocation List</a> in the <i>Client VPN Administrator Guide</i>.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -24786,7 +25354,7 @@
         },
         "UsageOperation":{
           "shape":"String",
-          "documentation":"<p>The usage operation value. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/billing-info-fields.html\">AMI billing information fields</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+          "documentation":"<p>The usage operation value. For more information, see <a href=\"https://docs.aws.amazon.com/vm-import/latest/userguide/vmie_prereqs.html#prerequisites\">Licensing options</a> in the <i>VM Import/Export User Guide</i>.</p>"
         },
         "BootMode":{
           "shape":"BootModeValues",
@@ -25677,7 +26245,7 @@
         },
         "Licenses":{
           "shape":"LicenseList",
-          "documentation":"<p>The license configurations.</p>",
+          "documentation":"<p>The license configurations for the instance.</p>",
           "locationName":"licenseSet"
         },
         "MetadataOptions":{
@@ -25694,6 +26262,21 @@
           "shape":"BootModeValues",
           "documentation":"<p>The boot mode of the instance. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-boot.html\">Boot modes</a> in the <i>Amazon EC2 User Guide</i>.</p>",
           "locationName":"bootMode"
+        },
+        "PlatformDetails":{
+          "shape":"String",
+          "documentation":"<p>The platform details value for the instance. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/billing-info-fields.html\">AMI billing information fields</a> in the <i>Amazon EC2 User Guide</i>.</p>",
+          "locationName":"platformDetails"
+        },
+        "UsageOperation":{
+          "shape":"String",
+          "documentation":"<p>The usage operation value for the instance. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/billing-info-fields.html\">AMI billing information fields</a> in the <i>Amazon EC2 User Guide</i>.</p>",
+          "locationName":"usageOperation"
+        },
+        "UsageOperationUpdateTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time that the usage operation was last updated.</p>",
+          "locationName":"usageOperationUpdateTime"
         }
       },
       "documentation":"<p>Describes an instance.</p>"
@@ -26362,7 +26945,7 @@
         },
         "HttpEndpoint":{
           "shape":"InstanceMetadataEndpointState",
-          "documentation":"<p>This parameter enables or disables the HTTP metadata endpoint on your instances. If the parameter is not specified, the default state is <code>enabled</code>.</p> <note> <p>If you specify a value of <code>disabled</code>, you will not be able to access your instance metadata.</p> </note>"
+          "documentation":"<p>Enables or disables the HTTP metadata endpoint on your instances. If the parameter is not specified, the default state is <code>enabled</code>.</p> <p>If you specify a value of <code>disabled</code>, you will not be able to access your instance metadata.</p>"
         },
         "HttpProtocolIpv6":{
           "shape":"InstanceMetadataProtocolState",
@@ -26391,12 +26974,12 @@
         },
         "HttpEndpoint":{
           "shape":"InstanceMetadataEndpointState",
-          "documentation":"<p>This parameter enables or disables the HTTP metadata endpoint on your instances. If the parameter is not specified, the default state is <code>enabled</code>.</p> <note> <p>If you specify a value of <code>disabled</code>, you will not be able to access your instance metadata.</p> </note>",
+          "documentation":"<p>Indicates whether the HTTP metadata endpoint on your instances is enabled or disabled.</p>",
           "locationName":"httpEndpoint"
         },
         "HttpProtocolIpv6":{
           "shape":"InstanceMetadataProtocolState",
-          "documentation":"<p>Whether or not the IPv6 endpoint for the instance metadata service is enabled or disabled.</p>",
+          "documentation":"<p>Indicates whether the IPv6 endpoint for the instance metadata service is enabled or disabled.</p>",
           "locationName":"httpProtocolIpv6"
         }
       },
@@ -26644,7 +27227,7 @@
           "queryName":"Ipv6Addresses"
         },
         "NetworkInterfaceId":{
-          "shape":"String",
+          "shape":"NetworkInterfaceId",
           "documentation":"<p>The ID of the network interface.</p> <p>If you are creating a Spot Fleet, omit this parameter because you can’t specify a network interface ID in a launch specification.</p>",
           "locationName":"networkInterfaceId"
         },
@@ -26946,6 +27529,13 @@
       },
       "documentation":"<p>Describes the status of an instance.</p>"
     },
+    "InstanceStorageEncryptionSupport":{
+      "type":"string",
+      "enum":[
+        "unsupported",
+        "required"
+      ]
+    },
     "InstanceStorageFlag":{"type":"boolean"},
     "InstanceStorageInfo":{
       "type":"structure",
@@ -26962,11 +27552,16 @@
         },
         "NvmeSupport":{
           "shape":"EphemeralNvmeSupport",
-          "documentation":"<p>Indicates whether non-volatile memory express (NVMe) is supported for instance store.</p>",
+          "documentation":"<p>Indicates whether non-volatile memory express (NVMe) is supported.</p>",
           "locationName":"nvmeSupport"
+        },
+        "EncryptionSupport":{
+          "shape":"InstanceStorageEncryptionSupport",
+          "documentation":"<p>Indicates whether data is encrypted at rest.</p>",
+          "locationName":"encryptionSupport"
         }
       },
-      "documentation":"<p>Describes the disks that are available for the instance type.</p>"
+      "documentation":"<p>Describes the instance store features that are supported by the instance type.</p>"
     },
     "InstanceTagKeySet":{
       "type":"list",
@@ -27612,6 +28207,10 @@
       }
     },
     "Integer":{"type":"integer"},
+    "IntegerWithConstraints":{
+      "type":"integer",
+      "min":0
+    },
     "IntegrateServices":{
       "type":"structure",
       "members":{
@@ -29065,7 +29664,7 @@
           "locationName":"spotPrice"
         },
         "SubnetId":{
-          "shape":"String",
+          "shape":"SubnetId",
           "documentation":"<p>The ID of the subnet in which to launch the instances.</p>",
           "locationName":"subnetId"
         },
@@ -29453,7 +30052,7 @@
       "members":{
         "UserId":{
           "shape":"String",
-          "documentation":"<p>The AWS account ID.</p>",
+          "documentation":"<p>The Amazon Web Services account ID.</p>",
           "locationName":"userId"
         },
         "Group":{
@@ -29501,7 +30100,7 @@
         },
         "UserId":{
           "shape":"String",
-          "documentation":"<p>The AWS account ID.</p>"
+          "documentation":"<p>The Amazon Web Services account ID.</p>"
         }
       },
       "documentation":"<p>Describes a load permission.</p>"
@@ -29521,7 +30120,7 @@
         },
         "OwnerId":{
           "shape":"String",
-          "documentation":"<p>The AWS account ID that owns the local gateway.</p>",
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the local gateway.</p>",
           "locationName":"ownerId"
         },
         "State":{
@@ -29585,7 +30184,7 @@
         },
         "OwnerId":{
           "shape":"String",
-          "documentation":"<p>The AWS account ID that owns the local gateway route.</p>",
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the local gateway route.</p>",
           "locationName":"ownerId"
         }
       },
@@ -29633,7 +30232,7 @@
         },
         "OwnerId":{
           "shape":"String",
-          "documentation":"<p>The AWS account ID that owns the local gateway route table.</p>",
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the local gateway route table.</p>",
           "locationName":"ownerId"
         },
         "State":{
@@ -29693,7 +30292,7 @@
         },
         "OwnerId":{
           "shape":"String",
-          "documentation":"<p>The AWS account ID that owns the local gateway virtual interface group association.</p>",
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the local gateway virtual interface group association.</p>",
           "locationName":"ownerId"
         },
         "State":{
@@ -29754,7 +30353,7 @@
         },
         "OwnerId":{
           "shape":"String",
-          "documentation":"<p>The AWS account ID that owns the local gateway route table for the association.</p>",
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the local gateway route table for the association.</p>",
           "locationName":"ownerId"
         },
         "State":{
@@ -29840,7 +30439,7 @@
         },
         "OwnerId":{
           "shape":"String",
-          "documentation":"<p>The AWS account ID that owns the local gateway virtual interface.</p>",
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the local gateway virtual interface.</p>",
           "locationName":"ownerId"
         },
         "Tags":{
@@ -29871,7 +30470,7 @@
         },
         "OwnerId":{
           "shape":"String",
-          "documentation":"<p>The AWS account ID that owns the local gateway virtual interface group.</p>",
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the local gateway virtual interface group.</p>",
           "locationName":"ownerId"
         },
         "Tags":{
@@ -30066,7 +30665,7 @@
         },
         "OptInStatus":{
           "shape":"ModifyAvailabilityZoneOptInStatus",
-          "documentation":"<p>Indicates whether you are opted in to the Local Zone group or Wavelength Zone group. The only valid value is <code>opted-in</code>. You must contact <a href=\"https://console.aws.amazon.com/support/home#/case/create%3FissueType=customer-service%26serviceCode=general-info%26getting-started%26categoryCode=using-aws%26services\">AWS Support</a> to opt out of a Local Zone group, or Wavelength Zone group.</p>"
+          "documentation":"<p>Indicates whether you are opted in to the Local Zone group or Wavelength Zone group. The only valid value is <code>opted-in</code>. You must contact <a href=\"https://console.aws.amazon.com/support/home#/case/create%3FissueType=customer-service%26serviceCode=general-info%26getting-started%26categoryCode=using-aws%26services\">Amazon Web Services Support</a> to opt out of a Local Zone or Wavelength Zone group.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -30090,6 +30689,42 @@
         "opted-in",
         "not-opted-in"
       ]
+    },
+    "ModifyCapacityReservationFleetRequest":{
+      "type":"structure",
+      "required":["CapacityReservationFleetId"],
+      "members":{
+        "CapacityReservationFleetId":{
+          "shape":"CapacityReservationFleetId",
+          "documentation":"<p>The ID of the Capacity Reservation Fleet to modify.</p>"
+        },
+        "TotalTargetCapacity":{
+          "shape":"Integer",
+          "documentation":"<p>The total number of capacity units to be reserved by the Capacity Reservation Fleet. This value, together with the instance type weights that you assign to each instance type used by the Fleet determine the number of instances for which the Fleet reserves capacity. Both values are based on units that make sense for your workload. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/crfleet-concepts.html#target-capacity\">Total target capacity</a> in the Amazon EC2 User Guide.</p>"
+        },
+        "EndDate":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The date and time at which the Capacity Reservation Fleet expires. When the Capacity Reservation Fleet expires, its state changes to <code>expired</code> and all of the Capacity Reservations in the Fleet expire.</p> <p>The Capacity Reservation Fleet expires within an hour after the specified time. For example, if you specify <code>5/31/2019</code>, <code>13:30:55</code>, the Capacity Reservation Fleet is guaranteed to expire between <code>13:30:55</code> and <code>14:30:55</code> on <code>5/31/2019</code>.</p> <p>You can't specify <b>EndDate</b> and <b> RemoveEndDate</b> in the same request.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        },
+        "RemoveEndDate":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether to remove the end date from the Capacity Reservation Fleet. If you remove the end date, the Capacity Reservation Fleet does not expire and it remains active until you explicitly cancel it using the <b>CancelCapacityReservationFleet</b> action.</p> <p>You can't specify <b>RemoveEndDate</b> and <b> EndDate</b> in the same request.</p>"
+        }
+      }
+    },
+    "ModifyCapacityReservationFleetResult":{
+      "type":"structure",
+      "members":{
+        "Return":{
+          "shape":"Boolean",
+          "documentation":"<p>Returns <code>true</code> if the request succeeds; otherwise, it returns an error.</p>",
+          "locationName":"return"
+        }
+      }
     },
     "ModifyCapacityReservationRequest":{
       "type":"structure",
@@ -30141,7 +30776,7 @@
         },
         "ServerCertificateArn":{
           "shape":"String",
-          "documentation":"<p>The ARN of the server certificate to be used. The server certificate must be provisioned in AWS Certificate Manager (ACM).</p>"
+          "documentation":"<p>The ARN of the server certificate to be used. The server certificate must be provisioned in Certificate Manager (ACM).</p>"
         },
         "ConnectionLogOptions":{
           "shape":"ConnectionLogOptions",
@@ -30161,7 +30796,7 @@
         },
         "SplitTunnel":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether the VPN is split-tunnel.</p> <p>For information about split-tunnel VPN endpoints, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/split-tunnel-vpn.html\">Split-Tunnel AWS Client VPN Endpoint</a> in the <i>AWS Client VPN Administrator Guide</i>.</p>"
+          "documentation":"<p>Indicates whether the VPN is split-tunnel.</p> <p>For information about split-tunnel VPN endpoints, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/split-tunnel-vpn.html\">Split-tunnel Client VPN endpoint</a> in the <i>Client VPN Administrator Guide</i>.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -30314,7 +30949,7 @@
         },
         "UserIds":{
           "shape":"UserIdStringList",
-          "documentation":"<p>The AWS account IDs. This parameter is valid only when modifying the <code>loadPermission</code> attribute.</p>",
+          "documentation":"<p>The Amazon Web Services account IDs. This parameter is valid only when modifying the <code>loadPermission</code> attribute.</p>",
           "locationName":"UserId"
         },
         "UserGroups":{
@@ -30779,7 +31414,7 @@
         },
         "Tenancy":{
           "shape":"HostTenancy",
-          "documentation":"<p>The tenancy for the instance.</p> <p>For T3 instances, you can't change the tenancy from <code>dedicated</code> to <code>host</code>, or from <code>host</code> to <code>dedicated</code>. Attempting to make one of these unsupported tenancy changes results in the <code>InvalidTenancy</code> error code.</p>",
+          "documentation":"<p>The tenancy for the instance.</p> <note> <p>For T3 instances, you can't change the tenancy from <code>dedicated</code> to <code>host</code>, or from <code>host</code> to <code>dedicated</code>. Attempting to make one of these unsupported tenancy changes results in the <code>InvalidTenancy</code> error code.</p> </note>",
           "locationName":"tenancy"
         },
         "PartitionNumber":{
@@ -31143,7 +31778,7 @@
         },
         "TrafficDirection":{
           "shape":"TrafficDirection",
-          "documentation":"<p>The type of traffic (<code>ingress</code> | <code>egress</code>) to assign to the rule.</p>"
+          "documentation":"<p>The type of traffic to assign to the rule.</p>"
         },
         "RuleNumber":{
           "shape":"Integer",
@@ -31768,7 +32403,7 @@
         },
         "RemoteIpv4NetworkCidr":{
           "shape":"String",
-          "documentation":"<p>The IPv4 CIDR on the AWS side of the VPN connection.</p> <p>Default: <code>0.0.0.0/0</code> </p>"
+          "documentation":"<p>The IPv4 CIDR on the Amazon Web Services side of the VPN connection.</p> <p>Default: <code>0.0.0.0/0</code> </p>"
         },
         "LocalIpv6NetworkCidr":{
           "shape":"String",
@@ -31776,7 +32411,7 @@
         },
         "RemoteIpv6NetworkCidr":{
           "shape":"String",
-          "documentation":"<p>The IPv6 CIDR on the AWS side of the VPN connection.</p> <p>Default: <code>::/0</code> </p>"
+          "documentation":"<p>The IPv6 CIDR on the Amazon Web Services side of the VPN connection.</p> <p>Default: <code>::/0</code> </p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -31811,7 +32446,7 @@
         },
         "VpnGatewayId":{
           "shape":"VpnGatewayId",
-          "documentation":"<p>The ID of the virtual private gateway at the AWS side of the VPN connection.</p>"
+          "documentation":"<p>The ID of the virtual private gateway at the Amazon Web Services side of the VPN connection.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -31837,7 +32472,7 @@
       "members":{
         "VpnConnectionId":{
           "shape":"VpnConnectionId",
-          "documentation":"<p>The ID of the AWS Site-to-Site VPN connection.</p>"
+          "documentation":"<p>The ID of the Amazon Web Services Site-to-Site VPN connection.</p>"
         },
         "VpnTunnelOutsideIpAddress":{
           "shape":"String",
@@ -31868,7 +32503,7 @@
       "members":{
         "VpnConnectionId":{
           "shape":"VpnConnectionId",
-          "documentation":"<p>The ID of the AWS Site-to-Site VPN connection.</p>"
+          "documentation":"<p>The ID of the Amazon Web Services Site-to-Site VPN connection.</p>"
         },
         "VpnTunnelOutsideIpAddress":{
           "shape":"String",
@@ -31918,7 +32553,7 @@
         },
         "RekeyMarginTimeSeconds":{
           "shape":"Integer",
-          "documentation":"<p>The margin time, in seconds, before the phase 2 lifetime expires, during which the AWS side of the VPN connection performs an IKE rekey. The exact time of the rekey is randomly selected based on the value for <code>RekeyFuzzPercentage</code>.</p> <p>Constraints: A value between 60 and half of <code>Phase2LifetimeSeconds</code>.</p> <p>Default: <code>540</code> </p>"
+          "documentation":"<p>The margin time, in seconds, before the phase 2 lifetime expires, during which the Amazon Web Services side of the VPN connection performs an IKE rekey. The exact time of the rekey is randomly selected based on the value for <code>RekeyFuzzPercentage</code>.</p> <p>Constraints: A value between 60 and half of <code>Phase2LifetimeSeconds</code>.</p> <p>Default: <code>540</code> </p>"
         },
         "RekeyFuzzPercentage":{
           "shape":"Integer",
@@ -31973,10 +32608,10 @@
         },
         "StartupAction":{
           "shape":"String",
-          "documentation":"<p>The action to take when the establishing the tunnel for the VPN connection. By default, your customer gateway device must initiate the IKE negotiation and bring up the tunnel. Specify <code>start</code> for AWS to initiate the IKE negotiation.</p> <p>Valid Values: <code>add</code> | <code>start</code> </p> <p>Default: <code>add</code> </p>"
+          "documentation":"<p>The action to take when the establishing the tunnel for the VPN connection. By default, your customer gateway device must initiate the IKE negotiation and bring up the tunnel. Specify <code>start</code> for Amazon Web Services to initiate the IKE negotiation.</p> <p>Valid Values: <code>add</code> | <code>start</code> </p> <p>Default: <code>add</code> </p>"
         }
       },
-      "documentation":"<p>The AWS Site-to-Site VPN tunnel options to modify.</p>"
+      "documentation":"<p>The Amazon Web Services Site-to-Site VPN tunnel options to modify.</p>"
     },
     "MonitorInstancesRequest":{
       "type":"structure",
@@ -33568,7 +34203,7 @@
           "locationName":"affinity"
         },
         "GroupName":{
-          "shape":"String",
+          "shape":"PlacementGroupName",
           "documentation":"<p>The name of the placement group the instance is in.</p>",
           "locationName":"groupName"
         },
@@ -35064,7 +35699,7 @@
         },
         "NetworkBorderGroup":{
           "shape":"String",
-          "documentation":"<p>The set of Availability Zones, Local Zones, or Wavelength Zones from which AWS advertises IP addresses.</p> <p>If you provide an incorrect network border group, you will receive an <code>InvalidAddress.NotFound</code> error. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html\">Error Codes</a>.</p> <note> <p>You cannot use a network border group with EC2 Classic. If you attempt this operation on EC2 classic, you will receive an <code>InvalidParameterCombination</code> error. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html\">Error Codes</a>.</p> </note>"
+          "documentation":"<p>The set of Availability Zones, Local Zones, or Wavelength Zones from which Amazon Web Services advertises IP addresses.</p> <p>If you provide an incorrect network border group, you receive an <code>InvalidAddress.NotFound</code> error.</p> <p>You cannot use a network border group with EC2 Classic. If you attempt this operation on EC2 classic, you receive an <code>InvalidParameterCombination</code> error.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -35910,6 +36545,44 @@
         }
       },
       "documentation":"<p>Describes a launch request for one or more instances, and includes owner, requester, and security group information that applies to all instances in the launch request.</p>"
+    },
+    "ReservationFleetInstanceSpecification":{
+      "type":"structure",
+      "members":{
+        "InstanceType":{
+          "shape":"InstanceType",
+          "documentation":"<p>The instance type for which the Capacity Reservation Fleet reserves capacity.</p>"
+        },
+        "InstancePlatform":{
+          "shape":"CapacityReservationInstancePlatform",
+          "documentation":"<p>The type of operating system for which the Capacity Reservation Fleet reserves capacity.</p>"
+        },
+        "Weight":{
+          "shape":"DoubleWithConstraints",
+          "documentation":"<p>The number of capacity units provided by the specified instance type. This value, together with the total target capacity that you specify for the Fleet determine the number of instances for which the Fleet reserves capacity. Both values are based on units that make sense for your workload. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/crfleet-concepts.html#target-capacity\">Total target capacity</a> in the Amazon EC2 User Guide.</p>"
+        },
+        "AvailabilityZone":{
+          "shape":"String",
+          "documentation":"<p>The Availability Zone in which the Capacity Reservation Fleet reserves the capacity. A Capacity Reservation Fleet can't span Availability Zones. All instance type specifications that you specify for the Fleet must use the same Availability Zone.</p>"
+        },
+        "AvailabilityZoneId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the Availability Zone in which the Capacity Reservation Fleet reserves the capacity. A Capacity Reservation Fleet can't span Availability Zones. All instance type specifications that you specify for the Fleet must use the same Availability Zone.</p>"
+        },
+        "EbsOptimized":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the Capacity Reservation Fleet supports EBS-optimized instances types. This optimization provides dedicated throughput to Amazon EBS and an optimized configuration stack to provide optimal I/O performance. This optimization isn't available with all instance types. Additional usage charges apply when using EBS-optimized instance types.</p>"
+        },
+        "Priority":{
+          "shape":"IntegerWithConstraints",
+          "documentation":"<p>The priority to assign to the instance type. This value is used to determine which of the instance types specified for the Fleet should be prioritized for use. A lower value indicates a high priority. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/crfleet-concepts.html#instance-priority\">Instance type priority</a> in the Amazon EC2 User Guide.</p>"
+        }
+      },
+      "documentation":"<p>Information about an instance type to use in a Capacity Reservation Fleet.</p>"
+    },
+    "ReservationFleetInstanceSpecificationList":{
+      "type":"list",
+      "member":{"shape":"ReservationFleetInstanceSpecification"}
     },
     "ReservationId":{"type":"string"},
     "ReservationList":{
@@ -38130,10 +38803,7 @@
     },
     "SearchLocalGatewayRoutesRequest":{
       "type":"structure",
-      "required":[
-        "LocalGatewayRouteTableId",
-        "Filters"
-      ],
+      "required":["LocalGatewayRouteTableId"],
       "members":{
         "LocalGatewayRouteTableId":{
           "shape":"LocalGatewayRoutetableId",
@@ -38589,7 +39259,7 @@
         },
         "AcceptanceRequired":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether requests from other AWS accounts to create an endpoint to the service must first be accepted.</p>",
+          "documentation":"<p>Indicates whether requests from other Amazon Web Services accounts to create an endpoint to the service must first be accepted.</p>",
           "locationName":"acceptanceRequired"
         },
         "ManagesVpcEndpoints":{
@@ -38662,7 +39332,7 @@
         },
         "Owner":{
           "shape":"String",
-          "documentation":"<p>The AWS account ID of the service owner.</p>",
+          "documentation":"<p>The Amazon Web Services account ID of the service owner.</p>",
           "locationName":"owner"
         },
         "BaseEndpointDnsNames":{
@@ -40550,7 +41220,7 @@
       "members":{
         "ResourceType":{
           "shape":"ResourceType",
-          "documentation":"<p>The type of resource to tag on creation. The possible values are: <code>capacity-reservation</code> | <code>carrier-gateway</code> | <code>client-vpn-endpoint</code> | <code>customer-gateway</code> | <code>dedicated-host</code> | <code>dhcp-options</code> | <code>egress-only-internet-gateway</code> | <code>elastic-gpu</code> | <code>elastic-ip</code> | <code>export-image-task</code> | <code>export-instance-task</code> | <code>fleet</code> | <code>fpga-image</code> | <code>host-reservation</code> | <code>image</code> | <code>import-image-task</code> | <code>import-snapshot-task</code> | <code>instance</code> | <code>instance-event-window</code> | <code>internet-gateway</code> | <code>ipv4pool-ec2</code> | <code>ipv6pool-ec2</code> | <code>key-pair</code> | <code>launch-template</code> | <code>local-gateway-route-table-vpc-association</code> | <code>natgateway</code> | <code>network-acl</code> | <code>network-insights-analysis</code> | <code>network-insights-path</code> | <code>network-interface</code> | <code>placement-group</code> | <code>prefix-list</code> | <code>reserved-instances</code> | <code>route-table</code> | <code>security-group</code> | <code>security-group-rule</code> | <code>snapshot</code> | <code>spot-fleet-request</code> | <code>spot-instances-request</code> | <code>subnet</code> | <code>traffic-mirror-filter</code> | <code>traffic-mirror-session</code> | <code>traffic-mirror-target</code> | <code>transit-gateway</code> | <code>transit-gateway-attachment</code> | <code>transit-gateway-multicast-domain</code> | <code>transit-gateway-route-table</code> | <code>volume</code> | <code>vpc</code> | <code>vpc-endpoint</code> | <code>vpc-endpoint-service</code> | <code>vpc-flow-log</code> | <code>vpc-peering-connection</code> | <code>vpn-connection</code> | <code>vpn-gateway</code>.</p> <p>To tag a resource after it has been created, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateTags.html\">CreateTags</a>.</p>",
+          "documentation":"<p>The type of resource to tag on creation.</p>",
           "locationName":"resourceType"
         },
         "Tags":{
@@ -42673,7 +43343,7 @@
         },
         "RekeyMarginTimeSeconds":{
           "shape":"Integer",
-          "documentation":"<p>The margin time, in seconds, before the phase 2 lifetime expires, during which the AWS side of the VPN connection performs an IKE rekey.</p>",
+          "documentation":"<p>The margin time, in seconds, before the phase 2 lifetime expires, during which the Amazon Web Services side of the VPN connection performs an IKE rekey.</p>",
           "locationName":"rekeyMarginTimeSeconds"
         },
         "RekeyFuzzPercentage":{
@@ -44026,7 +44696,7 @@
         },
         "OwnerId":{
           "shape":"String",
-          "documentation":"<p>The ID of the AWS account that owns the VPC endpoint.</p>",
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the VPC endpoint.</p>",
           "locationName":"ownerId"
         },
         "LastError":{
@@ -44052,7 +44722,7 @@
         },
         "VpcEndpointOwner":{
           "shape":"String",
-          "documentation":"<p>The AWS account ID of the owner of the VPC endpoint.</p>",
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the VPC endpoint.</p>",
           "locationName":"vpcEndpointOwner"
         },
         "VpcEndpointState":{
@@ -44171,7 +44841,7 @@
         },
         "NetworkBorderGroup":{
           "shape":"String",
-          "documentation":"<p>The name of the unique set of Availability Zones, Local Zones, or Wavelength Zones from which AWS advertises IP addresses, for example, <code>us-east-1-wl1-bos-wlz-1</code>.</p>",
+          "documentation":"<p>The name of the unique set of Availability Zones, Local Zones, or Wavelength Zones from which Amazon Web Services advertises IP addresses, for example, <code>us-east-1-wl1-bos-wlz-1</code>.</p>",
           "locationName":"networkBorderGroup"
         },
         "Ipv6Pool":{
@@ -44365,7 +45035,7 @@
         },
         "Category":{
           "shape":"String",
-          "documentation":"<p>The category of the VPN connection. A value of <code>VPN</code> indicates an AWS VPN connection. A value of <code>VPN-Classic</code> indicates an AWS Classic VPN connection.</p>",
+          "documentation":"<p>The category of the VPN connection. A value of <code>VPN</code> indicates an Amazon Web Services VPN connection. A value of <code>VPN-Classic</code> indicates an Amazon Web Services Classic VPN connection.</p>",
           "locationName":"category"
         },
         "State":{
@@ -44385,7 +45055,7 @@
         },
         "VpnGatewayId":{
           "shape":"String",
-          "documentation":"<p>The ID of the virtual private gateway at the AWS side of the VPN connection.</p>",
+          "documentation":"<p>The ID of the virtual private gateway at the Amazon Web Services side of the VPN connection.</p>",
           "locationName":"vpnGatewayId"
         },
         "TransitGatewayId":{
@@ -44415,6 +45085,44 @@
         }
       },
       "documentation":"<p>Describes a VPN connection.</p>"
+    },
+    "VpnConnectionDeviceSampleConfiguration":{
+      "type":"string",
+      "sensitive":true
+    },
+    "VpnConnectionDeviceType":{
+      "type":"structure",
+      "members":{
+        "VpnConnectionDeviceTypeId":{
+          "shape":"String",
+          "documentation":"<p>Customer gateway device identifier.</p>",
+          "locationName":"vpnConnectionDeviceTypeId"
+        },
+        "Vendor":{
+          "shape":"String",
+          "documentation":"<p>Customer gateway device vendor.</p>",
+          "locationName":"vendor"
+        },
+        "Platform":{
+          "shape":"String",
+          "documentation":"<p>Customer gateway device platform.</p>",
+          "locationName":"platform"
+        },
+        "Software":{
+          "shape":"String",
+          "documentation":"<p>Customer gateway device software version.</p>",
+          "locationName":"software"
+        }
+      },
+      "documentation":"<p>List of customer gateway devices that have a sample configuration file available for use. You can also see the list of device types with sample configuration files available under <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/your-cgw.html\">Your customer gateway device</a> in the <i>Amazon Web Services Site-to-Site VPN User Guide</i>.</p>"
+    },
+    "VpnConnectionDeviceTypeId":{"type":"string"},
+    "VpnConnectionDeviceTypeList":{
+      "type":"list",
+      "member":{
+        "shape":"VpnConnectionDeviceType",
+        "locationName":"item"
+      }
     },
     "VpnConnectionId":{"type":"string"},
     "VpnConnectionIdStringList":{
@@ -44451,7 +45159,7 @@
         },
         "RemoteIpv4NetworkCidr":{
           "shape":"String",
-          "documentation":"<p>The IPv4 CIDR on the AWS side of the VPN connection.</p>",
+          "documentation":"<p>The IPv4 CIDR on the Amazon Web Services side of the VPN connection.</p>",
           "locationName":"remoteIpv4NetworkCidr"
         },
         "LocalIpv6NetworkCidr":{
@@ -44461,7 +45169,7 @@
         },
         "RemoteIpv6NetworkCidr":{
           "shape":"String",
-          "documentation":"<p>The IPv6 CIDR on the AWS side of the VPN connection.</p>",
+          "documentation":"<p>The IPv6 CIDR on the Amazon Web Services side of the VPN connection.</p>",
           "locationName":"remoteIpv6NetworkCidr"
         },
         "TunnelInsideIpVersion":{
@@ -44503,7 +45211,7 @@
         },
         "RemoteIpv4NetworkCidr":{
           "shape":"String",
-          "documentation":"<p>The IPv4 CIDR on the AWS side of the VPN connection.</p> <p>Default: <code>0.0.0.0/0</code> </p>"
+          "documentation":"<p>The IPv4 CIDR on the Amazon Web Services side of the VPN connection.</p> <p>Default: <code>0.0.0.0/0</code> </p>"
         },
         "LocalIpv6NetworkCidr":{
           "shape":"String",
@@ -44511,7 +45219,7 @@
         },
         "RemoteIpv6NetworkCidr":{
           "shape":"String",
-          "documentation":"<p>The IPv6 CIDR on the AWS side of the VPN connection.</p> <p>Default: <code>::/0</code> </p>"
+          "documentation":"<p>The IPv6 CIDR on the Amazon Web Services side of the VPN connection.</p> <p>Default: <code>::/0</code> </p>"
         }
       },
       "documentation":"<p>Describes VPN connection options.</p>"
@@ -44649,7 +45357,7 @@
         },
         "RekeyMarginTimeSeconds":{
           "shape":"Integer",
-          "documentation":"<p>The margin time, in seconds, before the phase 2 lifetime expires, during which the AWS side of the VPN connection performs an IKE rekey. The exact time of the rekey is randomly selected based on the value for <code>RekeyFuzzPercentage</code>.</p> <p>Constraints: A value between 60 and half of <code>Phase2LifetimeSeconds</code>.</p> <p>Default: <code>540</code> </p>"
+          "documentation":"<p>The margin time, in seconds, before the phase 2 lifetime expires, during which the Amazon Web Services side of the VPN connection performs an IKE rekey. The exact time of the rekey is randomly selected based on the value for <code>RekeyFuzzPercentage</code>.</p> <p>Constraints: A value between 60 and half of <code>Phase2LifetimeSeconds</code>.</p> <p>Default: <code>540</code> </p>"
         },
         "RekeyFuzzPercentage":{
           "shape":"Integer",
@@ -44704,7 +45412,7 @@
         },
         "StartupAction":{
           "shape":"String",
-          "documentation":"<p>The action to take when the establishing the tunnel for the VPN connection. By default, your customer gateway device must initiate the IKE negotiation and bring up the tunnel. Specify <code>start</code> for AWS to initiate the IKE negotiation.</p> <p>Valid Values: <code>add</code> | <code>start</code> </p> <p>Default: <code>add</code> </p>"
+          "documentation":"<p>The action to take when the establishing the tunnel for the VPN connection. By default, your customer gateway device must initiate the IKE negotiation and bring up the tunnel. Specify <code>start</code> for Amazon Web Services to initiate the IKE negotiation.</p> <p>Valid Values: <code>add</code> | <code>start</code> </p> <p>Default: <code>add</code> </p>"
         }
       },
       "documentation":"<p>The tunnel options for a single VPN tunnel.</p>"

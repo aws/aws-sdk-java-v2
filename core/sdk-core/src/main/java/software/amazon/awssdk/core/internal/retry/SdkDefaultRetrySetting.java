@@ -48,7 +48,7 @@ public final class SdkDefaultRetrySetting {
 
     public static final class Standard {
         private static final int MAX_ATTEMPTS = 3;
-        private static final Duration BASE_DELAY = Duration.ofSeconds(1);
+        private static final Duration BASE_DELAY = Duration.ofMillis(100);
         private static final Duration THROTTLED_BASE_DELAY = Duration.ofSeconds(1);
         private static final int THROTTLE_EXCEPTION_TOKEN_COST = 5;
         private static final int DEFAULT_EXCEPTION_TOKEN_COST = 5;

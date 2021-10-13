@@ -72,6 +72,8 @@ public class ScanOperation<T> implements PaginatedTableOperation<T, ScanRequest,
         ScanRequest.Builder scanRequest = ScanRequest.builder()
             .tableName(operationContext.tableName())
             .limit(this.request.limit())
+            .segment(this.request.segment())
+            .totalSegments(this.request.totalSegments())
             .exclusiveStartKey(this.request.exclusiveStartKey())
             .consistentRead(this.request.consistentRead())
             .expressionAttributeValues(expressionValues)

@@ -16,12 +16,18 @@
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.netty.channel.Channel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.AttributeKey;
+import io.netty.util.concurrent.EventExecutor;
 import javax.net.ssl.SSLEngine;
 import org.junit.Test;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
@@ -48,6 +54,23 @@ public class NettyUtilsTest {
                 channel.close();
             }
         }
+    }
 
+    @Test
+    public void doInEventLoop_inEventLoop_doesNotSubmit() {
+        EventExecutor mockExecutor = mock(EventExecutor.class);
+        when(mockExecutor.inEventLoop()).thenReturn(true);
+
+        NettyUtils.doInEventLoop(mockExecutor, () -> {});
+        verify(mockExecutor, never()).submit(any(Runnable.class));
+    }
+
+    @Test
+    public void doInEventLoop_notInEventLoop_submits() {
+        EventExecutor mockExecutor = mock(EventExecutor.class);
+        when(mockExecutor.inEventLoop()).thenReturn(false);
+
+        NettyUtils.doInEventLoop(mockExecutor, () -> {});
+        verify(mockExecutor).submit(any(Runnable.class));
     }
 }
