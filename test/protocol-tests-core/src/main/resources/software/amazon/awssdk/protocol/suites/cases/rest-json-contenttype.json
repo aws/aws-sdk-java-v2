@@ -218,5 +218,30 @@
       }
     }
   }
+},
+{
+  "description": "TestBodyNoParams",
+  "given": {
+    "input": {
+    }
+  },
+  "when": {
+    "action": "marshall",
+    "operation": "TestBody"
+  },
+  "then": {
+    "serializedAs": {
+      "uri": "/body",
+      "method": "POST",
+      "headers": {
+        "contains": {
+          "Content-Type": "application/json"
+        }
+      },
+      "body": {
+        "jsonEquals": "{}"
+      }
+    }
+  }
 }
 ]
