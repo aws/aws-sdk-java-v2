@@ -679,6 +679,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "LorenzNickel",
+      "name": "Lorenz Nickel",
+      "avatar_url": "https://avatars.githubusercontent.com/u/29959150?v=4",
+      "profile": "https://www.linkedin.com/in/lorenznickel/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

@@ -1,3 +1,28 @@
+# __2.17.59__ __2021-10-13__
+## __AWS Config__
+  - ### Features
+    - Adding Config support for AWS::OpenSearch::Domain
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adding support for Audit Logs on NFS shares and Force Closing Files on SMB shares.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for additional VPC Flow Logs delivery options to S3, such as Apache Parquet formatted files, Hourly partitions and Hive-compatible S3 prefixes
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Apache Flink 1.13 in Kinesis Data Analytics. Changed the required status of some Update properties to better fit the corresponding Create properties.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release adds APIs for adding, removing and retrieving details of mail domains
+
 # __2.17.58__ __2021-10-12__
 ## __AWS MediaTailor__
   - ### Features

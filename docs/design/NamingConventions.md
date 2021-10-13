@@ -15,8 +15,8 @@ This page describes the naming conventions, nouns and common terms
 * If the class's primary purpose is to return instances of another class:
   * If the "get" method has no parameters:
     * If the class implements `Supplier`: `{Noun}Supplier` (e.g. `CachedSupplier`)
-    * If the class does not implements `Supplier`: `{Noun}Provider` (e.g. `AwsCredentialsProvider`)
-  * If the "get" method has paramters: `{Noun}Factory` (e.g. `AwsJsonProtocolFactory`)
+    * If the class does not implement `Supplier`: `{Noun}Provider` (e.g. `AwsCredentialsProvider`)
+  * If the "get" method has parameters: `{Noun}Factory` (e.g. `AwsJsonProtocolFactory`)
 
 #### Service-specific classes
 
