@@ -40,6 +40,8 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.async.EmptyPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -47,6 +49,7 @@ import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -54,6 +57,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -65,7 +69,7 @@ public class MakeAsyncHttpRequestStageTest {
     @Mock
     private ScheduledExecutorService timeoutExecutor;
 
-    private CompletableFuture<Void> clientExecuteFuture = CompletableFuture.completedFuture(null);
+    private CompletableFuture<Void> clientExecuteFuture = new CompletableFuture<>();
 
     @Mock
     private ScheduledFuture future;
@@ -108,7 +112,85 @@ public class MakeAsyncHttpRequestStageTest {
     }
 
     @Test
+    public void success_stageShouldNotCompleteBeforeHttpClientFutureIsCompleted() throws Exception {
+        TransformingAsyncResponseHandler<Response<Object>> handler =
+            AsyncResponseHandlerTestUtils.noOpResponseHandler();
+
+        stage = new MakeAsyncHttpRequestStage<>(handler, clientDependencies(null));
+        CompletableFuture<SdkHttpFullRequest> requestFuture =
+            CompletableFuture.completedFuture(ValidSdkObjects.sdkHttpFullRequest().build());
+
+        CompletableFuture<?> result = stage.execute(requestFuture, requestContext());
+
+        assertThat(result.isDone()).isFalse();
+        handler.onStream(new EmptyPublisher<>());
+        assertThat(result.isDone()).isFalse();
+        clientExecuteFuture.complete(null);
+        assertThat(result.isDone()).isTrue();
+        assertThat(result.isCompletedExceptionally()).isFalse();
+    }
+
+    @Test
+    public void success_stageShouldNotCompleteBeforeResponseHandlerFutureIsCompleted() throws Exception {
+        TransformingAsyncResponseHandler<Response<Object>> handler =
+            AsyncResponseHandlerTestUtils.noOpResponseHandler();
+
+        stage = new MakeAsyncHttpRequestStage<>(handler, clientDependencies(null));
+        CompletableFuture<SdkHttpFullRequest> requestFuture =
+            CompletableFuture.completedFuture(ValidSdkObjects.sdkHttpFullRequest().build());
+
+        CompletableFuture<?> result = stage.execute(requestFuture, requestContext());
+
+        assertThat(result.isDone()).isFalse();
+        clientExecuteFuture.complete(null);
+        assertThat(result.isDone()).isFalse();
+        handler.onStream(new EmptyPublisher<>());
+        assertThat(result.isDone()).isTrue();
+        assertThat(result.isCompletedExceptionally()).isFalse();
+    }
+
+    @Test
+    public void failure_stageShouldNotCompleteBeforeHttpClientFutureIsCompleted() throws Exception {
+        TransformingAsyncResponseHandler<Response<Object>> handler =
+            AsyncResponseHandlerTestUtils.noOpResponseHandler();
+
+        stage = new MakeAsyncHttpRequestStage<>(handler, clientDependencies(null));
+        CompletableFuture<SdkHttpFullRequest> requestFuture =
+            CompletableFuture.completedFuture(ValidSdkObjects.sdkHttpFullRequest().build());
+
+        CompletableFuture<?> result = stage.execute(requestFuture, requestContext());
+
+        assertThat(result.isDone()).isFalse();
+        handler.onError(new Throwable());
+        assertThat(result.isDone()).isFalse();
+        clientExecuteFuture.complete(null);
+        assertThat(result.isDone()).isTrue();
+        assertThat(result.isCompletedExceptionally()).isTrue();
+    }
+
+    @Test
+    public void failure_stageShouldNotCompleteBeforeResponseHandlerFutureIsCompleted() throws Exception {
+        TransformingAsyncResponseHandler<Response<Object>> handler =
+            AsyncResponseHandlerTestUtils.noOpResponseHandler();
+
+        stage = new MakeAsyncHttpRequestStage<>(handler, clientDependencies(null));
+        CompletableFuture<SdkHttpFullRequest> requestFuture =
+            CompletableFuture.completedFuture(ValidSdkObjects.sdkHttpFullRequest().build());
+
+        CompletableFuture<?> result = stage.execute(requestFuture, requestContext());
+
+        assertThat(result.isDone()).isFalse();
+        clientExecuteFuture.completeExceptionally(new Throwable());
+        assertThat(result.isDone()).isFalse();
+        handler.onStream(new EmptyPublisher<>());
+        assertThat(result.isDone()).isTrue();
+        assertThat(result.isCompletedExceptionally()).isTrue();
+    }
+
+    @Test
     public void testExecute_contextContainsMetricCollector_addsChildToExecuteRequest() {
+        clientExecuteFuture.complete(null);
+
         stage = new MakeAsyncHttpRequestStage<>(
                 combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
@@ -168,9 +250,11 @@ public class MakeAsyncHttpRequestStageTest {
 
     private RequestExecutionContext requestContext() {
         ExecutionContext executionContext = ClientExecutionAndRequestTimerTestUtils.executionContext(ValidSdkObjects.sdkHttpFullRequest().build());
-        return RequestExecutionContext.builder()
-                                      .executionContext(executionContext)
-                                      .originalRequest(NoopTestRequest.builder().build())
-                                      .build();
+        RequestExecutionContext requestContext = RequestExecutionContext.builder()
+                                                                        .executionContext(executionContext)
+                                                                        .originalRequest(NoopTestRequest.builder().build())
+                                                                        .build();
+        requestContext.attemptMetricCollector(NoOpMetricCollector.create());
+        return requestContext;
     }
 }
