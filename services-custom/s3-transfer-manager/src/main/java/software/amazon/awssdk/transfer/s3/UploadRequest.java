@@ -25,12 +25,14 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Upload an object to S3 using {@link S3TransferManager}.
+ * @see S3TransferManager#upload(UploadRequest)
  */
 @SdkPublicApi
 @SdkPreviewApi
@@ -68,6 +70,10 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         return new BuilderImpl();
     }
 
+    public static Class<? extends Builder> serializableBuilderClass() {
+        return BuilderImpl.class;
+    }
+
     @Override
     public Builder toBuilder() {
         return new BuilderImpl();
@@ -95,6 +101,14 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         int result = putObjectRequest != null ? putObjectRequest.hashCode() : 0;
         result = 31 * result + (source != null ? source.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("UploadRequest")
+                       .add("putObjectRequest", putObjectRequest)
+                       .add("source", source)
+                       .build();
     }
 
     /**
@@ -170,10 +184,26 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
             return this;
         }
 
+        public Path getSource() {
+            return source;
+        }
+
+        public void setSource(Path source) {
+            source(source);
+        }
+
         @Override
         public Builder putObjectRequest(PutObjectRequest putObjectRequest) {
             this.putObjectRequest = putObjectRequest;
             return this;
+        }
+
+        public PutObjectRequest getPutObjectRequest() {
+            return putObjectRequest;
+        }
+
+        public void setPutObjectRequest(PutObjectRequest putObjectRequest) {
+            putObjectRequest(putObjectRequest);
         }
 
         @Override

@@ -96,6 +96,10 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         return result;
     }
 
+    public static Class<? extends Builder> serializableBuilderClass() {
+        return BuilderImpl.class;
+    }
+
     /**
      * A builder for a {@link DownloadRequest}, created with {@link #builder()}
      */
@@ -172,10 +176,26 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
             return this;
         }
 
+        public Path getDestination() {
+            return destination;
+        }
+
+        public void setDestination(Path destination) {
+            destination(destination);
+        }
+
         @Override
         public Builder getObjectRequest(GetObjectRequest getObjectRequest) {
             this.getObjectRequest = getObjectRequest;
             return this;
+        }
+
+        public GetObjectRequest getGetObjectRequest() {
+            return getObjectRequest;
+        }
+
+        public void setGetObjectRequest(GetObjectRequest getObjectRequest) {
+            getObjectRequest(getObjectRequest);
         }
 
         @Override
