@@ -29,7 +29,7 @@ package software.amazon.awssdk.transfer.s3;
  * progress-related methods like {@link TransferProgressSnapshot#totalBytesTransferred()} and {@link
  * TransferProgressSnapshot#percentageTransferred()}.
  * <p>
- * There are a few important rules that govern the usage of {@link TransferListener}s:
+ * There are a few important rules and best practices that govern the usage of {@link TransferListener}s:
  * <ol>
  *     <li>{@link TransferListener} implementations must not block, sleep, or otherwise delay the calling thread.
  *     {@link TransferListener} callbacks are invoked from the SDK's core event loop I/O thread, and any delays may
@@ -38,9 +38,8 @@ package software.amazon.awssdk.transfer.s3;
  *     <li>Be mindful that {@link #bytesTransferred(Context.BytesTransferred)} may be called extremely often (subject to I/O
  *     buffer sizes). Be careful in implementing expensive operations as a side effect. Consider rate-limiting your side
  *     effect operations, if needed.</li>
- *     <li>{@link TransferListener}s will be invoked by a different thread than the one used to request the transfer, but a given
- *     transfer request's listeners will always be invoked by the same, consistent thread (an event loop thread). Keep this in
- *     mind when deciding on the thread-safety requirements of your listener (it may not necessarily need to be thread-safe).</li>
+ *     <li>{@link TransferListener}s may be invoked by different threads. If your {@link TransferListener} is stateful, 
+ *     ensure that it is thread-safe.</li>
  *     <li>{@link TransferListener}s are not intended to be used for control flow, and therefore your implementation
  *     should not <i>throw</i>. Any thrown exceptions will be suppressed and logged as an error.</li>
  * </ol>
@@ -76,7 +75,7 @@ package software.amazon.awssdk.transfer.s3;
  *
  *     private static class ProgressBar {
  *         private final int maxTicks;
- *         private int prevTicks = -1;
+ *         private final AtomicInteger prevTicks = new AtomicInteger(-1);
  *
  *         public ProgressBar(int maxTicks) {
  *             this.maxTicks = maxTicks;
@@ -84,12 +83,11 @@ package software.amazon.awssdk.transfer.s3;
  *
  *         public void update(double ratio) {
  *             int ticks = (int) Math.floor(ratio * maxTicks);
- *             if (ticks != prevTicks) {
+ *             if (prevTicks.getAndSet(ticks) != ticks) {
  *                 System.out.printf("|%s%s| %s%n",
  *                                   "=".repeat(ticks),
  *                                   " ".repeat(maxTicks - ticks),
  *                                   round(ratio * 100, 1) + "%");
- *                 prevTicks = ticks;
  *             }
  *         }
  *

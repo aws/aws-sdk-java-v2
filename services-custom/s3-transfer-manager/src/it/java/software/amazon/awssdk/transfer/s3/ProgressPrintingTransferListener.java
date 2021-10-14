@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * An example implementation of {@link TransferListener} that prints a progress bar to System.out. This example is referenced to
@@ -52,7 +53,7 @@ public class ProgressPrintingTransferListener implements TransferListener {
 
     private static class ProgressBar {
         private final int maxTicks;
-        private int prevTicks = -1;
+        private final AtomicInteger prevTicks = new AtomicInteger(-1);
 
         public ProgressBar(int maxTicks) {
             this.maxTicks = maxTicks;
@@ -60,12 +61,11 @@ public class ProgressPrintingTransferListener implements TransferListener {
 
         public void update(double ratio) {
             int ticks = (int) Math.floor(ratio * maxTicks);
-            if (ticks != prevTicks) {
+            if (prevTicks.getAndSet(ticks) != ticks) {
                 System.out.printf("|%s%s| %s%n",
                                   repeat("=", ticks),
                                   repeat(" ", maxTicks - ticks),
                                   round(ratio * 100, 1) + "%");
-                prevTicks = ticks;
             }
         }
 
