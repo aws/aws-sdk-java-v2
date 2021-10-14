@@ -51,6 +51,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkPreviewApi
 public final class TransferProgressSnapshot
     implements ToCopyableBuilder<TransferProgressSnapshot.Builder, TransferProgressSnapshot> {
+    
     private final long totalBytesTransferred;
     private final Optional<Long> totalTransferSize;
 
@@ -160,7 +161,7 @@ public final class TransferProgressSnapshot
             return this;
         }
 
-        public long totalBytesTransferred() {
+        public long getTotalBytesTransferred() {
             return totalBytesTransferred;
         }
 
@@ -169,7 +170,7 @@ public final class TransferProgressSnapshot
             return this;
         }
 
-        public Optional<Long> totalTransferSize() {
+        public Optional<Long> getTotalTransferSize() {
             return totalTransferSize;
         }
 

@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
@@ -42,8 +42,6 @@ import software.amazon.awssdk.transfer.s3.Upload;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryTransfer;
 import software.amazon.awssdk.transfer.s3.UploadRequest;
-import software.amazon.awssdk.transfer.s3.internal.NotifyingAsyncRequestBody.AsyncRequestBodyListener;
-import software.amazon.awssdk.transfer.s3.internal.NotifyingAsyncResponseTransformer.AsyncResponseTransformerListener;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -101,15 +99,6 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
             PutObjectRequest putObjectRequest = uploadRequest.putObjectRequest();
             AsyncRequestBody requestBody = requestBodyFor(uploadRequest);
-        
-        TransferProgressSnapshot progressSnapshot = createInitialUploadSnapshot(requestBody);
-        DefaultTransferProgress progress = new DefaultTransferProgress(progressSnapshot);
-        TransferListenerContext listenerContext = TransferListenerContext.builder()
-                                                                         .request(uploadRequest)
-                                                                         .progressSnapshot(progressSnapshot)
-                                                                         .build();
-        TransferListenerInvoker listenerInvoker = new TransferListenerInvoker(uploadRequest.listeners());
-        listenerInvoker.transferInitiated(listenerContext);
 
             CompletableFuture<PutObjectResponse> putObjFuture = s3CrtAsyncClient.putObject(putObjectRequest, requestBody);
 
@@ -208,56 +197,6 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
     private AsyncRequestBody requestBodyFor(UploadRequest uploadRequest) {
         return AsyncRequestBody.fromFile(uploadRequest.source());
-    }
-
-    private TransferProgressSnapshot createInitialUploadSnapshot(AsyncRequestBody requestBody) {
-        TransferProgressSnapshot.Builder snapshotBuilder = TransferProgressSnapshot.builder();
-        try {
-            requestBody.contentLength().ifPresent(snapshotBuilder::totalTransferSize);
-        } catch (Exception ignored) {
-            // Any potential exception is ignored here to defer failure
-            // to the s3CrtAsyncClient call and its associated future
-        }
-        return snapshotBuilder.build();
-    }
-
-    private AsyncRequestBody wrapRequestBody(AsyncRequestBody requestBody, DefaultTransferProgress progress,
-                                             TransferListenerContext listenerContext,
-                                             TransferListenerInvoker listenerInvoker) {
-        return new NotifyingAsyncRequestBody(
-            requestBody,
-            new AsyncRequestBodyListener() {
-                @Override
-                public void onNext(ByteBuffer byteBuffer) {
-                    TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
-                        b.totalBytesTransferred(b.totalBytesTransferred() + byteBuffer.limit());
-                    });
-                    listenerInvoker.bytesTransferred(listenerContext.copy(b -> b.progressSnapshot(snapshot)));
-                }
-            });
-    }
-
-    private AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> wrapResponseTransformer(
-        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer, DefaultTransferProgress progress,
-        TransferListenerContext listenerContext, TransferListenerInvoker listenerInvoker) {
-        return new NotifyingAsyncResponseTransformer<>(
-            responseTransformer,
-            new AsyncResponseTransformerListener<GetObjectResponse, GetObjectResponse>() {
-                @Override
-                public void onResponse(GetObjectResponse response) {
-                    if (response.contentLength() != null) {
-                        progress.updateAndGet(b -> b.totalTransferSize(response.contentLength()));
-                    }
-                }
-
-                @Override
-                public void onNext(ByteBuffer byteBuffer) {
-                    TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
-                        b.totalBytesTransferred(b.totalBytesTransferred() + byteBuffer.limit());
-                    });
-                    listenerInvoker.bytesTransferred(listenerContext.copy(b -> b.progressSnapshot(snapshot)));
-                }
-            });
     }
 
     private static class DefaultBuilder implements S3TransferManager.Builder {

@@ -34,13 +34,19 @@ package software.amazon.awssdk.transfer.s3;
  *     <li>{@link TransferListener} implementations must not block, sleep, or otherwise delay the calling thread.
  *     {@link TransferListener} callbacks are invoked from the SDK's core event loop I/O thread, and any delays may
  *     severely impact performance. If you need to perform blocking operations, you should schedule them in a separate thread
- *     or executor that you control.
+ *     or executor that you control.</li>
+ *     <li>Be mindful that {@link #bytesTransferred(Context.BytesTransferred)} may be called extremely often (subject to I/O
+ *     buffer sizes). Be careful in implementing expensive operations as a side effect. Consider rate-limiting your side
+ *     effect operations, if needed.</li>
+ *     <li>{@link TransferListener}s will be invoked by a different thread than the one used to request the transfer, but a given
+ *     transfer request's listeners will always be invoked by the same, consistent thread (an event loop thread). Keep this in
+ *     mind when deciding on the thread-safety requirements of your listener (it may not necessarily need to be thread-safe).</li>
  *     <li>{@link TransferListener}s are not intended to be used for control flow, and therefore your implementation
  *     should not <i>throw</i>. Any thrown exceptions will be suppressed and logged as an error.</li>
  * </ol>
  * <p>
- * A classical use case for {@link TransferListener}s is to create a progress bar to monitor transfers. Consider the following
- * as a basic example:
+ * A classical use case for {@link TransferListener}s is to create a progress bar to monitor an ongoing transfer's progress.
+ * Consider the following as a basic example:
  * <pre>{@code
  * public class ProgressPrintingTransferListener implements TransferListener {
  *     private final ProgressBar progressBar = new ProgressBar(20);
@@ -95,7 +101,15 @@ package software.amazon.awssdk.transfer.s3;
  *     }
  * }
  * }</pre>
- * Where a successful transfer may look like:
+ * Provide the listener as part of your Transfer request, e.g.,
+ * <pre>{@code
+ * Upload upload = tm.upload(UploadRequest.builder()
+ *                                        .putObjectRequest(b -> b.bucket("bucket").key("key"))
+ *                                        .source(Paths.get(...))
+ *                                        .listeners(new ProgressPrintingTransferListener())
+ *                                        .build());
+ * }</pre>
+ * And then a successful transfer may output something like:
  * <pre>
  * Transfer initiated...
  * |                    | 0.0%
@@ -111,7 +125,7 @@ package software.amazon.awssdk.transfer.s3;
  * </pre>
  */
 public interface TransferListener {
-    
+
     /**
      * A new transfer has been initiated.
      * <p>

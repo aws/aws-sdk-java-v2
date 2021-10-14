@@ -80,9 +80,7 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         return getObjectRequest;
     }
 
-    /**
-     * @return The {@link TransferListener}s associated with this download
-     */
+    @Override
     public List<TransferListener> listeners() {
         return listeners;
     }

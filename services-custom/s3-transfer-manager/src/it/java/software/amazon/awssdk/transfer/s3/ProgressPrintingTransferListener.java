@@ -21,7 +21,7 @@ import java.util.Collections;
 
 /**
  * An example implementation of {@link TransferListener} that prints a progress bar to System.out. This example is referenced to
- * in the {@link TransferListener} documentation and also used in some {@link S3TransferManager} integration tests
+ * in the {@link TransferListener} documentation and also used in {@link S3TransferManager} integration tests.
  */
 public class ProgressPrintingTransferListener implements TransferListener {
     
