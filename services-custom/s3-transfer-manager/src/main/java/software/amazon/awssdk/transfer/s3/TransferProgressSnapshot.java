@@ -39,7 +39,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * <p>
  * The recommended way to receive updates of the latest {@link TransferProgressSnapshot} is to implement the {@link
  * TransferListener} interface. See the {@link TransferListener} documentation for usage instructions. A {@link
- * TransferProgressSnapshot} can also be obtained from a stateful {@link TransferProgress}.
+ * TransferProgressSnapshot} can also be obtained from a {@link TransferProgress} returned as part of the result from a
+ * {@link TransferRequest}.
  *
  * @see TransferProgress
  * @see TransferListener

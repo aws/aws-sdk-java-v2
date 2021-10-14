@@ -21,7 +21,7 @@ package software.amazon.awssdk.transfer.s3;
  * DownloadRequest} request to submit to {@link S3TransferManager}, you may provide a variable number of {@link TransferListener}s
  * to be associated with that request. Then, throughout the lifecycle of the request, {@link S3TransferManager} will invoke the
  * provided {@link TransferListener}s when important events occur, like additional bytes being transferred, allowing you to
- * monitor the progress of the transfer.
+ * monitor the ongoing progress of the transfer.
  * <p>
  * Each {@link TransferListener} callback is invoked with an immutable {@link Context} object. Depending on the current lifecycle
  * of the request, different {@link Context} objects have different attributes available (indicated by the provided interface).
@@ -39,7 +39,7 @@ package software.amazon.awssdk.transfer.s3;
  *     buffer sizes). Be careful in implementing expensive operations as a side effect. Consider rate-limiting your side
  *     effect operations, if needed.</li>
  *     <li>{@link TransferListener}s may be invoked by different threads. If your {@link TransferListener} is stateful, 
- *     ensure that it is thread-safe.</li>
+ *     ensure that it is also thread-safe.</li>
  *     <li>{@link TransferListener}s are not intended to be used for control flow, and therefore your implementation
  *     should not <i>throw</i>. Any thrown exceptions will be suppressed and logged as an error.</li>
  * </ol>
