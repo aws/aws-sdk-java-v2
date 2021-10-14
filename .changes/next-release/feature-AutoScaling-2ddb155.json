@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Auto Scaling",
-    "contributor": "",
-    "description": "Amazon EC2 Auto Scaling now supports filtering describe Auto Scaling groups API using tags"
-}
