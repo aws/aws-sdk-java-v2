@@ -88,6 +88,11 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>arns</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>auth</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
@@ -151,6 +156,16 @@
         <dependency>
             <groupId>org.reactivestreams</groupId>
             <artifactId>reactive-streams-tck</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.jimfs</groupId>
+            <artifactId>jimfs</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>nl.jqno.equalsverifier</groupId>
+            <artifactId>equalsverifier</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
