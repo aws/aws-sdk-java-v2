@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS RoboMaker",
+    "contributor": "",
+    "description": "Adding support to GPU simulation jobs as well as non-ROS simulation jobs."
+}
