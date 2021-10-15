@@ -193,18 +193,15 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         TimeoutTracker timeoutTracker = setupAttemptTimer(responseFuture, context);
         context.apiCallAttemptTimeoutTracker(timeoutTracker);
 
-        // Forward the cancellation
-        responseFuture.whenComplete((r, t) -> {
-            if (t != null) {
-                httpClientFuture.completeExceptionally(t);
-            }
-        });
+        // Forward potential cancellations to the upstream futures that our result future depends on.
+        CompletableFutureUtils.forwardExceptionTo(responseFuture, httpClientFuture);
+        CompletableFutureUtils.forwardExceptionTo(responseFuture, responseHandlerFuture);
 
-        // Offload the completion of the future returned from this stage onto
-        // the future completion executor
-        responseHandlerFuture.whenCompleteAsync((r, t) -> {
+        // When the response handler and HTTP client are done processing the request, use the future completion executor
+        // to complete the future returned by this function.
+        CompletableFuture.allOf(responseHandlerFuture, httpClientFuture).whenCompleteAsync((r, t) -> {
             if (t == null) {
-                responseFuture.complete(r);
+                responseFuture.complete(responseHandlerFuture.join());
             } else {
                 responseFuture.completeExceptionally(t);
             }
@@ -218,7 +215,6 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         long callStart = System.nanoTime();
         CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
 
-        // Offload the metrics reporting from this stage onto the future completion executor
         CompletableFuture<Void> result = httpClientFuture.whenComplete((r, t) -> {
             long duration = System.nanoTime() - callStart;
             metricCollector.reportMetric(CoreMetric.SERVICE_CALL_DURATION, Duration.ofNanos(duration));
