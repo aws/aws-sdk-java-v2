@@ -62,6 +62,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     private final String contentType;
     private final AwsJsonProtocolMetadata protocolMetadata;
     private final boolean hasExplicitPayloadMember;
+    private final boolean hasImplicitPayloadMembers;
     private final boolean hasStreamingInput;
 
     private final JsonMarshallerContext marshallerContext;
@@ -78,6 +79,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         this.contentType = contentType;
         this.protocolMetadata = protocolMetadata;
         this.hasExplicitPayloadMember = operationInfo.hasExplicitPayloadMember();
+        this.hasImplicitPayloadMembers = operationInfo.hasImplicitPayloadMembers();
         this.hasStreamingInput = operationInfo.hasStreamingInput();
         this.hasEventStreamingInput = operationInfo.hasEventStreamingInput();
         this.hasEvent = operationInfo.hasEvent();
@@ -167,7 +169,8 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
      * members bound to the payload will be added as fields to this object.
      */
     private void startMarshalling() {
-        if (!hasExplicitPayloadMember) {
+        // Create the implicit request object if needed.
+        if (needTopLevelJsonObject()) {
             jsonGenerator.writeStartObject();
         }
     }
@@ -220,7 +223,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         // Content may already be set if the payload is binary data.
         if (request.contentStreamProvider() == null) {
             // End the implicit request object if needed.
-            if (!hasExplicitPayloadMember) {
+            if (needTopLevelJsonObject()) {
                 jsonGenerator.writeEndObject();
             }
 
@@ -262,5 +265,11 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     private void marshallField(SdkField<?> field, Object val) {
         MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val)
                            .marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
+    }
+
+    private boolean needTopLevelJsonObject() {
+        return AwsJsonProtocol.AWS_JSON.equals(protocolMetadata.protocol())
+               || (!hasExplicitPayloadMember && hasImplicitPayloadMembers);
+
     }
 }
