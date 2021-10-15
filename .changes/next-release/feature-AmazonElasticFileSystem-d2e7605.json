@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic File System",
+    "contributor": "",
+    "description": "EFS adds documentation for a new exception for short identifiers to be thrown after its migration to long resource identifiers."
+}
