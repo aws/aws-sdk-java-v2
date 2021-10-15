@@ -1,0 +1,42 @@
+{
+    "version": "2.17.60",
+    "date": "2021-10-14",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixes a bug in XML error unmarshalling where error responses with empty body won't populate the requestId field. Affects Amazon S3 API calls such as Head object"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "Adds new option to filter by availability on each type of load balancer when describing ssl policies."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "Amazon EC2 Auto Scaling now supports filtering describe Auto Scaling groups API using tags"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release updates the provisioning artifact ID to an optional parameter in CreateProject API. The provisioning artifact ID defaults to the latest provisioning artifact ID of the product if you don't provide one."
+        },
+        {
+            "type": "feature",
+            "category": "AWS RoboMaker",
+            "contributor": "",
+            "description": "Adding support to GPU simulation jobs as well as non-ROS simulation jobs."
+        }
+    ]
+}

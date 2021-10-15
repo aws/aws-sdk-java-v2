@@ -10016,6 +10016,11 @@
           "us-gov-west-1" : { }
         }
       },
+      "kendra" : {
+        "endpoints" : {
+          "us-gov-west-1" : { }
+        }
+      },
       "kinesis" : {
         "endpoints" : {
           "us-gov-east-1" : {
@@ -11084,7 +11089,8 @@
         "endpoints" : {
           "us-iso-east-1" : {
             "protocols" : [ "http", "https" ]
-          }
+          },
+          "us-iso-west-1" : { }
         }
       },
       "ec2" : {

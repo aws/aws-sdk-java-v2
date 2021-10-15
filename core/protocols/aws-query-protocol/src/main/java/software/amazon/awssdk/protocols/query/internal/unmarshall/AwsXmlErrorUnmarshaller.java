@@ -27,6 +27,7 @@ import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -39,7 +40,6 @@ import software.amazon.awssdk.protocols.query.unmarshall.XmlErrorUnmarshaller;
  */
 @SdkInternalApi
 public final class AwsXmlErrorUnmarshaller {
-    private static final String X_AMZN_REQUEST_ID_HEADER = "x-amzn-RequestId";
     private static final String X_AMZ_ID_2_HEADER = "x-amz-id-2";
 
     private final List<ExceptionMetadata> exceptions;
@@ -175,7 +175,16 @@ public final class AwsXmlErrorUnmarshaller {
                                        .orElse(document.getElementByName("RequestID"));
         return requestId != null ?
                requestId.textContent() :
-               response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER).orElse(null);
+               matchRequestIdHeaders(response);
+    }
+
+    private String matchRequestIdHeaders(SdkHttpFullResponse response) {
+        return HttpResponseHandler.X_AMZN_REQUEST_ID_HEADERS.stream()
+                                                            .map(h -> response.firstMatchingHeader(h))
+                                                            .filter(Optional::isPresent)
+                                                            .map(Optional::get)
+                                                            .findFirst()
+                                                            .orElse(null);
     }
 
     /**

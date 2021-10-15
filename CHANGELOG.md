@@ -1,3 +1,52 @@
+# __2.17.60__ __2021-10-14__
+## __AWS RoboMaker__
+  - ### Features
+    - Adding support to GPU simulation jobs as well as non-ROS simulation jobs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixes a bug in XML error unmarshalling where error responses with empty body won't populate the requestId field. Affects Amazon S3 API calls such as Head object
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release updates the provisioning artifact ID to an optional parameter in CreateProject API. The provisioning artifact ID defaults to the latest provisioning artifact ID of the product if you don't provide one.
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling now supports filtering describe Auto Scaling groups API using tags
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Adds new option to filter by availability on each type of load balancer when describing ssl policies.
+
+# __2.17.59__ __2021-10-13__
+## __AWS Config__
+  - ### Features
+    - Adding Config support for AWS::OpenSearch::Domain
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adding support for Audit Logs on NFS shares and Force Closing Files on SMB shares.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for additional VPC Flow Logs delivery options to S3, such as Apache Parquet formatted files, Hourly partitions and Hive-compatible S3 prefixes
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Apache Flink 1.13 in Kinesis Data Analytics. Changed the required status of some Update properties to better fit the corresponding Create properties.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release adds APIs for adding, removing and retrieving details of mail domains
+
 # __2.17.58__ __2021-10-12__
 ## __AWS MediaTailor__
   - ### Features
