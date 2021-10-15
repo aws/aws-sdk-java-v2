@@ -30,10 +30,44 @@ import org.junit.Test;
  */
 public class ProxyConfigurationTest {
     private static final Random RNG = new Random();
+    private static final String TEST_HOST = "foo.com";
+    private static final int TEST_PORT = 7777;
+    private static final String TEST_USER = "testuser";
+    private static final String TEST_PASSWORD = "123";
+
 
     @Test
     public void build_setsAllProperties() {
         verifyAllPropertiesSet(allPropertiesSetConfig());
+    }
+
+    @Test
+    public void build_systemPropertyEnabled() {
+        setSystemProperty();
+        ProxyConfiguration config = ProxyConfiguration.builder().useSystemPropertyValues(true).build();
+
+        assertThat(config.host()).isEqualTo(TEST_HOST);
+        assertThat(config.port()).isEqualTo(TEST_PORT);
+        assertThat(config.username()).isEqualTo(TEST_USER);
+        assertThat(config.password()).isEqualTo(TEST_PASSWORD);
+        assertThat(config.scheme()).isNull();
+    }
+
+    @Test
+    public void build_systemPropertyDisabled() {
+        setSystemProperty();
+        ProxyConfiguration config = ProxyConfiguration.builder()
+                                                      .host("localhost")
+                                                      .port(8888)
+                                                      .username("username")
+                                                      .password("password")
+                                                      .useSystemPropertyValues(false).build();
+
+        assertThat(config.host()).isEqualTo("localhost");
+        assertThat(config.port()).isEqualTo(8888);
+        assertThat(config.username()).isEqualTo("username");
+        assertThat(config.password()).isEqualTo("password");
+        assertThat(config.scheme()).isNull();
     }
 
     @Test
@@ -90,6 +124,8 @@ public class ProxyConfigurationTest {
             setter.invoke(o, RNG.nextInt());
         } else if (Set.class.isAssignableFrom(paramClass)) {
             setter.invoke(o, randomSet());
+        } else if (Boolean.class.equals(paramClass)) {
+            setter.invoke(o, Boolean.FALSE);
         } else {
             throw new RuntimeException("Don't know how create random value for type " + paramClass);
         }
@@ -129,5 +165,12 @@ public class ProxyConfigurationTest {
             ss.add(randomString());
         }
         return ss;
+    }
+
+    private void setSystemProperty() {
+        System.setProperty("http.proxyHost", TEST_HOST);
+        System.setProperty("http.proxyPort", Integer.toString(TEST_PORT));
+        System.setProperty("http.proxyUser", TEST_USER);
+        System.setProperty("http.proxyPassword", TEST_PASSWORD);
     }
 }

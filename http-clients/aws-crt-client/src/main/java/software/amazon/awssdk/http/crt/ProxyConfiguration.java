@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.crt;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -39,11 +40,13 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
     private final String username;
     private final String password;
+    private final Boolean useSystemPropertyValues;
 
     private ProxyConfiguration(BuilderImpl builder) {
+        this.useSystemPropertyValues = builder.useSystemPropertyValues;
         this.scheme = builder.scheme;
-        this.host = builder.host;
-        this.port = builder.port;
+        this.host = resolveHost(builder.host);
+        this.port = resolvePort(builder.port);
         this.username = builder.username;
         this.password = builder.password;
     }
@@ -56,31 +59,35 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     /**
-     * @return The proxy host.
+     * @return The proxy host from the configuration if set, or from the "http.proxyHost" system property if
+     * {@link Builder#useSystemPropertyValues(Boolean)} is set to true
      */
     public String host() {
         return host;
     }
 
     /**
-     * @return The proxy port.
+     * @return The proxy port from the configuration if set, or from the "http.proxyPort" system property if
+     * {@link Builder#useSystemPropertyValues(Boolean)} is set to true
      */
     public int port() {
         return port;
     }
 
     /**
-     * @return Basic authentication username
-     */
+     * @return The proxy username from the configuration if set, or from the "http.proxyUser" system property if
+     * {@link Builder#useSystemPropertyValues(Boolean)} is set to true
+     * */
     public String username() {
-        return username;
+        return resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
     }
 
     /**
-     * @return Basic authentication password
-     */
+     * @return The proxy password from the configuration if set, or from the "http.proxyPassword" system property if
+     * {@link Builder#useSystemPropertyValues(Boolean)} is set to true
+     * */
     public String password() {
-        return password;
+        return resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
     }
 
     @Override
@@ -182,6 +189,34 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * @return This object for method chaining.
          */
         Builder password(String password);
+
+        /**
+         * The option whether to use system property values from {@link ProxySystemSetting} if any of the config options
+         * are missing. The value is set to "true" by default which means SDK will automatically use system property values if
+         * options are not provided during building the {@link ProxyConfiguration} object. To disable this behaviour, set this
+         * value to false.
+         *
+         * @param useSystemPropertyValues The option whether to use system proerpty values
+         * @return This object for method chaining.
+         */
+        Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
+    }
+
+    private String resolveHost(String host) {
+        return resolveValue(host, ProxySystemSetting.PROXY_HOST);
+    }
+
+    private int resolvePort(int port) {
+        return useSystemPropertyValues ? ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0)
+                                       : port;
+    }
+
+    /**
+     * Uses the configuration options, system setting property and returns the final value of the given member.
+     */
+    private String resolveValue(String value, ProxySystemSetting systemSetting) {
+        return value == null && useSystemPropertyValues ? systemSetting.getStringValue().orElse(null)
+                                                        : value;
     }
 
     private static final class BuilderImpl implements Builder {
@@ -190,11 +225,13 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         private int port;
         private String username;
         private String password;
+        private Boolean useSystemPropertyValues = Boolean.TRUE;
 
         private BuilderImpl() {
         }
 
         private BuilderImpl(ProxyConfiguration proxyConfiguration) {
+            this.useSystemPropertyValues = proxyConfiguration.useSystemPropertyValues;
             this.scheme = proxyConfiguration.scheme;
             this.host = proxyConfiguration.host;
             this.port = proxyConfiguration.port;
@@ -230,6 +267,16 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         public Builder password(String password) {
             this.password = password;
             return this;
+        }
+
+        @Override
+        public Builder useSystemPropertyValues(Boolean useSystemPropertyValues) {
+            this.useSystemPropertyValues = useSystemPropertyValues;
+            return this;
+        }
+
+        public void setUseSystemPropertyValues(Boolean useSystemPropertyValues) {
+            useSystemPropertyValues(useSystemPropertyValues);
         }
 
         @Override
