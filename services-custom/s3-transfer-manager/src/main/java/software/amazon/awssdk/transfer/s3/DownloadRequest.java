@@ -46,7 +46,7 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
     private DownloadRequest(BuilderImpl builder) {
         this.destination = Validate.paramNotNull(builder.destination, "destination");
         this.getObjectRequest = Validate.paramNotNull(builder.getObjectRequest, "getObjectRequest");
-        this.listeners = builder.listeners != null ? builder.listeners : Collections.emptyList();
+        this.listeners = builder.listeners != null ? Collections.unmodifiableList(builder.listeners) : Collections.emptyList();
     }
 
     /**
@@ -185,21 +185,35 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
 
         /**
          * The {@link TransferListener}s that will be notified as part of this request.
-         * See the {@link TransferListener} documentation for usage instructions.
+         * This method overrides and replaces any listeners that have already been set.
          *
          * @param listeners the collection of listeners
          * @return Returns a reference to this object so that method calls can be chained together.
+         * 
+         * @see TransferListener
          */
         Builder listeners(Collection<TransferListener> listeners);
 
         /**
          * The {@link TransferListener}s that will be notified as part of this request.
-         * See the {@link TransferListener} documentation for usage instructions.
+         * This method overrides and replaces any listeners that have already been set.
          *
          * @param listeners the variable amount of listeners
          * @return Returns a reference to this object so that method calls can be chained together.
+         * 
+         * @see TransferListener
          */
         Builder listeners(TransferListener... listeners);
+
+        /**
+         * Add a {@link TransferListener} that will be notified as part of this request.
+         *
+         * @param listener the listener to add
+         * @return Returns a reference to this object so that method calls can be chained together.
+         *
+         * @see TransferListener
+         */
+        Builder addListener(TransferListener listener);
 
         /**
          * @return The built request.
@@ -246,13 +260,22 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
 
         @Override
         public Builder listeners(Collection<TransferListener> listeners) {
-            this.listeners = Collections.unmodifiableList(new ArrayList<>(listeners));
+            this.listeners = new ArrayList<>(listeners);
             return this;
         }
 
         @Override
         public Builder listeners(TransferListener... listeners) {
-            this.listeners = Collections.unmodifiableList(Arrays.asList(listeners));
+            this.listeners = Arrays.asList(listeners);
+            return this;
+        }
+
+        @Override
+        public Builder addListener(TransferListener listener) {
+            if (listeners == null) {
+                listeners = new ArrayList<>();
+            }
+            listeners.add(listener);
             return this;
         }
 

@@ -24,8 +24,8 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  * {@link TransferProgress} is a <b>stateful</b> representation of the progress of a transfer initiated by {@link
  * S3TransferManager}. {@link TransferProgress} offers the ability to take a {@link #snapshot()} of the current progress,
  * represented by an immutable {@link TransferProgressSnapshot}, which contains helpful progress-related methods like {@link
- * TransferProgressSnapshot#totalBytesTransferred()} and {@link TransferProgressSnapshot#percentageTransferred()}. {@link
- * TransferProgress} is attached to {@link Transfer} objects, namely {@link Upload} and {@link Download}.
+ * TransferProgressSnapshot#bytesTransferred()} and {@link TransferProgressSnapshot#ratioTransferred()}. {@link TransferProgress}
+ * is attached to {@link Transfer} objects, namely {@link Upload} and {@link Download}.
  * <p>
  * Where possible, it is typically recommended to <b>avoid</b> directly querying {@link TransferProgress} and to instead leverage
  * the {@link TransferListener} interface to receive event-driven updates of the latest {@link TransferProgressSnapshot}. See the
@@ -34,7 +34,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  * <pre>{@code
  * Upload upload = tm.upload(...);
  * while (!upload.completionFuture().isDone()) {
- *     upload.progress().snapshot().percentageTransferred().ifPresent(System.out::println);
+ *     upload.progress().snapshot().ratioTransferred().ifPresent(System.out::println);
  *     Thread.sleep(1000);
  * }
  * }</pre>
@@ -48,7 +48,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 @SdkPublicApi
 @SdkPreviewApi
 public interface TransferProgress {
-    
+
     /**
      * Take a snapshot of the current progress, represented by an immutable {@link TransferProgressSnapshot}.
      */

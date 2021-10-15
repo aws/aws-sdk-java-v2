@@ -64,7 +64,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         Upload upload = tm.upload(UploadRequest.builder()
                                                .putObjectRequest(b -> b.bucket(TEST_BUCKET).key(TEST_KEY))
                                                .source(testFile.toPath())
-                                               .listeners(new ProgressPrintingTransferListener())
+                                               .addListener(new ProgressPrintingTransferListener())
                                                .build());
 
         CompletedUpload completedUpload = upload.completionFuture().join();

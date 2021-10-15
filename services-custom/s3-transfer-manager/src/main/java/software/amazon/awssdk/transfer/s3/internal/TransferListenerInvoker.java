@@ -20,8 +20,6 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.transfer.s3.Context;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.TransferListener;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -33,7 +31,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public class TransferListenerInvoker implements TransferListener {
-    private static final Logger log = Logger.loggerFor(S3TransferManager.class);
+    private static final Logger log = Logger.loggerFor(TransferListener.class);
     private final List<TransferListener> listeners;
 
     public TransferListenerInvoker(List<TransferListener> listeners) {

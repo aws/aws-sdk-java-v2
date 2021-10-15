@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.transfer.s3.CompletedTransfer;
-import software.amazon.awssdk.transfer.s3.Context.TransferComplete;
+import software.amazon.awssdk.transfer.s3.TransferListener;
 import software.amazon.awssdk.transfer.s3.TransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.TransferRequest;
 import software.amazon.awssdk.utils.ToString;
@@ -35,9 +35,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkProtectedApi
 @Immutable
 public final class TransferListenerContext
-    implements TransferComplete,
+    implements TransferListener.Context.TransferComplete,
                ToCopyableBuilder<TransferListenerContext.Builder, TransferListenerContext> {
-    
+
     private final TransferRequest request;
     private final TransferProgressSnapshot progressSnapshot;
     private final CompletedTransfer completedTransfer;

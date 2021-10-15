@@ -62,8 +62,8 @@ public class TransferProgressHelper {
     }
 
     private TransferProgressHelper(TransferRequest request, Optional<Long> contentLength) {
-        TransferProgressSnapshot.Builder snapshotBuilder = TransferProgressSnapshot.builder();
-        contentLength.ifPresent(snapshotBuilder::totalTransferSize);
+        DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
+        contentLength.ifPresent(snapshotBuilder::transferSize);
         TransferProgressSnapshot snapshot = snapshotBuilder.build();
 
         progress = new DefaultTransferProgress(snapshot);
@@ -87,9 +87,9 @@ public class TransferProgressHelper {
             requestBody,
             new AsyncRequestBodyListener() {
                 @Override
-                public void onNext(ByteBuffer byteBuffer) {
+                public void delegatedOnNext(ByteBuffer byteBuffer) {
                     TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
-                        b.totalBytesTransferred(b.getTotalBytesTransferred() + byteBuffer.limit());
+                        b.bytesTransferred(b.bytesTransferred() + byteBuffer.limit());
                     });
                     listeners.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
                 }
@@ -102,16 +102,16 @@ public class TransferProgressHelper {
             responseTransformer,
             new AsyncResponseTransformerListener<GetObjectResponse, GetObjectResponse>() {
                 @Override
-                public void onResponse(GetObjectResponse response) {
+                public void delegatedOnResponse(GetObjectResponse response) {
                     if (response.contentLength() != null) {
-                        progress.updateAndGet(b -> b.totalTransferSize(response.contentLength()));
+                        progress.updateAndGet(b -> b.transferSize(response.contentLength()));
                     }
                 }
 
                 @Override
-                public void onNext(ByteBuffer byteBuffer) {
+                public void delegatedOnNext(ByteBuffer byteBuffer) {
                     TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
-                        b.totalBytesTransferred(b.getTotalBytesTransferred() + byteBuffer.limit());
+                        b.bytesTransferred(b.bytesTransferred() + byteBuffer.limit());
                     });
                     listeners.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
                 }

@@ -18,7 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.transfer.s3.Context.TransferFailed;
+import software.amazon.awssdk.transfer.s3.TransferListener;
 import software.amazon.awssdk.transfer.s3.TransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.TransferRequest;
 import software.amazon.awssdk.utils.ToString;
@@ -27,14 +27,14 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * An SDK-internal implementation of {@link TransferFailed}.
+ * An SDK-internal implementation of {@link TransferListener.Context.TransferFailed}.
  *
  * @see TransferListenerContext
  */
 @SdkInternalApi
 @Immutable
 public class TransferListenerFailedContext
-    implements TransferFailed,
+    implements TransferListener.Context.TransferFailed,
                ToCopyableBuilder<TransferListenerFailedContext.Builder, TransferListenerFailedContext> {
 
     private final TransferListenerContext transferContext;

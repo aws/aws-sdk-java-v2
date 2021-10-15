@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.transfer.s3.TransferProgress;
 import software.amazon.awssdk.transfer.s3.TransferProgressSnapshot;
-import software.amazon.awssdk.transfer.s3.TransferProgressSnapshot.Builder;
+import software.amazon.awssdk.transfer.s3.internal.DefaultTransferProgressSnapshot.Builder;
 import software.amazon.awssdk.utils.ToString;
 
 /**
@@ -35,8 +35,8 @@ import software.amazon.awssdk.utils.ToString;
 @Mutable
 @ThreadSafe
 @SdkInternalApi
-public class DefaultTransferProgress implements TransferProgress {
-    
+public final class DefaultTransferProgress implements TransferProgress {
+
     private final AtomicReference<TransferProgressSnapshot> snapshot;
 
     public DefaultTransferProgress(TransferProgressSnapshot snapshot) {
@@ -47,8 +47,8 @@ public class DefaultTransferProgress implements TransferProgress {
      * Atomically convert the current snapshot reference to its {@link Builder}, perform updates using the provided {@link
      * Consumer}, and save the result as the latest snapshot.
      */
-    public TransferProgressSnapshot updateAndGet(Consumer<TransferProgressSnapshot.Builder> updater) {
-        return this.snapshot.updateAndGet(s -> s.copy(updater));
+    public TransferProgressSnapshot updateAndGet(Consumer<DefaultTransferProgressSnapshot.Builder> updater) {
+        return this.snapshot.updateAndGet(s -> ((DefaultTransferProgressSnapshot) s).copy(updater));
     }
 
     @Override

@@ -25,12 +25,12 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 
 @SdkInternalApi
 public class NotifyingAsyncResponseTransformer<ResponseT, ResultT> implements AsyncResponseTransformer<ResponseT, ResultT> {
-    
+
     public interface AsyncResponseTransformerListener<ResponseT, ResultT> {
-        default void onResponse(ResponseT response) {
+        default void delegatedOnResponse(ResponseT response) {
         }
 
-        default void onNext(ByteBuffer byteBuffer) {
+        default void delegatedOnNext(ByteBuffer byteBuffer) {
         }
     }
 
@@ -50,7 +50,7 @@ public class NotifyingAsyncResponseTransformer<ResponseT, ResultT> implements As
 
     @Override
     public void onResponse(ResponseT response) {
-        listener.onResponse(response);
+        listener.delegatedOnResponse(response);
         delegate.onResponse(response);
     }
 
@@ -98,7 +98,7 @@ public class NotifyingAsyncResponseTransformer<ResponseT, ResultT> implements As
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            listener.onNext(byteBuffer);
+            listener.delegatedOnNext(byteBuffer);
             delegate.onNext(byteBuffer);
         }
 

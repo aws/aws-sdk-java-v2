@@ -15,6 +15,13 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.util.concurrent.CompletionException;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
+
 /**
  * The {@link TransferListener} interface may be implemented by your application in order to receive event-driven updates on the
  * progress of a transfer initiated by {@link S3TransferManager}. When you construct an {@link UploadRequest} or {@link
@@ -24,10 +31,30 @@ package software.amazon.awssdk.transfer.s3;
  * monitor the ongoing progress of the transfer.
  * <p>
  * Each {@link TransferListener} callback is invoked with an immutable {@link Context} object. Depending on the current lifecycle
- * of the request, different {@link Context} objects have different attributes available (indicated by the provided interface).
- * Most notably, every callback is given access to the current {@link TransferProgressSnapshot}, which contains helpful
- * progress-related methods like {@link TransferProgressSnapshot#totalBytesTransferred()} and {@link
- * TransferProgressSnapshot#percentageTransferred()}.
+ * of the request, different {@link Context} objects have different attributes available (indicated by the provided context
+ * interface). Most notably, every callback is given access to the current {@link TransferProgressSnapshot}, which contains
+ * helpful progress-related methods like {@link TransferProgressSnapshot#bytesTransferred()} and {@link
+ * TransferProgressSnapshot#ratioTransferred()}.
+ * <p>
+ * A successful transfer callback lifecycle is sequenced as follows:
+ * <ol>
+ *     <li>{@link #transferInitiated(Context.TransferInitiated)} - A new transfer has been initiated. This method is called
+ *     exactly once per transfer.</li>
+ *     <ul>Additional context attributes:
+ *         <li>{@link Context.TransferInitiated#request()}</li>
+ *         <li>{@link Context.TransferInitiated#progressSnapshot()}</li>
+ *     </ul>
+ *     <li>{@link #bytesTransferred(Context.BytesTransferred)} - Additional bytes have been submitted or received. This method
+ *     may be called many times per transfer, depending on the transfer size and I/O buffer sizes.
+ *     <li>{@link #transferComplete(Context.TransferComplete)} - The transfer has completed successfully. This method is called
+ *     exactly once for a successful transfer.</li>
+ *     <ul>Additional context attributes:
+ *         <li>{@link Context.TransferComplete#completedTransfer()}</li>
+ *     </ul>
+ * </ol>
+ * In the case of a failed transfer, both {@link #transferInitiated(Context.TransferInitiated)} and
+ * {@link #transferFailed(Context.TransferFailed)} will be called exactly once. There are no guarantees on whether any other
+ * callbacks are invoked.
  * <p>
  * There are a few important rules and best practices that govern the usage of {@link TransferListener}s:
  * <ol>
@@ -38,7 +65,7 @@ package software.amazon.awssdk.transfer.s3;
  *     <li>Be mindful that {@link #bytesTransferred(Context.BytesTransferred)} may be called extremely often (subject to I/O
  *     buffer sizes). Be careful in implementing expensive operations as a side effect. Consider rate-limiting your side
  *     effect operations, if needed.</li>
- *     <li>{@link TransferListener}s may be invoked by different threads. If your {@link TransferListener} is stateful, 
+ *     <li>{@link TransferListener}s may be invoked by different threads. If your {@link TransferListener} is stateful,
  *     ensure that it is also thread-safe.</li>
  *     <li>{@link TransferListener}s are not intended to be used for control flow, and therefore your implementation
  *     should not <i>throw</i>. Any thrown exceptions will be suppressed and logged as an error.</li>
@@ -104,7 +131,7 @@ package software.amazon.awssdk.transfer.s3;
  * Upload upload = tm.upload(UploadRequest.builder()
  *                                        .putObjectRequest(b -> b.bucket("bucket").key("key"))
  *                                        .source(Paths.get(...))
- *                                        .listeners(new ProgressPrintingTransferListener())
+ *                                        .addListener(new ProgressPrintingTransferListener())
  *                                        .build());
  * }</pre>
  * And then a successful transfer may output something like:
@@ -122,10 +149,12 @@ package software.amazon.awssdk.transfer.s3;
  * Transfer complete!
  * </pre>
  */
+@SdkPublicApi
+@SdkPreviewApi
 public interface TransferListener {
 
     /**
-     * A new transfer has been initiated.
+     * A new transfer has been initiated. This method is called exactly once per transfer.
      * <p>
      * Available context attributes:
      * <ol>
@@ -137,7 +166,8 @@ public interface TransferListener {
     }
 
     /**
-     * Additional bytes have been submitted or received.
+     * Additional bytes have been submitted or received. This method may be called many times per transfer, depending on the
+     * transfer size and I/O buffer sizes.
      * <p>
      * Available context attributes:
      * <ol>
@@ -149,7 +179,7 @@ public interface TransferListener {
     }
 
     /**
-     * The transfer has completed successfully.
+     * The transfer has completed successfully. This method is called exactly once for a successful transfer.
      * <p>
      * Available context attributes:
      * <ol>
@@ -162,7 +192,7 @@ public interface TransferListener {
     }
 
     /**
-     * The transfer failed.
+     * The transfer failed. This method is called exactly once for a failed transfer.
      * <p>
      * Available context attributes:
      * <ol>
@@ -172,5 +202,115 @@ public interface TransferListener {
      * </ol>
      */
     default void transferFailed(Context.TransferFailed context) {
+    }
+
+    /**
+     * A wrapper class that groups together the different context interfaces that are exposed to {@link TransferListener}s.
+     * <p>
+     * Successful transfer interface hierarchy:
+     * <ol>
+     *     <li>{@link TransferInitiated}</li>
+     *     <li>{@link BytesTransferred}</li>
+     *     <li>{@link TransferComplete}</li>
+     * </ol>
+     * Failed transfer interface hierarchy:
+     * <ol>
+     *     <li>{@link TransferInitiated}</li>
+     *     <li>{@link TransferFailed}</li>
+     * </ol>
+     *
+     * @see TransferListener
+     */
+    @SdkProtectedApi
+    final class Context {
+        private Context() {
+        }
+
+        /**
+         * A new transfer has been initiated.
+         * <p>
+         * Available context attributes:
+         * <ol>
+         *     <li>{@link TransferInitiated#request()}</li>
+         *     <li>{@link TransferInitiated#progressSnapshot()}</li>
+         * </ol>
+         */
+        @Immutable
+        @ThreadSafe
+        @SdkPublicApi
+        @SdkPreviewApi
+        public interface TransferInitiated {
+            /**
+             * The {@link TransferRequest} that was submitted to {@link S3TransferManager}, i.e., the {@link UploadRequest} or
+             * {@link DownloadRequest}.
+             */
+            TransferRequest request();
+
+            /**
+             * The immutable {@link TransferProgressSnapshot} for this specific update.
+             */
+            TransferProgressSnapshot progressSnapshot();
+        }
+
+        /**
+         * Additional bytes have been submitted or received.
+         * <p>
+         * Available context attributes:
+         * <ol>
+         *     <li>{@link BytesTransferred#request()}</li>
+         *     <li>{@link BytesTransferred#progressSnapshot()}</li>
+         * </ol>
+         */
+        @Immutable
+        @ThreadSafe
+        @SdkPublicApi
+        @SdkPreviewApi
+        public interface BytesTransferred extends TransferInitiated {
+        }
+
+        /**
+         * The transfer has completed successfully.
+         * <p>
+         * Available context attributes:
+         * <ol>
+         *     <li>{@link TransferComplete#request()}</li>
+         *     <li>{@link TransferComplete#progressSnapshot()}</li>
+         *     <li>{@link TransferComplete#completedTransfer()}</li>
+         * </ol>
+         */
+        @Immutable
+        @ThreadSafe
+        @SdkPublicApi
+        @SdkPreviewApi
+        public interface TransferComplete extends BytesTransferred {
+            /**
+             * The completed transfer, i.e., the {@link CompletedUpload} or {@link CompletedDownload}.
+             */
+            CompletedTransfer completedTransfer();
+        }
+
+        /**
+         * The transfer failed.
+         * <p>
+         * Available context attributes:
+         * <ol>
+         *     <li>{@link TransferFailed#request()}</li>
+         *     <li>{@link TransferFailed#progressSnapshot()}</li>
+         *     <li>{@link TransferFailed#exception()}</li>
+         * </ol>
+         */
+        @Immutable
+        @ThreadSafe
+        @SdkPublicApi
+        @SdkPreviewApi
+        public interface TransferFailed extends TransferInitiated {
+            /**
+             * The exception associated with the failed transfer.
+             * <p>
+             * Note that this would be the <i>cause</i>> of a {@link CompletionException}, and not a {@link CompletionException}
+             * itself.
+             */
+            Throwable exception();
+        }
     }
 }
