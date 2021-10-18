@@ -1,3 +1,16 @@
+# __2.17.62__ __2021-10-18__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Allow AwsErrorDetails to be serialized using Java serialization
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Bug fix: remove unsupported maxResults and nextToken pagination parameters from ListTagsForResource
+
+## __Amazon QuickSight__
+  - ### Features
+    - AWS QuickSight Service Features - Add IP Restriction UI and public APIs support.
+
 # __2.17.61__ __2021-10-15__
 ## __AWS Glue__
   - ### Features

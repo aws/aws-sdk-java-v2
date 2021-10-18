@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Interactive Video Service",
-    "contributor": "",
-    "description": "Bug fix: remove unsupported maxResults and nextToken pagination parameters from ListTagsForResource"
-}
