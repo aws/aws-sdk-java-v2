@@ -16,6 +16,7 @@
 package software.amazon.awssdk.awscore.exception;
 
 import java.io.Serializable;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -100,6 +101,32 @@ public class AwsErrorDetails implements Serializable {
 
     public static Class<? extends Builder> serializableBuilderClass() {
         return BuilderImpl.class;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AwsErrorDetails that = (AwsErrorDetails) o;
+        return Objects.equals(errorMessage, that.errorMessage) &&
+               Objects.equals(errorCode, that.errorCode) &&
+               Objects.equals(serviceName, that.serviceName) &&
+               Objects.equals(sdkHttpResponse, that.sdkHttpResponse) &&
+               Objects.equals(rawResponse, that.rawResponse);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(errorMessage);
+        result = 31 * result + Objects.hashCode(errorCode);
+        result = 31 * result + Objects.hashCode(serviceName);
+        result = 31 * result + Objects.hashCode(sdkHttpResponse);
+        result = 31 * result + Objects.hashCode(rawResponse);
+        return result;
     }
 
     @Override

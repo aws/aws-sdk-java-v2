@@ -29,7 +29,7 @@ jobs:
 
         # These labels are required
         stale-issue-label: closing-soon
-        exempt-issue-labels: no-auto-closure, feature-request, bug
+        exempt-issue-labels: no-auto-closure
         stale-pr-label: closing-soon
         exempt-pr-labels: no-auto-closure
         response-requested-label: response-requested
