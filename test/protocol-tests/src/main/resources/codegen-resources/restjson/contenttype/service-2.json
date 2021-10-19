@@ -43,6 +43,14 @@
         "requestUri": "no-payload"
       },
       "input": {"shape": "NoPayloadRequest"}
+    },
+    "NoPayloadPost": {
+      "name": "NoPayloadPost",
+      "http": {
+        "method": "POST",
+        "requestUri": "no-payload"
+      },
+      "input": {"shape": "NoPayloadPostRequest"}
     }
   },
   "shapes":{
@@ -52,6 +60,19 @@
     "String":{"type":"string"},
     "Blob":{"type":"blob"},
     "NoPayloadRequest":{
+      "type":"structure",
+      "required":[],
+      "members":{
+        "testId":{
+          "shape":"TestId",
+          "documentation":"<p> The unique ID for a test. </p>",
+          "location":"header",
+          "locationName":"x-amz-test-id"
+        }
+      },
+      "documentation":"<p> The request structure for a no payload request. </p>"
+    },
+    "NoPayloadPostRequest":{
       "type":"structure",
       "required":[],
       "members":{

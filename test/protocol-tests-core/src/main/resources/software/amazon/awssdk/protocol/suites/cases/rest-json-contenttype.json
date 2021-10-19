@@ -220,6 +220,60 @@
   }
 },
 {
+  "description": "NoPayloadGet",
+  "given": {
+    "input": {
+    }
+  },
+  "when": {
+    "action": "marshall",
+    "operation": "NoPayloadPost"
+  },
+  "then": {
+    "serializedAs": {
+      "uri": "/no-payload",
+      "method": "POST",
+      "headers": {
+        "doesNotContain": [
+          "Content-Type"
+        ]
+      },
+      "body": {
+        "equals": ""
+      }
+    }
+  }
+},
+{
+  "description": "NoPayloadGetWithHeader",
+  "given": {
+    "input": {
+      "testId": "t-12345"
+    }
+  },
+  "when": {
+    "action": "marshall",
+    "operation": "NoPayloadPost"
+  },
+  "then": {
+    "serializedAs": {
+      "uri": "/no-payload",
+      "method": "POST",
+      "headers": {
+        "contains": {
+          "x-amz-test-id": "t-12345"
+        },
+        "doesNotContain": [
+          "Content-Type"
+        ]
+      },
+      "body": {
+        "equals": ""
+      }
+    }
+  }
+},
+{
   "description": "TestBodyNoParams",
   "given": {
     "input": {

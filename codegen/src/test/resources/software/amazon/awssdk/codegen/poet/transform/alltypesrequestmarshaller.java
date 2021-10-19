@@ -19,7 +19,8 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class AllTypesRequestMarshaller implements Marshaller<AllTypesRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().requestUri("/")
-                                                                            .httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(false).hasPayloadMembers(true).build();
+            .httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(false).hasImplicitPayloadMembers(true)
+            .hasPayloadMembers(true).build();
 
     private final BaseAwsJsonProtocolFactory protocolFactory;
 
@@ -32,11 +33,10 @@ public class AllTypesRequestMarshaller implements Marshaller<AllTypesRequest> {
         Validate.paramNotNull(allTypesRequest, "allTypesRequest");
         try {
             ProtocolMarshaller<SdkHttpFullRequest> protocolMarshaller = protocolFactory
-                .createProtocolMarshaller(SDK_OPERATION_BINDING);
+                    .createProtocolMarshaller(SDK_OPERATION_BINDING);
             return protocolMarshaller.marshall(allTypesRequest);
         } catch (Exception e) {
             throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }
     }
 }
-

@@ -19,8 +19,8 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class StreamingInputOperationRequestMarshaller implements Marshaller<StreamingInputOperationRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
-                                                                            .requestUri("/2016-03-11/streamingInputOperation").httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(true)
-                                                                            .hasPayloadMembers(true).hasStreamingInput(true).build();
+            .requestUri("/2016-03-11/streamingInputOperation").httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(true)
+            .hasImplicitPayloadMembers(false).hasPayloadMembers(true).hasStreamingInput(true).build();
 
     private final BaseAwsJsonProtocolFactory protocolFactory;
 
@@ -33,11 +33,10 @@ public class StreamingInputOperationRequestMarshaller implements Marshaller<Stre
         Validate.paramNotNull(streamingInputOperationRequest, "streamingInputOperationRequest");
         try {
             ProtocolMarshaller<SdkHttpFullRequest> protocolMarshaller = protocolFactory
-                .createProtocolMarshaller(SDK_OPERATION_BINDING);
+                    .createProtocolMarshaller(SDK_OPERATION_BINDING);
             return protocolMarshaller.marshall(streamingInputOperationRequest);
         } catch (Exception e) {
             throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }
     }
 }
-
