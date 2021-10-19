@@ -137,6 +137,14 @@
       },
       "errors": [
         {
+          "shape": "ResourceNotFoundException",
+          "documentation": "<p>404 response</p>"
+        },
+        {
+          "shape": "ThrottlingException",
+          "documentation": "<p>429 response</p>"
+        },
+        {
           "shape": "ValidationException",
           "documentation": "<p>400 response</p>"
         },
@@ -147,14 +155,6 @@
         {
           "shape": "AccessDeniedException",
           "documentation": "<p>403 response</p>"
-        },
-        {
-          "shape": "ResourceNotFoundException",
-          "documentation": "<p>404 response</p>"
-        },
-        {
-          "shape": "ThrottlingException",
-          "documentation": "<p>429 response</p>"
         }
       ],
       "documentation": "<p>This operation creates a job.</p>"
@@ -949,9 +949,11 @@
       "type": "structure",
       "members": {
         "ExportRevisionToS3": {
-          "shape": "AutoExportRevisionToS3RequestDetails"
+          "shape": "AutoExportRevisionToS3RequestDetails",
+          "documentation": "<p>Details for the export revision to Amazon S3 action.</p>"
         }
-      }
+      },
+      "documentation": "<p>What occurs after a certain event.</p>"
     },
     "Arn": {
       "type": "string",
@@ -983,9 +985,15 @@
       "type": "structure",
       "members": {
         "S3SnapshotAsset": {
-          "shape": "S3SnapshotAsset"
+          "shape": "S3SnapshotAsset",
+          "documentation": "<p>The S3 object that is the asset.</p>"
+        },
+        "RedshiftDataShareAsset": {
+          "shape": "RedshiftDataShareAsset",
+          "documentation": "<p>The Amazon Redshift datashare that is the asset.</p>"
         }
-      }
+      },
+      "documentation": "<p>Information about the asset.</p>"
     },
     "AssetEntry": {
       "type": "structure",
@@ -996,11 +1004,11 @@
         },
         "AssetDetails": {
           "shape": "AssetDetails",
-          "documentation": "<p>Information about the asset, including its size.</p>"
+          "documentation": "<p>Information about the asset.</p>"
         },
         "AssetType": {
           "shape": "AssetType",
-          "documentation": "<p>The type of file your data is stored in. Currently, the supported asset type is S3_SNAPSHOT.</p>"
+          "documentation": "<p>The type of asset that is added to a data set.</p>"
         },
         "CreatedAt": {
           "shape": "Timestamp",
@@ -1031,7 +1039,7 @@
           "documentation": "<p>The date and time that the asset was last updated, in ISO 8601 format.</p>"
         }
       },
-      "documentation": "<p>An asset in AWS Data Exchange is a piece of data that can be stored as an S3 object. The asset can be a structured data file, an image file, or some other data file. When you create an import job for your files, you create an asset in AWS Data Exchange for each of those files.</p>",
+      "documentation": "<p>An asset in AWS Data Exchange is a piece of data. The asset can be a structured data file, an image file, or some other data file that can be stored as an S3 object, or an Amazon Redshift datashare (Preview). When you create an import job for your files, you create an asset in AWS Data Exchange for each of those files.</p>",
       "required": [
         "AssetType",
         "CreatedAt",
@@ -1068,9 +1076,10 @@
     },
     "AssetType": {
       "type": "string",
-      "documentation": "<p>The type of file your data is stored in. Currently, the supported asset type is S3_SNAPSHOT.</p>",
+      "documentation": "<p>The type of asset that is added to a data set.</p>",
       "enum": [
-        "S3_SNAPSHOT"
+        "S3_SNAPSHOT",
+        "REDSHIFT_DATA_SHARE"
       ]
     },
     "AutoExportRevisionDestinationEntry": {
@@ -1094,10 +1103,12 @@
       "type": "structure",
       "members": {
         "Encryption": {
-          "shape": "ExportServerSideEncryption"
+          "shape": "ExportServerSideEncryption",
+          "documentation": "<p>Encryption configuration for the auto export job.</p>"
         },
         "RevisionDestination": {
-          "shape": "AutoExportRevisionDestinationEntry"
+          "shape": "AutoExportRevisionDestinationEntry",
+          "documentation": "<p>A revision destination is the Amazon S3 bucket folder destination to where the export will be sent.</p>"
         }
       },
       "documentation": "<p>Details of the operation to be performed by the job.</p>",
@@ -1161,7 +1172,7 @@
       "members": {
         "AssetType": {
           "shape": "AssetType",
-          "documentation": "<p>The type of file your data is stored in. Currently, the supported asset type is S3_SNAPSHOT.</p>"
+          "documentation": "<p>The type of asset that is added to a data set.</p>"
         },
         "Description": {
           "shape": "Description",
@@ -1192,7 +1203,7 @@
         },
         "AssetType": {
           "shape": "AssetType",
-          "documentation": "<p>The type of file your data is stored in. Currently, the supported asset type is S3_SNAPSHOT.</p>"
+          "documentation": "<p>The type of asset that is added to a data set.</p>"
         },
         "CreatedAt": {
           "shape": "Timestamp",
@@ -1362,7 +1373,7 @@
       "members": {
         "Arn": {
           "shape": "Arn",
-          "documentation": "<p>The ARN for the revision</p>"
+          "documentation": "<p>The ARN for the revision.</p>"
         },
         "Comment": {
           "shape": "__stringMin0Max16384",
@@ -1407,7 +1418,7 @@
         },
         "AssetType": {
           "shape": "AssetType",
-          "documentation": "<p>The type of file your data is stored in. Currently, the supported asset type is S3_SNAPSHOT.</p>"
+          "documentation": "<p>The type of asset that is added to a data set.</p>"
         },
         "CreatedAt": {
           "shape": "Timestamp",
@@ -1539,20 +1550,25 @@
       "type": "structure",
       "members": {
         "ImportAssetFromSignedUrlJobErrorDetails": {
-          "shape": "ImportAssetFromSignedUrlJobErrorDetails"
+          "shape": "ImportAssetFromSignedUrlJobErrorDetails",
+          "documentation": "<p>Information about the job error.</p>"
         },
         "ImportAssetsFromS3JobErrorDetails": {
-          "shape": "ListOfAssetSourceEntry"
+          "shape": "ListOfAssetSourceEntry",
+          "documentation": "<p>Information about the job error.</p>"
         }
-      }
+      },
+      "documentation": "<p>Information about the job error.</p>"
     },
     "Event": {
       "type": "structure",
       "members": {
         "RevisionPublished": {
-          "shape": "RevisionPublished"
+          "shape": "RevisionPublished",
+          "documentation": "<p>What occurs to start the revision publish action.</p>"
         }
-      }
+      },
+      "documentation": "<p>What occurs to start an action.</p>"
     },
     "EventActionEntry": {
       "type": "structure",
@@ -1563,7 +1579,7 @@
         },
         "Arn": {
           "shape": "Arn",
-          "documentation": "<p>The ARN for the event action.</p>"
+          "documentation": "<p>The Amazon Resource Name (ARN) for the event action.</p>"
         },
         "CreatedAt": {
           "shape": "Timestamp",
@@ -1743,6 +1759,10 @@
         "RevisionDestinations": {
           "shape": "ListOfRevisionDestinationEntry",
           "documentation": "<p>The destination in Amazon S3 where the revision is exported.</p>"
+        },
+        "EventActionArn": {
+          "shape": "__string",
+          "documentation": "<p>The Amazon Resource Name (ARN) of the event action.</p>"
         }
       },
       "documentation": "<p>Details about the export revisions to Amazon S3 response.</p>",
@@ -1805,11 +1825,11 @@
         },
         "AssetDetails": {
           "shape": "AssetDetails",
-          "documentation": "<p>Information about the asset, including its size.</p>"
+          "documentation": "<p>Information about the asset.</p>"
         },
         "AssetType": {
           "shape": "AssetType",
-          "documentation": "<p>The type of file your data is stored in. Currently, the supported asset type is S3_SNAPSHOT.</p>"
+          "documentation": "<p>The type of asset that is added to a data set.</p>"
         },
         "CreatedAt": {
           "shape": "Timestamp",
@@ -1825,7 +1845,7 @@
         },
         "Name": {
           "shape": "AssetName",
-          "documentation": "<p>The name of the asset When importing from Amazon S3, the S3 object key is used as the asset name. When exporting to Amazon S3, the asset name is used as default target S3 object key.</p>"
+          "documentation": "<p>The name of the asset. When importing from Amazon S3, the S3 object key is used as the asset name. When exporting to Amazon S3, the asset name is used as default target S3 object key.</p>"
         },
         "RevisionId": {
           "shape": "Id",
@@ -1864,7 +1884,7 @@
         },
         "AssetType": {
           "shape": "AssetType",
-          "documentation": "<p>The type of file your data is stored in. Currently, the supported asset type is S3_SNAPSHOT.</p>"
+          "documentation": "<p>The type of asset that is added to a data set.</p>"
         },
         "CreatedAt": {
           "shape": "Timestamp",
@@ -2024,7 +2044,7 @@
       "members": {
         "Arn": {
           "shape": "Arn",
-          "documentation": "<p>The ARN for the revision</p>"
+          "documentation": "<p>The ARN for the revision.</p>"
         },
         "Comment": {
           "shape": "__stringMin0Max16384",
@@ -2068,9 +2088,11 @@
       "type": "structure",
       "members": {
         "AssetName": {
-          "shape": "AssetName"
+          "shape": "AssetName",
+          "documentation": "<p>Information about the job error.</p>"
         }
       },
+      "documentation": "<p>Information about the job error.</p>",
       "required": [
         "AssetName"
       ]
@@ -2108,7 +2130,7 @@
       "members": {
         "AssetName": {
           "shape": "AssetName",
-          "documentation": "<p>The name for the asset associated with this import response.</p>"
+          "documentation": "<p>The name for the asset associated with this import job.</p>"
         },
         "DataSetId": {
           "shape": "Id",
@@ -2135,6 +2157,52 @@
       "required": [
         "DataSetId",
         "AssetName",
+        "RevisionId"
+      ]
+    },
+    "ImportAssetsFromRedshiftDataSharesRequestDetails": {
+      "type": "structure",
+      "members": {
+        "AssetSources": {
+          "shape": "ListOfRedshiftDataShareAssetSourceEntry",
+          "documentation": "A list of Amazon Redshift datashare assets."
+        },
+        "DataSetId": {
+          "shape": "Id",
+          "documentation": "The unique identifier for the data set associated with this import job."
+        },
+        "RevisionId": {
+          "shape": "Id",
+          "documentation": "The unique identifier for the revision associated with this import job."
+        }
+      },
+      "documentation": "Details from an import from Amazon Redshift datashare request.",
+      "required": [
+        "DataSetId",
+        "AssetSources",
+        "RevisionId"
+      ]
+    },
+    "ImportAssetsFromRedshiftDataSharesResponseDetails": {
+      "type": "structure",
+      "members": {
+        "AssetSources": {
+          "shape": "ListOfRedshiftDataShareAssetSourceEntry",
+          "documentation": "A list of Amazon Redshift datashare asset sources."
+        },
+        "DataSetId": {
+          "shape": "Id",
+          "documentation": "The unique identifier for the data set associated with this import job."
+        },
+        "RevisionId": {
+          "shape": "Id",
+          "documentation": "The unique identifier for the revision associated with this import job."
+        }
+      },
+      "documentation": "Details from an import from Amazon Redshift datashare response.",
+      "required": [
+        "DataSetId",
+        "AssetSources",
         "RevisionId"
       ]
     },
@@ -2256,7 +2324,8 @@
           "documentation": "The code for the job error."
         },
         "Details": {
-          "shape": "Details"
+          "shape": "Details",
+          "documentation": "<p>The details about the job error.</p>"
         },
         "LimitName": {
           "shape": "JobErrorLimitName",
@@ -2290,7 +2359,8 @@
       "documentation": "The name of the limit that was reached.",
       "enum": [
         "Assets per revision",
-        "Asset size in GB"
+        "Asset size in GB",
+        "Amazon Redshift datashare assets per revision"
       ]
     },
     "JobErrorResourceTypes": {
@@ -2313,13 +2383,17 @@
         "Assets per import job from Amazon S3",
         "Asset per export job from Amazon S3",
         "Asset size in GB",
-        "Concurrent in progress jobs to import assets from Amazon S3",
-        "Concurrent in progress jobs to import assets from a signed URL",
         "Concurrent in progress jobs to export assets to Amazon S3",
         "Concurrent in progress jobs to export assets to a signed URL",
+        "Concurrent in progress jobs to import assets from Amazon S3",
+        "Concurrent in progress jobs to import assets from a signed URL",
         "Concurrent in progress jobs to export revisions to Amazon S3",
         "Event actions per account",
-        "Auto export event actions per data set"
+        "Auto export event actions per data set",
+        "Amazon Redshift datashare assets per import job from Redshift",
+        "Concurrent in progress jobs to import assets from Amazon Redshift datashares",
+        "Revisions per Amazon Redshift datashare data set",
+        "Amazon Redshift datashare assets per revision"
       ]
     },
     "ListDataSetRevisionsRequest": {
@@ -2489,6 +2563,13 @@
         "shape": "AssetSourceEntry"
       }
     },
+    "ListOfRedshiftDataShareAssetSourceEntry": {
+      "type": "list",
+      "documentation": "A list of Amazon Redshift datashare asset sources.",
+      "member": {
+        "shape": "RedshiftDataShareAssetSourceEntry"
+      }
+    },
     "ListOfRevisionDestinationEntry": {
       "type": "list",
       "documentation": "<p>The destination where the assets in the revision will be exported.</p>",
@@ -2591,11 +2672,39 @@
       "type": "structure",
       "members": {
         "ProductId": {
-          "shape": "__string"
+          "shape": "__string",
+          "documentation": "<p>The product ID of the origin of the data set.</p>"
         }
       },
+      "documentation": "<p>Information about the origin of the data set.</p>",
       "required": [
         "ProductId"
+      ]
+    },
+    "RedshiftDataShareAsset": {
+      "type": "structure",
+      "members": {
+        "Arn": {
+          "shape": "__string",
+          "documentation": "The Amazon Resource Name (ARN) of the datashare asset."
+        }
+      },
+      "documentation": "The Amazon Redshift datashare asset.",
+      "required": [
+        "Arn"
+      ]
+    },
+    "RedshiftDataShareAssetSourceEntry": {
+      "type": "structure",
+      "members": {
+        "DataShareArn": {
+          "shape": "__string",
+          "documentation": "The Amazon Resource Name (ARN) of the datashare asset."
+        }
+      },
+      "documentation": "<p>The source of the Amazon Redshift datashare asset.</p>",
+      "required": [
+        "DataShareArn"
       ]
     },
     "RequestDetails": {
@@ -2620,6 +2729,10 @@
         "ImportAssetsFromS3": {
           "shape": "ImportAssetsFromS3RequestDetails",
           "documentation": "<p>Details about the import from Amazon S3 request.</p>"
+        },
+        "ImportAssetsFromRedshiftDataShares": {
+          "shape": "ImportAssetsFromRedshiftDataSharesRequestDetails",
+          "documentation": "<p>Details from an import from Amazon Redshift datashare request.</p>"
         }
       },
       "documentation": "<p>The details for the request.</p>"
@@ -2681,6 +2794,10 @@
         "ImportAssetsFromS3": {
           "shape": "ImportAssetsFromS3ResponseDetails",
           "documentation": "<p>Details for the import from Amazon S3 response.</p>"
+        },
+        "ImportAssetsFromRedshiftDataShares": {
+          "shape": "ImportAssetsFromRedshiftDataSharesResponseDetails",
+          "documentation": "<p>Details from an import from Amazon Redshift datashare response.</p>"
         }
       },
       "documentation": "<p>Details for the response.</p>"
@@ -2756,9 +2873,11 @@
       "type": "structure",
       "members": {
         "DataSetId": {
-          "shape": "Id"
+          "shape": "Id",
+          "documentation": "<p>The data set ID of the published revision.</p>"
         }
       },
+      "documentation": "<p>Information about the published revision.</p>",
       "required": [
         "DataSetId"
       ]
@@ -2888,7 +3007,8 @@
         "IMPORT_ASSET_FROM_SIGNED_URL",
         "EXPORT_ASSETS_TO_S3",
         "EXPORT_ASSET_TO_SIGNED_URL",
-        "EXPORT_REVISIONS_TO_S3"
+        "EXPORT_REVISIONS_TO_S3",
+        "IMPORT_ASSETS_FROM_REDSHIFT_DATA_SHARES"
       ]
     },
     "UntagResourceRequest": {
@@ -2955,11 +3075,11 @@
         },
         "AssetDetails": {
           "shape": "AssetDetails",
-          "documentation": "<p>Information about the asset, including its size.</p>"
+          "documentation": "<p>Information about the asset.</p>"
         },
         "AssetType": {
           "shape": "AssetType",
-          "documentation": "<p>The type of file your data is stored in. Currently, the supported asset type is S3_SNAPSHOT.</p>"
+          "documentation": "<p>The type of asset that is added to a data set.</p>"
         },
         "CreatedAt": {
           "shape": "Timestamp",
@@ -2975,7 +3095,7 @@
         },
         "Name": {
           "shape": "AssetName",
-          "documentation": "<p>The name of the asset When importing from Amazon S3, the S3 object key is used as the asset name. When exporting to Amazon S3, the asset name is used as default target S3 object key.</p>"
+          "documentation": "<p>The name of the asset. When importing from Amazon S3, the S3 object key is used as the asset name. When exporting to Amazon S3, the asset name is used as default target S3 object key.</p>"
         },
         "RevisionId": {
           "shape": "Id",
@@ -3023,7 +3143,7 @@
         },
         "AssetType": {
           "shape": "AssetType",
-          "documentation": "<p>The type of file your data is stored in. Currently, the supported asset type is S3_SNAPSHOT.</p>"
+          "documentation": "<p>The type of asset that is added to a data set.</p>"
         },
         "CreatedAt": {
           "shape": "Timestamp",
