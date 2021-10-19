@@ -1,3 +1,12 @@
+# __2.17.63__ __2021-10-19__
+## __AWS Data Exchange__
+  - ### Features
+    - This release adds support for our public preview of AWS Data Exchange for Amazon Redshift. This enables data providers to list products including AWS Data Exchange datashares for Amazon Redshift, giving subscribers read-only access to provider data in Amazon Redshift.
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - The Amazon Chime SDK now allows developers to execute business logic on in-flight messages before they are delivered to members of a messaging channel with channel flows.
+
 # __2.17.62__ __2021-10-18__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
