@@ -355,6 +355,7 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
             return this;
         }
 
+        @Override
         public ContentStreamProvider contentStreamProvider() {
             return contentStreamProvider;
         }

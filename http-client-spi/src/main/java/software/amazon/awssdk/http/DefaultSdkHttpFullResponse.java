@@ -216,6 +216,7 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
         /**
          * @return An immutable {@link DefaultSdkHttpFullResponse} object.
          */
+        @Override
         public SdkHttpFullResponse build() {
             return new DefaultSdkHttpFullResponse(this);
         }

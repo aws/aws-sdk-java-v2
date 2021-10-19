@@ -158,6 +158,7 @@ public final class WaiterOverrideConfiguration implements ToCopyableBuilder<Wait
             return this;
         }
 
+        @Override
         public WaiterOverrideConfiguration build() {
             return new WaiterOverrideConfiguration(this);
         }

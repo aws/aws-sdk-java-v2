@@ -80,6 +80,7 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
         return dynamoDbClient;
     }
 
+    @Override
     public String tableName() {
         return tableName;
     }

@@ -24,5 +24,6 @@ public interface CodeTransformer extends Function<String, String> {
                               .reduce(Function.identity(), Function::andThen).apply(input);
     }
 
+    @Override
     String apply(String input);
 }

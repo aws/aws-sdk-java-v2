@@ -109,14 +109,17 @@ public abstract class SdkChannelPoolMap<K, P extends ChannelPool>
             this.iterator = paramNotNull(iterator, "iterator");
         }
 
+        @Override
         public boolean hasNext() {
             return this.iterator.hasNext();
         }
 
+        @Override
         public T next() {
             return this.iterator.next();
         }
 
+        @Override
         public void remove() {
             throw new UnsupportedOperationException("Read-only iterator doesn't support removal.");
         }

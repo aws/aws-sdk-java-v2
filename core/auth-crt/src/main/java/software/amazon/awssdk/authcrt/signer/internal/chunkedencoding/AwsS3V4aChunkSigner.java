@@ -37,6 +37,7 @@ public class AwsS3V4aChunkSigner implements AwsChunkSigner {
         this.signingConfig = signingConfig;
     }
 
+    @Override
     public String signChunk(byte[] chunkData, String previousSignature) {
         byte[] chunkSignature = aws4aSigner.signChunk(chunkData,
                                                       previousSignature.getBytes(StandardCharsets.UTF_8),

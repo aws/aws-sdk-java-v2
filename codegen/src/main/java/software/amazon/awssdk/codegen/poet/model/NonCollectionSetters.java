@@ -40,6 +40,7 @@ class NonCollectionSetters extends AbstractMemberSetters {
         super(intermediateModel, shapeModel, memberModel, typeProvider);
     }
 
+    @Override
     public List<MethodSpec> fluentDeclarations(TypeName returnType) {
         List<MethodSpec> fluentDeclarations = new ArrayList<>();
         fluentDeclarations.add(fluentAbstractSetterDeclaration(memberAsParameter(), returnType)

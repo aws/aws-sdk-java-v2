@@ -106,6 +106,7 @@ public interface SdkHttpFullRequest
         /**
          * The port, exactly as it was configured with {@link #port(Integer)}.
          */
+        @Override
         Integer port();
 
         /**

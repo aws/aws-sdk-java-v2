@@ -63,6 +63,7 @@ public final class AwsChunkedEncodingConfig {
         private BuilderImpl() {
         }
 
+        @Override
         public Builder chunkSize(int chunkSize) {
             this.chunkSize = chunkSize;
             return this;
@@ -72,6 +73,7 @@ public final class AwsChunkedEncodingConfig {
             chunkSize(chunkSize);
         }
 
+        @Override
         public Builder bufferSize(int bufferSize) {
             this.bufferSize = bufferSize;
             return this;

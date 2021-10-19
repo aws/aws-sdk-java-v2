@@ -167,6 +167,7 @@ public class SdkException extends RuntimeException {
             return message;
         }
 
+        @Override
         public SdkException build() {
             return new SdkException(this);
         }
