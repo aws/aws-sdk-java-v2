@@ -55,6 +55,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
         this.rateLimitingTokenBucket = rateLimitingTokenBucket;
     }
 
+    @Override
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         RetryableStageHelper retryableStageHelper = new RetryableStageHelper(request, context, rateLimitingTokenBucket,
                                                                              dependencies);

@@ -88,6 +88,7 @@ public class JavaCodeFormatter implements CodeTransformer {
                                                              ToolFactory.M_FORMAT_EXISTING);
     }
 
+    @Override
     public String apply(String contents) {
         TextEdit edit = codeFormatter.format(
                 CodeFormatter.K_COMPILATION_UNIT

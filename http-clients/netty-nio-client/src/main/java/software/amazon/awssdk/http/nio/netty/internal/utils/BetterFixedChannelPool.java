@@ -151,6 +151,7 @@ public class BetterFixedChannelPool implements SdkChannelPool {
         return promise;
     }
 
+    @Override
     public CompletableFuture<Void> collectChannelPoolMetrics(MetricCollector metrics) {
         CompletableFuture<Void> delegateMetricResult = delegateChannelPool.collectChannelPoolMetrics(metrics);
         CompletableFuture<Void> result = new CompletableFuture<>();

@@ -79,6 +79,7 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
         return dynamoDbClient;
     }
 
+    @Override
     public String tableName() {
         return tableName;
     }

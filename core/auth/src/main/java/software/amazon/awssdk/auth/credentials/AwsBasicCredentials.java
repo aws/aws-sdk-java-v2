@@ -81,6 +81,7 @@ public final class AwsBasicCredentials implements AwsCredentials {
     /**
      * Retrieve the AWS access key, used to identify the user interacting with AWS.
      */
+    @Override
     public String accessKeyId() {
         return accessKeyId;
     }
@@ -88,6 +89,7 @@ public final class AwsBasicCredentials implements AwsCredentials {
     /**
      * Retrieve the AWS secret access key, used to authenticate the user interacting with AWS.
      */
+    @Override
     public String secretAccessKey() {
         return secretAccessKey;
     }

@@ -49,6 +49,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 @SdkProtectedApi
 public final class StsWebIdentityCredentialsProviderFactory implements WebIdentityTokenCredentialsProviderFactory {
 
+    @Override
     public AwsCredentialsProvider create(WebIdentityTokenCredentialProperties credentialProperties) {
         return new StsWebIdentityCredentialsProvider(credentialProperties);
     }
