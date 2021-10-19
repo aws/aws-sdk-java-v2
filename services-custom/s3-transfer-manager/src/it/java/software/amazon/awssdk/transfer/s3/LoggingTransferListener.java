@@ -19,18 +19,27 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * An example implementation of {@link TransferListener} that prints a progress bar to System.out. This example is referenced to
+ * An example implementation of {@link TransferListener} that logs a progress bar at the INFO level. This example is referenced to
  * in the {@link TransferListener} documentation and also used in {@link S3TransferManager} integration tests.
  */
-public class ProgressPrintingTransferListener implements TransferListener {
-    
+public class LoggingTransferListener implements TransferListener {
+    private static final Logger log = LoggerFactory.getLogger(LoggingTransferListener.class);
     private final ProgressBar progressBar = new ProgressBar(20);
+
+    private LoggingTransferListener() {
+    }
+
+    public static LoggingTransferListener create() {
+        return new LoggingTransferListener();
+    }
 
     @Override
     public void transferInitiated(Context.TransferInitiated context) {
-        System.out.println("Transfer initiated...");
+        log.info("Transfer initiated...");
         context.progressSnapshot().ratioTransferred().ifPresent(progressBar::update);
     }
 
@@ -42,13 +51,12 @@ public class ProgressPrintingTransferListener implements TransferListener {
     @Override
     public void transferComplete(Context.TransferComplete context) {
         context.progressSnapshot().ratioTransferred().ifPresent(progressBar::update);
-        System.out.println("Transfer complete!");
+        log.info("Transfer complete!");
     }
 
     @Override
     public void transferFailed(Context.TransferFailed context) {
-        System.out.println("Transfer failed.");
-        context.exception().printStackTrace();
+        log.warn("Transfer failed.", context.exception());
     }
 
     private static class ProgressBar {
@@ -62,10 +70,10 @@ public class ProgressPrintingTransferListener implements TransferListener {
         public void update(double ratio) {
             int ticks = (int) Math.floor(ratio * maxTicks);
             if (prevTicks.getAndSet(ticks) != ticks) {
-                System.out.printf("|%s%s| %s%n",
-                                  repeat("=", ticks),
-                                  repeat(" ", maxTicks - ticks),
-                                  round(ratio * 100, 1) + "%");
+                log.info("|{}{}| {}",
+                         repeat("=", ticks),
+                         repeat(" ", maxTicks - ticks),
+                         round(ratio * 100, 1) + "%");
             }
         }
 
@@ -75,7 +83,7 @@ public class ProgressPrintingTransferListener implements TransferListener {
 
         private static double round(double value, int places) {
             BigDecimal bd = BigDecimal.valueOf(value);
-            bd = bd.setScale(places, RoundingMode.HALF_DOWN);
+            bd = bd.setScale(places, RoundingMode.FLOOR);
             return bd.doubleValue();
         }
     }

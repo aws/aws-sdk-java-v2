@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 
 /**
  * The {@link TransferListener} interface may be implemented by your application in order to receive event-driven updates on the
@@ -40,7 +41,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  * <ol>
  *     <li>{@link #transferInitiated(Context.TransferInitiated)} - A new transfer has been initiated. This method is called
  *     exactly once per transfer.</li>
- *     <ul>Additional context attributes:
+ *     <ul>Available context attributes:
  *         <li>{@link Context.TransferInitiated#request()}</li>
  *         <li>{@link Context.TransferInitiated#progressSnapshot()}</li>
  *     </ul>
@@ -48,7 +49,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  *     may be called many times per transfer, depending on the transfer size and I/O buffer sizes.
  *     <li>{@link #transferComplete(Context.TransferComplete)} - The transfer has completed successfully. This method is called
  *     exactly once for a successful transfer.</li>
- *     <ul>Additional context attributes:
+ *     <ul>Additional available context attributes:
  *         <li>{@link Context.TransferComplete#completedTransfer()}</li>
  *     </ul>
  * </ol>
@@ -65,6 +66,10 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  *     <li>Be mindful that {@link #bytesTransferred(Context.BytesTransferred)} may be called extremely often (subject to I/O
  *     buffer sizes). Be careful in implementing expensive operations as a side effect. Consider rate-limiting your side
  *     effect operations, if needed.</li>
+ *     <li>In the case of uploads, there may be some delay between the bytes being fully transferred and the transfer
+ *     successfully completing. Internally, {@link S3TransferManager} uses the Amazon S3
+ *     <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html">multipart upload API</a>
+ *     and must finalize uploads with a {@link CompleteMultipartUploadRequest}.</li>
  *     <li>{@link TransferListener}s may be invoked by different threads. If your {@link TransferListener} is stateful,
  *     ensure that it is also thread-safe.</li>
  *     <li>{@link TransferListener}s are not intended to be used for control flow, and therefore your implementation
@@ -120,7 +125,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  *
  *         private static double round(double value, int places) {
  *             BigDecimal bd = BigDecimal.valueOf(value);
- *             bd = bd.setScale(places, RoundingMode.HALF_DOWN);
+ *             bd = bd.setScale(places, RoundingMode.FLOOR);
  *             return bd.doubleValue();
  *         }
  *     }
