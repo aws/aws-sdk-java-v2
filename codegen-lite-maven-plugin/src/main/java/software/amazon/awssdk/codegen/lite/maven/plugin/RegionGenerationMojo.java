@@ -57,6 +57,7 @@ public class RegionGenerationMojo extends AbstractMojo {
         "${basedir}/src/main/resources/software/amazon/awssdk/regions/internal/region/endpoints.json")
     private File endpoints;
 
+    @Override
     public void execute() throws MojoExecutionException {
         Path baseSourcesDirectory = Paths.get(outputDirectory).resolve("generated-sources").resolve("sdk");
         Path testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");

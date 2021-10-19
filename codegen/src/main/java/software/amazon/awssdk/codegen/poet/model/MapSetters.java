@@ -35,6 +35,7 @@ class MapSetters extends AbstractMemberSetters {
         this.typeProvider = typeProvider;
     }
 
+    @Override
     public List<MethodSpec> fluentDeclarations(TypeName returnType) {
         List<MethodSpec> fluentDeclarations = new ArrayList<>();
 

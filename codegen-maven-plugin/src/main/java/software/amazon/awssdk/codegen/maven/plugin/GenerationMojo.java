@@ -63,6 +63,7 @@ public class GenerationMojo extends AbstractMojo {
     private Path sourcesDirectory;
     private Path testsDirectory;
 
+    @Override
     public void execute() throws MojoExecutionException {
         this.sourcesDirectory = Paths.get(outputDirectory).resolve("generated-sources").resolve("sdk");
         this.testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");

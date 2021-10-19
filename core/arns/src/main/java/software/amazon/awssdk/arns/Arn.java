@@ -303,6 +303,7 @@ public final class Arn implements ToCopyableBuilder<Arn.Builder, Arn> {
         /**
          * @return an instance of {@link Arn} that is created from the builder
          */
+        @Override
         Arn build();
     }
 

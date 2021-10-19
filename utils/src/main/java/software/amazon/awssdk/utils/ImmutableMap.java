@@ -206,52 +206,64 @@ public final class ImmutableMap<K, V> implements Map<K, V> {
 
     /** Inherited methods **/
 
+    @Override
     public boolean containsKey(Object key) {
         return map.containsKey(key);
     }
 
+    @Override
     public boolean containsValue(Object value) {
         return map.containsValue(value);
     }
 
+    @Override
     public Set<Entry<K, V>> entrySet() {
         return map.entrySet();
     }
 
+    @Override
     public V get(Object key) {
         return map.get(key);
     }
 
+    @Override
     public boolean isEmpty() {
         return map.isEmpty();
     }
 
+    @Override
     public Set<K> keySet() {
         return map.keySet();
     }
 
+    @Override
     public int size() {
         return map.size();
     }
 
+    @Override
     public Collection<V> values() {
         return map.values();
     }
 
     /** Unsupported methods **/
 
+    @Override
     public void clear() {
         throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
     }
 
+    @Override
     public V put(K key, V value) {
         throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
     }
 
+    @Override
     public void putAll(Map<? extends K, ? extends V> map) {
         throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
     }
 
+    @Override
     public V remove(Object key) {
         throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
     }

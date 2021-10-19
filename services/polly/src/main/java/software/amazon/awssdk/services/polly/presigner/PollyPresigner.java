@@ -166,6 +166,7 @@ public interface PollyPresigner extends SdkPresigner {
         @Override
         Builder endpointOverride(URI endpointOverride);
 
+        @Override
         PollyPresigner build();
     }
 }

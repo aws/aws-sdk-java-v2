@@ -57,6 +57,7 @@ public class QueryProtocolBenchmark implements SdkProtocolBenchmark {
                                     .build();
     }
 
+    @Override
     @Benchmark
     public void successfulResponse(Blackhole blackhole) {
         blackhole.consume(client.allTypes(QUERY_ALL_TYPES_REQUEST));

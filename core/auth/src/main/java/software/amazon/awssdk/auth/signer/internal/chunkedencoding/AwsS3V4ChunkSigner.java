@@ -57,6 +57,7 @@ public class AwsS3V4ChunkSigner implements AwsChunkSigner {
         this.keyPath = keyPath;
     }
 
+    @Override
     public String signChunk(byte[] chunkData, String previousSignature) {
         String chunkStringToSign =
             CHUNK_STRING_TO_SIGN_PREFIX + "\n" +

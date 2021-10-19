@@ -59,6 +59,7 @@ public final class AwsS3ProtocolFactory extends AwsXmlProtocolFactory {
         private Builder() {
         }
 
+        @Override
         public AwsS3ProtocolFactory build() {
             return new AwsS3ProtocolFactory(this);
         }

@@ -244,6 +244,7 @@ public final class ProfileFile {
         /**
          * Configure the {@link Type} of file that should be loaded.
          */
+        @Override
         public Builder type(Type type) {
             this.type = type;
             return this;
