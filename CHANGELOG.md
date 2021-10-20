@@ -1,3 +1,40 @@
+# __2.17.64__ __2021-10-20__
+## __AWS Direct Connect__
+  - ### Features
+    - This release adds 4 new APIS, which needs to be public able
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for specifying caption time delta in milliseconds and the ability to apply color range legalization to source content other than AVC video.
+
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - When enabled, MediaPackage passes through digital video broadcasting (DVB) subtitles into the output.
+
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - MediaPackage passes through digital video broadcasting (DVB) subtitles into the output.
+
+## __AWS Panorama__
+  - ### Features
+    - General availability for AWS Panorama. AWS SDK for Panorama includes APIs to manage your devices and nodes, and deploy computer vision applications to the edge. For more information, see the AWS Panorama documentation at http://docs.aws.amazon.com/panorama
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add missing @Override annotations
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added support for cross-Region finding aggregation, which replicates findings from linked Regions to a single aggregation Region. Added operations to view, enable, update, and delete the finding aggregation.
+
+## __Amazon Appflow__
+  - ### Features
+    - Feature to add support for JSON-L format for S3 as a source.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This release adds custom language support for streaming transcription.
+
 # __2.17.63__ __2021-10-19__
 ## __AWS Data Exchange__
   - ### Features
