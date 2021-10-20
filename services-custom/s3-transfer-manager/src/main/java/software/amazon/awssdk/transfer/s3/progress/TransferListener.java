@@ -66,10 +66,8 @@ import software.amazon.awssdk.transfer.s3.UploadRequest;
  * <p>
  * There are a few important rules and best practices that govern the usage of {@link TransferListener}s:
  * <ol>
- *     <li>{@link TransferListener} implementations must not block, sleep, or otherwise delay the calling thread.
- *     {@link TransferListener} callbacks are invoked from the SDK's core event loop I/O thread, and any delays may
- *     severely impact performance. If you need to perform blocking operations, you should schedule them in a separate thread
- *     or executor that you control.</li>
+ *     <li>{@link TransferListener} implementations should not block, sleep, or otherwise delay the calling thread. If you need
+ *     to perform blocking operations, you should schedule them in a separate thread or executor that you control.</li>
  *     <li>Be mindful that {@link #bytesTransferred(Context.BytesTransferred)} may be called extremely often (subject to I/O
  *     buffer sizes). Be careful in implementing expensive operations as a side effect. Consider rate-limiting your side
  *     effect operations, if needed.</li>
