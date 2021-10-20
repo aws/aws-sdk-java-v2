@@ -15,10 +15,8 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-import java.util.List;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 
 /**
  * Interface for all transfer requests.
@@ -26,11 +24,6 @@ import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 @SdkPublicApi
 @SdkPreviewApi
 public interface TransferRequest {
-
-    /**
-     * The {@link TransferListener}s that will be notified as part of this request.
-     */
-    List<TransferListener> listeners();
 
     interface Builder<TypeToBuildT, BuilderT extends Builder> {
 

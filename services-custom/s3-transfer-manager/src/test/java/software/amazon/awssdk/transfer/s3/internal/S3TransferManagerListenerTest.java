@@ -53,9 +53,9 @@ import software.amazon.awssdk.transfer.s3.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.Download;
 import software.amazon.awssdk.transfer.s3.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.transfer.s3.Upload;
 import software.amazon.awssdk.transfer.s3.UploadRequest;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 
 public class S3TransferManagerListenerTest {
     private final FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
@@ -90,7 +90,7 @@ public class S3TransferManagerListenerTest {
                                                    .putObjectRequest(r -> r.bucket("bucket")
                                                                            .key("key"))
                                                    .source(path)
-                                                   .listeners(listener)
+                                                   .overrideConfiguration(b -> b.addListener(listener))
                                                    .build();
         Upload upload = tm.upload(uploadRequest);
         upload.completionFuture().join();
@@ -131,7 +131,7 @@ public class S3TransferManagerListenerTest {
                                                          .getObjectRequest(r -> r.bucket("bucket")
                                                                                  .key("key"))
                                                          .destination(newTempFile())
-                                                         .listeners(listener)
+                                                         .overrideConfiguration(b -> b.addListener(listener))
                                                          .build();
         Download download = tm.download(downloadRequest);
         download.completionFuture().join();
@@ -177,7 +177,7 @@ public class S3TransferManagerListenerTest {
                                                    .putObjectRequest(r -> r.bucket("bucket")
                                                                            .key("key"))
                                                    .source(Paths.get("/some/nonexistent/path"))
-                                                   .listeners(listener)
+                                                   .overrideConfiguration(b -> b.addListener(listener))
                                                    .build();
         Upload upload = tm.upload(uploadRequest);
 
@@ -209,6 +209,27 @@ public class S3TransferManagerListenerTest {
 
     @Test
     public void listener_exception_shouldBeSuppressed() throws Exception {
+        TransferListener listener = throwingListener();
+
+        Path path = newTempFile();
+        Files.write(path, randomBytes(contentLength));
+
+        UploadRequest uploadRequest = UploadRequest.builder()
+                                                   .putObjectRequest(r -> r.bucket("bucket")
+                                                                           .key("key"))
+                                                   .source(path)
+                                                   .overrideConfiguration(b -> b.addListener(listener))
+                                                   .build();
+        Upload upload = tm.upload(uploadRequest);
+        upload.completionFuture().join();
+
+        verify(listener, times(1)).transferInitiated(any());
+        verify(listener, times(1)).bytesTransferred(any());
+        verify(listener, times(1)).transferComplete(any());
+        verifyNoMoreInteractions(listener);
+    }
+
+    private static TransferListener throwingListener() {
         TransferListener listener = new TransferListener() {
             @Override
             public void transferInitiated(Context.TransferInitiated context) {
@@ -234,24 +255,7 @@ public class S3TransferManagerListenerTest {
                 throw new RuntimeException("Intentional exception for testing purposes");
             }
         };
-        listener = spy(listener);
-
-        Path path = newTempFile();
-        Files.write(path, randomBytes(contentLength));
-
-        UploadRequest uploadRequest = UploadRequest.builder()
-                                                   .putObjectRequest(r -> r.bucket("bucket")
-                                                                           .key("key"))
-                                                   .source(path)
-                                                   .listeners(listener)
-                                                   .build();
-        Upload upload = tm.upload(uploadRequest);
-        upload.completionFuture().join();
-
-        verify(listener, times(1)).transferInitiated(any());
-        verify(listener, times(1)).bytesTransferred(any());
-        verify(listener, times(1)).transferComplete(any());
-        verifyNoMoreInteractions(listener);
+        return spy(listener);
     }
 
     private static Answer<CompletableFuture<PutObjectResponse>> drainPutRequestBody() {

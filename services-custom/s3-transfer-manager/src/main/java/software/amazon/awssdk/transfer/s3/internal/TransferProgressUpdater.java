@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
@@ -25,7 +26,7 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedTransfer;
 import software.amazon.awssdk.transfer.s3.DownloadRequest;
-import software.amazon.awssdk.transfer.s3.TransferRequest;
+import software.amazon.awssdk.transfer.s3.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.UploadRequest;
 import software.amazon.awssdk.transfer.s3.internal.NotifyingAsyncRequestBody.AsyncRequestBodyListener;
 import software.amazon.awssdk.transfer.s3.internal.NotifyingAsyncResponseTransformer.AsyncResponseTransformerListener;
@@ -43,8 +44,18 @@ public class TransferProgressUpdater {
     private final TransferListenerContext context;
     private final TransferListenerInvoker listeners;
 
-    public TransferProgressUpdater(UploadRequest uploadRequest, AsyncRequestBody requestBody) {
-        this(uploadRequest, getContentLengthSafe(requestBody));
+    public TransferProgressUpdater(UploadRequest request, AsyncRequestBody requestBody) {
+        DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
+        getContentLengthSafe(requestBody).ifPresent(snapshotBuilder::transferSize);
+        TransferProgressSnapshot snapshot = snapshotBuilder.build();
+        progress = new DefaultTransferProgress(snapshot);
+        context = TransferListenerContext.builder()
+                                         .request(request)
+                                         .progressSnapshot(snapshot)
+                                         .build();
+        listeners = new TransferListenerInvoker(request.overrideConfiguration()
+                                                       .map(TransferRequestOverrideConfiguration::listeners)
+                                                       .orElseGet(Collections::emptyList));
     }
 
     private static Optional<Long> getContentLengthSafe(AsyncRequestBody requestBody) {
@@ -58,21 +69,16 @@ public class TransferProgressUpdater {
         }
     }
 
-    public TransferProgressUpdater(DownloadRequest uploadRequest) {
-        this(uploadRequest, Optional.empty());
-    }
-
-    private TransferProgressUpdater(TransferRequest request, Optional<Long> contentLength) {
-        DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
-        contentLength.ifPresent(snapshotBuilder::transferSize);
-        TransferProgressSnapshot snapshot = snapshotBuilder.build();
-
+    public TransferProgressUpdater(DownloadRequest request) {
+        TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder().build();
         progress = new DefaultTransferProgress(snapshot);
         context = TransferListenerContext.builder()
                                          .request(request)
                                          .progressSnapshot(snapshot)
                                          .build();
-        listeners = new TransferListenerInvoker(request.listeners());
+        listeners = new TransferListenerInvoker(request.overrideConfiguration()
+                                                       .map(TransferRequestOverrideConfiguration::listeners)
+                                                       .orElseGet(Collections::emptyList));
     }
 
     public TransferProgress progress() {

@@ -33,7 +33,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     private static final String BUCKET = temporaryBucketName(S3TransferManagerDownloadIntegrationTest.class);
     private static final String KEY = "key";
     private static final int OBJ_SIZE = 16 * 1024 * 1024;
-    private static S3TransferManager transferManager;
+    private static S3TransferManager tm;
     private static File file;
 
     @BeforeClass
@@ -44,25 +44,27 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
                                      .bucket(BUCKET)
                                      .key(KEY)
                                      .build(), file.toPath());
-        transferManager = S3TransferManager.builder()
-                                           .s3ClientConfiguration(b -> b.region(DEFAULT_REGION)
+        tm = S3TransferManager.builder()
+                              .s3ClientConfiguration(b -> b.region(DEFAULT_REGION)
                                                                         .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN))
-                                           .build();
+                              .build();
     }
 
     @AfterClass
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
-        transferManager.close();
+        tm.close();
         S3IntegrationTestBase.cleanUp();
     }
 
     @Test
     public void download_shouldWork() throws IOException {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
-        Download download = transferManager.download(b -> b.getObjectRequest(r -> r.bucket(BUCKET).key(KEY))
-                                                           .destination(path)
-                                                           .addListener(LoggingTransferListener.create()));
+        Download download = tm.download(DownloadRequest.builder()
+                                                       .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                                       .destination(path)
+                                                       .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                                       .build());
         CompletedDownload completedDownload = download.completionFuture().join();
         assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
         assertThat(completedDownload.response().responseMetadata().requestId()).isNotNull();

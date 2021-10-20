@@ -17,18 +17,13 @@ package software.amazon.awssdk.transfer.s3;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -42,12 +37,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class DownloadRequest implements TransferRequest, ToCopyableBuilder<DownloadRequest.Builder, DownloadRequest> {
     private final Path destination;
     private final GetObjectRequest getObjectRequest;
-    private final List<TransferListener> listeners;
+    private final TransferRequestOverrideConfiguration overrideConfiguration;
 
     private DownloadRequest(BuilderImpl builder) {
         this.destination = Validate.paramNotNull(builder.destination, "destination");
         this.getObjectRequest = Validate.paramNotNull(builder.getObjectRequest, "getObjectRequest");
-        this.listeners = builder.listeners != null ? Collections.unmodifiableList(builder.listeners) : Collections.emptyList();
+        this.overrideConfiguration = builder.configuration;
     }
 
     /**
@@ -81,9 +76,12 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         return getObjectRequest;
     }
 
-    @Override
-    public List<TransferListener> listeners() {
-        return listeners;
+    /**
+     * @return the optional override configuration
+     * @see Builder#overrideConfiguration(TransferRequestOverrideConfiguration)
+     */
+    public Optional<TransferRequestOverrideConfiguration> overrideConfiguration() {
+        return Optional.ofNullable(overrideConfiguration);
     }
 
     @Override
@@ -91,7 +89,7 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         return ToString.builder("DownloadRequest")
                        .add("destination", destination)
                        .add("getObjectRequest", getObjectRequest)
-                       .add("listeners", listeners)
+                       .add("overrideConfiguration", overrideConfiguration)
                        .build();
     }
 
@@ -112,15 +110,12 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         if (!Objects.equals(getObjectRequest, that.getObjectRequest)) {
             return false;
         }
-        return Objects.equals(listeners, that.listeners);
+        return Objects.equals(overrideConfiguration, that.overrideConfiguration);
     }
 
     @Override
     public int hashCode() {
-        int result = destination != null ? destination.hashCode() : 0;
-        result = 31 * result + (getObjectRequest != null ? getObjectRequest.hashCode() : 0);
-        result = 31 * result + (listeners != null ? listeners.hashCode() : 0);
-        return result;
+        return Objects.hash(destination, getObjectRequest, overrideConfiguration);
     }
 
     public static Class<? extends Builder> serializableBuilderClass() {
@@ -185,37 +180,30 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         }
 
         /**
-         * The {@link TransferListener}s that will be notified as part of this request.
-         * This method overrides and replaces any listeners that have already been set.
+         * Add an optional request override configuration.
          *
-         * @param listeners the collection of listeners
-         * @return Returns a reference to this object so that method calls can be chained together.
-         * 
-         * @see TransferListener
+         * @param configuration The override configuration.
+         * @return This builder for method chaining.
          */
-        Builder listeners(Collection<TransferListener> listeners);
+        Builder overrideConfiguration(TransferRequestOverrideConfiguration configuration);
 
         /**
-         * The {@link TransferListener}s that will be notified as part of this request.
-         * This method overrides and replaces any listeners that have already been set.
+         * Similar to {@link #overrideConfiguration(TransferRequestOverrideConfiguration)}, but takes a lambda to configure a new
+         * {@link TransferRequestOverrideConfiguration.Builder}. This removes the need to call
+         * {@link TransferRequestOverrideConfiguration#builder()} and
+         * {@link TransferRequestOverrideConfiguration.Builder#build()}.
          *
-         * @param listeners the variable amount of listeners
-         * @return Returns a reference to this object so that method calls can be chained together.
-         * 
-         * @see TransferListener
+         * @param configurationBuilder the upload configuration
+         * @return this builder for method chaining.
+         * @see #overrideConfiguration(TransferRequestOverrideConfiguration)
          */
-        Builder listeners(TransferListener... listeners);
-
-        /**
-         * Add a {@link TransferListener} that will be notified as part of this request.
-         *
-         * @param listener the listener to add
-         * @return Returns a reference to this object so that method calls can be chained together.
-         *
-         * @see TransferListener
-         */
-        Builder addListener(TransferListener listener);
-
+        default Builder overrideConfiguration(Consumer<TransferRequestOverrideConfiguration.Builder> configurationBuilder) {
+            Validate.paramNotNull(configurationBuilder, "overrideConfigurationBuilder");
+            return overrideConfiguration(TransferRequestOverrideConfiguration.builder()
+                                                                             .applyMutation(configurationBuilder)
+                                                                             .build());
+        }
+        
         /**
          * @return The built request.
          */
@@ -226,7 +214,7 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
     private static final class BuilderImpl implements Builder {
         private Path destination;
         private GetObjectRequest getObjectRequest;
-        private List<TransferListener> listeners;
+        private TransferRequestOverrideConfiguration configuration;
 
         private BuilderImpl() {
         }
@@ -260,24 +248,17 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         }
 
         @Override
-        public Builder listeners(Collection<TransferListener> listeners) {
-            this.listeners = new ArrayList<>(listeners);
+        public Builder overrideConfiguration(TransferRequestOverrideConfiguration configuration) {
+            this.configuration = configuration;
             return this;
         }
 
-        @Override
-        public Builder listeners(TransferListener... listeners) {
-            this.listeners = Arrays.asList(listeners);
-            return this;
+        public void setOverrideConfiguration(TransferRequestOverrideConfiguration configuration) {
+            overrideConfiguration(configuration);
         }
 
-        @Override
-        public Builder addListener(TransferListener listener) {
-            if (listeners == null) {
-                listeners = new ArrayList<>();
-            }
-            listeners.add(listener);
-            return this;
+        public TransferRequestOverrideConfiguration getOverrideConfiguration() {
+            return configuration;
         }
 
         @Override
