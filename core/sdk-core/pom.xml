@@ -238,6 +238,19 @@
                     </archive>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>codegen-lite-maven-plugin</artifactId>
+                <version>${awsjavasdk.version}</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate-defaults-mode</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
 
         <pluginManagement>
