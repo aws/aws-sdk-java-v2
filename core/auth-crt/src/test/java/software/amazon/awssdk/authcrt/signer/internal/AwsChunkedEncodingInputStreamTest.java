@@ -35,8 +35,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingConfig;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingInputStream;
+import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
+import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.authcrt.signer.internal.chunkedencoding.AwsS3V4aChunkSigner;
 
 /**
@@ -87,9 +87,9 @@ public class AwsChunkedEncodingInputStreamTest {
     @Test
     public void streamContentLength_smallObject_calculatedCorrectly() {
         long streamContentLength =
-            AwsChunkedEncodingInputStream.calculateStreamContentLength(10,
-                                                                       AwsS3V4aChunkSigner.getSignatureLength(),
-                                                                       AwsChunkedEncodingConfig.create());
+            AwsSignedChunkedEncodingInputStream.calculateStreamContentLength(10,
+                                                                             AwsS3V4aChunkSigner.getSignatureLength(),
+                                                                             AwsChunkedEncodingConfig.create());
         assertThat(streamContentLength).isEqualTo(342);
     }
 
@@ -103,9 +103,9 @@ public class AwsChunkedEncodingInputStreamTest {
     @Test
     public void streamContentLength_largeObject_calculatedCorrectly() {
         long streamContentLength =
-            AwsChunkedEncodingInputStream.calculateStreamContentLength(DEFAULT_CHUNK_SIZE + 10,
-                                                                       AwsS3V4aChunkSigner.getSignatureLength(),
-                                                                       AwsChunkedEncodingConfig.create());
+            AwsSignedChunkedEncodingInputStream.calculateStreamContentLength(DEFAULT_CHUNK_SIZE + 10,
+                                                                             AwsS3V4aChunkSigner.getSignatureLength(),
+                                                                             AwsChunkedEncodingConfig.create());
         assertThat(streamContentLength).isEqualTo(131584);
     }
 
@@ -115,17 +115,17 @@ public class AwsChunkedEncodingInputStreamTest {
 
         AwsChunkedEncodingConfig chunkConfig = AwsChunkedEncodingConfig.builder().chunkSize(chunkSize).build();
         long streamContentLength =
-            AwsChunkedEncodingInputStream.calculateStreamContentLength(chunkSize + 10,
-                                                                       AwsS3V4aChunkSigner.getSignatureLength(),
-                                                                       chunkConfig);
+            AwsSignedChunkedEncodingInputStream.calculateStreamContentLength(chunkSize + 10,
+                                                                             AwsS3V4aChunkSigner.getSignatureLength(),
+                                                                             chunkConfig);
         assertThat(streamContentLength).isEqualTo(66048);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void streamContentLength_negative_throwsException() {
-        AwsChunkedEncodingInputStream.calculateStreamContentLength(-1,
-                                                                   AwsS3V4aChunkSigner.getSignatureLength(),
-                                                                   AwsChunkedEncodingConfig.create());
+        AwsSignedChunkedEncodingInputStream.calculateStreamContentLength(-1,
+                                                                         AwsS3V4aChunkSigner.getSignatureLength(),
+                                                                         AwsChunkedEncodingConfig.create());
     }
 
     @Test
@@ -136,10 +136,13 @@ public class AwsChunkedEncodingInputStreamTest {
         String chunkData = "helloworld";
 
         ByteArrayInputStream input = new ByteArrayInputStream(chunkData.getBytes());
-        AwsChunkedEncodingInputStream stream = new AwsChunkedEncodingInputStream(input,
-                                                                                 REQUEST_SIGNATURE,
-                                                                                 chunkSigner,
-                                                                                 AwsChunkedEncodingConfig.create());
+
+        AwsSignedChunkedEncodingInputStream stream = AwsSignedChunkedEncodingInputStream.builder()
+                                                                                        .inputStream(input)
+                                                                                        .headerSignature(REQUEST_SIGNATURE)
+                                                                                        .awsChunkSigner(chunkSigner)
+                                                                                        .awsChunkedEncodingConfig(AwsChunkedEncodingConfig.create())
+                                                                                        .build();
         int expectedChunks = 2;
         consumeAndVerify(stream, expectedChunks);
         Mockito.verify(chunkSigner, times(1)).signChunk(chunkData.getBytes(StandardCharsets.UTF_8), REQUEST_SIGNATURE);
@@ -155,10 +158,13 @@ public class AwsChunkedEncodingInputStreamTest {
         String chunk1Data = StringUtils.repeat("a", DEFAULT_CHUNK_SIZE);
         String chunk2Data = "a";
         ByteArrayInputStream input = new ByteArrayInputStream(chunk1Data.concat(chunk2Data).getBytes());
-        AwsChunkedEncodingInputStream stream = new AwsChunkedEncodingInputStream(input,
-                                                                                 REQUEST_SIGNATURE,
-                                                                                 chunkSigner,
-                                                                                 AwsChunkedEncodingConfig.create());
+
+        AwsSignedChunkedEncodingInputStream stream = AwsSignedChunkedEncodingInputStream.builder()
+                                                                                        .inputStream(input)
+                                                                                        .headerSignature(REQUEST_SIGNATURE)
+                                                                                        .awsChunkSigner(chunkSigner)
+                                                                                        .awsChunkedEncodingConfig(AwsChunkedEncodingConfig.create())
+                                                                                        .build();
         int expectedChunks = 3;
         consumeAndVerify(stream, expectedChunks);
         Mockito.verify(chunkSigner, times(1)).signChunk(chunk1Data.getBytes(StandardCharsets.UTF_8), REQUEST_SIGNATURE);
@@ -177,10 +183,14 @@ public class AwsChunkedEncodingInputStreamTest {
         String chunk1Data = StringUtils.repeat("a", chunkSize);
         String chunk2Data = "a";
         ByteArrayInputStream input = new ByteArrayInputStream(chunk1Data.concat(chunk2Data).getBytes());
-        AwsChunkedEncodingInputStream stream = new AwsChunkedEncodingInputStream(input,
-                                                                                 REQUEST_SIGNATURE,
-                                                                                 chunkSigner,
-                                                                                 chunkConfig);
+
+
+        AwsSignedChunkedEncodingInputStream stream = AwsSignedChunkedEncodingInputStream.builder()
+                                                                                        .inputStream(input)
+                                                                                        .headerSignature(REQUEST_SIGNATURE)
+                                                                                        .awsChunkSigner(chunkSigner)
+                                                                                        .awsChunkedEncodingConfig(chunkConfig)
+                                                                                        .build();
         int expectedChunks = 3;
         consumeAndVerify(stream, expectedChunks);
         Mockito.verify(chunkSigner, times(1)).signChunk(chunk1Data.getBytes(StandardCharsets.UTF_8), REQUEST_SIGNATURE);
@@ -195,16 +205,19 @@ public class AwsChunkedEncodingInputStreamTest {
         String chunkData = EMPTY_STRING;
 
         ByteArrayInputStream input = new ByteArrayInputStream(chunkData.getBytes());
-        AwsChunkedEncodingInputStream stream = new AwsChunkedEncodingInputStream(input,
-                                                                                 REQUEST_SIGNATURE,
-                                                                                 chunkSigner,
-                                                                                 AwsChunkedEncodingConfig.create());
+
+        AwsSignedChunkedEncodingInputStream stream = AwsSignedChunkedEncodingInputStream.builder()
+                                                                                        .inputStream(input)
+                                                                                        .headerSignature(REQUEST_SIGNATURE)
+                                                                                        .awsChunkSigner(chunkSigner)
+                                                                                        .awsChunkedEncodingConfig(AwsChunkedEncodingConfig.create())
+                                                                                        .build();
         int expectedChunks = 1;
         consumeAndVerify(stream, expectedChunks);
         Mockito.verify(chunkSigner, times(1)).signChunk(chunkData.getBytes(StandardCharsets.UTF_8), REQUEST_SIGNATURE);
     }
 
-    private void consumeAndVerify(AwsChunkedEncodingInputStream stream, int numChunks) throws IOException {
+    private void consumeAndVerify(AwsSignedChunkedEncodingInputStream stream, int numChunks) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         IOUtils.copy(stream, output);
         String result = new String(output.toByteArray(), StandardCharsets.UTF_8);
