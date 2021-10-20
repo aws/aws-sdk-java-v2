@@ -57,6 +57,7 @@ public class JsonProtocolBenchmark implements SdkProtocolBenchmark {
                                        .build();
     }
 
+    @Override
     @Benchmark
     public void successfulResponse(Blackhole blackhole) {
         blackhole.consume(client.allTypes(JSON_ALL_TYPES_REQUEST));

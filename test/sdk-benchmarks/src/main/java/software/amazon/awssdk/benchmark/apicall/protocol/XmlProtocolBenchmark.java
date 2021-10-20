@@ -57,6 +57,7 @@ public class XmlProtocolBenchmark implements SdkProtocolBenchmark {
                                       .build();
     }
 
+    @Override
     @Benchmark
     public void successfulResponse(Blackhole blackhole) {
         blackhole.consume(client.allTypes(XML_ALL_TYPES_REQUEST));

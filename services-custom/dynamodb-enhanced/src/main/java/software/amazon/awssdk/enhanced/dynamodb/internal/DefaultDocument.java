@@ -36,6 +36,7 @@ public final class DefaultDocument implements Document {
         return new DefaultDocument(itemMap);
     }
 
+    @Override
     public <T> T getItem(MappedTableResource<T> mappedTableResource) {
         return readAndTransformSingleItem(itemMap,
                                           mappedTableResource.tableSchema(),

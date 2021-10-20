@@ -350,6 +350,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
             return dualstackEnabled;
         }
 
+        @Override
         public Builder dualstackEnabled(Boolean dualstackEnabled) {
             this.dualstackEnabled = dualstackEnabled;
             return this;
@@ -364,6 +365,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
             dualstackEnabled(dualstackEnabled);
         }
 
+        @Override
         public Builder accelerateModeEnabled(Boolean accelerateModeEnabled) {
             this.accelerateModeEnabled = accelerateModeEnabled;
             return this;
@@ -378,6 +380,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
             accelerateModeEnabled(accelerateModeEnabled);
         }
 
+        @Override
         public Builder pathStyleAccessEnabled(Boolean pathStyleAccessEnabled) {
             this.pathStyleAccessEnabled = pathStyleAccessEnabled;
             return this;
@@ -392,6 +395,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
             pathStyleAccessEnabled(pathStyleAccessEnabled);
         }
 
+        @Override
         public Builder checksumValidationEnabled(Boolean checksumValidationEnabled) {
             this.checksumValidationEnabled = checksumValidationEnabled;
             return this;
@@ -406,6 +410,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
             checksumValidationEnabled(checksumValidationEnabled);
         }
 
+        @Override
         public Builder chunkedEncodingEnabled(Boolean chunkedEncodingEnabled) {
             this.chunkedEncodingEnabled = chunkedEncodingEnabled;
             return this;
@@ -420,6 +425,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
             chunkedEncodingEnabled(chunkedEncodingEnabled);
         }
 
+        @Override
         public Builder useArnRegionEnabled(Boolean useArnRegionEnabled) {
             this.useArnRegionEnabled = useArnRegionEnabled;
             return this;
@@ -430,6 +436,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
             return multiRegionEnabled;
         }
 
+        @Override
         public Builder multiRegionEnabled(Boolean multiRegionEnabled) {
             this.multiRegionEnabled = multiRegionEnabled;
             return this;
@@ -461,6 +468,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
             useArnRegionEnabled(useArnRegionEnabled);
         }
 
+        @Override
         public S3Configuration build() {
             return new S3Configuration(this);
         }

@@ -49,6 +49,7 @@ public class MakeHttpRequestStage
     /**
      * Returns the response from executing one httpClientSettings request; or null for retry.
      */
+    @Override
     public Pair<SdkHttpFullRequest, SdkHttpFullResponse> execute(SdkHttpFullRequest request,
                                                                  RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();

@@ -181,6 +181,7 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         return aggregate;
     }
 
+    @Override
     public Builder toBuilder() {
         return builder(retryMode).additionalRetryConditionsAllowed(additionalRetryConditionsAllowed)
                                  .numRetries(numRetries)
@@ -347,6 +348,7 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
          */
         Boolean isFastFailRateLimiting();
         
+        @Override
         RetryPolicy build();
     }
 

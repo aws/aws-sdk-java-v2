@@ -482,6 +482,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
          * @param serviceConfiguration {@link S3Configuration}
          * @return this Builder
          */
+        @Override
         public Builder serviceConfiguration(S3Configuration serviceConfiguration) {
             this.serviceConfiguration = serviceConfiguration;
             return this;

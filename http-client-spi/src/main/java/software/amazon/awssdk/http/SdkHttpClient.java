@@ -64,6 +64,7 @@ public interface SdkHttpClient extends SdkAutoCloseable {
          * Create a {@link SdkHttpClient} with global defaults applied. This is useful for reusing an HTTP client across multiple
          * services.
          */
+        @Override
         default SdkHttpClient build() {
             return buildWithDefaults(AttributeMap.empty());
         }
