@@ -32,17 +32,17 @@ public final class DefaultTransferProgressSnapshot
                TransferProgressSnapshot {
 
     private final long bytesTransferred;
-    private final Optional<Long> transferSize;
+    private final Long transferSizeInBytes;
 
     private DefaultTransferProgressSnapshot(Builder builder) {
-        builder.transferSize.ifPresent(size -> {
-            Validate.isNotNegative(size, "transferSize");
-            Validate.isTrue(builder.bytesTransferred <= size,
-                            "bytesTransferred (%s) must not be greater than transferSize (%s)",
-                            builder.bytesTransferred, size);
-        });
+        if (builder.transferSizeInBytes != null) {
+            Validate.isNotNegative(builder.transferSizeInBytes, "transferSizeInBytes");
+            Validate.isTrue(builder.bytesTransferred <= builder.transferSizeInBytes,
+                            "bytesTransferred (%s) must not be greater than transferSizeInBytes (%s)",
+                            builder.bytesTransferred, builder.transferSizeInBytes);
+        }
         this.bytesTransferred = Validate.isNotNegative(builder.bytesTransferred, "bytesTransferred");
-        this.transferSize = builder.transferSize;
+        this.transferSizeInBytes = builder.transferSizeInBytes;
     }
 
     public static Builder builder() {
@@ -60,33 +60,33 @@ public final class DefaultTransferProgressSnapshot
     }
 
     @Override
-    public Optional<Long> transferSize() {
-        return transferSize;
+    public Optional<Long> transferSizeInBytes() {
+        return Optional.ofNullable(transferSizeInBytes);
     }
 
     @Override
     public Optional<Double> ratioTransferred() {
-        return transferSize
+        return transferSizeInBytes()
             .map(Long::doubleValue)
             .map(size -> (size == 0) ? 1.0 : (bytesTransferred / size));
     }
 
     @Override
     public Optional<Long> bytesRemaining() {
-        return transferSize.map(size -> size - bytesTransferred);
+        return transferSizeInBytes().map(size -> size - bytesTransferred);
     }
 
     @Override
     public String toString() {
         return ToString.builder("TransferProgressSnapshot")
                        .add("bytesTransferred", bytesTransferred)
-                       .add("transferSize", transferSize)
+                       .add("transferSizeInBytes", transferSizeInBytes)
                        .build();
     }
 
     public static final class Builder implements CopyableBuilder<Builder, DefaultTransferProgressSnapshot> {
         private long bytesTransferred = 0L;
-        private Optional<Long> transferSize = Optional.empty();
+        private Long transferSizeInBytes;
 
         private Builder() {
             super();
@@ -94,7 +94,7 @@ public final class DefaultTransferProgressSnapshot
 
         private Builder(DefaultTransferProgressSnapshot snapshot) {
             this.bytesTransferred = snapshot.bytesTransferred;
-            this.transferSize = snapshot.transferSize;
+            this.transferSizeInBytes = snapshot.transferSizeInBytes;
         }
 
         public Builder bytesTransferred(long bytesTransferred) {
@@ -102,17 +102,17 @@ public final class DefaultTransferProgressSnapshot
             return this;
         }
 
-        public long bytesTransferred() {
+        public long getBytesTransferred() {
             return bytesTransferred;
         }
 
-        public Builder transferSize(long transferSize) {
-            this.transferSize = Optional.of(transferSize);
+        public Builder transferSizeInBytes(Long transferSizeInBytes) {
+            this.transferSizeInBytes = transferSizeInBytes;
             return this;
         }
 
-        public Long transferSize() {
-            return transferSize.orElse(null);
+        public Long getTransferSizeInBytes() {
+            return transferSizeInBytes;
         }
 
         @Override

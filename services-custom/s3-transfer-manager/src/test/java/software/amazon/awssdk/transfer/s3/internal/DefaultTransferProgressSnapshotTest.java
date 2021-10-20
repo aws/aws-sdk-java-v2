@@ -26,10 +26,10 @@ public class DefaultTransferProgressSnapshotTest {
     public void bytesTransferred_greaterThan_transferSize_shouldThrow() {
         DefaultTransferProgressSnapshot.Builder builder = DefaultTransferProgressSnapshot.builder()
                                                                                          .bytesTransferred(2)
-                                                                                         .transferSize(1);
+                                                                                         .transferSizeInBytes(1L);
         assertThatThrownBy(builder::build)
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("bytesTransferred (2) must not be greater than transferSize (1)");
+            .hasMessage("bytesTransferred (2) must not be greater than transferSizeInBytes (1)");
     }
 
     @Test
@@ -44,7 +44,7 @@ public class DefaultTransferProgressSnapshotTest {
     public void ratioTransferred_withTransferSize_isCorrect() {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
                                                                            .bytesTransferred(1)
-                                                                           .transferSize(2)
+                                                                           .transferSizeInBytes(2L)
                                                                            .build();
         assertThat(snapshot.ratioTransferred()).hasValue(0.5);
     }
@@ -61,7 +61,7 @@ public class DefaultTransferProgressSnapshotTest {
     public void bytesRemainingTransferred_withTransferSize_isCorrect() {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
                                                                            .bytesTransferred(1)
-                                                                           .transferSize(3)
+                                                                           .transferSizeInBytes(3L)
                                                                            .build();
         assertThat(snapshot.bytesRemaining()).hasValue(2L);
     }

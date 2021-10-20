@@ -63,24 +63,24 @@ public interface TransferProgressSnapshot {
      * {@link Download}s, the transfer size is not known until {@link S3TransferManager} receives a {@link GetObjectResponse} from
      * Amazon S3.
      */
-    Optional<Long> transferSize();
+    Optional<Long> transferSizeInBytes();
 
     /**
-     * The ratio of the {@link #transferSize()} that has been transferred so far, or {@link Optional#empty()} if unknown. This
-     * method depends on the {@link #transferSize()} being known in order to return non-empty.
+     * The ratio of the {@link #transferSizeInBytes()} that has been transferred so far, or {@link Optional#empty()} if unknown.
+     * This method depends on the {@link #transferSizeInBytes()} being known in order to return non-empty.
      * <p>
-     * Ratio is computed as {@link #bytesTransferred()} {@code /} {@link #transferSize()}, where a transfer that is half-complete
-     * would return {@code 0.5}.
+     * Ratio is computed as {@link #bytesTransferred()} {@code /} {@link #transferSizeInBytes()}, where a transfer that is
+     * half-complete would return {@code 0.5}.
      *
-     * @see #transferSize()
+     * @see #transferSizeInBytes()
      */
     Optional<Double> ratioTransferred();
 
     /**
      * The total number of bytes that are remaining to be transferred, or {@link Optional#empty()} if unknown. This method depends
-     * on the {@link #transferSize()} being known in order to return non-empty.
+     * on the {@link #transferSizeInBytes()} being known in order to return non-empty.
      *
-     * @see #transferSize()
+     * @see #transferSizeInBytes()
      */
     Optional<Long> bytesRemaining();
 }

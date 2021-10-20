@@ -46,7 +46,7 @@ public class TransferProgressUpdater {
 
     public TransferProgressUpdater(UploadRequest request, AsyncRequestBody requestBody) {
         DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
-        getContentLengthSafe(requestBody).ifPresent(snapshotBuilder::transferSize);
+        getContentLengthSafe(requestBody).ifPresent(snapshotBuilder::transferSizeInBytes);
         TransferProgressSnapshot snapshot = snapshotBuilder.build();
         progress = new DefaultTransferProgress(snapshot);
         context = TransferListenerContext.builder()
@@ -101,7 +101,7 @@ public class TransferProgressUpdater {
                 @Override
                 public void beforeOnNext(ByteBuffer byteBuffer) {
                     TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
-                        b.bytesTransferred(b.bytesTransferred() + byteBuffer.limit());
+                        b.bytesTransferred(b.getBytesTransferred() + byteBuffer.limit());
                     });
                     listeners.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
                 }
@@ -116,7 +116,7 @@ public class TransferProgressUpdater {
                 @Override
                 public void beforeOnResponse(GetObjectResponse response) {
                     if (response.contentLength() != null) {
-                        progress.updateAndGet(b -> b.transferSize(response.contentLength()));
+                        progress.updateAndGet(b -> b.transferSizeInBytes(response.contentLength()));
                     }
                 }
 
@@ -128,7 +128,7 @@ public class TransferProgressUpdater {
                 @Override
                 public void beforeOnNext(ByteBuffer byteBuffer) {
                     TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
-                        b.bytesTransferred(b.bytesTransferred() + byteBuffer.limit());
+                        b.bytesTransferred(b.getBytesTransferred() + byteBuffer.limit());
                     });
                     listeners.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
                 }
