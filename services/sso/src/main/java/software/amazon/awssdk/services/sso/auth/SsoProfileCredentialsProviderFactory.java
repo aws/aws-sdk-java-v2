@@ -48,6 +48,7 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
      * Default method to create the {@link SsoProfileCredentialsProvider} with a {@link SsoAccessTokenProvider}
      * object created with the start url from {@link Profile} or environment variables and the default token file directory.
      */
+    @Override
     public AwsCredentialsProvider create(Profile profile) {
         return create(profile, new SsoAccessTokenProvider(
             generateCachedTokenPath(profile.properties().get(ProfileProperty.SSO_START_URL), TOKEN_DIRECTORY)));

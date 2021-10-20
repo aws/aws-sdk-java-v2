@@ -277,6 +277,7 @@ public final class V2ItemFactory extends ItemFactory<AttributeValue> {
                     .build();
 
 
+    @Override
     protected Map<String, AttributeValue> asItem(TinyBean b) {
         ImmutableMapParameter.Builder<String, AttributeValue> builder = ImmutableMapParameter.builder();
 
@@ -285,6 +286,7 @@ public final class V2ItemFactory extends ItemFactory<AttributeValue> {
         return builder.build();
     }
 
+    @Override
     protected Map<String, AttributeValue> asItem(SmallBean b) {
         ImmutableMapParameter.Builder<String, AttributeValue> builder = ImmutableMapParameter.builder();
 
@@ -298,6 +300,7 @@ public final class V2ItemFactory extends ItemFactory<AttributeValue> {
         return builder.build();
     }
 
+    @Override
     protected Map<String, AttributeValue> asItem(HugeBean b) {
         ImmutableMapParameter.Builder<String, AttributeValue> builder = ImmutableMapParameter.builder();
 
@@ -337,18 +340,22 @@ public final class V2ItemFactory extends ItemFactory<AttributeValue> {
         return builder.build();
     }
 
+    @Override
     protected AttributeValue av(String val) {
         return AttributeValue.builder().s(val).build();
     }
 
+    @Override
     protected AttributeValue av(List<AttributeValue> val) {
         return AttributeValue.builder().l(val).build();
     }
 
+    @Override
     protected AttributeValue av(Map<String, AttributeValue> val) {
         return AttributeValue.builder().m(val).build();
     }
 
+    @Override
     protected AttributeValue av(SdkBytes val) {
         return AttributeValue.builder().b(val).build();
     }

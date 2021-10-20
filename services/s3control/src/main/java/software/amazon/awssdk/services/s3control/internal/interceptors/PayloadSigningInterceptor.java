@@ -30,6 +30,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 @SdkInternalApi
 public class PayloadSigningInterceptor implements ExecutionInterceptor {
 
+    @Override
     public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
                                                    ExecutionAttributes executionAttributes) {
         executionAttributes.putAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, true);

@@ -160,6 +160,7 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         /**
          * @return The built request.
          */
+        @Override
         DownloadRequest build();
     }
 

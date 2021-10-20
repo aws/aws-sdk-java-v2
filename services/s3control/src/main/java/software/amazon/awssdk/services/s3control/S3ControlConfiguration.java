@@ -186,10 +186,12 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
         private String profileName;
         private Boolean useArnRegionEnabled;
 
+        @Override
         public Boolean dualstackEnabled() {
             return dualstackEnabled;
         }
 
+        @Override
         public Builder dualstackEnabled(Boolean dualstackEnabled) {
             this.dualstackEnabled = dualstackEnabled;
             return this;
@@ -199,10 +201,12 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
             dualstackEnabled(dualstackEnabled);
         }
 
+        @Override
         public Boolean fipsModeEnabled() {
             return fipsModeEnabled;
         }
 
+        @Override
         public Builder fipsModeEnabled(Boolean fipsModeEnabled) {
             this.fipsModeEnabled = fipsModeEnabled;
             return this;
@@ -249,6 +253,7 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
             return this;
         }
 
+        @Override
         public S3ControlConfiguration build() {
             return new S3ControlConfiguration(this);
         }

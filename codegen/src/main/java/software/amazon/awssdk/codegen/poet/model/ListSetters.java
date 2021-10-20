@@ -48,6 +48,7 @@ class ListSetters extends AbstractMemberSetters {
         this.poetExtensions = new PoetExtensions(intermediateModel);
     }
 
+    @Override
     public List<MethodSpec> fluentDeclarations(TypeName returnType) {
         List<MethodSpec> fluentDeclarations = new ArrayList<>();
 

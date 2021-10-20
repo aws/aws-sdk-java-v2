@@ -94,6 +94,7 @@ public final class DefaultAsyncWaiter<T> implements AsyncWaiter<T> {
             return this;
         }
 
+        @Override
         public DefaultAsyncWaiter<T> build() {
             return new DefaultAsyncWaiter<>(this);
         }

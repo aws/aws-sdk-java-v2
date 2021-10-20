@@ -103,10 +103,12 @@ public class DefaultDynamoDbIndex<T> implements DynamoDbIndex<T> {
         return dynamoDbClient;
     }
 
+    @Override
     public String tableName() {
         return tableName;
     }
 
+    @Override
     public String indexName() {
         return indexName;
     }

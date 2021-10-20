@@ -118,8 +118,10 @@ public class SdkServiceException extends SdkException implements SdkPojo {
     }
 
     public interface Builder extends SdkException.Builder, SdkPojo {
+        @Override
         Builder message(String message);
 
+        @Override
         Builder cause(Throwable cause);
 
         /**
