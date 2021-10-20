@@ -13,28 +13,48 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3;
+package software.amazon.awssdk.transfer.s3.progress;
+
+import static software.amazon.awssdk.utils.StringUtils.repeat;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * An example implementation of {@link TransferListener} that logs a progress bar at the INFO level. This example is referenced to
- * in the {@link TransferListener} documentation and also used in {@link S3TransferManager} integration tests.
+ * An example implementation of {@link TransferListener} that logs a progress bar at the {@code INFO} level. This implementation
+ * effectively rate-limits how frequently updates are logged by only logging when a new "tick" advances in the progress bar. By
+ * default, the progress bar has {@value #DEFAULT_MAX_TICKS} ticks, meaning an update is only logged, at most, once every 5%.
  */
+@SdkPublicApi
+@SdkPreviewApi
 public class LoggingTransferListener implements TransferListener {
     private static final Logger log = LoggerFactory.getLogger(LoggingTransferListener.class);
-    private final ProgressBar progressBar = new ProgressBar(20);
+    private static final int DEFAULT_MAX_TICKS = 20;
+    private final ProgressBar progressBar;
 
-    private LoggingTransferListener() {
+    private LoggingTransferListener(int maxTicks) {
+        progressBar = new ProgressBar(maxTicks);
     }
 
+    /**
+     * Create an instance of {@link LoggingTransferListener} with a custom {@code maxTicks} value.
+     *
+     * @param maxTicks the number of ticks in the logged progress bar
+     */
+    public static LoggingTransferListener create(int maxTicks) {
+        return new LoggingTransferListener(maxTicks);
+    }
+
+    /**
+     * Create an instance of {@link LoggingTransferListener} with the default configuration.
+     */
     public static LoggingTransferListener create() {
-        return new LoggingTransferListener();
+        return new LoggingTransferListener(DEFAULT_MAX_TICKS);
     }
 
     @Override
@@ -75,10 +95,6 @@ public class LoggingTransferListener implements TransferListener {
                          repeat(" ", maxTicks - ticks),
                          round(ratio * 100, 1) + "%");
             }
-        }
-
-        private static String repeat(String str, int n) {
-            return String.join("", Collections.nCopies(n, str));
         }
 
         private static double round(double value, int places) {

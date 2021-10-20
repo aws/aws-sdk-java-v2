@@ -16,13 +16,11 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.transfer.s3.CompletedTransfer;
-import software.amazon.awssdk.transfer.s3.TransferListener;
-import software.amazon.awssdk.transfer.s3.TransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.TransferRequest;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -81,8 +79,6 @@ public final class TransferListenerContext
                        .build();
     }
 
-    @NotThreadSafe
-    @SdkPublicApi
     public static final class Builder implements CopyableBuilder<Builder, TransferListenerContext> {
         private TransferRequest request;
         private TransferProgressSnapshot progressSnapshot;

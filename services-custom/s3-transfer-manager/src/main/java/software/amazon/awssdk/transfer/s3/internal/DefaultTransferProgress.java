@@ -20,9 +20,9 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Mutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.transfer.s3.TransferProgress;
-import software.amazon.awssdk.transfer.s3.TransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.internal.DefaultTransferProgressSnapshot.Builder;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 import software.amazon.awssdk.utils.ToString;
 
 /**

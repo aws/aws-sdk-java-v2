@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.Download;
-import software.amazon.awssdk.transfer.s3.TransferProgress;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 
 @SdkInternalApi
 public final class DefaultDownload implements Download {

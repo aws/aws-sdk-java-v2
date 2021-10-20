@@ -26,6 +26,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.utils.Md5Utils;
 
 public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestBase {

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3;
+package software.amazon.awssdk.transfer.s3.progress;
 
 import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.Immutable;
@@ -22,6 +22,13 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
+import software.amazon.awssdk.transfer.s3.CompletedDownload;
+import software.amazon.awssdk.transfer.s3.CompletedTransfer;
+import software.amazon.awssdk.transfer.s3.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.DownloadRequest;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.TransferRequest;
+import software.amazon.awssdk.transfer.s3.UploadRequest;
 
 /**
  * The {@link TransferListener} interface may be implemented by your application in order to receive event-driven updates on the

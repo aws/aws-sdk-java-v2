@@ -16,10 +16,8 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import java.util.Optional;
-import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.transfer.s3.TransferProgressSnapshot;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -86,8 +84,6 @@ public final class DefaultTransferProgressSnapshot
                        .build();
     }
 
-    @NotThreadSafe
-    @SdkPublicApi
     public static final class Builder implements CopyableBuilder<Builder, DefaultTransferProgressSnapshot> {
         private long bytesTransferred = 0L;
         private Optional<Long> transferSize = Optional.empty();

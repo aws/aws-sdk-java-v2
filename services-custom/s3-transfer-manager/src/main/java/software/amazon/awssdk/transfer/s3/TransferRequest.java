@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 
 /**
  * Interface for all transfer requests.

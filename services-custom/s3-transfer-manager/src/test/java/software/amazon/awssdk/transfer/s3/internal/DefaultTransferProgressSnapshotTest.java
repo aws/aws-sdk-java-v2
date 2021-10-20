@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.Test;
-import software.amazon.awssdk.transfer.s3.TransferProgressSnapshot;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 
 public class DefaultTransferProgressSnapshotTest {
     @Test

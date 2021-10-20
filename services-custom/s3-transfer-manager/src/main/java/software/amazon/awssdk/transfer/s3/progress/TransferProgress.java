@@ -13,12 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3;
+package software.amazon.awssdk.transfer.s3.progress;
 
 import software.amazon.awssdk.annotations.Mutable;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.transfer.s3.Download;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.Transfer;
+import software.amazon.awssdk.transfer.s3.Upload;
 
 /**
  * {@link TransferProgress} is a <b>stateful</b> representation of the progress of a transfer initiated by {@link

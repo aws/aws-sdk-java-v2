@@ -26,10 +26,10 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 public class NotifyingAsyncRequestBody implements AsyncRequestBody {
 
     public interface AsyncRequestBodyListener {
-        default void delegatedSubscribe(Subscriber<? super ByteBuffer> subscriber) {
+        default void beforeSubscribe(Subscriber<? super ByteBuffer> subscriber) {
         }
 
-        default void delegatedOnNext(ByteBuffer byteBuffer) {
+        default void beforeOnNext(ByteBuffer byteBuffer) {
         }
     }
 
@@ -54,7 +54,7 @@ public class NotifyingAsyncRequestBody implements AsyncRequestBody {
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-        listener.delegatedSubscribe(subscriber);
+        listener.beforeSubscribe(subscriber);
         delegate.subscribe(new NotifyingSubscriber(subscriber, listener));
     }
 
@@ -76,7 +76,7 @@ public class NotifyingAsyncRequestBody implements AsyncRequestBody {
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            listener.delegatedOnNext(byteBuffer);
+            listener.beforeOnNext(byteBuffer);
             delegate.onNext(byteBuffer);
         }
 

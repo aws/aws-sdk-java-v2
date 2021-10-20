@@ -24,13 +24,13 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedTransfer;
 import software.amazon.awssdk.transfer.s3.DownloadRequest;
-import software.amazon.awssdk.transfer.s3.TransferListener;
-import software.amazon.awssdk.transfer.s3.TransferProgress;
-import software.amazon.awssdk.transfer.s3.TransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.TransferRequest;
 import software.amazon.awssdk.transfer.s3.UploadRequest;
 import software.amazon.awssdk.transfer.s3.internal.NotifyingAsyncRequestBody.AsyncRequestBodyListener;
 import software.amazon.awssdk.transfer.s3.internal.NotifyingAsyncResponseTransformer.AsyncResponseTransformerListener;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 
 /**
  * An SDK-internal helper class that facilitates tracking {@link TransferProgress} and invoking {@link TransferListener}s.
@@ -87,7 +87,7 @@ public class TransferProgressHelper {
             requestBody,
             new AsyncRequestBodyListener() {
                 @Override
-                public void delegatedOnNext(ByteBuffer byteBuffer) {
+                public void beforeOnNext(ByteBuffer byteBuffer) {
                     TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
                         b.bytesTransferred(b.bytesTransferred() + byteBuffer.limit());
                     });
@@ -102,14 +102,14 @@ public class TransferProgressHelper {
             responseTransformer,
             new AsyncResponseTransformerListener<GetObjectResponse, GetObjectResponse>() {
                 @Override
-                public void delegatedOnResponse(GetObjectResponse response) {
+                public void beforeOnResponse(GetObjectResponse response) {
                     if (response.contentLength() != null) {
                         progress.updateAndGet(b -> b.transferSize(response.contentLength()));
                     }
                 }
 
                 @Override
-                public void delegatedOnNext(ByteBuffer byteBuffer) {
+                public void beforeOnNext(ByteBuffer byteBuffer) {
                     TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
                         b.bytesTransferred(b.bytesTransferred() + byteBuffer.limit());
                     });
