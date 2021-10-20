@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.ToString;
 /**
  * An SDK-internal implementation of {@link TransferProgress}. This implementation acts as a thin wrapper around {@link
  * AtomicReference}, where calls to get the latest {@link #snapshot()} simply return the latest reference, while {@link
- * DefaultS3TransferManager} is responsible for continuously updating the latest reference.
+ * TransferProgressUpdater} is responsible for continuously updating the latest reference.
  *
  * @see TransferProgress
  */

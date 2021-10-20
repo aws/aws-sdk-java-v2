@@ -30,6 +30,9 @@ public class NotifyingAsyncResponseTransformer<ResponseT, ResultT> implements As
         default void beforeOnResponse(ResponseT response) {
         }
 
+        default void beforeSubscribe(Subscriber<? super ByteBuffer> subscriber) {
+        }
+
         default void beforeOnNext(ByteBuffer byteBuffer) {
         }
     }
@@ -76,6 +79,7 @@ public class NotifyingAsyncResponseTransformer<ResponseT, ResultT> implements As
 
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
+            listener.beforeSubscribe(s);
             delegate.subscribe(new NotifyingSubscriber<>(s, listener));
         }
     }

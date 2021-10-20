@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -33,16 +34,16 @@ import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 
 /**
- * An SDK-internal helper class that facilitates tracking {@link TransferProgress} and invoking {@link TransferListener}s.
+ * An SDK-internal helper class that facilitates updating a {@link TransferProgress} and invoking {@link TransferListener}s.
  */
 @SdkInternalApi
-public class TransferProgressHelper {
+public class TransferProgressUpdater {
 
     private final DefaultTransferProgress progress;
     private final TransferListenerContext context;
     private final TransferListenerInvoker listeners;
 
-    public TransferProgressHelper(UploadRequest uploadRequest, AsyncRequestBody requestBody) {
+    public TransferProgressUpdater(UploadRequest uploadRequest, AsyncRequestBody requestBody) {
         this(uploadRequest, getContentLengthSafe(requestBody));
     }
 
@@ -57,11 +58,11 @@ public class TransferProgressHelper {
         }
     }
 
-    public TransferProgressHelper(DownloadRequest uploadRequest) {
+    public TransferProgressUpdater(DownloadRequest uploadRequest) {
         this(uploadRequest, Optional.empty());
     }
 
-    private TransferProgressHelper(TransferRequest request, Optional<Long> contentLength) {
+    private TransferProgressUpdater(TransferRequest request, Optional<Long> contentLength) {
         DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
         contentLength.ifPresent(snapshotBuilder::transferSize);
         TransferProgressSnapshot snapshot = snapshotBuilder.build();
@@ -87,6 +88,11 @@ public class TransferProgressHelper {
             requestBody,
             new AsyncRequestBodyListener() {
                 @Override
+                public void beforeSubscribe(Subscriber<? super ByteBuffer> subscriber) {
+                    progress.updateAndGet(b -> b.bytesTransferred(0));
+                }
+
+                @Override
                 public void beforeOnNext(ByteBuffer byteBuffer) {
                     TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
                         b.bytesTransferred(b.bytesTransferred() + byteBuffer.limit());
@@ -106,6 +112,11 @@ public class TransferProgressHelper {
                     if (response.contentLength() != null) {
                         progress.updateAndGet(b -> b.transferSize(response.contentLength()));
                     }
+                }
+
+                @Override
+                public void beforeSubscribe(Subscriber<? super ByteBuffer> subscriber) {
+                    progress.updateAndGet(b -> b.bytesTransferred(0));
                 }
 
                 @Override
