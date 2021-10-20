@@ -83,70 +83,17 @@ import software.amazon.awssdk.transfer.s3.UploadRequest;
  *     should not <i>throw</i>. Any thrown exceptions will be suppressed and logged as an error.</li>
  * </ol>
  * <p>
- * A classical use case for {@link TransferListener}s is to create a progress bar to monitor an ongoing transfer's progress.
- * Consider the following as a basic example:
- * <pre>{@code
- * public class ProgressPrintingTransferListener implements TransferListener {
- *     private final ProgressBar progressBar = new ProgressBar(20);
- *
- *     @Override
- *     public void transferInitiated(Context.TransferInitiated context) {
- *         System.out.println("Transfer initiated...");
- *         context.progressSnapshot().ratioTransferred().ifPresent(progressBar::update);
- *     }
- *
- *     @Override
- *     public void bytesTransferred(Context.BytesTransferred context) {
- *         context.progressSnapshot().ratioTransferred().ifPresent(progressBar::update);
- *     }
- *
- *     @Override
- *     public void transferComplete(Context.TransferComplete context) {
- *         context.progressSnapshot().ratioTransferred().ifPresent(progressBar::update);
- *         System.out.println("Transfer complete!");
- *     }
- *
- *     @Override
- *     public void transferFailed(Context.TransferFailed context) {
- *         System.out.println("Transfer failed.");
- *         context.exception().printStackTrace();
- *     }
- *
- *     private static class ProgressBar {
- *         private final int maxTicks;
- *         private final AtomicInteger prevTicks = new AtomicInteger(-1);
- *
- *         public ProgressBar(int maxTicks) {
- *             this.maxTicks = maxTicks;
- *         }
- *
- *         public void update(double ratio) {
- *             int ticks = (int) Math.floor(ratio * maxTicks);
- *             if (prevTicks.getAndSet(ticks) != ticks) {
- *                 System.out.printf("|%s%s| %s%n",
- *                                   "=".repeat(ticks),
- *                                   " ".repeat(maxTicks - ticks),
- *                                   round(ratio * 100, 1) + "%");
- *             }
- *         }
- *
- *         private static double round(double value, int places) {
- *             BigDecimal bd = BigDecimal.valueOf(value);
- *             bd = bd.setScale(places, RoundingMode.FLOOR);
- *             return bd.doubleValue();
- *         }
- *     }
- * }
- * }</pre>
- * Provide the listener as part of your Transfer request, e.g.,
+ * A classical use case of {@link TransferListener} is to create a progress bar to monitor an ongoing transfer's progress.
+ * Refer to the implementation of {@link LoggingTransferListener} for a basic example, or test it in your application by providing
+ * the listener as part of your {@link TransferRequest}. E.g.,
  * <pre>{@code
  * Upload upload = tm.upload(UploadRequest.builder()
  *                                        .putObjectRequest(b -> b.bucket("bucket").key("key"))
  *                                        .source(Paths.get(...))
- *                                        .addListener(new ProgressPrintingTransferListener())
+ *                                        .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
  *                                        .build());
  * }</pre>
- * And then a successful transfer may output something like:
+ * And then a successful transfer may output something similar to:
  * <pre>
  * Transfer initiated...
  * |                    | 0.0%
