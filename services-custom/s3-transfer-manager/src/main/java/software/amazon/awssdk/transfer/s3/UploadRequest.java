@@ -201,7 +201,7 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
          * @see #overrideConfiguration(TransferRequestOverrideConfiguration)
          */
         default Builder overrideConfiguration(Consumer<TransferRequestOverrideConfiguration.Builder> configurationBuilder) {
-            Validate.paramNotNull(configurationBuilder, "overrideConfigurationBuilder");
+            Validate.paramNotNull(configurationBuilder, "configurationBuilder");
             return overrideConfiguration(TransferRequestOverrideConfiguration.builder()
                                                                              .applyMutation(configurationBuilder)
                                                                              .build());
