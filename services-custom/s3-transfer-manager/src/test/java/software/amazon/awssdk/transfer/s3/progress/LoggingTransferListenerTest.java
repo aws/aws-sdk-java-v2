@@ -26,9 +26,9 @@ import org.junit.Test;
 import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.transfer.s3.CompletedTransfer;
 import software.amazon.awssdk.transfer.s3.TransferRequest;
-import software.amazon.awssdk.transfer.s3.internal.DefaultTransferProgress;
-import software.amazon.awssdk.transfer.s3.internal.DefaultTransferProgressSnapshot;
-import software.amazon.awssdk.transfer.s3.internal.TransferListenerContext;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
+import software.amazon.awssdk.transfer.s3.internal.progress.TransferListenerContext;
 
 public class LoggingTransferListenerTest {
 

@@ -20,10 +20,9 @@ import static software.amazon.awssdk.utils.StringUtils.repeat;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * An example implementation of {@link TransferListener} that logs a progress bar at the {@code INFO} level. This implementation
@@ -33,7 +32,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 @SdkPublicApi
 @SdkPreviewApi
 public class LoggingTransferListener implements TransferListener {
-    private static final Logger log = LoggerFactory.getLogger(LoggingTransferListener.class);
+    private static final Logger log = Logger.loggerFor(LoggingTransferListener.class);
     private static final int DEFAULT_MAX_TICKS = 20;
     private final ProgressBar progressBar;
 
@@ -59,7 +58,7 @@ public class LoggingTransferListener implements TransferListener {
 
     @Override
     public void transferInitiated(Context.TransferInitiated context) {
-        log.info("Transfer initiated...");
+        log.info(() -> "Transfer initiated...");
         context.progressSnapshot().ratioTransferred().ifPresent(progressBar::update);
     }
 
@@ -71,12 +70,12 @@ public class LoggingTransferListener implements TransferListener {
     @Override
     public void transferComplete(Context.TransferComplete context) {
         context.progressSnapshot().ratioTransferred().ifPresent(progressBar::update);
-        log.info("Transfer complete!");
+        log.info(() -> "Transfer complete!");
     }
 
     @Override
     public void transferFailed(Context.TransferFailed context) {
-        log.warn("Transfer failed.", context.exception());
+        log.warn(() -> "Transfer failed.", context.exception());
     }
 
     private static class ProgressBar {
@@ -90,10 +89,10 @@ public class LoggingTransferListener implements TransferListener {
         void update(double ratio) {
             int ticks = (int) Math.floor(ratio * maxTicks);
             if (prevTicks.getAndSet(ticks) != ticks) {
-                log.info("|{}{}| {}",
-                         repeat("=", ticks),
-                         repeat(" ", maxTicks - ticks),
-                         round(ratio * 100, 1) + "%");
+                log.info(() -> String.format("|%s%s| %s",
+                                             repeat("=", ticks),
+                                             repeat(" ", maxTicks - ticks),
+                                             round(ratio * 100, 1) + "%"));
             }
         }
 

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3.internal;
+package software.amazon.awssdk.transfer.s3.internal.progress;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
