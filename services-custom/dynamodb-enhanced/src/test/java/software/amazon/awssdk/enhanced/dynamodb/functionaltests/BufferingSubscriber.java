@@ -25,8 +25,8 @@ import org.reactivestreams.Subscription;
 public class BufferingSubscriber<T> implements Subscriber<T> {
     private final CountDownLatch latch = new CountDownLatch(1);
     private final List<T> bufferedItems = new ArrayList<>();
-    private Throwable bufferedError = null;
-    private boolean isCompleted = false;
+    private volatile Throwable bufferedError = null;
+    private volatile boolean isCompleted = false;
 
     @Override
     public void onSubscribe(Subscription subscription) {
