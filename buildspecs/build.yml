@@ -16,3 +16,9 @@ phases:
           mvn package
           mvn exec:exec -P mock-tests
         fi
+        
+reports: 
+  UnitTests:
+    files:
+      - '**/*'
+    base-directory: '**/*/target/surefire-reports' # Location of the reports 
