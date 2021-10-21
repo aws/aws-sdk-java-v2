@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "base": {
+    "retryMode": "standard",
+    "stsRegionalEndpoints": "regional",
+    "s3UsEast1RegionalEndpoints": "regional",
+    "connectTimeoutInMillis": 1100,
+    "tlsNegotiationTimeoutInMillis": 1100
+  },
+  "modes": {
+    "standard": {
+      "connectTimeoutInMillis": {
+        "override": 3100
+      },
+      "tlsNegotiationTimeoutInMillis": {
+        "override": 3100
+      }
+    },
+    "in-region": {
+      "connectTimeoutInMillis": {
+        "multiply": 1
+      },
+      "tlsNegotiationTimeoutInMillis": {
+        "multiply": 1
+      }
+    },
+    "cross-region": {
+      "connectTimeoutInMillis": {
+        "override": 3100
+      },
+      "tlsNegotiationTimeoutInMillis": {
+        "override": 3100
+      }
+    }
+  },
+  "documentation": {
+      "modes": {
+        "standard": "PLACEHOLDER",
+        "in-region": "PLACEHOLDER",
+        "cross-region": "PLACEHOLDER",
+        "mobile": "PLACEHOLDER",
+        "auto": "PLACEHOLDER",
+        "legacy": "PLACEHOLDER"
+      },
+      "configuration": {
+        "retryMode": "PLACEHOLDER",
+        "stsRegionalEndpoints": "PLACEHOLDER",
+        "s3UsEast1RegionalEndpoints": "PLACEHOLDER",
+        "connectTimeoutInMillis": "PLACEHOLDER",
+        "tlsNegotiationTimeoutInMillis": "PLACEHOLDER"
+      }
+  }
+}

@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.utils.SystemSetting;
 
 /**
@@ -167,6 +168,12 @@ public enum SdkSystemSetting implements SystemSetting {
      * the number of retries, so aws.maxAttempts = 1 is 0 retries.
      */
     AWS_MAX_ATTEMPTS("aws.maxAttempts", null),
+
+    /**
+     * Which {@link DefaultsMode} to use, case insensitive
+     * @see DefaultsMode
+     */
+    AWS_DEFAULTS_MODE("aws.defaultsMode", null),
 
     ;
 

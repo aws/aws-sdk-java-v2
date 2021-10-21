@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -60,6 +61,7 @@ public final class ClientOverrideConfiguration
     private final String defaultProfileName;
     private final List<MetricPublisher> metricPublishers;
     private final ExecutionAttributes executionAttributes;
+    private final DefaultsMode defaultsMode;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -75,6 +77,7 @@ public final class ClientOverrideConfiguration
         this.defaultProfileName = builder.defaultProfileName();
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
         this.executionAttributes = ExecutionAttributes.unmodifiableExecutionAttributes(builder.executionAttributes());
+        this.defaultsMode = builder.defaultsMode();
     }
 
     @Override
@@ -199,6 +202,15 @@ public final class ClientOverrideConfiguration
      */
     public List<MetricPublisher> metricPublishers() {
         return metricPublishers;
+    }
+
+    /**
+     * The optional defaults mode that should be used to determine the default configuration
+     * @return the optional defaults mode
+     * @see Builder#defaultsMode(DefaultsMode)
+     */
+    public Optional<DefaultsMode> defaultsMode() {
+        return Optional.of(defaultsMode);
     }
 
     /**
@@ -469,6 +481,16 @@ public final class ClientOverrideConfiguration
         <T> Builder putExecutionAttribute(ExecutionAttribute<T> attribute, T value);
 
         ExecutionAttributes executionAttributes();
+
+        /**
+         * Sets the defaults mode that will be used to determine the default configuration
+         * @param defaultsMode the defaultsMode to use
+         * @return This object for method chaining.
+         * @see DefaultsMode
+         */
+        <T> Builder defaultsMode(DefaultsMode defaultsMode);
+
+        DefaultsMode defaultsMode();
     }
 
     /**
@@ -485,6 +507,7 @@ public final class ClientOverrideConfiguration
         private String defaultProfileName;
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
         private ExecutionAttributes.Builder executionAttributesBuilder = ExecutionAttributes.builder();
+        private DefaultsMode defaultsMode;
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
@@ -665,6 +688,21 @@ public final class ClientOverrideConfiguration
         @Override
         public ExecutionAttributes executionAttributes() {
             return executionAttributesBuilder.build();
+        }
+
+        @Override
+        public Builder defaultsMode(DefaultsMode mode) {
+            this.defaultsMode = mode;
+            return this;
+        }
+
+        @Override
+        public DefaultsMode defaultsMode() {
+            return defaultsMode;
+        }
+
+        public void setDefaultsMode(DefaultsMode mode) {
+            defaultsMode(mode);
         }
 
         @Override
