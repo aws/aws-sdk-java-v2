@@ -63,11 +63,13 @@ public final class SynthesizeSpeechPresignRequest
 
         Builder synthesizeSpeechRequest(SynthesizeSpeechRequest synthesizeSpeechRequest);
 
+        @Override
         Builder signatureDuration(Duration signatureDuration);
 
         /**
          * Build the presigned request, based on the configuration on this builder.
          */
+        @Override
         SynthesizeSpeechPresignRequest build();
     }
 

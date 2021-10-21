@@ -36,14 +36,17 @@ public final class StaticAttributeType<T> implements AttributeType<T> {
         return new StaticAttributeType<>(attributeConverter);
     }
 
+    @Override
     public AttributeValue objectToAttributeValue(T object) {
         return this.attributeConverter.transformFrom(object);
     }
 
+    @Override
     public T attributeValueToObject(AttributeValue attributeValue) {
         return this.attributeConverter.transformTo(attributeValue);
     }
 
+    @Override
     public AttributeValueType attributeValueType() {
         return attributeValueType;
     }

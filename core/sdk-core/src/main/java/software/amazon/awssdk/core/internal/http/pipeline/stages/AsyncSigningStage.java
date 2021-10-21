@@ -46,6 +46,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     /**
      * Returns the response from executing one httpClientSettings request; or null for retry.
      */
+    @Override
     public CompletableFuture<SdkHttpFullRequest> execute(SdkHttpFullRequest request, RequestExecutionContext context)
             throws Exception {
         InterruptMonitor.checkInterrupted();

@@ -1,0 +1,59 @@
+name: "\U0001F4AC General Issue"
+description: Create a new issue. If you don't know which type to choose, choose this one.
+title: "(short issue description)"
+labels: [guidance, needs-triage]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the issue
+      description: A clear and concise description of the issue.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: |
+        Provide a self-contained, concise snippet of code that can be used to reproduce the issue.
+        For more complex issues provide a repo with the smallest reproducible example.
+
+        Avoid including business logic or unrelated code, it makes diagnosis more difficult.
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behavior
+      description: |
+        Tell us what happens instead of the expected behavior.
+
+        Include full errors, uncaught exceptions, stack traces, and relevant logs.
+        To turn on SDK logging, follow instructions here: http://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/java-dg-logging.html
+        If service responses are relevant, please include wirelogs.
+    validations:
+      required: true
+
+  - type: input
+    id: java-sdk-version
+    attributes:
+      label: AWS Java SDK version used
+    validations:
+      required: true
+
+  - type: input
+    id: jdk-version
+    attributes:
+      label: JDK version used
+      description: Output of `java -version`
+    validations:
+      required: true
+
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating System and version
+    validations:
+      required: true

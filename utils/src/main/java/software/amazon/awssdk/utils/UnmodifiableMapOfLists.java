@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.utils;
 
+import java.io.Serializable;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,7 +33,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * An unmodifiable view of a {@code Map<T, List<U>>}. Created using {@link CollectionUtils#unmodifiableMapOfLists(Map)}.
  */
 @SdkInternalApi
-class UnmodifiableMapOfLists<T, U> implements Map<T, List<U>> {
+class UnmodifiableMapOfLists<T, U> implements Map<T, List<U>>, Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private final Map<T, List<U>> delegate;
 
     UnmodifiableMapOfLists(Map<T, List<U>> delegate) {

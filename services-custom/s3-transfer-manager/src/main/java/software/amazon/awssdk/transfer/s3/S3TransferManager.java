@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.transfer.s3.internal.DefaultS3TransferManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * The S3 Transfer Manager is a library that allows users to easily and
@@ -161,6 +163,97 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
+     * Upload all files under the given directory to the provided S3 bucket. The key name transformation depends on the optional
+     * prefix and delimiter provided in the {@link UploadDirectoryRequest}. By default, all subdirectories will be uploaded
+     * recursively, and symbolic links are not followed automatically. This behavior can be configured in
+     * {@link UploadDirectoryOverrideConfiguration}
+     * at request level via {@link UploadDirectoryRequest.Builder#overrideConfiguration(UploadDirectoryOverrideConfiguration)} or
+     * client level via {@link S3TransferManager.Builder#transferConfiguration(S3TransferManagerOverrideConfiguration)} Note
+     * that request-level configuration takes precedence over client-level configuration.
+     *
+     * <p>
+     * The returned {@link CompletableFuture} only completes exceptionally if the request cannot be attempted as a whole (the
+     * source directory provided does not exist for example). The future completes successfully for partial successful
+     * requests, i.e., there might be failed uploads in the successfully completed response. As a result,
+     * you should check for errors in the response via {@link CompletedUploadDirectory#failedUploads()}
+     * even when the future completes successfully.
+     *
+     * <p>
+     * The current user must have read access to all directories and files
+     *
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * UploadDirectoryTransfer uploadDirectory =
+     *       transferManager.uploadDirectory(UploadDirectoryRequest.builder()
+     *                                                             .sourceDirectory(Paths.get("."))
+     *                                                             .bucket("bucket")
+     *                                                             .prefix("prefix")
+     *                                                             .build());
+     * // Wait for the transfer to complete
+     * CompletedUploadDirectory completedUploadDirectory = uploadDirectory.completionFuture().join();
+     *
+     * // Print out the failed uploads
+     * completedUploadDirectory.failedUploads().forEach(System.out::println);
+     *
+     * }
+     * </pre>
+     *
+     * @param uploadDirectoryRequest the upload directory request
+     * @see #uploadDirectory(Consumer)
+     * @see UploadDirectoryOverrideConfiguration
+     */
+    default UploadDirectoryTransfer uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Upload all files under the given directory to the provided S3 bucket. The key name transformation depends on the optional
+     * prefix and delimiter provided in the {@link UploadDirectoryRequest}. By default, all subdirectories will be uploaded
+     * recursively, and symbolic links are not followed automatically. This behavior can be configured in
+     * {@link UploadDirectoryOverrideConfiguration}
+     * at request level via {@link UploadDirectoryRequest.Builder#overrideConfiguration(UploadDirectoryOverrideConfiguration)} or
+     * client level via {@link S3TransferManager.Builder#transferConfiguration(S3TransferManagerOverrideConfiguration)} Note
+     * that request-level configuration takes precedence over client-level configuration.
+     *
+     * <p>
+     * The returned {@link CompletableFuture} only completes exceptionally if the request cannot be attempted as a whole (the
+     * source directory provided does not exist for example). The future completes successfully for partial successful
+     * requests, i.e., there might be failed uploads in the successfully completed response. As a result,
+     * you should check for errors in the response via {@link CompletedUploadDirectory#failedUploads()}
+     * even when the future completes successfully.
+     *
+     * <p>
+     * The current user must have read access to all directories and files
+     *
+     * <p>
+     * This is a convenience method that creates an instance of the {@link UploadDirectoryRequest} builder avoiding the
+     * need to create one manually via {@link UploadDirectoryRequest#builder()}.
+     *
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * UploadDirectoryTransfer uploadDirectory =
+     *       transferManager.uploadDirectory(b -> b.sourceDirectory(Paths.get("."))
+     *                                             .bucket("key")
+     *                                             .prefix("prefix"));
+     * // Print out the failed uploads
+     * completedUploadDirectory.failedUploads().forEach(System.out::println);
+     *
+     * }
+     * </pre>
+     * @param requestBuilder the upload directory request builder
+     * @see #uploadDirectory(UploadDirectoryRequest)
+     * @see UploadDirectoryOverrideConfiguration
+     */
+    default UploadDirectoryTransfer uploadDirectory(Consumer<UploadDirectoryRequest.Builder> requestBuilder) {
+        Validate.paramNotNull(requestBuilder, "requestBuilder");
+        return uploadDirectory(UploadDirectoryRequest.builder().applyMutation(requestBuilder).build());
+    }
+
+    /**
      * Create an {@code S3TransferManager} using the default values.
      */
     static S3TransferManager create() {
@@ -205,6 +298,36 @@ public interface S3TransferManager extends SdkAutoCloseable {
             S3ClientConfiguration.Builder builder = S3ClientConfiguration.builder();
             configuration.accept(builder);
             s3ClientConfiguration(builder.build());
+            return this;
+        }
+
+        /**
+         * Configuration settings for how {@link S3TransferManager} should process the request. The
+         * {@link S3TransferManager} already provides sensible defaults. All values are optional.
+         *
+         * @param transferConfiguration the configuration to use
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #transferConfiguration(Consumer)
+         */
+        Builder transferConfiguration(S3TransferManagerOverrideConfiguration transferConfiguration);
+
+        /**
+         * Configuration settings for how {@link S3TransferManager} should process the request. The
+         * {@link S3TransferManager} already provides sensible defaults. All values are optional.
+         *
+         * <p>
+         * This is a convenience method that creates an instance of the {@link S3TransferManagerOverrideConfiguration} builder
+         * avoiding the need to create one manually via {@link S3TransferManagerOverrideConfiguration#builder()}.
+         *
+         * @param configuration the configuration to use
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #transferConfiguration(S3TransferManagerOverrideConfiguration)
+         */
+        default Builder transferConfiguration(Consumer<S3TransferManagerOverrideConfiguration.Builder> configuration) {
+            Validate.paramNotNull(configuration, "configuration");
+            S3TransferManagerOverrideConfiguration.Builder builder = S3TransferManagerOverrideConfiguration.builder();
+            configuration.accept(builder);
+            transferConfiguration(builder.build());
             return this;
         }
 

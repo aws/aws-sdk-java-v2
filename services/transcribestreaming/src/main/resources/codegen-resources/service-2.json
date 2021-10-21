@@ -416,6 +416,12 @@
       "documentation":"<p>Represents the transcription result stream from Amazon Transcribe Medical to your application.</p>",
       "eventstream":true
     },
+    "ModelName":{
+      "type":"string",
+      "max":200,
+      "min":1,
+      "pattern":"^[0-9a-zA-Z._-]+"
+    },
     "NumberOfChannels":{
       "type":"integer",
       "min":2
@@ -758,9 +764,15 @@
         },
         "PiiEntityTypes":{
           "shape":"PiiEntityTypes",
-          "documentation":"<p>List the PII entity types you want to identify or redact. In order to specify entity types, you must have either <code>ContentIdentificationType</code> or <code>ContentRedactionType</code> enabled.</p> <p> <code>PIIEntityTypes</code> must be comma-separated; the available values are: <code>BANK_ACCOUNT_NUMBER</code>, <code>BANK_ROUTING</code>, <code>CREDIT_DEBIT_NUMBER</code>, <code>CREDIT_DEBIT_CVV</code>, <code>CREDIT_DEBIT_EXPIRY</code>, <code>PIN</code>, <code>EMAIL</code>, <code>ADDRESS</code>, <code>NAME</code>, <code>PHONE</code>, <code>SSN</code>, and <code>ALL</code>.</p> <p> <code>PiiEntityTypes</code> is an optional parameter with a default value of <code>ALL</code>.</p>",
+          "documentation":"<p>List the PII entity types you want to identify or redact. In order to specify entity types, you must have either <code>ContentIdentificationType</code> or <code>ContentRedactionType</code> enabled.</p> <p> <code>PiiEntityTypes</code> is an optional parameter with a default value of <code>ALL</code>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-pii-entity-types"
+        },
+        "LanguageModelName":{
+          "shape":"ModelName",
+          "documentation":"<p>The name of the language model you want to use.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-language-model-name"
         }
       },
       "payload":"AudioStream"
@@ -867,6 +879,11 @@
           "documentation":"<p>Lists the PII entity types you specified in your request.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-pii-entity-types"
+        },
+        "LanguageModelName":{
+          "shape":"ModelName",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-language-model-name"
         }
       },
       "payload":"TranscriptResultStream"

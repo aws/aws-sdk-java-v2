@@ -18,11 +18,13 @@ package software.amazon.awssdk.http;
 import static software.amazon.awssdk.utils.CollectionUtils.deepCopyMap;
 import static software.amazon.awssdk.utils.CollectionUtils.deepUnmodifiableMap;
 
+import java.beans.Transient;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import software.amazon.awssdk.annotations.Immutable;
@@ -59,6 +61,7 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
         return headers;
     }
 
+    @Transient
     @Override
     public Optional<AbortableInputStream> content() {
         return Optional.ofNullable(content);
@@ -77,6 +80,28 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
     @Override
     public SdkHttpFullResponse.Builder toBuilder() {
         return new Builder(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultSdkHttpFullResponse that = (DefaultSdkHttpFullResponse) o;
+        return Objects.equals(statusCode, that.statusCode) &&
+               Objects.equals(statusText, that.statusText) &&
+               Objects.equals(headers, that.headers);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = statusText != null ? statusText.hashCode() : 0;
+        result = 31 * result + statusCode;
+        result = 31 * result + Objects.hashCode(headers);
+        return result;
     }
 
     /**
@@ -191,6 +216,7 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
         /**
          * @return An immutable {@link DefaultSdkHttpFullResponse} object.
          */
+        @Override
         public SdkHttpFullResponse build() {
             return new DefaultSdkHttpFullResponse(this);
         }

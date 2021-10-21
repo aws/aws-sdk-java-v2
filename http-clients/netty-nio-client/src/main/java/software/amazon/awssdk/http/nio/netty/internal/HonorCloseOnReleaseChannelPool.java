@@ -66,7 +66,12 @@ public class HonorCloseOnReleaseChannelPool implements ChannelPool {
             }
 
             delegatePool.release(channel, promise);
+        }).addListener(f -> {
+            if (!f.isSuccess()) {
+                promise.tryFailure(f.cause());
+            }
         });
+
         return promise;
     }
 
