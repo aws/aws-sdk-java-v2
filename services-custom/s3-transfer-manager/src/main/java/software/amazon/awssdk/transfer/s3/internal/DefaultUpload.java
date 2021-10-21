@@ -18,8 +18,8 @@ package software.amazon.awssdk.transfer.s3.internal;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.CompletedUpload;
-import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.transfer.s3.Upload;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 
 @SdkInternalApi
 public final class DefaultUpload implements Upload {

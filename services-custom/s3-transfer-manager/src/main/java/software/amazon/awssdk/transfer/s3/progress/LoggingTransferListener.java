@@ -83,11 +83,11 @@ public class LoggingTransferListener implements TransferListener {
         private final int maxTicks;
         private final AtomicInteger prevTicks = new AtomicInteger(-1);
 
-        public ProgressBar(int maxTicks) {
+        ProgressBar(int maxTicks) {
             this.maxTicks = maxTicks;
         }
 
-        public void update(double ratio) {
+        void update(double ratio) {
             int ticks = (int) Math.floor(ratio * maxTicks);
             if (prevTicks.getAndSet(ticks) != ticks) {
                 log.info("|{}{}| {}",

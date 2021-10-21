@@ -18,8 +18,8 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -66,7 +66,7 @@ public class S3TransferManagerListenerTest {
     @Before
     public void methodSetup() {
         s3Crt = mock(S3CrtAsyncClient.class);
-        tm = new DefaultS3TransferManager(s3Crt);
+        tm = new DefaultS3TransferManager(s3Crt, mock(UploadDirectoryHelper.class), mock(TransferManagerConfiguration.class));
         contentLength = 1024L;
         when(s3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
             .thenAnswer(drainPutRequestBody());
@@ -230,32 +230,13 @@ public class S3TransferManagerListenerTest {
     }
 
     private static TransferListener throwingListener() {
-        TransferListener listener = new TransferListener() {
-            @Override
-            public void transferInitiated(Context.TransferInitiated context) {
-                throwException();
-            }
-
-            @Override
-            public void bytesTransferred(Context.BytesTransferred context) {
-                throwException();
-            }
-
-            @Override
-            public void transferComplete(Context.TransferComplete context) {
-                throwException();
-            }
-
-            @Override
-            public void transferFailed(Context.TransferFailed context) {
-                throwException();
-            }
-
-            private void throwException() {
-                throw new RuntimeException("Intentional exception for testing purposes");
-            }
-        };
-        return spy(listener);
+        TransferListener listener = mock(TransferListener.class);
+        RuntimeException e = new RuntimeException("Intentional exception for testing purposes");
+        doThrow(e).when(listener).transferInitiated(any());
+        doThrow(e).when(listener).bytesTransferred(any());
+        doThrow(e).when(listener).transferComplete(any());
+        doThrow(e).when(listener).transferFailed(any());
+        return listener;
     }
 
     private static Answer<CompletableFuture<PutObjectResponse>> drainPutRequestBody() {

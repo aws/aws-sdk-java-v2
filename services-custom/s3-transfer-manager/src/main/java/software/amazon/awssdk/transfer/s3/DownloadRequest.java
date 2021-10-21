@@ -115,7 +115,10 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
 
     @Override
     public int hashCode() {
-        return Objects.hash(destination, getObjectRequest, overrideConfiguration);
+        int result = destination != null ? destination.hashCode() : 0;
+        result = 31 * result + (getObjectRequest != null ? getObjectRequest.hashCode() : 0);
+        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
+        return result;
     }
 
     public static Class<? extends Builder> serializableBuilderClass() {

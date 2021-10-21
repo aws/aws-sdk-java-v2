@@ -58,17 +58,6 @@ public class TransferProgressUpdater {
                                                        .orElseGet(Collections::emptyList));
     }
 
-    private static Optional<Long> getContentLengthSafe(AsyncRequestBody requestBody) {
-        // requestBody.contentLength() may throw if the file does not exist.
-        // We ignore any potential exception here to defer failure
-        // to the s3CrtAsyncClient call and its associated future.
-        try {
-            return requestBody.contentLength();
-        } catch (Exception ignored) {
-            return Optional.empty();
-        }
-    }
-
     public TransferProgressUpdater(DownloadRequest request) {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder().build();
         progress = new DefaultTransferProgress(snapshot);
@@ -151,5 +140,16 @@ public class TransferProgressUpdater {
                                                                       .build());
             }
         });
+    }
+
+    private static Optional<Long> getContentLengthSafe(AsyncRequestBody requestBody) {
+        // requestBody.contentLength() may throw if the file does not exist.
+        // We ignore any potential exception here to defer failure
+        // to the s3CrtAsyncClient call and its associated future.
+        try {
+            return requestBody.contentLength();
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
     }
 }

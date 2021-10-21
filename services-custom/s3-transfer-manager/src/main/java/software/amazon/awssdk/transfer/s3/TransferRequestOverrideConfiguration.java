@@ -64,13 +64,15 @@ public final class TransferRequestOverrideConfiguration
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         TransferRequestOverrideConfiguration that = (TransferRequestOverrideConfiguration) o;
-        return listeners.equals(that.listeners);
+
+        return Objects.equals(listeners, that.listeners);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(listeners);
+        return listeners != null ? listeners.hashCode() : 0;
     }
 
     @Override

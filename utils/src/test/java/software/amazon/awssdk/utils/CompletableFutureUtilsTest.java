@@ -15,17 +15,16 @@
 
 package software.amazon.awssdk.utils;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.fail;
+
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.util.concurrent.CompletableFuture;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.fail;
 
 public class CompletableFutureUtilsTest {
     private static ExecutorService executors;
@@ -78,6 +77,30 @@ public class CompletableFutureUtilsTest {
 
         RuntimeException exception = new RuntimeException("foobar");
         CompletableFutureUtils.forwardResultTo(src, dst, executors);
+
+        src.completeExceptionally(exception);
+        assertThatThrownBy(dst::join).hasCause(exception);
+    }
+
+    @Test(timeout = 1000)
+    public void forwardTransformedResultTo_srcCompletesSuccessfully_shouldCompleteDstFuture() {
+        CompletableFuture<Integer> src = new CompletableFuture<>();
+        CompletableFuture<String> dst = new CompletableFuture<>();
+
+        CompletableFuture<Integer> returnedFuture = CompletableFutureUtils.forwardTransformedResultTo(src, dst, String::valueOf);
+        assertThat(returnedFuture).isSameAs(src);
+
+        src.complete(123);
+        assertThat(dst.join()).isEqualTo("123");
+    }
+
+    @Test(timeout = 1000)
+    public void forwardTransformedResultTo_srcCompletesExceptionally_shouldCompleteDstFuture() {
+        CompletableFuture<Integer> src = new CompletableFuture<>();
+        CompletableFuture<String> dst = new CompletableFuture<>();
+
+        RuntimeException exception = new RuntimeException("foobar");
+        CompletableFutureUtils.forwardTransformedResultTo(src, dst, String::valueOf);
 
         src.completeExceptionally(exception);
         assertThatThrownBy(dst::join).hasCause(exception);

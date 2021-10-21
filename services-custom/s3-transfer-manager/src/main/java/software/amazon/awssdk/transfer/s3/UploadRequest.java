@@ -121,15 +121,10 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
 
     @Override
     public int hashCode() {
-        return Objects.hash(source, putObjectRequest, overrideConfiguration);
-    }
-
-    @Override
-    public String toString() {
-        return ToString.builder("UploadRequest")
-                       .add("putObjectRequest", putObjectRequest)
-                       .add("source", source)
-                       .build();
+        int result = putObjectRequest != null ? putObjectRequest.hashCode() : 0;
+        result = 31 * result + (source != null ? source.hashCode() : 0);
+        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
+        return result;
     }
 
     /**
