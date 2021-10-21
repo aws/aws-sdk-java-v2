@@ -44,6 +44,8 @@ import software.amazon.awssdk.transfer.s3.Upload;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryTransfer;
 import software.amazon.awssdk.transfer.s3.UploadRequest;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 
 public class UploadDirectoryHelperTest {
     private static FileSystem jimfs;
@@ -74,10 +76,10 @@ public class UploadDirectoryHelperTest {
     @Test
     public void uploadDirectory_cancel_shouldCancelAllFutures() {
         CompletableFuture<CompletedUpload> future = new CompletableFuture<>();
-        Upload upload = new DefaultUpload(future);
+        Upload upload = newUpload(future);
 
         CompletableFuture<CompletedUpload> future2 = new CompletableFuture<>();
-        Upload upload2 = new DefaultUpload(future2);
+        Upload upload2 = newUpload(future2);
 
         when(singleUploadFunction.apply(any(UploadRequest.class))).thenReturn(upload, upload2);
 
@@ -103,13 +105,13 @@ public class UploadDirectoryHelperTest {
         CompletedUpload completedUpload = CompletedUpload.builder().response(putObjectResponse).build();
         CompletableFuture<CompletedUpload> successfulFuture = new CompletableFuture<>();
 
-        Upload upload = new DefaultUpload(successfulFuture);
+        Upload upload = newUpload(successfulFuture);
         successfulFuture.complete(completedUpload);
 
         PutObjectResponse putObjectResponse2 = PutObjectResponse.builder().eTag("5678").build();
         CompletedUpload completedUpload2 = CompletedUpload.builder().response(putObjectResponse2).build();
         CompletableFuture<CompletedUpload> failedFuture = new CompletableFuture<>();
-        Upload upload2 = new DefaultUpload(failedFuture);
+        Upload upload2 = newUpload(failedFuture);
         failedFuture.complete(completedUpload2);
 
         when(singleUploadFunction.apply(any(UploadRequest.class))).thenReturn(upload, upload2);
@@ -131,12 +133,12 @@ public class UploadDirectoryHelperTest {
         PutObjectResponse putObjectResponse = PutObjectResponse.builder().eTag("1234").build();
         CompletedUpload completedUpload = CompletedUpload.builder().response(putObjectResponse).build();
         CompletableFuture<CompletedUpload> successfulFuture = new CompletableFuture<>();
-        Upload upload = new DefaultUpload(successfulFuture);
+        Upload upload = newUpload(successfulFuture);
         successfulFuture.complete(completedUpload);
 
         SdkClientException exception = SdkClientException.create("failed");
         CompletableFuture<CompletedUpload> failedFuture = new CompletableFuture<>();
-        Upload upload2 = new DefaultUpload(failedFuture);
+        Upload upload2 = newUpload(failedFuture);
         failedFuture.completeExceptionally(exception);
 
         when(singleUploadFunction.apply(any(UploadRequest.class))).thenReturn(upload, upload2);
@@ -152,5 +154,11 @@ public class UploadDirectoryHelperTest {
         assertThat(completedUploadDirectory.failedUploads()).hasSize(1);
         assertThat(completedUploadDirectory.failedUploads().iterator().next().exception()).isEqualTo(exception);
         assertThat(completedUploadDirectory.failedUploads().iterator().next().request().source().toString()).isEqualTo("test/2");
+    }
+
+    private Upload newUpload(CompletableFuture<CompletedUpload> future) {
+        return new DefaultUpload(future,
+                                 new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build())
+        );
     }
 }

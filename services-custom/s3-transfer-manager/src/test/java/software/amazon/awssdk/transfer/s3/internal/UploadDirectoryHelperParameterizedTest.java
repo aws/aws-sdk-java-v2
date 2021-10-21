@@ -50,6 +50,8 @@ import software.amazon.awssdk.transfer.s3.Upload;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryTransfer;
 import software.amazon.awssdk.transfer.s3.UploadRequest;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -311,7 +313,8 @@ public class UploadDirectoryHelperParameterizedTest {
     private DefaultUpload completedUpload() {
         return new DefaultUpload(CompletableFuture.completedFuture(CompletedUpload.builder()
                                                                                   .response(PutObjectResponse.builder().build())
-                                                                                  .build()));
+                                                                                  .build()),
+                                 new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build()));
     }
 
     private Path createTestDirectory() throws IOException {

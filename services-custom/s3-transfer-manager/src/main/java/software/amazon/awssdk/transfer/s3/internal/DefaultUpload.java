@@ -19,17 +19,25 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.Upload;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 
 @SdkInternalApi
 public final class DefaultUpload implements Upload {
-    private final CompletableFuture<CompletedUpload> completionFeature;
+    private final CompletableFuture<CompletedUpload> completionFuture;
+    private final TransferProgress progress;
 
-    public DefaultUpload(CompletableFuture<CompletedUpload> completionFeature) {
-        this.completionFeature = completionFeature;
+    public DefaultUpload(CompletableFuture<CompletedUpload> completionFuture, TransferProgress progress) {
+        this.completionFuture = completionFuture;
+        this.progress = progress;
     }
 
     @Override
     public CompletableFuture<CompletedUpload> completionFuture() {
-        return completionFeature;
+        return completionFuture;
+    }
+
+    @Override
+    public TransferProgress progress() {
+        return progress;
     }
 }

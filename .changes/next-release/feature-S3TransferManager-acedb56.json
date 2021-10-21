@@ -1,0 +1,6 @@
+{
+    "category": "S3TransferManager", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Add support for S3TransferManager TransferListeners"
+}
