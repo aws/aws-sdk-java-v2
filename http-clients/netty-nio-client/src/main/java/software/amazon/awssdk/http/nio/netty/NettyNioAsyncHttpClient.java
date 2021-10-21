@@ -365,6 +365,9 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          *
          * <p>
          * By default, this is disabled.
+         *
+         * <p>Actual TCP KeepAlive values (timeout, number of packets, etc) must be configured via the operating system (sysctl on
+         * Linux, and Registry values on Windows).
          */
         Builder tcpKeepAlive(Boolean keepConnectionAlive);
 

@@ -407,6 +407,9 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         /**
          * Configure the socket to use java.net.SocketOptions.SO_KEEPALIVE.
+         * <p>
+         * Actual TCP KeepAlive values (timeout, number of packets, etc) must be configured via the operating system (sysctl on
+         * Linux, and Registry values on Windows).
          */
         Builder tcpKeepAlive(Boolean keepConnectionAlive);
 
