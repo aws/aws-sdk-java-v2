@@ -122,4 +122,26 @@ public final class CompletableFutureUtils {
 
         return src;
     }
+
+    /**
+     * Completes the {@code dst} future based on the result of the {@code src} future, synchronously,
+     * after applying the provided transformation {@link Function} if successful.
+     *
+     * @param src The source {@link CompletableFuture}
+     * @param dst The destination where the {@code Throwable} or transformed result will be forwarded to.
+     * @return the {@code src} future.
+     */
+    public static <SourceT, DestT> CompletableFuture<SourceT> forwardTransformedResultTo(CompletableFuture<SourceT> src,
+                                                                                         CompletableFuture<DestT> dst,
+                                                                                         Function<SourceT, DestT> function) {
+        src.whenComplete((r, e) -> {
+            if (e != null) {
+                dst.completeExceptionally(e);
+            } else {
+                dst.complete(function.apply(r));
+            }
+        });
+
+        return src;
+    }
 }
