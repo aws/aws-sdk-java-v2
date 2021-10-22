@@ -151,4 +151,30 @@ public class StringUtilsTest {
     public void safeStringTooBoolean_invalidValue_shouldThrowException() {
         assertFalse(StringUtils.safeStringToBoolean("foobar"));
     }
+    
+    @Test
+    public void testRepeat() {
+        assertNull(StringUtils.repeat(null, 0));
+        assertNull(StringUtils.repeat(null, 1));
+        assertNull(StringUtils.repeat(null, 2));
+        
+        assertEquals("", StringUtils.repeat("", 0));
+        assertEquals("", StringUtils.repeat("", 1));
+        assertEquals("", StringUtils.repeat("", 2));
+        
+        assertEquals("", StringUtils.repeat("ab", 0));
+        assertEquals("ab", StringUtils.repeat("ab", 1));
+        assertEquals("abab", StringUtils.repeat("ab", 2));
+        assertEquals("ababab", StringUtils.repeat("ab", 3));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void repeat_negativeCount_shouldThrowIae() {
+        StringUtils.repeat("a", -1);
+    }
+
+    @Test(expected = OutOfMemoryError.class)
+    public void repeat_maxCount_shouldThrowOom() {
+        StringUtils.repeat("a", Integer.MAX_VALUE);
+    }
 }
