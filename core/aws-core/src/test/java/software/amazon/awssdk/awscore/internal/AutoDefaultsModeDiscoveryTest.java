@@ -108,14 +108,20 @@ public class AutoDefaultsModeDiscoveryTest {
         if (testData.awsExecutionEnvVar != null) {
             ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_EXECUTION_ENV.environmentVariable(),
                                             testData.awsExecutionEnvVar);
+        } else {
+            ENVIRONMENT_VARIABLE_HELPER.remove(SdkSystemSetting.AWS_EXECUTION_ENV.environmentVariable());
         }
 
         if (testData.awsRegionEnvVar != null) {
             ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_REGION.environmentVariable(), testData.awsRegionEnvVar);
+        } else {
+            ENVIRONMENT_VARIABLE_HELPER.remove(SdkSystemSetting.AWS_REGION.environmentVariable());
         }
 
         if (testData.awsDefaultRegionEnvVar != null) {
             ENVIRONMENT_VARIABLE_HELPER.set("AWS_DEFAULT_REGION", testData.awsDefaultRegionEnvVar);
+        } else {
+            ENVIRONMENT_VARIABLE_HELPER.remove("AWS_DEFAULT_REGION");
         }
 
         if (testData.ec2MetadataConfig != null) {
