@@ -49,6 +49,7 @@ public class SigningStage implements RequestToRequestPipeline {
     /**
      * Returns the response from executing one httpClientSettings request; or null for retry.
      */
+    @Override
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
         return signRequest(request, context);

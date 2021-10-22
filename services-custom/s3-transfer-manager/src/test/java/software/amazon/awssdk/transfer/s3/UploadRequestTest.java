@@ -17,7 +17,10 @@ package software.amazon.awssdk.transfer.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -47,32 +50,31 @@ public class UploadRequestTest {
     }
 
     @Test
+    public void sourceUsingFile() {
+        Path path = Paths.get(".");
+        UploadRequest request = UploadRequest.builder()
+                                             .putObjectRequest(b -> b.bucket("bucket").key("key"))
+                                             .source(path.toFile())
+                                             .build();
+        assertThat(request.source()).isEqualTo(path);
+    }
+
+    @Test
+    public void sourceUsingFile_null_shouldThrowException() {
+        File file = null;
+        thrown.expect(NullPointerException.class);
+        thrown.expectMessage("source");
+        UploadRequest.builder()
+                     .putObjectRequest(b -> b.bucket("bucket").key("key"))
+                     .source(file)
+                     .build();
+    }
+
+    @Test
     public void equals_hashcode() {
-        PutObjectRequest getObjectRequest = PutObjectRequest.builder()
-                                                            .bucket("bucket")
-                                                            .key("key")
-                                                            .build();
-
-        UploadRequest request1 = UploadRequest.builder()
-                                              .putObjectRequest(b -> b.bucket("bucket").key("key"))
-                                              .source(Paths.get("."))
-                                              .build();
-
-        UploadRequest request2 = UploadRequest.builder()
-                                              .putObjectRequest(getObjectRequest)
-                                              .source(Paths.get("."))
-                                              .build();
-
-        UploadRequest request3 = UploadRequest.builder()
-                                              .putObjectRequest(b -> b.bucket("bucket1").key("key1"))
-                                              .source(Paths.get("."))
-                                              .build();
-
-        assertThat(request1).isEqualTo(request2);
-        assertThat(request1.hashCode()).isEqualTo(request2.hashCode());
-
-        assertThat(request1.hashCode()).isNotEqualTo(request3.hashCode());
-        assertThat(request1).isNotEqualTo(request3);
+        EqualsVerifier.forClass(UploadRequest.class)
+                      .withNonnullFields("source", "putObjectRequest")
+                      .verify();
     }
 
 }

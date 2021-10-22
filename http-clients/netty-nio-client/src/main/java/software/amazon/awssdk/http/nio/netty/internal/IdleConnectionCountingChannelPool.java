@@ -20,6 +20,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.do
 import io.netty.channel.Channel;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.util.AttributeKey;
+import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
@@ -91,14 +92,13 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
 
     @Override
     public Future<Void> release(Channel channel) {
-        channelReleased(channel);
-        return delegatePool.release(channel);
+        return release(channel, new DefaultPromise<>(executor));
     }
 
     @Override
     public Future<Void> release(Channel channel, Promise<Void> promise) {
-        channelReleased(channel);
-        return delegatePool.release(channel, promise);
+        channelReleased(channel).addListener(f -> delegatePool.release(channel, promise));
+        return promise;
     }
 
     @Override
@@ -112,6 +112,10 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
         doInEventLoop(executor, () -> {
             metrics.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, idleConnections);
             result.complete(null);
+        }).addListener(f -> {
+            if (!f.isSuccess()) {
+                result.completeExceptionally(f.cause());
+            }
         });
         return result;
     }
@@ -153,8 +157,8 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
     /**
      * Invoked when a channel is released, marking it idle until it's acquired.
      */
-    private void channelReleased(Channel channel) {
-        doInEventLoop(executor, () -> {
+    private Future<?> channelReleased(Channel channel) {
+        return doInEventLoop(executor, () -> {
             ChannelIdleState channelIdleState = getChannelIdleState(channel);
 
             if (channelIdleState == null) {

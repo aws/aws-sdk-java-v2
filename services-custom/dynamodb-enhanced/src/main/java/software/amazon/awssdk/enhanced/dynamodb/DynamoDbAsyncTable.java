@@ -20,15 +20,19 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PagePublisher;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 
 /**
  * Asynchronous interface for running commands against an object that is linked to a specific DynamoDb table resource
@@ -232,6 +236,65 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
      */
     default CompletableFuture<T> deleteItem(T keyItem) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using a supplied primary {@link Key}.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link DeleteItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints. Unlike {@link #deleteItem(DeleteItemEnhancedRequest)}, this returns a response object,
+     * allowing the user to retrieve additional information from DynamoDB related to the API call, such as
+     * {@link ConsumedCapacity} if specified on the request.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder().key(key).build();
+     * DeleteItemEnhancedResponse<MyItem> response = mappedTable.deleteItemWithResponse(request).join();
+     * }
+     * </pre>
+     *
+     * @param request A {@link DeleteItemEnhancedRequest} with key and optional directives for deleting an item from the
+     *                table.
+     * @return A {@code CompletableFuture} containing the response returned by DynamoDB.
+     */
+    default CompletableFuture<DeleteItemEnhancedResponse<T>> deleteItemWithResponse(DeleteItemEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using a supplied primary {@link Key}.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link DeleteItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints. Unlike {@link #deleteItem(Consumer)}, this returns a response object, allowing the user to
+     * retrieve additional information from DynamoDB related to the API call, such as {@link ConsumedCapacity} if specified on
+     * the request.
+     * <p>
+     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to
+     * create one manually via {@link DeleteItemEnhancedRequest#builder()}.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * DeleteItemEnhancedResponse<MyItem> response = mappedTable.deleteWithResponse(r -> r.key(key)).join();
+     * }
+     * </pre>
+     *
+     * @param requestConsumer A {@link Consumer} of {@link DeleteItemEnhancedRequest} with key and
+     * optional directives for deleting an item from the table.
+     * @return A {@code CompletableFuture} containing the response returned by DynamoDB.
+     */
+    default CompletableFuture<DeleteItemEnhancedResponse<T>> deleteItemWithResponse(
+        Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -515,6 +578,63 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
     }
 
     /**
+     * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be
+     * replaced with this item. This is similar to {@link #putItem(PutItemEnhancedRequest)} but returns
+     * {@link PutItemEnhancedResponse} for additional information.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link PutItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API PutItem operation. Consult the PutItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.putItem(PutItemEnhancedRequest.builder(MyItem.class).item(item).build());
+     * }
+     * </pre>
+     *
+     * @param request A {@link PutItemEnhancedRequest} that includes the item to enter into
+     * the table, its class and optional directives.
+     *
+     * @return A {@link CompletableFuture} that contains the response returned by DynamoDB.
+     */
+    default CompletableFuture<PutItemEnhancedResponse<T>> putItemWithResponse(PutItemEnhancedRequest<T> request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be
+     * replaced with this item. This is similar to {@link #putItem(PutItemEnhancedRequest)} but returns
+     * {@link PutItemEnhancedResponse} for additional information.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link PutItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API PutItem operation. Consult the PutItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.putItem(PutItemEnhancedRequest.builder(MyItem.class).item(item).build());
+     * }
+     * </pre>
+     *
+     * @param requestConsumer A {@link Consumer} of {@link PutItemEnhancedRequest.Builder} that includes the item
+     * to enter into the table, its class and optional directives.
+     *
+     * @return A {@link CompletableFuture} that contains the response returned by DynamoDB.
+     */
+    default CompletableFuture<PutItemEnhancedResponse<T>> putItemWithResponse(
+        Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Scans the table and retrieves all items.
      * <p>
      * The return type is a custom publisher that can be subscribed to request a stream of {@link Page}s or
@@ -665,6 +785,56 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * @return a {@link CompletableFuture} of the updated item
      */
     default CompletableFuture<T> updateItem(T item) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Updates an item in the mapped table, or adds it if it doesn't exist. This is similar to
+     * {@link #updateItem(UpdateItemEnhancedRequest)}} but returns {@link UpdateItemEnhancedResponse} for additional information.
+     * <p>
+     * This operation calls the low-level DynamoDB API UpdateItem operation. Consult the UpdateItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     * UpdateItemEnhancedRequest<MyItem> request = UpdateItemEnhancedRequest.builder(MyItem.class).item(myItem).build();
+     * UpdateItemEnhancedResponse<MyItem> response = mappedTable.updateItemWithResponse(request).join();
+     * }
+     * </pre>
+     * <p>
+     *
+     *
+     * @param request the modelled item to be inserted into or updated in the database table.
+     * @return A {@link CompletableFuture} containing the response from DynamoDB.
+     */
+    default CompletableFuture<UpdateItemEnhancedResponse<T>> updateItemWithResponse(UpdateItemEnhancedRequest<T> request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Updates an item in the mapped table, or adds it if it doesn't exist. This is similar to
+     * {@link #updateItem(Consumer)} but returns {@link UpdateItemEnhancedResponse} for additional information.
+     * <p>
+     * This operation calls the low-level DynamoDB API UpdateItem operation. Consult the UpdateItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * UpdateItemEnhancedResponse<MyItem> response = mappedTable.updateItemWithResponse(r ->r.item(myItem)).join();
+     * }
+     * </pre>
+     * <p>
+     *
+     *
+     * @param requestConsumer A {@link Consumer} of {@link UpdateItemEnhancedRequest.Builder} that includes the item
+     *      * to be updated, its class and optional directives.
+     * @return A {@link CompletableFuture} containing the response from DynamoDB.
+     */
+    default CompletableFuture<UpdateItemEnhancedResponse<T>> updateItemWithResponse(
+        Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 

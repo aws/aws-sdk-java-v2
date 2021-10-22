@@ -66,7 +66,12 @@ public class SdkExecutionAttribute {
      * true) or the endpoint derived from the region metadata (if {@link #ENDPOINT_OVERRIDDEN} is false).
      */
     public static final ExecutionAttribute<URI> CLIENT_ENDPOINT = new ExecutionAttribute<>("EndpointOverride");
-    
+
+    /**
+     * If the client signer value has been overridden.
+     */
+    public static final ExecutionAttribute<Boolean> SIGNER_OVERRIDDEN = new ExecutionAttribute<>("SignerOverridden");
+
     protected SdkExecutionAttribute() {
     }
 }

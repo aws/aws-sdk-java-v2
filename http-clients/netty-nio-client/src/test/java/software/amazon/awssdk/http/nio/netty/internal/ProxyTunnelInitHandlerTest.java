@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -40,9 +41,11 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.ssl.SslCloseCompletionEvent;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Base64;
 import java.util.function.Supplier;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -60,6 +63,8 @@ public class ProxyTunnelInitHandlerTest {
     private static final NioEventLoopGroup GROUP = new NioEventLoopGroup(1);
 
     private static final URI REMOTE_HOST = URI.create("https://s3.amazonaws.com:1234");
+    private static final String PROXY_USER = "myuser";
+    private static final String PROXY_PASSWORD = "mypassword";
 
     @Mock
     private ChannelHandlerContext mockCtx;
@@ -92,7 +97,7 @@ public class ProxyTunnelInitHandlerTest {
         Supplier<HttpClientCodec> codecSupplier = () -> codec;
         when(mockCtx.name()).thenReturn("foo");
 
-        ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, REMOTE_HOST, null, codecSupplier);
+        ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, null, null, REMOTE_HOST, null, codecSupplier);
         handler.handlerAdded(mockCtx);
 
         verify(mockPipeline).addBefore(eq("foo"), eq(null), eq(codec));
@@ -197,7 +202,7 @@ public class ProxyTunnelInitHandlerTest {
     }
 
     @Test
-    public void handledAdded_writesRequest() {
+    public void handledAdded_writesRequest_withoutAuth() {
         Promise<Channel> promise = GROUP.next().newPromise();
         ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, REMOTE_HOST, promise);
         handler.handlerAdded(mockCtx);
@@ -209,6 +214,26 @@ public class ProxyTunnelInitHandlerTest {
         HttpRequest expectedRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.CONNECT, uri,
                                                                  Unpooled.EMPTY_BUFFER, false);
         expectedRequest.headers().add(HttpHeaderNames.HOST, uri);
+
+        assertThat(requestCaptor.getValue()).isEqualTo(expectedRequest);
+    }
+
+    @Test
+    public void handledAdded_writesRequest_withAuth() {
+        Promise<Channel> promise = GROUP.next().newPromise();
+        ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, PROXY_USER, PROXY_PASSWORD, REMOTE_HOST, promise);
+        handler.handlerAdded(mockCtx);
+
+        ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(mockChannel).writeAndFlush(requestCaptor.capture());
+
+        String uri = REMOTE_HOST.getHost() + ":" + REMOTE_HOST.getPort();
+        HttpRequest expectedRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.CONNECT, uri,
+                Unpooled.EMPTY_BUFFER, false);
+        expectedRequest.headers().add(HttpHeaderNames.HOST, uri);
+
+        String authB64 = Base64.getEncoder().encodeToString(String.format("%s:%s", PROXY_USER, PROXY_PASSWORD).getBytes(CharsetUtil.UTF_8));
+        expectedRequest.headers().add(HttpHeaderNames.PROXY_AUTHORIZATION, String.format("Basic %s", authB64));
 
         assertThat(requestCaptor.getValue()).isEqualTo(expectedRequest);
     }

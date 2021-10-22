@@ -15,8 +15,13 @@
 
 package software.amazon.awssdk.services.s3.internal.resource;
 
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.services.s3.internal.signing.S3SigningUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -29,6 +34,8 @@ public final class S3AccessPointResource
     implements S3Resource, ToCopyableBuilder<S3AccessPointResource.Builder, S3AccessPointResource> {
 
     private static final S3ResourceType S3_RESOURCE_TYPE = S3ResourceType.ACCESS_POINT;
+    private static final Set<S3ResourceType> VALID_PARENT_RESOURCE_TYPES = EnumSet.of(S3ResourceType.OUTPOST,
+                                                                                      S3ResourceType.OBJECT_LAMBDA);
 
     private final String partition;
     private final String region;
@@ -41,7 +48,7 @@ public final class S3AccessPointResource
         if (b.parentS3Resource == null) {
             this.parentS3Resource = null;
             this.partition = Validate.paramNotBlank(b.partition, "partition");
-            this.region = Validate.paramNotBlank(b.region, "region");
+            this.region = b.region;
             this.accountId = Validate.paramNotBlank(b.accountId, "accountId");
         } else {
             this.parentS3Resource = validateParentS3Resource(b.parentS3Resource);
@@ -112,6 +119,11 @@ public final class S3AccessPointResource
     }
 
     @Override
+    public Optional<Signer> overrideSigner() {
+        return StringUtils.isEmpty(region) ? Optional.of(S3SigningUtils.getSigV4aSigner()) : Optional.empty();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -158,12 +170,13 @@ public final class S3AccessPointResource
     }
 
     private S3Resource validateParentS3Resource(S3Resource parentS3Resource) {
-        String parentResourceType = parentS3Resource.type();
-        if (!S3ResourceType.OUTPOST.toString().equals(parentResourceType)
-            && !S3ResourceType.OBJECT_LAMBDA.toString().equals(parentResourceType)) {
-            throw new IllegalArgumentException("Invalid 'parentS3Resource' type. An S3 access point resource must be " +
-                                               "associated with an outpost or object lambda parent resource.");
-        }
+        String invalidParentResourceTypeMessage =
+            "Invalid 'parentS3Resource' type. An S3 access point resource must be "
+            + "associated with an outpost or object lambda parent resource.";
+        VALID_PARENT_RESOURCE_TYPES.stream()
+                                   .filter(r -> r.toString().equals(parentS3Resource.type()))
+                                   .findAny()
+                                   .orElseThrow(() -> new IllegalArgumentException(invalidParentResourceTypeMessage));
         return parentS3Resource;
     }
 

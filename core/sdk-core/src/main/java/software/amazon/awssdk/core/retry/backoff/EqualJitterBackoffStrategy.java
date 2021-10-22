@@ -86,6 +86,7 @@ public final class EqualJitterBackoffStrategy implements BackoffStrategy,
 
         Duration maxBackoffTime();
 
+        @Override
         EqualJitterBackoffStrategy build();
     }
 

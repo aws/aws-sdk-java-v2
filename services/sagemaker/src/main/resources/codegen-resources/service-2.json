@@ -63,7 +63,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates an <i>action</i>. An action is a lineage tracking entity that represents an action or activity. For example, a model deployment or an HPO job. Generally, an action involves at least one input or output artifact. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p> <note> <p> <code>CreateAction</code> can only be invoked from within an SageMaker managed environment. This includes SageMaker training jobs, processing jobs, transform jobs, and SageMaker notebooks. A call to <code>CreateAction</code> from outside one of these environments results in an error.</p> </note>"
+      "documentation":"<p>Creates an <i>action</i>. An action is a lineage tracking entity that represents an action or activity. For example, a model deployment or an HPO job. Generally, an action involves at least one input or output artifact. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p>"
     },
     "CreateAlgorithm":{
       "name":"CreateAlgorithm",
@@ -113,7 +113,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates an <i>artifact</i>. An artifact is a lineage tracking entity that represents a URI addressable object or data. Some examples are the S3 URI of a dataset and the ECR registry path of an image. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p> <note> <p> <code>CreateArtifact</code> can only be invoked from within an SageMaker managed environment. This includes SageMaker training jobs, processing jobs, transform jobs, and SageMaker notebooks. A call to <code>CreateArtifact</code> from outside one of these environments results in an error.</p> </note>"
+      "documentation":"<p>Creates an <i>artifact</i>. An artifact is a lineage tracking entity that represents a URI addressable object or data. Some examples are the S3 URI of a dataset and the ECR registry path of an image. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p>"
     },
     "CreateAutoMLJob":{
       "name":"CreateAutoMLJob",
@@ -164,7 +164,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates a <i>context</i>. A context is a lineage tracking entity that represents a logical grouping of other tracking or experiment entities. Some examples are an endpoint and a model package. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p> <note> <p> <code>CreateContext</code> can only be invoked from within an SageMaker managed environment. This includes SageMaker training jobs, processing jobs, transform jobs, and SageMaker notebooks. A call to <code>CreateContext</code> from outside one of these environments results in an error.</p> </note>"
+      "documentation":"<p>Creates a <i>context</i>. A context is a lineage tracking entity that represents a logical grouping of other tracking or experiment entities. Some examples are an endpoint and a model package. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p>"
     },
     "CreateDataQualityJobDefinition":{
       "name":"CreateDataQualityJobDefinition",
@@ -205,7 +205,7 @@
         {"shape":"ResourceLimitExceeded"},
         {"shape":"ResourceInUse"}
       ],
-      "documentation":"<p>Creates a <code>Domain</code> used by Amazon SageMaker Studio. A domain consists of an associated Amazon Elastic File System (EFS) volume, a list of authorized users, and a variety of security, application, policy, and Amazon Virtual Private Cloud (VPC) configurations. An Amazon Web Services account is limited to one domain per region. Users within a domain can share notebook files and other artifacts with each other.</p> <p> <b>EFS storage</b> </p> <p>When a domain is created, an EFS volume is created for use by all of the users within the domain. Each user receives a private home directory within the EFS volume for notebooks, Git repositories, and data files.</p> <p>SageMaker uses the Amazon Web Services Key Management Service (Amazon Web Services KMS) to encrypt the EFS volume attached to the domain with an Amazon Web Services managed customer master key (CMK) by default. For more control, you can specify a customer managed CMK. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/encryption-at-rest.html\">Protect Data at Rest Using Encryption</a>.</p> <p> <b>VPC configuration</b> </p> <p>All SageMaker Studio traffic between the domain and the EFS volume is through the specified VPC and subnets. For other Studio traffic, you can specify the <code>AppNetworkAccessType</code> parameter. <code>AppNetworkAccessType</code> corresponds to the network access type that you choose when you onboard to Studio. The following options are available:</p> <ul> <li> <p> <code>PublicInternetOnly</code> - Non-EFS traffic goes through a VPC managed by Amazon SageMaker, which allows internet access. This is the default value.</p> </li> <li> <p> <code>VpcOnly</code> - All Studio traffic is through the specified VPC and subnets. Internet access is disabled by default. To allow internet access, you must specify a NAT gateway.</p> <p>When internet access is disabled, you won't be able to run a Studio notebook or to train or host models unless your VPC has an interface endpoint to the SageMaker API and runtime or a NAT gateway and your security groups allow outbound connections.</p> </li> </ul> <important> <p>NFS traffic over TCP on port 2049 needs to be allowed in both inbound and outbound rules in order to launch a SageMaker Studio app successfully.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/studio-notebooks-and-internet-access.html\">Connect SageMaker Studio Notebooks to Resources in a VPC</a>.</p>"
+      "documentation":"<p>Creates a <code>Domain</code> used by Amazon SageMaker Studio. A domain consists of an associated Amazon Elastic File System (EFS) volume, a list of authorized users, and a variety of security, application, policy, and Amazon Virtual Private Cloud (VPC) configurations. An Amazon Web Services account is limited to one domain per region. Users within a domain can share notebook files and other artifacts with each other.</p> <p> <b>EFS storage</b> </p> <p>When a domain is created, an EFS volume is created for use by all of the users within the domain. Each user receives a private home directory within the EFS volume for notebooks, Git repositories, and data files.</p> <p>SageMaker uses the Amazon Web Services Key Management Service (Amazon Web Services KMS) to encrypt the EFS volume attached to the domain with an Amazon Web Services managed key by default. For more control, you can specify a customer managed key. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/encryption-at-rest.html\">Protect Data at Rest Using Encryption</a>.</p> <p> <b>VPC configuration</b> </p> <p>All SageMaker Studio traffic between the domain and the EFS volume is through the specified VPC and subnets. For other Studio traffic, you can specify the <code>AppNetworkAccessType</code> parameter. <code>AppNetworkAccessType</code> corresponds to the network access type that you choose when you onboard to Studio. The following options are available:</p> <ul> <li> <p> <code>PublicInternetOnly</code> - Non-EFS traffic goes through a VPC managed by Amazon SageMaker, which allows internet access. This is the default value.</p> </li> <li> <p> <code>VpcOnly</code> - All Studio traffic is through the specified VPC and subnets. Internet access is disabled by default. To allow internet access, you must specify a NAT gateway.</p> <p>When internet access is disabled, you won't be able to run a Studio notebook or to train or host models unless your VPC has an interface endpoint to the SageMaker API and runtime or a NAT gateway and your security groups allow outbound connections.</p> </li> </ul> <important> <p>NFS traffic over TCP on port 2049 needs to be allowed in both inbound and outbound rules in order to launch a SageMaker Studio app successfully.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/studio-notebooks-and-internet-access.html\">Connect SageMaker Studio Notebooks to Resources in a VPC</a>.</p>"
     },
     "CreateEdgePackagingJob":{
       "name":"CreateEdgePackagingJob",
@@ -230,7 +230,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates an endpoint using the endpoint configuration specified in the request. Amazon SageMaker uses the endpoint to provision resources and deploy models. You create the endpoint configuration with the <a>CreateEndpointConfig</a> API. </p> <p> Use this API to deploy models using Amazon SageMaker hosting services. </p> <p>For an example that calls this method when deploying a model to Amazon SageMaker hosting services, see the <a href=\"https://github.com/aws/amazon-sagemaker-examples/blob/master/sagemaker-fundamentals/create-endpoint/create_endpoint.ipynb\">Create Endpoint example notebook.</a> </p> <note> <p> You must not delete an <code>EndpointConfig</code> that is in use by an endpoint that is live or while the <code>UpdateEndpoint</code> or <code>CreateEndpoint</code> operations are being performed on the endpoint. To update an endpoint, you must create a new <code>EndpointConfig</code>.</p> </note> <p>The endpoint name must be unique within an Amazon Web Services Region in your Amazon Web Services account. </p> <p>When it receives the request, Amazon SageMaker creates the endpoint, launches the resources (ML compute instances), and deploys the model(s) on them. </p> <note> <p>When you call <a>CreateEndpoint</a>, a load call is made to DynamoDB to verify that your endpoint configuration exists. When you read data from a DynamoDB table supporting <a href=\"https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html\"> <code>Eventually Consistent Reads</code> </a>, the response might not reflect the results of a recently completed write operation. The response might include some stale data. If the dependent entities are not yet in DynamoDB, this causes a validation error. If you repeat your read request after a short time, the response should return the latest data. So retry logic is recommended to handle these possible issues. We also recommend that customers call <a>DescribeEndpointConfig</a> before calling <a>CreateEndpoint</a> to minimize the potential impact of a DynamoDB eventually consistent read.</p> </note> <p>When Amazon SageMaker receives the request, it sets the endpoint status to <code>Creating</code>. After it creates the endpoint, it sets the status to <code>InService</code>. Amazon SageMaker can then process incoming requests for inferences. To check the status of an endpoint, use the <a>DescribeEndpoint</a> API.</p> <p>If any of the models hosted at this endpoint get model data from an Amazon S3 location, Amazon SageMaker uses Amazon Web Services Security Token Service to download model artifacts from the S3 path you provided. Amazon Web Services STS is activated in your IAM user account by default. If you previously deactivated Amazon Web Services STS for a region, you need to reactivate Amazon Web Services STS for that region. For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html\">Activating and Deactivating Amazon Web Services STS in an Amazon Web Services Region</a> in the <i>Amazon Web Services Identity and Access Management User Guide</i>.</p> <note> <p> To add the IAM role policies for using this API operation, go to the <a href=\"https://console.aws.amazon.com/iam/\">IAM console</a>, and choose Roles in the left navigation pane. Search the IAM role that you want to grant access to use the <a>CreateEndpoint</a> and <a>CreateEndpointConfig</a> API operations, add the following policies to the role. </p> <ul> <li> <p>Option 1: For a full Amazon SageMaker access, search and attach the <code>AmazonSageMakerFullAccess</code> policy.</p> </li> <li> <p>Option 2: For granting a limited access to an IAM role, paste the following Action elements manually into the JSON file of the IAM role: </p> <p> <code>\"Action\": [\"sagemaker:CreateEndpoint\", \"sagemaker:CreateEndpointConfig\"]</code> </p> <p> <code>\"Resource\": [</code> </p> <p> <code>\"arn:aws:sagemaker:region:account-id:endpoint/endpointName\"</code> </p> <p> <code>\"arn:aws:sagemaker:region:account-id:endpoint-config/endpointConfigName\"</code> </p> <p> <code>]</code> </p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/api-permissions-reference.html\">Amazon SageMaker API Permissions: Actions, Permissions, and Resources Reference</a>.</p> </li> </ul> </note>"
+      "documentation":"<p>Creates an endpoint using the endpoint configuration specified in the request. Amazon SageMaker uses the endpoint to provision resources and deploy models. You create the endpoint configuration with the <a>CreateEndpointConfig</a> API. </p> <p> Use this API to deploy models using Amazon SageMaker hosting services. </p> <p>For an example that calls this method when deploying a model to Amazon SageMaker hosting services, see the <a href=\"https://github.com/aws/amazon-sagemaker-examples/blob/master/sagemaker-fundamentals/create-endpoint/create_endpoint.ipynb\">Create Endpoint example notebook.</a> </p> <note> <p> You must not delete an <code>EndpointConfig</code> that is in use by an endpoint that is live or while the <code>UpdateEndpoint</code> or <code>CreateEndpoint</code> operations are being performed on the endpoint. To update an endpoint, you must create a new <code>EndpointConfig</code>.</p> </note> <p>The endpoint name must be unique within an Amazon Web Services Region in your Amazon Web Services account. </p> <p>When it receives the request, Amazon SageMaker creates the endpoint, launches the resources (ML compute instances), and deploys the model(s) on them. </p> <note> <p>When you call <a>CreateEndpoint</a>, a load call is made to DynamoDB to verify that your endpoint configuration exists. When you read data from a DynamoDB table supporting <a href=\"https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html\"> <code>Eventually Consistent Reads</code> </a>, the response might not reflect the results of a recently completed write operation. The response might include some stale data. If the dependent entities are not yet in DynamoDB, this causes a validation error. If you repeat your read request after a short time, the response should return the latest data. So retry logic is recommended to handle these possible issues. We also recommend that customers call <a>DescribeEndpointConfig</a> before calling <a>CreateEndpoint</a> to minimize the potential impact of a DynamoDB eventually consistent read.</p> </note> <p>When Amazon SageMaker receives the request, it sets the endpoint status to <code>Creating</code>. After it creates the endpoint, it sets the status to <code>InService</code>. Amazon SageMaker can then process incoming requests for inferences. To check the status of an endpoint, use the <a>DescribeEndpoint</a> API.</p> <p>If any of the models hosted at this endpoint get model data from an Amazon S3 location, Amazon SageMaker uses Amazon Web Services Security Token Service to download model artifacts from the S3 path you provided. Amazon Web Services STS is activated in your IAM user account by default. If you previously deactivated Amazon Web Services STS for a region, you need to reactivate Amazon Web Services STS for that region. For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html\">Activating and Deactivating Amazon Web Services STS in an Amazon Web Services Region</a> in the <i>Amazon Web Services Identity and Access Management User Guide</i>.</p> <note> <p> To add the IAM role policies for using this API operation, go to the <a href=\"https://console.aws.amazon.com/iam/\">IAM console</a>, and choose Roles in the left navigation pane. Search the IAM role that you want to grant access to use the <a>CreateEndpoint</a> and <a>CreateEndpointConfig</a> API operations, add the following policies to the role. </p> <ul> <li> <p>Option 1: For a full SageMaker access, search and attach the <code>AmazonSageMakerFullAccess</code> policy.</p> </li> <li> <p>Option 2: For granting a limited access to an IAM role, paste the following Action elements manually into the JSON file of the IAM role: </p> <p> <code>\"Action\": [\"sagemaker:CreateEndpoint\", \"sagemaker:CreateEndpointConfig\"]</code> </p> <p> <code>\"Resource\": [</code> </p> <p> <code>\"arn:aws:sagemaker:region:account-id:endpoint/endpointName\"</code> </p> <p> <code>\"arn:aws:sagemaker:region:account-id:endpoint-config/endpointConfigName\"</code> </p> <p> <code>]</code> </p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/api-permissions-reference.html\">SageMaker API Permissions: Actions, Permissions, and Resources Reference</a>.</p> </li> </ul> </note>"
     },
     "CreateEndpointConfig":{
       "name":"CreateEndpointConfig",
@@ -243,7 +243,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates an endpoint configuration that Amazon SageMaker hosting services uses to deploy models. In the configuration, you identify one or more models, created using the <code>CreateModel</code> API, to deploy and the resources that you want Amazon SageMaker to provision. Then you call the <a>CreateEndpoint</a> API.</p> <note> <p> Use this API if you want to use Amazon SageMaker hosting services to deploy models into production. </p> </note> <p>In the request, you define a <code>ProductionVariant</code>, for each model that you want to deploy. Each <code>ProductionVariant</code> parameter also describes the resources that you want Amazon SageMaker to provision. This includes the number and type of ML compute instances to deploy. </p> <p>If you are hosting multiple models, you also assign a <code>VariantWeight</code> to specify how much traffic you want to allocate to each model. For example, suppose that you want to host two models, A and B, and you assign traffic weight 2 for model A and 1 for model B. Amazon SageMaker distributes two-thirds of the traffic to Model A, and one-third to model B. </p> <p>For an example that calls this method when deploying a model to Amazon SageMaker hosting services, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/ex1-deploy-model.html#ex1-deploy-model-boto\">Deploy the Model to Amazon SageMaker Hosting Services (Amazon Web Services SDK for Python (Boto 3)).</a> </p> <note> <p>When you call <a>CreateEndpoint</a>, a load call is made to DynamoDB to verify that your endpoint configuration exists. When you read data from a DynamoDB table supporting <a href=\"https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html\"> <code>Eventually Consistent Reads</code> </a>, the response might not reflect the results of a recently completed write operation. The response might include some stale data. If the dependent entities are not yet in DynamoDB, this causes a validation error. If you repeat your read request after a short time, the response should return the latest data. So retry logic is recommended to handle these possible issues. We also recommend that customers call <a>DescribeEndpointConfig</a> before calling <a>CreateEndpoint</a> to minimize the potential impact of a DynamoDB eventually consistent read.</p> </note>"
+      "documentation":"<p>Creates an endpoint configuration that Amazon SageMaker hosting services uses to deploy models. In the configuration, you identify one or more models, created using the <code>CreateModel</code> API, to deploy and the resources that you want Amazon SageMaker to provision. Then you call the <a>CreateEndpoint</a> API.</p> <note> <p> Use this API if you want to use Amazon SageMaker hosting services to deploy models into production. </p> </note> <p>In the request, you define a <code>ProductionVariant</code>, for each model that you want to deploy. Each <code>ProductionVariant</code> parameter also describes the resources that you want Amazon SageMaker to provision. This includes the number and type of ML compute instances to deploy. </p> <p>If you are hosting multiple models, you also assign a <code>VariantWeight</code> to specify how much traffic you want to allocate to each model. For example, suppose that you want to host two models, A and B, and you assign traffic weight 2 for model A and 1 for model B. Amazon SageMaker distributes two-thirds of the traffic to Model A, and one-third to model B. </p> <note> <p>When you call <a>CreateEndpoint</a>, a load call is made to DynamoDB to verify that your endpoint configuration exists. When you read data from a DynamoDB table supporting <a href=\"https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html\"> <code>Eventually Consistent Reads</code> </a>, the response might not reflect the results of a recently completed write operation. The response might include some stale data. If the dependent entities are not yet in DynamoDB, this causes a validation error. If you repeat your read request after a short time, the response should return the latest data. So retry logic is recommended to handle these possible issues. We also recommend that customers call <a>DescribeEndpointConfig</a> before calling <a>CreateEndpoint</a> to minimize the potential impact of a DynamoDB eventually consistent read.</p> </note>"
     },
     "CreateExperiment":{
       "name":"CreateExperiment",
@@ -543,6 +543,19 @@
         {"shape":"ResourceLimitExceeded"}
       ],
       "documentation":"<p>Creates a machine learning (ML) project that can contain one or more templates that set up an ML pipeline from training to deploying an approved model.</p>"
+    },
+    "CreateStudioLifecycleConfig":{
+      "name":"CreateStudioLifecycleConfig",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateStudioLifecycleConfigRequest"},
+      "output":{"shape":"CreateStudioLifecycleConfigResponse"},
+      "errors":[
+        {"shape":"ResourceInUse"}
+      ],
+      "documentation":"<p>Creates a new Studio Lifecycle Configuration.</p>"
     },
     "CreateTrainingJob":{
       "name":"CreateTrainingJob",
@@ -1001,6 +1014,19 @@
         {"shape":"ConflictException"}
       ],
       "documentation":"<p>Delete the specified project.</p>"
+    },
+    "DeleteStudioLifecycleConfig":{
+      "name":"DeleteStudioLifecycleConfig",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteStudioLifecycleConfigRequest"},
+      "errors":[
+        {"shape":"ResourceNotFound"},
+        {"shape":"ResourceInUse"}
+      ],
+      "documentation":"<p>Deletes the Studio Lifecycle Configuration. In order to delete the Lifecycle Configuration, there must be no running apps using the Lifecycle Configuration. You must also remove the Lifecycle Configuration from UserSettings in all Domains and UserProfiles.</p>"
     },
     "DeleteTags":{
       "name":"DeleteTags",
@@ -1546,6 +1572,19 @@
       "input":{"shape":"DescribeProjectInput"},
       "output":{"shape":"DescribeProjectOutput"},
       "documentation":"<p>Describes the details of a project.</p>"
+    },
+    "DescribeStudioLifecycleConfig":{
+      "name":"DescribeStudioLifecycleConfig",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeStudioLifecycleConfigRequest"},
+      "output":{"shape":"DescribeStudioLifecycleConfigResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"}
+      ],
+      "documentation":"<p>Describes the Studio Lifecycle Configuration.</p>"
     },
     "DescribeSubscribedWorkteam":{
       "name":"DescribeSubscribedWorkteam",
@@ -2175,6 +2214,19 @@
       "output":{"shape":"ListProjectsOutput"},
       "documentation":"<p>Gets a list of the projects in an Amazon Web Services account.</p>"
     },
+    "ListStudioLifecycleConfigs":{
+      "name":"ListStudioLifecycleConfigs",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListStudioLifecycleConfigsRequest"},
+      "output":{"shape":"ListStudioLifecycleConfigsResponse"},
+      "errors":[
+        {"shape":"ResourceInUse"}
+      ],
+      "documentation":"<p>Lists the Studio Lifecycle Configurations in your Amazon Web Services Account.</p>"
+    },
     "ListSubscribedWorkteams":{
       "name":"ListSubscribedWorkteams",
       "http":{
@@ -2318,6 +2370,21 @@
         {"shape":"ResourceNotFound"}
       ],
       "documentation":"<p>Renders the UI template so that you can preview the worker's experience. </p>"
+    },
+    "RetryPipelineExecution":{
+      "name":"RetryPipelineExecution",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RetryPipelineExecutionRequest"},
+      "output":{"shape":"RetryPipelineExecutionResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"},
+        {"shape":"ResourceLimitExceeded"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Retry the execution of the pipeline.</p>"
     },
     "Search":{
       "name":"Search",
@@ -3055,10 +3122,7 @@
           "shape":"ArnOrName",
           "documentation":"<p>The name of the algorithm resource to use for the training job. This must be an algorithm resource that you created or subscribe to on Amazon Web Services Marketplace. If you specify a value for this parameter, you can't specify a value for <code>TrainingImage</code>.</p>"
         },
-        "TrainingInputMode":{
-          "shape":"TrainingInputMode",
-          "documentation":"<p>The input mode that the algorithm supports. For the input modes that Amazon SageMaker algorithms support, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/algos.html\">Algorithms</a>. If an algorithm supports the <code>File</code> input mode, Amazon SageMaker downloads the training data from S3 to the provisioned ML storage Volume, and mounts the directory to docker volume for training container. If an algorithm supports the <code>Pipe</code> input mode, Amazon SageMaker streams data directly from S3 to the container. </p> <p> In File mode, make sure you provision ML storage volume with sufficient capacity to accommodate the data download from S3. In addition to the training data, the ML storage volume also stores the output model. The algorithm container use ML storage volume to also store intermediate information, if any. </p> <p> For distributed algorithms using File mode, training data is distributed uniformly, and your training duration is predictable if the input data objects size is approximately same. Amazon SageMaker does not split the files any further for model training. If the object sizes are skewed, training won't be optimal as the data distribution is also skewed where one host in a training cluster is overloaded, thus becoming bottleneck in training. </p>"
-        },
+        "TrainingInputMode":{"shape":"TrainingInputMode"},
         "MetricDefinitions":{
           "shape":"MetricDefinitionList",
           "documentation":"<p>A list of metric definition objects. Each object specifies the metric name and regular expressions used to parse algorithm logs. Amazon SageMaker publishes each metric to Amazon CloudWatch.</p>"
@@ -3935,11 +3999,11 @@
         },
         "MaxRuntimePerTrainingJobInSeconds":{
           "shape":"MaxRuntimePerTrainingJobInSeconds",
-          "documentation":"<p>The maximum time, in seconds, a training job is allowed to run as part of an AutoML job.</p>"
+          "documentation":"<p>The maximum time, in seconds, that each training job is allowed to run as part of a hyperparameter tuning job. For more information, see the used by the action.</p>"
         },
         "MaxAutoMLJobRuntimeInSeconds":{
           "shape":"MaxAutoMLJobRuntimeInSeconds",
-          "documentation":"<p>The maximum runtime, in seconds, an AutoML job has to complete.</p>"
+          "documentation":"<p>The maximum runtime, in seconds, an AutoML job has to complete.</p> <p>If an AutoML job exceeds the maximum runtime, the job is stopped automatically and its processing is ended gracefully. The AutoML job identifies the best model whose training was completed and marks it as the best-performing model. Any unfinished steps of the job, such as automatic one-click Autopilot model deployment, will not be completed. </p>"
         }
       },
       "documentation":"<p>How long a job is allowed to run, or how many candidates a job is allowed to generate.</p>"
@@ -5637,7 +5701,7 @@
         },
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>SageMaker uses Amazon Web Services KMS to encrypt the EFS volume attached to the domain with an Amazon Web Services managed customer master key (CMK) by default. For more control, specify a customer managed CMK.</p>"
+          "documentation":"<p>SageMaker uses Amazon Web Services KMS to encrypt the EFS volume attached to the domain with an Amazon Web Services managed key by default. For more control, specify a customer managed key.</p>"
         }
       }
     },
@@ -5691,7 +5755,7 @@
         },
         "ResourceKey":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The CMK to use when encrypting the EBS volume the edge packaging job runs on.</p>"
+          "documentation":"<p>The Amazon Web Services KMS key to use when encrypting the EBS volume the edge packaging job runs on.</p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -5832,7 +5896,7 @@
         },
         "OfflineStoreConfig":{
           "shape":"OfflineStoreConfig",
-          "documentation":"<p>Use this to configure an <code>OfflineFeatureStore</code>. This parameter allows you to specify:</p> <ul> <li> <p>The Amazon Simple Storage Service (Amazon S3) location of an <code>OfflineStore</code>.</p> </li> <li> <p>A configuration for an Amazon Web Services Glue or Amazon Web Services Hive data cataolgue. </p> </li> <li> <p>An KMS encryption key to encrypt the Amazon S3 location used for <code>OfflineStore</code>.</p> </li> </ul> <p>To learn more about this parameter, see <a>OfflineStoreConfig</a>.</p>"
+          "documentation":"<p>Use this to configure an <code>OfflineFeatureStore</code>. This parameter allows you to specify:</p> <ul> <li> <p>The Amazon Simple Storage Service (Amazon S3) location of an <code>OfflineStore</code>.</p> </li> <li> <p>A configuration for an Amazon Web Services Glue or Amazon Web Services Hive data catalog. </p> </li> <li> <p>An KMS encryption key to encrypt the Amazon S3 location used for <code>OfflineStore</code>. If KMS encryption key is not specified, by default we encrypt all data at rest using Amazon Web Services KMS key. By defining your <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-key.html\">bucket-level key</a> for SSE, you can reduce Amazon Web Services KMS requests costs by up to 99 percent.</p> </li> </ul> <p>To learn more about this parameter, see <a>OfflineStoreConfig</a>.</p>"
         },
         "RoleArn":{
           "shape":"RoleArn",
@@ -6735,7 +6799,7 @@
         },
         "ServiceCatalogProvisioningDetails":{
           "shape":"ServiceCatalogProvisioningDetails",
-          "documentation":"<p>The product ID and provisioning artifact ID to provision a service catalog. For information, see <a href=\"https://docs.aws.amazon.com/servicecatalog/latest/adminguide/introduction.html\">What is Amazon Web Services Service Catalog</a>.</p>"
+          "documentation":"<p>The product ID and provisioning artifact ID to provision a service catalog. The provisioning artifact ID will default to the latest provisioning artifact ID of the product, if you don't provide the provisioning artifact ID. For more information, see <a href=\"https://docs.aws.amazon.com/servicecatalog/latest/adminguide/introduction.html\">What is Amazon Web Services Service Catalog</a>.</p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -6757,6 +6821,41 @@
         "ProjectId":{
           "shape":"ProjectId",
           "documentation":"<p>The ID of the new project.</p>"
+        }
+      }
+    },
+    "CreateStudioLifecycleConfigRequest":{
+      "type":"structure",
+      "required":[
+        "StudioLifecycleConfigName",
+        "StudioLifecycleConfigContent",
+        "StudioLifecycleConfigAppType"
+      ],
+      "members":{
+        "StudioLifecycleConfigName":{
+          "shape":"StudioLifecycleConfigName",
+          "documentation":"<p>The name of the Studio Lifecycle Configuration to create.</p>"
+        },
+        "StudioLifecycleConfigContent":{
+          "shape":"StudioLifecycleConfigContent",
+          "documentation":"<p>The content of your Studio Lifecycle Configuration script. This content must be base64 encoded.</p>"
+        },
+        "StudioLifecycleConfigAppType":{
+          "shape":"StudioLifecycleConfigAppType",
+          "documentation":"<p>The App type that the Lifecycle Configuration is attached to.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags to be associated with the Lifecycle Configuration. Each tag consists of a key and an optional value. Tag keys must be unique per resource. Tags are searchable using the Search API. </p>"
+        }
+      }
+    },
+    "CreateStudioLifecycleConfigResponse":{
+      "type":"structure",
+      "members":{
+        "StudioLifecycleConfigArn":{
+          "shape":"StudioLifecycleConfigArn",
+          "documentation":"<p>The ARN of your created Lifecycle Configuration.</p>"
         }
       }
     },
@@ -7297,7 +7396,7 @@
         },
         "JoinSource":{
           "shape":"JoinSource",
-          "documentation":"<p>Specifies the source of the data to join with the transformed data. The valid values are <code>None</code> and <code>Input</code>. The default value is <code>None</code>, which specifies not to join the input with the transformed data. If you want the batch transform job to join the original input data with the transformed data, set <code>JoinSource</code> to <code>Input</code>. You can specify <code>OutputFilter</code> as an additional filter to select a portion of the joined dataset and store it in the output file.</p> <p>For JSON or JSONLines objects, such as a JSON array, Amazon SageMaker adds the transformed data to the input JSON object in an attribute called <code>SageMakerOutput</code>. The joined result for JSON must be a key-value pair object. If the input is not a key-value pair object, Amazon SageMaker creates a new JSON file. In the new JSON file, and the input data is stored under the <code>SageMakerInput</code> key and the results are stored in <code>SageMakerOutput</code>.</p> <p>For CSV data, Amazon SageMaker takes each row as a JSON array and joins the transformed data with the input by appending each transformed row to the end of the input. The joined data has the original input data followed by the transformed data and the output is a CSV file.</p> <p>For information on how joining in applied, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/batch-transform-data-processing.html#batch-transform-data-processing-workflow\">Workflow for Associating Inferences with Input Records</a>.</p>"
+          "documentation":"<p>Specifies the source of the data to join with the transformed data. The valid values are <code>None</code> and <code>Input</code>. The default value is <code>None</code>, which specifies not to join the input with the transformed data. If you want the batch transform job to join the original input data with the transformed data, set <code>JoinSource</code> to <code>Input</code>. You can specify <code>OutputFilter</code> as an additional filter to select a portion of the joined dataset and store it in the output file.</p> <p>For JSON or JSONLines objects, such as a JSON array, SageMaker adds the transformed data to the input JSON object in an attribute called <code>SageMakerOutput</code>. The joined result for JSON must be a key-value pair object. If the input is not a key-value pair object, SageMaker creates a new JSON file. In the new JSON file, and the input data is stored under the <code>SageMakerInput</code> key and the results are stored in <code>SageMakerOutput</code>.</p> <p>For CSV data, SageMaker takes each row as a JSON array and joins the transformed data with the input by appending each transformed row to the end of the input. The joined data has the original input data followed by the transformed data and the output is a CSV file.</p> <p>For information on how joining in applied, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/batch-transform-data-processing.html#batch-transform-data-processing-workflow\">Workflow for Associating Inferences with Input Records</a>.</p>"
         }
       },
       "documentation":"<p>The data structure used to specify the data to be used for inference in a batch transform job and to associate the data that is relevant to the prediction results in the output. The input filter provided allows you to exclude input data that is not needed for inference in a batch transform job. The output filter provided allows you to include input data relevant to interpreting the predictions in the output from the job. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/batch-transform-data-processing.html\">Associate Prediction Results with their Corresponding Input Records</a>.</p>"
@@ -7936,6 +8035,16 @@
         }
       }
     },
+    "DeleteStudioLifecycleConfigRequest":{
+      "type":"structure",
+      "required":["StudioLifecycleConfigName"],
+      "members":{
+        "StudioLifecycleConfigName":{
+          "shape":"StudioLifecycleConfigName",
+          "documentation":"<p>The name of the Studio Lifecycle Configuration to delete.</p>"
+        }
+      }
+    },
     "DeleteTagsInput":{
       "type":"structure",
       "required":[
@@ -8318,7 +8427,7 @@
         },
         "LastUserActivityTimestamp":{
           "shape":"Timestamp",
-          "documentation":"<p>The timestamp of the last user's activity.</p>"
+          "documentation":"<p>The timestamp of the last user's activity. <code>LastUserActivityTimestamp</code> is also updated when SageMaker performs health checks without user activity. As a result, this value is set to the same value as <code>LastHealthCheckTimestamp</code>.</p>"
         },
         "CreationTime":{
           "shape":"CreationTime",
@@ -8938,7 +9047,7 @@
         },
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The Amazon Web Services KMS customer managed CMK used to encrypt the EFS volume attached to the domain.</p>"
+          "documentation":"<p>The Amazon Web Services KMS customer managed key used to encrypt the EFS volume attached to the domain.</p>"
         }
       }
     },
@@ -8990,7 +9099,7 @@
         },
         "ResourceKey":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The CMK to use when encrypting the EBS volume the job run on.</p>"
+          "documentation":"<p>The Amazon Web Services KMS key to use when encrypting the EBS volume the job run on.</p>"
         },
         "EdgePackagingJobStatus":{
           "shape":"EdgePackagingJobStatus",
@@ -10522,6 +10631,45 @@
         }
       }
     },
+    "DescribeStudioLifecycleConfigRequest":{
+      "type":"structure",
+      "required":["StudioLifecycleConfigName"],
+      "members":{
+        "StudioLifecycleConfigName":{
+          "shape":"StudioLifecycleConfigName",
+          "documentation":"<p>The name of the Studio Lifecycle Configuration to describe.</p>"
+        }
+      }
+    },
+    "DescribeStudioLifecycleConfigResponse":{
+      "type":"structure",
+      "members":{
+        "StudioLifecycleConfigArn":{
+          "shape":"StudioLifecycleConfigArn",
+          "documentation":"<p>The ARN of the Lifecycle Configuration to describe.</p>"
+        },
+        "StudioLifecycleConfigName":{
+          "shape":"StudioLifecycleConfigName",
+          "documentation":"<p>The name of the Studio Lifecycle Configuration that is described.</p>"
+        },
+        "CreationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The creation time of the Studio Lifecycle Configuration.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>This value is equivalent to CreationTime because Studio Lifecycle Configurations are immutable.</p>"
+        },
+        "StudioLifecycleConfigContent":{
+          "shape":"StudioLifecycleConfigContent",
+          "documentation":"<p>The content of your Studio Lifecycle Configuration script.</p>"
+        },
+        "StudioLifecycleConfigAppType":{
+          "shape":"StudioLifecycleConfigAppType",
+          "documentation":"<p>The App type that the Lifecycle Configuration is attached to.</p>"
+        }
+      }
+    },
     "DescribeSubscribedWorkteamRequest":{
       "type":"structure",
       "required":["WorkteamArn"],
@@ -10677,7 +10825,7 @@
         },
         "BillableTimeInSeconds":{
           "shape":"BillableTimeInSeconds",
-          "documentation":"<p>The billable time in seconds. Billable time refers to the absolute wall-clock time.</p> <p>Multiply <code>BillableTimeInSeconds</code> by the number of instances (<code>InstanceCount</code>) in your training cluster to get the total compute time Amazon SageMaker will bill you if you run distributed training. The formula is as follows: <code>BillableTimeInSeconds * InstanceCount</code> .</p> <p>You can calculate the savings from using managed spot training using the formula <code>(1 - BillableTimeInSeconds / TrainingTimeInSeconds) * 100</code>. For example, if <code>BillableTimeInSeconds</code> is 100 and <code>TrainingTimeInSeconds</code> is 500, the savings is 80%.</p>"
+          "documentation":"<p>The billable time in seconds. Billable time refers to the absolute wall-clock time.</p> <p>Multiply <code>BillableTimeInSeconds</code> by the number of instances (<code>InstanceCount</code>) in your training cluster to get the total compute time SageMaker will bill you if you run distributed training. The formula is as follows: <code>BillableTimeInSeconds * InstanceCount</code> .</p> <p>You can calculate the savings from using managed spot training using the formula <code>(1 - BillableTimeInSeconds / TrainingTimeInSeconds) * 100</code>. For example, if <code>BillableTimeInSeconds</code> is 100 and <code>TrainingTimeInSeconds</code> is 500, the savings is 80%.</p>"
         },
         "DebugHookConfig":{"shape":"DebugHookConfig"},
         "ExperimentConfig":{"shape":"ExperimentConfig"},
@@ -10858,7 +11006,7 @@
         },
         "CreatedBy":{
           "shape":"UserContext",
-          "documentation":"<p>Who created the component.</p>"
+          "documentation":"<p>Who created the trial component.</p>"
         },
         "LastModifiedTime":{
           "shape":"Timestamp",
@@ -11743,7 +11891,7 @@
         },
         "S3InputMode":{
           "shape":"ProcessingS3InputMode",
-          "documentation":"<p>Whether the <code>Pipe</code> or <code>File</code> is used as the input mode for transfering data for the monitoring job. <code>Pipe</code> mode is recommended for large datasets. <code>File</code> mode is useful for small files that fit in memory. Defaults to <code>File</code>.</p>"
+          "documentation":"<p>Whether the <code>Pipe</code> or <code>File</code> is used as the input mode for transferring data for the monitoring job. <code>Pipe</code> mode is recommended for large datasets. <code>File</code> mode is useful for small files that fit in memory. Defaults to <code>File</code>.</p>"
         },
         "S3DataDistributionType":{
           "shape":"ProcessingS3DataDistributionType",
@@ -11912,7 +12060,10 @@
           "shape":"Timestamp",
           "documentation":"<p>When the experiment was created.</p>"
         },
-        "CreatedBy":{"shape":"UserContext"},
+        "CreatedBy":{
+          "shape":"UserContext",
+          "documentation":"<p>Who created the experiment.</p>"
+        },
         "LastModifiedTime":{
           "shape":"Timestamp",
           "documentation":"<p>When the experiment was last modified.</p>"
@@ -12843,10 +12994,7 @@
           "shape":"AlgorithmImage",
           "documentation":"<p> The registry path of the Docker image that contains the training algorithm. For information about Docker registry paths for built-in algorithms, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-algo-docker-registry-paths.html\">Algorithms Provided by Amazon SageMaker: Common Parameters</a>. Amazon SageMaker supports both <code>registry/repository[:tag]</code> and <code>registry/repository[@digest]</code> image path formats. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms.html\">Using Your Own Algorithms with Amazon SageMaker</a>.</p>"
         },
-        "TrainingInputMode":{
-          "shape":"TrainingInputMode",
-          "documentation":"<p>The input mode that the algorithm supports: File or Pipe. In File input mode, Amazon SageMaker downloads the training data from Amazon S3 to the storage volume that is attached to the training instance and mounts the directory to the Docker volume for the training container. In Pipe input mode, Amazon SageMaker streams data directly from Amazon S3 to the container. </p> <p>If you specify File mode, make sure that you provision the storage volume that is attached to the training instance with enough capacity to accommodate the training data downloaded from Amazon S3, the model artifacts, and intermediate information.</p> <p/> <p>For more information about input modes, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/algos.html\">Algorithms</a>. </p>"
-        },
+        "TrainingInputMode":{"shape":"TrainingInputMode"},
         "AlgorithmName":{
           "shape":"ArnOrName",
           "documentation":"<p>The name of the resource algorithm to use for the hyperparameter tuning job. If you specify a value for this parameter, do not specify a value for <code>TrainingImage</code>.</p>"
@@ -13768,6 +13916,10 @@
         "DefaultResourceSpec":{
           "shape":"ResourceSpec",
           "documentation":"<p>The default instance type and the Amazon Resource Name (ARN) of the default SageMaker image used by the JupyterServer app.</p>"
+        },
+        "LifecycleConfigArns":{
+          "shape":"LifecycleConfigArns",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the Lifecycle Configurations attached to the JupyterServerApp.</p>"
         }
       },
       "documentation":"<p>The JupyterServer app settings.</p>"
@@ -13786,6 +13938,10 @@
         "CustomImages":{
           "shape":"CustomImages",
           "documentation":"<p>A list of custom SageMaker images that are configured to run as a KernelGateway app.</p>"
+        },
+        "LifecycleConfigArns":{
+          "shape":"LifecycleConfigArns",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the Lifecycle Configurations attached to the the user profile or domain.</p>"
         }
       },
       "documentation":"<p>The KernelGateway app settings.</p>"
@@ -14041,7 +14197,7 @@
       "members":{
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt data on the storage volume attached to the ML compute instance(s) that run the training and inference jobs used for automated data labeling. </p> <p>You can only specify a <code>VolumeKmsKeyId</code> when you create a labeling job with automated data labeling enabled using the API operation <code>CreateLabelingJob</code>. You cannot specify an Amazon Web Services KMS customer managed CMK to encrypt the storage volume used for automated data labeling model training and inference when you create a labeling job using the console. To learn more, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/sms-security.html\">Output Data and Storage Volume Encryption</a>.</p> <p>The <code>VolumeKmsKeyId</code> can be any of the following formats:</p> <ul> <li> <p>KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt data on the storage volume attached to the ML compute instance(s) that run the training and inference jobs used for automated data labeling. </p> <p>You can only specify a <code>VolumeKmsKeyId</code> when you create a labeling job with automated data labeling enabled using the API operation <code>CreateLabelingJob</code>. You cannot specify an Amazon Web Services KMS key to encrypt the storage volume used for automated data labeling model training and inference when you create a labeling job using the console. To learn more, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/sms-security.html\">Output Data and Storage Volume Encryption</a>.</p> <p>The <code>VolumeKmsKeyId</code> can be any of the following formats:</p> <ul> <li> <p>KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
         }
       },
       "documentation":"<p>Configure encryption on the storage volume attached to the ML compute instance used to run automated data labeling model training and inference. </p>"
@@ -14181,6 +14337,10 @@
       "documentation":"<p>Metadata for a Lambda step.</p>"
     },
     "LastModifiedTime":{"type":"timestamp"},
+    "LifecycleConfigArns":{
+      "type":"list",
+      "member":{"shape":"StudioLifecycleConfigArn"}
+    },
     "LineageEntityParameters":{
       "type":"map",
       "key":{"shape":"StringParameterValue"},
@@ -15886,7 +16046,7 @@
         },
         "NameContains":{
           "shape":"ModelNameContains",
-          "documentation":"<p>A string in the training job name. This filter returns only models in the training job whose name contains the specified string.</p>"
+          "documentation":"<p>A string in the model name. This filter returns only models whose name contains the specified string.</p>"
         },
         "CreationTimeBefore":{
           "shape":"Timestamp",
@@ -16448,6 +16608,64 @@
         "NextToken":{
           "shape":"NextToken",
           "documentation":"<p>If the result of the previous <code>ListCompilationJobs</code> request was truncated, the response includes a <code>NextToken</code>. To retrieve the next set of model compilation jobs, use the token in the next request.</p>"
+        }
+      }
+    },
+    "ListStudioLifecycleConfigsRequest":{
+      "type":"structure",
+      "members":{
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of Studio Lifecycle Configurations to return in the response. The default value is 10.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the previous call to ListStudioLifecycleConfigs didn't return the full set of Lifecycle Configurations, the call returns a token for getting the next set of Lifecycle Configurations.</p>"
+        },
+        "NameContains":{
+          "shape":"StudioLifecycleConfigName",
+          "documentation":"<p>A string in the Lifecycle Configuration name. This filter returns only Lifecycle Configurations whose name contains the specified string.</p>"
+        },
+        "AppTypeEquals":{
+          "shape":"StudioLifecycleConfigAppType",
+          "documentation":"<p>A parameter to search for the App Type to which the Lifecycle Configuration is attached.</p>"
+        },
+        "CreationTimeBefore":{
+          "shape":"Timestamp",
+          "documentation":"<p>A filter that returns only Lifecycle Configurations created on or before the specified time.</p>"
+        },
+        "CreationTimeAfter":{
+          "shape":"Timestamp",
+          "documentation":"<p>A filter that returns only Lifecycle Configurations created on or after the specified time.</p>"
+        },
+        "ModifiedTimeBefore":{
+          "shape":"Timestamp",
+          "documentation":"<p>A filter that returns only Lifecycle Configurations modified before the specified time.</p>"
+        },
+        "ModifiedTimeAfter":{
+          "shape":"Timestamp",
+          "documentation":"<p>A filter that returns only Lifecycle Configurations modified after the specified time.</p>"
+        },
+        "SortBy":{
+          "shape":"StudioLifecycleConfigSortKey",
+          "documentation":"<p>The property used to sort results. The default value is CreationTime.</p>"
+        },
+        "SortOrder":{
+          "shape":"SortOrder",
+          "documentation":"<p>The sort order. The default value is Descending.</p>"
+        }
+      }
+    },
+    "ListStudioLifecycleConfigsResponse":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token for getting the next set of actions, if there are any.</p>"
+        },
+        "StudioLifecycleConfigs":{
+          "shape":"StudioLifecycleConfigsList",
+          "documentation":"<p>A list of Lifecycle Configurations and their properties.</p>"
         }
       }
     },
@@ -17181,7 +17399,7 @@
           "documentation":"<p>The path of the S3 object that contains the model artifacts. For example, <code>s3://bucket-name/keynameprefix/model.tar.gz</code>.</p>"
         }
       },
-      "documentation":"<p>Provides information about the location that is configured for storing model artifacts. </p> <p>Model artifacts are the output that results from training a model, and typically consist of trained parameters, a model defintion that describes how to compute inferences, and other metadata.</p>"
+      "documentation":"<p>Provides information about the location that is configured for storing model artifacts. </p> <p>Model artifacts are the output that results from training a model, and typically consist of trained parameters, a model definition that describes how to compute inferences, and other metadata.</p>"
     },
     "ModelBiasAppSpecification":{
       "type":"structure",
@@ -18990,7 +19208,7 @@
       "members":{
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt the model artifacts at rest using Amazon S3 server-side encryption. The <code>KmsKeyId</code> can be any of the following formats: </p> <ul> <li> <p>// KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// KMS Key Alias</p> <p> <code>\"alias/ExampleAlias\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key Alias</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias\"</code> </p> </li> </ul> <p>If you use a KMS key ID or an alias of your master key, the Amazon SageMaker execution role must include permissions to call <code>kms:Encrypt</code>. If you don't provide a KMS key ID, Amazon SageMaker uses the default KMS key for Amazon S3 for your role's account. Amazon SageMaker uses server-side encryption with KMS-managed keys for <code>OutputDataConfig</code>. If you use a bucket policy with an <code>s3:PutObject</code> permission that only allows objects with server-side encryption, set the condition key of <code>s3:x-amz-server-side-encryption</code> to <code>\"aws:kms\"</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html\">KMS-Managed Encryption Keys</a> in the <i>Amazon Simple Storage Service Developer Guide.</i> </p> <p>The KMS key policy must grant permission to the IAM role that you specify in your <code>CreateTrainingJob</code>, <code>CreateTransformJob</code>, or <code>CreateHyperParameterTuningJob</code> requests. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html\">Using Key Policies in Amazon Web Services KMS</a> in the <i>Amazon Web Services Key Management Service Developer Guide</i>.</p>"
+          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt the model artifacts at rest using Amazon S3 server-side encryption. The <code>KmsKeyId</code> can be any of the following formats: </p> <ul> <li> <p>// KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// KMS Key Alias</p> <p> <code>\"alias/ExampleAlias\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key Alias</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias\"</code> </p> </li> </ul> <p>If you use a KMS key ID or an alias of your KMS key, the Amazon SageMaker execution role must include permissions to call <code>kms:Encrypt</code>. If you don't provide a KMS key ID, Amazon SageMaker uses the default KMS key for Amazon S3 for your role's account. Amazon SageMaker uses server-side encryption with KMS-managed keys for <code>OutputDataConfig</code>. If you use a bucket policy with an <code>s3:PutObject</code> permission that only allows objects with server-side encryption, set the condition key of <code>s3:x-amz-server-side-encryption</code> to <code>\"aws:kms\"</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html\">KMS-Managed Encryption Keys</a> in the <i>Amazon Simple Storage Service Developer Guide.</i> </p> <p>The KMS key policy must grant permission to the IAM role that you specify in your <code>CreateTrainingJob</code>, <code>CreateTransformJob</code>, or <code>CreateHyperParameterTuningJob</code> requests. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html\">Using Key Policies in Amazon Web Services KMS</a> in the <i>Amazon Web Services Key Management Service Developer Guide</i>.</p>"
         },
         "S3OutputPath":{
           "shape":"S3Uri",
@@ -20038,7 +20256,7 @@
         },
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt the core dump data at rest using Amazon S3 server-side encryption. The <code>KmsKeyId</code> can be any of the following formats: </p> <ul> <li> <p>// KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// KMS Key Alias</p> <p> <code>\"alias/ExampleAlias\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key Alias</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias\"</code> </p> </li> </ul> <p>If you use a KMS key ID or an alias of your master key, the Amazon SageMaker execution role must include permissions to call <code>kms:Encrypt</code>. If you don't provide a KMS key ID, Amazon SageMaker uses the default KMS key for Amazon S3 for your role's account. Amazon SageMaker uses server-side encryption with KMS-managed keys for <code>OutputDataConfig</code>. If you use a bucket policy with an <code>s3:PutObject</code> permission that only allows objects with server-side encryption, set the condition key of <code>s3:x-amz-server-side-encryption</code> to <code>\"aws:kms\"</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingKMSEncryption.html\">KMS-Managed Encryption Keys</a> in the <i>Amazon Simple Storage Service Developer Guide.</i> </p> <p>The KMS key policy must grant permission to the IAM role that you specify in your <code>CreateEndpoint</code> and <code>UpdateEndpoint</code> requests. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html\">Using Key Policies in Amazon Web Services KMS</a> in the <i>Amazon Web Services Key Management Service Developer Guide</i>.</p>"
+          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt the core dump data at rest using Amazon S3 server-side encryption. The <code>KmsKeyId</code> can be any of the following formats: </p> <ul> <li> <p>// KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// KMS Key Alias</p> <p> <code>\"alias/ExampleAlias\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key Alias</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias\"</code> </p> </li> </ul> <p>If you use a KMS key ID or an alias of your KMS key, the Amazon SageMaker execution role must include permissions to call <code>kms:Encrypt</code>. If you don't provide a KMS key ID, Amazon SageMaker uses the default KMS key for Amazon S3 for your role's account. Amazon SageMaker uses server-side encryption with KMS-managed keys for <code>OutputDataConfig</code>. If you use a bucket policy with an <code>s3:PutObject</code> permission that only allows objects with server-side encryption, set the condition key of <code>s3:x-amz-server-side-encryption</code> to <code>\"aws:kms\"</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingKMSEncryption.html\">KMS-Managed Encryption Keys</a> in the <i>Amazon Simple Storage Service Developer Guide.</i> </p> <p>The KMS key policy must grant permission to the IAM role that you specify in your <code>CreateEndpoint</code> and <code>UpdateEndpoint</code> requests. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html\">Using Key Policies in Amazon Web Services KMS</a> in the <i>Amazon Web Services Key Management Service Developer Guide</i>.</p>"
         }
       },
       "documentation":"<p>Specifies configuration for a core dump from the model container when the process crashes.</p>"
@@ -20287,6 +20505,46 @@
         "Enabled",
         "Disabled"
       ]
+    },
+    "Project":{
+      "type":"structure",
+      "members":{
+        "ProjectArn":{
+          "shape":"ProjectArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the project.</p>"
+        },
+        "ProjectName":{
+          "shape":"ProjectEntityName",
+          "documentation":"<p>The name of the project.</p>"
+        },
+        "ProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The ID of the project.</p>"
+        },
+        "ProjectDescription":{
+          "shape":"EntityDescription",
+          "documentation":"<p>The description of the project.</p>"
+        },
+        "ServiceCatalogProvisioningDetails":{"shape":"ServiceCatalogProvisioningDetails"},
+        "ServiceCatalogProvisionedProductDetails":{"shape":"ServiceCatalogProvisionedProductDetails"},
+        "ProjectStatus":{
+          "shape":"ProjectStatus",
+          "documentation":"<p>The status of the project.</p>"
+        },
+        "CreatedBy":{
+          "shape":"UserContext",
+          "documentation":"<p>Who created the project.</p>"
+        },
+        "CreationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>A timestamp specifying when the project was created.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>An array of key-value pairs. You can use tags to categorize your Amazon Web Services resources in different ways, for example, by purpose, owner, or environment. For more information, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html\">Tagging Amazon Web Services Resources</a>.</p>"
+        }
+      },
+      "documentation":"<p>The properties of a project as returned by the Search API.</p>"
     },
     "ProjectArn":{
       "type":"string",
@@ -20805,6 +21063,10 @@
         "InstanceType":{
           "shape":"AppInstanceType",
           "documentation":"<p>The instance type that the image version runs on.</p>"
+        },
+        "LifecycleConfigArn":{
+          "shape":"StudioLifecycleConfigArn",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the Lifecycle Configuration attached to the Resource.</p>"
         }
       },
       "documentation":"<p>Specifies the ARN's of a SageMaker image and SageMaker image version, and the instance type that the version runs on.</p>"
@@ -20821,7 +21083,8 @@
         "ModelPackageGroup",
         "Pipeline",
         "PipelineExecution",
-        "FeatureGroup"
+        "FeatureGroup",
+        "Project"
       ]
     },
     "ResponseMIMEType":{
@@ -20849,6 +21112,33 @@
         "Retain",
         "Delete"
       ]
+    },
+    "RetryPipelineExecutionRequest":{
+      "type":"structure",
+      "required":[
+        "PipelineExecutionArn",
+        "ClientRequestToken"
+      ],
+      "members":{
+        "PipelineExecutionArn":{
+          "shape":"PipelineExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the pipeline execution.</p>"
+        },
+        "ClientRequestToken":{
+          "shape":"IdempotencyToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the operation. An idempotent operation completes no more than once.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "RetryPipelineExecutionResponse":{
+      "type":"structure",
+      "members":{
+        "PipelineExecutionArn":{
+          "shape":"PipelineExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the pipeline execution.</p>"
+        }
+      }
     },
     "RetryStrategy":{
       "type":"structure",
@@ -21052,7 +21342,11 @@
         "ModelPackageGroup":{"shape":"ModelPackageGroup"},
         "Pipeline":{"shape":"Pipeline"},
         "PipelineExecution":{"shape":"PipelineExecution"},
-        "FeatureGroup":{"shape":"FeatureGroup"}
+        "FeatureGroup":{"shape":"FeatureGroup"},
+        "Project":{
+          "shape":"Project",
+          "documentation":"<p>The properties of a project.</p>"
+        }
       },
       "documentation":"<p>A single resource returned as part of the <a>Search</a> API response.</p>"
     },
@@ -21257,10 +21551,7 @@
     },
     "ServiceCatalogProvisioningDetails":{
       "type":"structure",
-      "required":[
-        "ProductId",
-        "ProvisioningArtifactId"
-      ],
+      "required":["ProductId"],
       "members":{
         "ProductId":{
           "shape":"ServiceCatalogEntityId",
@@ -21279,7 +21570,7 @@
           "documentation":"<p>A list of key value pairs that you specify when you provision a product.</p>"
         }
       },
-      "documentation":"<p>Details that you specify to provision a service catalog product. For information about service catalog, see .<a href=\"https://docs.aws.amazon.com/servicecatalog/latest/adminguide/introduction.html\">What is Amazon Web Services Service Catalog</a>.</p>"
+      "documentation":"<p>Details that you specify to provision a service catalog product. For information about service catalog, see <a href=\"https://docs.aws.amazon.com/servicecatalog/latest/adminguide/introduction.html\">What is Amazon Web Services Service Catalog</a>.</p>"
     },
     "SessionExpirationDurationInSeconds":{
       "type":"integer",
@@ -21508,7 +21799,7 @@
         },
         "ClientRequestToken":{
           "shape":"IdempotencyToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the operation. An idempotent operation completes no more than one time.</p>",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the operation. An idempotent operation completes no more than once.</p>",
           "idempotencyToken":true
         }
       }
@@ -21627,7 +21918,7 @@
         },
         "ClientRequestToken":{
           "shape":"IdempotencyToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the operation. An idempotent operation completes no more than one time.</p>",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the operation. An idempotent operation completes no more than once.</p>",
           "idempotencyToken":true
         }
       }
@@ -21683,7 +21974,7 @@
           "documentation":"<p>The maximum length of time, in seconds, that a managed Spot training job has to complete. It is the amount of time spent waiting for Spot capacity plus the amount of time the job can run. It must be equal to or greater than <code>MaxRuntimeInSeconds</code>. If the job does not complete during this time, Amazon SageMaker ends the job.</p> <p>When <code>RetryStrategy</code> is specified in the job request, <code>MaxWaitTimeInSeconds</code> specifies the maximum time for all of the attempts in total, not each individual attempt.</p>"
         }
       },
-      "documentation":"<p>Specifies a limit to how long a model training job, model compilation job, or hyperparameter tuning job can run. It also specifies how long a managed Spot training job has to complete. When the job reaches the time limit, Amazon SageMaker ends the training or compilation job. Use this API to cap model training costs.</p> <p>To stop a training job, Amazon SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts, so the results of training are not lost. </p> <p>The training algorithms provided by Amazon SageMaker automatically save the intermediate results of a model training job when possible. This attempt to save artifacts is only a best effort case as model might not be in a state from which it can be saved. For example, if training has just started, the model might not be ready to save. When saved, this intermediate data is a valid model artifact. You can use it to create a model with <code>CreateModel</code>.</p> <note> <p>The Neural Topic Model (NTM) currently does not support saving intermediate model artifacts. When training NTMs, make sure that the maximum runtime is sufficient for the training job to complete.</p> </note>"
+      "documentation":"<p>Specifies a limit to how long a model training job or model compilation job can run. It also specifies how long a managed spot training job has to complete. When the job reaches the time limit, Amazon SageMaker ends the training or compilation job. Use this API to cap model training costs.</p> <p>To stop a training job, Amazon SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts, so the results of training are not lost. </p> <p>The training algorithms provided by Amazon SageMaker automatically save the intermediate results of a model training job when possible. This attempt to save artifacts is only a best effort case as model might not be in a state from which it can be saved. For example, if training has just started, the model might not be ready to save. When saved, this intermediate data is a valid model artifact. You can use it to create a model with <code>CreateModel</code>.</p> <note> <p>The Neural Topic Model (NTM) currently does not support saving intermediate model artifacts. When training NTMs, make sure that the maximum runtime is sufficient for the training job to complete.</p> </note>"
     },
     "String":{"type":"string"},
     "String1024":{
@@ -21712,6 +22003,67 @@
       "type":"string",
       "max":256,
       "pattern":".*"
+    },
+    "StudioLifecycleConfigAppType":{
+      "type":"string",
+      "enum":[
+        "JupyterServer",
+        "KernelGateway"
+      ]
+    },
+    "StudioLifecycleConfigArn":{
+      "type":"string",
+      "max":256,
+      "pattern":"arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:studio-lifecycle-config/.*"
+    },
+    "StudioLifecycleConfigContent":{
+      "type":"string",
+      "max":16384,
+      "min":1,
+      "pattern":"[\\S\\s]+"
+    },
+    "StudioLifecycleConfigDetails":{
+      "type":"structure",
+      "members":{
+        "StudioLifecycleConfigArn":{
+          "shape":"StudioLifecycleConfigArn",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the Lifecycle Configuration.</p>"
+        },
+        "StudioLifecycleConfigName":{
+          "shape":"StudioLifecycleConfigName",
+          "documentation":"<p>The name of the Studio Lifecycle Configuration.</p>"
+        },
+        "CreationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The creation time of the Studio Lifecycle Configuration.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>This value is equivalent to CreationTime because Studio Lifecycle Configurations are immutable.</p>"
+        },
+        "StudioLifecycleConfigAppType":{
+          "shape":"StudioLifecycleConfigAppType",
+          "documentation":"<p>The App type to which the Lifecycle Configuration is attached.</p>"
+        }
+      },
+      "documentation":"<p>Details of the Studio Lifecycle Configuration.</p>"
+    },
+    "StudioLifecycleConfigName":{
+      "type":"string",
+      "max":63,
+      "pattern":"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+    },
+    "StudioLifecycleConfigSortKey":{
+      "type":"string",
+      "enum":[
+        "CreationTime",
+        "LastModifiedTime",
+        "Name"
+      ]
+    },
+    "StudioLifecycleConfigsList":{
+      "type":"list",
+      "member":{"shape":"StudioLifecycleConfigDetails"}
     },
     "SubnetId":{
       "type":"string",
@@ -21788,7 +22140,7 @@
           "documentation":"<p>The tag value.</p>"
         }
       },
-      "documentation":"<p>A tag object that consists of a key and an optional value, used to manage metadata for Amazon SageMaker Amazon Web Services resources.</p> <p>You can add tags to notebook instances, training jobs, hyperparameter tuning jobs, batch transform jobs, models, labeling jobs, work teams, endpoint configurations, and endpoints. For more information on adding tags to Amazon SageMaker resources, see <a>AddTags</a>.</p> <p>For more information on adding metadata to your Amazon Web Services resources with tagging, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html\">Tagging Amazon Web Services resources</a>. For advice on best practices for managing Amazon Web Services resources with tagging, see <a href=\"https://d1.awsstatic.com/whitepapers/aws-tagging-best-practices.pdf\">Tagging Best Practices: Implement an Effective Amazon Web Services Resource Tagging Strategy</a>.</p>"
+      "documentation":"<p>A tag object that consists of a key and an optional value, used to manage metadata for SageMaker Amazon Web Services resources.</p> <p>You can add tags to notebook instances, training jobs, hyperparameter tuning jobs, batch transform jobs, models, labeling jobs, work teams, endpoint configurations, and endpoints. For more information on adding tags to SageMaker resources, see <a>AddTags</a>.</p> <p>For more information on adding metadata to your Amazon Web Services resources with tagging, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html\">Tagging Amazon Web Services resources</a>. For advice on best practices for managing Amazon Web Services resources with tagging, see <a href=\"https://d1.awsstatic.com/whitepapers/aws-tagging-best-practices.pdf\">Tagging Best Practices: Implement an Effective Amazon Web Services Resource Tagging Strategy</a>.</p>"
     },
     "TagKey":{
       "type":"string",
@@ -21850,7 +22202,8 @@
         "x86_win32",
         "x86_win64",
         "coreml",
-        "jacinto_tda4vm"
+        "jacinto_tda4vm",
+        "imx8mplus"
       ]
     },
     "TargetObjectiveMetricValue":{"type":"float"},
@@ -22047,9 +22400,11 @@
     },
     "TrainingInputMode":{
       "type":"string",
+      "documentation":"<p>The training input mode that the algorithm supports. For more information about input modes, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/algos.html\">Algorithms</a>.</p> <p> <b>Pipe mode</b> </p> <p>If an algorithm supports <code>Pipe</code> mode, Amazon SageMaker streams data directly from Amazon S3 to the container.</p> <p> <b>File mode</b> </p> <p>If an algorithm supports <code>File</code> mode, SageMaker downloads the training data from S3 to the provisioned ML storage volume, and mounts the directory to the Docker volume for the training container.</p> <p>You must provision the ML storage volume with sufficient capacity to accommodate the data downloaded from S3. In addition to the training data, the ML storage volume also stores the output model. The algorithm container uses the ML storage volume to also store intermediate information, if any.</p> <p>For distributed algorithms, training data is distributed uniformly. Your training duration is predictable if the input data objects sizes are approximately the same. SageMaker does not split the files any further for model training. If the object sizes are skewed, training won't be optimal as the data distribution is also skewed when one host in a training cluster is overloaded, thus becoming a bottleneck in training.</p> <p> <b>FastFile mode</b> </p> <p>If an algorithm supports <code>FastFile</code> mode, SageMaker streams data directly from S3 to the container with no code changes, and provides file system access to the data. Users can author their training script to interact with these files as if they were stored on disk.</p> <p> <code>FastFile</code> mode works best when the data is read sequentially. Augmented manifest files aren't supported. The startup time is lower when there are fewer files in the S3 bucket provided.</p>",
       "enum":[
         "Pipe",
-        "File"
+        "File",
+        "FastFile"
       ]
     },
     "TrainingInstanceCount":{
@@ -22261,10 +22616,7 @@
         "StoppingCondition"
       ],
       "members":{
-        "TrainingInputMode":{
-          "shape":"TrainingInputMode",
-          "documentation":"<p>The input mode used by the algorithm for the training job. For the input modes that Amazon SageMaker algorithms support, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/algos.html\">Algorithms</a>.</p> <p>If an algorithm supports the <code>File</code> input mode, Amazon SageMaker downloads the training data from S3 to the provisioned ML storage Volume, and mounts the directory to docker volume for training container. If an algorithm supports the <code>Pipe</code> input mode, Amazon SageMaker streams data directly from S3 to the container.</p>"
-        },
+        "TrainingInputMode":{"shape":"TrainingInputMode"},
         "HyperParameters":{
           "shape":"HyperParameters",
           "documentation":"<p>The hyperparameters used for the training job.</p>"
@@ -22816,7 +23168,10 @@
           "shape":"Timestamp",
           "documentation":"<p>When the trial was created.</p>"
         },
-        "CreatedBy":{"shape":"UserContext"},
+        "CreatedBy":{
+          "shape":"UserContext",
+          "documentation":"<p>Who created the trial.</p>"
+        },
         "LastModifiedTime":{
           "shape":"Timestamp",
           "documentation":"<p>Who last modified the trial.</p>"
@@ -22871,7 +23226,10 @@
           "shape":"Timestamp",
           "documentation":"<p>When the component was created.</p>"
         },
-        "CreatedBy":{"shape":"UserContext"},
+        "CreatedBy":{
+          "shape":"UserContext",
+          "documentation":"<p>Who created the trial component.</p>"
+        },
         "LastModifiedTime":{
           "shape":"Timestamp",
           "documentation":"<p>When the component was last modified.</p>"
@@ -23149,7 +23507,7 @@
         },
         "CreatedBy":{
           "shape":"UserContext",
-          "documentation":"<p>Who created the component.</p>"
+          "documentation":"<p>Who created the trial component.</p>"
         },
         "LastModifiedTime":{
           "shape":"Timestamp",
@@ -24059,7 +24417,7 @@
           "documentation":"<p>The domain associated with the user.</p>"
         }
       },
-      "documentation":"<p>Information about the user who created or modified an experiment, trial, or trial component.</p>"
+      "documentation":"<p>Information about the user who created or modified an experiment, trial, trial component, or project.</p>"
     },
     "UserProfileArn":{
       "type":"string",

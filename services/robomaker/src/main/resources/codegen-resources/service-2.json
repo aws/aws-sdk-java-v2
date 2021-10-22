@@ -1106,12 +1106,24 @@
       "min":1,
       "pattern":"[a-zA-Z0-9_.\\-]*"
     },
+    "CommandList":{
+      "type":"list",
+      "member":{"shape":"NonEmptyString"}
+    },
     "Compute":{
       "type":"structure",
       "members":{
         "simulationUnitLimit":{
           "shape":"SimulationUnit",
-          "documentation":"<p>The simulation unit limit. Your simulation is allocated CPU and memory proportional to the supplied simulation unit limit. A simulation unit is 1 vcpu and 2GB of memory. You are only billed for the SU utilization you consume up to the maximim value provided. The default is 15. </p>"
+          "documentation":"<p>The simulation unit limit. Your simulation is allocated CPU and memory proportional to the supplied simulation unit limit. A simulation unit is 1 vcpu and 2GB of memory. You are only billed for the SU utilization you consume up to the maximum value provided. The default is 15. </p>"
+        },
+        "computeType":{
+          "shape":"ComputeType",
+          "documentation":"<p>Compute type information for the simulation job.</p>"
+        },
+        "gpuUnitLimit":{
+          "shape":"GPUUnit",
+          "documentation":"<p>Compute GPU unit limit for the simulation job. It is the same as the number of GPUs allocated to the SimulationJob.</p>"
         }
       },
       "documentation":"<p>Compute information for the simulation job.</p>"
@@ -1121,10 +1133,25 @@
       "members":{
         "simulationUnitLimit":{
           "shape":"SimulationUnit",
-          "documentation":"<p>The simulation unit limit. Your simulation is allocated CPU and memory proportional to the supplied simulation unit limit. A simulation unit is 1 vcpu and 2GB of memory. You are only billed for the SU utilization you consume up to the maximim value provided. The default is 15. </p>"
+          "documentation":"<p>The simulation unit limit. Your simulation is allocated CPU and memory proportional to the supplied simulation unit limit. A simulation unit is 1 vcpu and 2GB of memory. You are only billed for the SU utilization you consume up to the maximum value provided. The default is 15. </p>"
+        },
+        "computeType":{
+          "shape":"ComputeType",
+          "documentation":"<p>Compute type response information for the simulation job.</p>"
+        },
+        "gpuUnitLimit":{
+          "shape":"GPUUnit",
+          "documentation":"<p>Compute GPU unit limit for the simulation job. It is the same as the number of GPUs allocated to the SimulationJob.</p>"
         }
       },
       "documentation":"<p>Compute information for the simulation job</p>"
+    },
+    "ComputeType":{
+      "type":"string",
+      "enum":[
+        "CPU",
+        "GPU_AND_CPU"
+      ]
     },
     "ConcurrentDeploymentException":{
       "type":"structure",
@@ -1246,7 +1273,6 @@
       "type":"structure",
       "required":[
         "name",
-        "sources",
         "robotSoftwareSuite"
       ],
       "members":{
@@ -1265,6 +1291,10 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>A map that contains tag keys and tag values that are attached to the robot application.</p>"
+        },
+        "environment":{
+          "shape":"Environment",
+          "documentation":"<p>The object that contains that URI of the Docker image that you use for your robot application.</p>"
         }
       }
     },
@@ -1302,6 +1332,10 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>The list of all tags added to the robot application.</p>"
+        },
+        "environment":{
+          "shape":"Environment",
+          "documentation":"<p>An object that contains the Docker image URI used to a create your robot application.</p>"
         }
       }
     },
@@ -1316,6 +1350,14 @@
         "currentRevisionId":{
           "shape":"RevisionId",
           "documentation":"<p>The current revision id for the robot application. If you provide a value and it matches the latest revision ID, a new version will be created.</p>"
+        },
+        "s3Etags":{
+          "shape":"S3Etags",
+          "documentation":"<p>The Amazon S3 identifier for the zip file bundle that you use for your robot application.</p>"
+        },
+        "imageDigest":{
+          "shape":"ImageDigest",
+          "documentation":"<p>A SHA256 identifier for the Docker image that you use for your robot application.</p>"
         }
       }
     },
@@ -1349,6 +1391,10 @@
         "revisionId":{
           "shape":"RevisionId",
           "documentation":"<p>The revision id of the robot application.</p>"
+        },
+        "environment":{
+          "shape":"Environment",
+          "documentation":"<p>The object that contains the Docker image URI used to create your robot application.</p>"
         }
       }
     },
@@ -1411,7 +1457,6 @@
       "type":"structure",
       "required":[
         "name",
-        "sources",
         "simulationSoftwareSuite",
         "robotSoftwareSuite"
       ],
@@ -1439,6 +1484,10 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>A map that contains tag keys and tag values that are attached to the simulation application.</p>"
+        },
+        "environment":{
+          "shape":"Environment",
+          "documentation":"<p>The object that contains the Docker image URI used to create your simulation application.</p>"
         }
       }
     },
@@ -1484,6 +1533,10 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>The list of all tags added to the simulation application.</p>"
+        },
+        "environment":{
+          "shape":"Environment",
+          "documentation":"<p>The object that contains the Docker image URI that you used to create your simulation application.</p>"
         }
       }
     },
@@ -1498,6 +1551,14 @@
         "currentRevisionId":{
           "shape":"RevisionId",
           "documentation":"<p>The current revision id for the simulation application. If you provide a value and it matches the latest revision ID, a new version will be created.</p>"
+        },
+        "s3Etags":{
+          "shape":"S3Etags",
+          "documentation":"<p>The Amazon S3 eTag identifier for the zip file bundle that you use to create the simulation application.</p>"
+        },
+        "imageDigest":{
+          "shape":"ImageDigest",
+          "documentation":"<p>The SHA256 digest used to identify the Docker image URI used to created the simulation application.</p>"
         }
       }
     },
@@ -1539,6 +1600,10 @@
         "revisionId":{
           "shape":"RevisionId",
           "documentation":"<p>The revision ID of the simulation application.</p>"
+        },
+        "environment":{
+          "shape":"Environment",
+          "documentation":"<p>The object that contains the Docker image URI used to create the simulation application.</p>"
         }
       }
     },
@@ -1881,6 +1946,14 @@
         "s3Keys":{
           "shape":"S3KeyOutputs",
           "documentation":"<p>The list of S3 keys identifying the data source files.</p>"
+        },
+        "type":{
+          "shape":"DataSourceType",
+          "documentation":"<p>The data type for the data source that you're using for your container image or simulation job. You can use this field to specify whether your data source is an Archive, an Amazon S3 prefix, or a file.</p> <p>If you don't specify a field, the default value is <code>File</code>.</p>"
+        },
+        "destination":{
+          "shape":"Path",
+          "documentation":"<p>The location where your files are mounted in the container image.</p> <p>If you've specified the <code>type</code> of the data source as an <code>Archive</code>, you must provide an Amazon S3 object key to your archive. The object key must point to either a <code>.zip</code> or <code>.tar.gz</code> file.</p> <p>If you've specified the <code>type</code> of the data source as a <code>Prefix</code>, you provide the Amazon S3 prefix that points to the files that you are using for your data source.</p> <p>If you've specified the <code>type</code> of the data source as a <code>File</code>, you provide the Amazon S3 path to the file that you're using as your data source.</p>"
         }
       },
       "documentation":"<p>Information about a data source.</p>"
@@ -1902,8 +1975,16 @@
           "documentation":"<p>The S3 bucket where the data files are located.</p>"
         },
         "s3Keys":{
-          "shape":"S3Keys",
+          "shape":"S3KeysOrPrefixes",
           "documentation":"<p>The list of S3 keys identifying the data source files.</p>"
+        },
+        "type":{
+          "shape":"DataSourceType",
+          "documentation":"<p>The data type for the data source that you're using for your container image or simulation job. You can use this field to specify whether your data source is an Archive, an Amazon S3 prefix, or a file.</p> <p>If you don't specify a field, the default value is <code>File</code>.</p>"
+        },
+        "destination":{
+          "shape":"Path",
+          "documentation":"<p>The location where your files are mounted in the container image.</p> <p>If you've specified the <code>type</code> of the data source as an <code>Archive</code>, you must provide an Amazon S3 object key to your archive. The object key must point to either a <code>.zip</code> or <code>.tar.gz</code> file.</p> <p>If you've specified the <code>type</code> of the data source as a <code>Prefix</code>, you provide the Amazon S3 prefix that points to the files that you are using for your data source.</p> <p>If you've specified the <code>type</code> of the data source as a <code>File</code>, you provide the Amazon S3 path to the file that you're using as your data source.</p>"
         }
       },
       "documentation":"<p>Information about a data source.</p>"
@@ -1917,6 +1998,14 @@
     "DataSourceNames":{
       "type":"list",
       "member":{"shape":"Name"}
+    },
+    "DataSourceType":{
+      "type":"string",
+      "enum":[
+        "Prefix",
+        "Archive",
+        "File"
+      ]
     },
     "DataSources":{
       "type":"list",
@@ -2357,6 +2446,14 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>The list of all tags added to the specified robot application.</p>"
+        },
+        "environment":{
+          "shape":"Environment",
+          "documentation":"<p>The object that contains the Docker image URI used to create the robot application.</p>"
+        },
+        "imageDigest":{
+          "shape":"ImageDigest",
+          "documentation":"<p>A SHA256 identifier for the Docker image that you use for your robot application.</p>"
         }
       }
     },
@@ -2471,6 +2568,14 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>The list of all tags added to the specified simulation application.</p>"
+        },
+        "environment":{
+          "shape":"Environment",
+          "documentation":"<p>The object that contains the Docker image URI used to create the simulation application.</p>"
+        },
+        "imageDigest":{
+          "shape":"ImageDigest",
+          "documentation":"<p>A SHA256 identifier for the Docker image that you use for your simulation application.</p>"
         }
       }
     },
@@ -2829,6 +2934,16 @@
         }
       }
     },
+    "Environment":{
+      "type":"structure",
+      "members":{
+        "uri":{
+          "shape":"RepositoryUrl",
+          "documentation":"<p>The Docker image URI for either your robot or simulation applications.</p>"
+        }
+      },
+      "documentation":"<p>The object that contains the Docker image URI for either your robot or simulation applications.</p>"
+    },
     "EnvironmentVariableKey":{
       "type":"string",
       "max":1024,
@@ -2984,6 +3099,11 @@
       "min":0
     },
     "FloorplanCount":{"type":"integer"},
+    "GPUUnit":{
+      "type":"integer",
+      "max":1,
+      "min":0
+    },
     "GenericInteger":{"type":"integer"},
     "GenericString":{
       "type":"string",
@@ -3034,6 +3154,12 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "ImageDigest":{
+      "type":"string",
+      "max":72,
+      "min":0,
+      "pattern":"[Ss][Hh][Aa]256:[0-9a-fA-F]{64}"
+    },
     "Integer":{"type":"integer"},
     "InteriorCountPerFloorplan":{"type":"integer"},
     "InternalServerException":{
@@ -3065,10 +3191,6 @@
     "LastUpdatedAt":{"type":"timestamp"},
     "LaunchConfig":{
       "type":"structure",
-      "required":[
-        "packageName",
-        "launchFile"
-      ],
       "members":{
         "packageName":{
           "shape":"Command",
@@ -3089,6 +3211,10 @@
         "streamUI":{
           "shape":"Boolean",
           "documentation":"<p>Boolean indicating whether a streaming session will be configured for the application. If <code>True</code>, AWS RoboMaker will configure a connection so you can interact with your application as it is running in the simulation. You must configure and launch the component. It must have a graphical user interface. </p>"
+        },
+        "command":{
+          "shape":"CommandList",
+          "documentation":"<p>If you've specified <code>General</code> as the value for your <code>RobotSoftwareSuite</code>, you can use this field to specify a list of commands for your container image.</p> <p>If you've specified <code>SimulationRuntime</code> as the value for your <code>SimulationSoftwareSuite</code>, you can use this field to specify a list of commands for your container image.</p>"
         }
       },
       "documentation":"<p>Information about a launch configuration.</p>"
@@ -3663,6 +3789,12 @@
       "min":1,
       "pattern":"1.x"
     },
+    "RepositoryUrl":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":".+"
+    },
     "ResourceAlreadyExistsException":{
       "type":"structure",
       "members":{
@@ -3892,7 +4024,8 @@
       "type":"string",
       "enum":[
         "ROS",
-        "ROS2"
+        "ROS2",
+        "General"
       ]
     },
     "RobotSoftwareSuiteVersionType":{
@@ -3929,17 +4062,27 @@
       "pattern":"[a-z0-9][a-z0-9.\\-]*[a-z0-9]"
     },
     "S3Etag":{"type":"string"},
+    "S3Etags":{
+      "type":"list",
+      "member":{"shape":"S3Etag"}
+    },
     "S3Key":{
       "type":"string",
       "max":1024,
       "min":1,
       "pattern":".*"
     },
+    "S3KeyOrPrefix":{
+      "type":"string",
+      "max":1024,
+      "min":0,
+      "pattern":".*"
+    },
     "S3KeyOutput":{
       "type":"structure",
       "members":{
         "s3Key":{
-          "shape":"S3Key",
+          "shape":"S3KeyOrPrefix",
           "documentation":"<p>The S3 key.</p>"
         },
         "etag":{
@@ -3953,9 +4096,9 @@
       "type":"list",
       "member":{"shape":"S3KeyOutput"}
     },
-    "S3Keys":{
+    "S3KeysOrPrefixes":{
       "type":"list",
-      "member":{"shape":"S3Key"},
+      "member":{"shape":"S3KeyOrPrefix"},
       "max":100,
       "min":1
     },
@@ -4363,6 +4506,10 @@
         "dataSourceNames":{
           "shape":"DataSourceNames",
           "documentation":"<p>The names of the data sources.</p>"
+        },
+        "computeType":{
+          "shape":"ComputeType",
+          "documentation":"<p>The compute type for the simulation job summary.</p>"
         }
       },
       "documentation":"<p>Summary information for a simulation job.</p>"
@@ -4389,7 +4536,8 @@
       "type":"string",
       "enum":[
         "Gazebo",
-        "RosbagPlay"
+        "RosbagPlay",
+        "SimulationRuntime"
       ]
     },
     "SimulationSoftwareSuiteVersionType":{
@@ -4767,7 +4915,6 @@
       "type":"structure",
       "required":[
         "application",
-        "sources",
         "robotSoftwareSuite"
       ],
       "members":{
@@ -4786,6 +4933,10 @@
         "currentRevisionId":{
           "shape":"RevisionId",
           "documentation":"<p>The revision id for the robot application.</p>"
+        },
+        "environment":{
+          "shape":"Environment",
+          "documentation":"<p>The object that contains the Docker image URI for your robot application.</p>"
         }
       }
     },
@@ -4819,6 +4970,10 @@
         "revisionId":{
           "shape":"RevisionId",
           "documentation":"<p>The revision id of the robot application.</p>"
+        },
+        "environment":{
+          "shape":"Environment",
+          "documentation":"<p>The object that contains the Docker image URI for your robot application.</p>"
         }
       }
     },
@@ -4826,7 +4981,6 @@
       "type":"structure",
       "required":[
         "application",
-        "sources",
         "simulationSoftwareSuite",
         "robotSoftwareSuite"
       ],
@@ -4854,6 +5008,10 @@
         "currentRevisionId":{
           "shape":"RevisionId",
           "documentation":"<p>The revision id for the robot application.</p>"
+        },
+        "environment":{
+          "shape":"Environment",
+          "documentation":"<p>The object that contains the Docker image URI for your simulation application.</p>"
         }
       }
     },
@@ -4895,6 +5053,10 @@
         "revisionId":{
           "shape":"RevisionId",
           "documentation":"<p>The revision id of the simulation application.</p>"
+        },
+        "environment":{
+          "shape":"Environment",
+          "documentation":"<p>The object that contains the Docker image URI used for your simulation application.</p>"
         }
       }
     },

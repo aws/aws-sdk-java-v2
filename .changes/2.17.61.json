@@ -1,0 +1,18 @@
+{
+    "version": "2.17.61",
+    "date": "2021-10-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Enable S3 event base crawler API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic File System",
+            "contributor": "",
+            "description": "EFS adds documentation for a new exception for short identifiers to be thrown after its migration to long resource identifiers."
+        }
+    ]
+}

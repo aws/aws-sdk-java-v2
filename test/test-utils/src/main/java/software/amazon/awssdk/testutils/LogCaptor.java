@@ -61,11 +61,13 @@ public interface LogCaptor extends SdkAutoCloseable {
             super(Level.ALL);
         }
 
+        @Override
         @Before
         public void setupLogging() {
             super.setupLogging();
         }
 
+        @Override
         @After
         public void stopLogging() {
             super.stopLogging();

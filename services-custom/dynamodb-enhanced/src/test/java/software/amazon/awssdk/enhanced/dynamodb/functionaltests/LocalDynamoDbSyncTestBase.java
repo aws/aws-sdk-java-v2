@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class LocalDynamoDbSyncTestBase extends LocalDynamoDbTestBase {

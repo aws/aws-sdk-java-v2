@@ -68,6 +68,7 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundA
 import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpRequest;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
@@ -164,10 +165,12 @@ public final class NettyRequestExecutor {
     private void makeRequestListener(Future<Channel> channelFuture) {
         if (channelFuture.isSuccess()) {
             channel = channelFuture.getNow();
-            configureChannel();
-            if (tryConfigurePipeline()) {
-                makeRequest();
-            }
+            NettyUtils.doInEventLoop(channel.eventLoop(), () -> {
+                configureChannel();
+                if (tryConfigurePipeline()) {
+                    makeRequest();
+                }
+            });
         } else {
             handleFailure(() -> "Failed to create connection to " + endpoint(), channelFuture.cause());
         }

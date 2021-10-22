@@ -21,6 +21,10 @@ phases:
     - RELEASE_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
     -
     - git remote add --fetch public $PUBLIC_REPOSITORY_URL
+    - |
+      if git show-ref --tags $RELEASE_VERSION --quiet; then
+        git push -d public :refs/tags/$RELEASE_VERSION
+      fi
     - git tag -a $RELEASE_VERSION -m "AWS SDK for Java v2 ($RELEASE_VERSION)"
     -
     - git push public HEAD:release

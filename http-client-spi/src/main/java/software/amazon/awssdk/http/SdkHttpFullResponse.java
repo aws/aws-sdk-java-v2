@@ -63,29 +63,34 @@ public interface SdkHttpFullResponse
         /**
          * The status text, exactly as it was configured with {@link #statusText(String)}.
          */
+        @Override
         String statusText();
 
         /**
          * Configure an {@link SdkHttpResponse#statusText()} to be used in the created HTTP response. This is not validated
          * until the http response is created.
          */
+        @Override
         Builder statusText(String statusText);
 
         /**
          * The status text, exactly as it was configured with {@link #statusCode(int)}.
          */
+        @Override
         int statusCode();
 
         /**
          * Configure an {@link SdkHttpResponse#statusCode()} to be used in the created HTTP response. This is not validated
          * until the http response is created.
          */
+        @Override
         Builder statusCode(int statusCode);
 
         /**
          * The query parameters, exactly as they were configured with {@link #headers(Map)},
          * {@link #putHeader(String, String)} and {@link #putHeader(String, List)}.
          */
+        @Override
         Map<String, List<String>> headers();
 
         /**
@@ -100,6 +105,7 @@ public interface SdkHttpFullResponse
          * @param header The header to search for (case insensitively).
          * @return The first header that matched the requested one, or empty if one was not found.
          */
+        @Override
         default Optional<String> firstMatchingHeader(String header) {
             return SdkHttpUtils.firstMatchingHeader(headers(), header);
         }
@@ -112,6 +118,7 @@ public interface SdkHttpFullResponse
          * @param headerName The name of the header to add (eg. "Host")
          * @param headerValue The value for the header
          */
+        @Override
         default Builder putHeader(String headerName, String headerValue) {
             return putHeader(headerName, singletonList(headerValue));
         }
@@ -124,6 +131,7 @@ public interface SdkHttpFullResponse
          * @param headerName The name of the header to add
          * @param headerValues The values for the header
          */
+        @Override
         Builder putHeader(String headerName, List<String> headerValues);
 
 
@@ -136,22 +144,26 @@ public interface SdkHttpFullResponse
          * @param headerName The name of the header to add
          * @param headerValue The value for the header
          */
+        @Override
         Builder appendHeader(String headerName, String headerValue);
 
         /**
          * Configure an {@link SdkHttpResponse#headers()} to be used in the created HTTP response. This is not validated
          * until the http response is created. This overrides any values currently configured in the builder.
          */
+        @Override
         Builder headers(Map<String, List<String>> headers);
 
         /**
          * Remove all values for the requested header from this builder.
          */
+        @Override
         Builder removeHeader(String headerName);
 
         /**
          * Removes all headers from this builder.
          */
+        @Override
         Builder clearHeaders();
 
         /**
