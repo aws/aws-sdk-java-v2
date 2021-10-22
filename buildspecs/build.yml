@@ -19,8 +19,8 @@ phases:
       # Codebuild doesn't have good support for mixed formats within the same
       # directory tree so just excluding these for now. Only the TCK tests are
       # based on TestNG.
-      - find ./ -prune -name testng-native-results -type d -exec rm -r {} \;
-      - find ./ -prune -name testng-junit-results -type d -exec rm -r {} \;
+      - find ./ -name testng-native-results -prune -type d -exec rm -r {} \;
+      - find ./ -name testng-junit-results -prune -type d -exec rm -r {} \;
         
 reports: 
   UnitTests:
