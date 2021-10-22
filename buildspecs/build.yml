@@ -16,6 +16,7 @@ phases:
           mvn package
           mvn exec:exec -P mock-tests
         fi
+      - find ./ -name testng-native-results -type d -exec rm -r {} \;
         
 reports: 
   UnitTests:
