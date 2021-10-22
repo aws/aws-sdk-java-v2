@@ -31,6 +31,14 @@
       "tlsNegotiationTimeoutInMillis": {
         "override": 3100
       }
+    },
+    "mobile": {
+      "connectTimeoutInMillis": {
+        "override": 10000
+      },
+      "tlsNegotiationTimeoutInMillis": {
+        "override": 10000
+      }
     }
   },
   "documentation": {
