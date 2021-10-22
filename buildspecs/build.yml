@@ -16,7 +16,11 @@ phases:
           mvn package
           mvn exec:exec -P mock-tests
         fi
+      # Codebuild doesn't have good support for mixed formats within the same
+      # directory tree so just excluding these for now. Only the TCK tests are
+      # based on TestNG.
       - find ./ -name testng-native-results -type d -exec rm -r {} \;
+      - find ./ -name testng-junit-results -type d rm -r {} \;
         
 reports: 
   UnitTests:
