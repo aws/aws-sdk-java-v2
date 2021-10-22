@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime",
+    "contributor": "",
+    "description": "Chime VoiceConnector and VoiceConnectorGroup APIs will now return an ARN."
+}
