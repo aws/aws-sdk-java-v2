@@ -206,4 +206,28 @@ public final class BinaryUtils {
         return dst;
     }
 
+    /**
+     * This behaves identically to {@link #copyBytesFrom(ByteBuffer)}, except
+     * that the readLimit acts as a limit to the number of bytes that should be
+     * read from the byte buffer.
+     */
+    public static byte[] copyBytesFrom(ByteBuffer bb, int readLimit) {
+        if (bb == null) {
+            return null;
+        }
+
+        int numBytesToRead = Math.min(readLimit, bb.limit() - bb.position());
+
+        if (bb.hasArray()) {
+            return Arrays.copyOfRange(
+                bb.array(),
+                bb.arrayOffset() + bb.position(),
+                bb.arrayOffset() + bb.position() + numBytesToRead);
+        }
+
+        byte[] dst = new byte[numBytesToRead];
+        bb.asReadOnlyBuffer().get(dst);
+        return dst;
+    }
+
 }
