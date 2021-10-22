@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QuickSight",
-    "contributor": "",
-    "description": "Added QSearchBar option for GenerateEmbedUrlForRegisteredUser ExperienceConfiguration to support Q search bar embedding"
-}

@@ -1,3 +1,20 @@
+# __2.17.66__ __2021-10-22__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces character restrictions for ControlSet names. We updated regex patterns for the following attributes: ControlSet, CreateAssessmentFrameworkControlSet, and UpdateAssessmentFrameworkControlSet.
+
+## __Amazon Chime__
+  - ### Features
+    - Chime VoiceConnector and VoiceConnectorGroup APIs will now return an ARN.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added QSearchBar option for GenerateEmbedUrlForRegisteredUser ExperienceConfiguration to support Q search bar embedding
+
+## __S3TransferManager__
+  - ### Features
+    - Add support for S3TransferManager TransferListeners
+
 # __2.17.65__ __2021-10-21__
 ## __AWS SDK for Java v2__
   - ### Features
