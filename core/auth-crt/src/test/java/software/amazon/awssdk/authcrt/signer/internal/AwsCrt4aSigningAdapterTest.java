@@ -11,8 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingConfig;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingInputStream;
+import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
+import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.authcrt.signer.SignerTestUtils;
 import software.amazon.awssdk.authcrt.signer.SigningTestCase;
 import software.amazon.awssdk.authcrt.signer.internal.chunkedencoding.AwsS3V4aChunkSigner;
@@ -68,7 +68,7 @@ public class AwsCrt4aSigningAdapterTest {
         SdkHttpFullRequest.Builder requestBuilder = testCase.requestBuilder;
         long originalContentLength = calculateRequestContentLength(requestBuilder);
         requestBuilder.putHeader("x-amz-decoded-content-length", Long.toString(originalContentLength));
-        requestBuilder.putHeader(CONTENT_LENGTH, Long.toString(AwsChunkedEncodingInputStream.calculateStreamContentLength(
+        requestBuilder.putHeader(CONTENT_LENGTH, Long.toString(AwsSignedChunkedEncodingInputStream.calculateStreamContentLength(
             originalContentLength, AwsS3V4aChunkSigner.getSignatureLength(), AwsChunkedEncodingConfig.create())));
         SdkHttpFullRequest request = requestBuilder.build();
 
