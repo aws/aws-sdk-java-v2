@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Route 53 Resolver",
+    "contributor": "",
+    "description": "New API for ResolverConfig, which allows autodefined rules for reverse DNS resolution to be disabled for a VPC"
+}
