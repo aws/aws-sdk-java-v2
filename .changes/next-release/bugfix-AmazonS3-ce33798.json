@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Raise an exception instead of hanging when a put-object content-length exceeds the data written by the async request body."
+}

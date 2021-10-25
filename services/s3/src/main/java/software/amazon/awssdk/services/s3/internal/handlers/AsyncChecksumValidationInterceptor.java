@@ -51,7 +51,9 @@ public final class AsyncChecksumValidationInterceptor implements ExecutionInterc
             SdkChecksum checksum = new Md5Checksum();
             executionAttributes.putAttribute(ASYNC_RECORDING_CHECKSUM, true);
             executionAttributes.putAttribute(CHECKSUM, checksum);
-            return Optional.of(new ChecksumCalculatingAsyncRequestBody(context.asyncRequestBody().get(), checksum));
+            return Optional.of(new ChecksumCalculatingAsyncRequestBody(context.httpRequest(),
+                                                                       context.asyncRequestBody().get(),
+                                                                       checksum));
         }
 
         return context.asyncRequestBody();

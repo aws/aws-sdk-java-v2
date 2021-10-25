@@ -522,9 +522,7 @@
                         <excludes>
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
-                            <exclude>software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler</exclude>
-                            <exclude>software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler</exclude>
-
+                            <exclude>software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingAsyncRequestBody</exclude>
                             <exclude>software.amazon.awssdk.protocols.core.OperationInfo</exclude>
                         </excludes>
 
