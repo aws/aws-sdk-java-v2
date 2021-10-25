@@ -81,7 +81,7 @@ public final class EC2MetadataUtils {
 
     private static final String EC2_METADATA_TOKEN_HEADER = "x-aws-ec2-metadata-token";
 
-    private static final int DEFAULT_QUERY_RETRIES = 3;
+    private static final int DEFAULT_QUERY_ATTEMPTS = 3;
     private static final int MINIMUM_RETRY_WAIT_TIME_MILLISECONDS = 250;
     private static final Logger log = LoggerFactory.getLogger(EC2MetadataUtils.class);
     private static final Map<String, String> CACHE = new ConcurrentHashMap<>();
@@ -349,7 +349,7 @@ public final class EC2MetadataUtils {
     }
 
     public static String getData(String path) {
-        return getData(path, DEFAULT_QUERY_RETRIES);
+        return getData(path, DEFAULT_QUERY_ATTEMPTS);
     }
 
     public static String getData(String path, int tries) {
@@ -361,7 +361,7 @@ public final class EC2MetadataUtils {
     }
 
     public static List<String> getItems(String path) {
-        return getItems(path, DEFAULT_QUERY_RETRIES, false);
+        return getItems(path, DEFAULT_QUERY_ATTEMPTS, false);
     }
 
     public static List<String> getItems(String path, int tries) {
@@ -405,7 +405,7 @@ public final class EC2MetadataUtils {
             }
 
             // Retry on any other exceptions
-            int pause = (int) (Math.pow(2, DEFAULT_QUERY_RETRIES - tries) * MINIMUM_RETRY_WAIT_TIME_MILLISECONDS);
+            int pause = (int) (Math.pow(2, DEFAULT_QUERY_ATTEMPTS - tries) * MINIMUM_RETRY_WAIT_TIME_MILLISECONDS);
             try {
                 Thread.sleep(pause < MINIMUM_RETRY_WAIT_TIME_MILLISECONDS ? MINIMUM_RETRY_WAIT_TIME_MILLISECONDS
                                                                           : pause);
@@ -445,7 +445,7 @@ public final class EC2MetadataUtils {
     }
 
     private static String fetchData(String path, boolean force) {
-        return fetchData(path, force, DEFAULT_QUERY_RETRIES);
+        return fetchData(path, force, DEFAULT_QUERY_ATTEMPTS);
     }
 
     /**

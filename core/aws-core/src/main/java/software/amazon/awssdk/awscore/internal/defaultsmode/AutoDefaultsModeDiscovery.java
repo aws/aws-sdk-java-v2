@@ -42,7 +42,8 @@ public final class AutoDefaultsModeDiscovery {
      *
      *  1. Check if it's on mobile
      *  2. If it's not on mobile (best we can tell), see if we can determine whether we're an in-region or cross-region client.
-     *  3. If we couldn't figure out the region from environment variables. Check IMDSv2
+     *  3. If we couldn't figure out the region from environment variables. Check IMDSv2. This step might take up to 1 second
+     *  (default connect timeout)
      *  4. Finally, use fallback mode
      */
     public DefaultsMode discover(Region regionResolvedFromSdkClient) {
