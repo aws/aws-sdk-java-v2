@@ -95,7 +95,6 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
                                       .add(".httpMethod($T.$L)", SdkHttpMethod.class, shapeModel.getMarshaller().getVerb())
                                       .add(".hasExplicitPayloadMember($L)", shapeModel.isHasPayloadMember() ||
                                                                             shapeModel.getExplicitEventPayloadMember() != null)
-                                      .add(".hasImplicitPayloadMembers($L)", shapeModel.hasImplicitPayloadMembers())
                                       .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers());
 
         if (StringUtils.isNotBlank(shapeModel.getMarshaller().getTarget())) {
