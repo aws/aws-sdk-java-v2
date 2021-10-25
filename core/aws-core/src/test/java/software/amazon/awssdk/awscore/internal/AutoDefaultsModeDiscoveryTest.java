@@ -35,6 +35,7 @@ import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDisc
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 
@@ -47,28 +48,34 @@ public class AutoDefaultsModeDiscoveryTest {
     @Parameterized.Parameters
     public static Collection<Object> data() {
         return Arrays.asList(new Object[] {
+
+            // Mobile
             new TestData().clientRegion(Region.US_EAST_1)
                           .javaVendorProperty("The Android Project")
                           .awsExecutionEnvVar("AWS_Lambda_java8")
                           .awsRegionEnvVar("us-east-1")
                 .expectedResolvedMode(DefaultsMode.MOBILE),
 
+            // Region available from AWS execution environment
             new TestData().clientRegion(Region.US_EAST_1)
                           .awsExecutionEnvVar("AWS_Lambda_java8")
                           .awsRegionEnvVar("us-east-1")
                 .expectedResolvedMode(DefaultsMode.IN_REGION),
 
+            // Region available from AWS execution environment
             new TestData().clientRegion(Region.US_EAST_1)
                           .awsExecutionEnvVar("AWS_Lambda_java8")
                           .awsDefaultRegionEnvVar("us-west-2")
                 .expectedResolvedMode(DefaultsMode.CROSS_REGION),
 
+            // ImdsV2 available, in-region
             new TestData().clientRegion(Region.US_EAST_1)
                           .awsDefaultRegionEnvVar("us-west-2")
                           .ec2MetadataConfig(new Ec2MetadataConfig().region("us-east-1")
                                                                     .imdsAvailable(true))
                 .expectedResolvedMode(DefaultsMode.IN_REGION),
 
+            // ImdsV2 available, cross-region
             new TestData().clientRegion(Region.US_EAST_1)
                           .awsDefaultRegionEnvVar("us-west-2")
                           .ec2MetadataConfig(new Ec2MetadataConfig().region("us-west-2")
@@ -76,6 +83,15 @@ public class AutoDefaultsModeDiscoveryTest {
                                                                     .ec2MetadataDisabledEnvVar("false"))
                 .expectedResolvedMode(DefaultsMode.CROSS_REGION),
 
+            // Imdsv2 disabled, should not query ImdsV2 and use fallback mode
+            new TestData().clientRegion(Region.US_EAST_1)
+                          .awsDefaultRegionEnvVar("us-west-2")
+                          .ec2MetadataConfig(new Ec2MetadataConfig().region("us-west-2")
+                                                                    .imdsAvailable(true)
+                                                                    .ec2MetadataDisabledEnvVar("true"))
+                .expectedResolvedMode(DefaultsMode.STANDARD),
+
+            // Imdsv2 not available, should use fallback mode.
             new TestData().clientRegion(Region.US_EAST_1)
                           .awsDefaultRegionEnvVar("us-west-2")
                           .ec2MetadataConfig(new Ec2MetadataConfig().imdsAvailable(false))
@@ -94,6 +110,7 @@ public class AutoDefaultsModeDiscoveryTest {
 
     @After
     public void cleanUp() {
+        EC2MetadataUtils.clearCache();
         wireMock.resetAll();
         ENVIRONMENT_VARIABLE_HELPER.reset();
         System.clearProperty(JavaSystemSetting.JAVA_VENDOR.property());
@@ -143,22 +160,9 @@ public class AutoDefaultsModeDiscoveryTest {
         stubFor(put("/latest/api/token")
                     .willReturn(aResponse().withStatus(200).withBody("token")));
 
-
-        stubFor(get("/latest/dynamic/instance-identity/document")
-                    .willReturn(aResponse().withStatus(200).withBody(constructInstanceInfo(region))));
+        stubFor(get("/latest/meta-data/placement/region")
+                    .willReturn(aResponse().withStatus(200).withBody(region)));
     }
-
-    private String constructInstanceInfo(String region) {
-        return String.format("{"
-                             + "\"pendingTime\":\"2014-08-07T22:07:46Z\","
-                             + "\"instanceType\":\"m1.small\","
-                             + "\"imageId\":\"ami-123456\","
-                             + "\"instanceId\":\"i-123456\","
-                             + "\"region\":\"%s\","
-                             + "\"version\":\"2010-08-31\""
-                             + "}", region);
-    }
-
 
     private static final class TestData {
         private Region clientRegion;

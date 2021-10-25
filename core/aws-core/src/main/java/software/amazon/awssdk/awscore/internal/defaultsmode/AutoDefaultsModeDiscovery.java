@@ -27,11 +27,12 @@ import software.amazon.awssdk.utils.SystemSetting;
 import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
 /**
- * This class attempts to discover the appropriate {@link DefaultsMode} the mode by inspecting the environment. It falls
- * back to the standard defaults mode if the target mode cannot be determined.
+ * This class attempts to discover the appropriate {@link DefaultsMode} by inspecting the environment. It falls
+ * back to the {@link DefaultsMode#STANDARD} mode if the target mode cannot be determined.
  */
 @SdkInternalApi
 public final class AutoDefaultsModeDiscovery {
+    private static final String EC2_METADATA_REGION_PATH = "/latest/meta-data/placement/region";
     private static final DefaultsMode FALLBACK_DEFAULTS_MODE = DefaultsMode.STANDARD;
     private static final String ANDROID_JAVA_VENDOR = "The Android Project";
     private static final String AWS_DEFAULT_REGION_ENV_VAR = "AWS_DEFAULT_REGION";
@@ -54,20 +55,20 @@ public final class AutoDefaultsModeDiscovery {
             Optional<String> regionStr = regionFromAwsExecutionEnvironment();
 
             if (regionStr.isPresent()) {
-                return compareRegion(regionStr.get(), regionResolvedFromSdkClient.id());
+                return compareRegion(regionStr.get(), regionResolvedFromSdkClient);
             }
         }
 
         Optional<String> regionFromEc2 = queryImdsV2();
         if (regionFromEc2.isPresent()) {
-            return compareRegion(regionFromEc2.get(), regionResolvedFromSdkClient.id());
+            return compareRegion(regionFromEc2.get(), regionResolvedFromSdkClient);
         }
 
         return FALLBACK_DEFAULTS_MODE;
     }
 
-    private static DefaultsMode compareRegion(String region, String anotherRegion) {
-        if (region.equalsIgnoreCase(anotherRegion)) {
+    private static DefaultsMode compareRegion(String region, Region clientRegion) {
+        if (region.equalsIgnoreCase(clientRegion.id())) {
             return DefaultsMode.IN_REGION;
         }
 
@@ -76,7 +77,7 @@ public final class AutoDefaultsModeDiscovery {
 
     private static Optional<String> queryImdsV2() {
         try {
-            String ec2InstanceRegion = EC2MetadataUtils.getEC2InstanceRegion();
+            String ec2InstanceRegion = EC2MetadataUtils.fetchData(EC2_METADATA_REGION_PATH, false, 1);
             // ec2InstanceRegion could be null
             return Optional.ofNullable(ec2InstanceRegion);
         } catch (Exception exception) {
