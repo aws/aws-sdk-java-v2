@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.AfterClass;
@@ -121,6 +122,26 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
         keys.forEach(k -> {
             String path = k.replace(delimiter, "/");
             verifyContent(k, path.substring(prefix.length() + 1) + randomString);
+        });
+    }
+
+    @Test
+    public void uploadDirectory_withRequestTransformer_usesRequestTransformer() throws Exception {
+        String prefix = "requestTransformerTest";
+        Path newSourceForEachUpload = Paths.get(directory.toString(), "bar.txt");
+
+        CompletedDirectoryUpload result =
+            tm.uploadDirectory(r -> r.sourceDirectory(directory)
+                                     .bucket(TEST_BUCKET)
+                                     .prefix(prefix)
+                                     .overrideConfiguration(c -> c.uploadFileRequestTransformer(f -> f.source(newSourceForEachUpload))
+                                                                  .recursive(true)))
+              .completionFuture()
+              .get(10, TimeUnit.SECONDS);
+        assertThat(result.failedTransfers()).isEmpty();
+
+        s3Client.listObjectsV2Paginator(b -> b.bucket(TEST_BUCKET).prefix(prefix)).contents().forEach(object -> {
+            verifyContent(object.key(), "bar.txt" + randomString);
         });
     }
 
