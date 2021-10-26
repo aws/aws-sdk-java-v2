@@ -23,8 +23,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.FileTime;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
@@ -90,13 +92,12 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             // We need to synchronize here because the subscriber could call
             // request() from within onSubscribe which would potentially
             // trigger onNext before onSubscribe is finished.
-            //
-            // Note: size() can throw IOE here
-            Subscription subscription = new FileSubscription(channel, channel.size(), s, chunkSizeInBytes);
+            Subscription subscription = new FileSubscription(path, channel, s, chunkSizeInBytes);
+
             synchronized (subscription) {
                 s.onSubscribe(subscription);
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             if (channel != null) {
                 runAndLogError(log.logger(), "Unable to close file channel", channel::close);
             }
@@ -176,25 +177,31 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
      * Reads the file for one subscriber.
      */
     private static final class FileSubscription implements Subscription {
+        private final Path path;
         private final AsynchronousFileChannel inputChannel;
         private final Subscriber<? super ByteBuffer> subscriber;
         private final int chunkSize;
 
         private final AtomicLong position = new AtomicLong(0);
         private final AtomicLong remainingBytes = new AtomicLong(0);
+        private final long sizeAtStart;
+        private final FileTime modifiedTimeAtStart;
         private long outstandingDemand = 0;
         private boolean readInProgress = false;
         private volatile boolean done = false;
         private final Object lock = new Object();
 
-        private FileSubscription(AsynchronousFileChannel inputChannel,
-                                 long size,
+        private FileSubscription(Path path,
+                                 AsynchronousFileChannel inputChannel,
                                  Subscriber<? super ByteBuffer> subscriber,
-                                 int chunkSize) {
+                                 int chunkSize) throws IOException {
+            this.path = path;
             this.inputChannel = inputChannel;
             this.subscriber = subscriber;
             this.chunkSize = chunkSize;
-            this.remainingBytes.set(Validate.isNotNegative(size, "size"));
+            this.sizeAtStart = inputChannel.size();
+            this.modifiedTimeAtStart = Files.getLastModifiedTime(path);
+            this.remainingBytes.set(Validate.isNotNegative(sizeAtStart, "size"));
         }
 
         @Override
@@ -307,6 +314,36 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         }
 
         private void signalOnComplete() {
+            try {
+                long sizeAtEnd = Files.size(path);
+                if (sizeAtStart != sizeAtEnd) {
+                    signalOnError(new IOException("File size changed after reading started. Initial size: " + sizeAtStart + ". "
+                                                  + "Current size: " + sizeAtEnd));
+                    return;
+                }
+
+                if (remainingBytes.get() > 0) {
+                    signalOnError(new IOException("Fewer bytes were read than were expected, was the file modified after "
+                                                  + "reading started?"));
+                    return;
+                }
+
+                FileTime modifiedTimeAtEnd = Files.getLastModifiedTime(path);
+                if (modifiedTimeAtStart.compareTo(modifiedTimeAtEnd) != 0) {
+                    signalOnError(new IOException("File last-modified time changed after reading started. Initial modification "
+                                                  + "time: " + modifiedTimeAtStart + ". Current modification time: " +
+                                                  modifiedTimeAtEnd));
+                    return;
+                }
+            } catch (NoSuchFileException e) {
+                signalOnError(new IOException("Unable to check file status after read. Was the file deleted or were its "
+                                              + "permissions changed?", e));
+                return;
+            } catch (IOException e) {
+                signalOnError(new IOException("Unable to check file status after read.", e));
+                return;
+            }
+
             synchronized (this) {
                 if (!done) {
                     done = true;
