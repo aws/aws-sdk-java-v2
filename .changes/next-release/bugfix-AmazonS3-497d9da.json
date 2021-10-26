@@ -1,6 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Truncate the async request body when the content-length is shorter than the request body, instead of raising a \"Data read has a different checksum\" exception."
-}
