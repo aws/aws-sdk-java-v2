@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Chime SDK Messaging",
-    "contributor": "",
-    "description": "The Amazon Chime SDK now supports push notifications through Amazon Pinpoint"
-}
