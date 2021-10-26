@@ -1,3 +1,21 @@
+# __2.17.68__ __2021-10-26__
+## __Amazon Chime SDK Identity__
+  - ### Features
+    - The Amazon Chime SDK now supports push notifications through Amazon Pinpoint
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - The Amazon Chime SDK now supports push notifications through Amazon Pinpoint
+
+## __Amazon EMR Containers__
+  - ### Features
+    - This feature enables auto-generation of certificate to secure the managed-endpoint and removes the need for customer provided certificate-arn during managed-endpoint setup.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Raise an exception instead of hanging when a put-object content-length exceeds the data written by the async request body.
+    - Truncate the async request body when the content-length is shorter than the request body, instead of raising a "Data read has a different checksum" exception.
+
 # __2.17.67__ __2021-10-25__
 ## __AWS Audit Manager__
   - ### Features

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocols.json.internal.marshall;
 
 import static software.amazon.awssdk.core.internal.util.Mimetype.MIMETYPE_EVENT_STREAM;
+import static software.amazon.awssdk.core.protocol.MarshallingType.DOCUMENT;
 import static software.amazon.awssdk.http.Header.CHUNKED;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
@@ -62,7 +63,6 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     private final String contentType;
     private final AwsJsonProtocolMetadata protocolMetadata;
     private final boolean hasExplicitPayloadMember;
-    private final boolean hasImplicitPayloadMembers;
     private final boolean hasStreamingInput;
 
     private final JsonMarshallerContext marshallerContext;
@@ -79,7 +79,6 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         this.contentType = contentType;
         this.protocolMetadata = protocolMetadata;
         this.hasExplicitPayloadMember = operationInfo.hasExplicitPayloadMember();
-        this.hasImplicitPayloadMembers = operationInfo.hasImplicitPayloadMembers();
         this.hasStreamingInput = operationInfo.hasStreamingInput();
         this.hasEventStreamingInput = operationInfo.hasEventStreamingInput();
         this.hasEvent = operationInfo.hasEvent();
@@ -169,8 +168,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
      * members bound to the payload will be added as fields to this object.
      */
     private void startMarshalling() {
-        // Create the implicit request object if needed.
-        if (needTopLevelJsonObject()) {
+        if (!hasExplicitPayloadMember) {
             jsonGenerator.writeStartObject();
         }
     }
@@ -178,38 +176,29 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     void doMarshall(SdkPojo pojo) {
         for (SdkField<?> field : pojo.sdkFields()) {
             Object val = field.getValueOrDefault(pojo);
-            if (isExplicitBinaryPayload(field)) {
-                if (val != null) {
-                    request.contentStreamProvider(((SdkBytes) val)::asInputStream);
-                }
-            } else if (isExplicitPayloadMember(field)) {
-                marshallExplicitJsonPayload(field, val);
+            if (isBinary(field, val)) {
+                request.contentStreamProvider(((SdkBytes) val)::asInputStream);
+            } else if (isDocumentType(field) && val != null) {
+                marshalDocumentType(field, val);
             } else {
-                marshallField(field, val);
+                if (val != null && field.containsTrait(PayloadTrait.class)) {
+                    jsonGenerator.writeStartObject();
+                    doMarshall((SdkPojo) val);
+                    jsonGenerator.writeEndObject();
+                } else {
+                    MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val)
+                                       .marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
+                }
             }
         }
     }
 
-    private boolean isExplicitBinaryPayload(SdkField<?> field) {
-        return isExplicitPayloadMember(field) && MarshallingType.SDK_BYTES.equals(field.marshallingType());
+    private boolean isBinary(SdkField<?> field, Object val) {
+        return isExplicitPayloadMember(field) && val instanceof SdkBytes;
     }
 
     private boolean isExplicitPayloadMember(SdkField<?> field) {
         return field.containsTrait(PayloadTrait.class);
-    }
-
-    private void marshallExplicitJsonPayload(SdkField<?> field, Object val) {
-        // Explicit JSON payloads are always marshalled as an object,
-        // even if they're null, in which case it's an empty object.
-        jsonGenerator.writeStartObject();
-        if (val != null) {
-            if (MarshallingType.DOCUMENT.equals(field.marshallingType())) {
-                marshallField(field, val);
-            } else {
-                doMarshall((SdkPojo) val);
-            }
-        }
-        jsonGenerator.writeEndObject();
     }
 
     @Override
@@ -223,7 +212,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         // Content may already be set if the payload is binary data.
         if (request.contentStreamProvider() == null) {
             // End the implicit request object if needed.
-            if (needTopLevelJsonObject()) {
+            if (!hasExplicitPayloadMember) {
                 jsonGenerator.writeEndObject();
             }
 
@@ -254,7 +243,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 }
                 request.removeHeader(CONTENT_LENGTH);
                 request.putHeader(TRANSFER_ENCODING, CHUNKED);
-            } else if (contentType != null && !hasStreamingInput && request.headers().containsKey(CONTENT_LENGTH)) {
+            } else if (contentType != null && !hasStreamingInput && request.contentStreamProvider() != null) {
                 request.putHeader(CONTENT_TYPE, contentType);
             }
         }
@@ -262,14 +251,19 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         return request.build();
     }
 
-    private void marshallField(SdkField<?> field, Object val) {
-        MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val)
-                           .marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
+    private boolean isDocumentType(SdkField<?> field) {
+        return DOCUMENT.equals(field.marshallingType());
     }
 
-    private boolean needTopLevelJsonObject() {
-        return AwsJsonProtocol.AWS_JSON.equals(protocolMetadata.protocol())
-               || (!hasExplicitPayloadMember && hasImplicitPayloadMembers);
-
+    private void marshalDocumentType(SdkField<?> field, Object val) {
+        boolean isExplicitPayloadField = hasExplicitPayloadMember && field.containsTrait(PayloadTrait.class);
+        if (isExplicitPayloadField) {
+            jsonGenerator.writeStartObject();
+        }
+        MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val)
+                           .marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
+        if (isExplicitPayloadField) {
+            jsonGenerator.writeEndObject();
+        }
     }
 }

@@ -1,0 +1,36 @@
+{
+    "version": "2.17.68",
+    "date": "2021-10-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Identity",
+            "contributor": "",
+            "description": "The Amazon Chime SDK now supports push notifications through Amazon Pinpoint"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR Containers",
+            "contributor": "",
+            "description": "This feature enables auto-generation of certificate to secure the managed-endpoint and removes the need for customer provided certificate-arn during managed-endpoint setup."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Truncate the async request body when the content-length is shorter than the request body, instead of raising a \"Data read has a different checksum\" exception."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Raise an exception instead of hanging when a put-object content-length exceeds the data written by the async request body."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Messaging",
+            "contributor": "",
+            "description": "The Amazon Chime SDK now supports push notifications through Amazon Pinpoint"
+        }
+    ]
+}
