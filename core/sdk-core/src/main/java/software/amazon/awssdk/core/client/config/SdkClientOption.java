@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -156,6 +157,11 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      * @see RetryMode.Resolver#defaultRetryMode(RetryMode)
      */
     public static final SdkClientOption<RetryMode> DEFAULT_RETRY_MODE = new SdkClientOption<>(RetryMode.class);
+
+    /**
+     * Option to specify the {@link DefaultsMode}
+     */
+    public static final SdkClientOption<DefaultsMode> DEFAULTS_MODE = new SdkClientOption<>(DefaultsMode.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);

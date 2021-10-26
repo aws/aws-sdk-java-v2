@@ -42,11 +42,12 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDiscovery;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -76,10 +77,14 @@ public class DefaultAwsClientBuilderTest {
     @Mock
     private SdkAsyncHttpClient.Builder defaultAsyncHttpClientFactory;
 
+    @Mock
+    private AutoDefaultsModeDiscovery autoModeDiscovery;
+
     @Before
     public void setup() {
         when(defaultHttpClientBuilder.buildWithDefaults(any())).thenReturn(mock(SdkHttpClient.class));
         when(defaultAsyncHttpClientFactory.buildWithDefaults(any())).thenReturn(mock(SdkAsyncHttpClient.class));
+        when(autoModeDiscovery.discover(any())).thenReturn(DefaultsMode.IN_REGION);
     }
 
     @Test
@@ -232,7 +237,7 @@ public class DefaultAwsClientBuilderTest {
         implements AwsClientBuilder<TestClientBuilder, TestClient> {
 
         public TestClientBuilder() {
-            super(defaultHttpClientBuilder, null);
+            super(defaultHttpClientBuilder, null, autoModeDiscovery);
         }
 
         @Override
@@ -273,7 +278,7 @@ public class DefaultAwsClientBuilderTest {
         implements AwsClientBuilder<TestAsyncClientBuilder, TestAsyncClient> {
 
         public TestAsyncClientBuilder() {
-            super(defaultHttpClientBuilder, defaultAsyncHttpClientFactory);
+            super(defaultHttpClientBuilder, defaultAsyncHttpClientFactory, autoModeDiscovery);
         }
 
         @Override

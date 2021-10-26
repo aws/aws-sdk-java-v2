@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.awscore.client.builder;
 
+import static software.amazon.awssdk.core.client.config.SdkClientOption.DEFAULTS_MODE;
+
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -28,16 +30,20 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.awscore.eventstream.EventStreamInitialRequestInterceptor;
 import software.amazon.awssdk.awscore.interceptor.HelpfulUnknownHostExceptionInterceptor;
+import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDiscovery;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.defaultsmode.DefaultsModeResolver;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
@@ -68,15 +74,19 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     extends SdkDefaultClientBuilder<BuilderT, ClientT>
     implements AwsClientBuilder<BuilderT, ClientT> {
     private static final String DEFAULT_ENDPOINT_PROTOCOL = "https";
+    private final AutoDefaultsModeDiscovery autoDefaultsModeDiscovery;
 
     protected AwsDefaultClientBuilder() {
         super();
+        autoDefaultsModeDiscovery = new AutoDefaultsModeDiscovery();
     }
 
     @SdkTestInternalApi
     AwsDefaultClientBuilder(SdkHttpClient.Builder defaultHttpClientBuilder,
-                            SdkAsyncHttpClient.Builder defaultAsyncHttpClientFactory) {
+                            SdkAsyncHttpClient.Builder defaultAsyncHttpClientFactory,
+                            AutoDefaultsModeDiscovery autoDefaultsModeDiscovery) {
         super(defaultHttpClientBuilder, defaultAsyncHttpClientFactory);
+        this.autoDefaultsModeDiscovery = autoDefaultsModeDiscovery;
     }
 
     /**
@@ -104,6 +114,19 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     /**
+     * Return HTTP related defaults with the following chain of priorities.
+     * <ol>
+     * <li>Service-Specific Defaults</li>
+     * <li>Defaults vended by {@link DefaultsMode}</li>
+     * </ol>
+     */
+    @Override
+    protected final AttributeMap childHttpConfig(SdkClientConfiguration configuration) {
+        AttributeMap attributeMap = serviceHttpConfig();
+        return attributeMap.merge(httpConfigFromDefaultsMode(configuration));
+    }
+
+    /**
      * Optionally overridden by child classes to define service-specific HTTP configuration defaults.
      */
     protected AttributeMap serviceHttpConfig() {
@@ -114,10 +137,10 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     protected final SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
         SdkClientConfiguration config = mergeServiceDefaults(configuration);
         config = config.merge(c -> c.option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, true)
-                                  .option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, false)
-                                  .option(AwsClientOption.SERVICE_SIGNING_NAME, signingName())
-                                  .option(SdkClientOption.SERVICE_NAME, serviceName())
-                                  .option(AwsClientOption.ENDPOINT_PREFIX, serviceEndpointPrefix()));
+                                    .option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, false)
+                                    .option(AwsClientOption.SERVICE_SIGNING_NAME, signingName())
+                                    .option(SdkClientOption.SERVICE_NAME, serviceName())
+                                    .option(AwsClientOption.ENDPOINT_PREFIX, serviceEndpointPrefix()));
         return mergeInternalDefaults(config);
     }
 
@@ -143,6 +166,10 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                      .option(AwsClientOption.AWS_REGION, resolveRegion(configuration))
                                      .build();
 
+        configuration = configuration.toBuilder()
+                                     .option(SdkClientOption.DEFAULTS_MODE, resolveDefaultsMode(configuration))
+                                     .build();
+
         return configuration.toBuilder()
                             .option(AwsClientOption.CREDENTIALS_PROVIDER, resolveCredentials(configuration))
                             .option(SdkClientOption.ENDPOINT, resolveEndpoint(configuration))
@@ -157,6 +184,14 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      */
     protected SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration configuration) {
         return configuration;
+    }
+
+    /**
+     * Return the defaults specified for each {@link DefaultsMode}
+     */
+    private AttributeMap httpConfigFromDefaultsMode(SdkClientConfiguration sdkClientConfiguration) {
+        DefaultsMode defaultsMode = sdkClientConfiguration.option(DEFAULTS_MODE);
+        return DefaultsModeConfiguration.defaultHttpConfig(defaultsMode);
     }
 
     /**
@@ -210,6 +245,21 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                             .getRegion();
     }
 
+    private DefaultsMode resolveDefaultsMode(SdkClientConfiguration config) {
+        DefaultsMode defaultsMode = config.option(DEFAULTS_MODE) != null ?
+                                    config.option(DEFAULTS_MODE) :
+                                    DefaultsModeResolver.create()
+                                                        .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
+                                                        .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                                        .resolve();
+
+        if (defaultsMode.equals(DefaultsMode.AUTO)) {
+            defaultsMode = autoDefaultsModeDiscovery.discover(config.option(AwsClientOption.AWS_REGION));
+        }
+
+        return defaultsMode;
+    }
+
     /**
      * Resolve the credentials that should be used based on the customer's configuration.
      */
@@ -236,9 +286,16 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         RetryMode retryMode = RetryMode.resolver()
                                        .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
                                        .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                                       .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
+                                       .defaultRetryMode(resolveDefaultRetryMode(config))
                                        .resolve();
         return AwsRetryPolicy.forRetryMode(retryMode);
+    }
+
+    private RetryMode resolveDefaultRetryMode(SdkClientConfiguration config) {
+        DefaultsMode defaultsMode = config.option(DEFAULTS_MODE);
+        RetryMode retryMode = config.option(SdkClientOption.DEFAULT_RETRY_MODE);
+        return retryMode != null ? retryMode :
+               DefaultsModeConfiguration.defaultConfig(defaultsMode).get(SdkClientOption.DEFAULT_RETRY_MODE);
     }
 
     @Override

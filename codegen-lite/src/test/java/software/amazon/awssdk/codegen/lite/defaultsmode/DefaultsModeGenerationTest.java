@@ -42,4 +42,10 @@ public class DefaultsModeGenerationTest {
         assertThat(generator, generatesTo("defaults-mode.java"));
     }
 
+    @Test
+    public void defaultsModeConfigurationClass() {
+        DefaultsModeConfigurationGenerator generator = new DefaultsModeConfigurationGenerator(DEFAULTS_MODE_BASE, DEFAULTS_MODE_BASE, defaultConfiguration);
+        assertThat(generator, generatesTo("defaults-mode-configuration.java"));
+    }
+
 }

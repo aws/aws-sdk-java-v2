@@ -70,8 +70,8 @@ public interface SdkHttpClient extends SdkAutoCloseable {
         }
 
         /**
-         * Create an {@link SdkHttpClient} with service specific defaults applied. Applying service defaults is optional
-         * and some options may not be supported by a particular implementation.
+         * Create an {@link SdkHttpClient} with service specific defaults and defaults from {@code DefaultsMode} applied.
+         * Applying service defaults is optional and some options may not be supported by a particular implementation.
          *
          * @param serviceDefaults Service specific defaults. Keys will be one of the constants defined in
          *                        {@link SdkHttpConfigurationOption}.
