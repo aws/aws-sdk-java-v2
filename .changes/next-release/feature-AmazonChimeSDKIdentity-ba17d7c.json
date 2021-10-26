@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime SDK Identity",
+    "contributor": "",
+    "description": "The Amazon Chime SDK now supports push notifications through Amazon Pinpoint"
+}
