@@ -51,6 +51,15 @@
         "requestUri": "no-payload"
       },
       "input": {"shape": "NoPayloadPostRequest"}
+    },
+    "TestEventStream": {
+       "name": "TestEventStream",
+      "http": {
+        "method": "POST",
+        "requestUri": "eventstream"
+      },
+      "input": {"shape": "TestEventStreamRequest"}
+     
     }
   },
   "shapes":{
@@ -163,6 +172,101 @@
       },
       "documentation":"<p> The request structure for a blob payload request. </p>",
       "payload":"data"
+    },
+    "TestEventStreamRequest": {
+      "type": "structure",
+      "required": [
+        "InputEventStream"
+      ],
+      "members": {
+        "InputEventStream": {
+          "shape": "InputEventStream"
+        }
+      },
+      "payload":"InputEventStream"
+    },
+    "InputEventStream": {
+      "type": "structure",
+      "members": {
+        "BlobAndHeadersEvent": {
+          "shape": "BlobAndHeadersEvent"
+        },
+        "HeadersOnlyEvent": {
+          "shape": "HeadersOnlyEvent"
+        },
+        "ImplicitPayloadAndHeadersEvent": {
+          "shape": "ImplicitPayloadAndHeadersEvent"
+        }
+      },
+      "eventstream": true
+    },
+    "BlobAndHeadersEvent": {
+      "type": "structure",
+      "members": {
+        "BlobPayloadMember": {
+          "shape":"BlobPayloadMember",
+          "eventpayload":true
+        },
+        "HeaderMember": {
+          "shape": "String",
+          "eventheader": true
+        }
+      },
+      "event": true
+    },
+    "ImplicitPayloadAndHeadersEvent": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape":"String"
+        },
+        "HeaderMember": {
+          "shape": "String",
+          "eventheader": true
+        }
+      },
+      "event": true
+    },
+    "HeadersOnlyEvent": {
+      "type": "structure",
+      "members": {
+        "HeaderMember": {
+          "shape": "String",
+          "eventheader": true
+        }
+      },
+      "event": true
+    },
+    "BlobPayloadMember":{"type":"blob"},
+    "EventStream": {
+      "type": "structure",
+      "members": {
+        "EventOne": {
+          "shape": "EventOne"
+        },
+        "EventTwo": {
+          "shape": "EventTwo"
+        }
+      },
+      "eventstream": true
+    },
+    "EventOne": {
+      "type": "structure",
+      "members": {
+        "Foo": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    },
+    "EventTwo": {
+      "type": "structure",
+      "members": {
+        "Bar": {
+          "shape": "String"
+        }
+      },
+      "event": true
     }
   }
 }
