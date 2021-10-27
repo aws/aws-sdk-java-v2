@@ -427,10 +427,11 @@ public class QueryOperationTest {
         queryResultMap.forEach(
             attributeMap -> inOrder.verify(mockDynamoDbEnhancedClientExtension)
                                    .afterRead(
-            DefaultDynamoDbExtensionContext.builder()
-                                           .tableMetadata(FakeItem.getTableMetadata())
-                                           .operationContext(PRIMARY_CONTEXT)
-                                           .items(attributeMap).build()));
+                                       DefaultDynamoDbExtensionContext.builder()
+                                                                      .tableMetadata(FakeItem.getTableMetadata())
+                                                                      .operationContext(PRIMARY_CONTEXT)
+                                                                      .tableSchema(FakeItem.getTableSchema())
+                                                                      .items(attributeMap).build()));
     }
 
     private static QueryResponse generateFakeQueryResults(List<Map<String, AttributeValue>> queryItemMapsPage) {

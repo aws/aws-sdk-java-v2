@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Provide an error message if a AsyncRequestBody.fromFile source file changes length or update time while the SDK is reading from the file."
+}

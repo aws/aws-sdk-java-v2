@@ -536,8 +536,14 @@ public final class NettyRequestExecutor {
                 @Override
                 public void onComplete() {
                     if (!done) {
-                        done = true;
-                        subscriber.onComplete();
+                        Long expectedContentLength = requestContentLength.orElse(null);
+                        if (expectedContentLength != null && written < expectedContentLength) {
+                            onError(new IllegalStateException("Request content was only " + written + " bytes, but the specified "
+                                                              + "content-length was " + expectedContentLength + " bytes."));
+                        } else {
+                            done = true;
+                            subscriber.onComplete();
+                        }
                     }
                 }
             });

@@ -24,15 +24,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingInputStream;
-import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsCrtV4aSigner;
+import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.authcrt.signer.internal.SigningConfigProvider;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.internal.util.RegionScope;
 
 /**
  * Functional tests for the S3 specific Sigv4a signer. These tests call the CRT native signer code.
@@ -72,7 +68,7 @@ public class AwsCrtS3V4aSignerTest {
 
         assertThat(signedRequest.firstMatchingHeader("Authorization")).isPresent();
         assertThat(signedRequest.contentStreamProvider()).isPresent();
-        assertThat(signedRequest.contentStreamProvider().get().newStream()).isInstanceOf(AwsChunkedEncodingInputStream.class);
+        assertThat(signedRequest.contentStreamProvider().get().newStream()).isInstanceOf(AwsSignedChunkedEncodingInputStream.class);
     }
 
     @Test

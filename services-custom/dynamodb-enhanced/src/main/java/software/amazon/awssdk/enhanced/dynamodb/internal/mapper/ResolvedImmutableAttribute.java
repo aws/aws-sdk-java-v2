@@ -21,6 +21,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUt
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -31,19 +32,24 @@ public final class ResolvedImmutableAttribute<T, B> {
     private final Function<T, AttributeValue> getAttributeMethod;
     private final BiConsumer<B, AttributeValue> updateBuilderMethod;
     private final StaticTableMetadata tableMetadata;
+    private final AttributeConverter attributeConverter;
 
     private ResolvedImmutableAttribute(String attributeName,
                                        Function<T, AttributeValue> getAttributeMethod,
                                        BiConsumer<B, AttributeValue> updateBuilderMethod,
-                                       StaticTableMetadata tableMetadata) {
+                                       StaticTableMetadata tableMetadata,
+                                       AttributeConverter attributeConverter) {
         this.attributeName = attributeName;
         this.getAttributeMethod = getAttributeMethod;
         this.updateBuilderMethod =  updateBuilderMethod;
         this.tableMetadata = tableMetadata;
+        this.attributeConverter = attributeConverter;
     }
 
     public static <T, B, R> ResolvedImmutableAttribute<T, B> create(ImmutableAttribute<T, B, R> immutableAttribute,
-                                                                    AttributeType<R> attributeType) {
+                                                                    AttributeConverter<R> attributeConverter) {
+
+        AttributeType<R> attributeType = StaticAttributeType.create(attributeConverter);
         Function<T, AttributeValue> getAttributeValueWithTransform = item -> {
             R value = immutableAttribute.getter().apply(item);
             return value == null ? nullAttributeValue() : attributeType.objectToAttributeValue(value);
@@ -66,14 +72,16 @@ public final class ResolvedImmutableAttribute<T, B> {
             };
 
         StaticTableMetadata.Builder tableMetadataBuilder = StaticTableMetadata.builder();
-        immutableAttribute.tags().forEach(
-            tag -> tag.modifyMetadata(immutableAttribute.name(), attributeType.attributeValueType())
-                      .accept(tableMetadataBuilder));
-
+        immutableAttribute.tags().forEach(tag -> {
+            tag.validateType(immutableAttribute.name(), immutableAttribute.type(),
+                             attributeType.attributeValueType());
+            tag.modifyMetadata(immutableAttribute.name(), attributeType.attributeValueType()).accept(tableMetadataBuilder);
+        });
         return new ResolvedImmutableAttribute<>(immutableAttribute.name(),
                                                 getAttributeValueWithTransform,
                                                 updateBuilderWithTransform,
-                                                tableMetadataBuilder.build());
+                                                tableMetadataBuilder.build(),
+                                                attributeConverter);
     }
 
     public <T1, B1> ResolvedImmutableAttribute<T1, B1> transform(
@@ -90,7 +98,7 @@ public final class ResolvedImmutableAttribute<T, B> {
                     nullAttributeValue() : getAttributeMethod.apply(otherItem);
             },
             (item, value) -> updateBuilderMethod.accept(transformBuilder.apply(item), value),
-            tableMetadata);
+            tableMetadata, attributeConverter);
     }
 
     public String attributeName() {
@@ -107,5 +115,9 @@ public final class ResolvedImmutableAttribute<T, B> {
 
     public StaticTableMetadata tableMetadata() {
         return tableMetadata;
+    }
+
+    public AttributeConverter attributeConverter() {
+        return attributeConverter;
     }
 }

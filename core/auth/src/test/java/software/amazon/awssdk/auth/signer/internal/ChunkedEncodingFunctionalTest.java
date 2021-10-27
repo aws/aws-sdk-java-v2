@@ -24,8 +24,8 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingConfig;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingInputStream;
+import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
+import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsS3V4ChunkSigner;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -51,7 +51,7 @@ public class ChunkedEncodingFunctionalTest {
                                      + CRLF;
 
         ByteArrayInputStream input = new ByteArrayInputStream(chunkData.getBytes());
-        AwsChunkedEncodingInputStream stream = createChunkedEncodingInputStream(input);
+        AwsSignedChunkedEncodingInputStream stream = createChunkedEncodingInputStream(input);
 
         verifySignedPayload(expectedChunkOutput, stream);
     }
@@ -68,7 +68,7 @@ public class ChunkedEncodingFunctionalTest {
                                      + CRLF;
 
         ByteArrayInputStream input = new ByteArrayInputStream(chunk1Data.concat(chunk2Data).getBytes());
-        AwsChunkedEncodingInputStream stream = createChunkedEncodingInputStream(input);
+        AwsSignedChunkedEncodingInputStream stream = createChunkedEncodingInputStream(input);
 
         verifySignedPayload(expectedChunkOutput, stream);
     }
@@ -80,22 +80,25 @@ public class ChunkedEncodingFunctionalTest {
                                      + CRLF;
 
         ByteArrayInputStream input = new ByteArrayInputStream(chunkData.getBytes());
-        AwsChunkedEncodingInputStream stream = createChunkedEncodingInputStream(input);
+        AwsSignedChunkedEncodingInputStream stream = createChunkedEncodingInputStream(input);
 
         verifySignedPayload(expectedChunkOutput, stream);
     }
 
-    private void verifySignedPayload(String expectedChunkOutput, AwsChunkedEncodingInputStream stream) throws IOException {
+    private void verifySignedPayload(String expectedChunkOutput, AwsSignedChunkedEncodingInputStream stream) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         IOUtils.copy(stream, output);
         String result = new String(output.toByteArray(), StandardCharsets.UTF_8);
         assertThat(result).isEqualTo(expectedChunkOutput);
     }
 
-    private AwsChunkedEncodingInputStream createChunkedEncodingInputStream(ByteArrayInputStream input) {
+    private AwsSignedChunkedEncodingInputStream createChunkedEncodingInputStream(ByteArrayInputStream input) {
         AwsS3V4ChunkSigner chunkSigner = new AwsS3V4ChunkSigner(SIGNING_KEY, DATE_TIME, SCOPE);
         String signatureHex = BinaryUtils.toHex(SIGNATURE);
-        return new AwsChunkedEncodingInputStream(input, signatureHex, chunkSigner, AwsChunkedEncodingConfig.create());
+        return AwsSignedChunkedEncodingInputStream.builder().inputStream(input)
+                                                  .headerSignature(signatureHex).awsChunkSigner(chunkSigner)
+                                                  .awsChunkedEncodingConfig(AwsChunkedEncodingConfig.create()).build();
+
     }
 
 }

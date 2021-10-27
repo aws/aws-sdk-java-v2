@@ -90,6 +90,7 @@ public class PutItemOperation<T>
                                                .items(itemMap)
                                                .operationContext(operationContext)
                                                .tableMetadata(tableMetadata)
+                                               .tableSchema(tableSchema)
                                                .build())
                 : null;
 
