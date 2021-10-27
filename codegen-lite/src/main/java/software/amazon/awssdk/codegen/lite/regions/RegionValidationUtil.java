@@ -15,14 +15,41 @@
 
 package software.amazon.awssdk.codegen.lite.regions;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.codegen.lite.regions.model.Endpoint;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class RegionValidationUtil {
+    private static final Set<String> DEPRECATED_REGIONS_ALLOWSLIST = new HashSet<>();
 
     private static final String FIPS_SUFFIX = "-fips";
 
     private static final String FIPS_PREFIX = "fips-";
+
+    static {
+        try (InputStream allowListStream = RegionValidationUtil.class.getResourceAsStream("/software/amazon/awssdk/codegen/lite"
+                                                                                          + "/DeprecatedRegionsAllowlist.txt")) {
+            Validate.notNull(allowListStream, "Failed to load deprecated regions allowlist.");
+
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(allowListStream, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    DEPRECATED_REGIONS_ALLOWSLIST.add(line);
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
     private RegionValidationUtil() {
     }
@@ -42,6 +69,12 @@ public final class RegionValidationUtil {
                matchesRegexFipsSuffix(region, regex) ||
                matchesRegexFipsPrefix(region, regex) ||
                isGlobal(region);
+    }
+
+    public static boolean validEndpoint(String region, Endpoint endpoint) {
+        boolean invalidEndpoint =
+            Boolean.TRUE.equals(endpoint.getDeprecated()) && !DEPRECATED_REGIONS_ALLOWSLIST.contains(region);
+        return !invalidEndpoint;
     }
 
     private static boolean matchesRegex(String region, String regex) {
