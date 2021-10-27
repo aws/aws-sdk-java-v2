@@ -16,6 +16,7 @@
 package software.amazon.awssdk.regions;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.regions.internal.MetadataLoader;
 
 /**
  * A collection of metadata about a region. This can be loaded using the {@link #of(Region)} method.
@@ -31,10 +32,15 @@ public interface RegionMetadata {
     String id();
 
     /**
-     * Returns the domain for this region; ex: &quot;amazonaws.com&quot;.
+     * Returns the default domain for this region; ex: &quot;amazonaws.com&quot;, without considering any {@link EndpointTag}s
+     * or environment variables.
      *
      * @return The domain for this region.
+     * @deprecated This information does not consider any endpoint variant factors, like {@link EndpointTag}s. If those factors
+     * are important, use {@link ServiceMetadata#endpointFor(ServiceEndpointKey)} or
+     * {@link PartitionMetadata#dnsSuffix(PartitionEndpointKey)}.
      */
+    @Deprecated
     String domain();
 
     /**

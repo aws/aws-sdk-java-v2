@@ -13,16 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions;
+package software.amazon.awssdk.regions.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.regions.GeneratedPartitionMetadataProvider;
+import software.amazon.awssdk.regions.GeneratedRegionMetadataProvider;
+import software.amazon.awssdk.regions.GeneratedServiceMetadataProvider;
+import software.amazon.awssdk.regions.PartitionMetadata;
+import software.amazon.awssdk.regions.PartitionMetadataProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.RegionMetadata;
+import software.amazon.awssdk.regions.RegionMetadataProvider;
+import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.regions.ServiceMetadataProvider;
 
 /**
  * Internal class for determining where to load region and service
  * metadata from. Currently only generated region metadata is supported.
  */
 @SdkInternalApi
-final class MetadataLoader {
+public final class MetadataLoader {
 
     private static final RegionMetadataProvider REGION_METADATA_PROVIDER = new GeneratedRegionMetadataProvider();
 
@@ -33,15 +43,15 @@ final class MetadataLoader {
     private MetadataLoader() {
     }
 
-    static PartitionMetadata partitionMetadata(Region region) {
+    public static PartitionMetadata partitionMetadata(Region region) {
         return PARTITION_METADATA_PROVIDER.partitionMetadata(region);
     }
 
-    static PartitionMetadata partitionMetadata(String partition) {
+    public static PartitionMetadata partitionMetadata(String partition) {
         return PARTITION_METADATA_PROVIDER.partitionMetadata(partition);
     }
 
-    static RegionMetadata regionMetadata(Region region) {
+    public static RegionMetadata regionMetadata(Region region) {
         return REGION_METADATA_PROVIDER.regionMetadata(region);
     }
 

@@ -16,43 +16,36 @@
 package software.amazon.awssdk.regions;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.regions.internal.util.ServiceMetadataUtils;
 
 @SdkPublicApi
 public class DefaultServiceMetadata implements ServiceMetadata {
-
-    private static final Map<String, String> REGION_OVERRIDDEN_ENDPOINTS = ImmutableMap.<String, String>builder().build();
-
-    private static final List<Region> REGIONS = new ArrayList<>();
-
-    private static final Map<String, String> SIGNING_REGION_OVERRIDES = ImmutableMap.<String, String>builder().build();
-
     private final String endpointPrefix;
 
     public DefaultServiceMetadata(String endpointPrefix) {
         this.endpointPrefix = endpointPrefix;
     }
 
-
     @Override
-    public URI endpointFor(Region region) {
-        return URI.create(computeEndpoint(endpointPrefix, new HashMap<>(), region));
+    public URI endpointFor(ServiceEndpointKey key) {
+        PartitionMetadata partition = PartitionMetadata.of(key.region());
+        PartitionEndpointKey endpointKey = PartitionEndpointKey.builder().tags(key.tags()).build();
+        String hostname = partition.hostname(endpointKey);
+        String dnsName = partition.dnsSuffix(endpointKey);
+        return ServiceMetadataUtils.endpointFor(hostname, endpointPrefix, key.region().id(), dnsName);
     }
 
     @Override
-    public Region signingRegion(Region region) {
-        return region;
+    public Region signingRegion(ServiceEndpointKey key) {
+        return key.region();
     }
 
     @Override
     public List<Region> regions() {
-        return REGIONS;
+        return Collections.emptyList();
     }
 
     @Override
