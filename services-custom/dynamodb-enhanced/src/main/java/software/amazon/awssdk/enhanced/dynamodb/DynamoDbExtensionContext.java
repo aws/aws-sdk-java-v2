@@ -43,6 +43,13 @@ public final class DynamoDbExtensionContext {
          * @return A {@link TableMetadata} object describing the structure of the modelled table.
          */
         TableMetadata tableMetadata();
+
+        /**
+         * @return A {@link TableSchema} object describing the structure of the modelled table.
+         */
+        default TableSchema<?> tableSchema() {
+            throw new UnsupportedOperationException();
+        }
     }
 
     /**

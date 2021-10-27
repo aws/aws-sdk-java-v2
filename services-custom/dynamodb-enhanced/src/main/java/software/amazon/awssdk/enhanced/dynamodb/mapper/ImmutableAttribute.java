@@ -27,7 +27,6 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ResolvedImmutableAttribute;
-import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticAttributeType;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -160,7 +159,7 @@ public final class ImmutableAttribute<T, B, R> {
 
     ResolvedImmutableAttribute<T, B> resolve(AttributeConverterProvider attributeConverterProvider) {
         return ResolvedImmutableAttribute.create(this,
-                                                 StaticAttributeType.create(converterFrom(attributeConverterProvider)));
+                                                 converterFrom(attributeConverterProvider));
     }
 
     private AttributeConverter<R> converterFrom(AttributeConverterProvider attributeConverterProvider) {
