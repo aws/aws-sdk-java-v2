@@ -1,3 +1,28 @@
+# __2.17.70__ __2021-10-28__
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Updating documentation, adding new field to ConflictException to indicate earliest retry timestamp for some operations, increase maximum length of nextToken fields
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - This release adds a new boolean attribute - Connect Participant - to the CreateParticipantConnection API, which can be used to mark the participant as connected.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS now supports running Fargate tasks on Windows Operating Systems Families which includes Windows Server 2019 Core and Windows Server 2019 Full.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added new read-only DenyAllIGWTraffic network interface attribute. Added support for DL1 24xlarge instances powered by Habana Gaudi Accelerators for deep learning model training workloads
+
+## __Amazon GameLift__
+  - ### Features
+    - Added support for Arm-based AWS Graviton2 instances, such as M6g, C6g, and R6g.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for RStudio on SageMaker.
+
 # __2.17.69__ __2021-10-27__
 ## __AWS DynamoDB Enhanced Client__
   - ### Features
