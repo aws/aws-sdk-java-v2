@@ -119,6 +119,7 @@ public class S3TransferManagerListenerTest {
         assertThat(ctx3.progressSnapshot().bytesTransferred()).isEqualTo(contentLength);
         assertThat(ctx3.completedTransfer()).isSameAs(upload.completionFuture().get());
 
+        upload.completionFuture().join();
         verifyNoMoreInteractions(listener);
     }
 
@@ -161,6 +162,7 @@ public class S3TransferManagerListenerTest {
         assertThat(ctx3.progressSnapshot().bytesTransferred()).isEqualTo(contentLength);
         assertThat(ctx3.completedTransfer()).isSameAs(download.completionFuture().get());
 
+        download.completionFuture().join();
         verifyNoMoreInteractions(listener);
     }
 
@@ -202,6 +204,7 @@ public class S3TransferManagerListenerTest {
         assertThat(ctx2.progressSnapshot().bytesTransferred()).isZero();
         assertThat(ctx2.exception()).isInstanceOf(NoSuchFileException.class);
 
+        upload.completionFuture().join();
         verifyNoMoreInteractions(listener);
     }
 
@@ -218,11 +221,13 @@ public class S3TransferManagerListenerTest {
                                                    .source(path)
                                                    .overrideConfiguration(b -> b.addListener(listener))
                                                    .build();
-        tm.upload(uploadRequest);
+        Upload upload = tm.upload(uploadRequest);
 
         verify(listener, timeout(1000).times(1)).transferInitiated(any());
         verify(listener, timeout(1000).times(1)).bytesTransferred(any());
         verify(listener, timeout(1000).times(1)).transferComplete(any());
+
+        upload.completionFuture().join();
         verifyNoMoreInteractions(listener);
     }
 
