@@ -31,7 +31,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingInputStream;
+import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.authcrt.signer.SignerTestUtils;
 import software.amazon.awssdk.authcrt.signer.SigningTestCase;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -162,7 +162,7 @@ public class DefaultAwsCrtS3V4aSignerTest {
         assertThat(signedRequest.firstMatchingHeader("Authorization")).isPresent();
         assertThat(signedRequest.firstMatchingHeader("x-amz-decoded-content-length")).isNotPresent();
         assertThat(signedRequest.contentStreamProvider()).isPresent();
-        assertThat(signedRequest.contentStreamProvider().get().newStream()).isNotInstanceOf(AwsChunkedEncodingInputStream.class);
+        assertThat(signedRequest.contentStreamProvider().get().newStream()).isNotInstanceOf(AwsSignedChunkedEncodingInputStream.class);
 
         Mockito.verify(signerAdapter).signRequest(any(), configCaptor.capture());
         AwsSigningConfig usedConfig = configCaptor.getValue();
@@ -174,7 +174,7 @@ public class DefaultAwsCrtS3V4aSignerTest {
         assertThat(signedRequest.firstMatchingHeader("Content-Length")).isPresent();
         assertThat(signedRequest.firstMatchingHeader("x-amz-decoded-content-length")).isPresent();
         assertThat(signedRequest.contentStreamProvider()).isPresent();
-        assertThat(signedRequest.contentStreamProvider().get().newStream()).isInstanceOf(AwsChunkedEncodingInputStream.class);
+        assertThat(signedRequest.contentStreamProvider().get().newStream()).isInstanceOf(AwsSignedChunkedEncodingInputStream.class);
 
         Mockito.verify(signerAdapter).sign(any(), configCaptor.capture());
         AwsSigningConfig usedConfig = configCaptor.getValue();

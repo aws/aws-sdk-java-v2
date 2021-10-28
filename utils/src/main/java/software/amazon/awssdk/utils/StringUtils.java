@@ -753,4 +753,43 @@ public final class StringUtils {
 
         throw new IllegalArgumentException("Value was defined as '" + value + "', but should be 'false' or 'true'");
     }
+    
+    /**
+     * Returns a string whose value is the concatenation of this string repeated {@code count} times.
+     * <p>
+     * If this string is empty or count is zero then the empty string is returned.
+     * <p>
+     * Logical clone of JDK11's {@link String#repeat(int)}.
+     *
+     * @param value the string to repeat
+     * @param count number of times to repeat
+     * @return A string composed of this string repeated {@code count} times or the empty string if this string is empty or count
+     * is zero
+     * @throws IllegalArgumentException if the {@code count} is negative.
+     */
+    public static String repeat(String value, int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("count is negative: " + count);
+        }
+        if (value == null || value.length() == 0 || count == 1) {
+            return value;
+        }
+        if (count == 0) {
+            return "";
+        }
+        if (value.length() > Integer.MAX_VALUE / count) {
+            throw new OutOfMemoryError("Repeating " + value.length() + " bytes String " + count +
+                                       " times will produce a String exceeding maximum size.");
+        }
+        int len = value.length();
+        int limit = len * count;
+        char[] array = new char[limit];
+        value.getChars(0, len, array, 0);
+        int copied;
+        for (copied = len; copied < limit - copied; copied <<= 1) {
+            System.arraycopy(array, 0, array, copied, copied);
+        }
+        System.arraycopy(array, 0, array, copied, limit - copied);
+        return new String(array);
+    }
 }

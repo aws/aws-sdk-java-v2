@@ -247,4 +247,14 @@ public interface TableSchema<T> {
      * by other schemata, and false if it is concrete and may be used to map records directly.
      */
     boolean isAbstract();
+
+    /**
+     * {@link AttributeConverter} that is applied to the given key.
+     *
+     * @param key Attribute of the modelled item.
+     * @return AttributeConverter defined for the given attribute key.
+     */
+    default AttributeConverter<T> converterForAttribute(Object key) {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
@@ -39,10 +40,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class UploadRequest implements TransferRequest, ToCopyableBuilder<UploadRequest.Builder, UploadRequest> {
     private final PutObjectRequest putObjectRequest;
     private final Path source;
+    private final TransferRequestOverrideConfiguration overrideConfiguration;
 
     private UploadRequest(BuilderImpl builder) {
         this.putObjectRequest = paramNotNull(builder.putObjectRequest, "putObjectRequest");
         this.source = paramNotNull(builder.source, "source");
+        this.overrideConfiguration = builder.configuration;
     }
 
     /**
@@ -59,6 +62,14 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
      */
     public Path source() {
         return source;
+    }
+
+    /**
+     * @return the optional override configuration
+     * @see Builder#overrideConfiguration(TransferRequestOverrideConfiguration)
+     */
+    public Optional<TransferRequestOverrideConfiguration> overrideConfiguration() {
+        return Optional.ofNullable(overrideConfiguration);
     }
 
     /**
@@ -80,6 +91,15 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
     }
 
     @Override
+    public String toString() {
+        return ToString.builder("UploadRequest")
+                       .add("putObjectRequest", putObjectRequest)
+                       .add("source", source)
+                       .add("overrideConfiguration", overrideConfiguration)
+                       .build();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -93,22 +113,18 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         if (!Objects.equals(putObjectRequest, that.putObjectRequest)) {
             return false;
         }
-        return Objects.equals(source, that.source);
+        if (!Objects.equals(source, that.source)) {
+            return false;
+        }
+        return Objects.equals(overrideConfiguration, that.overrideConfiguration);
     }
 
     @Override
     public int hashCode() {
         int result = putObjectRequest != null ? putObjectRequest.hashCode() : 0;
         result = 31 * result + (source != null ? source.hashCode() : 0);
+        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
         return result;
-    }
-
-    @Override
-    public String toString() {
-        return ToString.builder("UploadRequest")
-                       .add("putObjectRequest", putObjectRequest)
-                       .add("source", source)
-                       .build();
     }
 
     /**
@@ -168,6 +184,30 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         }
 
         /**
+         * Add an optional request override configuration.
+         *
+         * @param configuration The override configuration.
+         * @return This builder for method chaining.
+         */
+        Builder overrideConfiguration(TransferRequestOverrideConfiguration configuration);
+
+        /**
+         * Similar to {@link #overrideConfiguration(TransferRequestOverrideConfiguration)}, but takes a lambda to configure a new
+         * {@link TransferRequestOverrideConfiguration.Builder}. This removes the need to call {@link
+         * TransferRequestOverrideConfiguration#builder()} and {@link TransferRequestOverrideConfiguration.Builder#build()}.
+         *
+         * @param configurationBuilder the upload configuration
+         * @return this builder for method chaining.
+         * @see #overrideConfiguration(TransferRequestOverrideConfiguration)
+         */
+        default Builder overrideConfiguration(Consumer<TransferRequestOverrideConfiguration.Builder> configurationBuilder) {
+            Validate.paramNotNull(configurationBuilder, "configurationBuilder");
+            return overrideConfiguration(TransferRequestOverrideConfiguration.builder()
+                                                                             .applyMutation(configurationBuilder)
+                                                                             .build());
+        }
+
+        /**
          * @return The built request.
          */
         @Override
@@ -177,6 +217,7 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
     private static class BuilderImpl implements Builder {
         private PutObjectRequest putObjectRequest;
         private Path source;
+        private TransferRequestOverrideConfiguration configuration;
 
         @Override
         public Builder source(Path source) {
@@ -204,6 +245,20 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
 
         public void setPutObjectRequest(PutObjectRequest putObjectRequest) {
             putObjectRequest(putObjectRequest);
+        }
+
+        @Override
+        public Builder overrideConfiguration(TransferRequestOverrideConfiguration configuration) {
+            this.configuration = configuration;
+            return this;
+        }
+
+        public void setOverrideConfiguration(TransferRequestOverrideConfiguration configuration) {
+            overrideConfiguration(configuration);
+        }
+
+        public TransferRequestOverrideConfiguration getOverrideConfiguration() {
+            return configuration;
         }
 
         @Override

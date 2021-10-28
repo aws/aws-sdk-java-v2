@@ -766,6 +766,30 @@
           "us-west-2" : { }
         }
       },
+      "applicationinsights" : {
+        "endpoints" : {
+          "af-south-1" : { },
+          "ap-east-1" : { },
+          "ap-northeast-1" : { },
+          "ap-northeast-2" : { },
+          "ap-south-1" : { },
+          "ap-southeast-1" : { },
+          "ap-southeast-2" : { },
+          "ca-central-1" : { },
+          "eu-central-1" : { },
+          "eu-north-1" : { },
+          "eu-south-1" : { },
+          "eu-west-1" : { },
+          "eu-west-2" : { },
+          "eu-west-3" : { },
+          "me-south-1" : { },
+          "sa-east-1" : { },
+          "us-east-1" : { },
+          "us-east-2" : { },
+          "us-west-1" : { },
+          "us-west-2" : { }
+        }
+      },
       "appmesh" : {
         "endpoints" : {
           "af-south-1" : { },
@@ -4095,6 +4119,19 @@
           "us-west-2" : { }
         }
       },
+      "iotsitewise" : {
+        "endpoints" : {
+          "ap-northeast-1" : { },
+          "ap-northeast-2" : { },
+          "ap-south-1" : { },
+          "ap-southeast-1" : { },
+          "ap-southeast-2" : { },
+          "eu-central-1" : { },
+          "eu-west-1" : { },
+          "us-east-1" : { },
+          "us-west-2" : { }
+        }
+      },
       "iotthingsgraph" : {
         "defaults" : {
           "credentialScope" : {
@@ -4868,6 +4905,27 @@
           "us-west-2" : { }
         }
       },
+      "mgn" : {
+        "endpoints" : {
+          "ap-east-1" : { },
+          "ap-northeast-1" : { },
+          "ap-northeast-2" : { },
+          "ap-northeast-3" : { },
+          "ap-south-1" : { },
+          "ap-southeast-1" : { },
+          "ap-southeast-2" : { },
+          "ca-central-1" : { },
+          "eu-central-1" : { },
+          "eu-north-1" : { },
+          "eu-west-1" : { },
+          "eu-west-2" : { },
+          "sa-east-1" : { },
+          "us-east-1" : { },
+          "us-east-2" : { },
+          "us-west-1" : { },
+          "us-west-2" : { }
+        }
+      },
       "mobileanalytics" : {
         "endpoints" : {
           "us-east-1" : { }
@@ -5190,6 +5248,15 @@
           "us-east-1" : { },
           "us-east-2" : { },
           "us-west-1" : { },
+          "us-west-2" : { }
+        }
+      },
+      "nimble" : {
+        "endpoints" : {
+          "ap-southeast-2" : { },
+          "ca-central-1" : { },
+          "eu-west-2" : { },
+          "us-east-1" : { },
           "us-west-2" : { }
         }
       },
@@ -7957,6 +8024,16 @@
           }
         }
       },
+      "wisdom" : {
+        "endpoints" : {
+          "ap-northeast-1" : { },
+          "ap-southeast-2" : { },
+          "eu-central-1" : { },
+          "eu-west-2" : { },
+          "us-east-1" : { },
+          "us-west-2" : { }
+        }
+      },
       "workdocs" : {
         "endpoints" : {
           "ap-northeast-1" : { },
@@ -8142,6 +8219,12 @@
         "defaults" : {
           "protocols" : [ "http", "https" ]
         },
+        "endpoints" : {
+          "cn-north-1" : { },
+          "cn-northwest-1" : { }
+        }
+      },
+      "applicationinsights" : {
         "endpoints" : {
           "cn-north-1" : { },
           "cn-northwest-1" : { }
@@ -8555,6 +8638,11 @@
         "endpoints" : {
           "cn-north-1" : { },
           "cn-northwest-1" : { }
+        }
+      },
+      "iotsitewise" : {
+        "endpoints" : {
+          "cn-north-1" : { }
         }
       },
       "kafka" : {
@@ -9135,6 +9223,22 @@
           },
           "us-gov-west-1" : {
             "protocols" : [ "http", "https" ]
+          }
+        }
+      },
+      "applicationinsights" : {
+        "endpoints" : {
+          "us-gov-east-1" : {
+            "credentialScope" : {
+              "region" : "us-gov-east-1"
+            },
+            "hostname" : "applicationinsights.us-gov-east-1.amazonaws.com"
+          },
+          "us-gov-west-1" : {
+            "credentialScope" : {
+              "region" : "us-gov-west-1"
+            },
+            "hostname" : "applicationinsights.us-gov-west-1.amazonaws.com"
           }
         }
       },
@@ -10010,6 +10114,11 @@
           "us-gov-west-1" : { }
         }
       },
+      "iotsitewise" : {
+        "endpoints" : {
+          "us-gov-west-1" : { }
+        }
+      },
       "kafka" : {
         "endpoints" : {
           "us-gov-east-1" : { },
@@ -10018,6 +10127,12 @@
       },
       "kendra" : {
         "endpoints" : {
+          "fips-us-gov-west-1" : {
+            "credentialScope" : {
+              "region" : "us-gov-west-1"
+            },
+            "hostname" : "kendra-fips.us-gov-west-1.amazonaws.com"
+          },
           "us-gov-west-1" : { }
         }
       },
@@ -11093,6 +11208,11 @@
           "us-iso-west-1" : { }
         }
       },
+      "ebs" : {
+        "endpoints" : {
+          "us-iso-east-1" : { }
+        }
+      },
       "ec2" : {
         "endpoints" : {
           "us-iso-east-1" : { },
@@ -11472,6 +11592,11 @@
         "defaults" : {
           "protocols" : [ "http", "https" ]
         },
+        "endpoints" : {
+          "us-isob-east-1" : { }
+        }
+      },
+      "ebs" : {
         "endpoints" : {
           "us-isob-east-1" : { }
         }

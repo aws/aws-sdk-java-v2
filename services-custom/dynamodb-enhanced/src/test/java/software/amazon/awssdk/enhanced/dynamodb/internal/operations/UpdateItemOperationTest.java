@@ -408,6 +408,7 @@ public class UpdateItemOperationTest {
 
         assertThat(request.key(), is(keyMap));
         verify(mockDynamoDbEnhancedClientExtension).beforeWrite(DefaultDynamoDbExtensionContext.builder()
+                                                                                               .tableSchema(FakeItem.getTableSchema())
                                                                                                .tableMetadata(FakeItem.getTableMetadata())
                                                                                                .operationContext(PRIMARY_CONTEXT)
                                                                                                .items(baseMap).build());
@@ -772,6 +773,7 @@ public class UpdateItemOperationTest {
         assertThat(resultItem, is(fakeItem));
         verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
                                                                                              .tableMetadata(FakeItem.getTableMetadata())
+                                                                                             .tableSchema(FakeItem.getTableSchema())
                                                                                              .operationContext(PRIMARY_CONTEXT)
                                                                                              .items(baseFakeMap).build());
     }
@@ -800,6 +802,7 @@ public class UpdateItemOperationTest {
         assertThat(resultItem, is(baseFakeItem));
         verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
                                                                                              .tableMetadata(FakeItem.getTableMetadata())
+                                                                                             .tableSchema(FakeItem.getTableSchema())
                                                                                              .operationContext(PRIMARY_CONTEXT)
                                                                                              .items(baseFakeMap).build());
     }

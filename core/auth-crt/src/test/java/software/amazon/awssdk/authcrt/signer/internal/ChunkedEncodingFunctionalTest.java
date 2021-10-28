@@ -44,8 +44,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingConfig;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingInputStream;
+import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
+import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.authcrt.signer.internal.chunkedencoding.AwsS3V4aChunkSigner;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
@@ -168,11 +168,15 @@ public class ChunkedEncodingFunctionalTest {
         AwsChunkedEncodingConfig chunkedEncodingConfig = AwsChunkedEncodingConfig.builder()
                                                                                  .chunkSize(STREAM_CHUNK_SIZE)
                                                                                  .build();
-        AwsChunkedEncodingInputStream stream =
-            new AwsChunkedEncodingInputStream(request.contentStreamProvider().get().newStream(),
-                                              new String(requestSignature, StandardCharsets.UTF_8),
-                                              chunkSigner,
-                                              chunkedEncodingConfig);
+
+        AwsSignedChunkedEncodingInputStream stream =
+
+            AwsSignedChunkedEncodingInputStream.builder()
+                                               .inputStream(request.contentStreamProvider().get().newStream())
+                                               .awsChunkSigner(chunkSigner)
+                                               .awsChunkedEncodingConfig(chunkedEncodingConfig)
+                                               .headerSignature(new String(requestSignature, StandardCharsets.UTF_8))
+                                               .build();
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         IOUtils.copy(stream, output);

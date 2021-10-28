@@ -1,0 +1,30 @@
+{
+    "version": "2.17.66",
+    "date": "2021-10-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Audit Manager",
+            "contributor": "",
+            "description": "This release introduces character restrictions for ControlSet names. We updated regex patterns for the following attributes: ControlSet, CreateAssessmentFrameworkControlSet, and UpdateAssessmentFrameworkControlSet."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Added QSearchBar option for GenerateEmbedUrlForRegisteredUser ExperienceConfiguration to support Q search bar embedding"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime",
+            "contributor": "",
+            "description": "Chime VoiceConnector and VoiceConnectorGroup APIs will now return an ARN."
+        },
+        {
+            "type": "feature",
+            "category": "S3TransferManager",
+            "contributor": "",
+            "description": "Add support for S3TransferManager TransferListeners"
+        }
+    ]
+}

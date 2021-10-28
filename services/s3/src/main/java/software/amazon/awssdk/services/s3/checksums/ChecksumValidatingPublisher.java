@@ -25,7 +25,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 @SdkInternalApi
@@ -134,8 +134,13 @@ public final class ChecksumValidatingPublisher implements SdkPublisher<ByteBuffe
             if (strippedLength > 0) {
                 byte[] computedChecksum = sdkChecksum.getChecksumBytes();
                 if (!Arrays.equals(computedChecksum, streamChecksum)) {
-                    onError(SdkClientException.create(
-                        String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s",
+                    onError(RetryableException.create(
+                        String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s. "
+                                      + "Common causes: (1) You modified a request ByteBuffer before it could be "
+                                      + "written to the service. Please ensure your data source does not modify the "
+                                      + " byte buffers after you pass them to the SDK. (2) The data was corrupted between the "
+                                      + "client and service. Note: Despite this error, the upload still completed and was "
+                                      + "persisted in S3.",
                                       BinaryUtils.toHex(computedChecksum), BinaryUtils.toHex(streamChecksum))));
                     return; // Return after onError and not call onComplete below
                 }
