@@ -50,6 +50,7 @@ import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * An SDK-internal implementation of the methods in {@link AwsClientBuilder}, {@link AwsAsyncClientBuilder} and
@@ -73,6 +74,7 @@ import software.amazon.awssdk.utils.CollectionUtils;
 public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<BuilderT, ClientT>, ClientT>
     extends SdkDefaultClientBuilder<BuilderT, ClientT>
     implements AwsClientBuilder<BuilderT, ClientT> {
+    private static final Logger log = Logger.loggerFor(AwsClientBuilder.class);
     private static final String DEFAULT_ENDPOINT_PROTOCOL = "https";
     private final AutoDefaultsModeDiscovery autoDefaultsModeDiscovery;
 
@@ -253,8 +255,10 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                                         .profileName(config.option(SdkClientOption.PROFILE_NAME))
                                                         .resolve();
 
-        if (defaultsMode.equals(DefaultsMode.AUTO)) {
+        if (defaultsMode == DefaultsMode.AUTO) {
             defaultsMode = autoDefaultsModeDiscovery.discover(config.option(AwsClientOption.AWS_REGION));
+            DefaultsMode finalDefaultsMode = defaultsMode;
+            log.debug(() -> "The resolved defaults mode is: " + finalDefaultsMode);
         }
 
         return defaultsMode;

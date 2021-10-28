@@ -1,6 +1,8 @@
 package software.amazon.awssdk.defaultsmode;
 
 import java.time.Duration;
+import java.util.EnumMap;
+import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -42,46 +44,37 @@ public final class DefaultsModeConfiguration {
 
     private static final AttributeMap LEGACY_HTTP_DEFAULTS = AttributeMap.empty();
 
+    private static final Map<DefaultsMode, AttributeMap> DEFAULT_CONFIG_BY_MODE = new EnumMap<>(DefaultsMode.class);
+
+    private static final Map<DefaultsMode, AttributeMap> DEFAULT_HTTP_CONFIG_BY_MODE = new EnumMap<>(DefaultsMode.class);
+
+    static {
+        DEFAULT_CONFIG_BY_MODE.put(DefaultsMode.STANDARD, STANDARD_DEFAULTS);
+        DEFAULT_CONFIG_BY_MODE.put(DefaultsMode.MOBILE, MOBILE_DEFAULTS);
+        DEFAULT_CONFIG_BY_MODE.put(DefaultsMode.CROSS_REGION, CROSS_REGION_DEFAULTS);
+        DEFAULT_CONFIG_BY_MODE.put(DefaultsMode.IN_REGION, IN_REGION_DEFAULTS);
+        DEFAULT_CONFIG_BY_MODE.put(DefaultsMode.LEGACY, LEGACY_DEFAULTS);
+        DEFAULT_HTTP_CONFIG_BY_MODE.put(DefaultsMode.STANDARD, STANDARD_HTTP_DEFAULTS);
+        DEFAULT_HTTP_CONFIG_BY_MODE.put(DefaultsMode.MOBILE, MOBILE_HTTP_DEFAULTS);
+        DEFAULT_HTTP_CONFIG_BY_MODE.put(DefaultsMode.CROSS_REGION, CROSS_REGION_HTTP_DEFAULTS);
+        DEFAULT_HTTP_CONFIG_BY_MODE.put(DefaultsMode.IN_REGION, IN_REGION_HTTP_DEFAULTS);
+        DEFAULT_HTTP_CONFIG_BY_MODE.put(DefaultsMode.LEGACY, LEGACY_HTTP_DEFAULTS);
+    }
+
     private DefaultsModeConfiguration() {
     }
 
     /**
-     * Return the default HTTP config options for a given defaults mode
+     * Return the default config options for a given defaults mode
      */
-    public static AttributeMap defaultHttpConfig(DefaultsMode mode) {
-        switch (mode) {
-            case STANDARD:
-                return STANDARD_HTTP_DEFAULTS;
-            case MOBILE:
-                return MOBILE_HTTP_DEFAULTS;
-            case CROSS_REGION:
-                return CROSS_REGION_HTTP_DEFAULTS;
-            case IN_REGION:
-                return IN_REGION_HTTP_DEFAULTS;
-            case LEGACY:
-                return LEGACY_HTTP_DEFAULTS;
-            default:
-                throw new IllegalArgumentException("Unsupported mode: " + mode);
-        }
+    public static AttributeMap defaultConfig(DefaultsMode mode) {
+        return DEFAULT_CONFIG_BY_MODE.getOrDefault(mode, AttributeMap.empty());
     }
 
     /**
-     * Return the default SDK config options for a given defaults mode
+     * Return the default config options for a given defaults mode
      */
-    public static AttributeMap defaultConfig(DefaultsMode mode) {
-        switch (mode) {
-            case STANDARD:
-                return STANDARD_DEFAULTS;
-            case MOBILE:
-                return MOBILE_DEFAULTS;
-            case CROSS_REGION:
-                return CROSS_REGION_DEFAULTS;
-            case IN_REGION:
-                return IN_REGION_DEFAULTS;
-            case LEGACY:
-                return LEGACY_DEFAULTS;
-            default:
-                throw new IllegalArgumentException("Unsupported mode: " + mode);
-        }
+    public static AttributeMap defaultHttpConfig(DefaultsMode mode) {
+        return DEFAULT_HTTP_CONFIG_BY_MODE.getOrDefault(mode, AttributeMap.empty());
     }
 }

@@ -33,7 +33,6 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDiscovery;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -75,7 +74,7 @@ public class DefaultsModeTest {
             .build();
 
         assertThat(client.clientConfiguration.option(DEFAULTS_MODE)).isEqualTo(DefaultsMode.LEGACY);
-        assertThat(client.clientConfiguration.option(RETRY_POLICY).retryMode()).isEqualTo(client.clientConfiguration.option(DEFAULT_RETRY_MODE));
+        assertThat(client.clientConfiguration.option(RETRY_POLICY).retryMode()).isEqualTo(RetryMode.defaultRetryMode());
     }
 
     @Test
@@ -199,13 +198,6 @@ public class DefaultsModeTest {
         }
 
         @Override
-        protected final SdkClientConfiguration mergeInternalDefaults(SdkClientConfiguration config) {
-            return config.merge(c -> {
-                c.option(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.ADAPTIVE);
-            });
-        }
-
-        @Override
         protected AttributeMap serviceHttpConfig() {
             return SERVICE_DEFAULTS;
         }
@@ -236,13 +228,6 @@ public class DefaultsModeTest {
         @Override
         protected String serviceName() {
             return SERVICE_NAME;
-        }
-
-        @Override
-        protected final SdkClientConfiguration mergeInternalDefaults(SdkClientConfiguration config) {
-            return config.merge(c -> {
-                c.option(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.ADAPTIVE);
-            });
         }
 
         @Override

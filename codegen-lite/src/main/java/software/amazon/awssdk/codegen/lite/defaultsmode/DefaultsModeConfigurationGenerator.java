@@ -25,7 +25,9 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -41,13 +43,15 @@ import software.amazon.awssdk.utils.AttributeMap;
  */
 public class DefaultsModeConfigurationGenerator implements PoetClass {
 
+    private static final String DEFAULT_CONFIG_BY_MODE_ENUM_MAP = "DEFAULT_CONFIG_BY_MODE";
+    private static final String DEFAULT_HTTP_CONFIG_BY_MODE_ENUM_MAP = "DEFAULT_HTTP_CONFIG_BY_MODE";
+    private static final String DEFAULTS_VAR_SUFFIX = "_DEFAULTS";
+    private static final String HTTP_DEFAULTS_VAR_SUFFIX = "_HTTP_DEFAULTS";
+    private static final Map<String, OptionMetadata> CONFIGURATION_MAPPING = new HashMap<>();
+    private static final Map<String, OptionMetadata> HTTP_CONFIGURATION_MAPPING = new HashMap<>();
     private final String basePackage;
     private final String defaultsModeBase;
     private final DefaultConfiguration configuration;
-
-    private static final Map<String, OptionMetadata> CONFIGURATION_MAPPING = new HashMap<>();
-
-    private static final Map<String, OptionMetadata> HTTP_CONFIGURATION_MAPPING = new HashMap<>();
 
     static {
         HTTP_CONFIGURATION_MAPPING.put("connectTimeoutInMillis",
@@ -55,7 +59,7 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
                                                           ClassName.get("software.amazon.awssdk.http",
                                                                         "SdkHttpConfigurationOption", "CONNECTION_TIMEOUT")));
         CONFIGURATION_MAPPING.put("retryMode", new OptionMetadata(ClassName.get("software.amazon.awssdk.core.retry", "RetryMode"
-        ), ClassName.get("software.amazon.awssdk.core.client.config","SdkClientOption", "DEFAULT_RETRY_MODE")));
+        ), ClassName.get("software.amazon.awssdk.core.client.config", "SdkClientOption", "DEFAULT_RETRY_MODE")));
     }
 
     public DefaultsModeConfigurationGenerator(String basePackage, String defaultsModeBase, DefaultConfiguration configuration) {
@@ -75,8 +79,9 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
                                                                                    "$S",
                                                                                    "software.amazon.awssdk:codegen")
                                                                         .build())
-                                           .addMethod(defaultHttpConfigMethod(configuration.modeDefaults().keySet()))
-                                           .addMethod(defaultSdkConfigMethod(configuration.modeDefaults().keySet()))
+                                           .addMethod(defaultConfigMethod(DEFAULT_CONFIG_BY_MODE_ENUM_MAP, "defaultConfig"))
+                                           .addMethod(defaultConfigMethod(DEFAULT_HTTP_CONFIG_BY_MODE_ENUM_MAP,
+                                                                          "defaultHttpConfig"))
                                            .addMethod(createConstructor());
 
 
@@ -87,7 +92,42 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
 
         addDefaultsFieldForLegacy(builder, "LEGACY_DEFAULTS");
         addDefaultsFieldForLegacy(builder, "LEGACY_HTTP_DEFAULTS");
+
+        addEnumMapField(builder, DEFAULT_CONFIG_BY_MODE_ENUM_MAP);
+        addEnumMapField(builder, DEFAULT_HTTP_CONFIG_BY_MODE_ENUM_MAP);
+
+        addStaticEnumMapBlock(builder);
         return builder.build();
+    }
+
+    private void addStaticEnumMapBlock(TypeSpec.Builder builder) {
+        CodeBlock.Builder staticCodeBlock = CodeBlock.builder();
+
+        putItemsToEnumMap(staticCodeBlock, configuration.modeDefaults().keySet(), DEFAULTS_VAR_SUFFIX,
+                          DEFAULT_CONFIG_BY_MODE_ENUM_MAP);
+        putItemsToEnumMap(staticCodeBlock, configuration.modeDefaults().keySet(), HTTP_DEFAULTS_VAR_SUFFIX,
+                          DEFAULT_HTTP_CONFIG_BY_MODE_ENUM_MAP);
+
+        builder.addStaticBlock(staticCodeBlock.build());
+    }
+
+    private void addEnumMapField(TypeSpec.Builder builder, String name) {
+        ParameterizedTypeName map = ParameterizedTypeName.get(ClassName.get(Map.class),
+                                                                                defaultsModeClassName(),
+                                                                                ClassName.get(AttributeMap.class));
+        FieldSpec field = FieldSpec.builder(map, name, PRIVATE, STATIC, FINAL)
+                                   .initializer("new $T<>(DefaultsMode.class)", EnumMap.class).build();
+        builder.addField(field);
+    }
+
+    private void putItemsToEnumMap(CodeBlock.Builder codeBlock, Set<String> modes, String suffix, String mapName) {
+        modes.forEach(m -> {
+            String mode = sanitizeMode(m);
+            codeBlock.addStatement("$N.put(DefaultsMode.$N, $N)", mapName, mode, mode + suffix);
+        });
+
+        // Add LEGACY since LEGACY is not in the modes set
+        codeBlock.addStatement("$N.put(DefaultsMode.LEGACY, LEGACY$N)", mapName, suffix);
     }
 
     @Override
@@ -97,8 +137,7 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
 
     private FieldSpec addDefaultsFieldForMode(Map.Entry<String, Map<String, String>> modeEntry) {
         String mode = modeEntry.getKey();
-        String fieldName = sanitizeMode(mode) + "_DEFAULTS";
-
+        String fieldName = sanitizeMode(mode) + DEFAULTS_VAR_SUFFIX;
 
         CodeBlock.Builder attributeBuilder = CodeBlock.builder()
                                                       .add("$T.builder()", AttributeMap.class);
@@ -129,7 +168,8 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
         OptionMetadata optionMetadata = CONFIGURATION_MAPPING.get(option);
         switch (option) {
             case "retryMode":
-                attributeBuilder.add(".put($T, $T.$N)", optionMetadata.attribute, optionMetadata.type, value.toUpperCase(Locale.US));
+                attributeBuilder.add(".put($T, $T.$N)", optionMetadata.attribute, optionMetadata.type,
+                                     value.toUpperCase(Locale.US));
                 break;
             default:
                 throw new IllegalStateException("Unsupported option " + option);
@@ -149,7 +189,7 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
 
     private FieldSpec addHttpDefaultsFieldForMode(Map.Entry<String, Map<String, String>> modeEntry) {
         String mode = modeEntry.getKey();
-        String fieldName = sanitizeMode(mode) + "_HTTP_DEFAULTS";
+        String fieldName = sanitizeMode(mode) + HTTP_DEFAULTS_VAR_SUFFIX;
 
         CodeBlock.Builder attributeBuilder = CodeBlock.builder()
                                                       .add("$T.builder()", AttributeMap.class);
@@ -180,59 +220,17 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
         return builder.build();
     }
 
-
-    private MethodSpec defaultHttpConfigMethod(Set<String> modes) {
-        String nameSuffix = "_HTTP_DEFAULTS";
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("defaultHttpConfig")
+    private MethodSpec defaultConfigMethod(String enumMap, String methodName) {
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName)
                                                      .returns(AttributeMap.class)
                                                      .addModifiers(PUBLIC, STATIC)
-                                                     .addJavadoc("Return the default HTTP config options for a given defaults "
+                                                     .addJavadoc("Return the default config options for a given defaults "
                                                                  + "mode")
                                                      .addParameter(defaultsModeClassName(), "mode")
-                                                     .beginControlFlow("switch (mode)");
+                                                     .addStatement("return $N.getOrDefault(mode, $T.empty())",
+                                                                   enumMap, AttributeMap.class);
 
-
-        addSwitchCaseForEachMode(modes, nameSuffix, methodBuilder);
-
-        addLegacyCase(methodBuilder, "LEGACY" + nameSuffix);
-
-        return methodBuilder
-            .addStatement("default: throw new IllegalArgumentException($S + $N)", "Unsupported mode: ", "mode")
-            .endControlFlow()
-            .build();
-    }
-
-    private void addSwitchCaseForEachMode(Set<String> modes, String nameSuffix, MethodSpec.Builder methodBuilder) {
-        modes.forEach(m -> {
-            String mode = sanitizeMode(m);
-            methodBuilder.addCode("case $N:", mode);
-            methodBuilder.addStatement("return $N", mode + nameSuffix);
-        });
-    }
-
-    private MethodSpec defaultSdkConfigMethod(Set<String> modes) {
-        String nameSuffix = "_DEFAULTS";
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("defaultConfig")
-                                                     .returns(AttributeMap.class)
-                                                     .addModifiers(PUBLIC, STATIC)
-                                                     .addJavadoc("Return the default SDK config options for a given defaults "
-                                                                 + "mode")
-                                                     .addParameter(defaultsModeClassName(), "mode")
-                                                     .beginControlFlow("switch (mode)");
-
-
-        addSwitchCaseForEachMode(modes, nameSuffix, methodBuilder);
-        addLegacyCase(methodBuilder, "LEGACY" + nameSuffix);
-
-        return methodBuilder
-            .addStatement("default: throw new IllegalArgumentException($S + $N)", "Unsupported mode: ", "mode")
-            .endControlFlow()
-            .build();
-    }
-
-    private void addLegacyCase(MethodSpec.Builder methodBuilder, String name) {
-        methodBuilder.addCode("case LEGACY:");
-        methodBuilder.addStatement("return $N", name);
+        return methodBuilder.build();
     }
 
     private ClassName defaultsModeClassName() {
@@ -249,7 +247,7 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
         private final ClassName type;
         private final ClassName attribute;
 
-        public OptionMetadata(ClassName type, ClassName attribute) {
+        OptionMetadata(ClassName type, ClassName attribute) {
             this.type = type;
             this.attribute = attribute;
         }
