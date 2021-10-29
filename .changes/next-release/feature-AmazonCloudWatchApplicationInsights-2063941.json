@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Application Insights",
-    "contributor": "",
-    "description": "Added Monitoring support for SQL Server Failover Cluster Instance. Additionally, added a new API to allow one-click monitoring of containers resources."
-}

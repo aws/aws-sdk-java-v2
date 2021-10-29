@@ -1,0 +1,48 @@
+{
+    "version": "2.17.71",
+    "date": "2021-10-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Support added for AMI sharing with organizations and organizational units in ModifyImageAttribute API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Application Insights",
+            "contributor": "",
+            "description": "Added Monitoring support for SQL Server Failover Cluster Instance. Additionally, added a new API to allow one-click monitoring of containers resources."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "Transcribe and Transcribe Call Analytics now support automatic language identification along with custom vocabulary, vocabulary filter, custom language model and PII redaction."
+        },
+        {
+            "type": "bugfix",
+            "category": "S3TransferManager",
+            "contributor": "",
+            "description": "Fix potentially flaky S3TransferManagerListenerTests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "contributor": "",
+            "description": "This release added new attributes to Rekognition Video GetCelebrityRecognition API operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect Chat now supports real-time message streaming."
+        }
+    ]
+}

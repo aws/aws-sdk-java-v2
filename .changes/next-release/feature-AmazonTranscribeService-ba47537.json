@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Service",
-    "contributor": "",
-    "description": "Transcribe and Transcribe Call Analytics now support automatic language identification along with custom vocabulary, vocabulary filter, custom language model and PII redaction."
-}
