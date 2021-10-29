@@ -204,7 +204,6 @@ public class S3TransferManagerListenerTest {
         assertThat(ctx2.progressSnapshot().bytesTransferred()).isZero();
         assertThat(ctx2.exception()).isInstanceOf(NoSuchFileException.class);
 
-        upload.completionFuture().join();
         verifyNoMoreInteractions(listener);
     }
 
