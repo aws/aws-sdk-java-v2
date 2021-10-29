@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.defaultsmode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Arrays;
 import org.junit.Test;
 import software.amazon.awssdk.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.internal.defaultsmode.DefaultsModeConfiguration;
@@ -25,8 +26,15 @@ import software.amazon.awssdk.utils.AttributeMap;
 public class DefaultsModeConfigurationTest {
 
     @Test
-    public void legacyMode_shouldReturnEmptyAttributeMap() {
-        assertThat(DefaultsModeConfiguration.defaultHttpConfig(DefaultsMode.LEGACY)).isEqualTo(AttributeMap.empty());
-        assertThat(DefaultsModeConfiguration.defaultConfig(DefaultsMode.LEGACY)).isEqualTo(AttributeMap.empty());
+    public void defaultConfig_shouldPresentExceptLegacyAndAuto() {
+        Arrays.stream(DefaultsMode.values()).forEach(m -> {
+            if (m == DefaultsMode.LEGACY || m == DefaultsMode.AUTO) {
+                assertThat(DefaultsModeConfiguration.defaultConfig(m)).isEqualTo(AttributeMap.empty());
+                assertThat(DefaultsModeConfiguration.defaultHttpConfig(m)).isEqualTo(AttributeMap.empty());
+            } else {
+                assertThat(DefaultsModeConfiguration.defaultConfig(m)).isNotEqualTo(AttributeMap.empty());
+                assertThat(DefaultsModeConfiguration.defaultHttpConfig(m)).isNotEqualTo(AttributeMap.empty());
+            }
+        });
     }
 }
