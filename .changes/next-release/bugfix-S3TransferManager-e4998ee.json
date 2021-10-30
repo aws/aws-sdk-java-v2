@@ -1,6 +1,0 @@
-{
-    "category": "S3TransferManager", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fix potentially flaky S3TransferManagerListenerTests"
-}
