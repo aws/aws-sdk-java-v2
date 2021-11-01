@@ -1,3 +1,53 @@
+# __2.17.72__ __2021-11-01__
+## __AWS Network Manager__
+  - ### Features
+    - This release adds API support to aggregate resources, routes, and telemetry data across a Global Network.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support to enable access logging for buckets in the Lightsail object storage service.
+
+## __Amazon Neptune__
+  - ### Features
+    - Adds support for major version upgrades to ModifyDbCluster API
+
+## __Amazon Rekognition__
+  - ### Features
+    - This Amazon Rekognition Custom Labels release introduces the management of datasets with projects
+
+# __2.17.71__ __2021-10-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - Added Monitoring support for SQL Server Failover Cluster Instance. Additionally, added a new API to allow one-click monitoring of containers resources.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Chat now supports real-time message streaming.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Support added for AMI sharing with organizations and organizational units in ModifyImageAttribute API
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release added new attributes to Rekognition Video GetCelebrityRecognition API operations.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Transcribe and Transcribe Call Analytics now support automatic language identification along with custom vocabulary, vocabulary filter, custom language model and PII redaction.
+
+## __S3TransferManager__
+  - ### Bugfixes
+    - Fix potentially flaky S3TransferManagerListenerTests
+
 # __2.17.70__ __2021-10-28__
 ## __AWS Systems Manager Incident Manager__
   - ### Features

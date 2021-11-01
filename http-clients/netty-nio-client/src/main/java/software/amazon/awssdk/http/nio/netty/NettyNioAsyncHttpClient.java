@@ -373,10 +373,14 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         Builder protocol(Protocol protocol);
 
         /**
-         * Configure whether to enable support for TCP KeepAlive {@link SocketOptions#SO_KEEPALIVE}
-         *
+         * Configure whether to enable or disable TCP KeepAlive.
+         * The configuration will be passed to the socket option {@link SocketOptions#SO_KEEPALIVE}.
          * <p>
          * By default, this is disabled.
+         * <p>
+         * When enabled, the actual KeepAlive mechanism is dependent on the Operating System and therefore additional TCP
+         * KeepAlive values (like timeout, number of packets, etc) must be configured via the Operating System (sysctl on
+         * Linux/Mac, and Registry values on Windows).
          */
         Builder tcpKeepAlive(Boolean keepConnectionAlive);
 
