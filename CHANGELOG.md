@@ -1,3 +1,24 @@
+# __2.17.72__ __2021-11-01__
+## __AWS Network Manager__
+  - ### Features
+    - This release adds API support to aggregate resources, routes, and telemetry data across a Global Network.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support to enable access logging for buckets in the Lightsail object storage service.
+
+## __Amazon Neptune__
+  - ### Features
+    - Adds support for major version upgrades to ModifyDbCluster API
+
+## __Amazon Rekognition__
+  - ### Features
+    - This Amazon Rekognition Custom Labels release introduces the management of datasets with projects
+
 # __2.17.71__ __2021-10-29__
 ## __AWS SDK for Java v2__
   - ### Features
