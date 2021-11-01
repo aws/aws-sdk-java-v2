@@ -258,7 +258,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         if (defaultsMode == DefaultsMode.AUTO) {
             defaultsMode = autoDefaultsModeDiscovery.discover(config.option(AwsClientOption.AWS_REGION));
             DefaultsMode finalDefaultsMode = defaultsMode;
-            log.debug(() -> "The resolved defaults mode is: " + finalDefaultsMode);
+            log.debug(() -> String.format("Resolved %s client's AUTO configuration mode to %s", serviceName(),
+                      finalDefaultsMode));
         }
 
         return defaultsMode;
