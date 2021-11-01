@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Neptune",
+    "contributor": "",
+    "description": "Adds support for major version upgrades to ModifyDbCluster API"
+}
