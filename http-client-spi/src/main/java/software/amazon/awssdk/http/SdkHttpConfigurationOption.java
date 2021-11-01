@@ -91,7 +91,11 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             new SdkHttpConfigurationOption<>("ReapIdleConnections", Boolean.class);
 
     /**
-     * Whether or not to use keepalive on the connection.
+     * Whether to enable or disable TCP KeepAlive.
+     * <p>
+     * When enabled, the actual KeepAlive mechanism is dependent on the Operating System and therefore additional TCP KeepAlive
+     * values (like timeout, number of packets, etc) must be configured via the Operating System (sysctl on Linux/Mac, and
+     * Registry values on Windows).
      */
     public static final SdkHttpConfigurationOption<Boolean> TCP_KEEPALIVE =
         new SdkHttpConfigurationOption<>("TcpKeepalive", Boolean.class);

@@ -355,7 +355,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
 
         /**
-         * The maximum number of connections allowed in the connection pool. Each built HTTP client has it's own private
+         * The maximum number of connections allowed in the connection pool. Each built HTTP client has its own private
          * connection pool.
          */
         Builder maxConnections(Integer maxConnections);
@@ -406,7 +406,14 @@ public final class ApacheHttpClient implements SdkHttpClient {
         Builder credentialsProvider(CredentialsProvider credentialsProvider);
 
         /**
-         * Configure the socket to use java.net.SocketOptions.SO_KEEPALIVE.
+         * Configure whether to enable or disable TCP KeepAlive.
+         * The configuration will be passed to the socket option {@link java.net.SocketOptions#SO_KEEPALIVE}.
+         * <p>
+         * By default, this is disabled.
+         * <p>
+         * When enabled, the actual KeepAlive mechanism is dependent on the Operating System and therefore additional TCP
+         * KeepAlive values (like timeout, number of packets, etc) must be configured via the Operating System (sysctl on
+         * Linux/Mac, and Registry values on Windows).
          */
         Builder tcpKeepAlive(Boolean keepConnectionAlive);
 
