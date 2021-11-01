@@ -118,8 +118,8 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
         new SdkHttpConfigurationOption<>("TlsTrustManagersProvider", TlsTrustManagersProvider.class);
 
     /**
-     * An upper limit on how long from the time a TLS handshake is allowed to take from the time the CLIENT HELLO message is
-     * sent to the time the client and server have fully negotiated ciphers and exchanged keys.
+     * The maximum amount of time that a TLS handshake is allowed to take from the time the CLIENT HELLO
+     * message is sent to the time the client and server have fully negotiated ciphers and exchanged keys.
      */
     public static final SdkHttpConfigurationOption<Duration> TLS_NEGOTIATION_TIMEOUT =
         new SdkHttpConfigurationOption<>("TlsNegotiationTimeout", Duration.class);

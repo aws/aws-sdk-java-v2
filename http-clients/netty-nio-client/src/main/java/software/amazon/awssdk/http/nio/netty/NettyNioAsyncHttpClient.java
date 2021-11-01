@@ -310,6 +310,10 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * Configure the maximum amount of time that a TLS handshake is allowed to take from the time the CLIENT HELLO
          * message is sent to the time the client and server have fully negotiated ciphers and exchanged keys.
          * @param tlsNegotiationTimeout the timeout duration
+         *
+         * <p>
+         * By default, it's 10 seconds.
+         *
          * @return this builder for method chaining.
          */
         Builder tlsNegotiationTimeout(Duration tlsNegotiationTimeout);
