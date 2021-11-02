@@ -40,7 +40,6 @@ public final class DefaultsLoader {
 
     static {
         UNSUPPORTED_OPTIONS.add("stsRegionalEndpoints");
-        UNSUPPORTED_OPTIONS.add("tlsNegotiationTimeoutInMillis");
     }
 
     private DefaultsLoader() {

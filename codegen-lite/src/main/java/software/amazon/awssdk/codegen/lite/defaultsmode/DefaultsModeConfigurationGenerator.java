@@ -49,15 +49,23 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
     private static final String HTTP_DEFAULTS_VAR_SUFFIX = "_HTTP_DEFAULTS";
     private static final Map<String, OptionMetadata> CONFIGURATION_MAPPING = new HashMap<>();
     private static final Map<String, OptionMetadata> HTTP_CONFIGURATION_MAPPING = new HashMap<>();
+    private static final String CONNECT_TIMEOUT_IN_MILLIS = "connectTimeoutInMillis";
+    private static final String TLS_NEGOTIATION_TIMEOUT_IN_MILLIS = "tlsNegotiationTimeoutInMillis";
+
     private final String basePackage;
     private final String defaultsModeBase;
     private final DefaultConfiguration configuration;
 
     static {
-        HTTP_CONFIGURATION_MAPPING.put("connectTimeoutInMillis",
+        HTTP_CONFIGURATION_MAPPING.put(CONNECT_TIMEOUT_IN_MILLIS,
                                        new OptionMetadata(ClassName.get("java.time", "Duration"),
                                                           ClassName.get("software.amazon.awssdk.http",
                                                                         "SdkHttpConfigurationOption", "CONNECTION_TIMEOUT")));
+        HTTP_CONFIGURATION_MAPPING.put(TLS_NEGOTIATION_TIMEOUT_IN_MILLIS,
+                                       new OptionMetadata(ClassName.get("java.time", "Duration"),
+                                                          ClassName.get("software.amazon.awssdk.http",
+                                                                        "SdkHttpConfigurationOption",
+                                                                        "TLS_NEGOTIATION_TIMEOUT")));
         CONFIGURATION_MAPPING.put("retryMode", new OptionMetadata(ClassName.get("software.amazon.awssdk.core.retry", "RetryMode"
         ), ClassName.get("software.amazon.awssdk.core.client.config", "SdkClientOption", "DEFAULT_RETRY_MODE")));
     }
@@ -179,7 +187,8 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
     private void httpAttributeMapBuilder(String option, String value, CodeBlock.Builder attributeBuilder) {
         OptionMetadata optionMetadata = HTTP_CONFIGURATION_MAPPING.get(option);
         switch (option) {
-            case "connectTimeoutInMillis":
+            case CONNECT_TIMEOUT_IN_MILLIS:
+            case TLS_NEGOTIATION_TIMEOUT_IN_MILLIS:
                 attributeBuilder.add(".put($T, $T.ofMillis($N))", optionMetadata.attribute, optionMetadata.type, value);
                 break;
             default:
