@@ -1,3 +1,24 @@
+# __2.17.73__ __2021-11-02__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - CloudFront now supports response headers policies to add HTTP headers to the responses that CloudFront sends to viewers. You can use these policies to add CORS headers, control browser caching, and more, without modifying your origin or writing any code.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Chat now supports real-time message streaming.
+
+## __AmazonNimbleStudio__
+  - ### Features
+    - Amazon Nimble Studio adds support for users to stop and start streaming sessions.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Allow users to configure tlsNegotiationTimeout on NettyNioAsyncHttpClient
+
 # __2.17.72__ __2021-11-01__
 ## __AWS Network Manager__
   - ### Features
