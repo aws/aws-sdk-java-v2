@@ -101,11 +101,14 @@ public class UpdateItemOperation<T>
         TableMetadata tableMetadata = tableSchema.tableMetadata();
 
         WriteModification transformation =
-            extension != null ? extension.beforeWrite(DefaultDynamoDbExtensionContext.builder()
+            extension != null
+            ? extension.beforeWrite(DefaultDynamoDbExtensionContext.builder()
                                                                                      .items(itemMap)
                                                                                      .operationContext(operationContext)
                                                                                      .tableMetadata(tableMetadata)
-                                                                                     .build()) : null;
+                                                                                     .tableSchema(tableSchema)
+                                                                                     .build())
+            : null;
 
         if (transformation != null && transformation.transformedItem() != null) {
             itemMap = transformation.transformedItem();

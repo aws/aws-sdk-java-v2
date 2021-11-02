@@ -23,12 +23,12 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingConfig;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingInputStream;
 import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsS3V4ChunkSigner;
+import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.AwsS3V4SignerParams;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -141,15 +141,21 @@ public abstract class AbstractAwsS3V4Signer extends AbstractAws4Signer<AwsS3V4Si
         return UNSIGNED_PAYLOAD;
     }
 
-    private AwsChunkedEncodingInputStream asChunkEncodedStream(InputStream inputStream,
-                                                               byte[] signature,
-                                                               byte[] signingKey,
-                                                               Aws4SignerRequestParams signerRequestParams) {
+    private AwsSignedChunkedEncodingInputStream asChunkEncodedStream(InputStream inputStream,
+                                                                     byte[] signature,
+                                                                     byte[] signingKey,
+                                                                     Aws4SignerRequestParams signerRequestParams) {
         AwsS3V4ChunkSigner chunkSigner = new AwsS3V4ChunkSigner(signingKey,
                                                                 signerRequestParams.getFormattedRequestSigningDateTime(),
                                                                 signerRequestParams.getScope());
         String signatureHex = BinaryUtils.toHex(signature);
-        return new AwsChunkedEncodingInputStream(inputStream, signatureHex, chunkSigner, AwsChunkedEncodingConfig.create());
+
+        return AwsSignedChunkedEncodingInputStream.builder()
+                                                  .inputStream(inputStream)
+                                                  .awsChunkSigner(chunkSigner)
+                                                  .headerSignature(signatureHex)
+                                                  .awsChunkedEncodingConfig(AwsChunkedEncodingConfig.create())
+                                                  .build();
     }
 
     /**
@@ -169,9 +175,9 @@ public abstract class AbstractAwsS3V4Signer extends AbstractAws4Signer<AwsS3V4Si
                 long originalContentLength = calculateRequestContentLength(mutableRequest);
                 mutableRequest.putHeader("x-amz-decoded-content-length", Long.toString(originalContentLength));
                 mutableRequest.putHeader(CONTENT_LENGTH, Long.toString(
-                    AwsChunkedEncodingInputStream.calculateStreamContentLength(originalContentLength,
-                                                                               AwsS3V4ChunkSigner.getSignatureLength(),
-                                                                               AwsChunkedEncodingConfig.create())));
+                    AwsSignedChunkedEncodingInputStream.calculateStreamContentLength(originalContentLength,
+                                                                                     AwsS3V4ChunkSigner.getSignatureLength(),
+                                                                                     AwsChunkedEncodingConfig.create())));
                 return CONTENT_SHA_256;
             } else {
                 return super.calculateContentHash(mutableRequest, signerParams);

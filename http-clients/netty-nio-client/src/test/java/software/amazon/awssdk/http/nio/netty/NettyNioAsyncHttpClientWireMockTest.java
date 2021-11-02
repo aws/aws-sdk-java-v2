@@ -682,6 +682,21 @@ public class NettyNioAsyncHttpClientWireMockTest {
     }
 
     @Test
+    public void createNettyClient_tlsNegotiationTimeoutNotPositive_shouldThrowException() throws Exception {
+        assertThatThrownBy(() -> NettyNioAsyncHttpClient.builder()
+                                                        .tlsNegotiationTimeout(Duration.ZERO)
+                                                        .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("must be positive");
+        assertThatThrownBy(() -> NettyNioAsyncHttpClient.builder()
+                                                        .tlsNegotiationTimeout(Duration.ofSeconds(-1))
+                                                        .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("must be positive");
+    }
+
+
+    @Test
     public void metricsAreCollectedWhenMaxPendingConnectionAcquisitionsAreExceeded() throws Exception {
         SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
                                                                  .maxConcurrency(1)

@@ -328,6 +328,7 @@ public class ScanOperationTest {
                 DefaultDynamoDbExtensionContext.builder()
                                                .tableMetadata(FakeItem.getTableMetadata())
                                                .operationContext(PRIMARY_CONTEXT)
+                                               .tableSchema(FakeItem.getTableSchema())
                                                .items(attributeMap).build()));
     }
 

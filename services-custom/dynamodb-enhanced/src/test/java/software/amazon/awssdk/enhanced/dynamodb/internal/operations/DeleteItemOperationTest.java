@@ -394,6 +394,7 @@ public class DeleteItemOperationTest {
         verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
                                                                                              .tableMetadata(FakeItem.getTableMetadata())
                                                                                              .operationContext(PRIMARY_CONTEXT)
+                                                                                             .tableSchema(FakeItem.getTableSchema())
                                                                                              .items(baseFakeItemMap).build());
     }
 

@@ -13,46 +13,38 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer.internal.chunkedencoding;
+package software.amazon.awssdk.core.internal.io;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.core.io.SdkInputStream;
 import software.amazon.awssdk.utils.Logger;
 
 /**
  * A wrapper of InputStream that implements chunked encoding.
  * <p/>
- * Each chunk will be buffered for the calculation of the chunk signature
- * which is added at the head of each chunk. The request signature and the chunk signatures will
- * be assumed to be hex-encoded strings.
+ * Each chunk will be buffered.
  * <p/>
  * This class will use the mark() & reset() of the wrapped InputStream if they
  * are supported, otherwise it will create a buffer for bytes read from
  * the wrapped stream.
  */
 @SdkInternalApi
-public final class AwsChunkedEncodingInputStream extends SdkInputStream {
+public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
 
     private static final int SKIP_BUFFER_SIZE = 256 * 1024;
-    private static final String CRLF = "\r\n";
-    private static final String CHUNK_SIGNATURE_HEADER = ";chunk-signature=";
     private static final byte[] FINAL_CHUNK = new byte[0];
     private static final Logger log = Logger.loggerFor(AwsChunkedEncodingInputStream.class);
 
     private InputStream is = null;
     private final int chunkSize;
     private final int maxBufferSize;
-    private final String headerSignature;
-    private String previousChunkSignature;
-    private final AwsChunkSigner chunkSigner;
 
     /**
-     * Iterator on the current chunk that has been signed
+     * Iterator on the current chunk.
      */
     private ChunkContentIterator currentChunkIterator;
 
@@ -67,26 +59,22 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
     private boolean isTerminating = false;
 
     /**
-     * Creates a chunked encoding input stream initialized with the originating stream, an http request seed signature
-     * and a signer that can sign a chunk of bytes according to a chosen algorithm. The configuration allows
+     * Creates a chunked encoding input stream initialized with the originating stream. The configuration allows
      * specification of the size of each chunk, as well as the buffer size. Use the same values as when
-     * calculating total length of the stream {@link #calculateStreamContentLength(long, int, AwsChunkedEncodingConfig)}.
+     * calculating total length of the stream.
      *
      * @param in              The original InputStream.
-     * @param headerSignature The signature of the signed headers of the request. This will be used for
-     *                        calculating the signature of the first chunk. Observe that the format of
-     *                        this parameter should be a hex-encoded string.
-     * @param chunkSigner     The signer for each chunk of data, implementing the {@link AwsChunkSigner} interface.
      * @param config          The configuration allows the user to customize chunk size and buffer size.
      *                        See {@link AwsChunkedEncodingConfig} for default values.
      */
-    public AwsChunkedEncodingInputStream(InputStream in,
-                                         String headerSignature,
-                                         AwsChunkSigner chunkSigner,
+    protected AwsChunkedEncodingInputStream(InputStream in,
                                          AwsChunkedEncodingConfig config) {
-        int providedMaxBufferSize = config.bufferSize();
+
+        AwsChunkedEncodingConfig awsChunkedEncodingConfig = config == null ? AwsChunkedEncodingConfig.create() : config;
+
+        int providedMaxBufferSize = awsChunkedEncodingConfig.bufferSize();
         if (in instanceof AwsChunkedEncodingInputStream) {
-            // This could happen when the request is retried, and we need to re-calculate the signatures.
+            // This could happen when the request is retried.
             AwsChunkedEncodingInputStream originalChunkedStream = (AwsChunkedEncodingInputStream) in;
             providedMaxBufferSize = Math.max(originalChunkedStream.maxBufferSize, providedMaxBufferSize);
             is = originalChunkedStream.is;
@@ -95,17 +83,48 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
             is = in;
             decodedStreamBuffer = null;
         }
-
-        this.chunkSize = config.chunkSize();
+        this.chunkSize = awsChunkedEncodingConfig.chunkSize();
         this.maxBufferSize = providedMaxBufferSize;
-
-        this.headerSignature = headerSignature;
-        this.previousChunkSignature = headerSignature;
-        this.chunkSigner = chunkSigner;
-
         if (maxBufferSize < chunkSize) {
             throw new IllegalArgumentException("Max buffer size should not be less than chunk size");
         }
+    }
+
+    protected abstract static class Builder<T extends Builder> {
+
+
+        private InputStream inputStream;
+        private AwsChunkedEncodingConfig awsChunkedEncodingConfig;
+
+        protected Builder() {
+        }
+
+        protected InputStream inputStream() {
+            return inputStream;
+        }
+
+        protected AwsChunkedEncodingConfig chunkedEncodingConfig() {
+            return awsChunkedEncodingConfig;
+        }
+
+        /**
+         * @param inputStream The original InputStream.
+         * @return
+         */
+        public T inputStream(InputStream inputStream) {
+            this.inputStream = inputStream;
+            return (T) this;
+        }
+
+        /**
+         * @param awsChunkedEncodingConfig Maximum number of bytes buffered by this class.
+         * @return
+         */
+        public T awsChunkedEncodingConfig(AwsChunkedEncodingConfig awsChunkedEncodingConfig) {
+            this.awsChunkedEncodingConfig = awsChunkedEncodingConfig;
+            return (T) this;
+        }
+
     }
 
     @Override
@@ -203,7 +222,6 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
         abortIfNeeded();
         // Clear up any encoded data
         currentChunkIterator = null;
-        previousChunkSignature = headerSignature;
         // Reset the wrapped stream if it is mark-supported,
         // otherwise use our buffered data.
         if (is.markSupported()) {
@@ -218,42 +236,10 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
             decodedStreamBuffer.startReadBuffer();
         }
 
-        currentChunkIterator = null;
         isAtStart = true;
         isTerminating = false;
     }
 
-    /**
-     * Calculates the expected total length of signed payload chunked stream.
-     *
-     * @param originalLength The length of the data
-     * @param signatureLength The length of a calculated signature, dependent on which {@link AwsChunkSigner} is used
-     * @param config The chunked encoding config determines the size of the chunks. Use the same values as when
-     *               initializing the stream
-     *               {@link #AwsChunkedEncodingInputStream(InputStream, String, AwsChunkSigner, AwsChunkedEncodingConfig)}.
-     */
-    public static long calculateStreamContentLength(long originalLength,
-                                                    int signatureLength,
-                                                    AwsChunkedEncodingConfig config) {
-        if (originalLength < 0) {
-            throw new IllegalArgumentException("Nonnegative content length expected.");
-        }
-        int chunkSize = config.chunkSize();
-        long maxSizeChunks = originalLength / chunkSize;
-        long remainingBytes = originalLength % chunkSize;
-        return maxSizeChunks * calculateSignedChunkLength(chunkSize, signatureLength)
-                + (remainingBytes > 0 ? calculateSignedChunkLength(remainingBytes, signatureLength) : 0)
-                + calculateSignedChunkLength(0, signatureLength);
-    }
-
-    private static long calculateSignedChunkLength(long chunkDataSize, int signatureLength) {
-        return Long.toHexString(chunkDataSize).length()
-                + CHUNK_SIGNATURE_HEADER.length()
-                + signatureLength
-                + CRLF.length()
-                + chunkDataSize
-                + CRLF.length();
-    }
 
     /**
      * Read in the next chunk of data, and create the necessary chunk extensions.
@@ -281,52 +267,41 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
             }
         }
         if (chunkSizeInBytes == 0) {
-            byte[] signedFinalChunk = createSignedChunk(FINAL_CHUNK);
+            byte[] signedFinalChunk = createFinalChunk(FINAL_CHUNK);
             currentChunkIterator = new ChunkContentIterator(signedFinalChunk);
             return true;
         } else {
             if (chunkSizeInBytes < chunkData.length) {
                 chunkData = Arrays.copyOf(chunkData, chunkSizeInBytes);
             }
-            byte[] signedChunkContent = createSignedChunk(chunkData);
+            byte[] signedChunkContent = createChunk(chunkData);
             currentChunkIterator = new ChunkContentIterator(signedChunkContent);
             return false;
         }
     }
 
-    private byte[] createSignedChunk(byte[] chunkData) {
-        try {
-            byte[] header = createSignedChunkHeader(chunkData);
-            byte[] trailer = CRLF.getBytes(StandardCharsets.UTF_8);
-            byte[] signedChunk = new byte[header.length + chunkData.length + trailer.length];
-            System.arraycopy(header, 0, signedChunk, 0, header.length);
-            System.arraycopy(chunkData, 0, signedChunk, header.length, chunkData.length);
-            System.arraycopy(trailer, 0,
-                    signedChunk, header.length + chunkData.length,
-                    trailer.length);
-            return signedChunk;
-        } catch (Exception e) {
-            throw SdkClientException.builder()
-                                    .message("Unable to sign the chunked data. " + e.getMessage())
-                                    .cause(e)
-                                    .build();
-        }
-    }
-
-    private byte[] createSignedChunkHeader(byte[] chunkData) {
-        String chunkSignature = chunkSigner.signChunk(chunkData, previousChunkSignature);
-        previousChunkSignature = chunkSignature;
-
-        StringBuilder chunkHeader = new StringBuilder();
-        chunkHeader.append(Integer.toHexString(chunkData.length));
-        chunkHeader.append(CHUNK_SIGNATURE_HEADER)
-                   .append(chunkSignature)
-                   .append(CRLF);
-        return chunkHeader.toString().getBytes(StandardCharsets.UTF_8);
-    }
 
     @Override
     protected InputStream getWrappedInputStream() {
         return is;
     }
+
+
+    /**
+     * The final chunk.
+     *
+     * @param finalChunk The last byte which will be often 0 byte.
+     * @return Final chunk that will be appended with CRLF or any required signatures.
+     */
+    protected abstract byte[] createFinalChunk(byte[] finalChunk);
+
+    /**
+     * Creates chunk for the given buffer.
+     * The chucks could be appended with Signatures or any additional bytes by Concrete classes.
+     *
+     * @param chunkData The chunk of original data.
+     * @return Chunked data which will have signature if signed or just data if unsigned.
+     */
+    protected abstract byte[] createChunk(byte[] chunkData);
+
 }
