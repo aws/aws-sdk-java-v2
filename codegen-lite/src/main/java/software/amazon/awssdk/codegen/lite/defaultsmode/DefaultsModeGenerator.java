@@ -140,7 +140,7 @@ public class DefaultsModeGenerator implements PoetClass {
                       .add("<p>The defaults mode can be configured:")
                       .add(System.lineSeparator())
                       .add("<ol>")
-                      .add("<li>Directly on a client via {@code ClientOverrideConfiguration.Builder#defaultsMode"
+                      .add("<li>Directly on a client via {@code AwsClientBuilder.Builder#defaultsMode"
                            + "(DefaultsMode)}.</li>")
                       .add(System.lineSeparator())
                       .add("<li>On a configuration profile via the \"defaults_mode\" profile file property.</li>")

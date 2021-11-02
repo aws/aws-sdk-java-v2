@@ -34,8 +34,8 @@ import software.amazon.awssdk.codegen.lite.defaultsmode.DefaultsModeGenerator;
 @Mojo(name = "generate-defaults-mode")
 public class DefaultsModeGenerationMojo extends AbstractMojo {
 
-    private static final String DEFAULTS_MODE_BASE = "software.amazon.awssdk.defaultsmode";
-    private static final String DEFAULTS_MODE_CONFIGURATION_BASE = "software.amazon.awssdk.internal.defaultsmode";
+    private static final String DEFAULTS_MODE_BASE = "software.amazon.awssdk.awscore.defaultsmode";
+    private static final String DEFAULTS_MODE_CONFIGURATION_BASE = "software.amazon.awssdk.awscore.internal.defaultsmode";
 
     @Parameter(property = "outputDirectory", defaultValue = "${project.build.directory}")
     private String outputDirectory;
@@ -44,7 +44,7 @@ public class DefaultsModeGenerationMojo extends AbstractMojo {
     private MavenProject project;
 
     @Parameter(property = "defaultConfigurationFile", defaultValue =
-        "${basedir}/src/main/resources/software/amazon/awssdk/internal/defaults/sdk-default-configuration.json")
+        "${basedir}/src/main/resources/software/amazon/awssdk/awscore/internal/defaults/sdk-default-configuration.json")
     private File defaultConfigurationFile;
 
     public void execute() {

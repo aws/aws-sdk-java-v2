@@ -27,7 +27,7 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
  * <p>
  * The defaults mode can be configured:
  * <ol>
- * <li>Directly on a client via {@code ClientOverrideConfiguration.Builder#defaultsMode(DefaultsMode)}.</li>
+ * <li>Directly on a client via {@code AwsClientBuilder.Builder#defaultsMode(DefaultsMode)}.</li>
  * <li>On a configuration profile via the "defaults_mode" profile file property.</li>
  * <li>Globally via the "aws.defaultsMode" system property.</li>
  * <li>Globally via the "AWS_DEFAULTS_MODE" environment variable.</li>

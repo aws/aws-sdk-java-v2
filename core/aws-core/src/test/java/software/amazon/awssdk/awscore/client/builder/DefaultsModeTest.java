@@ -20,7 +20,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.DEFAULTS_MODE;
+import static software.amazon.awssdk.awscore.client.config.AwsClientOption.DEFAULTS_MODE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.DEFAULT_RETRY_MODE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 
@@ -30,15 +30,15 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDiscovery;
+import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -83,7 +83,7 @@ public class DefaultsModeTest {
 
         TestClient client =
             testClientBuilder().region(Region.US_WEST_1)
-                               .overrideConfiguration(o -> o.defaultsMode(targetMode))
+                               .defaultsMode(targetMode)
                                .httpClientBuilder((SdkHttpClient.Builder) serviceDefaults -> {
                                    AttributeMap defaultHttpConfig = DefaultsModeConfiguration.defaultHttpConfig(targetMode);
                                    AttributeMap mergedDefaults = SERVICE_DEFAULTS.merge(defaultHttpConfig);
@@ -104,7 +104,7 @@ public class DefaultsModeTest {
 
         TestAsyncClient client =
             testAsyncClientBuilder().region(Region.US_WEST_1)
-                                    .overrideConfiguration(o -> o.defaultsMode(targetMode))
+                                    .defaultsMode(targetMode)
                                     .httpClientBuilder((SdkHttpClient.Builder) serviceDefaults -> {
                                         AttributeMap defaultHttpConfig = DefaultsModeConfiguration.defaultHttpConfig(targetMode);
                                         AttributeMap mergedDefaults = SERVICE_DEFAULTS.merge(defaultHttpConfig);
@@ -123,8 +123,8 @@ public class DefaultsModeTest {
     public void clientOverrideRetryMode_shouldTakePrecedence() {
         TestClient client =
             testClientBuilder().region(Region.US_WEST_1)
-                               .overrideConfiguration(o -> o.defaultsMode(DefaultsMode.IN_REGION)
-                                                            .retryPolicy(RetryMode.LEGACY))
+                               .defaultsMode(DefaultsMode.IN_REGION)
+                               .overrideConfiguration(o -> o.retryPolicy(RetryMode.LEGACY))
                                .build();
         assertThat(client.clientConfiguration.option(DEFAULTS_MODE)).isEqualTo(DefaultsMode.IN_REGION);
         assertThat(client.clientConfiguration.option(RETRY_POLICY).retryMode()).isEqualTo(RetryMode.LEGACY);
@@ -136,7 +136,7 @@ public class DefaultsModeTest {
         when(autoModeDiscovery.discover(any(Region.class))).thenReturn(expectedMode);
         TestClient client =
             testClientBuilder().region(Region.US_WEST_1)
-                               .overrideConfiguration(o -> o.defaultsMode(DefaultsMode.AUTO))
+                               .defaultsMode(DefaultsMode.AUTO)
                                .build();
 
         assertThat(client.clientConfiguration.option(DEFAULTS_MODE)).isEqualTo(expectedMode);
