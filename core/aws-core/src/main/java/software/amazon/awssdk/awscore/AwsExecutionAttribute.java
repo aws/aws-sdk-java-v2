@@ -39,6 +39,9 @@ public final class AwsExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<String> ENDPOINT_PREFIX = new ExecutionAttribute<>("AwsEndpointPrefix");
 
+    public static final ExecutionAttribute<Boolean> DUALSTACK_ENDPOINT_ENABLED =
+        new ExecutionAttribute<>("DualstackEndpointsEnabled");
+
     private AwsExecutionAttribute() {
     }
 }

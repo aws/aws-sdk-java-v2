@@ -34,6 +34,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
+import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -54,6 +55,7 @@ import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyI
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.Validate;
 
 public class BaseClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -241,9 +243,20 @@ public class BaseClientBuilderClass implements ClassSpec {
         if (StringUtils.isNotBlank(clientConfigClassName)) {
             ClassName clientConfigClass = ClassName.bestGuess(clientConfigClassName);
             builder.addCode("$1T.Builder c = (($1T) config.option($2T.SERVICE_CONFIGURATION)).toBuilder();" +
-                            "c.profileFile(c.profileFile() != null ? c.profileFile() : config.option($2T.PROFILE_FILE))" +
-                            " .profileName(c.profileName() != null ? c.profileName() : config.option($2T.PROFILE_NAME));",
+                            "c.profileFile(c.profileFile() != null ? c.profileFile() : config.option($2T.PROFILE_FILE));" +
+                            "c.profileName(c.profileName() != null ? c.profileName() : config.option($2T.PROFILE_NAME));",
                             clientConfigClass, SdkClientOption.class);
+
+            if (model.getCustomizationConfig().getServiceConfigHasDualstackConfig()) {
+                builder.addCode("if (c.dualstackEnabled() != null) {")
+                       .addCode("    $T.validState(config.option($T.DUALSTACK_ENDPOINT_ENABLED) == null, \"Dualstack has been "
+                                + "configured on both $L and the client/global level. Please limit dualstack configuration to "
+                                + "one location.\");",
+                                Validate.class, AwsClientOption.class, clientConfigClassName)
+                       .addCode("} else {")
+                       .addCode("    c.dualstackEnabled(config.option($T.DUALSTACK_ENDPOINT_ENABLED));", AwsClientOption.class)
+                       .addCode("}");
+            }
         }
 
         // Update configuration

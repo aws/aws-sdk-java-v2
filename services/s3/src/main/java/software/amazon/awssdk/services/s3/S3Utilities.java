@@ -86,9 +86,20 @@ public final class S3Utilities {
     private S3Utilities(Builder builder) {
         this.region = Validate.paramNotNull(builder.region, "Region");
         this.endpoint = builder.endpoint;
-        this.s3Configuration = builder.s3Configuration;
         this.profileFile = builder.profileFile;
         this.profileName = builder.profileName;
+
+        if (builder.s3Configuration == null) {
+            this.s3Configuration = S3Configuration.builder().dualstackEnabled(builder.dualstackEnabled).build();
+        } else {
+            this.s3Configuration = builder.s3Configuration.toBuilder()
+                                                          .applyMutation(b -> {
+                                                              if (b.dualstackEnabled() == null) {
+                                                                  b.dualstackEnabled(builder.dualstackEnabled);
+                                                              }
+                                                          })
+                                                          .build();
+        }
     }
 
     /**
@@ -199,11 +210,13 @@ public final class S3Utilities {
      */
     private URI resolveEndpoint(URI requestOverrideEndpoint, Region region) {
         URI overrideEndpoint = requestOverrideEndpoint != null ? requestOverrideEndpoint : endpoint;
-        return overrideEndpoint != null ? overrideEndpoint
-                                : new DefaultServiceEndpointBuilder("s3", "https").withRegion(region)
-                                                                                  .withProfileFile(profileFile)
-                                                                                  .withProfileName(profileName)
-                                                                                  .getServiceEndpoint();
+        return overrideEndpoint != null
+               ? overrideEndpoint
+               : new DefaultServiceEndpointBuilder("s3", "https").withRegion(region)
+                                                                 .withProfileFile(profileFile)
+                                                                 .withProfileName(profileName)
+                                                                 .withDualstackEnabled(s3Configuration.dualstackEnabled())
+                                                                 .getServiceEndpoint();
     }
 
     /**
@@ -242,6 +255,7 @@ public final class S3Utilities {
         private S3Configuration s3Configuration;
         private ProfileFile profileFile;
         private String profileName;
+        private Boolean dualstackEnabled;
 
         private Builder() {
         }
@@ -269,6 +283,25 @@ public final class S3Utilities {
          */
         public Builder endpoint(URI endpoint) {
             this.endpoint = endpoint;
+            return this;
+        }
+
+        /**
+         * Configure whether the SDK should use the AWS dualstack endpoint.
+         *
+         * <p>If this is not specified, the SDK will attempt to determine whether the dualstack endpoint should be used
+         * automatically using the following logic:
+         * <ol>
+         *     <li>Check the 'aws.useDualstackEndpoint' system property for 'true' or 'false'.</li>
+         *     <li>Check the 'AWS_USE_DUALSTACK_ENDPOINT' environment variable for 'true' or 'false'.</li>
+         *     <li>Check the {user.home}/.aws/credentials and {user.home}/.aws/config files for the 'use_dualstack_endpoint'
+         *     property set to 'true' or 'false'.</li>
+         * </ol>
+         *
+         * <p>If the setting is not found in any of the locations above, 'false' will be used.
+         */
+        public Builder dualstackEnabled(Boolean dualstackEnabled) {
+            this.dualstackEnabled = dualstackEnabled;
             return this;
         }
 
