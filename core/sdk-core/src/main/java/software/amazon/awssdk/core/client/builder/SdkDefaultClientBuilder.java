@@ -27,6 +27,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.DEFAULTS_MODE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
@@ -68,6 +69,7 @@ import software.amazon.awssdk.core.internal.interceptor.HttpChecksumRequiredInte
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.util.SdkUserAgent;
+import software.amazon.awssdk.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -147,6 +149,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * <ol>
      * <li>Customer Configuration</li>
      * <li>Service-Specific Defaults</li>
+     * <li>Defaults vended by {@link DefaultsMode}</li>
      * <li>Global Defaults</li>
      * </ol>
      */
@@ -170,6 +173,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * <ol>
      * <li>Customer Configuration</li>
      * <li>Implementation/Service-Specific Configuration</li>
+     * <li>Defaults vended by {@link DefaultsMode}</li>
      * <li>Global Default Configuration</li>
      * </ol>
      */
@@ -275,8 +279,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                         "The httpClient and the httpClientBuilder can't both be configured.");
 
         return Either.fromNullable(config.option(SdkClientOption.SYNC_HTTP_CLIENT), httpClientBuilder)
-                     .map(e -> e.map(NonManagedSdkHttpClient::new, b -> b.buildWithDefaults(childHttpConfig())))
-                     .orElseGet(() -> defaultHttpClientBuilder.buildWithDefaults(childHttpConfig()));
+                     .map(e -> e.map(NonManagedSdkHttpClient::new, b -> b.buildWithDefaults(childHttpConfig(config))))
+                     .orElseGet(() -> defaultHttpClientBuilder.buildWithDefaults(childHttpConfig(config)));
     }
 
     /**
@@ -286,13 +290,22 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         Validate.isTrue(config.option(ASYNC_HTTP_CLIENT) == null || asyncHttpClientBuilder == null,
                         "The asyncHttpClient and the asyncHttpClientBuilder can't both be configured.");
         return Either.fromNullable(config.option(ASYNC_HTTP_CLIENT), asyncHttpClientBuilder)
-                     .map(e -> e.map(NonManagedSdkAsyncHttpClient::new, b -> b.buildWithDefaults(childHttpConfig())))
-                     .orElseGet(() -> defaultAsyncHttpClientBuilder.buildWithDefaults(childHttpConfig()));
+                     .map(e -> e.map(NonManagedSdkAsyncHttpClient::new, b -> b.buildWithDefaults(childHttpConfig(config))))
+                     .orElseGet(() -> defaultAsyncHttpClientBuilder.buildWithDefaults(childHttpConfig(config)));
     }
 
     /**
      * Optionally overridden by child implementations to provide implementation-specific default HTTP configuration.
      */
+    protected AttributeMap childHttpConfig(SdkClientConfiguration configuration) {
+        return childHttpConfig();
+    }
+
+    /**
+     * Optionally overridden by child implementations to provide implementation-specific default HTTP configuration.
+     * @deprecated use {@link #childHttpConfig(SdkClientConfiguration)} instead
+     */
+    @Deprecated
     protected AttributeMap childHttpConfig() {
         return AttributeMap.empty();
     }
@@ -392,6 +405,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         overrideConfig.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE).ifPresent(value -> {
             clientConfiguration.option(ENDPOINT_OVERRIDDEN, value);
         });
+        clientConfiguration.option(DEFAULTS_MODE, overrideConfig.defaultsMode().orElse(null));
         overrideConfig.advancedOption(SIGNER).ifPresent(s -> clientConfiguration.option(SIGNER_OVERRIDDEN, true));
         return thisBuilder();
     }

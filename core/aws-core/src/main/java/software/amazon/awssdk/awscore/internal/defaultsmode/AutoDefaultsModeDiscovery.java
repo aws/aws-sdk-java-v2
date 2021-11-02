@@ -31,7 +31,7 @@ import software.amazon.awssdk.utils.internal.SystemSettingUtils;
  * back to the {@link DefaultsMode#STANDARD} mode if the target mode cannot be determined.
  */
 @SdkInternalApi
-public final class AutoDefaultsModeDiscovery {
+public class AutoDefaultsModeDiscovery {
     private static final String EC2_METADATA_REGION_PATH = "/latest/meta-data/placement/region";
     private static final DefaultsMode FALLBACK_DEFAULTS_MODE = DefaultsMode.STANDARD;
     private static final String ANDROID_JAVA_VENDOR = "The Android Project";

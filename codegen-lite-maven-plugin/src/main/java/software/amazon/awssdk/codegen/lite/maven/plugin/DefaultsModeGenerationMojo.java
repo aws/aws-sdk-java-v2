@@ -25,6 +25,7 @@ import org.apache.maven.project.MavenProject;
 import software.amazon.awssdk.codegen.lite.CodeGenerator;
 import software.amazon.awssdk.codegen.lite.defaultsmode.DefaultConfiguration;
 import software.amazon.awssdk.codegen.lite.defaultsmode.DefaultsLoader;
+import software.amazon.awssdk.codegen.lite.defaultsmode.DefaultsModeConfigurationGenerator;
 import software.amazon.awssdk.codegen.lite.defaultsmode.DefaultsModeGenerator;
 
 /**
@@ -34,6 +35,7 @@ import software.amazon.awssdk.codegen.lite.defaultsmode.DefaultsModeGenerator;
 public class DefaultsModeGenerationMojo extends AbstractMojo {
 
     private static final String DEFAULTS_MODE_BASE = "software.amazon.awssdk.defaultsmode";
+    private static final String DEFAULTS_MODE_CONFIGURATION_BASE = "software.amazon.awssdk.internal.defaultsmode";
 
     @Parameter(property = "outputDirectory", defaultValue = "${project.build.directory}")
     private String outputDirectory;
@@ -52,6 +54,7 @@ public class DefaultsModeGenerationMojo extends AbstractMojo {
         DefaultConfiguration configuration = DefaultsLoader.load(defaultConfigurationFile);
 
         generateDefaultsModeClass(baseSourcesDirectory, configuration);
+        generateDefaultsModeConfiguartionClass(baseSourcesDirectory, configuration);
 
         project.addCompileSourceRoot(baseSourcesDirectory.toFile().getAbsolutePath());
         project.addTestCompileSourceRoot(testsDirectory.toFile().getAbsolutePath());
@@ -62,4 +65,10 @@ public class DefaultsModeGenerationMojo extends AbstractMojo {
         new CodeGenerator(sourcesDirectory.toString(), new DefaultsModeGenerator(DEFAULTS_MODE_BASE, configuration)).generate();
     }
 
+    public void generateDefaultsModeConfiguartionClass(Path baseSourcesDirectory, DefaultConfiguration configuration) {
+        Path sourcesDirectory = baseSourcesDirectory.resolve(DEFAULTS_MODE_CONFIGURATION_BASE.replace(".", "/"));
+        new CodeGenerator(sourcesDirectory.toString(), new DefaultsModeConfigurationGenerator(DEFAULTS_MODE_CONFIGURATION_BASE,
+                                                                                              DEFAULTS_MODE_BASE,
+                                                                                              configuration)).generate();
+    }
 }

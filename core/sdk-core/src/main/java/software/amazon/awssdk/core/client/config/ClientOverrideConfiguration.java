@@ -210,7 +210,7 @@ public final class ClientOverrideConfiguration
      * @see Builder#defaultsMode(DefaultsMode)
      */
     public Optional<DefaultsMode> defaultsMode() {
-        return Optional.of(defaultsMode);
+        return Optional.ofNullable(defaultsMode);
     }
 
     /**
