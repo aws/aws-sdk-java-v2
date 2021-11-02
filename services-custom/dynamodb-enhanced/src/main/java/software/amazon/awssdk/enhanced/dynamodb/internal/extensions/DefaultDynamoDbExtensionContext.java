@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -33,11 +34,13 @@ public final class DefaultDynamoDbExtensionContext implements DynamoDbExtensionC
     private final Map<String, AttributeValue> items;
     private final OperationContext operationContext;
     private final TableMetadata tableMetadata;
+    private final TableSchema<?> tableSchema;
 
     private DefaultDynamoDbExtensionContext(Builder builder) {
         this.items = builder.items;
         this.operationContext = builder.operationContext;
         this.tableMetadata = builder.tableMetadata;
+        this.tableSchema = builder.tableSchema;
     }
 
     public static Builder builder() {
@@ -60,6 +63,11 @@ public final class DefaultDynamoDbExtensionContext implements DynamoDbExtensionC
     }
 
     @Override
+    public TableSchema<?> tableSchema() {
+        return tableSchema;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -76,7 +84,10 @@ public final class DefaultDynamoDbExtensionContext implements DynamoDbExtensionC
         if (!Objects.equals(operationContext, that.operationContext)) {
             return false;
         }
-        return Objects.equals(tableMetadata, that.tableMetadata);
+        if (!Objects.equals(tableMetadata, that.tableMetadata)) {
+            return false;
+        }
+        return Objects.equals(tableSchema, that.tableSchema);
     }
 
     @Override
@@ -84,6 +95,7 @@ public final class DefaultDynamoDbExtensionContext implements DynamoDbExtensionC
         int result = items != null ? items.hashCode() : 0;
         result = 31 * result + (operationContext != null ? operationContext.hashCode() : 0);
         result = 31 * result + (tableMetadata != null ? tableMetadata.hashCode() : 0);
+        result = 31 * result + (tableSchema != null ? tableSchema.hashCode() : 0);
         return result;
     }
 
@@ -91,6 +103,7 @@ public final class DefaultDynamoDbExtensionContext implements DynamoDbExtensionC
         private Map<String, AttributeValue> items;
         private OperationContext operationContext;
         private TableMetadata tableMetadata;
+        private TableSchema<?> tableSchema;
 
         public Builder items(Map<String, AttributeValue> item) {
             this.items = item;
@@ -104,6 +117,11 @@ public final class DefaultDynamoDbExtensionContext implements DynamoDbExtensionC
 
         public Builder tableMetadata(TableMetadata tableMetadata) {
             this.tableMetadata = tableMetadata;
+            return this;
+        }
+
+        public Builder tableSchema(TableSchema<?> tableSchema) {
+            this.tableSchema = tableSchema;
             return this;
         }
 

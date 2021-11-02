@@ -75,6 +75,7 @@ public final class EnhancedClientUtils {
             ReadModification readModification = dynamoDbEnhancedClientExtension.afterRead(
                 DefaultDynamoDbExtensionContext.builder()
                                                .items(itemMap)
+                                               .tableSchema(tableSchema)
                                                .operationContext(operationContext)
                                                .tableMetadata(tableSchema.tableMetadata())
                                                .build());

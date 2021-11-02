@@ -92,7 +92,8 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         ChannelPipeline pipeline = ch.pipeline();
         if (sslCtx != null) {
 
-            SslHandler sslHandler = newSslHandler(sslCtx, ch.alloc(), poolKey.getHost(), poolKey.getPort());
+            SslHandler sslHandler = newSslHandler(sslCtx, ch.alloc(), poolKey.getHost(), poolKey.getPort(),
+                                                  configuration.tlsHandshakeTimeout());
 
             pipeline.addLast(sslHandler);
             pipeline.addLast(SslCloseCompletionEventHandler.getInstance());

@@ -185,21 +185,21 @@ public class S3TransferManagerTest {
     public void uploadDirectory_requestNull_shouldThrowException() {
         UploadDirectoryRequest request = null;
         assertThatThrownBy(() -> tm.uploadDirectory(request).completionFuture().join())
-            .hasCauseInstanceOf(NullPointerException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("must not be null");
     }
 
     @Test
     public void upload_requestNull_shouldThrowException() {
         UploadRequest request = null;
-        assertThatThrownBy(() -> tm.upload(request).completionFuture().join()).hasCauseInstanceOf(NullPointerException.class)
+        assertThatThrownBy(() -> tm.upload(request).completionFuture().join()).isInstanceOf(NullPointerException.class)
                                                                               .hasMessageContaining("must not be null");
     }
 
     @Test
     public void download_requestNull_shouldThrowException() {
         DownloadRequest request = null;
-        assertThatThrownBy(() -> tm.download(request).completionFuture().join()).hasCauseInstanceOf(NullPointerException.class)
+        assertThatThrownBy(() -> tm.download(request).completionFuture().join()).isInstanceOf(NullPointerException.class)
                                                                               .hasMessageContaining("must not be null");
     }
 }
