@@ -13,6 +13,7 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
  * <li>retryMode: PLACEHOLDER</li>
  * <li>s3UsEast1RegionalEndpoints: PLACEHOLDER</li>
  * <li>connectTimeoutInMillis: PLACEHOLDER</li>
+ * <li>tlsNegotiationTimeoutInMillis: PLACEHOLDER</li>
  * </ul>
  * <p>
  * All options above can be configured by users, and the overridden value will take precedence.

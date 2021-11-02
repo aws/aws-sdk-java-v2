@@ -20,25 +20,29 @@ public final class DefaultsModeConfiguration {
                                                                       .put(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.STANDARD).build();
 
     private static final AttributeMap STANDARD_HTTP_DEFAULTS = AttributeMap.builder()
-                                                                           .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofMillis(2000)).build();
+                                                                           .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofMillis(2000))
+                                                                           .put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT, Duration.ofMillis(2000)).build();
 
     private static final AttributeMap MOBILE_DEFAULTS = AttributeMap.builder()
                                                                     .put(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.ADAPTIVE).build();
 
     private static final AttributeMap MOBILE_HTTP_DEFAULTS = AttributeMap.builder()
-                                                                         .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofMillis(10000)).build();
+                                                                         .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofMillis(10000))
+                                                                         .put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT, Duration.ofMillis(11000)).build();
 
     private static final AttributeMap CROSS_REGION_DEFAULTS = AttributeMap.builder()
                                                                           .put(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.STANDARD).build();
 
     private static final AttributeMap CROSS_REGION_HTTP_DEFAULTS = AttributeMap.builder()
-                                                                               .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofMillis(2800)).build();
+                                                                               .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofMillis(2800))
+                                                                               .put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT, Duration.ofMillis(2800)).build();
 
     private static final AttributeMap IN_REGION_DEFAULTS = AttributeMap.builder()
                                                                        .put(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.STANDARD).build();
 
     private static final AttributeMap IN_REGION_HTTP_DEFAULTS = AttributeMap.builder()
-                                                                            .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofMillis(1000)).build();
+                                                                            .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofMillis(1000))
+                                                                            .put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT, Duration.ofMillis(1000)).build();
 
     private static final AttributeMap LEGACY_DEFAULTS = AttributeMap.empty();
 
