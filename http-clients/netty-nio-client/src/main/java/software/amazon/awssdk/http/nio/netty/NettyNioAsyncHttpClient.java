@@ -307,6 +307,18 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         Builder connectionMaxIdleTime(Duration maxIdleConnectionTimeout);
 
         /**
+         * Configure the maximum amount of time that a TLS handshake is allowed to take from the time the CLIENT HELLO
+         * message is sent to the time the client and server have fully negotiated ciphers and exchanged keys.
+         * @param tlsNegotiationTimeout the timeout duration
+         *
+         * <p>
+         * By default, it's 10 seconds.
+         *
+         * @return this builder for method chaining.
+         */
+        Builder tlsNegotiationTimeout(Duration tlsNegotiationTimeout);
+
+        /**
          * Configure whether the idle connections in the connection pool should be closed.
          * <p>
          * When enabled, connections left idling for longer than {@link #connectionMaxIdleTime(Duration)} will be
@@ -580,6 +592,17 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         public void setUseIdleConnectionReaper(Boolean useIdleConnectionReaper) {
             useIdleConnectionReaper(useIdleConnectionReaper);
+        }
+
+        @Override
+        public Builder tlsNegotiationTimeout(Duration tlsNegotiationTimeout) {
+            Validate.isPositive(tlsNegotiationTimeout, "tlsNegotiationTimeout");
+            standardOptions.put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT, tlsNegotiationTimeout);
+            return this;
+        }
+
+        public void setTlsNegotiationTimeout(Duration tlsNegotiationTimeout) {
+            tlsNegotiationTimeout(tlsNegotiationTimeout);
         }
 
         @Override

@@ -25,7 +25,9 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.SucceededFuture;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import javax.net.ssl.SSLEngine;
@@ -196,10 +198,12 @@ public final class NettyUtils {
     /**
      * @return a new {@link SslHandler} with ssl engine configured
      */
-    public static SslHandler newSslHandler(SslContext sslContext, ByteBufAllocator alloc,  String peerHost, int peerPort) {
+    public static SslHandler newSslHandler(SslContext sslContext, ByteBufAllocator alloc,  String peerHost, int peerPort,
+                                           Duration handshakeTimeout) {
         // Need to provide host and port to enable SNI
         // https://github.com/netty/netty/issues/3801#issuecomment-104274440
         SslHandler sslHandler = sslContext.newHandler(alloc, peerHost, peerPort);
+        sslHandler.setHandshakeTimeout(handshakeTimeout.toMillis(), TimeUnit.MILLISECONDS);
         configureSslEngine(sslHandler.engine());
         return sslHandler;
     }

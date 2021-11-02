@@ -28,6 +28,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.EventExecutor;
+import java.time.Duration;
 import javax.net.ssl.SSLEngine;
 import org.junit.Test;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
@@ -46,7 +47,10 @@ public class NettyUtilsTest {
         Channel channel = null;
         try {
             channel = new MockChannel();
-            SslHandler sslHandler = NettyUtils.newSslHandler(sslContext, channel.alloc(), "localhost", 80);
+            SslHandler sslHandler = NettyUtils.newSslHandler(sslContext, channel.alloc(), "localhost", 80,
+                                                             Duration.ofMillis(1000));
+
+            assertThat(sslHandler.getHandshakeTimeoutMillis()).isEqualTo(1000);
             SSLEngine engine = sslHandler.engine();
             assertThat(engine.getSSLParameters().getEndpointIdentificationAlgorithm()).isEqualTo("HTTPS");
         } finally {
