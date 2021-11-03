@@ -138,11 +138,11 @@ public final class BooleanDocument implements Document {
             return false;
         }
         BooleanDocument that = (BooleanDocument) o;
-        return Objects.equals(value, that.value);
+        return value == that.value;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(value);
+        return Boolean.hashCode(value);
     }
 }
