@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -93,6 +94,14 @@ public final class CompletedDirectoryUpload implements CompletedDirectoryTransfe
         Builder failedTransfers(Collection<FailedFileUpload> failedTransfers);
 
         /**
+         * Add a {@link FailedFileUpload}
+         *
+         * @param failedTransfer failed upload
+         * @return This builder for method chaining.
+         */
+        Builder addFailedTransfer(FailedFileUpload failedTransfer);
+
+        /**
          * Builds a {@link CompletedDirectoryUpload} based on the properties supplied to this builder
          * @return An initialized {@link CompletedDirectoryUpload}
          */
@@ -100,19 +109,28 @@ public final class CompletedDirectoryUpload implements CompletedDirectoryTransfe
     }
 
     private static final class DefaultBuilder implements Builder {
-        private Collection<FailedFileUpload> failedTransfers = Collections.emptyList();
+        private Collection<FailedFileUpload> failedTransfers;
 
         private DefaultBuilder() {
         }
 
         @Override
         public Builder failedTransfers(Collection<FailedFileUpload> failedTransfers) {
-            this.failedTransfers = failedTransfers;
+            this.failedTransfers = new ArrayList<>(failedTransfers);
+            return this;
+        }
+
+        @Override
+        public Builder addFailedTransfer(FailedFileUpload failedTransfer) {
+            if (failedTransfers == null) {
+                failedTransfers = new ArrayList<>();
+            }
+            failedTransfers.add(failedTransfer);
             return this;
         }
 
         public Collection<FailedFileUpload> getFailedTransfers() {
-            return failedTransfers;
+            return Collections.unmodifiableCollection(failedTransfers);
         }
 
         public void setFailedTransfers(Collection<FailedFileUpload> failedTransfers) {

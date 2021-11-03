@@ -39,7 +39,7 @@ import software.amazon.awssdk.utils.Validate;
  * // Create using all default configuration values
  * S3TransferManager tm = S3TransferManager.create();
  *
- * // If you wish to configure settings, we recommend using the builder instead:
+ * // If you wish to configure settings, we recommend using the builder instead
  * S3TransferManager tm =
  *     S3TransferManager.builder()
  *                      .s3ClientConfiguration(b -> b.credentialsProvider(credentialProvider)
@@ -48,22 +48,35 @@ import software.amazon.awssdk.utils.Validate;
  *                                                   .minimumPartSizeInBytes(8 * MB))
  *                      .build();
  *
- * // Download an S3 object to a file
- * FileDownload download =
- *     tm.downloadFile(DownloadFileRequest.builder()
- *                                        .getObjectRequest(b -> b.bucket("bucket").key("key"))
- *                                        .destination(Paths.get("myFile.txt"))
- *                                        .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
- *                                        .build());
- * download.completionFuture().join();
- *
  * // Upload a file to S3
  * FileUpload upload =
- *     tm.uploadFile(UploadFileRequest.builder()
- *                                    .putObjectRequest(b -> b.bucket("bucket"").key("key""))
- *                                    .source(Paths.get("myFile.txt"))
- *                                    .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
- *                                    .build());
+ *     tm.uploadFile(u -> u.source(Paths.get("myFile.txt"))
+ *                         .putObjectRequest(p -> p.bucket("bucket").key("key")));
+ * upload.completionFuture().join();
+ *
+ * // Download an S3 object to a file
+ * FileDownload download =
+ *     tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
+ *                           .destination(Paths.get("myFile.txt")));
+ * download.completionFuture().join();
+ * 
+ * // Upload any content to S3
+ * Upload upload =
+ *     tm.upload(u -> u.requestBody(AsyncRequestBody.fromString("Hello world"))
+ *                     .putObjectRequest(p -> p.bucket("bucket").key("key")));
+ * upload.completionFuture().join();
+ * 
+ * // Download an S3 object to a custom destination
+ * Download<ResponseBytes<GetObjectResponse>> download =
+ *     tm.download(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
+ *                       .responseTransformer(AsyncResponseTransformer.toBytes()));
+ * download.completionFuture().join();
+ * 
+ * // Attach a TransferListener
+ * FileUpload upload =
+ *     tm.uploadFile(u -> u.source(Paths.get("myFile.txt"))
+ *                         .putObjectRequest(p -> p.bucket("bucket").key("key"))
+ *                         .overrideConfiguration(o -> o.addListener(LoggingTransferListener.create())));
  * upload.completionFuture().join();
  * }
  * </pre>
@@ -80,11 +93,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * {@code
      * // Initiate the transfer
      * FileDownload download =
-     *     tm.downloadFile(DownloadFileRequest.builder()
-     *                                        .getObjectRequest(b -> b.bucket("bucket").key("key"))
-     *                                        .destination(Paths.get("myFile.txt"))
-     *                                        .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
-     *                                        .build());
+     *     tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
+     *                           .destination(Paths.get("myFile.txt")));
      * // Wait for the transfer to complete
      * download.completionFuture().join();
      * }
@@ -110,17 +120,13 @@ public interface S3TransferManager extends SdkAutoCloseable {
     /**
      * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}.
      * <p>
-     * <b>Usage Example (this example buffers the entire object into an in-memory byte array and is not suitable for
-     * large objects):</b>
+     * <b>Usage Example (this example buffers the entire object in memory and is not suitable for large objects):</b>
      * <pre>
      * {@code
      * // Initiate the transfer
      * Download<ResponseBytes<GetObjectResponse>> download =
-     *     tm.download(DownloadRequest.builder()
-     *                                .getObjectRequest(b -> b.bucket("bucket"").key("key"))
-     *                                .responseTransformer(AsyncResponseTransformer.toBytes())
-     *                                .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
-     *                                .build());
+     *     tm.download(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
+     *                       .responseTransformer(AsyncResponseTransformer.toBytes()));
      * // Wait for the transfer to complete
      * download.completionFuture().join();
      * }
@@ -155,11 +161,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * <pre>
      * {@code
      * FileUpload upload =
-     *     tm.uploadFile(UploadFileRequest.builder()
-     *                                    .putObjectRequest(b -> b.bucket("bucket"").key("key""))
-     *                                    .source(Paths.get("myFile.txt"))
-     *                                    .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
-     *                                    .build());
+     *     tm.uploadFile(u -> u.source(Paths.get("myFile.txt"))
+     *                         .putObjectRequest(p -> p.bucket("bucket").key("key")));
      * // Wait for the transfer to complete
      * upload.completionFuture().join();
      * }
@@ -188,11 +191,9 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * <b>Usage Example:</b>
      * <pre>
      * {@code
-     * Upload upload = tm.upload(UploadRequest.builder()
-     *                                        .putObjectRequest(b -> b.bucket("bucket"").key("key""))
-     *                                        .requestBody(AsyncRequestBody.fromString("Hello world"))
-     *                                        .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
-     *                                        .build());
+     * Upload upload =
+     *     tm.upload(u -> u.requestBody(AsyncRequestBody.fromString("Hello world"))
+     *                     .putObjectRequest(p -> p.bucket("bucket").key("key")));
      * // Wait for the transfer to complete
      * upload.completionFuture().join();
      * }

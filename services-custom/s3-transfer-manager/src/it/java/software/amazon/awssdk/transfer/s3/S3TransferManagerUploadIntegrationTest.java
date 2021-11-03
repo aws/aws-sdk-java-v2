@@ -67,11 +67,10 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
     @Test
     public void upload_file_SentCorrectly() throws IOException {
         FileUpload fileUpload =
-            tm.uploadFile(UploadFileRequest.builder()
-                                           .putObjectRequest(b -> b.bucket(TEST_BUCKET).key(TEST_KEY))
-                                           .source(testFile.toPath())
-                                           .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
-                                           .build());
+            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET).key(TEST_KEY))
+                                .source(testFile.toPath())
+                                .overrideConfiguration(o -> o.addListener(LoggingTransferListener.create()))
+                                .build());
 
         CompletedFileUpload completedFileUpload = fileUpload.completionFuture().join();
         assertThat(completedFileUpload.response().responseMetadata().requestId()).isNotNull();

@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * A completed directory-based transfer.
- * 
+ *
  * @see CompletedDirectoryUpload
  */
 @SdkPublicApi
@@ -29,28 +29,10 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 public interface CompletedDirectoryTransfer extends CompletedTransfer {
 
     /**
-     * An immutable collection of failed transfers with error details, request metadata about each file that is failed to
-     * transfer.
+     * A list of failed transfer details, including the {@link FailedObjectTransfer#exception()} responsible for the failure and
+     * the {@link FailedObjectTransfer#request()} that initiated the transfer.
      *
-     * <p>
-     * Failed single object transfers can be retried by calling {@link S3TransferManager#uploadFile(UploadFileRequest)} or
-     * {@link S3TransferManager#downloadFile(DownloadFileRequest)}.
-     *
-     * <pre>
-     * {@code
-     * // Retrying failed uploads if the exception is retryable
-     * List<CompletableFuture<CompletedUpload>> futures =
-     *     completedDirectoryUpload.failedTransfers()
-     *                             .stream()
-     *                             .filter(failedSingleFileUpload -> isRetryable(failedSingleFileUpload.exception()))
-     *                             .map(failedSingleFileUpload ->
-     *                                  tm.upload(failedSingleFileUpload.request()).completionFuture())
-     *                             .collect(Collectors.toList());
-     * CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-     * }
-     * </pre>
-     *
-     * @return a list of failed transfers
+     * @return an immutable list of failed transfers
      */
     Collection<? extends FailedObjectTransfer> failedTransfers();
 }

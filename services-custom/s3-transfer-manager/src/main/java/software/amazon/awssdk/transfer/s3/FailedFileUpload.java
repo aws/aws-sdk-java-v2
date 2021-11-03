@@ -107,9 +107,9 @@ public final class FailedFileUpload
         private UploadFileRequest request;
         private Throwable exception;
 
-        private DefaultBuilder(FailedFileUpload failedSingleFileUpload) {
-            this.request = failedSingleFileUpload.request;
-            this.exception = failedSingleFileUpload.exception;
+        private DefaultBuilder(FailedFileUpload failedFileUpload) {
+            this.request = failedFileUpload.request;
+            this.exception = failedFileUpload.exception;
         }
 
         private DefaultBuilder() {

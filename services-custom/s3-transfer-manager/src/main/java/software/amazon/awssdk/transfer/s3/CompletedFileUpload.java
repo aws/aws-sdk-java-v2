@@ -58,7 +58,7 @@ public final class CompletedFileUpload implements CompletedObjectTransfer {
 
     @Override
     public int hashCode() {
-        return response != null ? response.hashCode() : 0;
+        return response.hashCode();
     }
 
     @Override

@@ -17,14 +17,12 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.CompletedDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.DirectoryUpload;
 import software.amazon.awssdk.utils.ToString;
 
-@SdkPublicApi
-@SdkPreviewApi
+@SdkInternalApi
 public final class DefaultDirectoryUpload implements DirectoryUpload {
     
     private final CompletableFuture<CompletedDirectoryUpload> completionFuture;
