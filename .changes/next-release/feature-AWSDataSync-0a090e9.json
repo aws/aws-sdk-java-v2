@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS DataSync",
+    "contributor": "",
+    "description": "AWS DataSync now supports Hadoop Distributed File System (HDFS) Locations"
+}
