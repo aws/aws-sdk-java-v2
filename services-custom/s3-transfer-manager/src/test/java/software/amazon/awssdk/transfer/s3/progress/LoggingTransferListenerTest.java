@@ -24,8 +24,8 @@ import org.apache.log4j.spi.LoggingEvent;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.testutils.LogCaptor;
-import software.amazon.awssdk.transfer.s3.CompletedTransfer;
-import software.amazon.awssdk.transfer.s3.TransferRequest;
+import software.amazon.awssdk.transfer.s3.CompletedObjectTransfer;
+import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferListenerContext;
@@ -45,7 +45,7 @@ public class LoggingTransferListenerTest {
                                                                            .build();
         progress = new DefaultTransferProgress(snapshot);
         context = TransferListenerContext.builder()
-                                         .request(mock(TransferRequest.class))
+                                         .request(mock(TransferObjectRequest.class))
                                          .progressSnapshot(snapshot)
                                          .build();
         listener = LoggingTransferListener.create();
@@ -111,7 +111,7 @@ public class LoggingTransferListenerTest {
         }
 
         listener.transferComplete(context.copy(b -> b.progressSnapshot(progress.snapshot())
-                                                     .completedTransfer(mock(CompletedTransfer.class))));
+                                                     .completedTransfer(mock(CompletedObjectTransfer.class))));
     }
 
     private void assertLogged(List<LoggingEvent> events, Level level, String message) {

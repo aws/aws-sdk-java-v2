@@ -33,12 +33,12 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.transfer.s3.CompletedDownload;
-import software.amazon.awssdk.transfer.s3.CompletedUpload;
-import software.amazon.awssdk.transfer.s3.DownloadRequest;
+import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.UploadRequest;
+import software.amazon.awssdk.transfer.s3.UploadFileRequest;
 
 public class S3TransferManagerTest {
     private S3CrtAsyncClient mockS3Crt;
@@ -71,15 +71,15 @@ public class S3TransferManagerTest {
         when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
                 .thenReturn(CompletableFuture.completedFuture(response));
 
-        CompletedUpload completedUpload = tm.upload(UploadRequest.builder()
-                                                                 .putObjectRequest(r -> r.bucket("bucket")
+        CompletedFileUpload completedFileUpload = tm.uploadFile(UploadFileRequest.builder()
+                                                                                 .putObjectRequest(r -> r.bucket("bucket")
                                                                                          .key("key"))
-                                                                 .source(Paths.get("."))
-                                                                 .build())
-                                            .completionFuture()
-                                            .join();
+                                                                                 .source(Paths.get("."))
+                                                                                 .build())
+                                                    .completionFuture()
+                                                    .join();
 
-        assertThat(completedUpload.response()).isEqualTo(response);
+        assertThat(completedFileUpload.response()).isEqualTo(response);
     }
 
     @Test
@@ -88,12 +88,12 @@ public class S3TransferManagerTest {
         when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
             .thenReturn(s3CrtFuture);
 
-        CompletableFuture<CompletedUpload> future = tm.upload(UploadRequest.builder()
-                                                                                    .putObjectRequest(r -> r.bucket("bucket")
+        CompletableFuture<CompletedFileUpload> future = tm.uploadFile(UploadFileRequest.builder()
+                                                                                       .putObjectRequest(r -> r.bucket("bucket")
                                                                                          .key("key"))
-                                                                                    .source(Paths.get("."))
-                                                                                    .build())
-                                                               .completionFuture();
+                                                                                       .source(Paths.get("."))
+                                                                                       .build())
+                                                          .completionFuture();
 
         future.cancel(true);
         assertThat(s3CrtFuture).isCancelled();
@@ -105,14 +105,14 @@ public class S3TransferManagerTest {
         when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
             .thenReturn(CompletableFuture.completedFuture(response));
 
-        CompletedDownload completedDownload = tm.download(DownloadRequest.builder()
-                                                                         .getObjectRequest(r -> r.bucket("bucket")
+        CompletedFileDownload completedFileDownload = tm.downloadFile(DownloadFileRequest.builder()
+                                                                                         .getObjectRequest(r -> r.bucket("bucket")
                                                                                                  .key("key"))
-                                                                         .destination(Paths.get("."))
-                                                                         .build())
-                                                .completionFuture()
-                                                .join();
-        assertThat(completedDownload.response()).isEqualTo(response);
+                                                                                         .destination(Paths.get("."))
+                                                                                         .build())
+                                                        .completionFuture()
+                                                        .join();
+        assertThat(completedFileDownload.response()).isEqualTo(response);
     }
 
     @Test
@@ -121,12 +121,12 @@ public class S3TransferManagerTest {
         when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
             .thenReturn(s3CrtFuture);
 
-        CompletableFuture<CompletedDownload> future = tm.download(DownloadRequest.builder()
-                                                                                 .getObjectRequest(r -> r.bucket("bucket")
+        CompletableFuture<CompletedFileDownload> future = tm.downloadFile(DownloadFileRequest.builder()
+                                                                                             .getObjectRequest(r -> r.bucket("bucket")
                                                                                                          .key("key"))
-                                                                                 .destination(Paths.get("."))
-                                                                                 .build())
-                                                        .completionFuture();
+                                                                                             .destination(Paths.get("."))
+                                                                                             .build())
+                                                            .completionFuture();
         future.cancel(true);
         assertThat(s3CrtFuture).isCancelled();
     }
@@ -134,13 +134,13 @@ public class S3TransferManagerTest {
     @Test
     public void objectLambdaArnBucketProvided_shouldThrowException() {
         String objectLambdaArn = "arn:xxx:s3-object-lambda";
-        assertThatThrownBy(() -> tm.upload(b -> b.putObjectRequest(p -> p.bucket(objectLambdaArn)
-                                                                         .key("key")).source(Paths.get(".")))
+        assertThatThrownBy(() -> tm.uploadFile(b -> b.putObjectRequest(p -> p.bucket(objectLambdaArn)
+                                                                             .key("key")).source(Paths.get(".")))
                                    .completionFuture().join())
             .hasMessageContaining("support S3 Object Lambda resources").hasCauseInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> tm.download(b -> b.getObjectRequest(p -> p.bucket(objectLambdaArn)
-                                                                           .key("key")).destination(Paths.get("."))).completionFuture().join())
+        assertThatThrownBy(() -> tm.downloadFile(b -> b.getObjectRequest(p -> p.bucket(objectLambdaArn)
+                                                                               .key("key")).destination(Paths.get("."))).completionFuture().join())
             .hasMessageContaining("support S3 Object Lambda resources").hasCauseInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> tm.uploadDirectory(b -> b.bucket(objectLambdaArn).sourceDirectory(Paths.get("."))).completionFuture().join())
@@ -150,13 +150,13 @@ public class S3TransferManagerTest {
     @Test
     public void mrapArnProvided_shouldThrowException() {
         String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
-        assertThatThrownBy(() -> tm.upload(b -> b.putObjectRequest(p -> p.bucket(mrapArn)
-                                                                         .key("key")).source(Paths.get(".")))
+        assertThatThrownBy(() -> tm.uploadFile(b -> b.putObjectRequest(p -> p.bucket(mrapArn)
+                                                                             .key("key")).source(Paths.get(".")))
                                    .completionFuture().join())
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> tm.download(b -> b.getObjectRequest(p -> p.bucket(mrapArn)
-                                                                           .key("key")).destination(Paths.get("."))).completionFuture().join())
+        assertThatThrownBy(() -> tm.downloadFile(b -> b.getObjectRequest(p -> p.bucket(mrapArn)
+                                                                               .key("key")).destination(Paths.get("."))).completionFuture().join())
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> tm.uploadDirectory(b -> b.bucket(mrapArn).sourceDirectory(Paths.get("."))).completionFuture().join())
@@ -191,15 +191,15 @@ public class S3TransferManagerTest {
 
     @Test
     public void upload_requestNull_shouldThrowException() {
-        UploadRequest request = null;
-        assertThatThrownBy(() -> tm.upload(request).completionFuture().join()).isInstanceOf(NullPointerException.class)
-                                                                              .hasMessageContaining("must not be null");
+        UploadFileRequest request = null;
+        assertThatThrownBy(() -> tm.uploadFile(request).completionFuture().join()).isInstanceOf(NullPointerException.class)
+                                                                                  .hasMessageContaining("must not be null");
     }
 
     @Test
     public void download_requestNull_shouldThrowException() {
-        DownloadRequest request = null;
-        assertThatThrownBy(() -> tm.download(request).completionFuture().join()).isInstanceOf(NullPointerException.class)
-                                                                              .hasMessageContaining("must not be null");
+        DownloadFileRequest request = null;
+        assertThatThrownBy(() -> tm.downloadFile(request).completionFuture().join()).isInstanceOf(NullPointerException.class)
+                                                                                    .hasMessageContaining("must not be null");
     }
 }

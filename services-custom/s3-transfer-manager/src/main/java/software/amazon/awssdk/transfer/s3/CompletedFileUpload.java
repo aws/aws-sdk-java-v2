@@ -27,17 +27,17 @@ import software.amazon.awssdk.utils.Validate;
  * Represents a completed upload transfer to Amazon S3. It can be used to track
  * the underlying {@link PutObjectResponse}
  *
- * @see S3TransferManager#upload(UploadRequest) 
+ * @see S3TransferManager#uploadFile(UploadFileRequest)
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class CompletedUpload implements CompletedObjectTransfer {
+public final class CompletedFileUpload implements CompletedObjectTransfer {
     private final PutObjectResponse response;
 
-    private CompletedUpload(DefaultBuilder builder) {
+    private CompletedFileUpload(DefaultBuilder builder) {
         this.response = Validate.paramNotNull(builder.response, "response");
     }
-
+    
     public PutObjectResponse response() {
         return response;
     }
@@ -51,7 +51,7 @@ public final class CompletedUpload implements CompletedObjectTransfer {
             return false;
         }
 
-        CompletedUpload that = (CompletedUpload) o;
+        CompletedFileUpload that = (CompletedFileUpload) o;
 
         return Objects.equals(response, that.response);
     }
@@ -63,7 +63,7 @@ public final class CompletedUpload implements CompletedObjectTransfer {
 
     @Override
     public String toString() {
-        return ToString.builder("CompletedUpload")
+        return ToString.builder("CompletedFileUpload")
                        .add("response", response)
                        .build();
     }
@@ -73,7 +73,7 @@ public final class CompletedUpload implements CompletedObjectTransfer {
     }
 
     /**
-     * Creates a default builder for {@link CompletedUpload}.
+     * Creates a default builder for {@link CompletedFileUpload}.
      */
     public static Builder builder() {
         return new DefaultBuilder();
@@ -89,10 +89,10 @@ public final class CompletedUpload implements CompletedObjectTransfer {
         Builder response(PutObjectResponse response);
 
         /**
-         * Builds a {@link CompletedUpload} based on the properties supplied to this builder
-         * @return An initialized {@link CompletedUpload}
+         * Builds a {@link CompletedFileUpload} based on the properties supplied to this builder
+         * @return An initialized {@link CompletedFileUpload}
          */
-        CompletedUpload build();
+        CompletedFileUpload build();
     }
 
     private static class DefaultBuilder implements Builder {
@@ -108,8 +108,8 @@ public final class CompletedUpload implements CompletedObjectTransfer {
         }
 
         @Override
-        public CompletedUpload build() {
-            return new CompletedUpload(this);
+        public CompletedFileUpload build() {
+            return new CompletedFileUpload(this);
         }
     }
 }

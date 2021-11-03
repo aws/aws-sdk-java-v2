@@ -17,14 +17,16 @@ package software.amazon.awssdk.transfer.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-public class UploadRequestTest {
+public class UploadFileRequestTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -33,44 +35,45 @@ public class UploadRequestTest {
         thrown.expect(NullPointerException.class);
         thrown.expectMessage("putObjectRequest");
 
-        UploadRequest.builder()
-                     .requestBody(AsyncRequestBody.fromString("foo"))
-                     .build();
+        UploadFileRequest.builder()
+                         .source(Paths.get("."))
+                         .build();
     }
 
     @Test
-    public void bodyMissing_shouldThrow() {
+    public void pathMissing_shouldThrow() {
         thrown.expect(NullPointerException.class);
-        thrown.expectMessage("requestBody");
-        UploadRequest.builder()
-                     .putObjectRequest(PutObjectRequest.builder().build())
-                     .build();
+        thrown.expectMessage("source");
+        UploadFileRequest.builder()
+                         .putObjectRequest(PutObjectRequest.builder().build())
+                         .build();
     }
 
     @Test
-    public void bodyEqualsGivenBody() {
-        AsyncRequestBody requestBody = AsyncRequestBody.fromString("foo");
-        UploadRequest request = UploadRequest.builder()
-                                             .putObjectRequest(b -> b.bucket("bucket").key("key"))
-                                             .requestBody(requestBody)
-                                             .build();
-        assertThat(request.requestBody()).isSameAs(requestBody);
+    public void sourceUsingFile() {
+        Path path = Paths.get(".");
+        UploadFileRequest request = UploadFileRequest.builder()
+                                                     .putObjectRequest(b -> b.bucket("bucket").key("key"))
+                                                     .source(path.toFile())
+                                                     .build();
+        assertThat(request.source()).isEqualTo(path);
     }
 
     @Test
-    public void null_requestBody_shouldThrowException() {
+    public void sourceUsingFile_null_shouldThrowException() {
+        File file = null;
         thrown.expect(NullPointerException.class);
-        thrown.expectMessage("requestBody");
-        UploadRequest.builder()
-                     .putObjectRequest(b -> b.bucket("bucket").key("key"))
-                     .requestBody(null)
-                     .build();
+        thrown.expectMessage("source");
+        UploadFileRequest.builder()
+                         .putObjectRequest(b -> b.bucket("bucket").key("key"))
+                         .source(file)
+                         .build();
     }
 
     @Test
     public void equals_hashcode() {
-        EqualsVerifier.forClass(UploadRequest.class)
-                      .withNonnullFields("requestBody", "putObjectRequest")
+        EqualsVerifier.forClass(UploadFileRequest.class)
+                      .withNonnullFields("source", "putObjectRequest")
                       .verify();
     }
 

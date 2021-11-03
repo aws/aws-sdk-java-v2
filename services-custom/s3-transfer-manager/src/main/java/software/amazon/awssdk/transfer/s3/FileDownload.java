@@ -20,16 +20,12 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Represents the upload or download of one or more objects to or from S3.
- * 
- * @see ObjectTransfer
- * @see DirectoryTransfer
+ * A download transfer of a single object from S3.
  */
 @SdkPublicApi
 @SdkPreviewApi
-public interface Transfer {
-    /**
-     * @return The future that will be completed when this transfer is complete.
-     */
-    CompletableFuture<? extends CompletedTransfer> completionFuture();
+public interface FileDownload extends ObjectTransfer {
+    
+    @Override
+    CompletableFuture<CompletedFileDownload> completionFuture();
 }

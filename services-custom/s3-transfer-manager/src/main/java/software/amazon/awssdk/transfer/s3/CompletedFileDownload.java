@@ -19,26 +19,26 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Represents a completed upload transfer to Amazon S3. It can be used to track
- * the underlying {@link PutObjectResponse}
+ * Represents a completed download transfer from Amazon S3. It can be used to track
+ * the underlying {@link GetObjectResponse}
  *
- * @see S3TransferManager#upload(UploadRequest) 
+ * @see S3TransferManager#downloadFile(DownloadFileRequest)
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class CompletedUpload implements CompletedObjectTransfer {
-    private final PutObjectResponse response;
+public final class CompletedFileDownload implements CompletedObjectTransfer {
+    private final GetObjectResponse response;
 
-    private CompletedUpload(DefaultBuilder builder) {
+    private CompletedFileDownload(DefaultBuilder builder) {
         this.response = Validate.paramNotNull(builder.response, "response");
     }
-
-    public PutObjectResponse response() {
+    
+    public GetObjectResponse response() {
         return response;
     }
 
@@ -51,7 +51,7 @@ public final class CompletedUpload implements CompletedObjectTransfer {
             return false;
         }
 
-        CompletedUpload that = (CompletedUpload) o;
+        CompletedFileDownload that = (CompletedFileDownload) o;
 
         return Objects.equals(response, that.response);
     }
@@ -63,53 +63,54 @@ public final class CompletedUpload implements CompletedObjectTransfer {
 
     @Override
     public String toString() {
-        return ToString.builder("CompletedUpload")
+        return ToString.builder("CompletedFileDownload")
                        .add("response", response)
                        .build();
     }
 
-    public static Class<? extends Builder> serializableBuilderClass() {
-        return DefaultBuilder.class;
-    }
-
-    /**
-     * Creates a default builder for {@link CompletedUpload}.
-     */
     public static Builder builder() {
         return new DefaultBuilder();
     }
 
     public interface Builder {
         /**
-         * Specify the {@link PutObjectResponse} from {@link S3AsyncClient#putObject}
+         * Specify the {@link GetObjectResponse} from {@link S3AsyncClient#getObject}
          *
          * @param response the response
          * @return This builder for method chaining.
          */
-        Builder response(PutObjectResponse response);
+        Builder response(GetObjectResponse response);
 
         /**
-         * Builds a {@link CompletedUpload} based on the properties supplied to this builder
-         * @return An initialized {@link CompletedUpload}
+         * Builds a {@link CompletedFileUpload} based on the properties supplied to this builder
+         * @return An initialized {@link CompletedFileDownload}
          */
-        CompletedUpload build();
+        CompletedFileDownload build();
     }
 
-    private static class DefaultBuilder implements Builder {
-        private PutObjectResponse response;
+    private static final class DefaultBuilder implements Builder {
+        private GetObjectResponse response;
 
         private DefaultBuilder() {
         }
 
         @Override
-        public Builder response(PutObjectResponse response) {
+        public Builder response(GetObjectResponse response) {
             this.response = response;
             return this;
         }
 
+        public void setResponse(GetObjectResponse response) {
+            response(response);
+        }
+
+        public GetObjectResponse getResponse() {
+            return response;
+        }
+
         @Override
-        public CompletedUpload build() {
-            return new CompletedUpload(this);
+        public CompletedFileDownload build() {
+            return new CompletedFileDownload(this);
         }
     }
 }

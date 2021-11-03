@@ -19,11 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.UUID;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -62,22 +65,46 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
     }
 
     @Test
-    public void upload_fileSentCorrectly() throws IOException {
-        Upload upload = tm.upload(UploadRequest.builder()
-                                               .putObjectRequest(b -> b.bucket(TEST_BUCKET).key(TEST_KEY))
-                                               .source(testFile.toPath())
-                                               .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
-                                               .build());
+    public void upload_file_SentCorrectly() throws IOException {
+        FileUpload fileUpload =
+            tm.uploadFile(UploadFileRequest.builder()
+                                           .putObjectRequest(b -> b.bucket(TEST_BUCKET).key(TEST_KEY))
+                                           .source(testFile.toPath())
+                                           .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                           .build());
 
-        CompletedUpload completedUpload = upload.completionFuture().join();
-        assertThat(completedUpload.response().responseMetadata().requestId()).isNotNull();
-        assertThat(completedUpload.response().sdkHttpResponse()).isNotNull();
+        CompletedFileUpload completedFileUpload = fileUpload.completionFuture().join();
+        assertThat(completedFileUpload.response().responseMetadata().requestId()).isNotNull();
+        assertThat(completedFileUpload.response().sdkHttpResponse()).isNotNull();
 
         ResponseInputStream<GetObjectResponse> obj = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
                 ResponseTransformer.toInputStream());
 
         assertThat(ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath())))
                 .isEqualTo(ChecksumUtils.computeCheckSum(obj));
+        assertThat(obj.response().responseMetadata().requestId()).isNotNull();
+    }
+
+    @Test
+    public void upload_asyncRequestBody_SentCorrectly() throws IOException {
+        String content = UUID.randomUUID().toString();
+
+        Upload upload =
+            tm.upload(UploadRequest.builder()
+                                   .putObjectRequest(b -> b.bucket(TEST_BUCKET).key(TEST_KEY))
+                                   .requestBody(AsyncRequestBody.fromString(content))
+                                   .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                   .build());
+
+        CompletedUpload completedUpload = upload.completionFuture().join();
+        assertThat(completedUpload.response().responseMetadata().requestId()).isNotNull();
+        assertThat(completedUpload.response().sdkHttpResponse()).isNotNull();
+
+        ResponseInputStream<GetObjectResponse> obj = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                                                  ResponseTransformer.toInputStream());
+
+        assertThat(ChecksumUtils.computeCheckSum(content.getBytes(StandardCharsets.UTF_8)))
+            .isEqualTo(ChecksumUtils.computeCheckSum(obj));
         assertThat(obj.response().responseMetadata().requestId()).isNotNull();
     }
 }

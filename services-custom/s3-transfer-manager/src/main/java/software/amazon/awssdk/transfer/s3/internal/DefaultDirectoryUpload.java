@@ -17,31 +17,25 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.transfer.s3.CompletedUpload;
-import software.amazon.awssdk.transfer.s3.Upload;
-import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.transfer.s3.CompletedDirectoryUpload;
+import software.amazon.awssdk.transfer.s3.DirectoryUpload;
 import software.amazon.awssdk.utils.ToString;
 
-@SdkInternalApi
-public final class DefaultUpload implements Upload {
+@SdkPublicApi
+@SdkPreviewApi
+public final class DefaultDirectoryUpload implements DirectoryUpload {
     
-    private final CompletableFuture<CompletedUpload> completionFuture;
-    private final TransferProgress progress;
+    private final CompletableFuture<CompletedDirectoryUpload> completionFuture;
 
-    DefaultUpload(CompletableFuture<CompletedUpload> completionFuture, TransferProgress progress) {
+    DefaultDirectoryUpload(CompletableFuture<CompletedDirectoryUpload> completionFuture) {
         this.completionFuture = completionFuture;
-        this.progress = progress;
     }
 
     @Override
-    public CompletableFuture<CompletedUpload> completionFuture() {
+    public CompletableFuture<CompletedDirectoryUpload> completionFuture() {
         return completionFuture;
-    }
-
-    @Override
-    public TransferProgress progress() {
-        return progress;
     }
 
     @Override
@@ -53,26 +47,20 @@ public final class DefaultUpload implements Upload {
             return false;
         }
 
-        DefaultUpload that = (DefaultUpload) o;
+        DefaultDirectoryUpload that = (DefaultDirectoryUpload) o;
 
-        if (!Objects.equals(completionFuture, that.completionFuture)) {
-            return false;
-        }
-        return Objects.equals(progress, that.progress);
+        return Objects.equals(completionFuture, that.completionFuture);
     }
 
     @Override
     public int hashCode() {
-        int result = completionFuture != null ? completionFuture.hashCode() : 0;
-        result = 31 * result + (progress != null ? progress.hashCode() : 0);
-        return result;
+        return completionFuture != null ? completionFuture.hashCode() : 0;
     }
 
     @Override
     public String toString() {
-        return ToString.builder("DefaultUpload")
+        return ToString.builder("DefaultDirectoryUpload")
                        .add("completionFuture", completionFuture)
-                       .add("progress", progress)
                        .build();
     }
 }

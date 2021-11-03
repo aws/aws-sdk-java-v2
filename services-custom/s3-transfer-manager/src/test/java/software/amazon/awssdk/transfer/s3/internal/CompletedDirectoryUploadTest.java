@@ -13,23 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3;
+package software.amazon.awssdk.transfer.s3.internal;
 
-import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.Test;
+import software.amazon.awssdk.transfer.s3.CompletedDirectoryUpload;
 
-/**
- * Represents the upload or download of one or more objects to or from S3.
- * 
- * @see ObjectTransfer
- * @see DirectoryTransfer
- */
-@SdkPublicApi
-@SdkPreviewApi
-public interface Transfer {
-    /**
-     * @return The future that will be completed when this transfer is complete.
-     */
-    CompletableFuture<? extends CompletedTransfer> completionFuture();
+public class CompletedDirectoryUploadTest {
+
+    @Test
+    public void equalsHashcode() {
+        EqualsVerifier.forClass(CompletedDirectoryUpload.class)
+                      .withNonnullFields("failedTransfers")
+                      .verify();
+    }
 }

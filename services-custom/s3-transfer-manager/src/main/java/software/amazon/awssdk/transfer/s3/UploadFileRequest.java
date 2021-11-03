@@ -17,6 +17,7 @@ package software.amazon.awssdk.transfer.s3;
 
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
@@ -24,7 +25,6 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -33,21 +33,21 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Upload an object to S3 using {@link S3TransferManager}.
- * @see S3TransferManager#upload(UploadRequest)
+ * @see S3TransferManager#uploadFile(UploadFileRequest)
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class UploadRequest
+public final class UploadFileRequest
     implements TransferObjectRequest,
-               ToCopyableBuilder<UploadRequest.Builder, UploadRequest> {
+               ToCopyableBuilder<UploadFileRequest.Builder, UploadFileRequest> {
 
     private final PutObjectRequest putObjectRequest;
-    private final AsyncRequestBody requestBody;
+    private final Path source;
     private final TransferRequestOverrideConfiguration configuration;
 
-    private UploadRequest(DefaultBuilder builder) {
+    private UploadFileRequest(DefaultBuilder builder) {
         this.putObjectRequest = paramNotNull(builder.putObjectRequest, "putObjectRequest");
-        this.requestBody = paramNotNull(builder.requestBody, "requestBody");
+        this.source = paramNotNull(builder.source, "source");
         this.configuration = builder.configuration;
     }
 
@@ -59,12 +59,12 @@ public final class UploadRequest
     }
 
     /**
-     * The {@link AsyncRequestBody} containing data to send to the service.
+     * The {@link Path} containing data to send to the service.
      *
      * @return the request body
      */
-    public AsyncRequestBody requestBody() {
-        return requestBody;
+    public Path source() {
+        return source;
     }
 
     /**
@@ -77,9 +77,9 @@ public final class UploadRequest
     }
 
     /**
-     * Create a builder that can be used to create a {@link UploadRequest}.
+     * Create a builder that can be used to create a {@link UploadFileRequest}.
      *
-     * @see S3TransferManager#upload(UploadRequest)
+     * @see S3TransferManager#uploadFile(UploadFileRequest)
      */
     public static Builder builder() {
         return new DefaultBuilder();
@@ -103,12 +103,12 @@ public final class UploadRequest
             return false;
         }
 
-        UploadRequest that = (UploadRequest) o;
+        UploadFileRequest that = (UploadFileRequest) o;
 
         if (!Objects.equals(putObjectRequest, that.putObjectRequest)) {
             return false;
         }
-        if (!Objects.equals(requestBody, that.requestBody)) {
+        if (!Objects.equals(source, that.source)) {
             return false;
         }
         return Objects.equals(configuration, that.configuration);
@@ -117,38 +117,49 @@ public final class UploadRequest
     @Override
     public int hashCode() {
         int result = putObjectRequest != null ? putObjectRequest.hashCode() : 0;
-        result = 31 * result + (requestBody != null ? requestBody.hashCode() : 0);
+        result = 31 * result + (source != null ? source.hashCode() : 0);
         result = 31 * result + (configuration != null ? configuration.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return ToString.builder("UploadRequest")
+        return ToString.builder("UploadFileRequest")
                        .add("putObjectRequest", putObjectRequest)
-                       .add("requestBody", requestBody)
+                       .add("source", source)
                        .add("configuration", configuration)
                        .build();
     }
 
     /**
-     * A builder for a {@link UploadRequest}, created with {@link #builder()}
+     * A builder for a {@link UploadFileRequest}, created with {@link #builder()}
      */
     @SdkPublicApi
     @NotThreadSafe
-    public interface Builder extends CopyableBuilder<Builder, UploadRequest> {
+    public interface Builder extends CopyableBuilder<Builder, UploadFileRequest> {
 
         /**
-         * The {@link AsyncRequestBody} containing the data to send to the service. Request bodies may be declared using one of
-         * the static factory methods in the {@link AsyncRequestBody} class, or in the case of file-based requests, with the
-         * builder method: {@link #source(Path)}.
+         * The {@link Path} to file containing data to send to the service. File will be read entirely and may be read
+         * multiple times in the event of a retry. If the file does not exist or the current user does not have
+         * access to read it then an exception will be thrown.
          *
-         * @param requestBody the request body
+         * @param source the source path
          * @return Returns a reference to this object so that method calls can be chained together.
-         * @see AsyncRequestBody
-         * @see #source(Path)
          */
-        Builder requestBody(AsyncRequestBody requestBody);
+        Builder source(Path source);
+
+        /**
+         * The file containing data to send to the service. File will be read entirely and may be read
+         * multiple times in the event of a retry. If the file does not exist or the current user does not have
+         * access to read it then an exception will be thrown.
+         *
+         * @param source the source path
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        default Builder source(File source) {
+            Validate.paramNotNull(source, "source");
+            return this.source(source.toPath());
+        }
 
         /**
          * Configure the {@link PutObjectRequest} that should be used for the upload
@@ -199,40 +210,34 @@ public final class UploadRequest
                                                                              .applyMutation(configurationBuilder)
                                                                              .build());
         }
-
-        /**
-         * @return The built request.
-         */
-        @Override
-        UploadRequest build();
     }
 
     private static class DefaultBuilder implements Builder {
         private PutObjectRequest putObjectRequest;
-        private AsyncRequestBody requestBody;
+        private Path source;
         private TransferRequestOverrideConfiguration configuration;
 
         private DefaultBuilder() {
         }
 
-        private DefaultBuilder(UploadRequest uploadRequest) {
-            this.putObjectRequest = uploadRequest.putObjectRequest;
-            this.requestBody = uploadRequest.requestBody;
-            this.configuration = uploadRequest.configuration;
+        private DefaultBuilder(UploadFileRequest uploadFileRequest) {
+            this.source = uploadFileRequest.source;
+            this.putObjectRequest = uploadFileRequest.putObjectRequest;
+            this.configuration = uploadFileRequest.configuration;
         }
 
         @Override
-        public Builder requestBody(AsyncRequestBody requestBody) {
-            this.requestBody = Validate.paramNotNull(requestBody, "requestBody");
+        public Builder source(Path source) {
+            this.source = Validate.paramNotNull(source, "source");
             return this;
         }
 
-        public AsyncRequestBody getRequestBody() {
-            return requestBody;
+        public Path getSource() {
+            return source;
         }
 
-        public void setRequestBody(AsyncRequestBody requestBody) {
-            requestBody(requestBody);
+        public void setSource(Path source) {
+            source(source);
         }
 
         @Override
@@ -264,8 +269,8 @@ public final class UploadRequest
         }
 
         @Override
-        public UploadRequest build() {
-            return new UploadRequest(this);
+        public UploadFileRequest build() {
+            return new UploadFileRequest(this);
         }
     }
 }

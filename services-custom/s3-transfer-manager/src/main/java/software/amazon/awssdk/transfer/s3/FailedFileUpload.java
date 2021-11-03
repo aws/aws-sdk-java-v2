@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
@@ -24,17 +25,18 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Represents a failed single file upload from {@link S3TransferManager#uploadDirectory}. It
- * has detailed description of the result
+ * has a detailed description of the result.
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class FailedFileUpload implements FailedFileTransfer<UploadRequest>,
-                                               ToCopyableBuilder<FailedFileUpload.Builder,
-                                                   FailedFileUpload> {
+public final class FailedFileUpload
+    implements FailedObjectTransfer,
+               ToCopyableBuilder<FailedFileUpload.Builder, FailedFileUpload> {
+    
+    private final UploadFileRequest request;
     private final Throwable exception;
-    private final UploadRequest request;
 
-    FailedFileUpload(DefaultBuilder builder) {
+    private FailedFileUpload(DefaultBuilder builder) {
         this.exception = Validate.paramNotNull(builder.exception, "exception");
         this.request = Validate.paramNotNull(builder.request, "request");
     }
@@ -45,7 +47,7 @@ public final class FailedFileUpload implements FailedFileTransfer<UploadRequest>
     }
 
     @Override
-    public UploadRequest request() {
+    public UploadFileRequest request() {
         return request;
     }
 
@@ -60,24 +62,24 @@ public final class FailedFileUpload implements FailedFileTransfer<UploadRequest>
 
         FailedFileUpload that = (FailedFileUpload) o;
 
-        if (!exception.equals(that.exception)) {
+        if (!Objects.equals(request, that.request)) {
             return false;
         }
-        return request.equals(that.request);
+        return Objects.equals(exception, that.exception);
     }
 
     @Override
     public int hashCode() {
-        int result = exception.hashCode();
-        result = 31 * result + request.hashCode();
+        int result = request != null ? request.hashCode() : 0;
+        result = 31 * result + (exception != null ? exception.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return ToString.builder("FailedUpload")
-                       .add("exception", exception)
+        return ToString.builder("FailedFileUpload")
                        .add("request", request)
+                       .add("exception", exception)
                        .build();
     }
 
@@ -94,21 +96,15 @@ public final class FailedFileUpload implements FailedFileTransfer<UploadRequest>
         return new DefaultBuilder(this);
     }
 
-    public interface Builder extends CopyableBuilder<Builder, FailedFileUpload>,
-                                     FailedFileTransfer.Builder<UploadRequest> {
+    public interface Builder extends CopyableBuilder<Builder, FailedFileUpload> {
 
-        @Override
         Builder exception(Throwable exception);
 
-        @Override
-        Builder request(UploadRequest request);
-
-        @Override
-        FailedFileUpload build();
+        Builder request(UploadFileRequest request);
     }
 
     private static final class DefaultBuilder implements Builder {
-        private UploadRequest request;
+        private UploadFileRequest request;
         private Throwable exception;
 
         private DefaultBuilder(FailedFileUpload failedSingleFileUpload) {
@@ -134,16 +130,16 @@ public final class FailedFileUpload implements FailedFileTransfer<UploadRequest>
         }
 
         @Override
-        public Builder request(UploadRequest request) {
+        public Builder request(UploadFileRequest request) {
             this.request = request;
             return this;
         }
 
-        public void setRequest(UploadRequest request) {
+        public void setRequest(UploadFileRequest request) {
             request(request);
         }
 
-        public UploadRequest getRequest() {
+        public UploadFileRequest getRequest() {
             return request;
         }
 

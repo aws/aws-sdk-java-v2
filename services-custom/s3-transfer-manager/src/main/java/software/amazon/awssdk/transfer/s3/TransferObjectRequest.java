@@ -15,21 +15,21 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Represents the upload or download of one or more objects to or from S3.
+ * Interface for all single object transfer requests.
  * 
- * @see ObjectTransfer
- * @see DirectoryTransfer
+ * @see UploadFileRequest
+ * @see DownloadFileRequest
+ * @see UploadRequest
+ * @see DownloadRequest
  */
 @SdkPublicApi
 @SdkPreviewApi
-public interface Transfer {
-    /**
-     * @return The future that will be completed when this transfer is complete.
-     */
-    CompletableFuture<? extends CompletedTransfer> completionFuture();
+public interface TransferObjectRequest extends TransferRequest {
+
+    Optional<? extends TransferRequestOverrideConfiguration> overrideConfiguration();
 }

@@ -20,17 +20,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
 
-public class CompletedUploadTest {
+public class CompletedFileUploadTest {
 
     @Test
     public void responseNull_shouldThrowException() {
-        assertThatThrownBy(() -> CompletedUpload.builder().build()).isInstanceOf(NullPointerException.class)
+        assertThatThrownBy(() -> CompletedFileUpload.builder().build()).isInstanceOf(NullPointerException.class)
                                                                        .hasMessageContaining("must not be null");
     }
 
     @Test
     public void equalsHashcode() {
-        EqualsVerifier.forClass(CompletedUpload.class)
+        EqualsVerifier.forClass(CompletedFileUpload.class)
                       .withNonnullFields("response")
                       .verify();
     }

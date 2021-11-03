@@ -17,8 +17,8 @@ package software.amazon.awssdk.transfer.s3.internal.progress;
 
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.transfer.s3.CompletedTransfer;
-import software.amazon.awssdk.transfer.s3.TransferRequest;
+import software.amazon.awssdk.transfer.s3.CompletedObjectTransfer;
+import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 import software.amazon.awssdk.utils.ToString;
@@ -26,7 +26,7 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * An SDK-internal implementation of {@link TransferComplete} and its parent interfaces.
+ * An SDK-internal implementation of {@link TransferListener.Context.TransferComplete} and its parent interfaces.
  *
  * @see TransferListenerFailedContext
  */
@@ -36,9 +36,9 @@ public final class TransferListenerContext
     implements TransferListener.Context.TransferComplete,
                ToCopyableBuilder<TransferListenerContext.Builder, TransferListenerContext> {
 
-    private final TransferRequest request;
+    private final TransferObjectRequest request;
     private final TransferProgressSnapshot progressSnapshot;
-    private final CompletedTransfer completedTransfer;
+    private final CompletedObjectTransfer completedTransfer;
 
     private TransferListenerContext(Builder builder) {
         this.request = builder.request;
@@ -56,7 +56,7 @@ public final class TransferListenerContext
     }
 
     @Override
-    public TransferRequest request() {
+    public TransferObjectRequest request() {
         return request;
     }
 
@@ -66,7 +66,7 @@ public final class TransferListenerContext
     }
 
     @Override
-    public CompletedTransfer completedTransfer() {
+    public CompletedObjectTransfer completedTransfer() {
         return completedTransfer;
     }
 
@@ -80,9 +80,9 @@ public final class TransferListenerContext
     }
 
     public static final class Builder implements CopyableBuilder<Builder, TransferListenerContext> {
-        private TransferRequest request;
+        private TransferObjectRequest request;
         private TransferProgressSnapshot progressSnapshot;
-        private CompletedTransfer completedTransfer;
+        private CompletedObjectTransfer completedTransfer;
 
         private Builder() {
             super();
@@ -94,7 +94,7 @@ public final class TransferListenerContext
             this.completedTransfer = context.completedTransfer;
         }
 
-        public Builder request(TransferRequest request) {
+        public Builder request(TransferObjectRequest request) {
             this.request = request;
             return this;
         }
@@ -104,7 +104,7 @@ public final class TransferListenerContext
             return this;
         }
 
-        public Builder completedTransfer(CompletedTransfer completedTransfer) {
+        public Builder completedTransfer(CompletedObjectTransfer completedTransfer) {
             this.completedTransfer = completedTransfer;
             return this;
         }

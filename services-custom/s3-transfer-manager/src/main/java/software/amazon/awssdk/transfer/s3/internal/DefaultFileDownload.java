@@ -18,30 +18,32 @@ package software.amazon.awssdk.transfer.s3.internal;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.transfer.s3.CompletedUpload;
-import software.amazon.awssdk.transfer.s3.Upload;
+import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.FileDownload;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
-public final class DefaultUpload implements Upload {
-    
-    private final CompletableFuture<CompletedUpload> completionFuture;
+public final class DefaultFileDownload implements FileDownload {
+
+    private final CompletableFuture<CompletedFileDownload> completionFuture;
     private final TransferProgress progress;
 
-    DefaultUpload(CompletableFuture<CompletedUpload> completionFuture, TransferProgress progress) {
+    DefaultFileDownload(CompletableFuture<CompletedFileDownload> completionFuture,
+                               TransferProgress progress) {
         this.completionFuture = completionFuture;
         this.progress = progress;
     }
 
     @Override
-    public CompletableFuture<CompletedUpload> completionFuture() {
-        return completionFuture;
-    }
-
-    @Override
     public TransferProgress progress() {
         return progress;
+    }
+
+
+    @Override
+    public CompletableFuture<CompletedFileDownload> completionFuture() {
+        return completionFuture;
     }
 
     @Override
@@ -53,7 +55,7 @@ public final class DefaultUpload implements Upload {
             return false;
         }
 
-        DefaultUpload that = (DefaultUpload) o;
+        DefaultFileDownload that = (DefaultFileDownload) o;
 
         if (!Objects.equals(completionFuture, that.completionFuture)) {
             return false;
@@ -70,7 +72,7 @@ public final class DefaultUpload implements Upload {
 
     @Override
     public String toString() {
-        return ToString.builder("DefaultUpload")
+        return ToString.builder("DefaultFileDownload")
                        .add("completionFuture", completionFuture)
                        .add("progress", progress)
                        .build();
