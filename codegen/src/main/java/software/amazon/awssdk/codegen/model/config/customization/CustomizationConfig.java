@@ -42,6 +42,12 @@ public class CustomizationConfig {
      * does not have advanced configuration.
      */
     private String serviceSpecificClientConfigClass;
+
+    /**
+     * Whether a service has a dualstack configuration in its {@link #serviceSpecificClientConfigClass}.
+     */
+    private boolean serviceConfigHasDualstackConfig = false;
+
     /**
      * Specify shapes to be renamed.
      */
@@ -197,6 +203,8 @@ public class CustomizationConfig {
     
     private RetryMode defaultRetryMode;
 
+
+
     private CustomizationConfig() {
     }
 
@@ -242,6 +250,14 @@ public class CustomizationConfig {
 
     public void setServiceSpecificClientConfigClass(String serviceSpecificClientConfig) {
         this.serviceSpecificClientConfigClass = serviceSpecificClientConfig;
+    }
+
+    public boolean getServiceConfigHasDualstackConfig() {
+        return serviceConfigHasDualstackConfig;
+    }
+
+    public void setServiceConfigHasDualstackConfig(boolean serviceConfigHasDualstackConfig) {
+        this.serviceConfigHasDualstackConfig = serviceConfigHasDualstackConfig;
     }
 
     public List<ConvenienceTypeOverload> getConvenienceTypeOverloads() {

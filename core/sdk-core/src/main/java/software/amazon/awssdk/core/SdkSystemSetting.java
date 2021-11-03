@@ -168,6 +168,12 @@ public enum SdkSystemSetting implements SystemSetting {
      */
     AWS_MAX_ATTEMPTS("aws.maxAttempts", null),
 
+    /**
+     * Defines whether dualstack endpoints should be resolved during default endpoint resolution instead of non-dualstack
+     * endpoints.
+     */
+    AWS_USE_DUALSTACK_ENDPOINT("aws.useDualstackEndpoint", null),
+
     ;
 
     private final String systemProperty;

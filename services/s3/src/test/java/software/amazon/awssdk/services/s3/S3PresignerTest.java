@@ -396,6 +396,21 @@ public class S3PresignerTest {
     }
 
     /**
+     * Dualstack uses regional endpoints that support virtual addressing.
+     */
+    @Test
+    public void dualstackEnabledViaBuilder_UsesVirtualAddressingWithDualstackEndpoint() throws Exception {
+        S3Presigner presigner = presignerBuilder().dualstackEnabled(true).build();
+
+        PresignedGetObjectRequest presignedRequest =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(BUCKET)
+                                                                       .key("bar")));
+
+        assertThat(presignedRequest.httpRequest().host()).contains(String.format("%s.s3.dualstack.us-west-2.amazonaws.com", BUCKET));
+    }
+
+    /**
      * Dualstack also supports path style endpoints just like the normal endpoints.
      */
     @Test
@@ -619,6 +634,15 @@ public class S3PresignerTest {
 
         String expectedSignature = "7f93df0b81f80e590d95442d579bd6cf749a35ff4bbdc6373fa669b89c7fce4e";
         assertThat(presigned.url().toString()).contains("X-Amz-Signature=" + expectedSignature);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void dualstackInConfigAndPresignerBuilder_throwsException() throws Exception {
+        presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                                                               .dualstackEnabled(true)
+                                                               .build())
+                          .dualstackEnabled(true)
+                          .build();
     }
 
     // Variant of AwsS3V4Signer that allows for changing the signing clock and expiration time

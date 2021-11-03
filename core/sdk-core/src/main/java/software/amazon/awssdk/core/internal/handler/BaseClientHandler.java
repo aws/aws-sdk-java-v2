@@ -182,7 +182,9 @@ public abstract class BaseClientHandler {
             .putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1)
             .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG,
                           clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
-            .putAttribute(SdkExecutionAttribute.SERVICE_NAME, clientConfiguration.option(SdkClientOption.SERVICE_NAME));
+            .putAttribute(SdkExecutionAttribute.SERVICE_NAME, clientConfiguration.option(SdkClientOption.SERVICE_NAME))
+            .putAttribute(SdkExecutionAttribute.PROFILE_FILE, clientConfiguration.option(SdkClientOption.PROFILE_FILE))
+            .putAttribute(SdkExecutionAttribute.PROFILE_NAME, clientConfiguration.option(SdkClientOption.PROFILE_NAME));
 
         ExecutionInterceptorChain interceptorChain =
             new ExecutionInterceptorChain(clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS));

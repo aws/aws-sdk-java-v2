@@ -164,6 +164,9 @@ public interface PollyPresigner extends SdkPresigner {
         Builder credentialsProvider(AwsCredentialsProvider credentialsProvider);
 
         @Override
+        Builder dualstackEnabled(Boolean dualstackEnabled);
+
+        @Override
         Builder endpointOverride(URI endpointOverride);
 
         @Override
