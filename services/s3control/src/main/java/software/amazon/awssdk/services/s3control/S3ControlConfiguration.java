@@ -131,7 +131,10 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
          * </p>
          *
          * @see S3ControlConfiguration#dualstackEnabled().
+         * @deprecated This option has been replaced with {@link S3ControlClientBuilder#dualstackEnabled(Boolean)}. If both are
+         * set, an exception will be thrown.
          */
+        @Deprecated
         Builder dualstackEnabled(Boolean dualstackEnabled);
 
         Boolean fipsModeEnabled();

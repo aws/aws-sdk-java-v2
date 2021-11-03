@@ -121,6 +121,8 @@ public final class ProfileProperty {
      */
     public static final String SSO_START_URL = "sso_start_url";
 
+    public static final String USE_DUALSTACK_ENDPOINT = "use_dualstack_endpoint";
+
     public static final String EC2_METADATA_SERVICE_ENDPOINT_MODE = "ec2_metadata_service_endpoint_mode";
 
     public static final String EC2_METADATA_SERVICE_ENDPOINT = "ec2_metadata_service_endpoint";
