@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "FinSpace User Environment Management service",
+    "contributor": "",
+    "description": "Adds superuser and data-bundle parameters to CreateEnvironment API"
+}
