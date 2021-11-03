@@ -450,6 +450,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
     }
 
     private boolean isRestJson(IntermediateModel model) {
-        return Protocol.REST_JSON.equals(model.getMetadata().getProtocol());
+        return model.getMetadata().getProtocol() == Protocol.REST_JSON;
     }
 }
