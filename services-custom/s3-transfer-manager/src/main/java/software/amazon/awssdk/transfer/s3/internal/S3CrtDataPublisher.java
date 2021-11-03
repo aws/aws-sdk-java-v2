@@ -91,16 +91,16 @@ public class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
 
     private void notifyErrorIfNeeded(Subscriber<? super ByteBuffer> subscriber) {
         Event event = buffer.peek();
-        if (event != null && event.type().equals(EventType.ERROR)) {
+        if (event != null && event.type() == EventType.ERROR) {
             isDone = true;
             subscriber.onError(((ErrorEvent) event).error());
         }
     }
 
     private boolean isTerminalEvent(Event event) {
-        return event.type().equals(EventType.ERROR) ||
-               event.type().equals(EventType.COMPLETE) ||
-               event.type().equals(EventType.CANCEL);
+        return event.type() == EventType.ERROR ||
+               event.type() == EventType.COMPLETE ||
+               event.type() == EventType.CANCEL;
     }
 
     private void handleTerminalEvent(Event event) {
