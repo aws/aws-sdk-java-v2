@@ -64,7 +64,7 @@ public class VariableModel extends DocumentationModel {
 
     public String getSimpleType() {
         if (variableType.contains(".")) {
-            return variableType.substring(variableType.lastIndexOf(".") + 1);
+            return variableType.substring(variableType.lastIndexOf('.') + 1);
         }
         return variableType;
     }
