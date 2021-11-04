@@ -344,7 +344,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     @Override
-    public final BuilderT  defaultsMode(DefaultsMode defaultsMode) {
+    public final BuilderT defaultsMode(DefaultsMode defaultsMode) {
         clientConfiguration.option(DEFAULTS_MODE, defaultsMode);
         return thisBuilder();
     }

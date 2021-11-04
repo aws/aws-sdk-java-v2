@@ -32,8 +32,8 @@ import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
 
@@ -58,7 +58,7 @@ public abstract class ClientDefaultsModeTestSuite<ClientT, BuilderT extends AwsC
     @Test
     public void standardDefaultsMode_shouldApplyStandardDefaults() {
         stubResponse();
-        ClientT client = clientBuilder().overrideConfiguration(o -> o.defaultsMode(DefaultsMode.STANDARD)).build();
+        ClientT client = clientBuilder().defaultsMode(DefaultsMode.STANDARD).build();
         callAllTypes(client);
 
         WireMock.verify(postRequestedFor(anyUrl()).withHeader("User-Agent", containing("cfg/retry-mode/standard")));
@@ -68,7 +68,7 @@ public abstract class ClientDefaultsModeTestSuite<ClientT, BuilderT extends AwsC
     public void retryModeOverridden_shouldTakePrecedence() {
         stubResponse();
         ClientT client =
-            clientBuilder().overrideConfiguration(o -> o.defaultsMode(DefaultsMode.STANDARD).retryPolicy(RetryMode.LEGACY)).build();
+            clientBuilder().defaultsMode(DefaultsMode.STANDARD).overrideConfiguration(o -> o.retryPolicy(RetryMode.LEGACY)).build();
         callAllTypes(client);
 
         WireMock.verify(postRequestedFor(anyUrl()).withHeader("User-Agent", containing("cfg/retry-mode/legacy")));

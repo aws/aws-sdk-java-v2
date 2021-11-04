@@ -82,7 +82,7 @@ public interface AwsClientBuilder<BuilderT extends AwsClientBuilder<BuilderT, Cl
      * @return This object for method chaining.
      * @see DefaultsMode
      */
-    default BuilderT  defaultsMode(DefaultsMode defaultsMode) {
+    default BuilderT defaultsMode(DefaultsMode defaultsMode) {
         throw new UnsupportedOperationException();
     }
 }
