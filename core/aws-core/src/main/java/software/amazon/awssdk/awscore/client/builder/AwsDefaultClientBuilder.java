@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.awscore.client.builder;
 
-import static software.amazon.awssdk.core.client.config.SdkClientOption.DEFAULTS_MODE;
+import static software.amazon.awssdk.awscore.client.config.AwsClientOption.DEFAULTS_MODE;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -27,23 +27,23 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.awscore.eventstream.EventStreamInitialRequestInterceptor;
 import software.amazon.awssdk.awscore.interceptor.HelpfulUnknownHostExceptionInterceptor;
 import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDiscovery;
+import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
+import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeResolver;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.defaultsmode.DefaultsModeResolver;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
@@ -125,7 +125,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     @Override
     protected final AttributeMap childHttpConfig(SdkClientConfiguration configuration) {
         AttributeMap attributeMap = serviceHttpConfig();
-        return attributeMap.merge(httpConfigFromDefaultsMode(configuration));
+        return mergeSmartHttpDefaults(configuration, attributeMap);
     }
 
     /**
@@ -160,6 +160,13 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         return configuration;
     }
 
+    /**
+     * Return a client configuration object, populated with the following chain of priorities.
+     * <ol>
+     *     <li>Defaults vended from {@link DefaultsMode} </li>
+     *     <li>AWS Global Defaults</li>
+     * </ol>
+     */
     @Override
     protected final SdkClientConfiguration finalizeChildConfiguration(SdkClientConfiguration configuration) {
         configuration = finalizeServiceConfiguration(configuration);
@@ -168,9 +175,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                      .option(AwsClientOption.AWS_REGION, resolveRegion(configuration))
                                      .build();
 
-        configuration = configuration.toBuilder()
-                                     .option(SdkClientOption.DEFAULTS_MODE, resolveDefaultsMode(configuration))
-                                     .build();
+        configuration = mergeSmartDefaults(configuration);
 
         return configuration.toBuilder()
                             .option(AwsClientOption.CREDENTIALS_PROVIDER, resolveCredentials(configuration))
@@ -181,6 +186,16 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .build();
     }
 
+    private SdkClientConfiguration mergeSmartDefaults(SdkClientConfiguration configuration) {
+        DefaultsMode defaultsMode = resolveDefaultsMode(configuration);
+        RetryMode retryMode = DefaultsModeConfiguration.defaultConfig(defaultsMode).get(SdkClientOption.DEFAULT_RETRY_MODE);
+
+        return configuration.toBuilder()
+                            .option(DEFAULTS_MODE, defaultsMode)
+                            .build()
+                            .merge(c -> c.option(SdkClientOption.DEFAULT_RETRY_MODE, retryMode));
+    }
+
     /**
      * Optionally overridden by child classes to derive service-specific configuration from the default-applied configuration.
      */
@@ -189,11 +204,11 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     /**
-     * Return the defaults specified for each {@link DefaultsMode}
+     * Merged the HTTP defaults specified for each {@link DefaultsMode}
      */
-    private AttributeMap httpConfigFromDefaultsMode(SdkClientConfiguration sdkClientConfiguration) {
-        DefaultsMode defaultsMode = sdkClientConfiguration.option(DEFAULTS_MODE);
-        return DefaultsModeConfiguration.defaultHttpConfig(defaultsMode);
+    private AttributeMap mergeSmartHttpDefaults(SdkClientConfiguration configuration, AttributeMap attributeMap) {
+        DefaultsMode defaultsMode = configuration.option(DEFAULTS_MODE);
+        return attributeMap.merge(DefaultsModeConfiguration.defaultHttpConfig(defaultsMode));
     }
 
     /**
@@ -248,12 +263,13 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     private DefaultsMode resolveDefaultsMode(SdkClientConfiguration config) {
-        DefaultsMode defaultsMode = config.option(DEFAULTS_MODE) != null ?
-                                    config.option(DEFAULTS_MODE) :
-                                    DefaultsModeResolver.create()
-                                                        .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
-                                                        .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                                                        .resolve();
+        DefaultsMode defaultsMode =
+            config.option(AwsClientOption.DEFAULTS_MODE) != null ?
+            config.option(AwsClientOption.DEFAULTS_MODE) :
+            DefaultsModeResolver.create()
+                                .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
+                                .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                .resolve();
 
         if (defaultsMode == DefaultsMode.AUTO) {
             defaultsMode = autoDefaultsModeDiscovery.discover(config.option(AwsClientOption.AWS_REGION));
@@ -291,16 +307,9 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         RetryMode retryMode = RetryMode.resolver()
                                        .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
                                        .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                                       .defaultRetryMode(resolveDefaultRetryMode(config))
+                                       .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();
         return AwsRetryPolicy.forRetryMode(retryMode);
-    }
-
-    private RetryMode resolveDefaultRetryMode(SdkClientConfiguration config) {
-        DefaultsMode defaultsMode = config.option(DEFAULTS_MODE);
-        RetryMode retryMode = config.option(SdkClientOption.DEFAULT_RETRY_MODE);
-        return retryMode != null ? retryMode :
-               DefaultsModeConfiguration.defaultConfig(defaultsMode).get(SdkClientOption.DEFAULT_RETRY_MODE);
     }
 
     @Override
@@ -332,5 +341,15 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     private List<ExecutionInterceptor> awsInterceptors() {
         return Arrays.asList(new HelpfulUnknownHostExceptionInterceptor(),
                              new EventStreamInitialRequestInterceptor());
+    }
+
+    @Override
+    public final BuilderT defaultsMode(DefaultsMode defaultsMode) {
+        clientConfiguration.option(DEFAULTS_MODE, defaultsMode);
+        return thisBuilder();
+    }
+
+    public final void setDefaultsMode(DefaultsMode defaultsMode) {
+        defaultsMode(defaultsMode);
     }
 }

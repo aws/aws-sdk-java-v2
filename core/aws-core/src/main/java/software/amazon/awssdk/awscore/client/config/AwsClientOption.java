@@ -18,6 +18,7 @@ package software.amazon.awssdk.awscore.client.config;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.regions.Region;
 
@@ -52,6 +53,11 @@ public final class AwsClientOption<T> extends ClientOption<T> {
      * For standard services, this should match the "endpointPrefix" field in the AWS model.
      */
     public static final AwsClientOption<String> ENDPOINT_PREFIX = new AwsClientOption<>(String.class);
+
+    /**
+     * Option to specify the {@link DefaultsMode}
+     */
+    public static final AwsClientOption<DefaultsMode> DEFAULTS_MODE = new AwsClientOption<>(DefaultsMode.class);
 
     private AwsClientOption(Class<T> valueClass) {
         super(valueClass);

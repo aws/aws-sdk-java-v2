@@ -13,14 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.defaultsmode;
+package software.amazon.awssdk.awscore.internal.defaultsmode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import org.junit.Test;
-import software.amazon.awssdk.defaultsmode.DefaultsMode;
-import software.amazon.awssdk.internal.defaultsmode.DefaultsModeConfiguration;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class DefaultsModeConfigurationTest {

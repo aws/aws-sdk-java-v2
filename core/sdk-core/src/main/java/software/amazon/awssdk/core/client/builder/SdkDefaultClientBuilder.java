@@ -27,7 +27,6 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.DEFAULTS_MODE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
@@ -69,7 +68,6 @@ import software.amazon.awssdk.core.internal.interceptor.HttpChecksumRequiredInte
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.util.SdkUserAgent;
-import software.amazon.awssdk.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -149,7 +147,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * <ol>
      * <li>Customer Configuration</li>
      * <li>Service-Specific Defaults</li>
-     * <li>Defaults vended by {@link DefaultsMode}</li>
      * <li>Global Defaults</li>
      * </ol>
      */
@@ -173,7 +170,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * <ol>
      * <li>Customer Configuration</li>
      * <li>Implementation/Service-Specific Configuration</li>
-     * <li>Defaults vended by {@link DefaultsMode}</li>
      * <li>Global Default Configuration</li>
      * </ol>
      */
@@ -405,7 +401,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         overrideConfig.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE).ifPresent(value -> {
             clientConfiguration.option(ENDPOINT_OVERRIDDEN, value);
         });
-        clientConfiguration.option(DEFAULTS_MODE, overrideConfig.defaultsMode().orElse(null));
         overrideConfig.advancedOption(SIGNER).ifPresent(s -> clientConfiguration.option(SIGNER_OVERRIDDEN, true));
         return thisBuilder();
     }
