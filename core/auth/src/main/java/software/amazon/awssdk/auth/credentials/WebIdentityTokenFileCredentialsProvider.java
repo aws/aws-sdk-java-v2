@@ -62,7 +62,7 @@ public class WebIdentityTokenFileCredentialsProvider implements AwsCredentialsPr
                                                     .webIdentityTokenFile(webIdentityTokenFile)
                                                     .build();
 
-            credentialsProvider = WebIdentityCredentialsUtils.factory().create(credentialProperties);
+            credentialsProvider = WebIdentityCredentialsUtils.factory(builder.httpClient).create(credentialProperties);
         } catch (RuntimeException e) {
             // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception
             // will only be raised on calls to getCredentials. We don't want to raise an exception here because it may be
@@ -117,6 +117,11 @@ public class WebIdentityTokenFileCredentialsProvider implements AwsCredentialsPr
         Builder webIdentityTokenFile(Path webIdentityTokenFile);
 
         /**
+         * Define the HTTP client used by the token provider.
+         */
+        Builder httpClient(SdkHttpClient httpClient);
+
+        /**
          * Create a {@link WebIdentityTokenFileCredentialsProvider} using the configuration applied to this builder.
          */
         WebIdentityTokenFileCredentialsProvider build();
@@ -126,6 +131,7 @@ public class WebIdentityTokenFileCredentialsProvider implements AwsCredentialsPr
         private String roleArn;
         private String roleSessionName;
         private Path webIdentityTokenFile;
+        private SdkHttpClient httpClient;
 
         BuilderImpl() {
         }
@@ -158,6 +164,16 @@ public class WebIdentityTokenFileCredentialsProvider implements AwsCredentialsPr
 
         public void setWebIdentityTokenFile(Path webIdentityTokenFile) {
             webIdentityTokenFile(webIdentityTokenFile);
+        }
+
+        @Override
+        public Builder httpClient(SdkHttpClient httpClient) {
+            this.httpClient = httpClient;
+            return this;
+        }
+
+        public void setHttpClient(SdkHttpClient httpClient) {
+            httpClient(httpClient);
         }
 
         @Override

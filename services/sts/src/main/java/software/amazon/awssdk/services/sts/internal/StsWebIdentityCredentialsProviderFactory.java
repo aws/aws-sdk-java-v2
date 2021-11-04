@@ -48,10 +48,19 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 @SdkProtectedApi
 public final class StsWebIdentityCredentialsProviderFactory implements WebIdentityTokenCredentialsProviderFactory {
+    private SdkHttpClient httpClient;
+
+    public StsWebIdentityCredentialsProviderFactory()
+    {}
+
+    public StsWebIdentityCredentialsProviderFactory(SdkHttpClient httpClient)
+    {
+        this.httpClient = httpClient;
+    }
 
     @Override
     public AwsCredentialsProvider create(WebIdentityTokenCredentialProperties credentialProperties) {
-        return new StsWebIdentityCredentialsProvider(credentialProperties);
+        return new StsWebIdentityCredentialsProvider(credentialProperties, this.httpClient);
     }
 
     /**
@@ -63,7 +72,7 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
         private final StsClient stsClient;
         private final StsAssumeRoleWithWebIdentityCredentialsProvider credentialsProvider;
 
-        private StsWebIdentityCredentialsProvider(WebIdentityTokenCredentialProperties credentialProperties) {
+        private StsWebIdentityCredentialsProvider(WebIdentityTokenCredentialProperties credentialProperties, SdkHttpClient httpClient) {
             String roleSessionName = credentialProperties.roleSessionName();
             String sessionName = roleSessionName != null ? roleSessionName : "aws-sdk-java-" + System.currentTimeMillis();
 
@@ -71,6 +80,7 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
                                                                       RetryCondition.defaultRetryCondition());
 
             this.stsClient = StsClient.builder()
+                                      .httpClient(httpClient)
                                       .applyMutation(this::configureEndpoint)
                                       .credentialsProvider(AnonymousCredentialsProvider.create())
                                       .overrideConfiguration(o -> o.retryPolicy(r -> r.retryCondition(retryCondition)))

@@ -40,11 +40,11 @@ public final class WebIdentityCredentialsUtils {
      *
      * @return WebIdentityTokenCredentialsProviderFactory
      */
-    public static WebIdentityTokenCredentialsProviderFactory factory() {
+    public static WebIdentityTokenCredentialsProviderFactory factory(SdkHttpClient httpClient) {
         try {
             Class<?> stsCredentialsProviderFactory = ClassLoaderHelper.loadClass(STS_WEB_IDENTITY_CREDENTIALS_PROVIDER_FACTORY,
                     WebIdentityCredentialsUtils.class);
-            return (WebIdentityTokenCredentialsProviderFactory) stsCredentialsProviderFactory.getConstructor().newInstance();
+            return (WebIdentityTokenCredentialsProviderFactory) stsCredentialsProviderFactory.getConstructor().newInstance(httpClient);
         } catch (ClassNotFoundException e) {
             String message = "To use web identity tokens, the 'sts' service module must be on the class path.";
             log.warn(() -> message);
