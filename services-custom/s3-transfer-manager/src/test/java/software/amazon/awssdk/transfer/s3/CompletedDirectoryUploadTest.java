@@ -13,11 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3.internal;
+package software.amazon.awssdk.transfer.s3;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
-import software.amazon.awssdk.transfer.s3.CompletedDirectoryUpload;
 
 public class CompletedDirectoryUploadTest {
 
