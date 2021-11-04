@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "ListDevices and DescribeDevice now show Edge Manager agent version."
-}
