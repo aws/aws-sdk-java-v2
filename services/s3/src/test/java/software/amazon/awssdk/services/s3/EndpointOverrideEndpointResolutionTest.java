@@ -65,6 +65,7 @@ public class EndpointOverrideEndpointResolutionTest {
         this.s3Client = S3Client.builder()
                                 .region(testCase.clientRegion)
                                 .dualstackEnabled(testCase.clientDualstackEnabled)
+                                .fipsEnabled(testCase.clientFipsEnabled)
                                 .credentialsProvider(StaticCredentialsProvider.create(
                                     AwsBasicCredentials.create("dummy-key", "dummy-secret")))
                                 .endpointOverride(testCase.endpointUrl)
@@ -79,11 +80,13 @@ public class EndpointOverrideEndpointResolutionTest {
                                       .endpointOverride(testCase.endpointUrl)
                                       .serviceConfiguration(testCase.s3Configuration)
                                       .dualstackEnabled(testCase.clientDualstackEnabled)
+                                      .fipsEnabled(testCase.clientFipsEnabled)
                                       .build();
         this.s3Utilities = S3Utilities.builder()
                                       .region(testCase.clientRegion)
                                       .s3Configuration(testCase.s3Configuration)
                                       .dualstackEnabled(testCase.clientDualstackEnabled)
+                                      .fipsEnabled(testCase.clientFipsEnabled)
                                       .build();
 
         this.getObjectRequest = testCase.getObjectBucketName == null
@@ -330,6 +333,12 @@ public class EndpointOverrideEndpointResolutionTest {
                                 .setClientRegion(Region.US_WEST_2)
                                 .setExpectedException(IllegalArgumentException.class));
 
+        cases.add(new TestCase().setCaseName("outposts access point with fips enabled via client builder calling cross-region")
+                                .setGetObjectBucketName("arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint")
+                                .setClientFipsEnabled(true)
+                                .setClientRegion(Region.US_EAST_1)
+                                .setExpectedException(IllegalArgumentException.class));
+
         cases.add(new TestCase().setCaseName("mrap access point with arn region enabled")
                                 .setGetObjectBucketName("arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap")
                                 .setEndpointUrl("https://accesspoint.vpce-123-abc.s3-global.vpce.amazonaws.com")
@@ -353,6 +362,7 @@ public class EndpointOverrideEndpointResolutionTest {
         private Region expectedSigningRegion;
         private Class<? extends RuntimeException> expectedException;
         private Boolean clientDualstackEnabled;
+        private Boolean clientFipsEnabled;
 
         public TestCase setCaseName(String caseName) {
             this.caseName = caseName;
@@ -383,6 +393,11 @@ public class EndpointOverrideEndpointResolutionTest {
 
         public TestCase setClientDualstackEnabled(Boolean dualstackEnabled) {
             this.clientDualstackEnabled = dualstackEnabled;
+            return this;
+        }
+
+        public TestCase setClientFipsEnabled(Boolean fipsEnabled) {
+            this.clientFipsEnabled = fipsEnabled;
             return this;
         }
 

@@ -24,8 +24,10 @@ import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.neptune.model.CopyDbClusterSnapshotRequest;
 import software.amazon.awssdk.services.neptune.model.NeptuneRequest;
@@ -158,7 +160,9 @@ public class PresignRequestHandlerTest {
 
     private ExecutionAttributes executionAttributes() {
         return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
-                .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, DESTINATION_REGION);
+                                        .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, DESTINATION_REGION)
+                                        .putAttribute(SdkExecutionAttribute.PROFILE_FILE, ProfileFile.defaultProfileFile())
+                                        .putAttribute(SdkExecutionAttribute.PROFILE_NAME, "default");
     }
 
     private CopyDbClusterSnapshotRequest makeTestRequest() {

@@ -162,9 +162,10 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
 
         return new DefaultServiceEndpointBuilder(SERVICE_NAME, Protocol.HTTPS.toString())
             .withRegion(region)
-            .withProfileFile(attributes.getAttribute(SdkExecutionAttribute.PROFILE_FILE))
+            .withProfileFile(() -> attributes.getAttribute(SdkExecutionAttribute.PROFILE_FILE))
             .withProfileName(attributes.getAttribute(SdkExecutionAttribute.PROFILE_NAME))
             .withDualstackEnabled(attributes.getAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED))
+            .withFipsEnabled(attributes.getAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED))
             .getServiceEndpoint();
     }
 }

@@ -167,6 +167,9 @@ public interface PollyPresigner extends SdkPresigner {
         Builder dualstackEnabled(Boolean dualstackEnabled);
 
         @Override
+        Builder fipsEnabled(Boolean fipsEnabled);
+
+        @Override
         Builder endpointOverride(URI endpointOverride);
 
         @Override

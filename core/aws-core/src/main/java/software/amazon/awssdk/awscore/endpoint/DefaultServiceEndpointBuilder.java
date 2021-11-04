@@ -19,6 +19,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.regions.EndpointTag;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceEndpointKey;
 import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -42,9 +44,10 @@ public final class DefaultServiceEndpointBuilder {
     private final String protocol;
 
     private Region region;
-    private ProfileFile profileFile;
+    private Supplier<ProfileFile> profileFile;
     private String profileName;
     private Boolean dualstackEnabled;
+    private Boolean fipsEnabled;
 
     public DefaultServiceEndpointBuilder(String serviceName, String protocol) {
         this.serviceName = Validate.paramNotNull(serviceName, "serviceName");
@@ -59,8 +62,13 @@ public final class DefaultServiceEndpointBuilder {
         return this;
     }
 
-    public DefaultServiceEndpointBuilder withProfileFile(ProfileFile profileFile) {
+    public DefaultServiceEndpointBuilder withProfileFile(Supplier<ProfileFile> profileFile) {
         this.profileFile = profileFile;
+        return this;
+    }
+
+    public DefaultServiceEndpointBuilder withProfileFile(ProfileFile profileFile) {
+        this.profileFile = () -> profileFile;
         return this;
     }
 
@@ -74,9 +82,14 @@ public final class DefaultServiceEndpointBuilder {
         return this;
     }
 
+    public DefaultServiceEndpointBuilder withFipsEnabled(Boolean fipsEnabled) {
+        this.fipsEnabled = fipsEnabled;
+        return this;
+    }
+
     public URI getServiceEndpoint() {
         if (profileFile == null) {
-            profileFile = ProfileFile.defaultProfileFile();
+            profileFile = new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
         }
 
         if (profileName == null) {
@@ -85,20 +98,34 @@ public final class DefaultServiceEndpointBuilder {
 
         if (dualstackEnabled == null) {
             dualstackEnabled = DualstackEnabledProvider.builder()
-                                                       .profileFile(() -> profileFile)
+                                                       .profileFile(profileFile)
                                                        .profileName(profileName)
                                                        .build()
                                                        .isDualstackEnabled()
                                                        .orElse(false);
         }
 
+        if (fipsEnabled == null) {
+            fipsEnabled = FipsEnabledProvider.builder()
+                                             .profileFile(profileFile)
+                                             .profileName(profileName)
+                                             .build()
+                                             .isFipsEnabled()
+                                             .orElse(false);
+        }
+
+
+
         List<EndpointTag> endpointTags = new ArrayList<>();
         if (dualstackEnabled) {
             endpointTags.add(EndpointTag.DUALSTACK);
         }
+        if (fipsEnabled) {
+            endpointTags.add(EndpointTag.FIPS);
+        }
 
         ServiceMetadata serviceMetadata = ServiceMetadata.of(serviceName)
-                                                         .reconfigure(c -> c.profileFile(() -> profileFile)
+                                                         .reconfigure(c -> c.profileFile(profileFile)
                                                                             .profileName(profileName));
         URI endpoint = addProtocolToServiceEndpoint(serviceMetadata.endpointFor(ServiceEndpointKey.builder()
                                                                                                   .region(region)

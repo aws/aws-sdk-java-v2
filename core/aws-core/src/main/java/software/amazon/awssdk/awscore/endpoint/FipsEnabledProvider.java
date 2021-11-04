@@ -19,22 +19,21 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * A resolver for the default value of whether the SDK should use dualstack endpoints. This checks environment variables,
- * system properties and the profile file for the relevant configuration options when {@link #isDualstackEnabled()} is invoked.
+ * A resolver for the default value of whether the SDK should use fips endpoints. This checks environment variables,
+ * system properties and the profile file for the relevant configuration options when {@link #isFipsEnabled()} is invoked.
  */
 @SdkProtectedApi
-public class DualstackEnabledProvider {
+public class FipsEnabledProvider {
     private final Supplier<ProfileFile> profileFile;
     private final String profileName;
 
-    private DualstackEnabledProvider(Builder builder) {
+    private FipsEnabledProvider(Builder builder) {
         this.profileFile = Validate.paramNotNull(builder.profileFile, "profileFile");
         this.profileName = builder.profileName;
     }
@@ -47,17 +46,15 @@ public class DualstackEnabledProvider {
      * Returns true when dualstack should be used, false when dualstack should not be used, and empty when there is no global
      * dualstack configuration.
      */
-    public Optional<Boolean> isDualstackEnabled() {
-        Optional<Boolean> setting = SdkSystemSetting.AWS_USE_DUALSTACK_ENDPOINT.getBooleanValue();
+    public Optional<Boolean> isFipsEnabled() {
+        Optional<Boolean> setting = SdkSystemSetting.AWS_USE_FIPS_ENDPOINT.getBooleanValue();
         if (setting.isPresent()) {
             return setting;
         }
 
-        ProfileFile profileFile = this.profileFile.get();
-        Optional<Profile> profile = profileFile
-            .profile(profileName());
-        return profile
-                          .flatMap(p -> p.booleanProperty(ProfileProperty.USE_DUALSTACK_ENDPOINT));
+        return profileFile.get()
+                          .profile(profileName())
+                          .flatMap(p -> p.booleanProperty(ProfileProperty.USE_FIPS_ENDPOINT));
     }
 
     private String profileName() {
@@ -81,8 +78,8 @@ public class DualstackEnabledProvider {
             return this;
         }
 
-        public DualstackEnabledProvider build() {
-            return new DualstackEnabledProvider(this);
+        public FipsEnabledProvider build() {
+            return new FipsEnabledProvider(this);
         }
     }
 }

@@ -84,6 +84,8 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkExecutionAttribute.PROFILE_NAME, clientConfig.option(SdkClientOption.PROFILE_NAME))
             .putAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED,
                           clientConfig.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+            .putAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED,
+                          clientConfig.option(AwsClientOption.FIPS_ENDPOINT_ENABLED))
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, executionParams.getOperationName())
             .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfig.option(SdkClientOption.ENDPOINT))
             .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))

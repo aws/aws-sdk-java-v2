@@ -58,7 +58,16 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         } else {
             c.dualstackEnabled(config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED));
         }
-        return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
+        if (c.fipsModeEnabled() != null) {
+            Validate.validState(
+                config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED) == null,
+                "Fips has been configured on both ServiceConfiguration and the client/global level. Please limit fips configuration to one location.");
+        } else {
+            c.fipsModeEnabled(config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED));
+        }
+        return config.toBuilder().option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED, c.dualstackEnabled())
+                     .option(AwsClientOption.FIPS_ENDPOINT_ENABLED, c.fipsModeEnabled())
+                     .option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
                      .option(SdkClientOption.RETRY_POLICY, MyServiceRetryPolicy.resolveRetryPolicy(config))
                      .option(SdkClientOption.SERVICE_CONFIGURATION, c.build()).build();
     }
