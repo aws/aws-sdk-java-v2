@@ -138,11 +138,11 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     }
 
     private String clientName(ClientType clientType) {
-        if (clientType.equals(ClientType.SYNC)) {
+        if (clientType == ClientType.SYNC) {
             return clientConfig.option(SdkClientOption.SYNC_HTTP_CLIENT).clientName();
         }
 
-        if (clientType.equals(ClientType.ASYNC)) {
+        if (clientType == ClientType.ASYNC) {
             return clientConfig.option(SdkClientOption.ASYNC_HTTP_CLIENT).clientName();
         }
 
