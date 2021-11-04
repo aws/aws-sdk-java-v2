@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "abrooksv",
+    "description": "Added the profile key `duration_seconds` to class `ProfileProperty`"
+}
