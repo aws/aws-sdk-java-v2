@@ -389,7 +389,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     private ClassName baseExceptionClassName(IntermediateModel model) {
         String exceptionPath = model.getSdkModeledExceptionBaseFqcn()
-                                    .substring(0, model.getSdkModeledExceptionBaseFqcn().lastIndexOf("."));
+                                    .substring(0, model.getSdkModeledExceptionBaseFqcn().lastIndexOf('.'));
 
         return ClassName.get(exceptionPath, model.getSdkModeledExceptionBaseClassName());
     }
