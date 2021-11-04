@@ -23,6 +23,7 @@ import static software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOpti
 import static software.amazon.awssdk.awscore.client.config.AwsClientOption.DEFAULTS_MODE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.DEFAULT_RETRY_MODE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.regions.ServiceMetadataAdvancedOption.S3_US_EAST_1_REGIONAL_ENDPOINT;
 
 import java.time.Duration;
 import org.junit.Test;
@@ -75,6 +76,7 @@ public class DefaultsModeTest {
 
         assertThat(client.clientConfiguration.option(DEFAULTS_MODE)).isEqualTo(DefaultsMode.LEGACY);
         assertThat(client.clientConfiguration.option(RETRY_POLICY).retryMode()).isEqualTo(RetryMode.defaultRetryMode());
+        assertThat(client.clientConfiguration.option(S3_US_EAST_1_REGIONAL_ENDPOINT)).isNull();
     }
 
     @Test
@@ -96,6 +98,7 @@ public class DefaultsModeTest {
         AttributeMap attributes = DefaultsModeConfiguration.defaultConfig(targetMode);
 
         assertThat(client.clientConfiguration.option(RETRY_POLICY).retryMode()).isEqualTo(attributes.get(DEFAULT_RETRY_MODE));
+        assertThat(client.clientConfiguration.option(S3_US_EAST_1_REGIONAL_ENDPOINT)).isEqualTo("regional");
     }
 
     @Test

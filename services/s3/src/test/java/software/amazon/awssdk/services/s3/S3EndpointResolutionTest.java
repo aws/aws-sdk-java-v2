@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -416,6 +417,24 @@ public class S3EndpointResolutionTest {
 
         s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
         assertThat(mockHttpClient.getLastRequest().getUri().getHost()).isEqualTo("s3.amazonaws.com");
+    }
+
+    @Test
+    public void standardDefaultsMode_usesRegionalIadEndpoint() throws UnsupportedEncodingException {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+
+        S3Client s3Client = S3Client.builder()
+                                    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid",
+                                                                                                                     "skid")))
+                                    .httpClient(mockHttpClient)
+                                    .defaultsMode(DefaultsMode.STANDARD)
+                                    .serviceConfiguration(S3Configuration.builder()
+                                                                         .pathStyleAccessEnabled(true)
+                                                                         .build())
+                                    .region(Region.US_EAST_1)
+                                    .build();
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
+        assertThat(mockHttpClient.getLastRequest().getUri().getHost()).isEqualTo("s3.us-east-1.amazonaws.com");
     }
 
     /**
