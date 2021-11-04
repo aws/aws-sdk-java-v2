@@ -1,3 +1,28 @@
+# __2.17.75__ __2021-11-04__
+## __AWS IoT Wireless__
+  - ### Features
+    - Adding APIs for the FUOTA (firmware update over the air) and multicast for LoRaWAN devices and APIs to support event notification opt-in feature for Sidewalk related events. A few existing APIs need to be modified for this new feature.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - The Amazon Chime SDK Meetings APIs allow software developers to create meetings and attendees for interactive audio, video, screen and content sharing in custom meeting applications which use the Amazon Chime SDK.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds CRUD operation support for Security profile resource in Amazon Connect
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds a new instance replacement strategy for EC2 Fleet, Spot Fleet. Now you can select an action to perform when your instance gets a rebalance notification. EC2 Fleet, Spot Fleet can launch a replacement then terminate the instance that received notification after a termination delay
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - ListDevices and DescribeDevice now show Edge Manager agent version.
+
 # __2.17.74__ __2021-11-03__
 ## __AWS DataSync__
   - ### Features

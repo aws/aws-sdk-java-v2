@@ -66,7 +66,7 @@ public final class GlacierExecutionInterceptor implements ExecutionInterceptor {
         String end = range.substring(range.indexOf('-') + 1);
 
         if (end.contains("/")) {
-            end = end.substring(0, end.indexOf("/"));
+            end = end.substring(0, end.indexOf('/'));
         }
 
         return Long.parseLong(end) - Long.parseLong(start) + 1;
