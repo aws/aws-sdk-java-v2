@@ -172,7 +172,7 @@ public final class AwsXmlErrorUnmarshaller {
      */
     private String getRequestId(SdkHttpFullResponse response, XmlElement document) {
         XmlElement requestId = document.getOptionalElementByName("RequestId")
-                                       .orElse(document.getElementByName("RequestID"));
+                                       .orElseGet(() -> document.getElementByName("RequestID"));
         return requestId != null ?
                requestId.textContent() :
                matchRequestIdHeaders(response);
