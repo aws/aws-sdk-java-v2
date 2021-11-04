@@ -24,7 +24,7 @@ public class DefaultDirectoryUploadTest {
     @Test
     public void equals_hashcode() {
         EqualsVerifier.forClass(UploadRequest.class)
-                      .withNonnullFields("completionFuture")
+                      .withNonnullFields("putObjectRequest", "requestBody")
                       .verify();
     }
 
