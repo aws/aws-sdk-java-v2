@@ -48,7 +48,7 @@ public class DefaultServiceEndpointBuilderTest {
     @Test
     public void getServiceEndpoint_regionalOption_shouldUseRegionalEndpoint() throws Exception {
         DefaultServiceEndpointBuilder endpointBuilder = new DefaultServiceEndpointBuilder("s3", "http")
-            .withRegion(Region.US_EAST_1).putAdvancedOption(ServiceMetadataAdvancedOption.S3_US_EAST_1_REGIONAL_ENDPOINT,
+            .withRegion(Region.US_EAST_1).putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
                                                             "regional");
         assertEquals("http://s3.us-east-1.amazonaws.com", endpointBuilder.getServiceEndpoint().toString());
     }

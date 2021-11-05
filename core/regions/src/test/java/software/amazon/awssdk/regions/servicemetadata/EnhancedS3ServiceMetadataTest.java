@@ -84,7 +84,7 @@ public class EnhancedS3ServiceMetadataTest {
     @Test
     public void differentCombinationOfConfigs_shouldResolveCorrectly() {
         enhancedMetadata =
-            new EnhancedS3ServiceMetadata().reconfigure(c -> c.putAdvancedOption(ServiceMetadataAdvancedOption.S3_US_EAST_1_REGIONAL_ENDPOINT,
+            new EnhancedS3ServiceMetadata().reconfigure(c -> c.putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
                                                                                  testData.advancedOption));
         if (testData.envVarValue != null) {
             ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.environmentVariable(),
@@ -106,7 +106,7 @@ public class EnhancedS3ServiceMetadataTest {
 
             enhancedMetadata = enhancedMetadata.reconfigure(c -> c.profileFile(() -> file)
                                                                   .profileName("regional_s3_endpoint")
-                                                                  .putAdvancedOption(ServiceMetadataAdvancedOption.S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                                                  .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
                                                                                      testData.advancedOption));
         }
 

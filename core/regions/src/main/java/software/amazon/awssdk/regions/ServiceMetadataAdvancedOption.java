@@ -16,7 +16,9 @@
 package software.amazon.awssdk.regions;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientOption;
+import software.amazon.awssdk.profiles.ProfileProperty;
 
 
 /**
@@ -29,11 +31,12 @@ import software.amazon.awssdk.core.client.config.ClientOption;
 public class ServiceMetadataAdvancedOption<T> extends ClientOption<T> {
 
     /**
-     * The S3 regional endpoint setting for the {@code us-east-1} region. Setting the value to {@code regional} causes
-     * the SDK to use the {@code s3.us-east-1.amazonaws.com} endpoint when using the {@link Region#US_EAST_1} region instead of
-     * the global {@code s3.amazonaws.com}. Using the regional endpoint is disabled by default.
+     * The default S3 regional endpoint setting for the {@code us-east-1} region to use. Setting
+     * the value to {@code regional} causes the SDK to use the {@code s3.us-east-1.amazonaws.com} endpoint when using the
+     * {@link Region#US_EAST_1} region instead of the global {@code s3.amazonaws.com} by default if it's not configured otherwise
+     * via {@link SdkSystemSetting#AWS_S3_US_EAST_1_REGIONAL_ENDPOINT} or {@link ProfileProperty#S3_US_EAST_1_REGIONAL_ENDPOINT}
      */
-    public static final ServiceMetadataAdvancedOption<String> S3_US_EAST_1_REGIONAL_ENDPOINT =
+    public static final ServiceMetadataAdvancedOption<String> DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT =
         new ServiceMetadataAdvancedOption<>(String.class);
 
     protected ServiceMetadataAdvancedOption(Class<T> valueClass) {

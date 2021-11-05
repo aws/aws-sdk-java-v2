@@ -74,7 +74,7 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
                                   new OptionMetadata(ClassName.get(String.class),
                                                      ClassName.get("software.amazon.awssdk.regions",
                                                                    "ServiceMetadataAdvancedOption",
-                                                                   "S3_US_EAST_1_REGIONAL_ENDPOINT")));
+                                                                   "DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT")));
     }
 
     public DefaultsModeConfigurationGenerator(String basePackage, String defaultsModeBase, DefaultConfiguration configuration) {

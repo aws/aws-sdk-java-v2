@@ -19,7 +19,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 public final class DefaultsModeConfiguration {
     private static final AttributeMap STANDARD_DEFAULTS = AttributeMap.builder()
                                                                       .put(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.STANDARD)
-                                                                      .put(ServiceMetadataAdvancedOption.S3_US_EAST_1_REGIONAL_ENDPOINT, "regional").build();
+                                                                      .put(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, "regional").build();
 
     private static final AttributeMap STANDARD_HTTP_DEFAULTS = AttributeMap.builder()
                                                                            .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofMillis(2000))
@@ -27,7 +27,7 @@ public final class DefaultsModeConfiguration {
 
     private static final AttributeMap MOBILE_DEFAULTS = AttributeMap.builder()
                                                                     .put(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.ADAPTIVE)
-                                                                    .put(ServiceMetadataAdvancedOption.S3_US_EAST_1_REGIONAL_ENDPOINT, "regional").build();
+                                                                    .put(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, "regional").build();
 
     private static final AttributeMap MOBILE_HTTP_DEFAULTS = AttributeMap.builder()
                                                                          .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofMillis(10000))
@@ -35,7 +35,7 @@ public final class DefaultsModeConfiguration {
 
     private static final AttributeMap CROSS_REGION_DEFAULTS = AttributeMap.builder()
                                                                           .put(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.STANDARD)
-                                                                          .put(ServiceMetadataAdvancedOption.S3_US_EAST_1_REGIONAL_ENDPOINT, "regional").build();
+                                                                          .put(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, "regional").build();
 
     private static final AttributeMap CROSS_REGION_HTTP_DEFAULTS = AttributeMap.builder()
                                                                                .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofMillis(2800))
@@ -43,7 +43,7 @@ public final class DefaultsModeConfiguration {
 
     private static final AttributeMap IN_REGION_DEFAULTS = AttributeMap.builder()
                                                                        .put(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.STANDARD)
-                                                                       .put(ServiceMetadataAdvancedOption.S3_US_EAST_1_REGIONAL_ENDPOINT, "regional").build();
+                                                                       .put(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, "regional").build();
 
     private static final AttributeMap IN_REGION_HTTP_DEFAULTS = AttributeMap.builder()
                                                                             .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofMillis(1000))

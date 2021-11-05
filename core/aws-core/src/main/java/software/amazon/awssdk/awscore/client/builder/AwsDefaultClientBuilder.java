@@ -195,9 +195,9 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .build()
                             .merge(c -> c.option(SdkClientOption.DEFAULT_RETRY_MODE,
                                                  defaultConfig.get(SdkClientOption.DEFAULT_RETRY_MODE))
-                                         .option(ServiceMetadataAdvancedOption.S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                         .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
                                                  defaultConfig.get(
-                                                     ServiceMetadataAdvancedOption.S3_US_EAST_1_REGIONAL_ENDPOINT)));
+                                                     ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT)));
     }
 
     /**
@@ -236,8 +236,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             .withRegion(config.option(AwsClientOption.AWS_REGION))
             .withProfileFile(config.option(SdkClientOption.PROFILE_FILE))
             .withProfileName(config.option(SdkClientOption.PROFILE_NAME))
-            .putAdvancedOption(ServiceMetadataAdvancedOption.S3_US_EAST_1_REGIONAL_ENDPOINT,
-                               config.option(ServiceMetadataAdvancedOption.S3_US_EAST_1_REGIONAL_ENDPOINT))
+            .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                               config.option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
             .getServiceEndpoint();
     }
 

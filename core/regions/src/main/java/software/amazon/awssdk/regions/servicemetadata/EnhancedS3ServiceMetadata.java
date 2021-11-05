@@ -95,7 +95,7 @@ public final class EnhancedS3ServiceMetadata implements ServiceMetadata {
             return REGIONAL_SETTING.equalsIgnoreCase(profile);
         }
 
-        return config.advancedOption(ServiceMetadataAdvancedOption.S3_US_EAST_1_REGIONAL_ENDPOINT)
+        return config.advancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT)
                      .filter(REGIONAL_SETTING::equalsIgnoreCase).isPresent();
     }
 
