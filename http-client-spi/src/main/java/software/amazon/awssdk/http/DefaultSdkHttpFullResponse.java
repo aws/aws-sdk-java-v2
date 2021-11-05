@@ -91,7 +91,7 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
             return false;
         }
         DefaultSdkHttpFullResponse that = (DefaultSdkHttpFullResponse) o;
-        return Objects.equals(statusCode, that.statusCode) &&
+        return (statusCode == that.statusCode) &&
                Objects.equals(statusText, that.statusText) &&
                Objects.equals(headers, that.headers);
     }
