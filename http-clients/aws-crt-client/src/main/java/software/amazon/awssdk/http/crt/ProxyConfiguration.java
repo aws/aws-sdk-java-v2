@@ -196,7 +196,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * options are not provided during building the {@link ProxyConfiguration} object. To disable this behaviour, set this
          * value to false.
          *
-         * @param useSystemPropertyValues The option whether to use system proerpty values
+         * @param useSystemPropertyValues The option whether to use system property values
          * @return This object for method chaining.
          */
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);

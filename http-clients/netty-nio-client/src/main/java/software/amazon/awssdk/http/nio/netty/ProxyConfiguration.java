@@ -100,7 +100,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      * system property os returned. If system property is also not set, an unmodifiable empty set is returned.
      */
     public Set<String> nonProxyHosts() {
-        Set<String> hosts = nonProxyHosts == null && useSystemPropertyValues ? parseNonProxyHostProperty()
+        Set<String> hosts = nonProxyHosts == null && useSystemPropertyValues ? parseNonProxyHostsProperty()
                                                                 : nonProxyHosts;
         return Collections.unmodifiableSet(hosts != null ? hosts : Collections.emptySet());
     }
@@ -219,7 +219,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * options are not provided during building the {@link ProxyConfiguration} object. To disable this behaviour, set this
          * value to false.
          *
-         * @param useSystemPropertyValues The option whether to use system proerpty values
+         * @param useSystemPropertyValues The option whether to use system property values
          * @return This object for method chaining.
          */
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
@@ -243,7 +243,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
                                                         : value;
     }
 
-    private Set<String> parseNonProxyHostProperty() {
+    private Set<String> parseNonProxyHostsProperty() {
         String nonProxyHosts = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
 
         if (!StringUtils.isEmpty(nonProxyHosts)) {

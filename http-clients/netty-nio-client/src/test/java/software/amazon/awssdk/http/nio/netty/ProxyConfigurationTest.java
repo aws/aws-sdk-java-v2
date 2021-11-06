@@ -23,6 +23,8 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -35,10 +37,31 @@ public class ProxyConfigurationTest {
     private static final String TEST_USER = "testuser";
     private static final String TEST_PASSWORD = "123";
 
+    @Before
+    public void setup() {
+        clearProxyProperties();
+    }
+
+    @AfterClass
+    public static void cleanup() {
+        clearProxyProperties();
+    }
 
     @Test
     public void build_setsAllProperties() {
         verifyAllPropertiesSet(allPropertiesSetConfig());
+    }
+
+    @Test
+    public void build_systemPropertyDefault() {
+        setSystemProperty();
+        ProxyConfiguration config = ProxyConfiguration.builder().build();
+
+        assertThat(config.host()).isEqualTo(TEST_HOST);
+        assertThat(config.port()).isEqualTo(TEST_PORT);
+        assertThat(config.username()).isEqualTo(TEST_USER);
+        assertThat(config.password()).isEqualTo(TEST_PASSWORD);
+        assertThat(config.scheme()).isNull();
     }
 
     @Test
@@ -125,7 +148,7 @@ public class ProxyConfigurationTest {
         } else if (Set.class.isAssignableFrom(paramClass)) {
             setter.invoke(o, randomSet());
         } else if (Boolean.class.equals(paramClass)) {
-            setter.invoke(o, Boolean.FALSE);
+            setter.invoke(o, RNG.nextBoolean());
         } else {
             throw new RuntimeException("Don't know how create random value for type " + paramClass);
         }
@@ -172,5 +195,12 @@ public class ProxyConfigurationTest {
         System.setProperty("http.proxyPort", Integer.toString(TEST_PORT));
         System.setProperty("http.proxyUser", TEST_USER);
         System.setProperty("http.proxyPassword", TEST_PASSWORD);
+    }
+
+    private static void clearProxyProperties() {
+        System.clearProperty("http.proxyHost");
+        System.clearProperty("http.proxyPort");
+        System.clearProperty("http.proxyUser");
+        System.clearProperty("http.proxyPassword");
     }
 }
