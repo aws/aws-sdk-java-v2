@@ -34,6 +34,7 @@ public class ProxyConfigurationTest {
     private static final Random RNG = new Random();
     private static final String TEST_HOST = "foo.com";
     private static final int TEST_PORT = 7777;
+    private static final String TEST_NON_PROXY_HOST = "bar.com";
     private static final String TEST_USER = "testuser";
     private static final String TEST_PASSWORD = "123";
 
@@ -55,10 +56,13 @@ public class ProxyConfigurationTest {
     @Test
     public void build_systemPropertyDefault() {
         setProxyProperties();
+        Set<String> nonProxyHost = new HashSet<>();
+        nonProxyHost.add("bar.com");
         ProxyConfiguration config = ProxyConfiguration.builder().build();
 
         assertThat(config.host()).isEqualTo(TEST_HOST);
         assertThat(config.port()).isEqualTo(TEST_PORT);
+        assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
         assertThat(config.username()).isEqualTo(TEST_USER);
         assertThat(config.password()).isEqualTo(TEST_PASSWORD);
         assertThat(config.scheme()).isNull();
@@ -67,10 +71,13 @@ public class ProxyConfigurationTest {
     @Test
     public void build_systemPropertyEnabled() {
         setProxyProperties();
+        Set<String> nonProxyHost = new HashSet<>();
+        nonProxyHost.add("bar.com");
         ProxyConfiguration config = ProxyConfiguration.builder().useSystemPropertyValues(Boolean.TRUE).build();
 
         assertThat(config.host()).isEqualTo(TEST_HOST);
         assertThat(config.port()).isEqualTo(TEST_PORT);
+        assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
         assertThat(config.username()).isEqualTo(TEST_USER);
         assertThat(config.password()).isEqualTo(TEST_PASSWORD);
         assertThat(config.scheme()).isNull();
@@ -79,15 +86,20 @@ public class ProxyConfigurationTest {
     @Test
     public void build_systemPropertyDisabled() {
         setProxyProperties();
+        Set<String> nonProxyHost = new HashSet<>();
+        nonProxyHost.add("test.com");
+
         ProxyConfiguration config = ProxyConfiguration.builder()
                                                       .host("localhost")
                                                       .port(8888)
+                                                      .nonProxyHosts(nonProxyHost)
                                                       .username("username")
                                                       .password("password")
                                                       .useSystemPropertyValues(Boolean.FALSE).build();
 
         assertThat(config.host()).isEqualTo("localhost");
         assertThat(config.port()).isEqualTo(8888);
+        assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
         assertThat(config.username()).isEqualTo("username");
         assertThat(config.password()).isEqualTo("password");
         assertThat(config.scheme()).isNull();
@@ -96,15 +108,20 @@ public class ProxyConfigurationTest {
     @Test
     public void build_systemPropertyOverride() {
         setProxyProperties();
+        Set<String> nonProxyHost = new HashSet<>();
+        nonProxyHost.add("test.com");
+
         ProxyConfiguration config = ProxyConfiguration.builder()
                                                       .host("localhost")
                                                       .port(8888)
+                                                      .nonProxyHosts(nonProxyHost)
                                                       .username("username")
                                                       .password("password")
                                                       .build();
 
         assertThat(config.host()).isEqualTo("localhost");
         assertThat(config.port()).isEqualTo(8888);
+        assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
         assertThat(config.username()).isEqualTo("username");
         assertThat(config.password()).isEqualTo("password");
         assertThat(config.scheme()).isNull();
@@ -210,6 +227,7 @@ public class ProxyConfigurationTest {
     private void setProxyProperties() {
         System.setProperty("http.proxyHost", TEST_HOST);
         System.setProperty("http.proxyPort", Integer.toString(TEST_PORT));
+        System.setProperty("http.nonProxyHosts", TEST_NON_PROXY_HOST);
         System.setProperty("http.proxyUser", TEST_USER);
         System.setProperty("http.proxyPassword", TEST_PASSWORD);
     }
@@ -217,6 +235,7 @@ public class ProxyConfigurationTest {
     private static void clearProxyProperties() {
         System.clearProperty("http.proxyHost");
         System.clearProperty("http.proxyPort");
+        System.clearProperty("http.nonProxyHosts");
         System.clearProperty("http.proxyUser");
         System.clearProperty("http.proxyPassword");
     }

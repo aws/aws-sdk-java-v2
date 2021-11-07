@@ -22,7 +22,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ProxySystemSetting;
-import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -231,24 +230,23 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     private int resolvePort(int port) {
-        return port == 0 && useSystemPropertyValues ?
-               ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0)
-                                       : port;
+        return port == 0 && Boolean.TRUE.equals(useSystemPropertyValues)  ?
+               ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0) : port;
     }
 
     /**
      * Uses the configuration options, system setting property and returns the final value of the given member.
      */
     private String resolveValue(String value, ProxySystemSetting systemSetting) {
-        return value == null && useSystemPropertyValues ? systemSetting.getStringValue().orElse(null)
-                                                        : value;
+        return value == null && Boolean.TRUE.equals(useSystemPropertyValues) ?
+               systemSetting.getStringValue().orElse(null) : value;
     }
 
     private Set<String> parseNonProxyHostsProperty() {
-        String nonProxyHosts = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
+        String nonProxyHostsSystem = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
 
-        if (!StringUtils.isEmpty(nonProxyHosts)) {
-            return Arrays.stream(nonProxyHosts.split("\\|"))
+        if (nonProxyHostsSystem != null && !nonProxyHostsSystem.isEmpty()) {
+            return Arrays.stream(nonProxyHostsSystem.split("\\|"))
                          .map(String::toLowerCase)
                          .map(s -> s.replace("*", ".*?"))
                          .collect(Collectors.toSet());
