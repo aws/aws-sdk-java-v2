@@ -260,7 +260,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         private int port = 0;
         private String username;
         private String password;
-        private Set<String> nonProxyHosts = Collections.emptySet();
+        private Set<String> nonProxyHosts;
         private Boolean useSystemPropertyValues = Boolean.TRUE;
 
         private BuilderImpl() {
@@ -271,7 +271,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             this.scheme = proxyConfiguration.scheme;
             this.host = proxyConfiguration.host;
             this.port = proxyConfiguration.port;
-            this.nonProxyHosts = new HashSet<>(proxyConfiguration.nonProxyHosts);
+            this.nonProxyHosts = proxyConfiguration.nonProxyHosts;
             this.username = proxyConfiguration.username;
             this.password = proxyConfiguration.password;
         }
