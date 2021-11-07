@@ -64,7 +64,7 @@ public class ProxyConfigurationTest {
     @Test
     public void build_systemPropertyEnabled() {
         setProxyProperties();
-        ProxyConfiguration config = ProxyConfiguration.builder().useSystemPropertyValues(true).build();
+        ProxyConfiguration config = ProxyConfiguration.builder().useSystemPropertyValues(Boolean.TRUE).build();
 
         assertThat(config.host()).isEqualTo(TEST_HOST);
         assertThat(config.port()).isEqualTo(TEST_PORT);
@@ -81,7 +81,24 @@ public class ProxyConfigurationTest {
                                                       .port(8888)
                                                       .username("username")
                                                       .password("password")
-                                                      .useSystemPropertyValues(false).build();
+                                                      .useSystemPropertyValues(Boolean.FALSE).build();
+
+        assertThat(config.host()).isEqualTo("localhost");
+        assertThat(config.port()).isEqualTo(8888);
+        assertThat(config.username()).isEqualTo("username");
+        assertThat(config.password()).isEqualTo("password");
+        assertThat(config.scheme()).isNull();
+    }
+
+    @Test
+    public void build_systemPropertyOverride() {
+        setProxyProperties();
+        ProxyConfiguration config = ProxyConfiguration.builder()
+                                                      .host("localhost")
+                                                      .port(8888)
+                                                      .username("username")
+                                                      .password("password")
+                                                      .build();
 
         assertThat(config.host()).isEqualTo("localhost");
         assertThat(config.port()).isEqualTo(8888);

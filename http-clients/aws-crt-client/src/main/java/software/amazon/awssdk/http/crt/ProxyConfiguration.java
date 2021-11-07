@@ -207,7 +207,8 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     private int resolvePort(int port) {
-        return useSystemPropertyValues ? ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0)
+        return port == 0 && useSystemPropertyValues ?
+               ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0)
                                        : port;
     }
 
@@ -222,7 +223,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     private static final class BuilderImpl implements Builder {
         private String scheme;
         private String host;
-        private int port;
+        private int port = 0;
         private String username;
         private String password;
         private Boolean useSystemPropertyValues = Boolean.TRUE;
