@@ -27,7 +27,7 @@ import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -98,7 +98,7 @@ public final class ChecksumsEnabledValidator {
 
         ClientType actualClientType = executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_TYPE);
 
-        if (!expectedClientType.equals(actualClientType)) {
+        if (expectedClientType != actualClientType) {
             return false;
         }
 
@@ -144,8 +144,10 @@ public final class ChecksumsEnabledValidator {
             byte[] ssHash = Base16Lower.decode(response.eTag().replace("\"", ""));
 
             if (!Arrays.equals(digest, ssHash)) {
-                throw SdkClientException.create(
-                    String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s",
+                throw RetryableException.create(
+                    String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s. " +
+                                  "This commonly means that the data was corrupted between the client and " +
+                                  "service. Note: Despite this error, the upload still completed and was persisted in S3.",
                                   BinaryUtils.toHex(digest), BinaryUtils.toHex(ssHash)));
             }
         }

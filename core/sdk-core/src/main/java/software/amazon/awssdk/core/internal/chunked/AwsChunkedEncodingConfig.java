@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer.internal.chunkedencoding;
+package software.amazon.awssdk.core.internal.chunked;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -63,6 +63,7 @@ public final class AwsChunkedEncodingConfig {
         private BuilderImpl() {
         }
 
+        @Override
         public Builder chunkSize(int chunkSize) {
             this.chunkSize = chunkSize;
             return this;
@@ -72,6 +73,7 @@ public final class AwsChunkedEncodingConfig {
             chunkSize(chunkSize);
         }
 
+        @Override
         public Builder bufferSize(int bufferSize) {
             this.bufferSize = bufferSize;
             return this;

@@ -152,7 +152,6 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
             if (options.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES)) {
                 httpsConnection.setHostnameVerifier(NoOpHostNameVerifier.INSTANCE);
             }
-
             httpsConnection.setSSLSocketFactory(socketFactory);
         }
 

@@ -41,6 +41,6 @@ public class UriAssertion extends MarshallingAssertion {
     }
 
     private String removeTrailingSlash(String str) {
-        return (str.endsWith("/")) ? str.substring(0, str.lastIndexOf("/")) : str;
+        return (str.endsWith("/")) ? str.substring(0, str.lastIndexOf('/')) : str;
     }
 }

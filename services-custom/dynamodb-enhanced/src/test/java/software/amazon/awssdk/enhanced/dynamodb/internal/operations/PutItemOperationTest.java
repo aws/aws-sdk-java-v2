@@ -429,9 +429,10 @@ public class PutItemOperationTest {
         assertThat(request.item(), is(fakeMap));
         verify(mockDynamoDbEnhancedClientExtension).beforeWrite(
             DefaultDynamoDbExtensionContext.builder()
-            .items(baseMap)
-            .operationContext(PRIMARY_CONTEXT)
-            .tableMetadata(FakeItem.getTableMetadata()).build());
+                                           .items(baseMap)
+                                           .operationContext(PRIMARY_CONTEXT)
+                                           .tableSchema(FakeItem.getTableSchema())
+                                           .tableMetadata(FakeItem.getTableMetadata()).build());
     }
 
     @Test

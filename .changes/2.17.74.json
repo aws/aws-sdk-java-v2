@@ -1,0 +1,36 @@
+{
+    "version": "2.17.74",
+    "date": "2021-11-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "AWS DataSync now supports Hadoop Distributed File System (HDFS) Locations"
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace User Environment Management service",
+            "contributor": "",
+            "description": "Adds superuser and data-bundle parameters to CreateEnvironment API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Participant Service",
+            "contributor": "",
+            "description": "This release adds a new boolean attribute - Connect Participant - to the CreateParticipantConnection API, which can be used to mark the participant as connected."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "This release adds support for specifying the severity of findings that a custom data identifier produces, based on the number of occurrences of text that matches the detection criteria."
+        }
+    ]
+}

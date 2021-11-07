@@ -56,6 +56,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
@@ -226,7 +227,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
                 private Subscription resolveSubscription(Subscription subscription) {
                     // For HTTP2 we send a RST_STREAM frame on cancel to stop the service from sending more data
-                    if (Protocol.HTTP2.equals(ChannelAttributeKey.getProtocolNow(channelContext.channel()))) {
+                    if (ChannelAttributeKey.getProtocolNow(channelContext.channel()) == Protocol.HTTP2) {
                         return new Http2ResetSendingSubscription(channelContext, subscription);
                     } else {
                         return subscription;
@@ -238,8 +239,10 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                         return;
                     }
                     try {
-                        log.warn("Subscriber cancelled before all events were published.");
-                        executeFuture.complete(null);
+                        SdkCancellationException e = new SdkCancellationException(
+                                "Subscriber cancelled before all events were published");
+                        log.warn("Subscriber cancelled before all events were published");
+                        executeFuture.completeExceptionally(e);
                     } finally {
                         runAndLogError("Could not release channel back to the pool",
                             () -> closeAndRelease(channelContext));

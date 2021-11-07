@@ -103,10 +103,12 @@ public final class DefaultDynamoDbAsyncIndex<T> implements DynamoDbAsyncIndex<T>
         return dynamoDbClient;
     }
 
+    @Override
     public String tableName() {
         return tableName;
     }
 
+    @Override
     public String indexName() {
         return indexName;
     }

@@ -17,20 +17,26 @@ package software.amazon.awssdk.services.s3.checksums;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 @SdkInternalApi
 public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
-
+    private final Long contentLength;
     private final AsyncRequestBody wrapped;
     private final SdkChecksum sdkChecksum;
 
-    public ChecksumCalculatingAsyncRequestBody(AsyncRequestBody wrapped, SdkChecksum sdkChecksum) {
+    public ChecksumCalculatingAsyncRequestBody(SdkHttpRequest request, AsyncRequestBody wrapped, SdkChecksum sdkChecksum) {
+        this.contentLength = request.firstMatchingHeader("Content-Length")
+                                    .map(Long::parseLong)
+                                    .orElseGet(() -> wrapped.contentLength()
+                                                            .orElse(null));
         this.wrapped = wrapped;
         this.sdkChecksum = sdkChecksum;
     }
@@ -48,18 +54,21 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> s) {
         sdkChecksum.reset();
-        wrapped.subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum));
+        wrapped.subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum, contentLength));
     }
 
     private static final class ChecksumCalculatingSubscriber implements Subscriber<ByteBuffer> {
-
+        private final AtomicLong contentRead = new AtomicLong(0);
         private final Subscriber<? super ByteBuffer> wrapped;
         private final SdkChecksum checksum;
+        private final Long contentLength;
 
         ChecksumCalculatingSubscriber(Subscriber<? super ByteBuffer> wrapped,
-                                      SdkChecksum sdkChecksum) {
+                                      SdkChecksum sdkChecksum,
+                                      Long contentLength) {
             this.wrapped = wrapped;
             this.checksum = sdkChecksum;
+            this.contentLength = contentLength;
         }
 
         @Override
@@ -69,9 +78,32 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            byte[] buf = BinaryUtils.copyBytesFrom(byteBuffer);
-            checksum.update(buf, 0, buf.length);
+            int amountToReadFromByteBuffer = getAmountToReadFromByteBuffer(byteBuffer);
+
+            if (amountToReadFromByteBuffer > 0) {
+                byte[] buf = BinaryUtils.copyBytesFrom(byteBuffer, amountToReadFromByteBuffer);
+                checksum.update(buf, 0, amountToReadFromByteBuffer);
+            }
+
+
             wrapped.onNext(byteBuffer);
+        }
+
+        private int getAmountToReadFromByteBuffer(ByteBuffer byteBuffer) {
+            // If content length is null, we should include everything in the checksum because the stream is essentially
+            // unbounded.
+            if (contentLength == null) {
+                return byteBuffer.remaining();
+            }
+
+            long amountReadSoFar = contentRead.getAndAdd(byteBuffer.remaining());
+            long amountRemaining = Math.max(0, contentLength - amountReadSoFar);
+
+            if (amountRemaining > byteBuffer.remaining()) {
+                return byteBuffer.remaining();
+            } else {
+                return Math.toIntExact(amountRemaining);
+            }
         }
 
         @Override

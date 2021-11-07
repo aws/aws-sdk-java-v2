@@ -187,6 +187,7 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
         /**
          * @return an instance of {@link ArnResource} that is created from the builder
          */
+        @Override
         ArnResource build();
     }
 

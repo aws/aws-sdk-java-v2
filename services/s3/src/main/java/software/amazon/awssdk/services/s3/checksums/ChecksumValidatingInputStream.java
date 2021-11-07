@@ -20,7 +20,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -169,9 +169,10 @@ public class ChecksumValidatingInputStream extends InputStream implements Aborta
         }
 
         if (!Arrays.equals(computedChecksum, streamChecksum)) {
-            throw SdkClientException.builder().message(
-                String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s",
-                              BinaryUtils.toHex(computedChecksum), BinaryUtils.toHex(streamChecksum))).build();
+            throw RetryableException.create(
+                String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s. " +
+                              "This commonly means that the data was corrupted between the client and " +
+                              "service.", BinaryUtils.toHex(computedChecksum), BinaryUtils.toHex(streamChecksum)));
         }
     }
 

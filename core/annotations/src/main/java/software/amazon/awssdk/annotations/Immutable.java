@@ -40,6 +40,8 @@ import java.lang.annotation.Target;
  * Based on code developed by Brian Goetz and Tim Peierls and concepts
  * published in 'Java Concurrency in Practice' by Brian Goetz, Tim Peierls,
  * Joshua Bloch, Joseph Bowbeer, David Holmes and Doug Lea.
+ * 
+ * @see Mutable
  */
 @Documented
 @Target(ElementType.TYPE)

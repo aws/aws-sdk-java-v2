@@ -192,16 +192,19 @@ public final class WriteBatch {
             this.itemClass = itemClass;
         }
 
+        @Override
         public Builder<T> mappedTableResource(MappedTableResource<T> mappedTableResource) {
             this.mappedTableResource = mappedTableResource;
             return this;
         }
 
+        @Override
         public Builder<T> addDeleteItem(DeleteItemEnhancedRequest request) {
             itemSupplierList.add(() -> generateWriteRequest(() -> mappedTableResource, DeleteItemOperation.create(request)));
             return this;
         }
 
+        @Override
         public Builder<T> addDeleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
             DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder();
             requestConsumer.accept(builder);
@@ -218,11 +221,13 @@ public final class WriteBatch {
             return addDeleteItem(this.mappedTableResource.keyFrom(keyItem));
         }
 
+        @Override
         public Builder<T> addPutItem(PutItemEnhancedRequest<T> request) {
             itemSupplierList.add(() -> generateWriteRequest(() -> mappedTableResource, PutItemOperation.create(request)));
             return this;
         }
 
+        @Override
         public Builder<T> addPutItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
             PutItemEnhancedRequest.Builder<T> builder = PutItemEnhancedRequest.builder(this.itemClass);
             requestConsumer.accept(builder);
@@ -234,6 +239,7 @@ public final class WriteBatch {
             return addPutItem(r -> r.item(item));
         }
 
+        @Override
         public WriteBatch build() {
             return new WriteBatch(this);
         }

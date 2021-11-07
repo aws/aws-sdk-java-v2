@@ -134,6 +134,7 @@ public class PayloadSigningIntegrationTest extends S3IntegrationTestBase {
 
     private static class PayloadSigningInterceptor implements ExecutionInterceptor {
 
+        @Override
         public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
                                                        ExecutionAttributes executionAttributes) {
             executionAttributes.putAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, true);

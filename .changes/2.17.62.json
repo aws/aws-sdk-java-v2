@@ -1,0 +1,24 @@
+{
+    "version": "2.17.62",
+    "date": "2021-10-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "contributor": "",
+            "description": "Bug fix: remove unsupported maxResults and nextToken pagination parameters from ListTagsForResource"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Allow AwsErrorDetails to be serialized using Java serialization"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "AWS QuickSight Service Features - Add IP Restriction UI and public APIs support."
+        }
+    ]
+}
