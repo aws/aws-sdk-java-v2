@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "contributor": "",
+    "description": "You can now configure rules to run a CAPTCHA check against web requests and, as needed, send a CAPTCHA challenge to the client."
+}
