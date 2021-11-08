@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
+import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.presigner.SdkPresigner;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -42,6 +43,7 @@ public abstract class DefaultSdkPresigner implements SdkPresigner {
     private final URI endpointOverride;
     private final AwsCredentialsProvider credentialsProvider;
     private final Boolean dualstackEnabled;
+    private final boolean fipsEnabled;
 
     protected DefaultSdkPresigner(Builder<?> b) {
         this.profileFile = ProfileFile.defaultProfileFile();
@@ -64,6 +66,13 @@ public abstract class DefaultSdkPresigner implements SdkPresigner {
                                                                                      .build()
                                                                                      .isDualstackEnabled()
                                                                                      .orElse(null);
+        this.fipsEnabled = b.fipsEnabled != null ? b.fipsEnabled
+                                                 : FipsEnabledProvider.builder()
+                                                                      .profileFile(() -> profileFile)
+                                                                      .profileName(profileName)
+                                                                      .build()
+                                                                      .isFipsEnabled()
+                                                                      .orElse(false);
     }
 
     protected ProfileFile profileFile() {
@@ -86,6 +95,10 @@ public abstract class DefaultSdkPresigner implements SdkPresigner {
         return dualstackEnabled;
     }
 
+    protected boolean fipsEnabled() {
+        return fipsEnabled;
+    }
+
     protected URI endpointOverride() {
         return endpointOverride;
     }
@@ -104,6 +117,7 @@ public abstract class DefaultSdkPresigner implements SdkPresigner {
         private Region region;
         private AwsCredentialsProvider credentialsProvider;
         private Boolean dualstackEnabled;
+        private Boolean fipsEnabled;
         private URI endpointOverride;
 
         protected Builder() {
@@ -124,6 +138,12 @@ public abstract class DefaultSdkPresigner implements SdkPresigner {
         @Override
         public B dualstackEnabled(Boolean dualstackEnabled) {
             this.dualstackEnabled = dualstackEnabled;
+            return thisBuilder();
+        }
+
+        @Override
+        public B fipsEnabled(Boolean fipsEnabled) {
+            this.fipsEnabled = fipsEnabled;
             return thisBuilder();
         }
 

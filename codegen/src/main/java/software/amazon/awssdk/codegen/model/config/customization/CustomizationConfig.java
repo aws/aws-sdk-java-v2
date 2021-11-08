@@ -37,16 +37,9 @@ public class CustomizationConfig {
     private final List<ConvenienceTypeOverload> convenienceTypeOverloads = new ArrayList<>();
 
     /**
-     * Specifies the name of the client configuration class to use if a service
-     * has a specific advanced client configuration class. Null if the service
-     * does not have advanced configuration.
+     * Configuration object for service-specific configuration options.
      */
-    private String serviceSpecificClientConfigClass;
-
-    /**
-     * Whether a service has a dualstack configuration in its {@link #serviceSpecificClientConfigClass}.
-     */
-    private boolean serviceConfigHasDualstackConfig = false;
+    private ServiceConfig serviceConfig = new ServiceConfig();
 
     /**
      * Specify shapes to be renamed.
@@ -242,22 +235,6 @@ public class CustomizationConfig {
 
     public void setShapeModifiers(Map<String, ShapeModifier> shapeModifiers) {
         this.shapeModifiers = shapeModifiers;
-    }
-
-    public String getServiceSpecificClientConfigClass() {
-        return serviceSpecificClientConfigClass;
-    }
-
-    public void setServiceSpecificClientConfigClass(String serviceSpecificClientConfig) {
-        this.serviceSpecificClientConfigClass = serviceSpecificClientConfig;
-    }
-
-    public boolean getServiceConfigHasDualstackConfig() {
-        return serviceConfigHasDualstackConfig;
-    }
-
-    public void setServiceConfigHasDualstackConfig(boolean serviceConfigHasDualstackConfig) {
-        this.serviceConfigHasDualstackConfig = serviceConfigHasDualstackConfig;
     }
 
     public List<ConvenienceTypeOverload> getConvenienceTypeOverloads() {
@@ -516,5 +493,13 @@ public class CustomizationConfig {
 
     public void setDefaultRetryMode(RetryMode defaultRetryMode) {
         this.defaultRetryMode = defaultRetryMode;
+    }
+
+    public ServiceConfig getServiceConfig() {
+        return serviceConfig;
+    }
+
+    public void setServiceConfig(ServiceConfig serviceConfig) {
+        this.serviceConfig = serviceConfig;
     }
 }

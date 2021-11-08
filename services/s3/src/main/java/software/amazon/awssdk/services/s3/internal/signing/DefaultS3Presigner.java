@@ -193,9 +193,10 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         } else {
             URI defaultEndpoint = new DefaultServiceEndpointBuilder(SERVICE_NAME, "https")
                 .withRegion(region())
-                .withProfileFile(profileFile())
+                .withProfileFile(this::profileFile)
                 .withProfileName(profileName())
                 .withDualstackEnabled(serviceConfiguration.dualstackEnabled())
+                .withFipsEnabled(fipsEnabled())
                 .getServiceEndpoint();
             return SdkClientConfiguration.builder()
                                          .option(SdkClientOption.ENDPOINT, defaultEndpoint)

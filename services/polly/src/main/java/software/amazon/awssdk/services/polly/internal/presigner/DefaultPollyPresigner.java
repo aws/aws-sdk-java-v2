@@ -36,6 +36,7 @@ import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
+import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.ClientType;
@@ -73,6 +74,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     private final AwsCredentialsProvider credentialsProvider;
     private final URI endpointOverride;
     private final Boolean dualstackEnabled;
+    private final Boolean fipsEnabled;
 
     private DefaultPollyPresigner(BuilderImpl builder) {
         this.profileFile = ProfileFile.defaultProfileFile();
@@ -96,6 +98,13 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                                                                                            .build()
                                                                                            .isDualstackEnabled()
                                                                                            .orElse(false);
+        this.fipsEnabled = builder.fipsEnabled != null ? builder.fipsEnabled
+                                                       : FipsEnabledProvider.builder()
+                                                                            .profileFile(() -> profileFile)
+                                                                            .profileName(profileName)
+                                                                            .build()
+                                                                            .isFipsEnabled()
+                                                                            .orElse(false);
     }
 
     public Region region() {
@@ -236,9 +245,10 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
         return new DefaultServiceEndpointBuilder(SERVICE_NAME, "https")
                 .withRegion(region())
-                .withProfileFile(profileFile)
+                .withProfileFile(() -> profileFile)
                 .withProfileName(profileName)
                 .withDualstackEnabled(dualstackEnabled)
+                .withFipsEnabled(fipsEnabled)
                 .getServiceEndpoint();
     }
 
@@ -247,6 +257,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         private AwsCredentialsProvider credentialsProvider;
         private URI endpointOverride;
         private Boolean dualstackEnabled;
+        private Boolean fipsEnabled;
 
         @Override
         public Builder region(Region region) {
@@ -263,6 +274,12 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         @Override
         public Builder dualstackEnabled(Boolean dualstackEnabled) {
             this.dualstackEnabled = dualstackEnabled;
+            return this;
+        }
+
+        @Override
+        public Builder fipsEnabled(Boolean fipsEnabled) {
+            this.fipsEnabled = fipsEnabled;
             return this;
         }
 

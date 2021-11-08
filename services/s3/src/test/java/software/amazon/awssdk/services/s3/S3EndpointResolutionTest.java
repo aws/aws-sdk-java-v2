@@ -114,6 +114,36 @@ public class S3EndpointResolutionTest {
     }
 
     /**
+     * Service level operations for fips mode should go to the fips endpoint (without virtual addressing).
+     */
+    @Test
+    public void serviceLevelOperation_WithFipsEnabled_UsesFipsEndpoint() throws Exception {
+        mockHttpClient.stubNextResponse(mockListBucketsResponse());
+        S3Client s3Client = buildClient(S3Configuration.builder().build(), b -> b.fipsEnabled(true));
+
+        s3Client.listBuckets();
+
+        assertThat(mockHttpClient.getLastRequest().getUri())
+            .as("Uses regional S3 endpoint without bucket")
+            .isEqualTo(URI.create("https://s3-fips.ap-south-1.amazonaws.com/"));
+    }
+
+    /**
+     * Service level operations for fips mode should go to the fips endpoint (without virtual addressing).
+     */
+    @Test
+    public void serviceLevelOperation_WithFipsAndDualstackEnabled_UsesFipsDualstackEndpoint() throws Exception {
+        mockHttpClient.stubNextResponse(mockListBucketsResponse());
+        S3Client s3Client = buildClient(S3Configuration.builder().build(), b -> b.fipsEnabled(true).dualstackEnabled(true));
+
+        s3Client.listBuckets();
+
+        assertThat(mockHttpClient.getLastRequest().getUri())
+            .as("Uses regional S3 endpoint without bucket")
+            .isEqualTo(URI.create("https://s3-fips.dualstack.ap-south-1.amazonaws.com/"));
+    }
+
+    /**
      * When a custom endpoint is provided via the builder we should honor that instead of trying to re-resolve it in the
      * {@link EndpointAddressInterceptor}.
      */
@@ -135,6 +165,42 @@ public class S3EndpointResolutionTest {
         URI customEndpoint = URI.create("https://foobar-12345678910.s3-accesspoint.ap-south-1.amazonaws.com");
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().build();
+        String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
+    }
+
+    @Test
+    public void accessPointArn_withDualstack_correctlyRewritesEndpoint() throws Exception {
+        URI customEndpoint = URI.create("https://foobar-12345678910.s3-accesspoint.dualstack.ap-south-1.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().dualstackEnabled(true).build();
+        String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
+    }
+
+    @Test
+    public void accessPointArn_withFips_correctlyRewritesEndpoint() throws Exception {
+        URI customEndpoint = URI.create("https://foobar-12345678910.s3-accesspoint-fips.ap-south-1.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().fipsEnabled(true).build();
+        String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
+    }
+
+    @Test
+    public void accessPointArn_withDualstackFips_correctlyRewritesEndpoint() throws Exception {
+        URI customEndpoint = URI.create("https://foobar-12345678910.s3-accesspoint-fips.dualstack.ap-south-1.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().dualstackEnabled(true).fipsEnabled(true).build();
         String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
 
         s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build());
@@ -279,6 +345,21 @@ public class S3EndpointResolutionTest {
     }
 
     /**
+     * S3 accelerate and FIPS should not be allowed in use together.
+     */
+    @Test
+    public void accelerateAndFips_Fails() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        assertThatThrownBy(() -> clientBuilder().fipsEnabled(true)
+                                                .serviceConfiguration(withAccelerateEnabled())
+                                                .build()
+                                                .listObjects(r -> r.bucket(BUCKET)))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("FIPS")
+            .hasMessageContaining("accelerate");
+    }
+
+    /**
      * Dualstack uses regional endpoints that support virtual addressing.
      */
     @Test
@@ -330,6 +411,19 @@ public class S3EndpointResolutionTest {
         s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
 
         assertEndpointMatches(mockHttpClient.getLastRequest(), "https://s3.dualstack.ap-south-1.amazonaws.com/" + BUCKET);
+    }
+
+    /**
+     * Dualstack and fips also supports path style endpoints just like the normal endpoints.
+     */
+    @Test
+    public void dualstackAndFipsWithPathStyleEnabled_UsesPathStyleAddressingWithDualstackEndpoint() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = buildClient(withPathStyle(), b -> b.dualstackEnabled(true).fipsEnabled(true));
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(), "https://s3-fips.dualstack.ap-south-1.amazonaws.com/" + BUCKET);
     }
 
     /**

@@ -80,14 +80,6 @@ public class S3BucketEndpointResolverTest {
     }
 
     @Test
-    public void dualstackEnabled_shouldConvertToDualstackEndpoint() {
-        verifyEndpoint("http", "http://s3.dualstack.us-east-1.amazonaws.com",
-                       S3Configuration.builder().dualstackEnabled(true));
-        verifyEndpoint("https", "https://s3.dualstack.us-east-1.amazonaws.com",
-                       S3Configuration.builder().dualstackEnabled(true));
-    }
-
-    @Test
     public void accelerateEnabled_ListBucketRequest_shouldNotConvertToAccelerateEndpoint() {
         verifyAccelerateDisabledOperationsEndpointNotConverted(ListBucketsRequest.builder().build());
     }
@@ -100,29 +92,6 @@ public class S3BucketEndpointResolverTest {
     @Test
     public void accelerateEnabled_DeleteBucketRequest_shouldNotConvertToAccelerateEndpoint() {
         verifyAccelerateDisabledOperationsEndpointNotConverted(DeleteBucketRequest.builder().build());
-    }
-
-    @Test
-    public void virtualStyle_shouldConvertToDnsEndpoint() {
-        verifyVirtualStyleConvertDnsEndpoint("https");
-        verifyVirtualStyleConvertDnsEndpoint("http");
-    }
-
-    private void verifyVirtualStyleConvertDnsEndpoint(String protocol) {
-        String bucketName = "test-bucket";
-        String key = "test-key";
-        URI customUri = URI.create(String.format("%s://s3-test.com/%s/%s", protocol, bucketName, key));
-        URI expectedUri = URI.create(String.format("%s://%s.s3.dualstack.us-east-1.amazonaws.com/%s", protocol,
-                                                   bucketName, key));
-        S3EndpointResolverContext context = S3EndpointResolverContext.builder()
-                                                                     .request(InterceptorTestUtils.sdkHttpRequest(customUri))
-                                                                     .originalRequest(ListObjectsV2Request.builder().bucket(bucketName).build())
-                                                                     .region(Region.US_EAST_1)
-                                                                     .serviceConfiguration(S3Configuration.builder().dualstackEnabled(true).build())
-                                                                     .build();
-        ConfiguredS3SdkHttpRequest sdkHttpFullRequest = endpointResolver.applyEndpointConfiguration(context);
-
-        assertThat(sdkHttpFullRequest.sdkHttpRequest().getUri()).isEqualTo(expectedUri);
     }
 
     private void verifyAccelerateDisabledOperationsEndpointNotConverted(SdkRequest request) {

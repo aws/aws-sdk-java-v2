@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.lite.regions.model.Endpoint;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -43,7 +44,7 @@ public final class RegionValidationUtil {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(allowListStream, StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = br.readLine()) != null) {
-                    DEPRECATED_REGIONS_ALLOWSLIST.add(line);
+                    DEPRECATED_REGIONS_ALLOWSLIST.add(StringUtils.trim(line));
                 }
             }
         } catch (IOException e) {

@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Added a new `fipsEnabled` property to every client builder, which can be used to make calls be invoked against AWS endpoints which are FIPS compliant. This can also be enabled via the `AWS_USE_FIPS_ENDPOINT` environment variable, `aws.useFipsEndpoint` system property, or the `use_fips_endpoint` profile file property."
+}

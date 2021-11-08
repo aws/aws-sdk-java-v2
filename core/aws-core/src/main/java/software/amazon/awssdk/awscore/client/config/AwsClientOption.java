@@ -47,6 +47,12 @@ public final class AwsClientOption<T> extends ClientOption<T> {
     public static final AwsClientOption<Boolean> DUALSTACK_ENDPOINT_ENABLED = new AwsClientOption<>(Boolean.class);
 
     /**
+     * Whether the SDK should resolve fips endpoints instead of default endpoints. See
+     * {@link AwsClientBuilder#fipsEnabled(Boolean)}.
+     */
+    public static final ClientOption<Boolean> FIPS_ENDPOINT_ENABLED = new AwsClientOption<>(Boolean.class);
+
+    /**
      * Scope name to use during signing of a request.
      */
     public static final AwsClientOption<String> SERVICE_SIGNING_NAME = new AwsClientOption<>(String.class);

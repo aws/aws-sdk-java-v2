@@ -92,6 +92,22 @@ public interface SdkPresigner extends SdkAutoCloseable {
         Builder dualstackEnabled(Boolean dualstackEnabled);
 
         /**
+         * Configure whether the SDK should use the AWS fips endpoint.
+         *
+         * <p>If this is not specified, the SDK will attempt to determine whether the fips endpoint should be used
+         * automatically using the following logic:
+         * <ol>
+         *     <li>Check the 'aws.useFipsEndpoint' system property for 'true' or 'false'.</li>
+         *     <li>Check the 'AWS_USE_FIPS_ENDPOINT' environment variable for 'true' or 'false'.</li>
+         *     <li>Check the {user.home}/.aws/credentials and {user.home}/.aws/config files for the 'use_fips_endpoint'
+         *     property set to 'true' or 'false'.</li>
+         * </ol>
+         *
+         * <p>If the setting is not found in any of the locations above, 'false' will be used.
+         */
+        Builder fipsEnabled(Boolean fipsEnabled);
+
+        /**
          * Configure an endpoint that should be used in the pre-signed requests. This will override the endpoint that is usually
          * determined by the {@link #region(Region)} and {@link #dualstackEnabled(Boolean)} settings.
          */
