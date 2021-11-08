@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 
 public class DefaultServiceEndpointBuilderTest {
 
@@ -42,5 +43,13 @@ public class DefaultServiceEndpointBuilderTest {
         DefaultServiceEndpointBuilder endpointBuilder = new DefaultServiceEndpointBuilder("s3", "http")
                 .withRegion(Region.EU_CENTRAL_1);
         assertEquals("http://s3.eu-central-1.amazonaws.com", endpointBuilder.getServiceEndpoint().toString());
+    }
+
+    @Test
+    public void getServiceEndpoint_regionalOption_shouldUseRegionalEndpoint() throws Exception {
+        DefaultServiceEndpointBuilder endpointBuilder = new DefaultServiceEndpointBuilder("s3", "http")
+            .withRegion(Region.US_EAST_1).putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                                            "regional");
+        assertEquals("http://s3.us-east-1.amazonaws.com", endpointBuilder.getServiceEndpoint().toString());
     }
 }

@@ -17,13 +17,16 @@ package software.amazon.awssdk.awscore.endpoint;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -40,6 +43,7 @@ public final class DefaultServiceEndpointBuilder {
     private Region region;
     private ProfileFile profileFile;
     private String profileName;
+    private final Map<ServiceMetadataAdvancedOption<?>, Object> advancedOptions = new HashMap<>();
 
     public DefaultServiceEndpointBuilder(String serviceName, String protocol) {
         this.serviceName = Validate.paramNotNull(serviceName, "serviceName");
@@ -64,10 +68,16 @@ public final class DefaultServiceEndpointBuilder {
         return this;
     }
 
+    public <T> DefaultServiceEndpointBuilder putAdvancedOption(ServiceMetadataAdvancedOption<T> option, T value) {
+        advancedOptions.put(option, value);
+        return this;
+    }
+
     public URI getServiceEndpoint() {
         ServiceMetadata serviceMetadata = ServiceMetadata.of(serviceName)
                                                          .reconfigure(c -> c.profileFile(() -> profileFile)
-                                                                            .profileName(profileName));
+                                                                            .profileName(profileName)
+                                                                            .advancedOptions(advancedOptions));
         URI endpoint = addProtocolToServiceEndpoint(serviceMetadata.endpointFor(region));
 
         if (endpoint.getHost() == null) {

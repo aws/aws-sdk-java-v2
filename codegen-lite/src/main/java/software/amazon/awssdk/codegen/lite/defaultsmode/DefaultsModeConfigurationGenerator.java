@@ -51,6 +51,7 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
     private static final Map<String, OptionMetadata> HTTP_CONFIGURATION_MAPPING = new HashMap<>();
     private static final String CONNECT_TIMEOUT_IN_MILLIS = "connectTimeoutInMillis";
     private static final String TLS_NEGOTIATION_TIMEOUT_IN_MILLIS = "tlsNegotiationTimeoutInMillis";
+    private static final String S3_US_EAST_1_REGIONAL_ENDPOINTS = "s3UsEast1RegionalEndpoints";
 
     private final String basePackage;
     private final String defaultsModeBase;
@@ -68,6 +69,12 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
                                                                         "TLS_NEGOTIATION_TIMEOUT")));
         CONFIGURATION_MAPPING.put("retryMode", new OptionMetadata(ClassName.get("software.amazon.awssdk.core.retry", "RetryMode"
         ), ClassName.get("software.amazon.awssdk.core.client.config", "SdkClientOption", "DEFAULT_RETRY_MODE")));
+
+        CONFIGURATION_MAPPING.put(S3_US_EAST_1_REGIONAL_ENDPOINTS,
+                                  new OptionMetadata(ClassName.get(String.class),
+                                                     ClassName.get("software.amazon.awssdk.regions",
+                                                                   "ServiceMetadataAdvancedOption",
+                                                                   "DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT")));
     }
 
     public DefaultsModeConfigurationGenerator(String basePackage, String defaultsModeBase, DefaultConfiguration configuration) {
@@ -121,8 +128,8 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
 
     private void addEnumMapField(TypeSpec.Builder builder, String name) {
         ParameterizedTypeName map = ParameterizedTypeName.get(ClassName.get(Map.class),
-                                                                                defaultsModeClassName(),
-                                                                                ClassName.get(AttributeMap.class));
+                                                              defaultsModeClassName(),
+                                                              ClassName.get(AttributeMap.class));
         FieldSpec field = FieldSpec.builder(map, name, PRIVATE, STATIC, FINAL)
                                    .initializer("new $T<>(DefaultsMode.class)", EnumMap.class).build();
         builder.addField(field);
@@ -178,6 +185,9 @@ public class DefaultsModeConfigurationGenerator implements PoetClass {
             case "retryMode":
                 attributeBuilder.add(".put($T, $T.$N)", optionMetadata.attribute, optionMetadata.type,
                                      value.toUpperCase(Locale.US));
+                break;
+            case S3_US_EAST_1_REGIONAL_ENDPOINTS:
+                attributeBuilder.add(".put($T, $S)", optionMetadata.attribute, value);
                 break;
             default:
                 throw new IllegalStateException("Unsupported option " + option);

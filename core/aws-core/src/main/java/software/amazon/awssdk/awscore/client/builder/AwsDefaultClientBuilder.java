@@ -47,6 +47,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -188,12 +189,15 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     private SdkClientConfiguration mergeSmartDefaults(SdkClientConfiguration configuration) {
         DefaultsMode defaultsMode = resolveDefaultsMode(configuration);
-        RetryMode retryMode = DefaultsModeConfiguration.defaultConfig(defaultsMode).get(SdkClientOption.DEFAULT_RETRY_MODE);
-
+        AttributeMap defaultConfig = DefaultsModeConfiguration.defaultConfig(defaultsMode);
         return configuration.toBuilder()
                             .option(DEFAULTS_MODE, defaultsMode)
                             .build()
-                            .merge(c -> c.option(SdkClientOption.DEFAULT_RETRY_MODE, retryMode));
+                            .merge(c -> c.option(SdkClientOption.DEFAULT_RETRY_MODE,
+                                                 defaultConfig.get(SdkClientOption.DEFAULT_RETRY_MODE))
+                                         .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                                 defaultConfig.get(
+                                                     ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT)));
     }
 
     /**
@@ -232,6 +236,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             .withRegion(config.option(AwsClientOption.AWS_REGION))
             .withProfileFile(config.option(SdkClientOption.PROFILE_FILE))
             .withProfileName(config.option(SdkClientOption.PROFILE_NAME))
+            .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                               config.option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
             .getServiceEndpoint();
     }
 
