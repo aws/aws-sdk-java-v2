@@ -21,6 +21,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * Represents the upload or download of one or more objects to or from S3.
+ * 
+ * @see ObjectTransfer
+ * @see DirectoryTransfer
  */
 @SdkPublicApi
 @SdkPreviewApi

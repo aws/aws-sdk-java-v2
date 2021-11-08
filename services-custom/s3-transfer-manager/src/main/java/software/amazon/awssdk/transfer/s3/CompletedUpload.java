@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -26,21 +27,17 @@ import software.amazon.awssdk.utils.Validate;
  * Represents a completed upload transfer to Amazon S3. It can be used to track
  * the underlying {@link PutObjectResponse}
  *
- * @see S3TransferManager#upload(UploadRequest)
+ * @see S3TransferManager#upload(UploadRequest) 
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class CompletedUpload implements CompletedTransfer {
+public final class CompletedUpload implements CompletedObjectTransfer {
     private final PutObjectResponse response;
 
     private CompletedUpload(DefaultBuilder builder) {
         this.response = Validate.paramNotNull(builder.response, "response");
     }
 
-    /**
-     * Returns the API response from the {@link S3TransferManager#upload(UploadRequest)}
-     * @return the response
-     */
     public PutObjectResponse response() {
         return response;
     }
@@ -56,7 +53,7 @@ public final class CompletedUpload implements CompletedTransfer {
 
         CompletedUpload that = (CompletedUpload) o;
 
-        return response.equals(that.response);
+        return Objects.equals(response, that.response);
     }
 
     @Override

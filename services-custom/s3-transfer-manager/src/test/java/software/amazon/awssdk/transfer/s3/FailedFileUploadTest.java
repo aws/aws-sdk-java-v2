@@ -22,7 +22,7 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
-public class FailedSingleFileUploadTest {
+public class FailedFileUploadTest {
 
     @Test
     public void requestNull_mustThrowException() {
@@ -34,10 +34,10 @@ public class FailedSingleFileUploadTest {
 
     @Test
     public void exceptionNull_mustThrowException() {
-        UploadRequest uploadRequest =
-            UploadRequest.builder().source(Paths.get(".")).putObjectRequest(p -> p.bucket("bucket").key("key")).build();
+        UploadFileRequest uploadFileRequest =
+            UploadFileRequest.builder().source(Paths.get(".")).putObjectRequest(p -> p.bucket("bucket").key("key")).build();
         assertThatThrownBy(() -> FailedFileUpload.builder()
-                                                 .request(uploadRequest).build())
+                                                 .request(uploadFileRequest).build())
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("exception must not be null");
     }

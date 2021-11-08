@@ -1,3 +1,24 @@
+# __2.17.77__ __2021-11-08__
+## __AWS WAFV2__
+  - ### Features
+    - You can now configure rules to run a CAPTCHA check against web requests and, as needed, send a CAPTCHA challenge to the client.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Updated format validation for ids and regions.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds internal validation on the GatewayAssociationState field
+
+## __Amazon S3__
+  - ### Features
+    - [Breaking Changes] Refactor S3TransferManager (PREVIEW) to support non-file-based transfers. This release refactors the S3TransferManager interface hierarchy and client API to differentiate between file-based and non-file-based transfers, allowing arbitrary object transfers. As a result, some S3TransferManager method signatures have changed in a backwards-incompatible way. Most notably, `Upload upload(UploadRequest)` becomes `FileUpload uploadFile(UploadFileRequest)`, and likewise for download variants. Please see https://github.com/aws/aws-sdk-java-v2/pull/2817 for a full list of changes.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker CreateEndpoint and UpdateEndpoint APIs now support additional deployment configuration to manage traffic shifting options and automatic rollback monitoring. DescribeEndpoint now shows new in-progress deployment details with stage status.
+
 # __2.17.76__ __2021-11-05__
 ## __AWS Resource Groups Tagging API__
   - ### Features

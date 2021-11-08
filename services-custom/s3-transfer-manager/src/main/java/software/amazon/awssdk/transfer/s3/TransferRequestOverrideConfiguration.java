@@ -28,8 +28,8 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Configuration options for {@link UploadRequest} and {@link DownloadRequest}. All values are optional, and not specifying them
- * will use the SDK default values.
+ * Configuration options for {@link UploadFileRequest} and {@link DownloadFileRequest}. All values are optional, and not
+ * specifying them will use the SDK default values.
  *
  * <p>Use {@link #builder()} to create a set of options.
  */

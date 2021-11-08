@@ -35,14 +35,14 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.transfer.s3.CompletedUpload;
-import software.amazon.awssdk.transfer.s3.CompletedUploadDirectory;
+import software.amazon.awssdk.transfer.s3.CompletedDirectoryUpload;
+import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.FailedFileUpload;
+import software.amazon.awssdk.transfer.s3.FileUpload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.Upload;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryTransfer;
-import software.amazon.awssdk.transfer.s3.UploadRequest;
+import software.amazon.awssdk.transfer.s3.UploadFileRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
@@ -57,11 +57,11 @@ public class UploadDirectoryHelper {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
 
     private final TransferManagerConfiguration transferConfiguration;
-    private final Function<UploadRequest, Upload> uploadFunction;
+    private final Function<UploadFileRequest, FileUpload> uploadFunction;
     private final FileSystem fileSystem;
 
     public UploadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
-                                 Function<UploadRequest, Upload> uploadFunction) {
+                                 Function<UploadFileRequest, FileUpload> uploadFunction) {
 
         this.transferConfiguration = transferConfiguration;
         this.uploadFunction = uploadFunction;
@@ -70,7 +70,7 @@ public class UploadDirectoryHelper {
 
     @SdkTestInternalApi
     UploadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
-                          Function<UploadRequest, Upload> uploadFunction,
+                          Function<UploadFileRequest, FileUpload> uploadFunction,
                           FileSystem fileSystem) {
 
         this.transferConfiguration = transferConfiguration;
@@ -78,9 +78,9 @@ public class UploadDirectoryHelper {
         this.fileSystem = fileSystem;
     }
 
-    public UploadDirectoryTransfer uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
+    public DirectoryUpload uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
 
-        CompletableFuture<CompletedUploadDirectory> returnFuture = new CompletableFuture<>();
+        CompletableFuture<CompletedDirectoryUpload> returnFuture = new CompletableFuture<>();
 
         // offload the execution to the transfer manager executor
         CompletableFuture.runAsync(() -> doUploadDirectory(returnFuture, uploadDirectoryRequest),
@@ -91,23 +91,23 @@ public class UploadDirectoryHelper {
                              }
                          });
 
-        return UploadDirectoryTransfer.builder().completionFuture(returnFuture).build();
+        return new DefaultDirectoryUpload(returnFuture);
     }
 
-    private void doUploadDirectory(CompletableFuture<CompletedUploadDirectory> returnFuture,
+    private void doUploadDirectory(CompletableFuture<CompletedDirectoryUpload> returnFuture,
                                    UploadDirectoryRequest uploadDirectoryRequest) {
 
         Path directory = uploadDirectoryRequest.sourceDirectory();
 
         validateDirectory(uploadDirectoryRequest);
 
-        Collection<FailedFileUpload> failedUploads = new ConcurrentLinkedQueue<>();
-        List<CompletableFuture<CompletedUpload>> futures;
+        Collection<FailedFileUpload> failedFileUploads = new ConcurrentLinkedQueue<>();
+        List<CompletableFuture<CompletedFileUpload>> futures;
 
         try (Stream<Path> entries = listFiles(directory, uploadDirectoryRequest)) {
             futures = entries.map(path -> {
-                CompletableFuture<CompletedUpload> future = uploadSingleFile(uploadDirectoryRequest,
-                                                                             failedUploads, path);
+                CompletableFuture<CompletedFileUpload> future = uploadSingleFile(uploadDirectoryRequest,
+                                                                                 failedFileUploads, path);
 
                 // Forward cancellation of the return future to all individual futures.
                 CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
@@ -116,8 +116,8 @@ public class UploadDirectoryHelper {
         }
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                         .whenComplete((r, t) -> returnFuture.complete(CompletedUploadDirectory.builder()
-                                                                                               .failedUploads(failedUploads)
+                         .whenComplete((r, t) -> returnFuture.complete(CompletedDirectoryUpload.builder()
+                                                                                               .failedTransfers(failedFileUploads)
                                                                                                .build()));
     }
 
@@ -135,19 +135,19 @@ public class UploadDirectoryHelper {
         }
     }
 
-    private CompletableFuture<CompletedUpload> uploadSingleFile(UploadDirectoryRequest uploadDirectoryRequest,
-                                                                Collection<FailedFileUpload> failedUploads,
-                                                                Path path) {
+    private CompletableFuture<CompletedFileUpload> uploadSingleFile(UploadDirectoryRequest uploadDirectoryRequest,
+                                                                    Collection<FailedFileUpload> failedFileUploads,
+                                                                    Path path) {
         int nameCount = uploadDirectoryRequest.sourceDirectory().getNameCount();
-        UploadRequest uploadRequest = constructUploadRequest(uploadDirectoryRequest, nameCount, path);
-        log.debug(() -> String.format("Sending upload request (%s) for path (%s)", uploadRequest, path));
-        CompletableFuture<CompletedUpload> future = uploadFunction.apply(uploadRequest).completionFuture();
+        UploadFileRequest uploadFileRequest = constructUploadRequest(uploadDirectoryRequest, nameCount, path);
+        log.debug(() -> String.format("Sending upload request (%s) for path (%s)", uploadFileRequest, path));
+        CompletableFuture<CompletedFileUpload> future = uploadFunction.apply(uploadFileRequest).completionFuture();
         future.whenComplete((r, t) -> {
             if (t != null) {
-                failedUploads.add(FailedFileUpload.builder()
-                                                  .exception(t)
-                                                  .request(uploadRequest)
-                                                  .build());
+                failedFileUploads.add(FailedFileUpload.builder()
+                                                      .exception(t)
+                                                      .request(uploadFileRequest)
+                                                      .build());
             }
         });
         return future;
@@ -212,8 +212,8 @@ public class UploadDirectoryHelper {
         return relativePathName.replace(separator, delimiter);
     }
 
-    private UploadRequest constructUploadRequest(UploadDirectoryRequest uploadDirectoryRequest, int directoryNameCount,
-                                                        Path path) {
+    private UploadFileRequest constructUploadRequest(UploadDirectoryRequest uploadDirectoryRequest, int directoryNameCount,
+                                                     Path path) {
         String delimiter =
             uploadDirectoryRequest.delimiter()
                                   .filter(s -> !s.isEmpty())
@@ -230,9 +230,9 @@ public class UploadDirectoryHelper {
                                                             .bucket(uploadDirectoryRequest.bucket())
                                                             .key(key)
                                                             .build();
-        return UploadRequest.builder()
-                            .source(path)
-                            .putObjectRequest(putObjectRequest)
-                            .build();
+        return UploadFileRequest.builder()
+                                .source(path)
+                                .putObjectRequest(putObjectRequest)
+                                .build();
     }
 }

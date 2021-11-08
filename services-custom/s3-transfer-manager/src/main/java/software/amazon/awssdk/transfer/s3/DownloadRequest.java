@@ -15,18 +15,21 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.NotThreadSafe;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.transfer.s3.DownloadRequest.TypedBuilder;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
@@ -34,13 +37,16 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class DownloadRequest implements TransferRequest, ToCopyableBuilder<DownloadRequest.Builder, DownloadRequest> {
-    private final Path destination;
+public final class DownloadRequest<ReturnT>
+    implements TransferObjectRequest,
+               ToCopyableBuilder<TypedBuilder<ReturnT>, DownloadRequest<ReturnT>> {
+    
+    private final AsyncResponseTransformer<GetObjectResponse, ReturnT> responseTransformer;
     private final GetObjectRequest getObjectRequest;
     private final TransferRequestOverrideConfiguration overrideConfiguration;
 
-    private DownloadRequest(BuilderImpl builder) {
-        this.destination = Validate.paramNotNull(builder.destination, "destination");
+    private DownloadRequest(DefaultTypedBuilder<ReturnT> builder) {
+        this.responseTransformer = Validate.paramNotNull(builder.responseTransformer, "responseTransformer");
         this.getObjectRequest = Validate.paramNotNull(builder.getObjectRequest, "getObjectRequest");
         this.overrideConfiguration = builder.configuration;
     }
@@ -48,25 +54,26 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
     /**
      * Create a builder that can be used to create a {@link DownloadRequest}.
      *
-     * @see S3TransferManager#download(DownloadRequest)
+     * @see UntypedBuilder
      */
-    public static Builder builder() {
-        return new BuilderImpl();
+    public static UntypedBuilder builder() {
+        return new DefaultUntypedBuilder();
     }
 
+
     @Override
-    public Builder toBuilder() {
-        return new BuilderImpl();
+    public TypedBuilder<ReturnT> toBuilder() {
+        return new DefaultTypedBuilder<>(this);
     }
 
     /**
-     * The {@link Path} to file that response contents will be written to. The file must not exist or this method
-     * will throw an exception. If the file is not writable by the current user then an exception will be thrown.
+     * The {@link Path} to file that response contents will be written to. The file must not exist or this method will throw an
+     * exception. If the file is not writable by the current user then an exception will be thrown.
      *
      * @return the destination path
      */
-    public Path destination() {
-        return destination;
+    public AsyncResponseTransformer<GetObjectResponse, ReturnT> responseTransformer() {
+        return responseTransformer;
     }
 
     /**
@@ -78,19 +85,11 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
 
     /**
      * @return the optional override configuration
-     * @see Builder#overrideConfiguration(TransferRequestOverrideConfiguration)
+     * @see TypedBuilder#overrideConfiguration(TransferRequestOverrideConfiguration)
      */
+    @Override
     public Optional<TransferRequestOverrideConfiguration> overrideConfiguration() {
         return Optional.ofNullable(overrideConfiguration);
-    }
-
-    @Override
-    public String toString() {
-        return ToString.builder("DownloadRequest")
-                       .add("destination", destination)
-                       .add("getObjectRequest", getObjectRequest)
-                       .add("overrideConfiguration", overrideConfiguration)
-                       .build();
     }
 
     @Override
@@ -102,9 +101,9 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
             return false;
         }
 
-        DownloadRequest that = (DownloadRequest) o;
+        DownloadRequest<?> that = (DownloadRequest<?>) o;
 
-        if (!Objects.equals(destination, that.destination)) {
+        if (!Objects.equals(responseTransformer, that.responseTransformer)) {
             return false;
         }
         if (!Objects.equals(getObjectRequest, that.getObjectRequest)) {
@@ -115,44 +114,32 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
 
     @Override
     public int hashCode() {
-        int result = destination != null ? destination.hashCode() : 0;
+        int result = responseTransformer != null ? responseTransformer.hashCode() : 0;
         result = 31 * result + (getObjectRequest != null ? getObjectRequest.hashCode() : 0);
         result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
         return result;
     }
 
-    public static Class<? extends Builder> serializableBuilderClass() {
-        return BuilderImpl.class;
+    @Override
+    public String toString() {
+        return ToString.builder("DownloadRequest")
+                       .add("responseTransformer", responseTransformer)
+                       .add("getObjectRequest", getObjectRequest)
+                       .add("overrideConfiguration", overrideConfiguration)
+                       .build();
     }
 
     /**
-     * A builder for a {@link DownloadRequest}, created with {@link #builder()}
+     * Initial calls to {@link DownloadRequest#builder()} return an {@link UntypedBuilder}, where the builder is not yet
+     * parameterized with the generic type associated with {@link DownloadRequest}. This prevents the otherwise awkward syntax of
+     * having to explicitly cast the builder type, e.g.,
+     * <pre>
+     * {@code DownloadRequest.<ResponseBytes<GetObjectResponse>>builder()}
+     * </pre>
+     * Instead, the type may be inferred as part of specifying the {@link #responseTransformer(AsyncResponseTransformer)}
+     * parameter, at which point the builder chain will return a new {@link TypedBuilder}.
      */
-    @SdkPublicApi
-    @NotThreadSafe
-    public interface Builder extends TransferRequest.Builder<DownloadRequest, Builder>, CopyableBuilder<Builder,
-        DownloadRequest> {
-
-        /**
-         * The {@link Path} to file that response contents will be written to. The file must not exist or this method
-         * will throw an exception. If the file is not writable by the current user then an exception will be thrown.
-         *
-         * @param destination the destination path
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder destination(Path destination);
-
-        /**
-         * The file that response contents will be written to. The file must not exist or this method
-         * will throw an exception. If the file is not writable by the current user then an exception will be thrown.
-         *
-         * @param destination the destination path
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        default Builder destination(File destination) {
-            Validate.paramNotNull(destination, "destination");
-            return destination(destination.toPath());
-        }
+    public interface UntypedBuilder {
 
         /**
          * The {@link GetObjectRequest} request that should be used for the download
@@ -161,20 +148,19 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
          * @return a reference to this object so that method calls can be chained together.
          * @see #getObjectRequest(Consumer)
          */
-        Builder getObjectRequest(GetObjectRequest getObjectRequest);
+        UntypedBuilder getObjectRequest(GetObjectRequest getObjectRequest);
 
         /**
          * The {@link GetObjectRequest} request that should be used for the download
-         *
          * <p>
-         * This is a convenience method that creates an instance of the {@link GetObjectRequest} builder avoiding the
-         * need to create one manually via {@link GetObjectRequest#builder()}.
+         * This is a convenience method that creates an instance of the {@link GetObjectRequest} builder, avoiding the need to
+         * create one manually via {@link GetObjectRequest#builder()}.
          *
          * @param getObjectRequestBuilder the getObject request
          * @return a reference to this object so that method calls can be chained together.
          * @see #getObjectRequest(GetObjectRequest)
          */
-        default Builder getObjectRequest(Consumer<GetObjectRequest.Builder> getObjectRequestBuilder) {
+        default UntypedBuilder getObjectRequest(Consumer<GetObjectRequest.Builder> getObjectRequestBuilder) {
             GetObjectRequest request = GetObjectRequest.builder()
                                                        .applyMutation(getObjectRequestBuilder)
                                                        .build();
@@ -188,85 +174,183 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
          * @param configuration The override configuration.
          * @return This builder for method chaining.
          */
-        Builder overrideConfiguration(TransferRequestOverrideConfiguration configuration);
+        UntypedBuilder overrideConfiguration(TransferRequestOverrideConfiguration configuration);
 
         /**
          * Similar to {@link #overrideConfiguration(TransferRequestOverrideConfiguration)}, but takes a lambda to configure a new
-         * {@link TransferRequestOverrideConfiguration.Builder}. This removes the need to call
-         * {@link TransferRequestOverrideConfiguration#builder()} and
-         * {@link TransferRequestOverrideConfiguration.Builder#build()}.
+         * {@link TransferRequestOverrideConfiguration.Builder}. This removes the need to call {@link
+         * TransferRequestOverrideConfiguration#builder()} and {@link TransferRequestOverrideConfiguration.Builder#build()}.
          *
          * @param configurationBuilder the upload configuration
          * @return this builder for method chaining.
          * @see #overrideConfiguration(TransferRequestOverrideConfiguration)
          */
-        default Builder overrideConfiguration(Consumer<TransferRequestOverrideConfiguration.Builder> configurationBuilder) {
+        default UntypedBuilder overrideConfiguration(
+            Consumer<TransferRequestOverrideConfiguration.Builder> configurationBuilder) {
             Validate.paramNotNull(configurationBuilder, "configurationBuilder");
             return overrideConfiguration(TransferRequestOverrideConfiguration.builder()
                                                                              .applyMutation(configurationBuilder)
                                                                              .build());
         }
-        
+
         /**
-         * @return The built request.
+         * Specifies the {@link AsyncResponseTransformer} that should be used for the download. This method also infers the
+         * generic type of {@link DownloadRequest} to create, inferred from the second type parameter of the provided {@link
+         * AsyncResponseTransformer}. E.g, specifying {@link AsyncResponseTransformer#toBytes()} would result in inferring the
+         * type of the {@link DownloadRequest} to be of {@code ResponseBytes<GetObjectResponse>}. See the static factory methods
+         * available in {@link AsyncResponseTransformer}.
+         *
+         * @param responseTransformer the AsyncResponseTransformer
+         * @param <T>                 the type of {@link DownloadRequest} to create
+         * @return a reference to this object so that method calls can be chained together.
+         * @see AsyncResponseTransformer
          */
-        @Override
-        DownloadRequest build();
+        <T> TypedBuilder<T> responseTransformer(AsyncResponseTransformer<GetObjectResponse, T> responseTransformer);
+
+        /**
+         * Like {@link SdkBuilder#applyMutation(Consumer)}, but accepts a {@link Function} that upgrades this {@link
+         * UntypedBuilder} to a {@link TypedBuilder}. Therefore, the function must also call {@link
+         * #responseTransformer(AsyncResponseTransformer)} to specify the generic type.
+         */
+        default <T> TypedBuilder<T> applyMutation(Function<UntypedBuilder, TypedBuilder<T>> mutator) {
+            return mutator.apply(this);
+        }
     }
 
-    private static final class BuilderImpl implements Builder {
-        private Path destination;
+    private static class DefaultUntypedBuilder implements UntypedBuilder {
         private GetObjectRequest getObjectRequest;
         private TransferRequestOverrideConfiguration configuration;
 
-        private BuilderImpl() {
+        private DefaultUntypedBuilder() {
         }
 
         @Override
-        public Builder destination(Path destination) {
-            this.destination = destination;
-            return this;
-        }
-
-        public Path getDestination() {
-            return destination;
-        }
-
-        public void setDestination(Path destination) {
-            destination(destination);
-        }
-
-        @Override
-        public Builder getObjectRequest(GetObjectRequest getObjectRequest) {
+        public UntypedBuilder getObjectRequest(GetObjectRequest getObjectRequest) {
             this.getObjectRequest = getObjectRequest;
             return this;
         }
 
-        public GetObjectRequest getGetObjectRequest() {
-            return getObjectRequest;
-        }
-
-        public void setGetObjectRequest(GetObjectRequest getObjectRequest) {
-            getObjectRequest(getObjectRequest);
-        }
-
         @Override
-        public Builder overrideConfiguration(TransferRequestOverrideConfiguration configuration) {
+        public UntypedBuilder overrideConfiguration(TransferRequestOverrideConfiguration configuration) {
             this.configuration = configuration;
             return this;
         }
 
-        public void setOverrideConfiguration(TransferRequestOverrideConfiguration configuration) {
-            overrideConfiguration(configuration);
+        @Override
+        public <T> TypedBuilder<T> responseTransformer(AsyncResponseTransformer<GetObjectResponse, T> responseTransformer) {
+            return new DefaultTypedBuilder<T>()
+                .getObjectRequest(getObjectRequest)
+                .overrideConfiguration(configuration)
+                .responseTransformer(responseTransformer);
+        }
+    }
+
+    /**
+     * The type-parameterized version of {@link UntypedBuilder}. This builder's type is inferred as part of specifying {@link
+     * UntypedBuilder#responseTransformer(AsyncResponseTransformer)}, after which this builder can be used to construct a {@link
+     * DownloadRequest} with the same generic type.
+     */
+    public interface TypedBuilder<T> extends CopyableBuilder<TypedBuilder<T>, DownloadRequest<T>> {
+
+        /**
+         * The {@link GetObjectRequest} request that should be used for the download
+         *
+         * @param getObjectRequest the getObject request
+         * @return a reference to this object so that method calls can be chained together.
+         * @see #getObjectRequest(Consumer)
+         */
+        TypedBuilder<T> getObjectRequest(GetObjectRequest getObjectRequest);
+
+        /**
+         * The {@link GetObjectRequest} request that should be used for the download
+         * <p>
+         * This is a convenience method that creates an instance of the {@link GetObjectRequest} builder, avoiding the need to
+         * create one manually via {@link GetObjectRequest#builder()}.
+         *
+         * @param getObjectRequestBuilder the getObject request
+         * @return a reference to this object so that method calls can be chained together.
+         * @see #getObjectRequest(GetObjectRequest)
+         */
+        default TypedBuilder<T> getObjectRequest(Consumer<GetObjectRequest.Builder> getObjectRequestBuilder) {
+            GetObjectRequest request = GetObjectRequest.builder()
+                                                       .applyMutation(getObjectRequestBuilder)
+                                                       .build();
+            getObjectRequest(request);
+            return this;
         }
 
-        public TransferRequestOverrideConfiguration getOverrideConfiguration() {
-            return configuration;
+        /**
+         * Add an optional request override configuration.
+         *
+         * @param configuration The override configuration.
+         * @return This builder for method chaining.
+         */
+        TypedBuilder<T> overrideConfiguration(TransferRequestOverrideConfiguration configuration);
+
+        /**
+         * Similar to {@link #overrideConfiguration(TransferRequestOverrideConfiguration)}, but takes a lambda to configure a new
+         * {@link TransferRequestOverrideConfiguration.Builder}. This removes the need to call {@link
+         * TransferRequestOverrideConfiguration#builder()} and {@link TransferRequestOverrideConfiguration.Builder#build()}.
+         *
+         * @param configurationBuilder the upload configuration
+         * @return this builder for method chaining.
+         * @see #overrideConfiguration(TransferRequestOverrideConfiguration)
+         */
+        default TypedBuilder<T> overrideConfiguration(
+            Consumer<TransferRequestOverrideConfiguration.Builder> configurationBuilder) {
+            Validate.paramNotNull(configurationBuilder, "configurationBuilder");
+            return overrideConfiguration(TransferRequestOverrideConfiguration.builder()
+                                                                             .applyMutation(configurationBuilder)
+                                                                             .build());
+        }
+
+        /**
+         * Specifies the {@link AsyncResponseTransformer} that should be used for the download. The generic type used is
+         * constrained by the {@link UntypedBuilder#responseTransformer(AsyncResponseTransformer)} that was previously used to
+         * create this {@link TypedBuilder}.
+         *
+         * @param responseTransformer the AsyncResponseTransformer
+         * @return a reference to this object so that method calls can be chained together.
+         * @see AsyncResponseTransformer
+         */
+        TypedBuilder<T> responseTransformer(AsyncResponseTransformer<GetObjectResponse, T> responseTransformer);
+    }
+    
+    private static class DefaultTypedBuilder<T> implements TypedBuilder<T> {
+        private GetObjectRequest getObjectRequest;
+        private TransferRequestOverrideConfiguration configuration;
+        private AsyncResponseTransformer<GetObjectResponse, T> responseTransformer;
+
+        private DefaultTypedBuilder() {
+        }
+
+        private DefaultTypedBuilder(DownloadRequest<T> request) {
+            this.getObjectRequest = request.getObjectRequest;
+            this.responseTransformer = request.responseTransformer;
         }
 
         @Override
-        public DownloadRequest build() {
-            return new DownloadRequest(this);
+        public TypedBuilder<T> getObjectRequest(GetObjectRequest getObjectRequest) {
+            this.getObjectRequest = getObjectRequest;
+            return this;
+        }
+
+        @Override
+        public DefaultTypedBuilder<T> overrideConfiguration(TransferRequestOverrideConfiguration configuration) {
+            this.configuration = configuration;
+            return this;
+        }
+
+        @Override
+        public TypedBuilder<T> responseTransformer(AsyncResponseTransformer<GetObjectResponse, T> responseTransformer) {
+            this.responseTransformer = responseTransformer;
+            return this;
+        }
+
+
+        @Override
+        public DownloadRequest<T> build() {
+            return new DownloadRequest<>(this);
         }
     }
 }
