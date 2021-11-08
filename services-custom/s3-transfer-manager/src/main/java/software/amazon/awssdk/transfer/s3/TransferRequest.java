@@ -19,14 +19,12 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Interface for all transfer requests.
+ * The parent interface for all transfer requests.
+ * 
+ * @see TransferObjectRequest
+ * @see TransferDirectoryRequest
  */
 @SdkPublicApi
 @SdkPreviewApi
 public interface TransferRequest {
-
-    interface Builder<TypeToBuildT, BuilderT extends Builder> {
-
-        TypeToBuildT build();
-    }
 }

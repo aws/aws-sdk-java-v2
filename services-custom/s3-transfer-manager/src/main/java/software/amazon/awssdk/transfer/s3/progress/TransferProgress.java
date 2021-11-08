@@ -20,16 +20,16 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.transfer.s3.Download;
+import software.amazon.awssdk.transfer.s3.FileUpload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.Transfer;
-import software.amazon.awssdk.transfer.s3.Upload;
 
 /**
  * {@link TransferProgress} is a <b>stateful</b> representation of the progress of a transfer initiated by {@link
  * S3TransferManager}. {@link TransferProgress} offers the ability to take a {@link #snapshot()} of the current progress,
  * represented by an immutable {@link TransferProgressSnapshot}, which contains helpful progress-related methods like {@link
  * TransferProgressSnapshot#bytesTransferred()} and {@link TransferProgressSnapshot#ratioTransferred()}. {@link TransferProgress}
- * is attached to {@link Transfer} objects, namely {@link Upload} and {@link Download}.
+ * is attached to {@link Transfer} objects, namely {@link FileUpload} and {@link Download}.
  * <p>
  * Where possible, it is typically recommended to <b>avoid</b> directly querying {@link TransferProgress} and to instead leverage
  * the {@link TransferListener} interface to receive event-driven updates of the latest {@link TransferProgressSnapshot}. See the

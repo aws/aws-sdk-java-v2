@@ -17,13 +17,13 @@ package software.amazon.awssdk.transfer.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 public class DownloadRequestTest {
 
@@ -36,39 +36,32 @@ public class DownloadRequestTest {
         thrown.expectMessage("getObjectRequest");
 
         DownloadRequest.builder()
-                       .destination(Paths.get("."))
-                       .build();
-    }
-
-    @Test
-    public void pathMissing_throws() {
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("destination");
-
-        DownloadRequest.builder()
-                       .getObjectRequest(b -> b.bucket("bucket").key("key"))
+                       .responseTransformer(AsyncResponseTransformer.toBytes())
                        .build();
     }
 
     @Test
     public void usingFile() {
-        Path path = Paths.get(".");
+        AsyncResponseTransformer<GetObjectResponse, ResponseBytes<GetObjectResponse>> responseTransformer =
+            AsyncResponseTransformer.toBytes();
+        
         DownloadRequest requestUsingFile = DownloadRequest.builder()
                                                           .getObjectRequest(b -> b.bucket("bucket").key("key"))
-                                                          .destination(path.toFile())
+                                                          .responseTransformer(responseTransformer)
                                                           .build();
 
-        assertThat(requestUsingFile.destination()).isEqualTo(path);
+        assertThat(requestUsingFile.responseTransformer()).isEqualTo(responseTransformer);
     }
 
+
     @Test
-    public void usingFile_null_shouldThrowException() {
+    public void null_responseTransformer_shouldThrowException() {
         thrown.expect(NullPointerException.class);
-        thrown.expectMessage("destination");
-        File file = null;
+        thrown.expectMessage("responseTransformer");
+
         DownloadRequest.builder()
                        .getObjectRequest(b -> b.bucket("bucket").key("key"))
-                       .destination(file)
+                       .responseTransformer(null)
                        .build();
 
     }
@@ -76,7 +69,7 @@ public class DownloadRequestTest {
     @Test
     public void equals_hashcode() {
         EqualsVerifier.forClass(DownloadRequest.class)
-                      .withNonnullFields("destination", "getObjectRequest")
+                      .withNonnullFields("responseTransformer", "getObjectRequest")
                       .verify();
     }
 }

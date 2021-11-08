@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "[Breaking Changes] Refactor S3TransferManager (PREVIEW) to support non-file-based transfers. This release refactors the S3TransferManager interface hierarchy and client API to differentiate between file-based and non-file-based transfers, allowing arbitrary object transfers. As a result, some S3TransferManager method signatures have changed in a backwards-incompatible way. Most notably, `Upload upload(UploadRequest)` becomes `FileUpload uploadFile(UploadFileRequest)`, and likewise for download variants. Please see https://github.com/aws/aws-sdk-java-v2/pull/2817 for a full list of changes."
+}

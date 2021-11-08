@@ -24,7 +24,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @SdkPublicApi
 @SdkPreviewApi
-public interface FailedFileTransfer<T extends TransferRequest> {
+public interface FailedObjectTransfer {
 
     /**
      * The exception thrown from a specific single file transfer
@@ -34,34 +34,9 @@ public interface FailedFileTransfer<T extends TransferRequest> {
     Throwable exception();
 
     /**
-     * The failed {@link TransferRequest}.
+     * The failed {@link TransferObjectRequest}.
      *
      * @return the failed request
      */
-    T request();
-
-    interface Builder<T extends TransferRequest> {
-        /**
-         * Specify the exception thrown from a specific single file transfer
-         *
-         * @param exception the exception thrown
-         * @return this builder for method chaining.
-         */
-        Builder<T> exception(Throwable exception);
-
-        /**
-         * Specify the failed request
-         *
-         * @param request the failed request
-         * @return this builder for method chaining.
-         */
-        Builder<T> request(T request);
-
-        /**
-         * Builds a {@link FailedFileTransfer} based on the properties supplied to this builder
-         *
-         * @return An initialized {@link FailedFileTransfer}
-         */
-        FailedFileTransfer<T> build();
-    }
+    TransferObjectRequest request();
 }

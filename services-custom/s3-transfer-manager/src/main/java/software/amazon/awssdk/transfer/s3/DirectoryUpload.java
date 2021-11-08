@@ -13,18 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3.internal;
+package software.amazon.awssdk.transfer.s3;
 
-import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.Test;
-import software.amazon.awssdk.transfer.s3.CompletedUploadDirectory;
+import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
-public class CompletedUploadDirectoryTest {
-
-    @Test
-    public void equalsHashcode() {
-        EqualsVerifier.forClass(CompletedUploadDirectory.class)
-                      .withNonnullFields("failedUploads")
-                      .verify();
-    }
+/**
+ * An upload transfer of a single object to S3.
+ */
+@SdkPublicApi
+@SdkPreviewApi
+public interface DirectoryUpload extends DirectoryTransfer {
+    @Override
+    CompletableFuture<CompletedDirectoryUpload> completionFuture();
 }
