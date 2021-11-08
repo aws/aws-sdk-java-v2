@@ -1,3 +1,25 @@
+# __2.17.76__ __2021-11-05__
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Documentation updates and improvements.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added the profile key `duration_seconds` to class `ProfileProperty`
+        - Contributed by: [@abrooksv](https://github.com/abrooksv)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - DescribeInstances now returns customer-owned IP addresses for instances running on an AWS Outpost.
+
+## __Amazon Translate__
+  - ### Features
+    - This release enable customers to use their own KMS keys to encrypt output files when they submit a batch transform job.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@abrooksv](https://github.com/abrooksv)
 # __2.17.75__ __2021-11-04__
 ## __AWS IoT Wireless__
   - ### Features
