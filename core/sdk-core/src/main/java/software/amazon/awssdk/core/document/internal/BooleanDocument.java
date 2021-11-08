@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.document.internal;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkNumber;
@@ -138,11 +137,11 @@ public final class BooleanDocument implements Document {
             return false;
         }
         BooleanDocument that = (BooleanDocument) o;
-        return Objects.equals(value, that.value);
+        return value == that.value;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(value);
+        return Boolean.hashCode(value);
     }
 }

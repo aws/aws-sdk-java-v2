@@ -126,8 +126,9 @@ public final class SdkEventLoopGroup {
     private EventLoopGroup resolveEventLoopGroup(DefaultBuilder builder) {
         int numThreads = Optional.ofNullable(builder.numberOfThreads).orElse(0);
         ThreadFactory threadFactory = Optional.ofNullable(builder.threadFactory)
-                                              .orElse(new ThreadFactoryBuilder().threadNamePrefix("aws-java-sdk-NettyEventLoop")
-                                                                                .build());
+                                              .orElseGet(() -> new ThreadFactoryBuilder()
+                                                  .threadNamePrefix("aws-java-sdk-NettyEventLoop")
+                                                  .build());
         return new NioEventLoopGroup(numThreads, threadFactory);
         /*
         Need to investigate why epoll is raising channel inactive after successful response that causes

@@ -50,6 +50,11 @@ public final class ProfileProperty {
     public static final String ROLE_SESSION_NAME = "role_session_name";
 
     /**
+     * Property name for specifying how long in seconds to assume the role
+     */
+    public static final String DURATION_SECONDS = "duration_seconds";
+
+    /**
      * Property name for specifying the IAM role external id
      */
     public static final String EXTERNAL_ID = "external_id";

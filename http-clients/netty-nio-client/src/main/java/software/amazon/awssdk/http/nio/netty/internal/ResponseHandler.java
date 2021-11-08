@@ -227,7 +227,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
                 private Subscription resolveSubscription(Subscription subscription) {
                     // For HTTP2 we send a RST_STREAM frame on cancel to stop the service from sending more data
-                    if (Protocol.HTTP2.equals(ChannelAttributeKey.getProtocolNow(channelContext.channel()))) {
+                    if (ChannelAttributeKey.getProtocolNow(channelContext.channel()) == Protocol.HTTP2) {
                         return new Http2ResetSendingSubscription(channelContext, subscription);
                     } else {
                         return subscription;

@@ -34,7 +34,7 @@ public class PayloadSigningInterceptor implements ExecutionInterceptor {
     public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
                                                    ExecutionAttributes executionAttributes) {
         executionAttributes.putAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, true);
-        if (!context.requestBody().isPresent() && context.httpRequest().method().equals(SdkHttpMethod.POST)) {
+        if (!context.requestBody().isPresent() && context.httpRequest().method() == SdkHttpMethod.POST) {
             return Optional.of(RequestBody.fromBytes(new byte[0]));
         }
 

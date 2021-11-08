@@ -72,8 +72,8 @@ public final class DocumentationUtils {
         }
 
         if (documentation.startsWith("<")) {
-            int startTagIndex = documentation.indexOf(">");
-            int closingTagIndex = documentation.lastIndexOf("<");
+            int startTagIndex = documentation.indexOf('>');
+            int closingTagIndex = documentation.lastIndexOf('<');
             if (closingTagIndex > startTagIndex) {
                 documentation = stripHtmlTags(documentation.substring(startTagIndex + 1, closingTagIndex));
             } else {
