@@ -17,8 +17,13 @@ package software.amazon.awssdk.transfer.s3;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.internal.DefaultS3TransferManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
@@ -32,29 +37,46 @@ import software.amazon.awssdk.utils.Validate;
  * <pre>
  * {@code
  * // Create using all default configuration values
- * S3TransferManager transferManager = S3TransferManager.create();
+ * S3TransferManager tm = S3TransferManager.create();
  *
- * // If you wish to configure settings, we recommend using the builder instead:
- * S3TransferManager transferManager =
- *                  S3TransferManager.builder()
- *                                   .s3ClientConfiguration(b -> b.credentialsProvider(credentialProvider)
- *                                   .region(Region.US_WEST_2)
- *                                   .targetThroughputInGbps(20.0)
- *                                   .minimumPartSizeInBytes(10 * MB))
- *                                   .build();
- *
- * // Download an S3 object to a file
- * Download download =
- *     transferManager.download(b -> b.destination(Paths.get("myFile.txt"))
- *                                    .getObjectRequest(r -> r.bucket("bucket")
- *                                                            .key("key")));
- * download.completionFuture().join();
+ * // If you wish to configure settings, we recommend using the builder instead
+ * S3TransferManager tm =
+ *     S3TransferManager.builder()
+ *                      .s3ClientConfiguration(b -> b.credentialsProvider(credentialProvider)
+ *                                                   .region(Region.US_WEST_2)
+ *                                                   .targetThroughputInGbps(20.0)
+ *                                                   .minimumPartSizeInBytes(8 * MB))
+ *                      .build();
  *
  * // Upload a file to S3
- * Upload upload = transferManager.upload(b -> b.source(Paths.get("myFile.txt"))
- *                                              .putObjectRequest(r -> r.bucket("bucket")
- *                                                                      .key("key")));
+ * FileUpload upload =
+ *     tm.uploadFile(u -> u.source(Paths.get("myFile.txt"))
+ *                         .putObjectRequest(p -> p.bucket("bucket").key("key")));
+ * upload.completionFuture().join();
  *
+ * // Download an S3 object to a file
+ * FileDownload download =
+ *     tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
+ *                           .destination(Paths.get("myFile.txt")));
+ * download.completionFuture().join();
+ * 
+ * // Upload any content to S3
+ * Upload upload =
+ *     tm.upload(u -> u.requestBody(AsyncRequestBody.fromString("Hello world"))
+ *                     .putObjectRequest(p -> p.bucket("bucket").key("key")));
+ * upload.completionFuture().join();
+ * 
+ * // Download an S3 object to a custom destination
+ * Download<ResponseBytes<GetObjectResponse>> download =
+ *     tm.download(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
+ *                       .responseTransformer(AsyncResponseTransformer.toBytes()));
+ * download.completionFuture().join();
+ * 
+ * // Attach a TransferListener
+ * FileUpload upload =
+ *     tm.uploadFile(u -> u.source(Paths.get("myFile.txt"))
+ *                         .putObjectRequest(p -> p.bucket("bucket").key("key"))
+ *                         .overrideConfiguration(o -> o.addListener(LoggingTransferListener.create())));
  * upload.completionFuture().join();
  * }
  * </pre>
@@ -62,56 +84,73 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 @SdkPreviewApi
 public interface S3TransferManager extends SdkAutoCloseable {
+
     /**
-     * Download an object identified by the bucket and key from S3 to the given
-     * file.
+     * Download an object identified by the bucket and key from S3 to the given file.
      * <p>
      * <b>Usage Example:</b>
      * <pre>
      * {@code
      * // Initiate the transfer
-     * Download download =
-     *     transferManager.download(DownloadRequest.builder()
-     *                                             .destination(Paths.get("myFile.txt"))
-     *                                             .getObjectRequest(GetObjectRequest.builder()
-     *                                                                               .bucket("bucket")
-     *                                                                               .key("key")
-     *                                                                               .build())
-     *                                             .build());
+     * FileDownload download =
+     *     tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
+     *                           .destination(Paths.get("myFile.txt")));
      * // Wait for the transfer to complete
      * download.completionFuture().join();
      * }
      * </pre>
-     * @see #download(Consumer)
+     *
+     * @see #downloadFile(Consumer)
+     * @see #download(DownloadRequest)
      */
-    default Download download(DownloadRequest downloadRequest) {
+    default FileDownload downloadFile(DownloadFileRequest downloadRequest) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Download an object identified by the bucket and key from S3 to the given
-     * file.
+     * This is a convenience method that creates an instance of the {@link DownloadFileRequest} builder, avoiding the need to
+     * create one manually via {@link DownloadFileRequest#builder()}.
      *
+     * @see #downloadFile(DownloadFileRequest)
+     */
+    default FileDownload downloadFile(Consumer<DownloadFileRequest.Builder> request) {
+        return downloadFile(DownloadFileRequest.builder().applyMutation(request).build());
+    }
+
+    /**
+     * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}.
      * <p>
-     * This is a convenience method that creates an instance of the {@link DownloadRequest} builder avoiding the
-     * need to create one manually via {@link DownloadRequest#builder()}.
-     *
-     * <p>
-     * <b>Usage Example:</b>
+     * <b>Usage Example (this example buffers the entire object in memory and is not suitable for large objects):</b>
      * <pre>
      * {@code
      * // Initiate the transfer
-     * Download download =
-     *     transferManager.download(b -> b.destination(Paths.get("myFile.txt"))
-     *                                    .getObjectRequest(r -> r.bucket("bucket")
-     *                                                            .key("key")));
+     * Download<ResponseBytes<GetObjectResponse>> download =
+     *     tm.download(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
+     *                       .responseTransformer(AsyncResponseTransformer.toBytes()));
      * // Wait for the transfer to complete
      * download.completionFuture().join();
      * }
      * </pre>
+     * See the static factory methods available in {@link AsyncResponseTransformer} for other use cases.
+     *
+     * @param downloadRequest the download request, containing a {@link GetObjectRequest} and {@link AsyncResponseTransformer}
+     * @param <ResultT>       The type of data the {@link AsyncResponseTransformer} produces
+     * @return A {@link Download} that can be used to track the ongoing transfer
+     * @see #download(Function)
+     * @see #downloadFile(DownloadFileRequest)
+     */
+    default <ResultT> Download<ResultT> download(DownloadRequest<ResultT> downloadRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link DownloadRequest} builder, avoiding the need to create
+     * one manually via {@link DownloadRequest#builder()}.
+     *
      * @see #download(DownloadRequest)
      */
-    default Download download(Consumer<DownloadRequest.Builder> request) {
+    default <ResultT> Download<ResultT> download(Function<DownloadRequest.UntypedBuilder,
+        DownloadRequest.TypedBuilder<ResultT>> request) {
         return download(DownloadRequest.builder().applyMutation(request).build());
     }
 
@@ -121,42 +160,60 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * <b>Usage Example:</b>
      * <pre>
      * {@code
-     * Upload upload =
-     *     transferManager.upload(UploadRequest.builder()
-     *                                        .source(Paths.get("myFile.txt"))
-     *                                        .putObjectRequest(PutObjectRequest.builder()
-     *                                                                          .bucket("bucket")
-     *                                                                          .key("key")
-     *                                                                          .build())
-     *                                        .build());
+     * FileUpload upload =
+     *     tm.uploadFile(u -> u.source(Paths.get("myFile.txt"))
+     *                         .putObjectRequest(p -> p.bucket("bucket").key("key")));
      * // Wait for the transfer to complete
      * upload.completionFuture().join();
      * }
      * </pre>
+     * 
+     * @see #uploadFile(Consumer) 
+     * @see #upload(UploadRequest) 
+     */
+    default FileUpload uploadFile(UploadFileRequest uploadFileRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link UploadFileRequest} builder, avoiding the need to create
+     * one manually via {@link UploadFileRequest#builder()}.
+     *
+     * @see #uploadFile(UploadFileRequest)
+     */
+    default FileUpload uploadFile(Consumer<UploadFileRequest.Builder> request) {
+        return uploadFile(UploadFileRequest.builder().applyMutation(request).build());
+    }
+
+    /**
+     * Upload an {@link AsyncRequestBody} to S3.
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * Upload upload =
+     *     tm.upload(u -> u.requestBody(AsyncRequestBody.fromString("Hello world"))
+     *                     .putObjectRequest(p -> p.bucket("bucket").key("key")));
+     * // Wait for the transfer to complete
+     * upload.completionFuture().join();
+     * }
+     * </pre>
+     * See the static factory methods available in {@link AsyncRequestBody} for other use cases.
+     *
+     * @param uploadRequest the upload request, containing a {@link PutObjectRequest} and {@link AsyncRequestBody}
+     * @return An {@link Upload} that can be used to track the ongoing transfer
+     * @see #upload(Consumer)
+     * @see #uploadFile(UploadFileRequest)
      */
     default Upload upload(UploadRequest uploadRequest) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Upload a file to S3.
+     * This is a convenience method that creates an instance of the {@link UploadRequest} builder, avoiding the need to create one
+     * manually via {@link UploadRequest#builder()}.
      *
-     * <p>
-     * This is a convenience method that creates an instance of the {@link UploadRequest} builder avoiding the
-     * need to create one manually via {@link UploadRequest#builder()}.
-     *
-     * <p>
-     * <b>Usage Example:</b>
-     * <pre>
-     * {@code
-     * Upload upload =
-     *       transferManager.upload(b -> b.putObjectRequest(req -> req.bucket("bucket")
-     *                                                                .key("key"))
-     *                                    .source(Paths.get("myFile.txt")));
-     * // Wait for the transfer to complete
-     * upload.completionFuture().join();
-     * }
-     * </pre>
+     * @see #upload(UploadRequest)
      */
     default Upload upload(Consumer<UploadRequest.Builder> request) {
         return upload(UploadRequest.builder().applyMutation(request).build());
@@ -175,7 +232,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * The returned {@link CompletableFuture} only completes exceptionally if the request cannot be attempted as a whole (the
      * source directory provided does not exist for example). The future completes successfully for partial successful
      * requests, i.e., there might be failed uploads in the successfully completed response. As a result,
-     * you should check for errors in the response via {@link CompletedUploadDirectory#failedUploads()}
+     * you should check for errors in the response via {@link CompletedDirectoryUpload#failedTransfers()}
      * even when the future completes successfully.
      *
      * <p>
@@ -185,17 +242,17 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * <b>Usage Example:</b>
      * <pre>
      * {@code
-     * UploadDirectoryTransfer uploadDirectory =
+     * DirectoryUpload directoryUpload =
      *       transferManager.uploadDirectory(UploadDirectoryRequest.builder()
      *                                                             .sourceDirectory(Paths.get("."))
      *                                                             .bucket("bucket")
      *                                                             .prefix("prefix")
      *                                                             .build());
      * // Wait for the transfer to complete
-     * CompletedUploadDirectory completedUploadDirectory = uploadDirectory.completionFuture().join();
+     * CompletedDirectoryUpload completedDirectoryUpload = directoryUpload.completionFuture().join();
      *
      * // Print out the failed uploads
-     * completedUploadDirectory.failedUploads().forEach(System.out::println);
+     * completedDirectoryUpload.failedTransfers().forEach(System.out::println);
      *
      * }
      * </pre>
@@ -204,51 +261,17 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * @see #uploadDirectory(Consumer)
      * @see UploadDirectoryOverrideConfiguration
      */
-    default UploadDirectoryTransfer uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
+    default DirectoryUpload uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Upload all files under the given directory to the provided S3 bucket. The key name transformation depends on the optional
-     * prefix and delimiter provided in the {@link UploadDirectoryRequest}. By default, all subdirectories will be uploaded
-     * recursively, and symbolic links are not followed automatically. This behavior can be configured in
-     * {@link UploadDirectoryOverrideConfiguration}
-     * at request level via {@link UploadDirectoryRequest.Builder#overrideConfiguration(UploadDirectoryOverrideConfiguration)} or
-     * client level via {@link S3TransferManager.Builder#transferConfiguration(S3TransferManagerOverrideConfiguration)} Note
-     * that request-level configuration takes precedence over client-level configuration.
+     * This is a convenience method that creates an instance of the {@link UploadDirectoryRequest} builder, avoiding the need to
+     * create one manually via {@link UploadDirectoryRequest#builder()}.
      *
-     * <p>
-     * The returned {@link CompletableFuture} only completes exceptionally if the request cannot be attempted as a whole (the
-     * source directory provided does not exist for example). The future completes successfully for partial successful
-     * requests, i.e., there might be failed uploads in the successfully completed response. As a result,
-     * you should check for errors in the response via {@link CompletedUploadDirectory#failedUploads()}
-     * even when the future completes successfully.
-     *
-     * <p>
-     * The current user must have read access to all directories and files
-     *
-     * <p>
-     * This is a convenience method that creates an instance of the {@link UploadDirectoryRequest} builder avoiding the
-     * need to create one manually via {@link UploadDirectoryRequest#builder()}.
-     *
-     * <p>
-     * <b>Usage Example:</b>
-     * <pre>
-     * {@code
-     * UploadDirectoryTransfer uploadDirectory =
-     *       transferManager.uploadDirectory(b -> b.sourceDirectory(Paths.get("."))
-     *                                             .bucket("key")
-     *                                             .prefix("prefix"));
-     * // Print out the failed uploads
-     * completedUploadDirectory.failedUploads().forEach(System.out::println);
-     *
-     * }
-     * </pre>
-     * @param requestBuilder the upload directory request builder
      * @see #uploadDirectory(UploadDirectoryRequest)
-     * @see UploadDirectoryOverrideConfiguration
      */
-    default UploadDirectoryTransfer uploadDirectory(Consumer<UploadDirectoryRequest.Builder> requestBuilder) {
+    default DirectoryUpload uploadDirectory(Consumer<UploadDirectoryRequest.Builder> requestBuilder) {
         Validate.paramNotNull(requestBuilder, "requestBuilder");
         return uploadDirectory(UploadDirectoryRequest.builder().applyMutation(requestBuilder).build());
     }

@@ -98,7 +98,7 @@ public final class ChecksumsEnabledValidator {
 
         ClientType actualClientType = executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_TYPE);
 
-        if (!expectedClientType.equals(actualClientType)) {
+        if (expectedClientType != actualClientType) {
             return false;
         }
 

@@ -208,7 +208,7 @@ public final class NettyRequestExecutor {
         }
 
         pipeline.addLast(LastHttpContentHandler.create());
-        if (Protocol.HTTP2.equals(protocol)) {
+        if (protocol == Protocol.HTTP2) {
             pipeline.addLast(FlushOnReadHandler.getInstance());
         }
         pipeline.addLast(new HttpStreamsClientHandler());

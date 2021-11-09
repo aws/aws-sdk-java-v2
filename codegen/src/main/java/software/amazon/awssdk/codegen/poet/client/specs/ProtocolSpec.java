@@ -128,7 +128,7 @@ public interface ProtocolSpec {
             builder.add(".requiresLength(true)");
         }
 
-        if (AuthType.V4_UNSIGNED_BODY.equals(opModel.getAuthType())) {
+        if (opModel.getAuthType() == AuthType.V4_UNSIGNED_BODY) {
             builder.add(".transferEncoding(true)");
         }
 

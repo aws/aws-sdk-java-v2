@@ -307,6 +307,18 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         Builder connectionMaxIdleTime(Duration maxIdleConnectionTimeout);
 
         /**
+         * Configure the maximum amount of time that a TLS handshake is allowed to take from the time the CLIENT HELLO
+         * message is sent to the time the client and server have fully negotiated ciphers and exchanged keys.
+         * @param tlsNegotiationTimeout the timeout duration
+         *
+         * <p>
+         * By default, it's 10 seconds.
+         *
+         * @return this builder for method chaining.
+         */
+        Builder tlsNegotiationTimeout(Duration tlsNegotiationTimeout);
+
+        /**
          * Configure whether the idle connections in the connection pool should be closed.
          * <p>
          * When enabled, connections left idling for longer than {@link #connectionMaxIdleTime(Duration)} will be
@@ -361,10 +373,14 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         Builder protocol(Protocol protocol);
 
         /**
-         * Configure whether to enable support for TCP KeepAlive {@link SocketOptions#SO_KEEPALIVE}
-         *
+         * Configure whether to enable or disable TCP KeepAlive.
+         * The configuration will be passed to the socket option {@link SocketOptions#SO_KEEPALIVE}.
          * <p>
          * By default, this is disabled.
+         * <p>
+         * When enabled, the actual KeepAlive mechanism is dependent on the Operating System and therefore additional TCP
+         * KeepAlive values (like timeout, number of packets, etc) must be configured via the Operating System (sysctl on
+         * Linux/Mac, and Registry values on Windows).
          */
         Builder tcpKeepAlive(Boolean keepConnectionAlive);
 
@@ -576,6 +592,17 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         public void setUseIdleConnectionReaper(Boolean useIdleConnectionReaper) {
             useIdleConnectionReaper(useIdleConnectionReaper);
+        }
+
+        @Override
+        public Builder tlsNegotiationTimeout(Duration tlsNegotiationTimeout) {
+            Validate.isPositive(tlsNegotiationTimeout, "tlsNegotiationTimeout");
+            standardOptions.put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT, tlsNegotiationTimeout);
+            return this;
+        }
+
+        public void setTlsNegotiationTimeout(Duration tlsNegotiationTimeout) {
+            tlsNegotiationTimeout(tlsNegotiationTimeout);
         }
 
         @Override

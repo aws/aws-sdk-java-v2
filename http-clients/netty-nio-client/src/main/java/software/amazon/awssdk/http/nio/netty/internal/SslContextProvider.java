@@ -70,7 +70,7 @@ public final class SslContextProvider {
      * /SslUtils.java
      */
     private List<String> getCiphers() {
-        return protocol.equals(Protocol.HTTP2) ? Http2SecurityUtil.CIPHERS : null;
+        return protocol == Protocol.HTTP2 ? Http2SecurityUtil.CIPHERS : null;
     }
 
     private TrustManagerFactory getTrustManager(NettyConfiguration configuration) {
