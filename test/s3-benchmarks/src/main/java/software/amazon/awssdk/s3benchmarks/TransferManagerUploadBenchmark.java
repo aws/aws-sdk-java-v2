@@ -55,8 +55,8 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
     private void uploadOnceFromFile(List<Double> latencies) {
         File sourceFile = new File(path);
         long start = System.currentTimeMillis();
-        transferManager.upload(b -> b.putObjectRequest(r -> r.bucket(bucket).key(key))
-                                     .source(sourceFile.toPath()))
+        transferManager.uploadFile(b -> b.putObjectRequest(r -> r.bucket(bucket).key(key))
+                                         .source(sourceFile.toPath()))
                        .completionFuture().join();
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);

@@ -23,11 +23,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingConfig;
-import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingInputStream;
+import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.authcrt.signer.AwsCrtS3V4aSigner;
 import software.amazon.awssdk.authcrt.signer.internal.chunkedencoding.AwsS3V4aChunkSigner;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -94,9 +94,9 @@ public final class DefaultAwsCrtS3V4aSigner implements AwsCrtS3V4aSigner {
         long originalContentLength = calculateRequestContentLength(mutableRequest);
         mutableRequest.putHeader("x-amz-decoded-content-length", Long.toString(originalContentLength));
         mutableRequest.putHeader(CONTENT_LENGTH, Long.toString(
-            AwsChunkedEncodingInputStream.calculateStreamContentLength(originalContentLength,
-                                                                       AwsS3V4aChunkSigner.getSignatureLength(),
-                                                                       AwsChunkedEncodingConfig.create())));
+            AwsSignedChunkedEncodingInputStream.calculateStreamContentLength(originalContentLength,
+                                                                             AwsS3V4aChunkSigner.getSignatureLength(),
+                                                                             AwsChunkedEncodingConfig.create())));
     }
 
     private SdkHttpFullRequest enablePayloadSigning(SdkSigningResult signingResult, AwsSigningConfig chunkConfig) {
@@ -105,11 +105,15 @@ public final class DefaultAwsCrtS3V4aSigner implements AwsCrtS3V4aSigner {
         SdkHttpFullRequest.Builder mutableSignedRequest = signedRequest.toBuilder();
         ContentStreamProvider streamProvider = mutableSignedRequest.contentStreamProvider();
         AwsS3V4aChunkSigner chunkSigner = new AwsS3V4aChunkSigner(signerAdapter, chunkConfig);
+
         mutableSignedRequest.contentStreamProvider(
-            () -> new AwsChunkedEncodingInputStream(streamProvider.newStream(),
-                                                    new String(signature, StandardCharsets.UTF_8),
-                                                    chunkSigner,
-                                                    AwsChunkedEncodingConfig.create()));
+            () -> AwsSignedChunkedEncodingInputStream.builder()
+                                                     .inputStream(streamProvider.newStream())
+                                                     .awsChunkSigner(chunkSigner)
+                                                     .headerSignature(new String(signature, StandardCharsets.UTF_8))
+                                                     .awsChunkedEncodingConfig(AwsChunkedEncodingConfig.create())
+                                                     .build());
+
         return mutableSignedRequest.build();
     }
 

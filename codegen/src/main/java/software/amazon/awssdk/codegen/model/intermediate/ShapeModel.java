@@ -187,17 +187,11 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
         List<MemberModel> unboundMembers = new ArrayList<>();
         if (members != null) {
             for (MemberModel member : members) {
-                if (member.getHttp().getLocation() == null && !member.getHttp().getIsPayload()) {
+                if (member.getHttp().getLocation() == null) {
                     if (hasPayloadMember) {
-                        // There is an explicit payload, but this unbound
-                        // member isn't it.
-                        // Note: Somewhat unintuitive, explicit payloads don't
-                        // have an explicit location; they're identified by
-                        // the payload HTTP trait being true.
                         throw new IllegalStateException(String.format(
-                                "C2J Shape %s has both an explicit payload member and unbound (no explicit location) member, %s."
-                                + " This is undefined behavior, verify the correctness of the C2J model.",
-                                c2jName, member.getName()));
+                                "C2J Shape %s has both an explicit payload member and unbound (no explicit location) members. "
+                                + "This is undefined behavior, verify the correctness of the C2J model", c2jName));
                     }
                     unboundMembers.add(member);
                 }
@@ -227,12 +221,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     public boolean hasPayloadMembers() {
         return hasPayloadMember ||
                getExplicitEventPayloadMember() != null ||
-               hasImplicitPayloadMembers();
-
-    }
-
-    public boolean hasImplicitPayloadMembers() {
-        return !getUnboundMembers().isEmpty() ||
+               !getUnboundMembers().isEmpty() ||
                (isEvent() && !getUnboundEventMembers().isEmpty());
     }
 

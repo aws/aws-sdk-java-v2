@@ -252,7 +252,7 @@ public final class Route53IdInterceptor implements ExecutionInterceptor {
             return null;
         }
 
-        int lastIndex = s.lastIndexOf("/");
+        int lastIndex = s.lastIndexOf('/');
         if (lastIndex > 0) {
             return s.substring(lastIndex + 1);
         }

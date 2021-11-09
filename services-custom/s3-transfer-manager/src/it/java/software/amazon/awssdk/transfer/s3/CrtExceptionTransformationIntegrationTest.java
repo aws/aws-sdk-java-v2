@@ -15,6 +15,12 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,13 +30,6 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.internal.S3CrtAsyncClient;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 public class CrtExceptionTransformationIntegrationTest extends S3IntegrationTestBase {
 
@@ -87,10 +86,10 @@ public class CrtExceptionTransformationIntegrationTest extends S3IntegrationTest
     @Test
     public void transferManagerDownloadObjectWithNoSuchKey() throws IOException {
         String randomBaseDirectory = Files.createTempDirectory(getClass().getSimpleName()).toString();
-        assertThatThrownBy(() -> transferManager.download(DownloadRequest.builder()
-                .getObjectRequest(GetObjectRequest.builder().bucket(BUCKET).key("randomKey").build())
-                .destination(Paths.get(randomBaseDirectory).resolve("testFile"))
-                .build()).completionFuture().join())
+        assertThatThrownBy(() -> transferManager.downloadFile(DownloadFileRequest.builder()
+                                                                                 .getObjectRequest(GetObjectRequest.builder().bucket(BUCKET).key("randomKey").build())
+                                                                                 .destination(Paths.get(randomBaseDirectory).resolve("testFile"))
+                                                                                 .build()).completionFuture().join())
                 .hasCauseInstanceOf(NoSuchKeyException.class)
                 .hasMessageContaining("software.amazon.awssdk.services.s3.model.NoSuchKeyException: The specified key does not exist");
     }
@@ -98,10 +97,10 @@ public class CrtExceptionTransformationIntegrationTest extends S3IntegrationTest
     @Test
     public void transferManagerDownloadObjectWithNoSuchBucket() throws IOException {
         String randomBaseDirectory = Files.createTempDirectory(getClass().getSimpleName()).toString();
-        assertThatThrownBy(() -> transferManager.download(DownloadRequest.builder()
-                .getObjectRequest(GetObjectRequest.builder().bucket("nonExistingTestBucket").key(KEY).build())
-                .destination(Paths.get(randomBaseDirectory).resolve("testFile"))
-                .build()).completionFuture().join())
+        assertThatThrownBy(() -> transferManager.downloadFile(DownloadFileRequest.builder()
+                                                                                 .getObjectRequest(GetObjectRequest.builder().bucket("nonExistingTestBucket").key(KEY).build())
+                                                                                 .destination(Paths.get(randomBaseDirectory).resolve("testFile"))
+                                                                                 .build()).completionFuture().join())
                 .hasCauseInstanceOf(NoSuchBucketException.class)
                 .hasMessageContaining("software.amazon.awssdk.services.s3.model.NoSuchBucketException: The specified bucket does not exist");
     }
@@ -127,10 +126,10 @@ public class CrtExceptionTransformationIntegrationTest extends S3IntegrationTest
 
     @Test
     public void transferManagerUploadObjectWithNoSuchObject() throws IOException{
-        assertThatThrownBy(() -> transferManager.upload(UploadRequest.builder()
-                .putObjectRequest(PutObjectRequest.builder().bucket("nonExistingTestBucket").key("someKey").build())
-                .source(testFile.toPath())
-                .build()).completionFuture().join())
+        assertThatThrownBy(() -> transferManager.uploadFile(UploadFileRequest.builder()
+                                                                             .putObjectRequest(PutObjectRequest.builder().bucket("nonExistingTestBucket").key("someKey").build())
+                                                                             .source(testFile.toPath())
+                                                                             .build()).completionFuture().join())
                 .hasCauseInstanceOf(NoSuchBucketException.class)
                 .hasMessageContaining("software.amazon.awssdk.services.s3.model.NoSuchBucketException: The specified bucket does not exist");
     }

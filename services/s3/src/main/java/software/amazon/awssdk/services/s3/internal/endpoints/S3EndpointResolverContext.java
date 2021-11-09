@@ -86,7 +86,7 @@ public final class S3EndpointResolverContext {
                Objects.equals(originalRequest, that.originalRequest) &&
                Objects.equals(region, that.region) &&
                Objects.equals(serviceConfiguration, that.serviceConfiguration) &&
-               Objects.equals(disableHostPrefixInjection, that.disableHostPrefixInjection);
+               (disableHostPrefixInjection == that.disableHostPrefixInjection);
     }
 
     @Override

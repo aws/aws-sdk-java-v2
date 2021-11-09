@@ -124,7 +124,7 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
             return null;
         }
         String code = errorCodeField.text();
-        int separator = code.lastIndexOf("#");
+        int separator = code.lastIndexOf('#');
         return code.substring(separator + 1);
     }
 }

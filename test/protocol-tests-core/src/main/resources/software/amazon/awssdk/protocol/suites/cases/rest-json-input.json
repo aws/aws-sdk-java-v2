@@ -59,7 +59,7 @@
     }
   },
   {
-    "description": "Explicit payload member and no parameters marshalls into an empty JSON object",
+    "description": "Explicit payload member and no parameters marshalls into an empty request body",
     "given": {
       "input": {
       }
@@ -71,7 +71,7 @@
     "then": {
       "serializedAs": {
         "body": {
-          "jsonEquals": "{}"
+          "equals": ""
         }
       }
     }

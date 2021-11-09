@@ -1,3 +1,291 @@
+# __2.17.78__ __2021-11-09__
+## __AWS Batch__
+  - ### Features
+    - Adds support for scheduling policy APIs.
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Documentation updates for AWS Health.
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - This release adds support for Greengrass core devices running Windows. You can now specify name of a Windows user to run a component.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+# __2.17.77__ __2021-11-08__
+## __AWS WAFV2__
+  - ### Features
+    - You can now configure rules to run a CAPTCHA check against web requests and, as needed, send a CAPTCHA challenge to the client.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Updated format validation for ids and regions.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds internal validation on the GatewayAssociationState field
+
+## __Amazon S3__
+  - ### Features
+    - [Breaking Changes] Refactor S3TransferManager (PREVIEW) to support non-file-based transfers. This release refactors the S3TransferManager interface hierarchy and client API to differentiate between file-based and non-file-based transfers, allowing arbitrary object transfers. As a result, some S3TransferManager method signatures have changed in a backwards-incompatible way. Most notably, `Upload upload(UploadRequest)` becomes `FileUpload uploadFile(UploadFileRequest)`, and likewise for download variants. Please see https://github.com/aws/aws-sdk-java-v2/pull/2817 for a full list of changes.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker CreateEndpoint and UpdateEndpoint APIs now support additional deployment configuration to manage traffic shifting options and automatic rollback monitoring. DescribeEndpoint now shows new in-progress deployment details with stage status.
+
+# __2.17.76__ __2021-11-05__
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Documentation updates and improvements.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added the profile key `duration_seconds` to class `ProfileProperty`
+        - Contributed by: [@abrooksv](https://github.com/abrooksv)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - DescribeInstances now returns customer-owned IP addresses for instances running on an AWS Outpost.
+
+## __Amazon Translate__
+  - ### Features
+    - This release enable customers to use their own KMS keys to encrypt output files when they submit a batch transform job.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@abrooksv](https://github.com/abrooksv)
+# __2.17.75__ __2021-11-04__
+## __AWS IoT Wireless__
+  - ### Features
+    - Adding APIs for the FUOTA (firmware update over the air) and multicast for LoRaWAN devices and APIs to support event notification opt-in feature for Sidewalk related events. A few existing APIs need to be modified for this new feature.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - The Amazon Chime SDK Meetings APIs allow software developers to create meetings and attendees for interactive audio, video, screen and content sharing in custom meeting applications which use the Amazon Chime SDK.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds CRUD operation support for Security profile resource in Amazon Connect
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds a new instance replacement strategy for EC2 Fleet, Spot Fleet. Now you can select an action to perform when your instance gets a rebalance notification. EC2 Fleet, Spot Fleet can launch a replacement then terminate the instance that received notification after a termination delay
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - ListDevices and DescribeDevice now show Edge Manager agent version.
+
+# __2.17.74__ __2021-11-03__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports Hadoop Distributed File System (HDFS) Locations
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - This release adds a new boolean attribute - Connect Participant - to the CreateParticipantConnection API, which can be used to mark the participant as connected.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for specifying the severity of findings that a custom data identifier produces, based on the number of occurrences of text that matches the detection criteria.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Adds superuser and data-bundle parameters to CreateEnvironment API
+
+# __2.17.73__ __2021-11-02__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - CloudFront now supports response headers policies to add HTTP headers to the responses that CloudFront sends to viewers. You can use these policies to add CORS headers, control browser caching, and more, without modifying your origin or writing any code.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Chat now supports real-time message streaming.
+
+## __AmazonNimbleStudio__
+  - ### Features
+    - Amazon Nimble Studio adds support for users to stop and start streaming sessions.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Allow users to configure tlsNegotiationTimeout on NettyNioAsyncHttpClient
+
+# __2.17.72__ __2021-11-01__
+## __AWS Network Manager__
+  - ### Features
+    - This release adds API support to aggregate resources, routes, and telemetry data across a Global Network.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support to enable access logging for buckets in the Lightsail object storage service.
+
+## __Amazon Neptune__
+  - ### Features
+    - Adds support for major version upgrades to ModifyDbCluster API
+
+## __Amazon Rekognition__
+  - ### Features
+    - This Amazon Rekognition Custom Labels release introduces the management of datasets with projects
+
+# __2.17.71__ __2021-10-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - Added Monitoring support for SQL Server Failover Cluster Instance. Additionally, added a new API to allow one-click monitoring of containers resources.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Chat now supports real-time message streaming.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Support added for AMI sharing with organizations and organizational units in ModifyImageAttribute API
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release added new attributes to Rekognition Video GetCelebrityRecognition API operations.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Transcribe and Transcribe Call Analytics now support automatic language identification along with custom vocabulary, vocabulary filter, custom language model and PII redaction.
+
+## __S3TransferManager__
+  - ### Bugfixes
+    - Fix potentially flaky S3TransferManagerListenerTests
+
+# __2.17.70__ __2021-10-28__
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Updating documentation, adding new field to ConflictException to indicate earliest retry timestamp for some operations, increase maximum length of nextToken fields
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - This release adds a new boolean attribute - Connect Participant - to the CreateParticipantConnection API, which can be used to mark the participant as connected.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS now supports running Fargate tasks on Windows Operating Systems Families which includes Windows Server 2019 Core and Windows Server 2019 Full.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added new read-only DenyAllIGWTraffic network interface attribute. Added support for DL1 24xlarge instances powered by Habana Gaudi Accelerators for deep learning model training workloads
+
+## __Amazon GameLift__
+  - ### Features
+    - Added support for Arm-based AWS Graviton2 instances, such as M6g, C6g, and R6g.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for RStudio on SageMaker.
+
+# __2.17.69__ __2021-10-27__
+## __AWS DynamoDB Enhanced Client__
+  - ### Features
+    - Added support for @DynamoDBAutoGeneratedTimestamp that can be used for auto updated the last updated timestamp for a record.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Provide an error message if a AsyncRequestBody.fromFile source file changes length or update time while the SDK is reading from the file.
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds: attribute-based instance type selection for EC2 Fleet, Spot Fleet, a feature that lets customers express instance requirements as attributes like vCPU, memory, and storage; and Spot placement score, a feature that helps customers identify an optimal location to run Spot workloads.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - EKS managed node groups now support BOTTLEROCKET_x86_64 and BOTTLEROCKET_ARM_64 AMI types.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release allows customers to describe one or more versioned model packages through BatchDescribeModelPackage, update project via UpdateProject, modify and read customer metadata properties using Create, Update and Describe ModelPackage and enables cross account registration of model packages.
+
+## __Amazon Textract__
+  - ### Features
+    - This release adds support for asynchronously analyzing invoice and receipt documents through two new APIs: StartExpenseAnalysis and GetExpenseAnalysis
+
+## __Auto Scaling__
+  - ### Features
+    - This release adds support for attribute-based instance type selection, a new EC2 Auto Scaling feature that lets customers express their instance requirements as a set of attributes, such as vCPU, memory, and storage.
+
+# __2.17.68__ __2021-10-26__
+## __Amazon Chime SDK Identity__
+  - ### Features
+    - The Amazon Chime SDK now supports push notifications through Amazon Pinpoint
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - The Amazon Chime SDK now supports push notifications through Amazon Pinpoint
+
+## __Amazon EMR Containers__
+  - ### Features
+    - This feature enables auto-generation of certificate to secure the managed-endpoint and removes the need for customer provided certificate-arn during managed-endpoint setup.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Raise an exception instead of hanging when a put-object content-length exceeds the data written by the async request body.
+    - Truncate the async request body when the content-length is shorter than the request body, instead of raising a "Data read has a different checksum" exception.
+
+# __2.17.67__ __2021-10-25__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces a new feature for Audit Manager: Custom framework sharing. You can now share your custom frameworks with another AWS account, or replicate them into another AWS Region under your own account.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support to create a VPN Connection that is not attached to a Gateway at the time of creation. Use this to create VPNs associated with Core Networks, or modify your VPN and attach a gateway using the modify API after creation.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for Amazon RDS Custom, which is a new RDS management type that gives you full access to your database and operating system. For more information, see https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-custom.html
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - New API for ResolverConfig, which allows autodefined rules for reverse DNS resolution to be disabled for a VPC
+
+# __2.17.66__ __2021-10-22__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces character restrictions for ControlSet names. We updated regex patterns for the following attributes: ControlSet, CreateAssessmentFrameworkControlSet, and UpdateAssessmentFrameworkControlSet.
+
+## __Amazon Chime__
+  - ### Features
+    - Chime VoiceConnector and VoiceConnectorGroup APIs will now return an ARN.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added QSearchBar option for GenerateEmbedUrlForRegisteredUser ExperienceConfiguration to support Q search bar embedding
+
+## __S3TransferManager__
+  - ### Features
+    - Add support for S3TransferManager TransferListeners
+
 # __2.17.65__ __2021-10-21__
 ## __AWS SDK for Java v2__
   - ### Features

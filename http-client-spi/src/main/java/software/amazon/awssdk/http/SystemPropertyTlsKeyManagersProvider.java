@@ -75,7 +75,7 @@ public final class SystemPropertyTlsKeyManagersProvider extends AbstractFileStor
 
     private static String getKeyStoreType() {
         return SystemSettingUtils.resolveSetting(SSL_KEY_STORE_TYPE)
-                .orElse(KeyStore.getDefaultType());
+                .orElseGet(KeyStore::getDefaultType);
     }
 
     private static Optional<String> getKeyStorePassword() {

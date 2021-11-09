@@ -389,7 +389,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     private ClassName baseExceptionClassName(IntermediateModel model) {
         String exceptionPath = model.getSdkModeledExceptionBaseFqcn()
-                                    .substring(0, model.getSdkModeledExceptionBaseFqcn().lastIndexOf("."));
+                                    .substring(0, model.getSdkModeledExceptionBaseFqcn().lastIndexOf('.'));
 
         return ClassName.get(exceptionPath, model.getSdkModeledExceptionBaseClassName());
     }
@@ -450,6 +450,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
     }
 
     private boolean isRestJson(IntermediateModel model) {
-        return Protocol.REST_JSON.equals(model.getMetadata().getProtocol());
+        return model.getMetadata().getProtocol() == Protocol.REST_JSON;
     }
 }

@@ -1,0 +1,30 @@
+{
+    "version": "2.17.78",
+    "date": "2021-11-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "Adds support for scheduling policy APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Health APIs and Notifications",
+            "contributor": "",
+            "description": "Documentation updates for AWS Health."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Greengrass V2",
+            "contributor": "",
+            "description": "This release adds support for Greengrass core devices running Windows. You can now specify name of a Windows user to run a component."
+        }
+    ]
+}

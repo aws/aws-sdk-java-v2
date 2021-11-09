@@ -62,13 +62,13 @@ public final class ProtocolUtils {
 
         String resourcePath = uriResourcePath;
 
-        int index = resourcePath.indexOf("?");
+        int index = resourcePath.indexOf('?');
         if (index != -1) {
             String queryString = resourcePath.substring(index + 1);
             resourcePath = resourcePath.substring(0, index);
 
             for (String s : queryString.split("[;&]")) {
-                index = s.indexOf("=");
+                index = s.indexOf('=');
                 if (index != -1) {
                     request.putRawQueryParameter(s.substring(0, index), s.substring(index + 1));
                 } else {

@@ -37,8 +37,7 @@ public final class RegionMetadataLoader {
     private static Partitions loadPartitionFromStream(File stream, String location) {
 
         try {
-            return JSON.std.with(JSON.Feature.FAIL_ON_UNKNOWN_BEAN_PROPERTY)
-                           .with(JSON.Feature.USE_IS_GETTERS)
+            return JSON.std.with(JSON.Feature.USE_IS_GETTERS)
                            .beanFrom(Partitions.class, stream);
 
         } catch (IOException | RuntimeException e) {

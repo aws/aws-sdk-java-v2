@@ -69,7 +69,7 @@ public final class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
     public <TypeT extends SdkPojo> Pair<TypeT, Map<String, String>> unmarshall(SdkPojo sdkPojo,
                                                                                SdkHttpFullResponse response) {
-        XmlElement document = response.content().map(XmlDomParser::parse).orElse(XmlElement.empty());
+        XmlElement document = response.content().map(XmlDomParser::parse).orElseGet(XmlElement::empty);
         XmlElement resultRoot = hasResultWrapper ? document.getFirstChild() : document;
         return Pair.of(unmarshall(sdkPojo, resultRoot, response), parseMetadata(document));
     }

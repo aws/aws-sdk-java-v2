@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -92,5 +93,10 @@ public abstract class WrappedTableSchema<T, R extends TableSchema<T>> implements
     @Override
     public boolean isAbstract() {
         return this.delegateTableSchema.isAbstract();
+    }
+
+    @Override
+    public AttributeConverter<T> converterForAttribute(Object key) {
+        return this.delegateTableSchema.converterForAttribute(key);
     }
 }

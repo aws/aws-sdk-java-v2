@@ -38,19 +38,19 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.transfer.s3.CompletedUpload;
-import software.amazon.awssdk.transfer.s3.CompletedUploadDirectory;
-import software.amazon.awssdk.transfer.s3.Upload;
+import software.amazon.awssdk.transfer.s3.CompletedDirectoryUpload;
+import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.DirectoryUpload;
+import software.amazon.awssdk.transfer.s3.FileUpload;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryTransfer;
-import software.amazon.awssdk.transfer.s3.UploadRequest;
+import software.amazon.awssdk.transfer.s3.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 
 public class UploadDirectoryHelperTest {
     private static FileSystem jimfs;
     private static Path directory;
-    private Function<UploadRequest, Upload> singleUploadFunction;
+    private Function<UploadFileRequest, FileUpload> singleUploadFunction;
     private UploadDirectoryHelper uploadDirectoryHelper;
 
     @BeforeClass
@@ -75,15 +75,15 @@ public class UploadDirectoryHelperTest {
 
     @Test
     public void uploadDirectory_cancel_shouldCancelAllFutures() {
-        CompletableFuture<CompletedUpload> future = new CompletableFuture<>();
-        Upload upload = newUpload(future);
+        CompletableFuture<CompletedFileUpload> future = new CompletableFuture<>();
+        FileUpload fileUpload = newUpload(future);
 
-        CompletableFuture<CompletedUpload> future2 = new CompletableFuture<>();
-        Upload upload2 = newUpload(future2);
+        CompletableFuture<CompletedFileUpload> future2 = new CompletableFuture<>();
+        FileUpload fileUpload2 = newUpload(future2);
 
-        when(singleUploadFunction.apply(any(UploadRequest.class))).thenReturn(upload, upload2);
+        when(singleUploadFunction.apply(any(UploadFileRequest.class))).thenReturn(fileUpload, fileUpload2);
 
-        UploadDirectoryTransfer uploadDirectory =
+        DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
@@ -102,62 +102,62 @@ public class UploadDirectoryHelperTest {
     public void uploadDirectory_allUploadsSucceed_failedUploadsShouldBeEmpty() throws ExecutionException, InterruptedException,
                                                                                     TimeoutException {
         PutObjectResponse putObjectResponse = PutObjectResponse.builder().eTag("1234").build();
-        CompletedUpload completedUpload = CompletedUpload.builder().response(putObjectResponse).build();
-        CompletableFuture<CompletedUpload> successfulFuture = new CompletableFuture<>();
+        CompletedFileUpload completedFileUpload = CompletedFileUpload.builder().response(putObjectResponse).build();
+        CompletableFuture<CompletedFileUpload> successfulFuture = new CompletableFuture<>();
 
-        Upload upload = newUpload(successfulFuture);
-        successfulFuture.complete(completedUpload);
+        FileUpload fileUpload = newUpload(successfulFuture);
+        successfulFuture.complete(completedFileUpload);
 
         PutObjectResponse putObjectResponse2 = PutObjectResponse.builder().eTag("5678").build();
-        CompletedUpload completedUpload2 = CompletedUpload.builder().response(putObjectResponse2).build();
-        CompletableFuture<CompletedUpload> failedFuture = new CompletableFuture<>();
-        Upload upload2 = newUpload(failedFuture);
-        failedFuture.complete(completedUpload2);
+        CompletedFileUpload completedFileUpload2 = CompletedFileUpload.builder().response(putObjectResponse2).build();
+        CompletableFuture<CompletedFileUpload> failedFuture = new CompletableFuture<>();
+        FileUpload fileUpload2 = newUpload(failedFuture);
+        failedFuture.complete(completedFileUpload2);
 
-        when(singleUploadFunction.apply(any(UploadRequest.class))).thenReturn(upload, upload2);
+        when(singleUploadFunction.apply(any(UploadFileRequest.class))).thenReturn(fileUpload, fileUpload2);
 
-        UploadDirectoryTransfer uploadDirectory =
+        DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
                                                                         .build());
 
-        CompletedUploadDirectory completedUploadDirectory = uploadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+        CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
 
-        assertThat(completedUploadDirectory.failedUploads()).isEmpty();
+        assertThat(completedDirectoryUpload.failedTransfers()).isEmpty();
     }
 
     @Test
     public void uploadDirectory_partialSuccess_shouldProvideFailedUploads() throws ExecutionException, InterruptedException,
                                                                                    TimeoutException {
         PutObjectResponse putObjectResponse = PutObjectResponse.builder().eTag("1234").build();
-        CompletedUpload completedUpload = CompletedUpload.builder().response(putObjectResponse).build();
-        CompletableFuture<CompletedUpload> successfulFuture = new CompletableFuture<>();
-        Upload upload = newUpload(successfulFuture);
-        successfulFuture.complete(completedUpload);
+        CompletedFileUpload completedFileUpload = CompletedFileUpload.builder().response(putObjectResponse).build();
+        CompletableFuture<CompletedFileUpload> successfulFuture = new CompletableFuture<>();
+        FileUpload fileUpload = newUpload(successfulFuture);
+        successfulFuture.complete(completedFileUpload);
 
         SdkClientException exception = SdkClientException.create("failed");
-        CompletableFuture<CompletedUpload> failedFuture = new CompletableFuture<>();
-        Upload upload2 = newUpload(failedFuture);
+        CompletableFuture<CompletedFileUpload> failedFuture = new CompletableFuture<>();
+        FileUpload fileUpload2 = newUpload(failedFuture);
         failedFuture.completeExceptionally(exception);
 
-        when(singleUploadFunction.apply(any(UploadRequest.class))).thenReturn(upload, upload2);
+        when(singleUploadFunction.apply(any(UploadFileRequest.class))).thenReturn(fileUpload, fileUpload2);
 
-        UploadDirectoryTransfer uploadDirectory =
+        DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
                                                                         .build());
 
-        CompletedUploadDirectory completedUploadDirectory = uploadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+        CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
 
-        assertThat(completedUploadDirectory.failedUploads()).hasSize(1);
-        assertThat(completedUploadDirectory.failedUploads().iterator().next().exception()).isEqualTo(exception);
-        assertThat(completedUploadDirectory.failedUploads().iterator().next().request().source().toString()).isEqualTo("test/2");
+        assertThat(completedDirectoryUpload.failedTransfers()).hasSize(1);
+        assertThat(completedDirectoryUpload.failedTransfers().iterator().next().exception()).isEqualTo(exception);
+        assertThat(completedDirectoryUpload.failedTransfers().iterator().next().request().source().toString()).isEqualTo("test/2");
     }
 
-    private Upload newUpload(CompletableFuture<CompletedUpload> future) {
-        return new DefaultUpload(future,
+    private FileUpload newUpload(CompletableFuture<CompletedFileUpload> future) {
+        return new DefaultFileUpload(future,
                                  new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build())
         );
     }

@@ -25,7 +25,7 @@ public class CompletedUploadTest {
     @Test
     public void responseNull_shouldThrowException() {
         assertThatThrownBy(() -> CompletedUpload.builder().build()).isInstanceOf(NullPointerException.class)
-                                                                   .hasMessageContaining("must not be null");
+                                                                       .hasMessageContaining("must not be null");
     }
 
     @Test
