@@ -57,9 +57,9 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
      * @see #builder()
      */
     private AwsCredentialsProviderChain(BuilderImpl builder) {
+        Validate.notEmpty(builder.credentialsProviders, "No credential providers were specified.");
         this.reuseLastProviderEnabled = builder.reuseLastProviderEnabled;
-        this.credentialsProviders = Collections.unmodifiableList(
-                Validate.notEmpty(builder.credentialsProviders, "No credential providers were specified."));
+        this.credentialsProviders = Collections.unmodifiableList(builder.credentialsProviders);
     }
 
     /**

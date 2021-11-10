@@ -67,6 +67,7 @@ public class EndpointOverrideEndpointResolutionTest {
                            .endpointOverride(testCase.endpointUrl)
                            .serviceConfiguration(testCase.s3ControlConfiguration)
                            .httpClient(mockHttpClient)
+                           .dualstackEnabled(testCase.clientDualstackEnabled)
                            .overrideConfiguration(c -> c.putAdvancedOption(SdkAdvancedClientOption.SIGNER, mockSigner))
                            .build();
 
@@ -199,10 +200,17 @@ public class EndpointOverrideEndpointResolutionTest {
                                 .setExpectedSigningServiceName("s3-outposts")
                                 .setExpectedSigningRegion(Region.US_WEST_2));
 
-        cases.add(new TestCase().setCaseName("get-access-point by access point name with dualstack")
+        cases.add(new TestCase().setCaseName("get-access-point by access point name with dualstack via service config")
                                 .setGetAccessPointRequest(r -> r.name("apname").accountId("123456789012"))
                                 .setEndpointUrl("https://beta.example.com")
                                 .setS3ControlConfiguration(c -> c.dualstackEnabled(true))
+                                .setClientRegion(Region.US_WEST_2)
+                                .setExpectedException(IllegalArgumentException.class));
+
+        cases.add(new TestCase().setCaseName("get-access-point by access point name with dualstack via client builder")
+                                .setGetAccessPointRequest(r -> r.name("apname").accountId("123456789012"))
+                                .setEndpointUrl("https://beta.example.com")
+                                .setClientDualstackEnabled(true)
                                 .setClientRegion(Region.US_WEST_2)
                                 .setExpectedException(IllegalArgumentException.class));
 
@@ -242,6 +250,7 @@ public class EndpointOverrideEndpointResolutionTest {
         private String expectedSigningServiceName;
         private Region expectedSigningRegion;
         private Class<? extends RuntimeException> expectedException;
+        private Boolean clientDualstackEnabled;
 
         public TestCase setCaseName(String caseName) {
             this.caseName = caseName;
@@ -283,6 +292,11 @@ public class EndpointOverrideEndpointResolutionTest {
 
         public TestCase setClientRegion(Region clientRegion) {
             this.clientRegion = clientRegion;
+            return this;
+        }
+
+        public TestCase setClientDualstackEnabled(Boolean clientDualstackEnabled) {
+            this.clientDualstackEnabled = clientDualstackEnabled;
             return this;
         }
 

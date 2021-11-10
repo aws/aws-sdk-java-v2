@@ -123,7 +123,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         Region clientRegion = context.region();
         
         if (s3Resource.region().isPresent()) {
-            validateRegion(s3Resource, serviceConfig, clientRegion);
+            validateRegion(s3Resource, serviceConfig, clientRegion, context.fipsEnabled());
         } else {
             validateGlobalConfiguration(serviceConfig, clientRegion);
         }
@@ -144,12 +144,14 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                || !clientPartition.equals(s3Resource.partition().get());
     }
 
-    private void validateRegion(S3AccessPointResource s3Resource, S3Configuration serviceConfig, Region clientRegion) {
+    private void validateRegion(S3AccessPointResource s3Resource, S3Configuration serviceConfig, Region clientRegion,
+                                boolean fipsEnabledOnClient) {
         String arnRegion = s3Resource.region().get();
         Validate.isFalse(isFipsRegion(arnRegion), "Invalid ARN, FIPS region is not allowed in ARN."
                                                  + " Provided arn region: '" + arnRegion + "'.");
 
-        Validate.isFalse(isFipsRegion(clientRegion.id()) && clientRegionDiffersFromArnRegion(clientRegion, arnRegion),
+        boolean fipsEnabled = fipsEnabledOnClient || isFipsRegion(clientRegion.id());
+        Validate.isFalse(fipsEnabled && clientRegionDiffersFromArnRegion(clientRegion, arnRegion),
                         String.format("The region field of the ARN being passed as a bucket parameter to an S3 operation "
                                       + "does not match the region the client was configured with. " +
                                       "Cross region access not allowed for fips region in client or arn."
@@ -199,7 +201,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                    .endpointOverride(context.endpointOverride())
                                    .accessPointName(s3EndpointResource.accessPointName())
                                    .accountId(s3EndpointResource.accountId().get())
-                                   .fipsEnabled(isFipsRegion(context.region().toString()))
+                                   .fipsEnabled(isFipsEnabled(context))
                                    .region(s3EndpointResource.region().orElse(null))
                                    .protocol(context.request().protocol())
                                    .domain(clientPartitionMetadata.dnsSuffix())
@@ -223,7 +225,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                                + "operation if the S3 client has been configured with dualstack");
         }
 
-        if (isFipsRegion(context.region().toString())) {
+        if (isFipsEnabled(context)) {
             throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3"
                                                + " operation if the S3 client has been configured with a FIPS"
                                                + " enabled region.");
@@ -255,7 +257,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                             .region(s3EndpointResource.region().get())
                                             .accessPointName(s3EndpointResource.accessPointName())
                                             .protocol(context.request().protocol())
-                                            .fipsEnabled(isFipsRegion(context.region().toString()))
+                                            .fipsEnabled(isFipsEnabled(context))
                                             .dualstackEnabled(isDualstackEnabled(context.serviceConfiguration()))
                                             .domain(clientPartitionMetadata.dnsSuffix())
                                             .toUri();
@@ -271,6 +273,10 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         }
 
         return Optional.empty();
+    }
+
+    private boolean isFipsEnabled(S3EndpointResolverContext context) {
+        return context.fipsEnabled() || isFipsRegion(context.region().toString());
     }
 
 }
