@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.apache;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.mockito.Mockito.verify;
@@ -25,21 +26,30 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_C
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
+import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.UnknownHostException;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.conn.SystemDefaultDnsResolver;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientTestSuite;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.impl.ConnectionManagerAwareHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -147,5 +157,70 @@ public class ApacheHttpClientWireMockTest extends SdkHttpClientTestSuite {
         testForResponseCodeUsingHttps(client, HttpURLConnection.HTTP_OK);
 
         mockProxyServer.verify(2, RequestPatternBuilder.allRequests());
+    }
+
+    @Test
+    public void overrideDnsResolver_WithDnsMatchingResolver_successful() throws Exception {
+        overrideDnsResolver("magic.local.host");
+    }
+
+    @Test(expected = UnknownHostException.class)
+    public void overrideDnsResolver_WithUnknownHost_throwsException() throws Exception {
+        overrideDnsResolver("sad.local.host");
+    }
+
+    @Test
+    public void overrideDnsResolver_WithLocalhost_successful() throws Exception {
+        overrideDnsResolver("localhost");
+    }
+
+    @Test
+    public void explicitNullDnsResolver_WithLocalhost_successful() throws Exception {
+        overrideDnsResolver("localhost", true);
+    }
+
+    private void overrideDnsResolver(String hostName) throws IOException {
+        overrideDnsResolver(hostName, false);
+    }
+
+    private void overrideDnsResolver(String hostName, boolean nullifyResolver) throws IOException {
+
+        DnsResolver dnsResolver = new SystemDefaultDnsResolver() {
+            @Override
+            public InetAddress[] resolve(final String host) throws UnknownHostException {
+                if (host.equalsIgnoreCase("magic.local.host")) {
+                    return new InetAddress[] { InetAddress.getByName("127.0.0.1") };
+                } else {
+                    return super.resolve(host);
+                }
+            }
+        };
+        if (nullifyResolver) {
+            dnsResolver = null;
+        }
+
+        SdkHttpClient client = ApacheHttpClient.builder()
+                                               .dnsResolver(dnsResolver)
+                                               .buildWithDefaults(AttributeMap.builder()
+                                                                              .put(TRUST_ALL_CERTIFICATES, Boolean.TRUE)
+                                                                              .build());
+
+        mockProxyServer.resetToDefaultMappings();
+        mockProxyServer.stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withStatus(HttpURLConnection.HTTP_OK)));
+
+        URI uri = URI.create("https://" + hostName + ":" + mockProxyServer.httpsPort());
+        SdkHttpFullRequest req = SdkHttpFullRequest.builder()
+                                                   .uri(uri)
+                                                   .method(SdkHttpMethod.POST)
+                                                   .putHeader("Host", uri.getHost())
+                                                   .build();
+
+        client.prepareRequest(HttpExecuteRequest.builder()
+                                                .request(req)
+                                                .contentStreamProvider(req.contentStreamProvider().orElse(null))
+                                                .build())
+              .call();
+
+        mockProxyServer.verify(1, RequestPatternBuilder.allRequests());
     }
 }
