@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Publisher;
@@ -59,7 +58,6 @@ import software.amazon.awssdk.utils.Logger;
  *
  * The audio files used in this class don't have voice, so there won't be any transcripted text would be empty
  */
-@Ignore
 public class TranscribeStreamingIntegrationTest {
     private static final Logger log = Logger.loggerFor(TranscribeStreamingIntegrationTest.class);
 
