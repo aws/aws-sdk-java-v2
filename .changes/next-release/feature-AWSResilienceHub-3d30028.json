@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Resilience Hub",
+    "contributor": "",
+    "description": "Initial release of AWS Resilience Hub, a managed service that enables you to define, validate, and track the resilience of your applications on AWS"
+}
