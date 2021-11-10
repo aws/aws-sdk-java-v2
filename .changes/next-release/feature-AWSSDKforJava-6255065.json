@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Added a new `dualstackEnabled` property to every client builder, which can be used to make calls be invoked against AWS endpoints which return IPv6 records. This can also be enabled via the `AWS_USE_DUALSTACK_ENDPOINT` environment variable, `aws.useDualstackEndpoint` system property, or the `use_dualstack_endpoint` profile file property."
-}
