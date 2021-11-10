@@ -17,8 +17,8 @@ package software.amazon.awssdk.http.crt;
 
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
-import software.amazon.awssdk.crt.io.EventLoopGroup;
-import software.amazon.awssdk.crt.io.HostResolver;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.http.SdkAsyncHttpClientH1TestSuite;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -27,6 +27,19 @@ import software.amazon.awssdk.utils.AttributeMap;
  * Testing the scenario where h1 server sends 5xx errors.
  */
 public class H1ServerBehaviorTest extends SdkAsyncHttpClientH1TestSuite {
+
+    private static final String JDK_TLS_CLIENT_PROTOCOLS = "jdk.tls.client.protocols";
+
+    @BeforeClass
+    public static void setUp() {
+        // TODO: remove this once the dependency is fixed
+        System.setProperty(JDK_TLS_CLIENT_PROTOCOLS, "TLSv1.2");
+    }
+
+    @AfterClass
+    public static void cleanUp() {
+        System.clearProperty(JDK_TLS_CLIENT_PROTOCOLS);
+    }
 
     @Override
     protected SdkAsyncHttpClient setupClient() {
