@@ -146,7 +146,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
 
     /**
      * Creates an {@link AsyncResponseTransformer} that publishes the response body content through a {@link ResponsePublisher},
-     * which is a {@link SdkPublisher} that also contains a reference to the {@link SdkResponse} returned by the service. When
+     * which is an {@link SdkPublisher} that also contains a reference to the {@link SdkResponse} returned by the service. When
      * this transformer is used with an async client, the {@link CompletableFuture} that the client returns will be completed once
      * the {@link SdkResponse} is available and the response body <i>begins</i> streaming. (This behavior differs from some other
      * transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture} completed

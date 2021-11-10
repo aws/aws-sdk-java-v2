@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * A {@link SdkPublisher} that publishes response body content and also contains a reference to the {@link SdkResponse} returned
+ * An {@link SdkPublisher} that publishes response body content and also contains a reference to the {@link SdkResponse} returned
  * by the service.
  *
  * @param <ResponseT> Pojo response type.
