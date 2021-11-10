@@ -1,6 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "contributor": "", 
-    "type": "deprecation", 
-    "description": "Deprecated `S3Configuration.Builder`'s `dualstackEnabled` in favor of the new service-standard `S3ClientBuilder.dualstackEnabled`."
-}
