@@ -51,7 +51,6 @@ public interface AwsClientBuilder<BuilderT extends AwsClientBuilder<BuilderT, Cl
      */
     BuilderT credentialsProvider(AwsCredentialsProvider credentialsProvider);
 
-
     /**
      * Configure the region with which the SDK should communicate.
      *
@@ -62,6 +61,40 @@ public interface AwsClientBuilder<BuilderT extends AwsClientBuilder<BuilderT, Cl
      *     <li>Check the {user.home}/.aws/credentials and {user.home}/.aws/config files for the region.</li>
      *     <li>If running in EC2, check the EC2 metadata service for the region.</li>
      * </ol>
+     *
+     * <p>If the region is not found in any of the locations above, an exception will be thrown at {@link #build()} time.
      */
     BuilderT region(Region region);
+
+    /**
+     * Configure whether the SDK should use the AWS dualstack endpoint.
+     *
+     * <p>If this is not specified, the SDK will attempt to determine whether the dualstack endpoint should be used
+     * automatically using the following logic:
+     * <ol>
+     *     <li>Check the 'aws.useDualstackEndpoint' system property for 'true' or 'false'.</li>
+     *     <li>Check the 'AWS_USE_DUALSTACK_ENDPOINT' environment variable for 'true' or 'false'.</li>
+     *     <li>Check the {user.home}/.aws/credentials and {user.home}/.aws/config files for the 'use_dualstack_endpoint'
+     *     property set to 'true' or 'false'.</li>
+     * </ol>
+     *
+     * <p>If the setting is not found in any of the locations above, 'false' will be used.
+     */
+    BuilderT dualstackEnabled(Boolean dualstackEndpointEnabled);
+
+    /**
+     * Configure whether the SDK should use the AWS fips endpoints.
+     *
+     * <p>If this is not specified, the SDK will attempt to determine whether the fips endpoint should be used
+     * automatically using the following logic:
+     * <ol>
+     *     <li>Check the 'aws.useFipsEndpoint' system property for 'true' or 'false'.</li>
+     *     <li>Check the 'AWS_USE_FIPS_ENDPOINT' environment variable for 'true' or 'false'.</li>
+     *     <li>Check the {user.home}/.aws/credentials and {user.home}/.aws/config files for the 'use_fips_endpoint'
+     *     property set to 'true' or 'false'.</li>
+     * </ol>
+     *
+     * <p>If the setting is not found in any of the locations above, 'false' will be used.
+     */
+    BuilderT fipsEnabled(Boolean fipsEndpointEnabled);
 }

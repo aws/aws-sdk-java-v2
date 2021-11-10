@@ -206,6 +206,16 @@ public class S3ObjectLambdaEndpointResolutionTest {
     }
 
     @Test
+    public void objectLambdaArn_fips_resolveEndpointCorrectly() {
+        URI expectedEndpoint = URI.create("myol-123456789012.s3-object-lambda-fips.us-west-2.amazonaws.com");
+        S3Client s3Client = clientBuilder().fipsEnabled(true).build();
+        String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint/myol";
+
+        s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build());
+        assertEndpointMatches(mockHttpClient.getLastRequest(), expectedEndpoint);
+    }
+
+    @Test
     public void objectLambdaArn_crossRegion_useArnRegionTrue_resolveEndpointCorrectly() {
         URI expectedEndpoint = URI.create("myol-123456789012.s3-object-lambda.us-east-1.amazonaws.com");
         S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder()

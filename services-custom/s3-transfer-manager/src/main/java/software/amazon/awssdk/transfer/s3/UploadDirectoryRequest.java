@@ -156,7 +156,6 @@ public final class UploadDirectoryRequest
     }
 
     public interface Builder extends CopyableBuilder<Builder, UploadDirectoryRequest> {
-
         /**
          * Specify the source directory to upload. The source directory must exist.
          * Fle wildcards are not supported and treated literally. Hidden files/directories are visited.
@@ -261,6 +260,7 @@ public final class UploadDirectoryRequest
         UploadDirectoryRequest build();
     }
 
+
     private static final class DefaultBuilder implements Builder {
 
         private Path sourceDirectory;
@@ -277,6 +277,7 @@ public final class UploadDirectoryRequest
             this.bucket = request.bucket;
             this.prefix = request.prefix;
             this.configuration = request.overrideConfiguration;
+            this.delimiter = request.delimiter;
         }
 
         @Override
