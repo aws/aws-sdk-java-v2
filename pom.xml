@@ -82,6 +82,7 @@
         <module>test/sdk-native-image-test</module>
         <module>test/s3-benchmarks</module>
         <module>test/auth-sts-testing</module>
+        <module>test/region-testing</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
@@ -522,6 +523,9 @@
                         <excludes>
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
+                            <exclude>software.amazon.awssdk.regions.ServiceMetadata</exclude>
+                            <exclude>software.amazon.awssdk.regions.servicemetadata.*ServiceMetadata</exclude>
+                            <exclude>software.amazon.awssdk.regions.DefaultServiceMetadata</exclude>
                         </excludes>
 
                         <excludeModules>
@@ -555,6 +559,11 @@
                             </overrideCompatibilityChangeParameter>
                             <overrideCompatibilityChangeParameter>
                                 <compatibilityChange>METHOD_ADDED_TO_INTERFACE</compatibilityChange>
+                                <binaryCompatible>true</binaryCompatible>
+                                <sourceCompatible>true</sourceCompatible>
+                            </overrideCompatibilityChangeParameter>
+                            <overrideCompatibilityChangeParameter>
+                                <compatibilityChange>METHOD_ABSTRACT_NOW_DEFAULT</compatibilityChange>
                                 <binaryCompatible>true</binaryCompatible>
                                 <sourceCompatible>true</sourceCompatible>
                             </overrideCompatibilityChangeParameter>

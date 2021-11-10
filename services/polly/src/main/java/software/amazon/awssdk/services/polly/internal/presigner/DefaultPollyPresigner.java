@@ -35,6 +35,8 @@ import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
+import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.ClientType;
@@ -45,10 +47,10 @@ import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
-import software.amazon.awssdk.regions.providers.LazyAwsRegionProvider;
 import software.amazon.awssdk.services.polly.internal.presigner.model.transform.SynthesizeSpeechRequestMarshaller;
 import software.amazon.awssdk.services.polly.model.PollyRequest;
 import software.amazon.awssdk.services.polly.presigner.PollyPresigner;
@@ -64,21 +66,45 @@ import software.amazon.awssdk.utils.Validate;
 public final class DefaultPollyPresigner implements PollyPresigner {
     private static final String SIGNING_NAME = "polly";
     private static final String SERVICE_NAME = "polly";
-    private static final AwsRegionProvider DEFAULT_REGION_PROVIDER =
-            new LazyAwsRegionProvider(DefaultAwsRegionProviderChain::new);
-    private static final AwsCredentialsProvider DEFAULT_CREDENTIALS_PROVIDER =
-            DefaultCredentialsProvider.create();
     private static final Aws4Signer DEFAULT_SIGNER = Aws4Signer.create();
 
+    private final ProfileFile profileFile;
+    private final String profileName;
     private final Region region;
     private final AwsCredentialsProvider credentialsProvider;
     private final URI endpointOverride;
+    private final Boolean dualstackEnabled;
+    private final Boolean fipsEnabled;
 
     private DefaultPollyPresigner(BuilderImpl builder) {
-        this.region = builder.region != null ? builder.region : DEFAULT_REGION_PROVIDER.getRegion();
-        this.credentialsProvider = builder.credentialsProvider != null
-                ? builder.credentialsProvider : DEFAULT_CREDENTIALS_PROVIDER;
+        this.profileFile = ProfileFile.defaultProfileFile();
+        this.profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
+        this.region = builder.region != null ? builder.region
+                                             : DefaultAwsRegionProviderChain.builder()
+                                                                            .profileFile(() -> profileFile)
+                                                                            .profileName(profileName)
+                                                                            .build()
+                                                                            .getRegion();
+        this.credentialsProvider = builder.credentialsProvider != null ? builder.credentialsProvider
+                                                                       : DefaultCredentialsProvider.builder()
+                                                                                                   .profileFile(profileFile)
+                                                                                                   .profileName(profileName)
+                                                                                                   .build();
         this.endpointOverride = builder.endpointOverride;
+        this.dualstackEnabled = builder.dualstackEnabled != null ? builder.dualstackEnabled
+                                                                 : DualstackEnabledProvider.builder()
+                                                                                           .profileFile(() -> profileFile)
+                                                                                           .profileName(profileName)
+                                                                                           .build()
+                                                                                           .isDualstackEnabled()
+                                                                                           .orElse(false);
+        this.fipsEnabled = builder.fipsEnabled != null ? builder.fipsEnabled
+                                                       : FipsEnabledProvider.builder()
+                                                                            .profileFile(() -> profileFile)
+                                                                            .profileName(profileName)
+                                                                            .build()
+                                                                            .isFipsEnabled()
+                                                                            .orElse(false);
     }
 
     public Region region() {
@@ -219,6 +245,10 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
         return new DefaultServiceEndpointBuilder(SERVICE_NAME, "https")
                 .withRegion(region())
+                .withProfileFile(() -> profileFile)
+                .withProfileName(profileName)
+                .withDualstackEnabled(dualstackEnabled)
+                .withFipsEnabled(fipsEnabled)
                 .getServiceEndpoint();
     }
 
@@ -226,6 +256,8 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         private Region region;
         private AwsCredentialsProvider credentialsProvider;
         private URI endpointOverride;
+        private Boolean dualstackEnabled;
+        private Boolean fipsEnabled;
 
         @Override
         public Builder region(Region region) {
@@ -236,6 +268,18 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         @Override
         public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
+            return this;
+        }
+
+        @Override
+        public Builder dualstackEnabled(Boolean dualstackEnabled) {
+            this.dualstackEnabled = dualstackEnabled;
+            return this;
+        }
+
+        @Override
+        public Builder fipsEnabled(Boolean fipsEnabled) {
+            this.fipsEnabled = fipsEnabled;
             return this;
         }
 

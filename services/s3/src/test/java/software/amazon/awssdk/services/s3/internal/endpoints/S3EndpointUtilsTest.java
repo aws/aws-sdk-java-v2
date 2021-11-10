@@ -58,14 +58,10 @@ public class S3EndpointUtilsTest {
 
     @Test
     public void accelerateEndpoint() {
-        assertThat(S3EndpointUtils.accelerateEndpoint(S3Configuration.builder().build(),
-                                                      "domain",
-                                                      "https"))
+        assertThat(S3EndpointUtils.accelerateEndpoint("domain", "https"))
             .isEqualTo(URI.create("https://s3-accelerate.domain"));
 
-        assertThat(S3EndpointUtils.accelerateEndpoint(S3Configuration.builder().dualstackEnabled(true).build(),
-                                                      "domain",
-                                                      "https"))
+        assertThat(S3EndpointUtils.accelerateDualstackEndpoint("domain", "https"))
             .isEqualTo(URI.create("https://s3-accelerate.dualstack.domain"));
     }
 

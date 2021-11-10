@@ -57,7 +57,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
             builder.addMethod(endpointDiscovery());
         }
 
-        if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
+        if (model.getCustomizationConfig().getServiceConfig().getClassName() != null) {
             builder.addMethod(serviceConfigurationMethod());
             builder.addMethod(serviceConfigurationConsumerBuilderMethod());
         }
@@ -91,7 +91,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
 
     private MethodSpec serviceConfigurationMethod() {
         ClassName serviceConfiguration = ClassName.get(basePackage,
-                                                        model.getCustomizationConfig().getServiceSpecificClientConfigClass());
+                                                        model.getCustomizationConfig().getServiceConfig().getClassName());
         return MethodSpec.methodBuilder("serviceConfiguration")
                          .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
                          .returns(TypeVariableName.get("B"))
@@ -101,7 +101,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
 
     private MethodSpec serviceConfigurationConsumerBuilderMethod() {
         ClassName serviceConfiguration = ClassName.get(basePackage,
-                                                        model.getCustomizationConfig().getServiceSpecificClientConfigClass());
+                                                        model.getCustomizationConfig().getServiceConfig().getClassName());
         TypeName consumerBuilder = ParameterizedTypeName.get(ClassName.get(Consumer.class),
                                                              serviceConfiguration.nestedClass("Builder"));
         return MethodSpec.methodBuilder("serviceConfiguration")
