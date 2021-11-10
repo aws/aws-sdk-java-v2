@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.17.79-SNAPSHOT</version>
+        <version>2.17.79</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -306,6 +306,7 @@
         <module>grafana</module>
         <module>panorama</module>
         <module>chimesdkmeetings</module>
+        <module>resiliencehub</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
