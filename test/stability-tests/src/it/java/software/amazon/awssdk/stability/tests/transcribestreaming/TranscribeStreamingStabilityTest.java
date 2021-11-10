@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -41,6 +42,7 @@ import software.amazon.awssdk.stability.tests.utils.TestTranscribeStreamingSubsc
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.utils.Logger;
 
+@Disabled
 public class TranscribeStreamingStabilityTest extends AwsTestBase {
     private static final Logger log = Logger.loggerFor(TranscribeStreamingStabilityTest.class.getSimpleName());
     public static final int CONCURRENCY = 2;
