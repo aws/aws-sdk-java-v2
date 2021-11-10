@@ -99,9 +99,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private static final Logger log = Logger.loggerFor(DefaultS3Presigner.class);
 
     private static final AwsS3V4Signer DEFAULT_SIGNER = AwsS3V4Signer.create();
-    private static final S3Configuration DEFAULT_S3_CONFIGURATION = S3Configuration.builder()
-                                                                                   .checksumValidationEnabled(false)
-                                                                                   .build();
     private static final String SERVICE_NAME = "s3";
     private static final String SIGNING_NAME = "s3";
 
@@ -118,12 +115,29 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private DefaultS3Presigner(Builder b) {
         super(b);
 
-        this.serviceConfiguration = b.serviceConfiguration != null ? b.serviceConfiguration : DEFAULT_S3_CONFIGURATION;
+        S3Configuration serviceConfiguration = b.serviceConfiguration != null ? b.serviceConfiguration :
+                                                S3Configuration.builder()
+                                                               .profileFile(profileFile())
+                                                               .profileName(profileName())
+                                                               .checksumValidationEnabled(false)
+                                                               .build();
+        S3Configuration.Builder serviceConfigBuilder = serviceConfiguration.toBuilder();
+
         if (serviceConfiguration.checksumValidationEnabled()) {
             log.debug(() -> "The provided S3Configuration has ChecksumValidationEnabled set to true. Please note that "
                            + "the pre-signed request can't be executed using a web browser if checksum validation is enabled.");
         }
 
+        if (dualstackEnabled() != null && serviceConfigBuilder.dualstackEnabled() != null) {
+            throw new IllegalStateException("Dualstack has been configured in both S3Configuration and at the "
+                                            + "presigner/global level. Please limit dualstack configuration to one location.");
+        }
+
+        if (dualstackEnabled() != null) {
+            serviceConfigBuilder.dualstackEnabled(dualstackEnabled());
+        }
+
+        this.serviceConfiguration = serviceConfigBuilder.build();
 
         this.clientInterceptors = initializeInterceptors();
 
@@ -177,8 +191,13 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                          .option(SdkClientOption.ENDPOINT_OVERRIDDEN, true)
                                          .build();
         } else {
-            URI defaultEndpoint = new DefaultServiceEndpointBuilder(SERVICE_NAME, "https").withRegion(region())
-                                                                                          .getServiceEndpoint();
+            URI defaultEndpoint = new DefaultServiceEndpointBuilder(SERVICE_NAME, "https")
+                .withRegion(region())
+                .withProfileFile(this::profileFile)
+                .withProfileName(profileName())
+                .withDualstackEnabled(serviceConfiguration.dualstackEnabled())
+                .withFipsEnabled(fipsEnabled())
+                .getServiceEndpoint();
             return SdkClientConfiguration.builder()
                                          .option(SdkClientOption.ENDPOINT, defaultEndpoint)
                                          .build();

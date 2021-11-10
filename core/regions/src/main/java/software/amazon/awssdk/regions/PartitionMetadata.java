@@ -16,6 +16,7 @@
 package software.amazon.awssdk.regions;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.regions.internal.MetadataLoader;
 
 /**
  * Metadata about a partition such as aws or aws-cn.
@@ -25,20 +26,49 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @SdkPublicApi
 public interface PartitionMetadata {
+    /**
+     * Returns the DNS suffix, such as amazonaws.com for this partition. This is the DNS suffix with no
+     * {@link EndpointTag}s.
+     *
+     * @return The DNS suffix for this partition with no endpoint tags.
+     * @see #dnsSuffix(PartitionEndpointKey)
+     */
+    default String dnsSuffix() {
+        return dnsSuffix(PartitionEndpointKey.builder().build());
+    }
 
     /**
-     * Returns the DNS suffix, such as amazonaws.com for this partition.
+     * Returns the DNS suffix, such as amazonaws.com for this partition. This returns the DNS suffix associated with the tags in
+     * the provided {@link PartitionEndpointKey}.
      *
-     * @return The DNS suffix for this partition.
+     * @return The DNS suffix for this partition with the endpoint tags specified in the endpoint key, or null if one is not
+     * known.
      */
-    String dnsSuffix();
+    default String dnsSuffix(PartitionEndpointKey key) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
-     * Returns the hostname pattern, such as {service}.{region}.{dnsSuffix} for this partition.
+     * Returns the hostname pattern, such as {service}.{region}.{dnsSuffix} for this partition. This is the hostname pattern
+     * with no {@link EndpointTag}s.
      *
-     * @return The hostname pattern for this partition
+     * @return The hostname pattern for this partition with no endpoint tags.
+     * @see #hostname(PartitionEndpointKey)
      */
-    String hostname();
+    default String hostname() {
+        return hostname(PartitionEndpointKey.builder().build());
+    }
+
+    /**
+     * Returns the hostname pattern, such as {service}.{region}.{dnsSuffix} for this partition. This returns the hostname
+     * associated with the tags in the provided {@link PartitionEndpointKey}.
+     *
+     * @return The hostname pattern for this partition with the endpoint tags specified in the endpoint key, or null if one is
+     * not known.
+     */
+    default String hostname(PartitionEndpointKey key) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Returns the identifier for this partition, such as aws.

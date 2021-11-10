@@ -7,6 +7,7 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
+import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -15,6 +16,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Internal base class for {@link DefaultJsonClientBuilder} and {@link DefaultJsonAsyncClientBuilder}.
@@ -47,9 +49,25 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         ServiceConfiguration.Builder c = ((ServiceConfiguration) config.option(SdkClientOption.SERVICE_CONFIGURATION))
             .toBuilder();
-        c.profileFile(c.profileFile() != null ? c.profileFile() : config.option(SdkClientOption.PROFILE_FILE)).profileName(
-            c.profileName() != null ? c.profileName() : config.option(SdkClientOption.PROFILE_NAME));
-        return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
+        c.profileFile(c.profileFile() != null ? c.profileFile() : config.option(SdkClientOption.PROFILE_FILE));
+        c.profileName(c.profileName() != null ? c.profileName() : config.option(SdkClientOption.PROFILE_NAME));
+        if (c.dualstackEnabled() != null) {
+            Validate.validState(
+                config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED) == null,
+                "Dualstack has been configured on both ServiceConfiguration and the client/global level. Please limit dualstack configuration to one location.");
+        } else {
+            c.dualstackEnabled(config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED));
+        }
+        if (c.fipsModeEnabled() != null) {
+            Validate.validState(
+                config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED) == null,
+                "Fips has been configured on both ServiceConfiguration and the client/global level. Please limit fips configuration to one location.");
+        } else {
+            c.fipsModeEnabled(config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED));
+        }
+        return config.toBuilder().option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED, c.dualstackEnabled())
+                     .option(AwsClientOption.FIPS_ENDPOINT_ENABLED, c.fipsModeEnabled())
+                     .option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
                      .option(SdkClientOption.RETRY_POLICY, MyServiceRetryPolicy.resolveRetryPolicy(config))
                      .option(SdkClientOption.SERVICE_CONFIGURATION, c.build()).build();
     }
