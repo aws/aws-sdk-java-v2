@@ -31,7 +31,7 @@ import software.amazon.awssdk.utils.Validate;
  * @see AsyncResponseTransformer#toPublisher()
  */
 @SdkPublicApi
-public class ResponsePublisher<ResponseT extends SdkResponse> implements SdkPublisher<ByteBuffer> {
+public final class ResponsePublisher<ResponseT extends SdkResponse> implements SdkPublisher<ByteBuffer> {
 
     private final ResponseT response;
     private final SdkPublisher<ByteBuffer> publisher;

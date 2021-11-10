@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.async.SdkPublisher;
  * @see AsyncResponseTransformer#toPublisher()
  */
 @SdkInternalApi
-public class PublisherAsyncResponseTransformer<ResponseT extends SdkResponse>
+public final class PublisherAsyncResponseTransformer<ResponseT extends SdkResponse>
     implements AsyncResponseTransformer<ResponseT, ResponsePublisher<ResponseT>> {
 
     private volatile CompletableFuture<ResponsePublisher<ResponseT>> future;
