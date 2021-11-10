@@ -530,6 +530,12 @@ public interface S3Presigner extends SdkPresigner {
         Builder credentialsProvider(AwsCredentialsProvider credentialsProvider);
 
         @Override
+        Builder dualstackEnabled(Boolean dualstackEnabled);
+
+        @Override
+        Builder fipsEnabled(Boolean dualstackEnabled);
+
+        @Override
         Builder endpointOverride(URI endpointOverride);
 
         @Override

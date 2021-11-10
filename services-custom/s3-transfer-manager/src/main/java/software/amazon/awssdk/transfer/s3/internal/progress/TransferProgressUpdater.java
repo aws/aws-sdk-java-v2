@@ -24,10 +24,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.transfer.s3.CompletedTransfer;
-import software.amazon.awssdk.transfer.s3.DownloadRequest;
+import software.amazon.awssdk.transfer.s3.CompletedObjectTransfer;
+import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
 import software.amazon.awssdk.transfer.s3.TransferRequestOverrideConfiguration;
-import software.amazon.awssdk.transfer.s3.UploadRequest;
 import software.amazon.awssdk.transfer.s3.internal.progress.NotifyingAsyncRequestBody.AsyncRequestBodyListener;
 import software.amazon.awssdk.transfer.s3.internal.progress.NotifyingAsyncResponseTransformer.AsyncResponseTransformerListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
@@ -44,22 +43,10 @@ public class TransferProgressUpdater {
     private final TransferListenerContext context;
     private final TransferListenerInvoker listeners;
 
-    public TransferProgressUpdater(UploadRequest request, AsyncRequestBody requestBody) {
+    public TransferProgressUpdater(TransferObjectRequest request, AsyncRequestBody requestBody) {
         DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
         getContentLengthSafe(requestBody).ifPresent(snapshotBuilder::transferSizeInBytes);
         TransferProgressSnapshot snapshot = snapshotBuilder.build();
-        progress = new DefaultTransferProgress(snapshot);
-        context = TransferListenerContext.builder()
-                                         .request(request)
-                                         .progressSnapshot(snapshot)
-                                         .build();
-        listeners = new TransferListenerInvoker(request.overrideConfiguration()
-                                                       .map(TransferRequestOverrideConfiguration::listeners)
-                                                       .orElseGet(Collections::emptyList));
-    }
-
-    public TransferProgressUpdater(DownloadRequest request) {
-        TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder().build();
         progress = new DefaultTransferProgress(snapshot);
         context = TransferListenerContext.builder()
                                          .request(request)
@@ -97,11 +84,11 @@ public class TransferProgressUpdater {
             });
     }
 
-    public AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> wrapResponseTransformer(
-        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer) {
+    public <ResultT> AsyncResponseTransformer<GetObjectResponse, ResultT> wrapResponseTransformer(
+        AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer) {
         return new NotifyingAsyncResponseTransformer<>(
             responseTransformer,
-            new AsyncResponseTransformerListener<GetObjectResponse, GetObjectResponse>() {
+            new AsyncResponseTransformerListener<GetObjectResponse, ResultT>() {
                 @Override
                 public void beforeOnResponse(GetObjectResponse response) {
                     if (response.contentLength() != null) {
@@ -124,7 +111,7 @@ public class TransferProgressUpdater {
             });
     }
 
-    public void registerCompletion(CompletableFuture<? extends CompletedTransfer> future) {
+    public void registerCompletion(CompletableFuture<? extends CompletedObjectTransfer> future) {
         future.whenComplete((r, t) -> {
             if (t == null) {
                 listeners.transferComplete(context.copy(b -> {
@@ -143,6 +130,9 @@ public class TransferProgressUpdater {
     }
 
     private static Optional<Long> getContentLengthSafe(AsyncRequestBody requestBody) {
+        if (requestBody == null) {
+            return Optional.empty();
+        }
         // requestBody.contentLength() may throw if the file does not exist.
         // We ignore any potential exception here to defer failure
         // to the s3CrtAsyncClient call and its associated future.

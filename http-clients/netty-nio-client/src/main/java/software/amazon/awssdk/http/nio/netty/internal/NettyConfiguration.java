@@ -23,6 +23,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TCP_KEEPALI
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
@@ -101,5 +102,9 @@ public final class NettyConfiguration {
 
     public boolean tcpKeepAlive() {
         return configuration.get(TCP_KEEPALIVE);
+    }
+
+    public Duration tlsHandshakeTimeout() {
+        return configuration.get(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT);
     }
 }

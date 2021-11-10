@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3 Control", 
+    "contributor": "", 
+    "type": "deprecation", 
+    "description": "Deprecated `S3ControlConfiguration.Builder`'s `fipsModeEnabled` in favor of the new service-standard `S3ControlClientBuilder.fipsEnabled`."
+}

@@ -35,8 +35,8 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
     public ChecksumCalculatingAsyncRequestBody(SdkHttpRequest request, AsyncRequestBody wrapped, SdkChecksum sdkChecksum) {
         this.contentLength = request.firstMatchingHeader("Content-Length")
                                     .map(Long::parseLong)
-                                    .orElse(wrapped.contentLength()
-                                                   .orElse(null));
+                                    .orElseGet(() -> wrapped.contentLength()
+                                                            .orElse(null));
         this.wrapped = wrapped;
         this.sdkChecksum = sdkChecksum;
     }

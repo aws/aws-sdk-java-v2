@@ -106,6 +106,13 @@ public class RegionGenerationTest {
     }
 
     @Test
+    public void endpointTagClass() {
+        EndpointTagGenerator partitionMetadataGenerator = new EndpointTagGenerator(partitions, REGION_BASE);
+
+        assertThat(partitionMetadataGenerator, generatesTo("endpoint-tags.java"));
+    }
+
+    @Test
     public void partitionMetadataProviderClass() {
         PartitionMetadataProviderGenerator partitionMetadataProviderGenerator =
             new PartitionMetadataProviderGenerator(partitions, PARTITION_METADATA_BASE, REGION_BASE);

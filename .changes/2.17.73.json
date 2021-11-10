@@ -1,0 +1,36 @@
+{
+    "version": "2.17.73",
+    "date": "2021-11-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AmazonNimbleStudio",
+            "contributor": "",
+            "description": "Amazon Nimble Studio adds support for users to stop and start streaming sessions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect Chat now supports real-time message streaming."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "CloudFront now supports response headers policies to add HTTP headers to the responses that CloudFront sends to viewers. You can use these policies to add CORS headers, control browser caching, and more, without modifying your origin or writing any code."
+        },
+        {
+            "type": "feature",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Allow users to configure tlsNegotiationTimeout on NettyNioAsyncHttpClient"
+        }
+    ]
+}

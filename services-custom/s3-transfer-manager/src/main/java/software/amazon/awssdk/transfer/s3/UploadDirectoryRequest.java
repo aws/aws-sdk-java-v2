@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -33,8 +34,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class UploadDirectoryRequest implements TransferRequest, ToCopyableBuilder<UploadDirectoryRequest.Builder,
-    UploadDirectoryRequest> {
+public final class UploadDirectoryRequest
+    implements TransferDirectoryRequest, ToCopyableBuilder<UploadDirectoryRequest.Builder, UploadDirectoryRequest> {
 
     private final Path sourceDirectory;
     private final String bucket;
@@ -118,29 +119,40 @@ public final class UploadDirectoryRequest implements TransferRequest, ToCopyable
 
         UploadDirectoryRequest that = (UploadDirectoryRequest) o;
 
-        if (!sourceDirectory.equals(that.sourceDirectory)) {
+        if (!Objects.equals(sourceDirectory, that.sourceDirectory)) {
             return false;
         }
-        if (!bucket.equals(that.bucket)) {
+        if (!Objects.equals(bucket, that.bucket)) {
             return false;
         }
         if (!Objects.equals(prefix, that.prefix)) {
             return false;
         }
-        if (!Objects.equals(delimiter, that.delimiter)) {
+        if (!Objects.equals(overrideConfiguration, that.overrideConfiguration)) {
             return false;
         }
-        return Objects.equals(overrideConfiguration, that.overrideConfiguration);
+        return Objects.equals(delimiter, that.delimiter);
     }
 
     @Override
     public int hashCode() {
-        int result = sourceDirectory.hashCode();
-        result = 31 * result + bucket.hashCode();
+        int result = sourceDirectory != null ? sourceDirectory.hashCode() : 0;
+        result = 31 * result + (bucket != null ? bucket.hashCode() : 0);
         result = 31 * result + (prefix != null ? prefix.hashCode() : 0);
-        result = 31 * result + (delimiter != null ? delimiter.hashCode() : 0);
         result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
+        result = 31 * result + (delimiter != null ? delimiter.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("UploadDirectoryRequest")
+                       .add("sourceDirectory", sourceDirectory)
+                       .add("bucket", bucket)
+                       .add("prefix", prefix)
+                       .add("overrideConfiguration", overrideConfiguration)
+                       .add("delimiter", delimiter)
+                       .build();
     }
 
     public interface Builder extends CopyableBuilder<Builder, UploadDirectoryRequest> {

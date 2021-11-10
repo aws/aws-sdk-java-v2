@@ -166,7 +166,7 @@ class BenchmarkResultProcessor {
             return true;
         }
 
-        return Objects.equals(current.getMode(), baseline.getMode());
+        return current.getMode() == baseline.getMode();
     }
 
     private String serializeResult(List<SdkBenchmarkResult> currentData) {

@@ -85,12 +85,12 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     @Test
     public void uploadDirectory_filesSentCorrectly() {
         String prefix = "yolo";
-        UploadDirectoryTransfer uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(directory)
-                                                                           .bucket(TEST_BUCKET)
-                                                                           .prefix(prefix)
-                                                                           .overrideConfiguration(o -> o.recursive(true)));
-        CompletedUploadDirectory completedUploadDirectory = uploadDirectory.completionFuture().join();
-        assertThat(completedUploadDirectory.failedUploads()).isEmpty();
+        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(directory)
+                                                                          .bucket(TEST_BUCKET)
+                                                                          .prefix(prefix)
+                                                                          .overrideConfiguration(o -> o.recursive(true)));
+        CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
+        assertThat(completedDirectoryUpload.failedTransfers()).isEmpty();
 
         List<String> keys =
             s3Client.listObjectsV2Paginator(b -> b.bucket(TEST_BUCKET).prefix(prefix)).contents().stream().map(S3Object::key)
@@ -105,13 +105,13 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     public void uploadDirectory_withDelimiter_filesSentCorrectly() {
         String prefix = "hello";
         String delimiter = "0";
-        UploadDirectoryTransfer uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(directory)
-                                                                           .bucket(TEST_BUCKET)
-                                                                           .delimiter(delimiter)
-                                                                           .prefix(prefix)
-                                                                           .overrideConfiguration(o -> o.recursive(true)));
-        CompletedUploadDirectory completedUploadDirectory = uploadDirectory.completionFuture().join();
-        assertThat(completedUploadDirectory.failedUploads()).isEmpty();
+        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(directory)
+                                                                          .bucket(TEST_BUCKET)
+                                                                          .delimiter(delimiter)
+                                                                          .prefix(prefix)
+                                                                          .overrideConfiguration(o -> o.recursive(true)));
+        CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
+        assertThat(completedDirectoryUpload.failedTransfers()).isEmpty();
 
         List<String> keys =
             s3Client.listObjectsV2Paginator(b -> b.bucket(TEST_BUCKET).prefix(prefix)).contents().stream().map(S3Object::key)

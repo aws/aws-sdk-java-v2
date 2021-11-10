@@ -73,9 +73,31 @@ public class OutpostAccessPointArnEndpointResolutionTest {
     }
 
     @Test
+    public void outpostArn_dualstackEnabledViaClient_throwsIllegalArgumentException() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().dualstackEnabled(true).build();
+        String outpostArn = "arn:aws:s3-outposts:ap-south-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
+
+        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(outpostArn).build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("dualstack");
+    }
+
+    @Test
     public void outpostArn_fipsRegion_throwsIllegalArgumentException() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().region(Region.of("fips-us-east-1")).serviceConfiguration(S3Configuration.builder().dualstackEnabled(false).build()).build();
+        String outpostArn = "arn:aws:s3-outposts:us-east-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
+
+        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(outpostArn).build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("FIPS");
+    }
+
+    @Test
+    public void outpostArn_fipsEnabled_throwsIllegalArgumentException() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().region(Region.US_EAST_1).fipsEnabled(true).build();
         String outpostArn = "arn:aws:s3-outposts:us-east-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
 
         assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(outpostArn).build()))

@@ -23,7 +23,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.transfer.s3.Download;
+import software.amazon.awssdk.transfer.s3.FileDownload;
 import software.amazon.awssdk.utils.Logger;
 
 public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchmark {
@@ -75,9 +75,9 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
     private void downloadOnceToFile(List<Double> latencies) {
         Path downloadPath = new File(this.path).toPath();
         long start = System.currentTimeMillis();
-        Download download =
-            transferManager.download(b -> b.getObjectRequest(r -> r.bucket(bucket).key(key))
-                                           .destination(downloadPath));
+        FileDownload download =
+            transferManager.downloadFile(b -> b.getObjectRequest(r -> r.bucket(bucket).key(key))
+                                               .destination(downloadPath));
         download.completionFuture().join();
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);

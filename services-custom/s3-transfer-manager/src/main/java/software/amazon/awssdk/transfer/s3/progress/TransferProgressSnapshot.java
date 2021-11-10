@@ -22,9 +22,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.Download;
+import software.amazon.awssdk.transfer.s3.FileUpload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.TransferRequest;
-import software.amazon.awssdk.transfer.s3.Upload;
 
 /**
  * {@link TransferProgressSnapshot} is an <b>immutable</b>, point-in-time representation of the progress of a given transfer
@@ -32,7 +32,7 @@ import software.amazon.awssdk.transfer.s3.Upload;
  * progress of a transfer, like {@link #bytesTransferred()} and {@link #ratioTransferred()}.
  * <p>
  * {@link TransferProgressSnapshot}'s methods that return {@link Optional} are dependent upon the size of a transfer (i.e., the
- * {@code Content-Length}) being known. In the case of file-based {@link Upload}s, transfer sizes are known up front and
+ * {@code Content-Length}) being known. In the case of file-based {@link FileUpload}s, transfer sizes are known up front and
  * immediately available. In the case of {@link Download}s, the transfer size is not known until {@link S3TransferManager}
  * receives a {@link GetObjectResponse} from Amazon S3.
  * <p>
@@ -59,7 +59,7 @@ public interface TransferProgressSnapshot {
     /**
      * The total size of the transfer, in bytes, or {@link Optional#empty()} if unknown.
      * <p>
-     * In the case of file-based {@link Upload}s, transfer sizes are known up front and immediately available. In the case of
+     * In the case of file-based {@link FileUpload}s, transfer sizes are known up front and immediately available. In the case of
      * {@link Download}s, the transfer size is not known until {@link S3TransferManager} receives a {@link GetObjectResponse} from
      * Amazon S3.
      */

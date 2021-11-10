@@ -50,6 +50,11 @@ public final class ProfileProperty {
     public static final String ROLE_SESSION_NAME = "role_session_name";
 
     /**
+     * Property name for specifying how long in seconds to assume the role
+     */
+    public static final String DURATION_SECONDS = "duration_seconds";
+
+    /**
      * Property name for specifying the IAM role external id
      */
     public static final String EXTERNAL_ID = "external_id";
@@ -120,6 +125,10 @@ public final class ProfileProperty {
      * console access.
      */
     public static final String SSO_START_URL = "sso_start_url";
+
+    public static final String USE_DUALSTACK_ENDPOINT = "use_dualstack_endpoint";
+
+    public static final String USE_FIPS_ENDPOINT = "use_fips_endpoint";
 
     public static final String EC2_METADATA_SERVICE_ENDPOINT_MODE = "ec2_metadata_service_endpoint_mode";
 
