@@ -38,6 +38,14 @@ public final class ChecksumUtils {
         return instance.digest();
     }
 
+    public static byte[] computeCheckSum(byte[] bytes) {
+        MessageDigest instance = createMessageDigest();
+
+        instance.update(bytes);
+
+        return instance.digest();
+    }
+
     public static byte[] computeCheckSum(ByteBuffer bb) {
         MessageDigest instance = createMessageDigest();
 

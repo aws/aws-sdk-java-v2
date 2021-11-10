@@ -77,19 +77,19 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
     public boolean resolveUploadDirectoryRecursive(UploadDirectoryRequest request) {
         return request.overrideConfiguration()
                       .flatMap(UploadDirectoryOverrideConfiguration::recursive)
-                      .orElse(options.get(UPLOAD_DIRECTORY_RECURSIVE));
+                      .orElseGet(() -> options.get(UPLOAD_DIRECTORY_RECURSIVE));
     }
 
     public boolean resolveUploadDirectoryFollowSymbolicLinks(UploadDirectoryRequest request) {
         return request.overrideConfiguration()
                       .flatMap(UploadDirectoryOverrideConfiguration::followSymbolicLinks)
-                      .orElse(options.get(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS));
+                      .orElseGet(() -> options.get(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS));
     }
 
     public int resolveUploadDirectoryMaxDepth(UploadDirectoryRequest request) {
         return request.overrideConfiguration()
                       .flatMap(UploadDirectoryOverrideConfiguration::maxDepth)
-                      .orElse(options.get(UPLOAD_DIRECTORY_MAX_DEPTH));
+                      .orElseGet(() -> options.get(UPLOAD_DIRECTORY_MAX_DEPTH));
     }
 
     @Override

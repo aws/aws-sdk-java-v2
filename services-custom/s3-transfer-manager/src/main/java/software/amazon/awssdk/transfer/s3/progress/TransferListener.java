@@ -22,21 +22,22 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
-import software.amazon.awssdk.transfer.s3.CompletedDownload;
-import software.amazon.awssdk.transfer.s3.CompletedTransfer;
-import software.amazon.awssdk.transfer.s3.CompletedUpload;
-import software.amazon.awssdk.transfer.s3.DownloadRequest;
+import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.CompletedObjectTransfer;
+import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
 import software.amazon.awssdk.transfer.s3.TransferRequest;
-import software.amazon.awssdk.transfer.s3.UploadRequest;
+import software.amazon.awssdk.transfer.s3.UploadFileRequest;
 
 /**
  * The {@link TransferListener} interface may be implemented by your application in order to receive event-driven updates on the
- * progress of a transfer initiated by {@link S3TransferManager}. When you construct an {@link UploadRequest} or {@link
- * DownloadRequest} request to submit to {@link S3TransferManager}, you may provide a variable number of {@link TransferListener}s
- * to be associated with that request. Then, throughout the lifecycle of the request, {@link S3TransferManager} will invoke the
- * provided {@link TransferListener}s when important events occur, like additional bytes being transferred, allowing you to
- * monitor the ongoing progress of the transfer.
+ * progress of a transfer initiated by {@link S3TransferManager}. When you construct an {@link UploadFileRequest} or {@link
+ * DownloadFileRequest} request to submit to {@link S3TransferManager}, you may provide a variable number of {@link
+ * TransferListener}s to be associated with that request. Then, throughout the lifecycle of the request, {@link S3TransferManager}
+ * will invoke the provided {@link TransferListener}s when important events occur, like additional bytes being transferred,
+ * allowing you to monitor the ongoing progress of the transfer.
  * <p>
  * Each {@link TransferListener} callback is invoked with an immutable {@link Context} object. Depending on the current lifecycle
  * of the request, different {@link Context} objects have different attributes available (indicated by the provided context
@@ -198,10 +199,10 @@ public interface TransferListener {
         @SdkPreviewApi
         public interface TransferInitiated {
             /**
-             * The {@link TransferRequest} that was submitted to {@link S3TransferManager}, i.e., the {@link UploadRequest} or
-             * {@link DownloadRequest}.
+             * The {@link TransferRequest} that was submitted to {@link S3TransferManager}, i.e., the {@link UploadFileRequest} or
+             * {@link DownloadFileRequest}.
              */
-            TransferRequest request();
+            TransferObjectRequest request();
 
             /**
              * The immutable {@link TransferProgressSnapshot} for this specific update.
@@ -241,9 +242,9 @@ public interface TransferListener {
         @SdkPreviewApi
         public interface TransferComplete extends BytesTransferred {
             /**
-             * The completed transfer, i.e., the {@link CompletedUpload} or {@link CompletedDownload}.
+             * The completed transfer, i.e., the {@link CompletedFileUpload} or {@link CompletedFileDownload}.
              */
-            CompletedTransfer completedTransfer();
+            CompletedObjectTransfer completedTransfer();
         }
 
         /**

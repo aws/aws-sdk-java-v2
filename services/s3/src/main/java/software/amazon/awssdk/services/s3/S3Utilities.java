@@ -19,11 +19,14 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
+import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -41,6 +44,7 @@ import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverF
 import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverFactoryContext;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -76,8 +80,9 @@ public final class S3Utilities {
     private final Region region;
     private final URI endpoint;
     private final S3Configuration s3Configuration;
-    private final ProfileFile profileFile;
+    private final Supplier<ProfileFile> profileFile;
     private final String profileName;
+    private final boolean fipsEnabled;
 
     /**
      * SDK currently validates that region is present while constructing {@link S3Utilities} object.
@@ -86,9 +91,47 @@ public final class S3Utilities {
     private S3Utilities(Builder builder) {
         this.region = Validate.paramNotNull(builder.region, "Region");
         this.endpoint = builder.endpoint;
-        this.s3Configuration = builder.s3Configuration;
-        this.profileFile = builder.profileFile;
+        this.profileFile = builder.profileFile != null ? () -> builder.profileFile
+                                                       : new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
         this.profileName = builder.profileName;
+
+        if (builder.s3Configuration == null) {
+            this.s3Configuration = S3Configuration.builder().dualstackEnabled(builder.dualstackEnabled).build();
+        } else {
+            this.s3Configuration = builder.s3Configuration.toBuilder()
+                                                          .applyMutation(b -> resolveDualstackSetting(b, builder))
+                                                          .build();
+        }
+
+        this.fipsEnabled = builder.fipsEnabled != null ? builder.fipsEnabled
+                                                       : FipsEnabledProvider.builder()
+                                                                            .profileFile(profileFile)
+                                                                            .profileName(profileName)
+                                                                            .build()
+                                                                            .isFipsEnabled()
+                                                                            .orElse(false);
+    }
+
+    private void resolveDualstackSetting(S3Configuration.Builder s3ConfigBuilder, Builder s3UtiltiesBuilder) {
+        Validate.validState(s3ConfigBuilder.dualstackEnabled() == null || s3UtiltiesBuilder.dualstackEnabled == null,
+                            "Only one of S3Configuration.Builder's dualstackEnabled or S3Utilities.Builder's dualstackEnabled "
+                            + "should be set.");
+
+        if (s3ConfigBuilder.dualstackEnabled() != null) {
+            return;
+        }
+
+        if (s3UtiltiesBuilder.dualstackEnabled != null) {
+            s3ConfigBuilder.dualstackEnabled(s3UtiltiesBuilder.dualstackEnabled);
+            return;
+        }
+
+        s3ConfigBuilder.dualstackEnabled(DualstackEnabledProvider.builder()
+                                                                 .profileFile(profileFile)
+                                                                 .profileName(profileName)
+                                                                 .build()
+                                                                 .isDualstackEnabled()
+                                                                 .orElse(false));
     }
 
     /**
@@ -167,6 +210,7 @@ public final class S3Utilities {
                                                                              .region(resolvedRegion)
                                                                              .endpointOverride(getUrlRequest.endpoint())
                                                                              .serviceConfiguration(s3Configuration)
+                                                                             .fipsEnabled(fipsEnabled)
                                                                              .build();
 
         S3EndpointResolverFactoryContext resolverFactoryContext = S3EndpointResolverFactoryContext.builder()
@@ -199,11 +243,14 @@ public final class S3Utilities {
      */
     private URI resolveEndpoint(URI requestOverrideEndpoint, Region region) {
         URI overrideEndpoint = requestOverrideEndpoint != null ? requestOverrideEndpoint : endpoint;
-        return overrideEndpoint != null ? overrideEndpoint
-                                : new DefaultServiceEndpointBuilder("s3", "https").withRegion(region)
-                                                                                  .withProfileFile(profileFile)
-                                                                                  .withProfileName(profileName)
-                                                                                  .getServiceEndpoint();
+        return overrideEndpoint != null
+               ? overrideEndpoint
+               : new DefaultServiceEndpointBuilder("s3", "https").withRegion(region)
+                                                                 .withProfileFile(profileFile)
+                                                                 .withProfileName(profileName)
+                                                                 .withDualstackEnabled(s3Configuration.dualstackEnabled())
+                                                                 .withFipsEnabled(fipsEnabled)
+                                                                 .getServiceEndpoint();
     }
 
     /**
@@ -242,6 +289,8 @@ public final class S3Utilities {
         private S3Configuration s3Configuration;
         private ProfileFile profileFile;
         private String profileName;
+        private Boolean dualstackEnabled;
+        private Boolean fipsEnabled;
 
         private Builder() {
         }
@@ -269,6 +318,44 @@ public final class S3Utilities {
          */
         public Builder endpoint(URI endpoint) {
             this.endpoint = endpoint;
+            return this;
+        }
+
+        /**
+         * Configure whether the SDK should use the AWS dualstack endpoint.
+         *
+         * <p>If this is not specified, the SDK will attempt to determine whether the dualstack endpoint should be used
+         * automatically using the following logic:
+         * <ol>
+         *     <li>Check the 'aws.useDualstackEndpoint' system property for 'true' or 'false'.</li>
+         *     <li>Check the 'AWS_USE_DUALSTACK_ENDPOINT' environment variable for 'true' or 'false'.</li>
+         *     <li>Check the {user.home}/.aws/credentials and {user.home}/.aws/config files for the 'use_dualstack_endpoint'
+         *     property set to 'true' or 'false'.</li>
+         * </ol>
+         *
+         * <p>If the setting is not found in any of the locations above, 'false' will be used.
+         */
+        public Builder dualstackEnabled(Boolean dualstackEnabled) {
+            this.dualstackEnabled = dualstackEnabled;
+            return this;
+        }
+
+        /**
+         * Configure whether the SDK should use the AWS fips endpoint.
+         *
+         * <p>If this is not specified, the SDK will attempt to determine whether the fips endpoint should be used
+         * automatically using the following logic:
+         * <ol>
+         *     <li>Check the 'aws.useFipsEndpoint' system property for 'true' or 'false'.</li>
+         *     <li>Check the 'AWS_USE_FIPS_ENDPOINT' environment variable for 'true' or 'false'.</li>
+         *     <li>Check the {user.home}/.aws/credentials and {user.home}/.aws/config files for the 'use_fips_endpoint'
+         *     property set to 'true' or 'false'.</li>
+         * </ol>
+         *
+         * <p>If the setting is not found in any of the locations above, 'false' will be used.
+         */
+        public Builder fipsEnabled(Boolean fipsEnabled) {
+            this.fipsEnabled = fipsEnabled;
             return this;
         }
 

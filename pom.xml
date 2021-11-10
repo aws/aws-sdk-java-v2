@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.17.72-SNAPSHOT</version>
+    <version>2.17.79-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -82,13 +82,14 @@
         <module>test/sdk-native-image-test</module>
         <module>test/s3-benchmarks</module>
         <module>test/auth-sts-testing</module>
+        <module>test/region-testing</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.17.71</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.17.78</awsjavasdk.previous.version>
         <jackson.version>2.12.3</jackson.version>
         <jackson.databind.version>2.12.3</jackson.databind.version>
         <jacksonjr.version>2.12.3</jacksonjr.version>
@@ -522,8 +523,9 @@
                         <excludes>
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
-                            <exclude>software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingAsyncRequestBody</exclude>
-                            <exclude>software.amazon.awssdk.protocols.core.OperationInfo</exclude>
+                            <exclude>software.amazon.awssdk.regions.ServiceMetadata</exclude>
+                            <exclude>software.amazon.awssdk.regions.servicemetadata.*ServiceMetadata</exclude>
+                            <exclude>software.amazon.awssdk.regions.DefaultServiceMetadata</exclude>
                         </excludes>
 
                         <excludeModules>
@@ -557,6 +559,11 @@
                             </overrideCompatibilityChangeParameter>
                             <overrideCompatibilityChangeParameter>
                                 <compatibilityChange>METHOD_ADDED_TO_INTERFACE</compatibilityChange>
+                                <binaryCompatible>true</binaryCompatible>
+                                <sourceCompatible>true</sourceCompatible>
+                            </overrideCompatibilityChangeParameter>
+                            <overrideCompatibilityChangeParameter>
+                                <compatibilityChange>METHOD_ABSTRACT_NOW_DEFAULT</compatibilityChange>
                                 <binaryCompatible>true</binaryCompatible>
                                 <sourceCompatible>true</sourceCompatible>
                             </overrideCompatibilityChangeParameter>

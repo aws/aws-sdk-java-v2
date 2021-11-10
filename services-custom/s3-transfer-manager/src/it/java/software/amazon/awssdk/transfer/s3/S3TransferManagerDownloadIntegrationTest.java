@@ -24,6 +24,9 @@ import java.nio.file.Path;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
@@ -46,7 +49,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
                                      .build(), file.toPath());
         tm = S3TransferManager.builder()
                               .s3ClientConfiguration(b -> b.region(DEFAULT_REGION)
-                                                                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN))
+                                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN))
                               .build();
     }
 
@@ -58,15 +61,30 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     }
 
     @Test
-    public void download_shouldWork() throws IOException {
+    public void download_toFile() throws IOException {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
-        Download download = tm.download(DownloadRequest.builder()
-                                                       .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
-                                                       .destination(path)
-                                                       .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
-                                                       .build());
-        CompletedDownload completedDownload = download.completionFuture().join();
+        FileDownload download =
+            tm.downloadFile(DownloadFileRequest.builder()
+                                               .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                               .destination(path)
+                                               .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                               .build());
+        CompletedFileDownload completedFileDownload = download.completionFuture().join();
         assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
-        assertThat(completedDownload.response().responseMetadata().requestId()).isNotNull();
+        assertThat(completedFileDownload.response().responseMetadata().requestId()).isNotNull();
+    }
+
+    @Test
+    public void download_toBytes() throws Exception {
+        Download<ResponseBytes<GetObjectResponse>> download =
+            tm.download(DownloadRequest.builder()
+                                       .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                       .responseTransformer(AsyncResponseTransformer.toBytes())
+                                       .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                       .build());
+        CompletedDownload<ResponseBytes<GetObjectResponse>> completedDownload = download.completionFuture().join();
+        ResponseBytes<GetObjectResponse> result = completedDownload.result();
+        assertThat(Md5Utils.md5AsBase64(result.asByteArray())).isEqualTo(Md5Utils.md5AsBase64(file));
+        assertThat(result.response().responseMetadata().requestId()).isNotNull();
     }
 }

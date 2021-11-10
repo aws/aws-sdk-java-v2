@@ -19,7 +19,10 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * A completed transfer.
+ * The parent interface for all completed transfers.
+ * 
+ * @see CompletedObjectTransfer
+ * @see CompletedDirectoryTransfer
  */
 @SdkPublicApi
 @SdkPreviewApi

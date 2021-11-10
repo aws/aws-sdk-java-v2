@@ -77,7 +77,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         @Override
         public Consumer<StaticTableMetadata.Builder> modifyMetadata(String attributeName,
                                                                     AttributeValueType attributeValueType) {
-            if (!AttributeValueType.N.equals(attributeValueType)) {
+            if (attributeValueType != AttributeValueType.N) {
                 throw new IllegalArgumentException(String.format(
                     "Attribute '%s' of type %s is not a suitable type to be used as a version attribute. Only type 'N' " +
                         "is supported.", attributeName, attributeValueType.name()));

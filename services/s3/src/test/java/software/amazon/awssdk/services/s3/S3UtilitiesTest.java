@@ -159,6 +159,35 @@ public class S3UtilitiesTest {
     }
 
     @Test
+    public void testWithAccelerateAndDualStackViaClientEnabled() throws MalformedURLException {
+        S3Utilities utilities = S3Client.builder()
+                                        .credentialsProvider(dummyCreds())
+                                        .region(Region.US_WEST_2)
+                                        .serviceConfiguration(S3Configuration.builder()
+                                                                             .accelerateModeEnabled(true)
+                                                                             .build())
+                                        .dualstackEnabled(true)
+                                        .build()
+                                        .utilities();
+
+        assertThat(utilities.getUrl(requestWithSpecialCharacters())
+                            .toExternalForm())
+            .isEqualTo("https://foo-bucket.s3-accelerate.dualstack.amazonaws.com/key%20with%40spaces");
+    }
+
+    @Test
+    public void testWithDualStackViaUtilitiesBuilderEnabled() throws MalformedURLException {
+        S3Utilities utilities = S3Utilities.builder()
+                                           .region(Region.US_WEST_2)
+                                           .dualstackEnabled(true)
+                                           .build();
+
+        assertThat(utilities.getUrl(requestWithSpecialCharacters())
+                            .toExternalForm())
+            .isEqualTo("https://foo-bucket.s3.dualstack.us-west-2.amazonaws.com/key%20with%40spaces");
+    }
+
+    @Test
     public void testAsync() throws MalformedURLException {
         assertThat(utilitiesFromAsyncClient.getUrl(requestWithoutSpaces())
                                            .toExternalForm())

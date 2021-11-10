@@ -26,6 +26,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import software.amazon.awssdk.codegen.lite.CodeGenerator;
+import software.amazon.awssdk.codegen.lite.regions.EndpointTagGenerator;
 import software.amazon.awssdk.codegen.lite.regions.PartitionMetadataGenerator;
 import software.amazon.awssdk.codegen.lite.regions.PartitionMetadataProviderGenerator;
 import software.amazon.awssdk.codegen.lite.regions.RegionGenerator;
@@ -71,6 +72,7 @@ public class RegionGenerationMojo extends AbstractMojo {
         generatePartitionProvider(baseSourcesDirectory, partitions);
         generateRegionProvider(baseSourcesDirectory, partitions);
         generateServiceProvider(baseSourcesDirectory, partitions);
+        generateEndpointTags(baseSourcesDirectory, partitions);
 
         project.addCompileSourceRoot(baseSourcesDirectory.toFile().getAbsolutePath());
         project.addTestCompileSourceRoot(testsDirectory.toFile().getAbsolutePath());
@@ -137,5 +139,10 @@ public class RegionGenerationMojo extends AbstractMojo {
                                                                                             SERVICE_METADATA_BASE,
                                                                                             REGION_BASE))
             .generate();
+    }
+
+    public void generateEndpointTags(Path baseSourcesDirectory, Partitions partitions) {
+        Path sourcesDirectory = baseSourcesDirectory.resolve(REGION_BASE.replace(".", "/"));
+        new CodeGenerator(sourcesDirectory.toString(), new EndpointTagGenerator(partitions, REGION_BASE)).generate();
     }
 }
