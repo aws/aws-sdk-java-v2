@@ -1,3 +1,37 @@
+# __2.17.79__ __2021-11-10__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup SDK provides new options when scheduling backups: select supported services and resources that are assigned to a particular tag, linked to a combination of tags, or can be identified by a partial tag value, and exclude resources from their assignments.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - Initial release of AWS Resilience Hub, a managed service that enables you to define, validate, and track the resilience of your applications on AWS
+
+## __AWS SDK for Java__
+  - ### Features
+    - Added a new `dualstackEnabled` property to every client builder, which can be used to make calls be invoked against AWS endpoints which return IPv6 records. This can also be enabled via the `AWS_USE_DUALSTACK_ENDPOINT` environment variable, `aws.useDualstackEndpoint` system property, or the `use_dualstack_endpoint` profile file property.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added a new `fipsEnabled` property to every client builder, which can be used to make calls be invoked against AWS endpoints which are FIPS compliant. This can also be enabled via the `AWS_USE_FIPS_ENDPOINT` environment variable, `aws.useFipsEndpoint` system property, or the `use_fips_endpoint` profile file property.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for container instance health.
+
+## __Amazon S3__
+  - ### Deprecations
+    - Deprecated `S3Configuration.Builder`'s `dualstackEnabled` in favor of the new service-standard `S3ClientBuilder.dualstackEnabled`.
+
+## __Amazon S3 Control__
+  - ### Deprecations
+    - Deprecated `S3ControlConfiguration.Builder`'s `dualstackEnabled` in favor of the new service-standard `S3ControlClientBuilder.dualstackEnabled`.
+    - Deprecated `S3ControlConfiguration.Builder`'s `fipsModeEnabled` in favor of the new service-standard `S3ControlClientBuilder.fipsEnabled`.
+
+## __Apache HTTP Client__
+  - ### Features
+    - Add DNS resolver override support for Apache HTTP Client
+
 # __2.17.78__ __2021-11-09__
 ## __AWS Batch__
   - ### Features
