@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB",
-    "contributor": "",
-    "description": "Updated Help section for \"dynamodb update-contributor-insights\" API"
-}
