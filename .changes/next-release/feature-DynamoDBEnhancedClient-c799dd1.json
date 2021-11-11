@@ -1,0 +1,6 @@
+{
+    "category": "DynamoDB Enhanced Client", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Adds atomic counter capability to the enhanced DDB client, letting users tag attributes to auto-increment on the server side"
+}
