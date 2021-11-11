@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Translate",
+    "contributor": "",
+    "description": "This release enables customers to import Multi-Directional Custom Terminology and use Multi-Directional Custom Terminology in both real-time translation and asynchronous batch translation."
+}
