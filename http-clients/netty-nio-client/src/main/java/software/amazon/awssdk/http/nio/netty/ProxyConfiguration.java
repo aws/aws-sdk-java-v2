@@ -271,7 +271,8 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             this.scheme = proxyConfiguration.scheme;
             this.host = proxyConfiguration.host;
             this.port = proxyConfiguration.port;
-            this.nonProxyHosts = proxyConfiguration.nonProxyHosts;
+            this.nonProxyHosts = proxyConfiguration.nonProxyHosts != null ?
+                                 new HashSet<>(proxyConfiguration.nonProxyHosts) : null;
             this.username = proxyConfiguration.username;
             this.password = proxyConfiguration.password;
         }
