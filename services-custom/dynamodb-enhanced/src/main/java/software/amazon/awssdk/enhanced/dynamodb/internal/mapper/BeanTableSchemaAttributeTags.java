@@ -21,6 +21,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSchemaAttributeTag;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAtomicCounter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
@@ -57,4 +58,9 @@ public final class BeanTableSchemaAttributeTags {
     public static StaticAttributeTag attributeTagFor(DynamoDbUpdateBehavior annotation) {
         return StaticAttributeTags.updateBehavior(annotation.value());
     }
+
+    public static StaticAttributeTag attributeTagFor(DynamoDbAtomicCounter annotation) {
+        return StaticAttributeTags.atomicCounter(annotation.delta(), annotation.startValue());
+    }
+
 }
