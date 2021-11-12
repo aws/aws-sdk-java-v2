@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "contributor": "",
+    "description": "This Patch Manager release supports creating Patch Baselines for RaspberryPi OS (formerly Raspbian)"
+}

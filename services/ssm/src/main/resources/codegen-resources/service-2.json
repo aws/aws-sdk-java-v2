@@ -2425,7 +2425,7 @@
         },
         "AutomationTargetParameterName":{
           "shape":"AutomationTargetParameterName",
-          "documentation":"<p>Specify the target for the association. This target is required for associations that use an Automation runbook and target resources by using rate controls. Automation is a capability of Amazon Web Services Systems Manager.</p>"
+          "documentation":"<p>Choose the parameter that will define how your automation will branch out. This target is required for associations that use an Automation runbook and target resources by using rate controls. Automation is a capability of Amazon Web Services Systems Manager.</p>"
         },
         "Parameters":{
           "shape":"Parameters",
@@ -4389,7 +4389,7 @@
         },
         "AutomationTargetParameterName":{
           "shape":"AutomationTargetParameterName",
-          "documentation":"<p>Specify the target for the association. This target is required for associations that use an Automation runbook and target resources by using rate controls. Automation is a capability of Amazon Web Services Systems Manager.</p>"
+          "documentation":"<p>Choose the parameter that will define how your automation will branch out. This target is required for associations that use an Automation runbook and target resources by using rate controls. Automation is a capability of Amazon Web Services Systems Manager.</p>"
         },
         "MaxErrors":{
           "shape":"MaxErrors",
@@ -11018,7 +11018,8 @@
         "CENTOS",
         "ORACLE_LINUX",
         "DEBIAN",
-        "MACOS"
+        "MACOS",
+        "RASPBIAN"
       ]
     },
     "OpsAggregator":{
@@ -15165,7 +15166,7 @@
         },
         "AutomationTargetParameterName":{
           "shape":"AutomationTargetParameterName",
-          "documentation":"<p>Specify the target for the association. This target is required for associations that use an Automation runbook and target resources by using rate controls. Automation is a capability of Amazon Web Services Systems Manager.</p>"
+          "documentation":"<p>Choose the parameter that will define how your automation will branch out. This target is required for associations that use an Automation runbook and target resources by using rate controls. Automation is a capability of Amazon Web Services Systems Manager.</p>"
         },
         "MaxErrors":{
           "shape":"MaxErrors",
