@@ -1,3 +1,20 @@
+# __2.17.80__ __2021-11-11__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Updated Help section for "dynamodb update-contributor-insights" API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release provides an additional route target for the VPC route table.
+
+## __Amazon Translate__
+  - ### Features
+    - This release enables customers to import Multi-Directional Custom Terminology and use Multi-Directional Custom Terminology in both real-time translation and asynchronous batch translation.
+
 # __2.17.79__ __2021-11-10__
 ## __AWS Backup__
   - ### Features
