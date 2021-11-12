@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PagePublisher;
@@ -33,6 +34,8 @@ import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
+import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbAsyncWaiter;
 
 /**
  * Asynchronous interface for running commands against an object that is linked to a specific DynamoDb table resource
@@ -63,7 +66,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <p>
      * This operation calls the low-level DynamoDB API CreateTable operation. Note that this is an asynchronous operation and that
      * the table may not immediately be available for writes and reads.
-     * Consult the CreateTable documentation for further details and constraints.
+     * You can use {@link DynamoDbAsyncWaiter#waitUntilTableExists(DescribeTableRequest)} to wait for the resource to be ready.
      * <p>
      * Example:
      * <pre>
@@ -77,6 +80,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      *                                                   .provisionedThroughput(provisionedThroughput)
      *                                                   .build())
      *            .join();
+     * asyncClient.waiter().waitUntilTableExists(b -> b.tableName(tableName)).join();
      * }
      * </pre>
      *
@@ -94,8 +98,8 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * Use {@link DynamoDbEnhancedClient#table(String, TableSchema)} to define the mapped table resource.
      * <p>
      * This operation calls the low-level DynamoDB API CreateTable operation. Note that this is an asynchronous operation and that
-     * the table may not immediately be available for writes and reads.
-     * Consult the CreateTable documentation for further details and constraints.
+     * the table may not immediately be available for writes and reads. You can use
+     * {@link DynamoDbAsyncWaiter#waitUntilTableExists(DescribeTableRequest)} to wait for the resource to be ready.
      * <p>
      * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to create one
      * manually via {@link CreateTableEnhancedRequest#builder()}.
@@ -109,6 +113,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      *                                                                    .writeCapacityUnits(50L)
      *                                                                    .build();
      * mappedTable.createTable(r -> r.provisionedThroughput(provisionedThroughput)).join();
+     * asyncClient.waiter().waitUntilTableExists(b -> b.tableName(tableName)).join();
      * }
      * </pre>
      *
@@ -126,15 +131,15 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * Use {@link DynamoDbEnhancedClient#table(String, TableSchema)} to define the mapped table resource.
      * <p>
      * This operation calls the low-level DynamoDB API CreateTable operation. Note that this is an asynchronous operation and that
-     * the table may not immediately be available for writes and reads. Currently, there is no mechanism supported within this
-     * library to wait for/check the status of a created table. You must provide this functionality yourself.
-     * Consult the CreateTable documentation for further details and constraints.
+     * the table may not immediately be available for writes and reads.  You can use
+     * {@link DynamoDbAsyncWaiter#waitUntilTableExists(DescribeTableRequest)} to wait for the resource to be ready.
      * <p>
      * Example:
      * <pre>
      * {@code
      *
      * mappedTable.createTable().join();
+     * asyncClient.waiter().waitUntilTableExists(b -> b.tableName(tableName)).join();
      * }
      * </pre>
      *
@@ -859,6 +864,24 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * @return a {@link CompletableFuture} of {@link Void}.
      */
     default CompletableFuture<Void> deleteTable() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Describes a table in DynamoDb with the name defined for this {@link DynamoDbAsyncTable).
+     * This operation calls the low-level DynamoDB API DescribeTable operation,
+     * see {@link DynamoDbAsyncClient#describeTable(DescribeTableRequest)}
+     *
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * DescribeTableEnhancedResponse response = mappedTable.describeTable().join();
+     * }
+     * </pre>
+     */
+    default CompletableFuture<DescribeTableEnhancedResponse> describeTable() {
         throw new UnsupportedOperationException();
     }
 }
