@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.s3.internal.FieldWithDefault;
 import software.amazon.awssdk.services.s3.internal.settingproviders.DisableMultiRegionProviderChain;
 import software.amazon.awssdk.services.s3.internal.settingproviders.UseArnRegionProviderChain;
 import software.amazon.awssdk.services.s3.model.PutBucketAccelerateConfigurationRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -225,8 +226,11 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          * Dualstack endpoints are disabled by default.
          * </p>
          *
-         * @see S3Configuration#dualstackEnabled().
+         * @deprecated This option has been replaced with {@link S3ClientBuilder#dualstackEnabled(Boolean)} and
+         * {@link S3Presigner.Builder#dualstackEnabled(Boolean)}. If both this and one of those options are set, an exception
+         * will be thrown.
          */
+        @Deprecated
         Builder dualstackEnabled(Boolean dualstackEnabled);
 
         Boolean accelerateModeEnabled();

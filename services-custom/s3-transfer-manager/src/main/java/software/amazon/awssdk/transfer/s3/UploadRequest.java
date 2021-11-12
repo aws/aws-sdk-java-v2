@@ -17,7 +17,6 @@ package software.amazon.awssdk.transfer.s3;
 
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
@@ -25,6 +24,7 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -37,15 +37,18 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class UploadRequest implements TransferRequest, ToCopyableBuilder<UploadRequest.Builder, UploadRequest> {
-    private final PutObjectRequest putObjectRequest;
-    private final Path source;
-    private final TransferRequestOverrideConfiguration overrideConfiguration;
+public final class UploadRequest
+    implements TransferObjectRequest,
+               ToCopyableBuilder<UploadRequest.Builder, UploadRequest> {
 
-    private UploadRequest(BuilderImpl builder) {
+    private final PutObjectRequest putObjectRequest;
+    private final AsyncRequestBody requestBody;
+    private final TransferRequestOverrideConfiguration configuration;
+
+    private UploadRequest(DefaultBuilder builder) {
         this.putObjectRequest = paramNotNull(builder.putObjectRequest, "putObjectRequest");
-        this.source = paramNotNull(builder.source, "source");
-        this.overrideConfiguration = builder.configuration;
+        this.requestBody = paramNotNull(builder.requestBody, "requestBody");
+        this.configuration = builder.configuration;
     }
 
     /**
@@ -56,20 +59,21 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
     }
 
     /**
-     * The {@link Path} to file containing data to send to the service.
+     * The {@link AsyncRequestBody} containing data to send to the service.
      *
-     * @return the source path
+     * @return the request body
      */
-    public Path source() {
-        return source;
+    public AsyncRequestBody requestBody() {
+        return requestBody;
     }
 
     /**
      * @return the optional override configuration
      * @see Builder#overrideConfiguration(TransferRequestOverrideConfiguration)
      */
+    @Override
     public Optional<TransferRequestOverrideConfiguration> overrideConfiguration() {
-        return Optional.ofNullable(overrideConfiguration);
+        return Optional.ofNullable(configuration);
     }
 
     /**
@@ -78,25 +82,16 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
      * @see S3TransferManager#upload(UploadRequest)
      */
     public static Builder builder() {
-        return new BuilderImpl();
+        return new DefaultBuilder();
     }
 
     public static Class<? extends Builder> serializableBuilderClass() {
-        return BuilderImpl.class;
+        return DefaultBuilder.class;
     }
-
+    
     @Override
     public Builder toBuilder() {
-        return new BuilderImpl();
-    }
-
-    @Override
-    public String toString() {
-        return ToString.builder("UploadRequest")
-                       .add("putObjectRequest", putObjectRequest)
-                       .add("source", source)
-                       .add("overrideConfiguration", overrideConfiguration)
-                       .build();
+        return new DefaultBuilder(this);
     }
 
     @Override
@@ -113,18 +108,27 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         if (!Objects.equals(putObjectRequest, that.putObjectRequest)) {
             return false;
         }
-        if (!Objects.equals(source, that.source)) {
+        if (!Objects.equals(requestBody, that.requestBody)) {
             return false;
         }
-        return Objects.equals(overrideConfiguration, that.overrideConfiguration);
+        return Objects.equals(configuration, that.configuration);
     }
 
     @Override
     public int hashCode() {
         int result = putObjectRequest != null ? putObjectRequest.hashCode() : 0;
-        result = 31 * result + (source != null ? source.hashCode() : 0);
-        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
+        result = 31 * result + (requestBody != null ? requestBody.hashCode() : 0);
+        result = 31 * result + (configuration != null ? configuration.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("UploadRequest")
+                       .add("putObjectRequest", putObjectRequest)
+                       .add("requestBody", requestBody)
+                       .add("configuration", configuration)
+                       .build();
     }
 
     /**
@@ -132,30 +136,19 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
      */
     @SdkPublicApi
     @NotThreadSafe
-    public interface Builder extends TransferRequest.Builder<UploadRequest, Builder>, CopyableBuilder<Builder, UploadRequest> {
+    public interface Builder extends CopyableBuilder<Builder, UploadRequest> {
 
         /**
-         * The {@link Path} to file containing data to send to the service. File will be read entirely and may be read
-         * multiple times in the event of a retry. If the file does not exist or the current user does not have
-         * access to read it then an exception will be thrown.
+         * The {@link AsyncRequestBody} containing the data to send to the service. Request bodies may be declared using one of
+         * the static factory methods in the {@link AsyncRequestBody} class, or in the case of file-based requests, with the
+         * builder method: {@link #source(Path)}.
          *
-         * @param source the source path
+         * @param requestBody the request body
          * @return Returns a reference to this object so that method calls can be chained together.
+         * @see AsyncRequestBody
+         * @see #source(Path)
          */
-        Builder source(Path source);
-
-        /**
-         * The file containing data to send to the service. File will be read entirely and may be read
-         * multiple times in the event of a retry. If the file does not exist or the current user does not have
-         * access to read it then an exception will be thrown.
-         *
-         * @param source the source path
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        default Builder source(File source) {
-            Validate.paramNotNull(source, "source");
-            return this.source(source.toPath());
-        }
+        Builder requestBody(AsyncRequestBody requestBody);
 
         /**
          * Configure the {@link PutObjectRequest} that should be used for the upload
@@ -214,23 +207,32 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         UploadRequest build();
     }
 
-    private static class BuilderImpl implements Builder {
+    private static class DefaultBuilder implements Builder {
         private PutObjectRequest putObjectRequest;
-        private Path source;
+        private AsyncRequestBody requestBody;
         private TransferRequestOverrideConfiguration configuration;
 
+        private DefaultBuilder() {
+        }
+
+        private DefaultBuilder(UploadRequest uploadRequest) {
+            this.putObjectRequest = uploadRequest.putObjectRequest;
+            this.requestBody = uploadRequest.requestBody;
+            this.configuration = uploadRequest.configuration;
+        }
+
         @Override
-        public Builder source(Path source) {
-            this.source = source;
+        public Builder requestBody(AsyncRequestBody requestBody) {
+            this.requestBody = Validate.paramNotNull(requestBody, "requestBody");
             return this;
         }
 
-        public Path getSource() {
-            return source;
+        public AsyncRequestBody getRequestBody() {
+            return requestBody;
         }
 
-        public void setSource(Path source) {
-            source(source);
+        public void setRequestBody(AsyncRequestBody requestBody) {
+            requestBody(requestBody);
         }
 
         @Override

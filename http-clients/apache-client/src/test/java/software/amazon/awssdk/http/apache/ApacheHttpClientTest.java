@@ -17,9 +17,13 @@ package software.amazon.awssdk.http.apache;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.impl.conn.SystemDefaultDnsResolver;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -112,7 +116,6 @@ public class ApacheHttpClientTest {
         }).isInstanceOf(IllegalArgumentException.class);
     }
 
-
     @Test
     public void credentialProviderCanBeUsedWithProxy() {
         ProxyConfiguration proxyConfig = ProxyConfiguration.builder()
@@ -122,5 +125,24 @@ public class ApacheHttpClientTest {
                         .proxyConfiguration(proxyConfig)
                         .credentialsProvider(Mockito.mock(CredentialsProvider.class))
                         .build();
+    }
+
+    @Test
+    public void dnsResolverCanBeUsed() {
+        DnsResolver dnsResolver = new SystemDefaultDnsResolver() {
+            @Override
+            public InetAddress[] resolve(final String host) throws UnknownHostException {
+                if (host.equalsIgnoreCase("my.host.com")) {
+                    return new InetAddress[] { InetAddress.getByName("127.0.0.1") };
+                } else {
+                    return super.resolve(host);
+                }
+            }
+        };
+
+        ApacheHttpClient.builder()
+                        .dnsResolver(dnsResolver)
+                        .build()
+                        .close();
     }
 }

@@ -15,18 +15,21 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.Upload;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
+import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
 public final class DefaultUpload implements Upload {
+    
     private final CompletableFuture<CompletedUpload> completionFuture;
     private final TransferProgress progress;
 
-    public DefaultUpload(CompletableFuture<CompletedUpload> completionFuture, TransferProgress progress) {
+    DefaultUpload(CompletableFuture<CompletedUpload> completionFuture, TransferProgress progress) {
         this.completionFuture = completionFuture;
         this.progress = progress;
     }
@@ -39,5 +42,37 @@ public final class DefaultUpload implements Upload {
     @Override
     public TransferProgress progress() {
         return progress;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultUpload that = (DefaultUpload) o;
+
+        if (!Objects.equals(completionFuture, that.completionFuture)) {
+            return false;
+        }
+        return Objects.equals(progress, that.progress);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = completionFuture != null ? completionFuture.hashCode() : 0;
+        result = 31 * result + (progress != null ? progress.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("DefaultUpload")
+                       .add("completionFuture", completionFuture)
+                       .add("progress", progress)
+                       .build();
     }
 }

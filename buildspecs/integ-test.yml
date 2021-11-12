@@ -24,3 +24,10 @@ phases:
           mvn package
           mvn exec:exec -P integ-tests
         fi
+    finally:
+      - mkdir -p codebuild-test-reports
+      - find ./ -name 'TEST-*.xml' -type f -exec cp {} codebuild-test-reports/ \;
+reports:
+  IntegTests:
+    files:
+      - 'codebuild-test-reports/**/*'

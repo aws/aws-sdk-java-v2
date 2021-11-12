@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.SystemSetting;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -78,6 +79,29 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
      */
     public Optional<String> property(String propertyKey) {
         return Optional.ofNullable(properties.get(propertyKey));
+    }
+
+    /**
+     * Retrieve a specific property from this profile, and convert it to a boolean using the same algorithm as
+     * {@link SystemSetting#getBooleanValue()}.
+     *
+     * @param propertyKey The name of the property to retrieve.
+     * @return The boolean value of the property, if configured.
+     * @throws IllegalStateException If the property is set, but it is not boolean.
+     */
+    public Optional<Boolean> booleanProperty(String propertyKey) {
+        return property(propertyKey).map(property -> parseBooleanProperty(propertyKey, property));
+    }
+
+    private Boolean parseBooleanProperty(String propertyKey, String property) {
+        if (property.equalsIgnoreCase("true")) {
+            return true;
+        } else if (property.equalsIgnoreCase("false")) {
+            return false;
+        }
+
+        throw new IllegalStateException("Profile property '" + propertyKey + "' must be set to 'true', 'false' or unset, but "
+                                        + "was set to '" + property + "'.");
     }
 
     /**

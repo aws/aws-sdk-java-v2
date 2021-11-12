@@ -1,3 +1,92 @@
+# __2.17.80__ __2021-11-11__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Updated Help section for "dynamodb update-contributor-insights" API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release provides an additional route target for the VPC route table.
+
+## __Amazon Translate__
+  - ### Features
+    - This release enables customers to import Multi-Directional Custom Terminology and use Multi-Directional Custom Terminology in both real-time translation and asynchronous batch translation.
+
+# __2.17.79__ __2021-11-10__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup SDK provides new options when scheduling backups: select supported services and resources that are assigned to a particular tag, linked to a combination of tags, or can be identified by a partial tag value, and exclude resources from their assignments.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - Initial release of AWS Resilience Hub, a managed service that enables you to define, validate, and track the resilience of your applications on AWS
+
+## __AWS SDK for Java__
+  - ### Features
+    - Added a new `dualstackEnabled` property to every client builder, which can be used to make calls be invoked against AWS endpoints which return IPv6 records. This can also be enabled via the `AWS_USE_DUALSTACK_ENDPOINT` environment variable, `aws.useDualstackEndpoint` system property, or the `use_dualstack_endpoint` profile file property.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added a new `fipsEnabled` property to every client builder, which can be used to make calls be invoked against AWS endpoints which are FIPS compliant. This can also be enabled via the `AWS_USE_FIPS_ENDPOINT` environment variable, `aws.useFipsEndpoint` system property, or the `use_fips_endpoint` profile file property.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for container instance health.
+
+## __Amazon S3__
+  - ### Deprecations
+    - Deprecated `S3Configuration.Builder`'s `dualstackEnabled` in favor of the new service-standard `S3ClientBuilder.dualstackEnabled`.
+
+## __Amazon S3 Control__
+  - ### Deprecations
+    - Deprecated `S3ControlConfiguration.Builder`'s `dualstackEnabled` in favor of the new service-standard `S3ControlClientBuilder.dualstackEnabled`.
+    - Deprecated `S3ControlConfiguration.Builder`'s `fipsModeEnabled` in favor of the new service-standard `S3ControlClientBuilder.fipsEnabled`.
+
+## __Apache HTTP Client__
+  - ### Features
+    - Add DNS resolver override support for Apache HTTP Client
+
+# __2.17.78__ __2021-11-09__
+## __AWS Batch__
+  - ### Features
+    - Adds support for scheduling policy APIs.
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Documentation updates for AWS Health.
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - This release adds support for Greengrass core devices running Windows. You can now specify name of a Windows user to run a component.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+# __2.17.77__ __2021-11-08__
+## __AWS WAFV2__
+  - ### Features
+    - You can now configure rules to run a CAPTCHA check against web requests and, as needed, send a CAPTCHA challenge to the client.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Updated format validation for ids and regions.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds internal validation on the GatewayAssociationState field
+
+## __Amazon S3__
+  - ### Features
+    - [Breaking Changes] Refactor S3TransferManager (PREVIEW) to support non-file-based transfers. This release refactors the S3TransferManager interface hierarchy and client API to differentiate between file-based and non-file-based transfers, allowing arbitrary object transfers. As a result, some S3TransferManager method signatures have changed in a backwards-incompatible way. Most notably, `Upload upload(UploadRequest)` becomes `FileUpload uploadFile(UploadFileRequest)`, and likewise for download variants. Please see https://github.com/aws/aws-sdk-java-v2/pull/2817 for a full list of changes.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker CreateEndpoint and UpdateEndpoint APIs now support additional deployment configuration to manage traffic shifting options and automatic rollback monitoring. DescribeEndpoint now shows new in-progress deployment details with stage status.
+
 # __2.17.76__ __2021-11-05__
 ## __AWS Resource Groups Tagging API__
   - ### Features
