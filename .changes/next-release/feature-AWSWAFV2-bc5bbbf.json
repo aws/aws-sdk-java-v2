@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS WAFV2",
-    "contributor": "",
-    "description": "Your options for logging web ACL traffic now include Amazon CloudWatch Logs log groups and Amazon S3 buckets."
-}

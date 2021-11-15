@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "contributor": "",
-    "description": "Adds support for Session Reason and Max Session Duration for Systems Manager Session Manager."
-}

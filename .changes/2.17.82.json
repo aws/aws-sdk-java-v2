@@ -1,0 +1,72 @@
+{
+    "version": "2.17.82",
+    "date": "2021-11-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "Your options for logging web ACL traffic now include Amazon CloudWatch Logs log groups and Amazon S3 buckets."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adds a new VPC Subnet attribute \"EnableDns64.\" When enabled on IPv6 Subnets, the Amazon-Provided DNS Resolver returns synthetic IPv6 addresses for IPv4-only destinations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "Add Settings in JSON format for the source GCP MySQL endpoint"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Adds support for Session Reason and Max Session Duration for Systems Manager Session Manager."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "AWS Transfer Family now supports integrating a custom identity provider using AWS Lambda"
+        },
+        {
+            "type": "feature",
+            "category": "Migration Hub Strategy Recommendations",
+            "contributor": "",
+            "description": "AWS SDK for Migration Hub Strategy Recommendations. It includes APIs to start the portfolio assessment, import portfolio data for assessment, and to retrieve recommendations. For more information, see the AWS Migration Hub documentation at https://docs.aws.amazon.com/migrationhub/index.html"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Adding Tags support to Cluster Registrations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "This release includes support for images of AmazonLinux2 platform type."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Update the REST-JSON marshalling logic to conform to the standard expected behavior WRT to the `Content-Type` of the request."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "erin889",
+            "description": "Use System Property Proxy Settings for Netty and AWS Common Runtime (CRT) HTTP Clients. See [#2321](https://github.com/aws/aws-sdk-java-v2/issues/2321), [#1793](https://github.com/aws/aws-sdk-java-v2/issues/1793)"
+        }
+    ]
+}
