@@ -1,0 +1,272 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2021-05-13",
+    "endpointPrefix":"rest-test",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"AmazonProtocolRestJsonContentType",
+    "serviceFullName":"Content Type Amazon Protocol Rest Json",
+    "serviceId":"AmazonProtocolRestJsonContentType",
+    "signatureVersion":"v4",
+    "timestampFormat":"unixTimestamp",
+    "uid":"restjson-contenttype-2021-05-13"
+  },
+  "operations":{
+    "TestBody":{
+      "name":"TestBody",
+      "http":{
+        "method":"POST",
+        "requestUri":"/body"
+      },
+      "input":{"shape":"TestBodyRequest"}
+    },
+    "TestPayload": {
+      "name": "TestPayload",
+      "http": {
+        "method": "POST",
+        "requestUri": "/payload"
+      },
+      "input":{"shape": "TestPayloadRequest"}
+    },
+    "TestBlobPayload": {
+      "name": "TestBlobPayload",
+      "http": {
+        "method": "POST",
+        "requestUri": "/blob-payload"
+      },
+      "input": {"shape": "TestBlobPayloadRequest"}
+    },
+    "NoPayload": {
+      "name": "NoPayload",
+      "http": {
+        "method": "GET",
+        "requestUri": "no-payload"
+      },
+      "input": {"shape": "NoPayloadRequest"}
+    },
+    "NoPayloadPost": {
+      "name": "NoPayloadPost",
+      "http": {
+        "method": "POST",
+        "requestUri": "no-payload"
+      },
+      "input": {"shape": "NoPayloadPostRequest"}
+    },
+    "TestEventStream": {
+       "name": "TestEventStream",
+      "http": {
+        "method": "POST",
+        "requestUri": "eventstream"
+      },
+      "input": {"shape": "TestEventStreamRequest"}
+     
+    }
+  },
+  "shapes":{
+    "Integer":{
+      "type":"integer"
+    },
+    "String":{"type":"string"},
+    "Blob":{"type":"blob"},
+    "NoPayloadRequest":{
+      "type":"structure",
+      "required":[],
+      "members":{
+        "testId":{
+          "shape":"TestId",
+          "documentation":"<p> The unique ID for a test. </p>",
+          "location":"header",
+          "locationName":"x-amz-test-id"
+        }
+      },
+      "documentation":"<p> The request structure for a no payload request. </p>"
+    },
+    "NoPayloadPostRequest":{
+      "type":"structure",
+      "required":[],
+      "members":{
+        "testId":{
+          "shape":"TestId",
+          "documentation":"<p> The unique ID for a test. </p>",
+          "location":"header",
+          "locationName":"x-amz-test-id"
+        }
+      },
+      "documentation":"<p> The request structure for a no payload request. </p>"
+    },
+    "TestId":{
+      "type":"string",
+      "max":8,
+      "min":3,
+      "pattern":"t-[a-z0-9-]+"
+    },
+    "TestConfig":{
+      "type":"structure",
+      "required":[],
+      "members":{
+        "timeout":{
+          "shape":"Integer",
+          "documentation":"<p> Timeout in seconds </p>"
+        }
+      }
+    },
+    "PayloadConfig":{
+      "type":"structure",
+      "required":[],
+      "members":{
+        "data":{
+          "shape":"Integer",
+          "documentation":"<p> Numerical data </p>"
+        }
+      }
+    },
+    "TestBodyRequest":{
+      "type":"structure",
+      "required":[],
+      "members":{
+        "testConfig":{
+          "shape":"TestConfig",
+          "documentation":"<p> Content to post </p>"
+        },
+        "testId":{
+          "shape":"TestId",
+          "documentation":"<p> Optional test identifier </p>",
+          "location":"header",
+          "locationName":"x-amz-test-id"
+        }
+      },
+      "documentation":"<p> The request structure for a test body request. </p>"
+    },
+    "TestPayloadRequest":{
+      "type":"structure",
+      "required":[],
+      "members":{
+        "payloadConfig":{
+          "shape":"PayloadConfig",
+          "documentation":"<p> Payload to post </p>"
+        },
+        "testId":{
+          "shape":"TestId",
+          "documentation":"<p> Optional test identifier </p>",
+          "location":"header",
+          "locationName":"x-amz-test-id"
+        }
+      },
+      "documentation":"<p> The request structure for a payload request. </p>",
+      "payload":"payloadConfig"
+    },
+    "TestBlobPayloadRequest":{
+      "type":"structure",
+      "required":[],
+      "members":{
+        "data":{
+          "shape":"Blob",
+          "documentation":"<p> Blob payload to post </p>"
+        },
+        "contentType":{
+          "shape":"String",
+          "documentation":"<p> Optional content-type header </p>",
+          "location":"header",
+          "locationName":"Content-Type"
+        }
+      },
+      "documentation":"<p> The request structure for a blob payload request. </p>",
+      "payload":"data"
+    },
+    "TestEventStreamRequest": {
+      "type": "structure",
+      "required": [
+        "InputEventStream"
+      ],
+      "members": {
+        "InputEventStream": {
+          "shape": "InputEventStream"
+        }
+      },
+      "payload":"InputEventStream"
+    },
+    "InputEventStream": {
+      "type": "structure",
+      "members": {
+        "BlobAndHeadersEvent": {
+          "shape": "BlobAndHeadersEvent"
+        },
+        "HeadersOnlyEvent": {
+          "shape": "HeadersOnlyEvent"
+        },
+        "ImplicitPayloadAndHeadersEvent": {
+          "shape": "ImplicitPayloadAndHeadersEvent"
+        }
+      },
+      "eventstream": true
+    },
+    "BlobAndHeadersEvent": {
+      "type": "structure",
+      "members": {
+        "BlobPayloadMember": {
+          "shape":"BlobPayloadMember",
+          "eventpayload":true
+        },
+        "HeaderMember": {
+          "shape": "String",
+          "eventheader": true
+        }
+      },
+      "event": true
+    },
+    "ImplicitPayloadAndHeadersEvent": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape":"String"
+        },
+        "HeaderMember": {
+          "shape": "String",
+          "eventheader": true
+        }
+      },
+      "event": true
+    },
+    "HeadersOnlyEvent": {
+      "type": "structure",
+      "members": {
+        "HeaderMember": {
+          "shape": "String",
+          "eventheader": true
+        }
+      },
+      "event": true
+    },
+    "BlobPayloadMember":{"type":"blob"},
+    "EventStream": {
+      "type": "structure",
+      "members": {
+        "EventOne": {
+          "shape": "EventOne"
+        },
+        "EventTwo": {
+          "shape": "EventTwo"
+        }
+      },
+      "eventstream": true
+    },
+    "EventOne": {
+      "type": "structure",
+      "members": {
+        "Foo": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    },
+    "EventTwo": {
+      "type": "structure",
+      "members": {
+        "Bar": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    }
+  }
+}
