@@ -25,6 +25,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.nio.netty.internal.Http1TunnelConnectionPool.TUNNEL_ESTABLISHED_KEY;
+
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -43,7 +44,6 @@ import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
@@ -55,7 +55,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.testng.collections.Maps;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 
 /**
  * Unit tests for {@link Http1TunnelConnectionPool}.
@@ -95,6 +95,8 @@ public class Http1TunnelConnectionPoolTest {
     @Mock
     public ChannelId mockId;
 
+    public NettyConfiguration configuration;
+
     @Before
     public void methodSetup() {
         Future<Channel> channelFuture = GROUP.next().newSucceededFuture(mockChannel);
@@ -106,6 +108,7 @@ public class Http1TunnelConnectionPoolTest {
         when(mockChannel.attr(eq(TUNNEL_ESTABLISHED_KEY))).thenReturn(mockAttr);
         when(mockChannel.id()).thenReturn(mockId);
         when(mockChannel.pipeline()).thenReturn(mockPipeline);
+        configuration = new NettyConfiguration(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS);
     }
 
     @AfterClass
@@ -116,7 +119,7 @@ public class Http1TunnelConnectionPoolTest {
     @Test
     public void tunnelAlreadyEstablished_doesNotAddInitHandler() {
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, null,
-                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler);
+                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler, configuration);
 
         when(mockAttr.get()).thenReturn(true);
 
@@ -128,7 +131,7 @@ public class Http1TunnelConnectionPoolTest {
     @Test(timeout = 1000)
     public void tunnelNotEstablished_addsInitHandler() throws InterruptedException {
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, null,
-                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler);
+                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler, configuration);
 
         when(mockAttr.get()).thenReturn(false);
 
@@ -150,7 +153,7 @@ public class Http1TunnelConnectionPoolTest {
         };
 
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, null,
-                HTTP_PROXY_ADDRESS,null, null, REMOTE_ADDRESS, mockHandler, supplier);
+                HTTP_PROXY_ADDRESS,null, null, REMOTE_ADDRESS, mockHandler, supplier, configuration);
 
         Future<Channel> acquireFuture = tunnelPool.acquire();
 
@@ -165,7 +168,7 @@ public class Http1TunnelConnectionPoolTest {
         };
 
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, null,
-                HTTP_PROXY_ADDRESS, null, null, REMOTE_ADDRESS, mockHandler, supplier);
+                HTTP_PROXY_ADDRESS, null, null, REMOTE_ADDRESS, mockHandler, supplier, configuration);
 
         Future<Channel> acquireFuture = tunnelPool.acquire();
 
@@ -175,7 +178,7 @@ public class Http1TunnelConnectionPoolTest {
     @Test
     public void acquireFromDelegatePoolFails_failsFuture() {
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, null,
-                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler);
+                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler, configuration);
 
         when(delegatePool.acquire(any(Promise.class))).thenReturn(GROUP.next().newFailedFuture(new IOException("boom")));
 
@@ -198,7 +201,7 @@ public class Http1TunnelConnectionPoolTest {
         };
 
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, mockSslCtx,
-                HTTPS_PROXY_ADDRESS, null, null, REMOTE_ADDRESS, mockHandler, supplier);
+                HTTPS_PROXY_ADDRESS, null, null, REMOTE_ADDRESS, mockHandler, supplier, configuration);
 
         tunnelPool.acquire().awaitUninterruptibly();
 
@@ -219,7 +222,7 @@ public class Http1TunnelConnectionPoolTest {
         };
 
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, mockSslCtx,
-                HTTP_PROXY_ADDRESS, null, null, REMOTE_ADDRESS, mockHandler, supplier);
+                HTTP_PROXY_ADDRESS, null, null, REMOTE_ADDRESS, mockHandler, supplier, configuration);
 
         tunnelPool.acquire().awaitUninterruptibly();
 
@@ -232,7 +235,7 @@ public class Http1TunnelConnectionPoolTest {
     @Test
     public void release_releasedToDelegatePool() {
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, null,
-                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler);
+                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler, configuration);
         tunnelPool.release(mockChannel);
         verify(delegatePool).release(eq(mockChannel), any(Promise.class));
     }
@@ -240,7 +243,7 @@ public class Http1TunnelConnectionPoolTest {
     @Test
     public void release_withGivenPromise_releasedToDelegatePool() {
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, null,
-                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler);
+                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler, configuration);
         Promise mockPromise = mock(Promise.class);
         tunnelPool.release(mockChannel, mockPromise);
         verify(delegatePool).release(eq(mockChannel), eq(mockPromise));
@@ -249,7 +252,7 @@ public class Http1TunnelConnectionPoolTest {
     @Test
     public void close_closesDelegatePool() {
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, null,
-                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler);
+                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler, configuration);
         tunnelPool.close();
         verify(delegatePool).close();
     }
@@ -266,7 +269,7 @@ public class Http1TunnelConnectionPoolTest {
         };
 
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, null,
-                HTTP_PROXY_ADDRESS, PROXY_USER, PROXY_PASSWORD, REMOTE_ADDRESS, mockHandler, supplier);
+                HTTP_PROXY_ADDRESS, PROXY_USER, PROXY_PASSWORD, REMOTE_ADDRESS, mockHandler, supplier, configuration);
 
         tunnelPool.acquire().awaitUninterruptibly();
 

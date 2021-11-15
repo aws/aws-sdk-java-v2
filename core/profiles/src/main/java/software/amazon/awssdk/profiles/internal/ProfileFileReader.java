@@ -284,7 +284,7 @@ public final class ProfileFileReader {
                      .mapToInt(line::indexOf)
                      .filter(location -> location >= 0)
                      .min()
-                     .orElse(line.length());
+                     .orElseGet(line::length);
     }
 
     private static boolean isEmptyLine(String line) {

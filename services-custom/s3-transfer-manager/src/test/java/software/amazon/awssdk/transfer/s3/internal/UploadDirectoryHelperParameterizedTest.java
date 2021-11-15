@@ -45,11 +45,11 @@ import org.junit.runners.Parameterized;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.FileUtils;
-import software.amazon.awssdk.transfer.s3.CompletedUpload;
-import software.amazon.awssdk.transfer.s3.Upload;
+import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.DirectoryUpload;
+import software.amazon.awssdk.transfer.s3.FileUpload;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryTransfer;
-import software.amazon.awssdk.transfer.s3.UploadRequest;
+import software.amazon.awssdk.transfer.s3.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.utils.IoUtils;
@@ -63,7 +63,7 @@ public class UploadDirectoryHelperParameterizedTest {
                                                                                          Configuration.osX(),
                                                                                          Configuration.windows(),
                                                                                          Configuration.forCurrentPlatform()));
-    private Function<UploadRequest, Upload> singleUploadFunction;
+    private Function<UploadFileRequest, FileUpload> singleUploadFunction;
     private UploadDirectoryHelper uploadDirectoryHelper;
     private Path directory;
 
@@ -101,11 +101,11 @@ public class UploadDirectoryHelperParameterizedTest {
 
     @Test
     public void uploadDirectory_defaultSetting_shouldRecursivelyUpload() {
-        ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
+        ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture()))
             .thenReturn(completedUpload());
-        UploadDirectoryTransfer uploadDirectory =
+        DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
@@ -113,7 +113,7 @@ public class UploadDirectoryHelperParameterizedTest {
                                                                         .build());
         uploadDirectory.completionFuture().join();
 
-        List<UploadRequest> actualRequests = requestArgumentCaptor.getAllValues();
+        List<UploadFileRequest> actualRequests = requestArgumentCaptor.getAllValues();
         actualRequests.forEach(r -> assertThat(r.putObjectRequest().bucket()).isEqualTo("bucket"));
 
         assertThat(actualRequests.size()).isEqualTo(3);
@@ -127,10 +127,10 @@ public class UploadDirectoryHelperParameterizedTest {
 
     @Test
     public void uploadDirectory_recursiveFalse_shouldOnlyUploadTopLevel() {
-        ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
+        ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
-        UploadDirectoryTransfer uploadDirectory =
+        DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
@@ -138,7 +138,7 @@ public class UploadDirectoryHelperParameterizedTest {
                                                                         .build());
         uploadDirectory.completionFuture().join();
 
-        List<UploadRequest> actualRequests = requestArgumentCaptor.getAllValues();
+        List<UploadFileRequest> actualRequests = requestArgumentCaptor.getAllValues();
 
         assertThat(actualRequests.size()).isEqualTo(1);
 
@@ -150,10 +150,10 @@ public class UploadDirectoryHelperParameterizedTest {
     public void uploadDirectory_recursiveFalseFollowSymlinkTrue_shouldOnlyUploadTopLevel() {
         // skip the test if we are using jimfs because it doesn't work well with symlink
         assumeTrue(configuration.equals(Configuration.forCurrentPlatform()));
-        ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
+        ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
-        UploadDirectoryTransfer uploadDirectory =
+        DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
@@ -161,7 +161,7 @@ public class UploadDirectoryHelperParameterizedTest {
                                                                         .build());
         uploadDirectory.completionFuture().join();
 
-        List<UploadRequest> actualRequests = requestArgumentCaptor.getAllValues();
+        List<UploadFileRequest> actualRequests = requestArgumentCaptor.getAllValues();
         List<String> keys =
             actualRequests.stream().map(u -> u.putObjectRequest().key())
                           .collect(Collectors.toList());
@@ -175,10 +175,10 @@ public class UploadDirectoryHelperParameterizedTest {
         // skip the test if we are using jimfs because it doesn't work well with symlink
         assumeTrue(configuration.equals(Configuration.forCurrentPlatform()));
 
-        ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
+        ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
-        UploadDirectoryTransfer uploadDirectory =
+        DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
@@ -186,7 +186,7 @@ public class UploadDirectoryHelperParameterizedTest {
                                                                         .build());
         uploadDirectory.completionFuture().join();
 
-        List<UploadRequest> actualRequests = requestArgumentCaptor.getAllValues();
+        List<UploadFileRequest> actualRequests = requestArgumentCaptor.getAllValues();
         actualRequests.forEach(r -> assertThat(r.putObjectRequest().bucket()).isEqualTo("bucket"));
 
         List<String> keys =
@@ -199,10 +199,10 @@ public class UploadDirectoryHelperParameterizedTest {
 
     @Test
     public void uploadDirectory_withPrefix_keysShouldHavePrefix() {
-        ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
+        ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
-        UploadDirectoryTransfer uploadDirectory =
+        DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
@@ -220,10 +220,10 @@ public class UploadDirectoryHelperParameterizedTest {
 
     @Test
     public void uploadDirectory_withDelimiter_shouldHonor() {
-        ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
+        ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
-        UploadDirectoryTransfer uploadDirectory =
+        DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
@@ -242,11 +242,11 @@ public class UploadDirectoryHelperParameterizedTest {
 
     @Test
     public void uploadDirectory_maxLengthOne_shouldOnlyUploadTopLevel() {
-        ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
+        ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture()))
             .thenReturn(completedUpload());
-        UploadDirectoryTransfer uploadDirectory =
+        DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
@@ -254,7 +254,7 @@ public class UploadDirectoryHelperParameterizedTest {
                                                                         .build());
         uploadDirectory.completionFuture().join();
 
-        List<UploadRequest> actualRequests = requestArgumentCaptor.getAllValues();
+        List<UploadFileRequest> actualRequests = requestArgumentCaptor.getAllValues();
         actualRequests.forEach(r -> assertThat(r.putObjectRequest().bucket()).isEqualTo("bucket"));
 
         assertThat(actualRequests.size()).isEqualTo(1);
@@ -288,17 +288,17 @@ public class UploadDirectoryHelperParameterizedTest {
     public void uploadDirectory_notDirectoryFollowSymlinkTrue_shouldCompleteSuccessfully() {
         // skip the test if we are using jimfs because it doesn't work well with symlink
         assumeTrue(configuration.equals(Configuration.forCurrentPlatform()));
-        ArgumentCaptor<UploadRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadRequest.class);
+        ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
-        UploadDirectoryTransfer uploadDirectory = uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                                                              .overrideConfiguration(o -> o.followSymbolicLinks(true))
-                                                                                                              .sourceDirectory(Paths.get(directory.toString(), "symlink"))
-                                                                                                              .bucket("bucket").build());
+        DirectoryUpload uploadDirectory = uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                                                             .overrideConfiguration(o -> o.followSymbolicLinks(true))
+                                                                                                             .sourceDirectory(Paths.get(directory.toString(), "symlink"))
+                                                                                                             .bucket("bucket").build());
 
         uploadDirectory.completionFuture().join();
 
-        List<UploadRequest> actualRequests = requestArgumentCaptor.getAllValues();
+        List<UploadFileRequest> actualRequests = requestArgumentCaptor.getAllValues();
         actualRequests.forEach(r -> assertThat(r.putObjectRequest().bucket()).isEqualTo("bucket"));
 
         assertThat(actualRequests.size()).isEqualTo(1);
@@ -310,10 +310,10 @@ public class UploadDirectoryHelperParameterizedTest {
         assertThat(keys).containsOnly("2.txt");
     }
 
-    private DefaultUpload completedUpload() {
-        return new DefaultUpload(CompletableFuture.completedFuture(CompletedUpload.builder()
-                                                                                  .response(PutObjectResponse.builder().build())
-                                                                                  .build()),
+    private DefaultFileUpload completedUpload() {
+        return new DefaultFileUpload(CompletableFuture.completedFuture(CompletedFileUpload.builder()
+                                                                                      .response(PutObjectResponse.builder().build())
+                                                                                      .build()),
                                  new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build()));
     }
 

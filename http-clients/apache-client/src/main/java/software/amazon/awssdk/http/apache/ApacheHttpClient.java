@@ -51,6 +51,7 @@ import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
+import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -355,7 +356,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
 
         /**
-         * The maximum number of connections allowed in the connection pool. Each built HTTP client has it's own private
+         * The maximum number of connections allowed in the connection pool. Each built HTTP client has its own private
          * connection pool.
          */
         Builder maxConnections(Integer maxConnections);
@@ -394,6 +395,11 @@ public final class ApacheHttpClient implements SdkHttpClient {
         Builder useIdleConnectionReaper(Boolean useConnectionReaper);
 
         /**
+         * Configuration that defines a DNS resolver. If no matches are found, the default resolver is used.
+         */
+        Builder dnsResolver(DnsResolver dnsResolver);
+
+        /**
          * Configuration that defines an HTTP route planner that computes the route an HTTP request should take.
          * May not be used in conjunction with {@link #proxyConfiguration(ProxyConfiguration)}.
          */
@@ -406,7 +412,14 @@ public final class ApacheHttpClient implements SdkHttpClient {
         Builder credentialsProvider(CredentialsProvider credentialsProvider);
 
         /**
-         * Configure the socket to use java.net.SocketOptions.SO_KEEPALIVE.
+         * Configure whether to enable or disable TCP KeepAlive.
+         * The configuration will be passed to the socket option {@link java.net.SocketOptions#SO_KEEPALIVE}.
+         * <p>
+         * By default, this is disabled.
+         * <p>
+         * When enabled, the actual KeepAlive mechanism is dependent on the Operating System and therefore additional TCP
+         * KeepAlive values (like timeout, number of packets, etc) must be configured via the Operating System (sysctl on
+         * Linux/Mac, and Registry values on Windows).
          */
         Builder tcpKeepAlive(Boolean keepConnectionAlive);
 
@@ -434,6 +447,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         private Boolean expectContinueEnabled;
         private HttpRoutePlanner httpRoutePlanner;
         private CredentialsProvider credentialsProvider;
+        private DnsResolver dnsResolver;
 
         private DefaultBuilder() {
         }
@@ -545,6 +559,16 @@ public final class ApacheHttpClient implements SdkHttpClient {
         }
 
         @Override
+        public Builder dnsResolver(DnsResolver dnsResolver) {
+            this.dnsResolver = dnsResolver;
+            return this;
+        }
+
+        public void setDnsResolver(DnsResolver dnsResolver) {
+            dnsResolver(dnsResolver);
+        }
+
+        @Override
         public Builder httpRoutePlanner(HttpRoutePlanner httpRoutePlanner) {
             this.httpRoutePlanner = httpRoutePlanner;
             return this;
@@ -613,7 +637,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
                     createSocketFactoryRegistry(sslsf),
                     null,
                     DefaultSchemePortResolver.INSTANCE,
-                    null,
+                    configuration.dnsResolver,
                     standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE).toMillis(),
                     TimeUnit.MILLISECONDS);
 

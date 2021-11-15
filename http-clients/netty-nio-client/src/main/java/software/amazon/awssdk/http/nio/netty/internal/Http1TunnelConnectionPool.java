@@ -54,27 +54,30 @@ public class Http1TunnelConnectionPool implements ChannelPool {
     private final URI remoteAddress;
     private final ChannelPoolHandler handler;
     private final InitHandlerSupplier initHandlerSupplier;
+    private final NettyConfiguration nettyConfiguration;
 
     public Http1TunnelConnectionPool(EventLoop eventLoop, ChannelPool delegate, SslContext sslContext,
                                      URI proxyAddress, String proxyUsername, String proxyPassword,
-                                     URI remoteAddress, ChannelPoolHandler handler) {
+                                     URI remoteAddress, ChannelPoolHandler handler, NettyConfiguration nettyConfiguration) {
         this(eventLoop, delegate, sslContext,
-                proxyAddress, proxyUsername, proxyPassword, remoteAddress, handler,
-                ProxyTunnelInitHandler::new);
+             proxyAddress, proxyUsername, proxyPassword, remoteAddress, handler,
+             ProxyTunnelInitHandler::new, nettyConfiguration);
     }
 
     public Http1TunnelConnectionPool(EventLoop eventLoop, ChannelPool delegate, SslContext sslContext,
-                                     URI proxyAddress, URI remoteAddress, ChannelPoolHandler handler) {
+                                     URI proxyAddress, URI remoteAddress, ChannelPoolHandler handler,
+                                     NettyConfiguration nettyConfiguration) {
         this(eventLoop, delegate, sslContext,
-                proxyAddress, null, null, remoteAddress, handler,
-                ProxyTunnelInitHandler::new);
+             proxyAddress, null, null, remoteAddress, handler,
+             ProxyTunnelInitHandler::new, nettyConfiguration);
 
     }
 
     @SdkTestInternalApi
     Http1TunnelConnectionPool(EventLoop eventLoop, ChannelPool delegate, SslContext sslContext,
                               URI proxyAddress, String proxyUser, String proxyPassword, URI remoteAddress,
-                              ChannelPoolHandler handler, InitHandlerSupplier initHandlerSupplier) {
+                              ChannelPoolHandler handler, InitHandlerSupplier initHandlerSupplier,
+                              NettyConfiguration nettyConfiguration) {
         this.eventLoop = eventLoop;
         this.delegate = delegate;
         this.sslContext = sslContext;
@@ -84,6 +87,7 @@ public class Http1TunnelConnectionPool implements ChannelPool {
         this.remoteAddress = remoteAddress;
         this.handler = handler;
         this.initHandlerSupplier = initHandlerSupplier;
+        this.nettyConfiguration = nettyConfiguration;
     }
 
     @Override
@@ -164,7 +168,8 @@ public class Http1TunnelConnectionPool implements ChannelPool {
             return null;
         }
 
-        return newSslHandler(sslContext, alloc, proxyAddress.getHost(), proxyAddress.getPort());
+        return newSslHandler(sslContext, alloc, proxyAddress.getHost(), proxyAddress.getPort(),
+                             nettyConfiguration.tlsHandshakeTimeout());
     }
 
     private static boolean isTunnelEstablished(Channel ch) {

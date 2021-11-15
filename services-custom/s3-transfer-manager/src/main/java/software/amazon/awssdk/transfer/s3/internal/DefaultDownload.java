@@ -15,29 +15,64 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.Download;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
+import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
-public final class DefaultDownload implements Download {
-    private final CompletableFuture<CompletedDownload> completionFuture;
+public final class DefaultDownload<ReturnT> implements Download<ReturnT> {
+
+    private final CompletableFuture<CompletedDownload<ReturnT>> completionFuture;
     private final TransferProgress progress;
 
-    public DefaultDownload(CompletableFuture<CompletedDownload> completionFuture, TransferProgress progress) {
+    DefaultDownload(CompletableFuture<CompletedDownload<ReturnT>> completionFuture, TransferProgress progress) {
         this.completionFuture = completionFuture;
         this.progress = progress;
     }
 
     @Override
-    public CompletableFuture<CompletedDownload> completionFuture() {
+    public CompletableFuture<CompletedDownload<ReturnT>> completionFuture() {
         return completionFuture;
     }
 
     @Override
     public TransferProgress progress() {
         return progress;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultDownload<?> that = (DefaultDownload<?>) o;
+
+        if (!Objects.equals(completionFuture, that.completionFuture)) {
+            return false;
+        }
+        return Objects.equals(progress, that.progress);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = completionFuture != null ? completionFuture.hashCode() : 0;
+        result = 31 * result + (progress != null ? progress.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("DefaultDownload")
+                       .add("completionFuture", completionFuture)
+                       .add("progress", progress)
+                       .build();
     }
 }

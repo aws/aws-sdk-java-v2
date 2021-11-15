@@ -68,6 +68,7 @@
         "protocol-tests": { "skipImport": true },
         "protocol-tests-core": { "skipImport": true },
         "protocols": { "skipImport": true },
+        "region-testing": { "skipImport": true },
         "release-scripts": { "skipImport": true },
         "s3-benchmarks": { "skipImport": true },
         "sdk-benchmarks": { "skipImport": true },

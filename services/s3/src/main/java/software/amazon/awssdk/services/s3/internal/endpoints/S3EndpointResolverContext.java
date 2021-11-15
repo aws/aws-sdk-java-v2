@@ -17,9 +17,11 @@ package software.amazon.awssdk.services.s3.internal.endpoints;
 
 import java.net.URI;
 import java.util.Objects;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Configuration;
 
@@ -34,6 +36,7 @@ public final class S3EndpointResolverContext {
     private final S3Configuration serviceConfiguration;
     private final URI endpointOverride;
     private final boolean disableHostPrefixInjection;
+    private final boolean fipsEnabled;
 
     private S3EndpointResolverContext(Builder builder) {
         this.request = builder.request;
@@ -42,6 +45,7 @@ public final class S3EndpointResolverContext {
         this.serviceConfiguration = builder.serviceConfiguration;
         this.endpointOverride = builder.endpointOverride;
         this.disableHostPrefixInjection = builder.disableHostPrefixInjection;
+        this.fipsEnabled = builder.fipsEnabled != null ? builder.fipsEnabled : false;
     }
 
     public static Builder builder() {
@@ -62,6 +66,10 @@ public final class S3EndpointResolverContext {
 
     public S3Configuration serviceConfiguration() {
         return serviceConfiguration;
+    }
+
+    public boolean fipsEnabled() {
+        return fipsEnabled;
     }
 
     public URI endpointOverride() {
@@ -86,7 +94,7 @@ public final class S3EndpointResolverContext {
                Objects.equals(originalRequest, that.originalRequest) &&
                Objects.equals(region, that.region) &&
                Objects.equals(serviceConfiguration, that.serviceConfiguration) &&
-               Objects.equals(disableHostPrefixInjection, that.disableHostPrefixInjection);
+               (disableHostPrefixInjection == that.disableHostPrefixInjection);
     }
 
     @Override
@@ -98,6 +106,7 @@ public final class S3EndpointResolverContext {
         hashCode = 31 * hashCode + Objects.hashCode(serviceConfiguration());
         hashCode = 31 * hashCode + Objects.hashCode(endpointOverride());
         hashCode = 31 * hashCode + Objects.hashCode(isDisableHostPrefixInjection());
+        hashCode = 31 * hashCode + Boolean.hashCode(fipsEnabled());
         return hashCode;
     }
 
@@ -106,7 +115,8 @@ public final class S3EndpointResolverContext {
                         .request(request)
                         .originalRequest(originalRequest)
                         .region(region)
-                        .serviceConfiguration(serviceConfiguration);
+                        .serviceConfiguration(serviceConfiguration)
+                        .fipsEnabled(fipsEnabled);
     }
 
     public static final class Builder {
@@ -116,6 +126,9 @@ public final class S3EndpointResolverContext {
         private S3Configuration serviceConfiguration;
         private URI endpointOverride;
         private boolean disableHostPrefixInjection;
+        private Boolean fipsEnabled;
+        private Supplier<ProfileFile> profileFile;
+        private String profileName;
 
         private Builder() {
         }
@@ -147,6 +160,11 @@ public final class S3EndpointResolverContext {
 
         public Builder disableHostPrefixInjection(boolean disableHostPrefixInjection) {
             this.disableHostPrefixInjection = disableHostPrefixInjection;
+            return this;
+        }
+
+        public Builder fipsEnabled(Boolean fipsEnabled) {
+            this.fipsEnabled = fipsEnabled;
             return this;
         }
 

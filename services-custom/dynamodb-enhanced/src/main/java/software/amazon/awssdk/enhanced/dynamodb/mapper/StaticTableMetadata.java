@@ -301,7 +301,7 @@ public final class StaticTableMetadata implements TableMetadata {
         public Builder markAttributeAsKey(String attributeName, AttributeValueType attributeValueType) {
             KeyAttributeMetadata existing = keyAttributes.get(attributeName);
 
-            if (existing != null && !existing.attributeValueType().equals(attributeValueType)) {
+            if (existing != null && existing.attributeValueType() != attributeValueType) {
                 throw new IllegalArgumentException("Attempt to mark an attribute as a key with a different "
                                                    + "AttributeValueType than one that has already been recorded.");
             }
