@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Database Migration Service",
+    "contributor": "",
+    "description": "Add Settings in JSON format for the source GCP MySQL endpoint"
+}
