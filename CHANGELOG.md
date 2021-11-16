@@ -1,3 +1,20 @@
+# __2.17.83__ __2021-11-16__
+## __AWS CloudTrail__
+  - ### Features
+    - CloudTrail Insights now supports ApiErrorRateInsight, which enables customers to identify unusual activity in their AWS account based on API error codes and their rate.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds the support for Relevance, Distance, Time Zone, Language and Interpolated Address for Geocoding and Reverse Geocoding.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Implement `DescribeTable` operation in `DynamoDbTable` and `DynamoDbAsyncTable`
+
 # __2.17.82__ __2021-11-15__
 ## __AWS Database Migration Service__
   - ### Features
