@@ -102,7 +102,7 @@ public class PutItemWithResponseTest extends LocalDynamoDbSyncTestBase {
                                                .extensions(extension)
                                                .build();
 
-         mappedTable1 = enhancedClient.table(getConcreteTableName("table-name-1"), TABLE_SCHEMA);
+        mappedTable1 = enhancedClient.table(getConcreteTableName("table-name-1"), TABLE_SCHEMA);
 
         mappedTable1.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
@@ -153,6 +153,7 @@ public class PutItemWithResponseTest extends LocalDynamoDbSyncTestBase {
                                                .item(update));
 
         Mockito.verify(extension).afterRead(any(DynamoDbExtensionContext.AfterRead.class));
+        Mockito.verify(extension, Mockito.times(2)).beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class));
     }
 
     @Test

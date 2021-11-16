@@ -67,6 +67,11 @@ public class DeleteItemOperation<T>
     }
 
     @Override
+    public OperationName operationName() {
+        return OperationName.DELETE_ITEM;
+    }
+
+    @Override
     public DeleteItemRequest generateRequest(TableSchema<T> tableSchema,
                                              OperationContext operationContext,
                                              DynamoDbEnhancedClientExtension extension) {

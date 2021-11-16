@@ -1,0 +1,6 @@
+{
+    "category": "DynamoDB Enhanced Client", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Adds operation type labels to each operation and propagates to the extension write context"
+}
