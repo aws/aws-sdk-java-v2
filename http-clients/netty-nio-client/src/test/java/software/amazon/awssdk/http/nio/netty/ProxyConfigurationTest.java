@@ -23,6 +23,8 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -30,10 +32,99 @@ import org.junit.Test;
  */
 public class ProxyConfigurationTest {
     private static final Random RNG = new Random();
+    private static final String TEST_HOST = "foo.com";
+    private static final int TEST_PORT = 7777;
+    private static final String TEST_NON_PROXY_HOST = "bar.com";
+    private static final String TEST_USER = "testuser";
+    private static final String TEST_PASSWORD = "123";
+
+    @Before
+    public void setup() {
+        clearProxyProperties();
+    }
+
+    @AfterClass
+    public static void cleanup() {
+        clearProxyProperties();
+    }
 
     @Test
     public void build_setsAllProperties() {
         verifyAllPropertiesSet(allPropertiesSetConfig());
+    }
+
+    @Test
+    public void build_systemPropertyDefault() {
+        setProxyProperties();
+        Set<String> nonProxyHost = new HashSet<>();
+        nonProxyHost.add("bar.com");
+        ProxyConfiguration config = ProxyConfiguration.builder().build();
+
+        assertThat(config.host()).isEqualTo(TEST_HOST);
+        assertThat(config.port()).isEqualTo(TEST_PORT);
+        assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
+        assertThat(config.username()).isEqualTo(TEST_USER);
+        assertThat(config.password()).isEqualTo(TEST_PASSWORD);
+        assertThat(config.scheme()).isNull();
+    }
+
+    @Test
+    public void build_systemPropertyEnabled() {
+        setProxyProperties();
+        Set<String> nonProxyHost = new HashSet<>();
+        nonProxyHost.add("bar.com");
+        ProxyConfiguration config = ProxyConfiguration.builder().useSystemPropertyValues(Boolean.TRUE).build();
+
+        assertThat(config.host()).isEqualTo(TEST_HOST);
+        assertThat(config.port()).isEqualTo(TEST_PORT);
+        assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
+        assertThat(config.username()).isEqualTo(TEST_USER);
+        assertThat(config.password()).isEqualTo(TEST_PASSWORD);
+        assertThat(config.scheme()).isNull();
+    }
+
+    @Test
+    public void build_systemPropertyDisabled() {
+        setProxyProperties();
+        Set<String> nonProxyHost = new HashSet<>();
+        nonProxyHost.add("test.com");
+
+        ProxyConfiguration config = ProxyConfiguration.builder()
+                                                      .host("localhost")
+                                                      .port(8888)
+                                                      .nonProxyHosts(nonProxyHost)
+                                                      .username("username")
+                                                      .password("password")
+                                                      .useSystemPropertyValues(Boolean.FALSE).build();
+
+        assertThat(config.host()).isEqualTo("localhost");
+        assertThat(config.port()).isEqualTo(8888);
+        assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
+        assertThat(config.username()).isEqualTo("username");
+        assertThat(config.password()).isEqualTo("password");
+        assertThat(config.scheme()).isNull();
+    }
+
+    @Test
+    public void build_systemPropertyOverride() {
+        setProxyProperties();
+        Set<String> nonProxyHost = new HashSet<>();
+        nonProxyHost.add("test.com");
+
+        ProxyConfiguration config = ProxyConfiguration.builder()
+                                                      .host("localhost")
+                                                      .port(8888)
+                                                      .nonProxyHosts(nonProxyHost)
+                                                      .username("username")
+                                                      .password("password")
+                                                      .build();
+
+        assertThat(config.host()).isEqualTo("localhost");
+        assertThat(config.port()).isEqualTo(8888);
+        assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
+        assertThat(config.username()).isEqualTo("username");
+        assertThat(config.password()).isEqualTo("password");
+        assertThat(config.scheme()).isNull();
     }
 
     @Test
@@ -90,6 +181,8 @@ public class ProxyConfigurationTest {
             setter.invoke(o, RNG.nextInt());
         } else if (Set.class.isAssignableFrom(paramClass)) {
             setter.invoke(o, randomSet());
+        } else if (Boolean.class.equals(paramClass)) {
+            setter.invoke(o, RNG.nextBoolean());
         } else {
             throw new RuntimeException("Don't know how create random value for type " + paramClass);
         }
@@ -129,5 +222,21 @@ public class ProxyConfigurationTest {
             ss.add(randomString());
         }
         return ss;
+    }
+
+    private void setProxyProperties() {
+        System.setProperty("http.proxyHost", TEST_HOST);
+        System.setProperty("http.proxyPort", Integer.toString(TEST_PORT));
+        System.setProperty("http.nonProxyHosts", TEST_NON_PROXY_HOST);
+        System.setProperty("http.proxyUser", TEST_USER);
+        System.setProperty("http.proxyPassword", TEST_PASSWORD);
+    }
+
+    private static void clearProxyProperties() {
+        System.clearProperty("http.proxyHost");
+        System.clearProperty("http.proxyPort");
+        System.clearProperty("http.nonProxyHosts");
+        System.clearProperty("http.proxyUser");
+        System.clearProperty("http.proxyPassword");
     }
 }
