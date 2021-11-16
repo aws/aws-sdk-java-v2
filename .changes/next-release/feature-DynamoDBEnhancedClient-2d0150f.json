@@ -1,0 +1,6 @@
+{
+    "category": "DynamoDB Enhanced Client", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Implement `DescribeTable` operation in `DynamoDbTable` and `DynamoDbAsyncTable`"
+}
