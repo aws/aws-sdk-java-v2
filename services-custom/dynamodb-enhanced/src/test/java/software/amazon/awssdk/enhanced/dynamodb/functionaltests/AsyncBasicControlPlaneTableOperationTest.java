@@ -75,8 +75,8 @@ public class AsyncBasicControlPlaneTableOperationTest extends LocalDynamoDbAsync
     @Test
     public void describeTable() {
         DescribeTableEnhancedResponse describeTableEnhancedResponse = asyncMappedTable.describeTable().join();
-        assertThat(describeTableEnhancedResponse.describeTableResponse()).isNotNull();
-        assertThat(describeTableEnhancedResponse.describeTableResponse().table().tableName()).isEqualTo(tableName);
+        assertThat(describeTableEnhancedResponse.table()).isNotNull();
+        assertThat(describeTableEnhancedResponse.table().tableName()).isEqualTo(tableName);
 
     }
 

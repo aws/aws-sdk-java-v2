@@ -74,8 +74,8 @@ public class BasicControlPlaneTableOperationTest extends LocalDynamoDbSyncTestBa
     @Test
     public void describeTable() {
         DescribeTableEnhancedResponse describeTableEnhancedResponse = mappedTable.describeTable();
-        assertThat(describeTableEnhancedResponse.describeTableResponse()).isNotNull();
-        assertThat(describeTableEnhancedResponse.describeTableResponse().table().tableName()).isEqualTo(tableName);
+        assertThat(describeTableEnhancedResponse.table()).isNotNull();
+        assertThat(describeTableEnhancedResponse.table().tableName()).isEqualTo(tableName);
     }
 
 

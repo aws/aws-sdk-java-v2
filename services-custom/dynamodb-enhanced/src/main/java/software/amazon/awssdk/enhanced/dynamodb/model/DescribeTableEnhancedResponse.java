@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
+import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -36,10 +37,12 @@ public final class DescribeTableEnhancedResponse {
     }
 
     /**
-     * The {@link DescribeTableResponse} from the low level DynamoDB client
+     * The properties of the table.
+     *
+     * @return The properties of the table.
      */
-    public DescribeTableResponse describeTableResponse() {
-        return response;
+    public TableDescription table() {
+        return response.table();
     }
 
     @Override
@@ -64,7 +67,7 @@ public final class DescribeTableEnhancedResponse {
     @Override
     public String toString() {
         return ToString.builder("DescribeTableEnhancedResponse")
-                       .add("describeTableResponse", response)
+                       .add("table", response.table())
                        .build();
     }
 
