@@ -28,6 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.CreateTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteTableOperation;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DescribeTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.GetItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PaginatedTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PutItemOperation;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOp
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PagePublisher;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
@@ -48,6 +50,8 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
 
 @SdkInternalApi
 public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T> {
@@ -287,6 +291,13 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     @Override
     public CompletableFuture<Void> deleteTable() {
         TableOperation<T, ?, ?, Void> operation = DeleteTableOperation.create();
+        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
+    }
+
+    @Override
+    public CompletableFuture<DescribeTableEnhancedResponse> describeTable() {
+        TableOperation<T, DescribeTableRequest, DescribeTableResponse, DescribeTableEnhancedResponse> operation =
+            DescribeTableOperation.create();
         return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
     }
 

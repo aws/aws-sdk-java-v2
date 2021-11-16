@@ -13,30 +13,25 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
+package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.waiters.AmazonDynamoDBWaiters;
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
+
+import java.util.Objects;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LocalDynamoDbSyncTestBase;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
-import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter;
+import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
+import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
-
-public class DeleteTableSyncTest extends LocalDynamoDbSyncTestBase {
+public class BasicControlPlaneTableOperationTest extends LocalDynamoDbSyncTestBase {
     private static final TableSchema<Record> TABLE_SCHEMA =
             StaticTableSchema.builder(Record.class)
                     .newItemSupplier(Record::new)
@@ -49,36 +44,40 @@ public class DeleteTableSyncTest extends LocalDynamoDbSyncTestBase {
                             .setter(Record::setSort)
                             .tags(primarySortKey()))
                     .build();
-    private static final List<Record> RECORDS =
-            IntStream.range(0, 10)
-                    .mapToObj(i -> new Record()
-                            .setId("id-value")
-                            .setSort(i))
-                    .collect(Collectors.toList());
+
+    private final String tableName = getConcreteTableName("table-name");
+
     private final DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
             .dynamoDbClient(getDynamoDbClient())
             .build();
     private final DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
 
-    private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)));
+    @Before
+    public void createTable() {
+        mappedTable.createTable(
+            CreateTableEnhancedRequest.builder()
+                                      .provisionedThroughput(getDefaultProvisionedThroughput())
+                                      .build());
+        getDynamoDbClient().waiter().waitUntilTableExists(b -> b.tableName(tableName));
+    }
+
+    @After
+    public void deleteTable() {
+        getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
+                                                               .tableName(tableName)
+                                                               .build());
+
+        getDynamoDbClient().waiter().waitUntilTableNotExists(b -> b.tableName(tableName));
     }
 
     @Test
-    public void testDeleteTable() {
-        mappedTable.createTable(
-                CreateTableEnhancedRequest.builder()
-                        .provisionedThroughput(getDefaultProvisionedThroughput())
-                        .build());
-        insertRecords();
-        Optional<String> first = getDynamoDbClient().listTables().tableNames().stream().findFirst();
-        Assert.assertTrue(first.isPresent());
-        Assert.assertEquals(first.get(), getConcreteTableName("table-name"));
-        mappedTable.deleteTable();
-        first = getDynamoDbClient().listTables().tableNames().stream().findFirst();
-        Assert.assertFalse(first.isPresent());
+    public void describeTable() {
+        DescribeTableEnhancedResponse describeTableEnhancedResponse = mappedTable.describeTable();
+        assertThat(describeTableEnhancedResponse.table()).isNotNull();
+        assertThat(describeTableEnhancedResponse.table().tableName()).isEqualTo(tableName);
     }
+
 
     private static class Record {
         private String id;
@@ -117,5 +116,4 @@ public class DeleteTableSyncTest extends LocalDynamoDbSyncTestBase {
             return Objects.hash(id, sort);
         }
     }
-
 }
