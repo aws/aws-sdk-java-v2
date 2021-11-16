@@ -24,14 +24,14 @@ public class CompletedDownloadTest {
 
     @Test
     public void responseNull_shouldThrowException() {
-        assertThatThrownBy(() -> CompletedDownload.builder().build()).isInstanceOf(NullPointerException.class)
-                                                                   .hasMessageContaining("must not be null");
+        assertThatThrownBy(() -> CompletedDownload.builder().result(null).build()).isInstanceOf(NullPointerException.class)
+                                                                         .hasMessageContaining("must not be null");
     }
 
     @Test
     public void equalsHashcode() {
         EqualsVerifier.forClass(CompletedDownload.class)
-                      .withNonnullFields("response")
+                      .withNonnullFields("result")
                       .verify();
     }
 }

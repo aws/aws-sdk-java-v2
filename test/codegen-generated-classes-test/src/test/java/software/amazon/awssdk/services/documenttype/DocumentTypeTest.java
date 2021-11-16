@@ -223,7 +223,7 @@ public class DocumentTypeTest {
         WithExplicitDocumentPayloadResponse response =
             jsonClient.withExplicitDocumentPayload(c -> c.myDocument(null).accept(AcceptHeader.IMAGE_JPEG));
         String syncRequest = getSyncRequestBody();
-        assertThat(syncRequest).isEmpty();
+        assertThat(syncRequest).isEqualTo("{}");
         SdkHttpRequest sdkHttpRequest = getSyncRequest();
         assertThat(sdkHttpRequest.firstMatchingHeader("accept").get()).contains(AcceptHeader.IMAGE_JPEG.toString());
         assertThat(response.myDocument()).isNull();
@@ -236,7 +236,7 @@ public class DocumentTypeTest {
         WithExplicitDocumentPayloadResponse response =
             jsonClient.withExplicitDocumentPayload(c -> c.myDocument(null).accept(AcceptHeader.IMAGE_JPEG));
         String syncRequest = getSyncRequestBody();
-        assertThat(syncRequest).isEmpty();
+        assertThat(syncRequest).isEqualTo("{}");
         SdkHttpRequest sdkHttpRequest = getSyncRequest();
         assertThat(sdkHttpRequest.firstMatchingHeader("accept").get()).contains(AcceptHeader.IMAGE_JPEG.toString());
         assertThat(response.myDocument()).isNull();

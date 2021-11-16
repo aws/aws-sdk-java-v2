@@ -1,0 +1,60 @@
+{
+    "version": "2.17.79",
+    "date": "2021-11-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Apache HTTP Client",
+            "contributor": "",
+            "description": "Add DNS resolver override support for Apache HTTP Client"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "contributor": "",
+            "description": "AWS Backup SDK provides new options when scheduling backups: select supported services and resources that are assigned to a particular tag, linked to a combination of tags, or can be identified by a partial tag value, and exclude resources from their assignments."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This release adds support for container instance health."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java",
+            "contributor": "",
+            "description": "Added a new `dualstackEnabled` property to every client builder, which can be used to make calls be invoked against AWS endpoints which return IPv6 records. This can also be enabled via the `AWS_USE_DUALSTACK_ENDPOINT` environment variable, `aws.useDualstackEndpoint` system property, or the `use_dualstack_endpoint` profile file property."
+        },
+        {
+            "type": "deprecation",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Deprecated `S3Configuration.Builder`'s `dualstackEnabled` in favor of the new service-standard `S3ClientBuilder.dualstackEnabled`."
+        },
+        {
+            "type": "deprecation",
+            "category": "Amazon S3 Control",
+            "contributor": "",
+            "description": "Deprecated `S3ControlConfiguration.Builder`'s `dualstackEnabled` in favor of the new service-standard `S3ControlClientBuilder.dualstackEnabled`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Added a new `fipsEnabled` property to every client builder, which can be used to make calls be invoked against AWS endpoints which are FIPS compliant. This can also be enabled via the `AWS_USE_FIPS_ENDPOINT` environment variable, `aws.useFipsEndpoint` system property, or the `use_fips_endpoint` profile file property."
+        },
+        {
+            "type": "deprecation",
+            "category": "Amazon S3 Control",
+            "contributor": "",
+            "description": "Deprecated `S3ControlConfiguration.Builder`'s `fipsModeEnabled` in favor of the new service-standard `S3ControlClientBuilder.fipsEnabled`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resilience Hub",
+            "contributor": "",
+            "description": "Initial release of AWS Resilience Hub, a managed service that enables you to define, validate, and track the resilience of your applications on AWS"
+        }
+    ]
+}

@@ -353,10 +353,14 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     @Override
     public final B endpointOverride(URI endpointOverride) {
-        Validate.paramNotNull(endpointOverride, "endpointOverride");
-        Validate.paramNotNull(endpointOverride.getScheme(), "The URI scheme of endpointOverride");
-        clientConfiguration.option(SdkClientOption.ENDPOINT, endpointOverride);
-        clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
+        if (endpointOverride == null) {
+            clientConfiguration.option(SdkClientOption.ENDPOINT, null);
+            clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, false);
+        } else {
+            Validate.paramNotNull(endpointOverride.getScheme(), "The URI scheme of endpointOverride");
+            clientConfiguration.option(SdkClientOption.ENDPOINT, endpointOverride);
+            clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
+        }
         return thisBuilder();
     }
 

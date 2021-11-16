@@ -17,10 +17,10 @@ package software.amazon.awssdk.regions;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.regions.internal.MetadataLoader;
 
 /**
  * Metadata about a service, like S3, DynamoDB, etc.
@@ -34,12 +34,27 @@ import software.amazon.awssdk.profiles.ProfileFile;
 @SdkPublicApi
 public interface ServiceMetadata {
     /**
-     * Retrieve the AWS endpoint that should be used for this service in the provided region.
+     * Retrieve the AWS endpoint that should be used for this service in the provided region, if no {@link EndpointTag}s are
+     * desired.
      *
      * @param region The region that should be used to load the service endpoint.
      * @return The region-specific endpoint for this service.
+     * @throws RuntimeException if an endpoint cannot be determined.
      */
-    URI endpointFor(Region region);
+    default URI endpointFor(Region region) {
+        return endpointFor(ServiceEndpointKey.builder().region(region).build());
+    }
+
+    /**
+     * Retrieve the AWS endpoint that should be used for this service associated with the provided {@link ServiceEndpointKey}.
+     *
+     * @param key The service endpoint key with which an endpoint should be retrieved.
+     * @return The region-specific endpoint for this service.
+     * @throws RuntimeException if an endpoint cannot be determined.
+     */
+    default URI endpointFor(ServiceEndpointKey key) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Retrieve the region that should be used for message signing when communicating with this service in the provided region.
@@ -49,7 +64,21 @@ public interface ServiceMetadata {
      * @param region The region from which the signing region should be derived.
      * @return The region that should be used for signing messages when communicating with this service in the requested region.
      */
-    Region signingRegion(Region region);
+    default Region signingRegion(Region region) {
+        return signingRegion(ServiceEndpointKey.builder().region(region).build());
+    }
+
+    /**
+     * Retrieve the region that should be used for message signing when communicating with this service in the provided region
+     * and with the provided endpoint tags. For most services, this will match the provided region, but it may differ for
+     * unusual services or when using a region that does not correspond to a physical location, like {@link Region#AWS_GLOBAL}.
+     *
+     * @param key The service endpoint key with which an endpoint should be retrieved.
+     * @return The region that should be used for signing messages when communicating with this service in the requested region.
+     */
+    default Region signingRegion(ServiceEndpointKey key) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Retrieve the list of regions this service is currently available in.
@@ -76,25 +105,6 @@ public interface ServiceMetadata {
     static ServiceMetadata of(String serviceEndpointPrefix) {
         ServiceMetadata metadata = MetadataLoader.serviceMetadata(serviceEndpointPrefix);
         return metadata == null ? new DefaultServiceMetadata(serviceEndpointPrefix) : metadata;
-    }
-
-    default String computeEndpoint(String endpointPrefix,
-                                   Map<String, String> partitionOverriddenEndpoints,
-                                   Region region) {
-        RegionMetadata regionMetadata = RegionMetadata.of(region);
-
-        if (regionMetadata != null) {
-            return String.format("%s.%s.%s", endpointPrefix, region.id(), regionMetadata.domain());
-        }
-
-        PartitionMetadata partitionMetadata = MetadataLoader.partitionMetadata(region);
-        
-        String endpointPattern = partitionOverriddenEndpoints.getOrDefault(partitionMetadata.id(),
-                                                                           partitionMetadata.hostname());
-
-        return endpointPattern.replace("{region}", region.id())
-                              .replace("{service}", endpointPrefix)
-                              .replace("{dnsSuffix}", partitionMetadata.dnsSuffix());
     }
 
     /**
