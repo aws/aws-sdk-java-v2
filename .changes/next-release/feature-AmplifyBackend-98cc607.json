@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmplifyBackend",
+    "contributor": "",
+    "description": "New APIs to support the Amplify Storage category. Add and manage file storage in your Amplify app backend."
+}
