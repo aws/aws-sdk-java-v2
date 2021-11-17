@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Notification Service",
-    "contributor": "",
-    "description": "Amazon SNS introduces the PublishBatch API, which enables customers to publish up to 10 messages per API request. The new API is valid for Standard and FIFO topics."
-}
