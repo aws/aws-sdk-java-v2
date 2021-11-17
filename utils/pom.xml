@@ -55,8 +55,16 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- junit.vintage allows JUnit 4 tests to be run by the JUnit 5 Platform.
+        This dependency can be removed once all tests have been migrated to JUnit 5.
+        https://junit.org/junit5/docs/current/user-guide/#migrating-from-junit4-running -->
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
