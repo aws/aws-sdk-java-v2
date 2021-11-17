@@ -69,6 +69,7 @@
                         <ignoredUsedUndeclaredDependency>org.hamcrest:*</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.junit.jupiter:*</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.junit.vintage:*</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>junit:junit::*</ignoredUsedUndeclaredDependency>
                     </ignoredUsedUndeclaredDependencies>
                 </configuration>
             </plugin>
