@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Redshift Data API Service",
+    "contributor": "",
+    "description": "Rolling back Data API serverless features until dependencies are live."
+}
