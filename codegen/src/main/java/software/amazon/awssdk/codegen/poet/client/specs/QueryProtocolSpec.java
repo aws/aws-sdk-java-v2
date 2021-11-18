@@ -24,7 +24,6 @@ import com.squareup.javapoet.TypeName;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -147,9 +146,6 @@ public class QueryProtocolSpec implements ProtocolSpec {
         builder.add(hostPrefixExpression(opModel) + asyncRequestBody + ".withInput($L)$L);",
                     opModel.getInput().getVariableName(),
                     opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "");
-
-        builder.addStatement("$T requestOverrideConfig = $L.overrideConfiguration().orElse(null)",
-                             AwsRequestOverrideConfiguration.class, opModel.getInput().getVariableName());
 
         String whenCompleteFutureName = "whenCompleteFuture";
         builder.addStatement("$T $N = null", ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
