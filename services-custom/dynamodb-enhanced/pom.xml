@@ -67,9 +67,6 @@
                         <!--Ignore used undeclared test dependencies -->
                         <ignoredUsedUndeclaredDependency>software.amazon.awssdk:dynamodb-enhanced</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.hamcrest:*</ignoredUsedUndeclaredDependency>
-                        <ignoredUsedUndeclaredDependency>org.junit.jupiter:*</ignoredUsedUndeclaredDependency>
-                        <ignoredUsedUndeclaredDependency>org.junit.vintage:*</ignoredUsedUndeclaredDependency>
-                        <ignoredUsedUndeclaredDependency>junit:junit::*</ignoredUsedUndeclaredDependency>
                     </ignoredUsedUndeclaredDependencies>
                 </configuration>
             </plugin>
@@ -148,13 +145,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
