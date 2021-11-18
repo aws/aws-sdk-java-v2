@@ -109,6 +109,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
     }
 
     @Test
+    @Ignore
     public void testKinesisOperations() throws Exception {
         String streamName = "java-test-stream-" + System.currentTimeMillis();
         boolean created = false;
