@@ -26,7 +26,7 @@
         {"shape":"ActiveStatementsExceededException"},
         {"shape":"BatchExecuteStatementException"}
       ],
-      "documentation":"<p>Runs one or more SQL statements, which can be data manipulation language (DML) or data definition language (DDL). Depending on the authorization method, use one of the following combinations of request parameters: </p> <ul> <li> <p>Secrets Manager - when connecting to a cluster, specify the Amazon Resource Name (ARN) of the secret, the database name, and the cluster identifier that matches the cluster in the secret. When connecting to a serverless endpoint, specify the Amazon Resource Name (ARN) of the secret and the database name. </p> </li> <li> <p>Temporary credentials - when connecting to a cluster, specify the cluster identifier, the database name, and the database user name. Also, permission to call the <code>redshift:GetClusterCredentials</code> operation is required. When connecting to a serverless endpoint, specify the database name. </p> </li> </ul>"
+      "documentation":"<p>Runs one or more SQL statements, which can be data manipulation language (DML) or data definition language (DDL). Depending on the authorization method, use one of the following combinations of request parameters: </p> <ul> <li> <p>Secrets Manager - specify the Amazon Resource Name (ARN) of the secret, the database name, and the cluster identifier that matches the cluster in the secret. </p> </li> <li> <p>Temporary credentials - specify the cluster identifier, the database name, and the database user name. Permission to call the <code>redshift:GetClusterCredentials</code> operation is required to use this method. </p> </li> </ul>"
     },
     "CancelStatement":{
       "name":"CancelStatement",
@@ -39,8 +39,7 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"InternalServerException"},
-        {"shape":"DatabaseConnectionException"}
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Cancels a running query. To be canceled, a query must be running. </p>"
     },
@@ -69,10 +68,9 @@
       "output":{"shape":"DescribeTableResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"DatabaseConnectionException"}
+        {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Describes the detailed information about a table from metadata in the cluster. The information includes its columns. A token is returned to page through the column list. Depending on the authorization method, use one of the following combinations of request parameters: </p> <ul> <li> <p>Secrets Manager - when connecting to a cluster, specify the Amazon Resource Name (ARN) of the secret, the database name, and the cluster identifier that matches the cluster in the secret. When connecting to a serverless endpoint, specify the Amazon Resource Name (ARN) of the secret and the database name. </p> </li> <li> <p>Temporary credentials - when connecting to a cluster, specify the cluster identifier, the database name, and the database user name. Also, permission to call the <code>redshift:GetClusterCredentials</code> operation is required. When connecting to a serverless endpoint, specify the database name. </p> </li> </ul>"
+      "documentation":"<p>Describes the detailed information about a table from metadata in the cluster. The information includes its columns. A token is returned to page through the column list. Depending on the authorization method, use one of the following combinations of request parameters: </p> <ul> <li> <p>Secrets Manager - specify the Amazon Resource Name (ARN) of the secret, the database name, and the cluster identifier that matches the cluster in the secret. </p> </li> <li> <p>Temporary credentials - specify the cluster identifier, the database name, and the database user name. Permission to call the <code>redshift:GetClusterCredentials</code> operation is required to use this method. </p> </li> </ul>"
     },
     "ExecuteStatement":{
       "name":"ExecuteStatement",
@@ -87,7 +85,7 @@
         {"shape":"ExecuteStatementException"},
         {"shape":"ActiveStatementsExceededException"}
       ],
-      "documentation":"<p>Runs an SQL statement, which can be data manipulation language (DML) or data definition language (DDL). This statement must be a single SQL statement. Depending on the authorization method, use one of the following combinations of request parameters: </p> <ul> <li> <p>Secrets Manager - when connecting to a cluster, specify the Amazon Resource Name (ARN) of the secret, the database name, and the cluster identifier that matches the cluster in the secret. When connecting to a serverless endpoint, specify the Amazon Resource Name (ARN) of the secret and the database name. </p> </li> <li> <p>Temporary credentials - when connecting to a cluster, specify the cluster identifier, the database name, and the database user name. Also, permission to call the <code>redshift:GetClusterCredentials</code> operation is required. When connecting to a serverless endpoint, specify the database name. </p> </li> </ul>"
+      "documentation":"<p>Runs an SQL statement, which can be data manipulation language (DML) or data definition language (DDL). This statement must be a single SQL statement. Depending on the authorization method, use one of the following combinations of request parameters: </p> <ul> <li> <p>Secrets Manager - specify the Amazon Resource Name (ARN) of the secret, the database name, and the cluster identifier that matches the cluster in the secret. </p> </li> <li> <p>Temporary credentials - specify the cluster identifier, the database name, and the database user name. Permission to call the <code>redshift:GetClusterCredentials</code> operation is required to use this method. </p> </li> </ul>"
     },
     "GetStatementResult":{
       "name":"GetStatementResult",
@@ -114,10 +112,9 @@
       "output":{"shape":"ListDatabasesResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"DatabaseConnectionException"}
+        {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>List the databases in a cluster. A token is returned to page through the database list. Depending on the authorization method, use one of the following combinations of request parameters: </p> <ul> <li> <p>Secrets Manager - when connecting to a cluster, specify the Amazon Resource Name (ARN) of the secret, the database name, and the cluster identifier that matches the cluster in the secret. When connecting to a serverless endpoint, specify the Amazon Resource Name (ARN) of the secret and the database name. </p> </li> <li> <p>Temporary credentials - when connecting to a cluster, specify the cluster identifier, the database name, and the database user name. Also, permission to call the <code>redshift:GetClusterCredentials</code> operation is required. When connecting to a serverless endpoint, specify the database name. </p> </li> </ul>"
+      "documentation":"<p>List the databases in a cluster. A token is returned to page through the database list. Depending on the authorization method, use one of the following combinations of request parameters: </p> <ul> <li> <p>Secrets Manager - specify the Amazon Resource Name (ARN) of the secret, the database name, and the cluster identifier that matches the cluster in the secret. </p> </li> <li> <p>Temporary credentials - specify the cluster identifier, the database name, and the database user name. Permission to call the <code>redshift:GetClusterCredentials</code> operation is required to use this method. </p> </li> </ul>"
     },
     "ListSchemas":{
       "name":"ListSchemas",
@@ -129,10 +126,9 @@
       "output":{"shape":"ListSchemasResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"DatabaseConnectionException"}
+        {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Lists the schemas in a database. A token is returned to page through the schema list. Depending on the authorization method, use one of the following combinations of request parameters: </p> <ul> <li> <p>Secrets Manager - when connecting to a cluster, specify the Amazon Resource Name (ARN) of the secret, the database name, and the cluster identifier that matches the cluster in the secret. When connecting to a serverless endpoint, specify the Amazon Resource Name (ARN) of the secret and the database name. </p> </li> <li> <p>Temporary credentials - when connecting to a cluster, specify the cluster identifier, the database name, and the database user name. Also, permission to call the <code>redshift:GetClusterCredentials</code> operation is required. When connecting to a serverless endpoint, specify the database name. </p> </li> </ul>"
+      "documentation":"<p>Lists the schemas in a database. A token is returned to page through the schema list. Depending on the authorization method, use one of the following combinations of request parameters: </p> <ul> <li> <p>Secrets Manager - specify the Amazon Resource Name (ARN) of the secret, the database name, and the cluster identifier that matches the cluster in the secret. </p> </li> <li> <p>Temporary credentials - specify the cluster identifier, the database name, and the database user name. Permission to call the <code>redshift:GetClusterCredentials</code> operation is required to use this method. </p> </li> </ul>"
     },
     "ListStatements":{
       "name":"ListStatements",
@@ -158,10 +154,9 @@
       "output":{"shape":"ListTablesResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"DatabaseConnectionException"}
+        {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>List the tables in a database. If neither <code>SchemaPattern</code> nor <code>TablePattern</code> are specified, then all tables in the database are returned. A token is returned to page through the table list. Depending on the authorization method, use one of the following combinations of request parameters: </p> <ul> <li> <p>Secrets Manager - when connecting to a cluster, specify the Amazon Resource Name (ARN) of the secret, the database name, and the cluster identifier that matches the cluster in the secret. When connecting to a serverless endpoint, specify the Amazon Resource Name (ARN) of the secret and the database name. </p> </li> <li> <p>Temporary credentials - when connecting to a cluster, specify the cluster identifier, the database name, and the database user name. Also, permission to call the <code>redshift:GetClusterCredentials</code> operation is required. When connecting to a serverless endpoint, specify the database name. </p> </li> </ul>"
+      "documentation":"<p>List the tables in a database. If neither <code>SchemaPattern</code> nor <code>TablePattern</code> are specified, then all tables in the database are returned. A token is returned to page through the table list. Depending on the authorization method, use one of the following combinations of request parameters: </p> <ul> <li> <p>Secrets Manager - specify the Amazon Resource Name (ARN) of the secret, the database name, and the cluster identifier that matches the cluster in the secret. </p> </li> <li> <p>Temporary credentials - specify the cluster identifier, the database name, and the database user name. Permission to call the <code>redshift:GetClusterCredentials</code> operation is required to use this method. </p> </li> </ul>"
     }
   },
   "shapes":{
@@ -193,13 +188,14 @@
     "BatchExecuteStatementInput":{
       "type":"structure",
       "required":[
+        "ClusterIdentifier",
         "Database",
         "Sqls"
       ],
       "members":{
         "ClusterIdentifier":{
           "shape":"Location",
-          "documentation":"<p>The cluster identifier. This parameter is required when connecting to a cluster and authenticating using either Secrets Manager or temporary credentials. </p>"
+          "documentation":"<p>The cluster identifier. This parameter is required when authenticating using either Secrets Manager or temporary credentials. </p>"
         },
         "Database":{
           "shape":"String",
@@ -207,7 +203,7 @@
         },
         "DbUser":{
           "shape":"String",
-          "documentation":"<p>The database user name. This parameter is required when connecting to a cluster and authenticating using temporary credentials. </p>"
+          "documentation":"<p>The database user name. This parameter is required when authenticating using temporary credentials. </p>"
         },
         "SecretArn":{
           "shape":"SecretArn",
@@ -232,7 +228,7 @@
       "members":{
         "ClusterIdentifier":{
           "shape":"Location",
-          "documentation":"<p>The cluster identifier. This parameter is not returned when connecting to a serverless endpoint. </p>"
+          "documentation":"<p>The cluster identifier. </p>"
         },
         "CreatedAt":{
           "shape":"Timestamp",
@@ -358,16 +354,6 @@
       "type":"list",
       "member":{"shape":"ColumnMetadata"}
     },
-    "DatabaseConnectionException":{
-      "type":"structure",
-      "required":["Message"],
-      "members":{
-        "Message":{"shape":"String"}
-      },
-      "documentation":"<p>Connection to a database failed.</p>",
-      "exception":true,
-      "fault":true
-    },
     "DatabaseList":{
       "type":"list",
       "member":{"shape":"String"}
@@ -412,7 +398,7 @@
         },
         "HasResultSet":{
           "shape":"Boolean",
-          "documentation":"<p>A value that indicates whether the statement has a result set. The result set can be empty. The value is true for an empty result set. The value is true if any substatement returns a result set.</p>"
+          "documentation":"<p>A value that indicates whether the statement has a result set. The result set can be empty. </p>"
         },
         "Id":{
           "shape":"StatementId",
@@ -462,11 +448,14 @@
     },
     "DescribeTableRequest":{
       "type":"structure",
-      "required":["Database"],
+      "required":[
+        "ClusterIdentifier",
+        "Database"
+      ],
       "members":{
         "ClusterIdentifier":{
           "shape":"Location",
-          "documentation":"<p>The cluster identifier. This parameter is required when connecting to a cluster and authenticating using either Secrets Manager or temporary credentials. </p>"
+          "documentation":"<p>The cluster identifier. This parameter is required when authenticating using either Secrets Manager or temporary credentials. </p>"
         },
         "ConnectedDatabase":{
           "shape":"String",
@@ -478,7 +467,7 @@
         },
         "DbUser":{
           "shape":"String",
-          "documentation":"<p>The database user name. This parameter is required when connecting to a cluster and authenticating using temporary credentials. </p>"
+          "documentation":"<p>The database user name. This parameter is required when authenticating using temporary credentials. </p>"
         },
         "MaxResults":{
           "shape":"PageSize",
@@ -542,13 +531,14 @@
     "ExecuteStatementInput":{
       "type":"structure",
       "required":[
+        "ClusterIdentifier",
         "Database",
         "Sql"
       ],
       "members":{
         "ClusterIdentifier":{
           "shape":"Location",
-          "documentation":"<p>The cluster identifier. This parameter is required when connecting to a cluster and authenticating using either Secrets Manager or temporary credentials. </p>"
+          "documentation":"<p>The cluster identifier. This parameter is required when authenticating using either Secrets Manager or temporary credentials. </p>"
         },
         "Database":{
           "shape":"String",
@@ -556,7 +546,7 @@
         },
         "DbUser":{
           "shape":"String",
-          "documentation":"<p>The database user name. This parameter is required when connecting to a cluster and authenticating using temporary credentials. </p>"
+          "documentation":"<p>The database user name. This parameter is required when authenticating using temporary credentials. </p>"
         },
         "Parameters":{
           "shape":"SqlParametersList",
@@ -585,7 +575,7 @@
       "members":{
         "ClusterIdentifier":{
           "shape":"Location",
-          "documentation":"<p>The cluster identifier. This parameter is not returned when connecting to a serverless endpoint. </p>"
+          "documentation":"<p>The cluster identifier. </p>"
         },
         "CreatedAt":{
           "shape":"Timestamp",
@@ -696,11 +686,14 @@
     },
     "ListDatabasesRequest":{
       "type":"structure",
-      "required":["Database"],
+      "required":[
+        "ClusterIdentifier",
+        "Database"
+      ],
       "members":{
         "ClusterIdentifier":{
           "shape":"Location",
-          "documentation":"<p>The cluster identifier. This parameter is required when connecting to a cluster and authenticating using either Secrets Manager or temporary credentials. </p>"
+          "documentation":"<p>The cluster identifier. This parameter is required when authenticating using either Secrets Manager or temporary credentials. </p>"
         },
         "Database":{
           "shape":"String",
@@ -708,7 +701,7 @@
         },
         "DbUser":{
           "shape":"String",
-          "documentation":"<p>The database user name. This parameter is required when connecting to a cluster and authenticating using temporary credentials. </p>"
+          "documentation":"<p>The database user name. This parameter is required when authenticating using temporary credentials. </p>"
         },
         "MaxResults":{
           "shape":"PageSize",
@@ -739,11 +732,14 @@
     },
     "ListSchemasRequest":{
       "type":"structure",
-      "required":["Database"],
+      "required":[
+        "ClusterIdentifier",
+        "Database"
+      ],
       "members":{
         "ClusterIdentifier":{
           "shape":"Location",
-          "documentation":"<p>The cluster identifier. This parameter is required when connecting to a cluster and authenticating using either Secrets Manager or temporary credentials. </p>"
+          "documentation":"<p>The cluster identifier. This parameter is required when authenticating using either Secrets Manager or temporary credentials. </p>"
         },
         "ConnectedDatabase":{
           "shape":"String",
@@ -755,7 +751,7 @@
         },
         "DbUser":{
           "shape":"String",
-          "documentation":"<p>The database user name. This parameter is required when connecting to a cluster and authenticating using temporary credentials. </p>"
+          "documentation":"<p>The database user name. This parameter is required when authenticating using temporary credentials. </p>"
         },
         "MaxResults":{
           "shape":"PageSize",
@@ -834,11 +830,14 @@
     },
     "ListTablesRequest":{
       "type":"structure",
-      "required":["Database"],
+      "required":[
+        "ClusterIdentifier",
+        "Database"
+      ],
       "members":{
         "ClusterIdentifier":{
           "shape":"Location",
-          "documentation":"<p>The cluster identifier. This parameter is required when connecting to a cluster and authenticating using either Secrets Manager or temporary credentials. </p>"
+          "documentation":"<p>The cluster identifier. This parameter is required when authenticating using either Secrets Manager or temporary credentials. </p>"
         },
         "ConnectedDatabase":{
           "shape":"String",
@@ -850,7 +849,7 @@
         },
         "DbUser":{
           "shape":"String",
-          "documentation":"<p>The database user name. This parameter is required when connecting to a cluster and authenticating using temporary credentials. </p>"
+          "documentation":"<p>The database user name. This parameter is required when authenticating using temporary credentials. </p>"
         },
         "MaxResults":{
           "shape":"PageSize",
@@ -1066,7 +1065,7 @@
         },
         "HasResultSet":{
           "shape":"Boolean",
-          "documentation":"<p>A value that indicates whether the statement has a result set. The result set can be empty. The value is true for an empty result set.</p>"
+          "documentation":"<p>A value that indicates whether the statement has a result set. The result set can be empty.</p>"
         },
         "Id":{
           "shape":"StatementId",
