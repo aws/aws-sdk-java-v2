@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch",
+    "contributor": "",
+    "description": "CloudWatch Anomaly Detection now supports anomaly detectors that use metric math as input."
+}
