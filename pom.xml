@@ -527,6 +527,7 @@
                             <exclude>software.amazon.awssdk.regions.servicemetadata.*ServiceMetadata</exclude>
                             <exclude>software.amazon.awssdk.regions.DefaultServiceMetadata</exclude>
                             <exclude>software.amazon.awssdk.services.devopsguru.*</exclude>
+                            <exclude>software.amazon.awssdk.services.redshiftdata.*</exclude>
                         </excludes>
 
                         <excludeModules>
