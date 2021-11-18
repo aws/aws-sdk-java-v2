@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Audit Manager",
+    "contributor": "",
+    "description": "This release introduces a new feature for Audit Manager: Dashboard views. You can now view insights data for your active assessments, and quickly identify non-compliant evidence that needs to be remediated."
+}
