@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Model Building V2",
+    "contributor": "",
+    "description": "Added support for Polly Neural TTS (NTTS) voices. Customers can choose between 'standard' and 'neural' for Polly Engine configuration per locale when creating or updating an Amazon Lex bot."
+}
