@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon AppConfig",
+    "contributor": "",
+    "description": "Add Type to support feature flag configuration profiles"
+}
