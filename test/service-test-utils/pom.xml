@@ -69,13 +69,8 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
+            <artifactId>junit</artifactId>
+            <groupId>junit</groupId>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -94,8 +89,6 @@
                     <ignoredUnusedDeclaredDependencies>
                         <!-- nice to have this pulled in so that service tests have these in scope -->
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:test-utils:*</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.junit.jupiter:*</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.junit.vintage:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>

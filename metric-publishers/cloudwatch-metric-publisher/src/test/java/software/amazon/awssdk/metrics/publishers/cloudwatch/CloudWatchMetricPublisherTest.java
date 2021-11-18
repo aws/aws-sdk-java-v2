@@ -74,7 +74,7 @@ public class CloudWatchMetricPublisherTest {
         Thread.currentThread().interrupt();
         publisher.close();
         assertThat(publisher.isShutdown()).isTrue();
-        Thread.interrupted(); // Clear interrupt flag
+        assertThat(Thread.interrupted()).isTrue(); // Clear interrupt flag
     }
 
     @Test
