@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Runtime V2",
+    "contributor": "",
+    "description": "Now supports styled slots in Lex V2 runtime. Customers can provide inputs like \"a as in apple b for beta\" which will be resolved to \"ab\" as slot value."
+}
