@@ -24,7 +24,6 @@ import com.squareup.javapoet.TypeName;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.config.customization.S3ArnableFieldConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -178,9 +177,6 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         s3ArnableFields(opModel, model).ifPresent(builder::add);
         builder.add(".withInput($L) $L);", opModel.getInput().getVariableName(), opModel.hasStreamingOutput() ?
                                                                                  ", asyncResponseTransformer" : "");
-        builder.addStatement("$T requestOverrideConfig = $L.overrideConfiguration().orElse(null)",
-                             AwsRequestOverrideConfiguration.class, opModel.getInput().getVariableName());
-
         String whenCompleteFutureName = "whenCompleteFuture";
         builder.addStatement("$T $N = null", ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
                 executeFutureValueType), whenCompleteFutureName);

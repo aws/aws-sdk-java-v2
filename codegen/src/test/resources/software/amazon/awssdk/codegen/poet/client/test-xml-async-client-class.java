@@ -101,8 +101,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample XmlAsyncClient.APostOperation
-     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/xml-service-2010-05-08/APostOperation" target="_top">AWS API
-     *      Documentation</a>
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/xml-service-2010-05-08/APostOperation" target="_top">AWS
+     *      API Documentation</a>
      */
     @Override
     public CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
@@ -126,7 +126,6 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).hostPrefixExpression(resolvedHostExpression)
                              .withMetricCollector(apiCallMetricCollector).withInput(aPostOperationRequest));
-            AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationRequest.overrideConfiguration().orElse(null);
             CompletableFuture<APostOperationResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -182,8 +181,6 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
                              .withInput(aPostOperationWithOutputRequest));
-            AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationWithOutputRequest.overrideConfiguration()
-                                                                                                   .orElse(null);
             CompletableFuture<APostOperationWithOutputResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -238,8 +235,6 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withMetricCollector(apiCallMetricCollector)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                                     HttpChecksumRequired.create()).withInput(operationWithChecksumRequiredRequest));
-            AwsRequestOverrideConfiguration requestOverrideConfig = operationWithChecksumRequiredRequest.overrideConfiguration()
-                                                                                                        .orElse(null);
             CompletableFuture<OperationWithChecksumRequiredResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -302,8 +297,6 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                                                                 .asyncRequestBody(requestBody).build()).withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector).withAsyncRequestBody(requestBody)
                              .withInput(streamingInputOperationRequest));
-            AwsRequestOverrideConfiguration requestOverrideConfig = streamingInputOperationRequest.overrideConfiguration()
-                                                                                                  .orElse(null);
             CompletableFuture<StreamingInputOperationResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -363,8 +356,6 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withMetricCollector(apiCallMetricCollector).withInput(streamingOutputOperationRequest),
                 asyncResponseTransformer);
-            AwsRequestOverrideConfiguration requestOverrideConfig = streamingOutputOperationRequest.overrideConfiguration()
-                                                                                                   .orElse(null);
             CompletableFuture<ReturnT> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
