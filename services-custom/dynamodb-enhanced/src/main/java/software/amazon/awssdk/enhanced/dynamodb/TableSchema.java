@@ -23,8 +23,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.TableSchemaFactory;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPreserveEmptyObject;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -113,16 +112,7 @@ public interface TableSchema<T> {
      * @return An initialized {@link TableSchema}
      */
     static <T> TableSchema<T> fromClass(Class<T> annotatedClass) {
-        if (annotatedClass.getAnnotation(DynamoDbImmutable.class) != null) {
-            return fromImmutableClass(annotatedClass);
-        }
-
-        if (annotatedClass.getAnnotation(DynamoDbBean.class) != null) {
-            return fromBean(annotatedClass);
-        }
-
-        throw new IllegalArgumentException("Class does not appear to be a valid DynamoDb annotated class. [class = " +
-                                               "\"" + annotatedClass + "\"]");
+        return TableSchemaFactory.fromClass(annotatedClass);
     }
 
     /**
@@ -136,6 +126,9 @@ public interface TableSchema<T> {
      * If all attribute values in the attributeMap are null, null will be returned. Use {@link #mapToItem(Map, boolean)}
      * instead if you need to preserve empty object.
      *
+     * <p>
+     * If the implementation supports polymorphic mapping, the context of the attribute map will be used to determine
+     * the correct subtype of the object returned.
      * <p>
      * API Implementors Note:
      * <p>
@@ -164,6 +157,10 @@ public interface TableSchema<T> {
      * will be mapped as null. You can use {@link DynamoDbPreserveEmptyObject} to configure this behavior for nested objects.
      *
      * <p>
+     * If the implementation supports polymorphic mapping, the context of the attribute map will be used to determine
+     * the correct subtype of the object returned.
+     *
+     * <p>
      * API Implementors Note:
      * <p>
      * This method must be implemented if {@code preserveEmptyObject} behavior is to be supported
@@ -188,6 +185,9 @@ public interface TableSchema<T> {
     /**
      * Takes a modelled object and converts it into a raw map of {@link AttributeValue} that the DynamoDb low-level
      * SDK can work with.
+     * <p>
+     * If the implementation supports polymorphic mapping, the context of the item will be used to determine the correct
+     * subtype schema of the returned map.
      *
      * @param item The modelled Java object to convert into a map of attributes.
      * @param ignoreNulls If set to true; any null values in the Java object will not be added to the output map.
@@ -201,6 +201,9 @@ public interface TableSchema<T> {
      * Takes a modelled object and extracts a specific set of attributes which are then returned as a map of
      * {@link AttributeValue} that the DynamoDb low-level SDK can work with. This method is typically used to extract
      * just the key attributes of a modelled item and will not ignore nulls on the modelled object.
+     * <p>
+     * If the implementation supports polymorphic mapping, the context of the item will be used to determine the correct
+     * subtype schema of the returned map.
      *
      * @param item The modelled Java object to extract the map of attributes from.
      * @param attributes A collection of attribute names to extract into the output map.
@@ -256,5 +259,31 @@ public interface TableSchema<T> {
      */
     default AttributeConverter<T> converterForAttribute(Object key) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * If applicable, returns a {@link TableSchema} for a specific object subtype. If the implementation does not
+     * support polymorphic mapping, then this method will, by default, return the current instance. This method is
+     * primarily used to pass the right contextual information to extensions when they are invoked mid-operation. This
+     * method is not required to get a polymorphic {@link TableSchema} to correctly map subtype objects using
+     * 'mapToItem' or 'itemToMap'.
+     * @param itemContext the subtype object to retrieve the subtype {@link TableSchema} for.
+     * @return the subtype {@link TableSchema} or the current {@link TableSchema} if subtypes are not supported.
+     */
+    default TableSchema<? extends T> subtypeTableSchema(T itemContext) {
+        return this;
+    }
+
+    /**
+     * If applicable, returns a {@link TableSchema} for a specific object subtype. If the implementation does not
+     * support polymorphic mapping, then this method will, by default, return the current instance. This method is
+     * primarily used to pass the right contextual information to extensions when they are invoked mid-operation. This
+     * method is not required to get a polymorphic {@link TableSchema} to correctly map subtype objects using
+     * 'mapToItem' or 'itemToMap'.
+     * @param itemContext the subtype object map to retrieve the subtype {@link TableSchema} for.
+     * @return the subtype {@link TableSchema} or the current {@link TableSchema} if subtypes are not supported.
+     */
+    default TableSchema<? extends T> subtypeTableSchema(Map<String, AttributeValue> itemContext) {
+        return this;
     }
 }

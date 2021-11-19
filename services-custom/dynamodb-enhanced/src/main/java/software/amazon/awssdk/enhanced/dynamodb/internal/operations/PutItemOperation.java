@@ -80,13 +80,14 @@ public class PutItemOperation<T>
             throw new IllegalArgumentException("PutItem cannot be executed against a secondary index.");
         }
 
-        TableMetadata tableMetadata = tableSchema.tableMetadata();
+        T item = request.map(PutItemEnhancedRequest::item, TransactPutItemEnhancedRequest::item);
+        TableSchema<? extends T> subtypeTableSchema = tableSchema.subtypeTableSchema(item);
+        TableMetadata tableMetadata = subtypeTableSchema.tableMetadata();
 
         // Fail fast if required primary partition key does not exist and avoid the call to DynamoDb
         tableMetadata.primaryPartitionKey();
 
         boolean alwaysIgnoreNulls = true;
-        T item = request.map(PutItemEnhancedRequest::item, TransactPutItemEnhancedRequest::item);
         Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, alwaysIgnoreNulls);
 
         WriteModification transformation =
@@ -95,7 +96,7 @@ public class PutItemOperation<T>
                                                .items(itemMap)
                                                .operationContext(operationContext)
                                                .tableMetadata(tableMetadata)
-                                               .tableSchema(tableSchema)
+                                               .tableSchema(subtypeTableSchema)
                                                .operationName(operationName())
                                                .build())
                 : null;

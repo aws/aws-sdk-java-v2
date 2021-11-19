@@ -103,12 +103,12 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                             .tags(versionAttribute()))
                          .build();
 
-    private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+    private final DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                           .dynamoDbClient(getDynamoDbClient())
                                                                           .extensions(VersionedRecordExtension.builder().build())
                                                                           .build();
 
-    private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private final DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     @Rule
     public ExpectedException exception = ExpectedException.none();

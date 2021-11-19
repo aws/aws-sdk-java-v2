@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.SubtypeNameTag;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTag;
 
 /**
@@ -115,6 +116,15 @@ public final class StaticAttributeTags {
      */
     public static StaticAttributeTag updateBehavior(UpdateBehavior updateBehavior) {
         return UpdateBehaviorTag.fromUpdateBehavior(updateBehavior);
+    }
+
+    /**
+     * Designates this attribute to be used to determine the subtype of an item that can be mapped using a polymorphic
+     * table schema. A mappable class should have at most one attribute tagged for this purpose, and the value of the
+     * attribute must be a string.
+     */
+    public static StaticAttributeTag subtypeName() {
+        return SubtypeNameTag.create();
     }
 
     private static class KeyAttributeTag implements StaticAttributeTag {

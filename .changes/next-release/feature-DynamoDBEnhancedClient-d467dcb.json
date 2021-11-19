@@ -1,0 +1,6 @@
+{
+    "category": "DynamoDB Enhanced Client", 
+    "contributor": "bmaizels", 
+    "type": "feature", 
+    "description": "Added support for polymorphic mapping of subtypes to better support single-table design."
+}

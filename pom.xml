@@ -569,6 +569,12 @@
                                 <binaryCompatible>true</binaryCompatible>
                                 <sourceCompatible>true</sourceCompatible>
                             </overrideCompatibilityChangeParameter>
+                            <overrideCompatibilityChangeParameter>
+                                <!-- Rule is unstable between versions 14.4 and 15.4 and has flagged false positives -->
+                                <compatibilityChange>METHOD_ABSTRACT_ADDED_IN_IMPLEMENTED_INTERFACE</compatibilityChange>
+                                <binaryCompatible>true</binaryCompatible>
+                                <sourceCompatible>true</sourceCompatible>
+                            </overrideCompatibilityChangeParameter>
                         </overrideCompatibilityChangeParameters>
                     </parameter>
                 </configuration>

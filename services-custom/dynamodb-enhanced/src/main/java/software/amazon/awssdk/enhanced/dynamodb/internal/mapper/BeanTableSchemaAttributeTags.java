@@ -25,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSubtypeName;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdateBehavior;
 
 /**
@@ -56,5 +57,9 @@ public final class BeanTableSchemaAttributeTags {
 
     public static StaticAttributeTag attributeTagFor(DynamoDbUpdateBehavior annotation) {
         return StaticAttributeTags.updateBehavior(annotation.value());
+    }
+
+    public static StaticAttributeTag attributeTagFor(DynamoDbSubtypeName annotation) {
+        return StaticAttributeTags.subtypeName();
     }
 }

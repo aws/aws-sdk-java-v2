@@ -72,12 +72,14 @@ public final class EnhancedClientUtils {
         }
 
         if (dynamoDbEnhancedClientExtension != null) {
+            TableSchema<? extends T> subtypeTableSchema = tableSchema.subtypeTableSchema(itemMap);
+
             ReadModification readModification = dynamoDbEnhancedClientExtension.afterRead(
                 DefaultDynamoDbExtensionContext.builder()
                                                .items(itemMap)
-                                               .tableSchema(tableSchema)
+                                               .tableSchema(subtypeTableSchema)
                                                .operationContext(operationContext)
-                                               .tableMetadata(tableSchema.tableMetadata())
+                                               .tableMetadata(subtypeTableSchema.tableMetadata())
                                                .build());
             if (readModification != null && readModification.transformedItem() != null) {
                 return tableSchema.mapToItem(readModification.transformedItem());

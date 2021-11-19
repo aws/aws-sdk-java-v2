@@ -103,7 +103,8 @@ public class UpdateItemOperation<T>
                                      .orElse(null);
 
         Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, Boolean.TRUE.equals(ignoreNulls));
-        TableMetadata tableMetadata = tableSchema.tableMetadata();
+        TableSchema<? extends T> subtypeTableSchema = tableSchema.subtypeTableSchema(item);
+        TableMetadata tableMetadata = subtypeTableSchema.tableMetadata();
 
         WriteModification transformation =
             extension != null
@@ -111,7 +112,7 @@ public class UpdateItemOperation<T>
                                                                    .items(itemMap)
                                                                    .operationContext(operationContext)
                                                                    .tableMetadata(tableMetadata)
-                                                                   .tableSchema(tableSchema)
+                                                                   .tableSchema(subtypeTableSchema)
                                                                    .operationName(operationName())
                                                                    .build())
             : null;
