@@ -1,0 +1,60 @@
+{
+    "version": "2.17.86",
+    "date": "2021-11-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Added support of default IAM role for CreateCluster, RestoreFromClusterSnapshot and ModifyClusterIamRoles APIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "The StackSets ManagedExecution feature will allow concurrency for non-conflicting StackSet operations and queuing the StackSet operations that conflict at a given time for later execution."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Runtime V2",
+            "contributor": "",
+            "description": "Now supports styled slots in Lex V2 runtime. Customers can provide inputs like \"a as in apple b for beta\" which will be resolved to \"ab\" as slot value."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Application Insights",
+            "contributor": "",
+            "description": "Application Insights now supports monitoring for HANA"
+        },
+        {
+            "type": "feature",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Adds operation type labels to each operation and propagates to the extension write context"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "This release adds support for specifying a SCTE-35 PID on input. MediaLive now supports SCTE-35 PID selection on inputs containing one or more active SCTE-35 PIDs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Add support for Lambda Function URLs. Customers can use Function URLs to create built-in HTTPS endpoints on their functions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "Includes APIs for managing resources for Elastic fleets: applications, app blocks, and application-fleet associations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "Documentation updates for AWS Batch."
+        }
+    ]
+}
