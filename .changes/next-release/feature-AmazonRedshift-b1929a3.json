@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Redshift",
+    "contributor": "",
+    "description": "Added support of default IAM role for CreateCluster, RestoreFromClusterSnapshot and ModifyClusterIamRoles APIs"
+}
