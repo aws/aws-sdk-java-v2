@@ -119,7 +119,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                              .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withMetricCollector(apiCallMetricCollector).withInput(describeEndpointsRequest));
-            AwsRequestOverrideConfiguration requestOverrideConfig = describeEndpointsRequest.overrideConfiguration().orElse(null);
             CompletableFuture<DescribeEndpointsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -197,8 +196,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withMetricCollector(apiCallMetricCollector).discoveredEndpoint(cachedEndpoint)
                              .withInput(testDiscoveryIdentifiersRequiredRequest));
-            AwsRequestOverrideConfiguration requestOverrideConfig = testDiscoveryIdentifiersRequiredRequest
-                .overrideConfiguration().orElse(null);
             CompletableFuture<TestDiscoveryIdentifiersRequiredResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -266,8 +263,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withMetricCollector(apiCallMetricCollector).discoveredEndpoint(cachedEndpoint)
                              .withInput(testDiscoveryOptionalRequest));
-            AwsRequestOverrideConfiguration requestOverrideConfig = testDiscoveryOptionalRequest.overrideConfiguration().orElse(
-                null);
             CompletableFuture<TestDiscoveryOptionalResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -343,8 +338,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withMetricCollector(apiCallMetricCollector).discoveredEndpoint(cachedEndpoint)
                              .withInput(testDiscoveryRequiredRequest));
-            AwsRequestOverrideConfiguration requestOverrideConfig = testDiscoveryRequiredRequest.overrideConfiguration().orElse(
-                null);
             CompletableFuture<TestDiscoveryRequiredResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });

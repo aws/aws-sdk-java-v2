@@ -28,7 +28,6 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
@@ -250,8 +249,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
         String whenComplete = whenCompleteBody(opModel, customerResponseHandler);
         if (!whenComplete.isEmpty()) {
             String whenCompletedFutureName = "whenCompleted";
-            builder.addStatement("$T requestOverrideConfig = $L.overrideConfiguration().orElse(null)",
-                                 AwsRequestOverrideConfiguration.class, opModel.getInput().getVariableName());
             builder.addStatement("$T<$T> $N = $N$L", CompletableFuture.class, executeFutureValueType,
                     whenCompletedFutureName, "executeFuture", whenComplete);
             builder.addStatement("executeFuture = $T.forwardExceptionTo($N, executeFuture)",

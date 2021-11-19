@@ -103,4 +103,10 @@ public interface DatabaseOperation<RequestT, ResponseT, ResultT> {
         CompletableFuture<ResponseT> response = asyncServiceCall(dynamoDbAsyncClient).apply(request);
         return response.thenApply(r -> transformResponse(r, extension));
     }
+
+
+    /**
+     * The type, or name, of the operation.
+     */
+    OperationName operationName();
 }

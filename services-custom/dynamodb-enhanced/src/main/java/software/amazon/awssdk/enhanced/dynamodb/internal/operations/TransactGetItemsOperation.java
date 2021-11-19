@@ -44,6 +44,11 @@ public class TransactGetItemsOperation
     }
 
     @Override
+    public OperationName operationName() {
+        return OperationName.TRANSACT_GET_ITEMS;
+    }
+
+    @Override
     public TransactGetItemsRequest generateRequest(DynamoDbEnhancedClientExtension extension) {
         return TransactGetItemsRequest.builder()
                                       .transactItems(this.request.transactGetItems())
