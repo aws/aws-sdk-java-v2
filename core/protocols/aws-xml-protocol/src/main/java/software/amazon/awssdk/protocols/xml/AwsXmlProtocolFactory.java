@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.http.MetricCollectingHttpResponseHandler;
 import software.amazon.awssdk.core.internal.http.CombinedResponseHandler;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.OperationMetadataAttribute;
@@ -47,6 +48,7 @@ import software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlResponseHa
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlResponseTransformer;
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlUnmarshallingContext;
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlProtocolUnmarshaller;
+import software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlResponseHandler;
 
 /**
  * Factory to generate the various protocol handlers and generators to be used for
@@ -104,10 +106,18 @@ public class AwsXmlProtocolFactory {
                                     .build();
     }
 
-    public <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier,
-                                                                                XmlOperationMetadata staxOperationMetadata) {
-        return timeUnmarshalling(new AwsXmlResponseHandler<>(XML_PROTOCOL_UNMARSHALLER, r -> pojoSupplier.get(),
-                                                             staxOperationMetadata.isHasStreamingSuccessResponse()));
+    public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier,
+                                                                            XmlOperationMetadata staxOperationMetadata) {
+        return createResponseHandler(r -> pojoSupplier.get(), staxOperationMetadata);
+    }
+
+    public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(Function<SdkHttpFullResponse, SdkPojo> pojoSupplier,
+                                                                            XmlOperationMetadata staxOperationMetadata) {
+        return timeUnmarshalling(
+            new AwsXmlResponseHandler<>(
+                new XmlResponseHandler<>(
+                    XML_PROTOCOL_UNMARSHALLER, pojoSupplier,
+                    staxOperationMetadata.isHasStreamingSuccessResponse())));
     }
 
     protected <T extends AwsResponse> Function<AwsXmlUnmarshallingContext, T> createResponseTransformer(

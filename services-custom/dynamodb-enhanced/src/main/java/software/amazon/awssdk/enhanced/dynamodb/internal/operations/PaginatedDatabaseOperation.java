@@ -110,4 +110,9 @@ public interface PaginatedDatabaseOperation<RequestT, ResponseT, ResultT> {
         SdkPublisher<ResponseT> response = asyncServiceCall(dynamoDbAsyncClient).apply(request);
         return response.map(r -> transformResponse(r, extension));
     }
+
+    /**
+     * The type, or name, of the operation.
+     */
+    OperationName operationName();
 }

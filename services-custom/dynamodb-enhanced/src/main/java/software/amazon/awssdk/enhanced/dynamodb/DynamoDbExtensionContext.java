@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationName;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -57,6 +58,11 @@ public final class DynamoDbExtensionContext {
      */
     @SdkPublicApi
     public interface BeforeWrite extends Context {
+
+        /**
+         * @return The context under which the operation to be modified is taking place.
+         */
+        OperationName operationName();
     }
 
     /**

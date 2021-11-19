@@ -1,3 +1,93 @@
+# __2.17.86__ __2021-11-19__
+## __AWS Batch__
+  - ### Features
+    - Documentation updates for AWS Batch.
+
+## __AWS CloudFormation__
+  - ### Features
+    - The StackSets ManagedExecution feature will allow concurrency for non-conflicting StackSet operations and queuing the StackSet operations that conflict at a given time for later execution.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This release adds support for specifying a SCTE-35 PID on input. MediaLive now supports SCTE-35 PID selection on inputs containing one or more active SCTE-35 PIDs.
+
+## __AWS Lambda__
+  - ### Features
+    - Add support for Lambda Function URLs. Customers can use Function URLs to create built-in HTTPS endpoints on their functions.
+
+## __Amazon AppStream__
+  - ### Features
+    - Includes APIs for managing resources for Elastic fleets: applications, app blocks, and application-fleet associations.
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - Application Insights now supports monitoring for HANA
+
+## __Amazon Lex Runtime V2__
+  - ### Features
+    - Now supports styled slots in Lex V2 runtime. Customers can provide inputs like "a as in apple b for beta" which will be resolved to "ab" as slot value.
+
+## __Amazon Redshift__
+  - ### Features
+    - Added support of default IAM role for CreateCluster, RestoreFromClusterSnapshot and ModifyClusterIamRoles APIs
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Adds operation type labels to each operation and propagates to the extension write context
+
+# __2.17.85__ __2021-11-18__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces a new feature for Audit Manager: Dashboard views. You can now view insights data for your active assessments, and quickly identify non-compliant evidence that needs to be remediated.
+
+## __AWS Glue DataBrew__
+  - ### Features
+    - This SDK release adds the following new features: 1) PII detection in profile jobs, 2) Data quality rules, enabling validation of data quality in profile jobs, 3) SQL query-based datasets for Amazon Redshift and Snowflake data sources, and 4) Connecting DataBrew datasets with Amazon AppFlow flows.
+
+## __AWS Lambda__
+  - ### Features
+    - Added support for CLIENT_CERTIFICATE_TLS_AUTH and SERVER_ROOT_CA_CERTIFICATE as SourceAccessType for MSK and Kafka event source mappings.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon AppConfig__
+  - ### Features
+    - Add Type to support feature flag configuration profiles
+
+## __Amazon Chime__
+  - ### Features
+    - Adds new Transcribe API parameters to StartMeetingTranscription, including support for content identification and redaction (PII & PHI), partial results stabilization, and custom language models.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Adds new Transcribe API parameters to StartMeetingTranscription, including support for content identification and redaction (PII & PHI), partial results stabilization, and custom language models.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - CloudWatch Anomaly Detection now supports anomaly detectors that use metric math as input.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - NEW CreateExplanability API that helps you understand how attributes such as price, promotion, etc. contributes to your forecasted values; NEW CreateAutoPredictor API that trains up to 40% more accurate forecasting model, saves up to 50% of retraining time, and provides model level explainability.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Add APIs for retrieving stream session information and support for filtering live streams by health. For more information, see https://docs.aws.amazon.com/ivs/latest/userguide/stream-health.html
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Added support for Polly Neural TTS (NTTS) voices. Customers can choose between 'standard' and 'neural' for Polly Engine configuration per locale when creating or updating an Amazon Lex bot.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK has added a new API that allows you to update the connectivity settings for an existing cluster to enable public accessibility.
+
+## __Redshift Data API Service__
+  - ### Features
+    - Rolling back Data API serverless features until dependencies are live.
+
 # __2.17.84__ __2021-11-17__
 ## __AWS AppConfig Data__
   - ### Features
