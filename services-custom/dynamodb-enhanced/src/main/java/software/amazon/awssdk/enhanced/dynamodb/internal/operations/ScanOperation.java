@@ -51,6 +51,11 @@ public class ScanOperation<T> implements PaginatedTableOperation<T, ScanRequest,
     }
 
     @Override
+    public OperationName operationName() {
+        return OperationName.SCAN;
+    }
+
+    @Override
     public ScanRequest generateRequest(TableSchema<T> tableSchema,
                                        OperationContext operationContext,
                                        DynamoDbEnhancedClientExtension extension) {

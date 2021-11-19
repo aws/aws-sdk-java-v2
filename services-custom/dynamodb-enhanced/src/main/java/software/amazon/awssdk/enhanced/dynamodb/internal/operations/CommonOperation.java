@@ -140,4 +140,9 @@ public interface CommonOperation<ItemT, RequestT, ResponseT, ResultT> {
         CompletableFuture<ResponseT> response = asyncServiceCall(dynamoDbAsyncClient).apply(request);
         return response.thenApply(r -> transformResponse(r, tableSchema, context, extension));
     }
+
+    /**
+     * The type, or name, of the operation.
+     */
+    OperationName operationName();
 }

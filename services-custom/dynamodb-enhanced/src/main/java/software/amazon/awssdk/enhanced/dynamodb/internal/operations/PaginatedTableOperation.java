@@ -82,4 +82,9 @@ public interface PaginatedTableOperation<ItemT, RequestT, ResponseT>
         OperationContext context = DefaultOperationContext.create(tableName, TableMetadata.primaryIndexName());
         return executeAsync(tableSchema, context, extension, dynamoDbAsyncClient);
     }
+
+    /**
+     * The type, or name, of the operation.
+     */
+    OperationName operationName();
 }

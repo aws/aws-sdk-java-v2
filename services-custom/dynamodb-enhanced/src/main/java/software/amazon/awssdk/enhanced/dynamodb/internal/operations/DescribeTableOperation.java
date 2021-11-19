@@ -37,6 +37,11 @@ public class DescribeTableOperation<T> implements TableOperation<T, DescribeTabl
     }
 
     @Override
+    public OperationName operationName() {
+        return OperationName.DESCRIBE_TABLE;
+    }
+
+    @Override
     public DescribeTableRequest generateRequest(TableSchema<T> tableSchema,
                                                 OperationContext operationContext,
                                                 DynamoDbEnhancedClientExtension extension) {
