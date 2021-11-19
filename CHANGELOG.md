@@ -1,3 +1,40 @@
+# __2.17.86__ __2021-11-19__
+## __AWS Batch__
+  - ### Features
+    - Documentation updates for AWS Batch.
+
+## __AWS CloudFormation__
+  - ### Features
+    - The StackSets ManagedExecution feature will allow concurrency for non-conflicting StackSet operations and queuing the StackSet operations that conflict at a given time for later execution.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This release adds support for specifying a SCTE-35 PID on input. MediaLive now supports SCTE-35 PID selection on inputs containing one or more active SCTE-35 PIDs.
+
+## __AWS Lambda__
+  - ### Features
+    - Add support for Lambda Function URLs. Customers can use Function URLs to create built-in HTTPS endpoints on their functions.
+
+## __Amazon AppStream__
+  - ### Features
+    - Includes APIs for managing resources for Elastic fleets: applications, app blocks, and application-fleet associations.
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - Application Insights now supports monitoring for HANA
+
+## __Amazon Lex Runtime V2__
+  - ### Features
+    - Now supports styled slots in Lex V2 runtime. Customers can provide inputs like "a as in apple b for beta" which will be resolved to "ab" as slot value.
+
+## __Amazon Redshift__
+  - ### Features
+    - Added support of default IAM role for CreateCluster, RestoreFromClusterSnapshot and ModifyClusterIamRoles APIs
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Adds operation type labels to each operation and propagates to the extension write context
+
 # __2.17.85__ __2021-11-18__
 ## __AWS Audit Manager__
   - ### Features
