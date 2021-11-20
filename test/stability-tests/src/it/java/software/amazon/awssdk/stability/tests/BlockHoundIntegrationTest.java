@@ -101,7 +101,7 @@ public class BlockHoundIntegrationTest {
             .isInstanceOf(BlockingOperationError.class);
     }
 
-    public static int getUnusedPort() throws IOException {
+    private static int getUnusedPort() throws IOException {
         try (ServerSocket socket = new ServerSocket(0)) {
             socket.setReuseAddress(true);
             return socket.getLocalPort();
