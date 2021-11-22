@@ -1,3 +1,63 @@
+# __2.17.87__ __2021-11-22__
+## __AWS CloudFormation__
+  - ### Features
+    - This release include SDK changes for the feature launch of Stack Import to Service Managed StackSet.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Added new S3 endpoint settings to allow to convert the current UTC time into a specified time zone when a date partition folder is created. Using with 'DatePartitionedEnabled'.
+
+## __AWS S3 Control__
+  - ### Features
+    - Added Amazon CloudWatch publishing option for S3 Storage Lens metrics.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Adds all fields in RequestOverrideConfiguration when a builder is created from an instance
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Added new APIs for enabling Echo Reduction with Voice Focus.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds support for UpdateContactFlowMetadata, DeleteContactFlow and module APIs. For details, see the Release Notes in the Amazon Connect Administrator Guide.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding missing exceptions to RegisterCluster operation
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - This release adds an optional parameter dry-run for the UpdateElasticsearchDomainConfig API to perform basic validation checks, and detect the deployment type that will be required for the configuration change, without actually applying the change.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add support for Exasol data source, 1 click enterprise embedding and email customization.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds local backup support to Amazon RDS on AWS Outposts.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Adds new parameter to CreateActivation API . This parameter is for "internal use only".
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This release adds language identification support for streaming transcription.
+
+## __Braket__
+  - ### Features
+    - This release adds support for Amazon Braket Hybrid Jobs.
+
+## __FinSpace Public API__
+  - ### Features
+    - Add new APIs for managing Datasets, Changesets, and Dataviews.
+
 # __2.17.86__ __2021-11-19__
 ## __AWS Batch__
   - ### Features
