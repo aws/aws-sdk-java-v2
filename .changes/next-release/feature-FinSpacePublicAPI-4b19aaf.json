@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "FinSpace Public API",
+    "contributor": "",
+    "description": "Add new APIs for managing Datasets, Changesets, and Dataviews."
+}
