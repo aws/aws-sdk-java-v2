@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS S3 Control",
+    "contributor": "",
+    "description": "Added Amazon CloudWatch publishing option for S3 Storage Lens metrics."
+}
