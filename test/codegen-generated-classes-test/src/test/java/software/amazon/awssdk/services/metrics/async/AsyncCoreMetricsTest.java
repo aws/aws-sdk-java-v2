@@ -24,8 +24,12 @@ import static org.mockito.Mockito.when;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,6 +43,10 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
+import software.amazon.awssdk.services.protocolrestjson.model.PaginatedOperationWithResultKeyResponse;
+import software.amazon.awssdk.services.protocolrestjson.model.SimpleStruct;
+import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyIterable;
+import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyPublisher;
 
 /**
  * Core metrics test for async non-streaming API
@@ -119,6 +127,22 @@ public class AsyncCoreMetricsTest extends BaseAsyncCoreMetricsTest {
         MetricPublisher requestMetricPublisher = mock(MetricPublisher.class);
 
         client.allTypes(r -> r.overrideConfiguration(o -> o.addMetricPublisher(requestMetricPublisher))).join();
+
+        verify(requestMetricPublisher).publish(any(MetricCollection.class));
+        verifyZeroInteractions(mockPublisher);
+    }
+
+    @Test
+    public void testPaginatingApiCall_publisherOverriddenOnRequest_requestPublisherTakesPrecedence() throws Exception {
+        stubSuccessfulResponse();
+        MetricPublisher requestMetricPublisher = mock(MetricPublisher.class);
+
+        PaginatedOperationWithResultKeyPublisher paginatedPublisher =
+            client.paginatedOperationWithResultKeyPaginator(
+                r -> r.overrideConfiguration(o -> o.addMetricPublisher(requestMetricPublisher)));
+
+        CompletableFuture<Void> future = paginatedPublisher.subscribe(PaginatedOperationWithResultKeyResponse::items);
+        future.get();
 
         verify(requestMetricPublisher).publish(any(MetricCollection.class));
         verifyZeroInteractions(mockPublisher);

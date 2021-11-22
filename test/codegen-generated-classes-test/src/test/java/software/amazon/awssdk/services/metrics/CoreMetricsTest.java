@@ -25,6 +25,8 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -49,6 +51,8 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.EmptyModeledException;
+import software.amazon.awssdk.services.protocolrestjson.model.SimpleStruct;
+import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyIterable;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CoreMetricsTest {
@@ -136,6 +140,20 @@ public class CoreMetricsTest {
         MetricPublisher requestMetricPublisher = mock(MetricPublisher.class);
 
         client.allTypes(r -> r.overrideConfiguration(o -> o.addMetricPublisher(requestMetricPublisher)));
+
+        verify(requestMetricPublisher).publish(any(MetricCollection.class));
+        verifyZeroInteractions(mockPublisher);
+    }
+
+    @Test
+    public void testPaginatingApiCall_publisherOverriddenOnRequest_requestPublisherTakesPrecedence() {
+        MetricPublisher requestMetricPublisher = mock(MetricPublisher.class);
+
+        PaginatedOperationWithResultKeyIterable iterable =
+            client.paginatedOperationWithResultKeyPaginator(
+                r -> r.overrideConfiguration(o -> o.addMetricPublisher(requestMetricPublisher)));
+
+        List<SimpleStruct> resultingItems = iterable.items().stream().collect(Collectors.toList());
 
         verify(requestMetricPublisher).publish(any(MetricCollection.class));
         verifyZeroInteractions(mockPublisher);
