@@ -428,6 +428,11 @@ public abstract class RequestOverrideConfiguration {
             headers(sdkRequestOverrideConfig.headers);
             rawQueryParameters(sdkRequestOverrideConfig.rawQueryParameters);
             sdkRequestOverrideConfig.apiNames.forEach(this::addApiName);
+            apiCallTimeout(sdkRequestOverrideConfig.apiCallTimeout);
+            apiCallAttemptTimeout(sdkRequestOverrideConfig.apiCallAttemptTimeout);
+            signer(sdkRequestOverrideConfig.signer().orElse(null));
+            metricPublishers(sdkRequestOverrideConfig.metricPublishers());
+            executionAttributes(sdkRequestOverrideConfig.executionAttributes());
         }
 
         @Override
