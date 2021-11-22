@@ -22,6 +22,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -34,9 +35,30 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import reactor.blockhound.BlockHound;
 import reactor.blockhound.BlockingOperationError;
+import reactor.blockhound.integration.BlockHoundIntegration;
+import reactor.blockhound.junit.platform.BlockHoundTestExecutionListener;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.utils.Logger;
 
+/**
+ * This test ensures that BlockHound is correctly installed for integration tests. The test is somewhat arbitrarily placed in the
+ * {@code s3} module in order to assert against the configuration of all service integration tests.
+ * <p>
+ * BlockHound is installed in one of two ways:
+ * <ol>
+ *     <li>Using BlockHound's provided {@link BlockHoundTestExecutionListener}, which will be automatically detected by the
+ *     JUnit 5 platform upon initialization.</li>
+ *     <li>Manually calling {@link BlockHound#install(BlockHoundIntegration...)}. This is done as part of static initialization in
+ *     {@link AwsIntegrationTestBase}, as an extra precaution, and in {@link AwsTestBase} for our stability tests, which are not
+ *     built upon JUnit.
+ * </ol>
+ * <p>
+ * This test ensures BlockHound is correctly installed by intentionally performing a blocking operation on the Netty
+ * {@link EventLoop} and asserting that a {@link BlockingOperationError} is thrown to forbid it.
+ */
 class BlockHoundInstalledTest {
     private static final Logger log = Logger.loggerFor(BlockHoundInstalledTest.class);
 
