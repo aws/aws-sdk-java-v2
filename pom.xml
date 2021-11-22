@@ -529,6 +529,7 @@
                             <exclude>software.amazon.awssdk.regions.servicemetadata.*ServiceMetadata</exclude>
                             <exclude>software.amazon.awssdk.regions.DefaultServiceMetadata</exclude>
                             <exclude>software.amazon.awssdk.services.applicationinsights.*</exclude>
+                            <exclude>software.amazon.awssdk.services.finspacedata.*</exclude>
                         </excludes>
 
                         <excludeModules>
