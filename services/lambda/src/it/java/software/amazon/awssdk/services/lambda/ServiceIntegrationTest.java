@@ -24,6 +24,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
@@ -48,6 +49,7 @@ import software.amazon.awssdk.services.lambda.model.Runtime;
 import software.amazon.awssdk.testutils.retry.RetryRule;
 import software.amazon.awssdk.utils.BinaryUtils;
 
+@Ignore
 public class ServiceIntegrationTest extends IntegrationTestBase {
 
     private static final String FUNCTION_NAME = "java-sdk-helloworld-" + System.currentTimeMillis();
