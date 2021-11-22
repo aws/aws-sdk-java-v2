@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime SDK Meetings",
+    "contributor": "",
+    "description": "Added new APIs for enabling Echo Reduction with Voice Focus."
+}
