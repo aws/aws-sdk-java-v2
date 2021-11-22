@@ -522,36 +522,41 @@
                     </newVersion>
                     <parameter>
                         <onlyModified>true</onlyModified>
+                        <includeModules>
+                            <includeModule>annotations</includeModule>
+                            <includeModule>arns</includeModule>
+                            <includeModule>auth</includeModule>
+                            <includeModule>auth-crt</includeModule>
+                            <includeModule>aws-core</includeModule>
+                            <includeModule>json-utils</includeModule>
+                            <includeModule>metrics-spi</includeModule>
+                            <includeModule>profiles</includeModule>
+                            <includeModule>protocols</includeModule>
+                            <includeModule>regions</includeModule>
+                            <includeModule>sdk-core</includeModule>
+                            <includeModule>http-client-spi</includeModule>
+                            <includeModule>apache-client</includeModule>
+                            <includeModule>netty-nio-client</includeModule>
+                            <includeModule>url-connection-client</includeModule>
+                            <includeModule>cloudwatch-metric-publisher</includeModule>
+                            <includeModule>utils</includeModule>
+
+                            <!-- High level libraries -->
+                            <includeModule>dynamodb-enhanced</includeModule>
+
+                            <!-- Service modules that are heavily customized should be included -->
+                            <includeModule>s3</includeModule>
+                            <includeModule>s3-control</includeModule>
+                            <includeModule>sqs</includeModule>
+                            <includeModule>rds</includeModule>
+                            <includeModule>apigateway</includeModule>
+                            <includeModule>polly</includeModule>
+                        </includeModules>
                         <excludes>
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
-                            <exclude>software.amazon.awssdk.regions.ServiceMetadata</exclude>
-                            <exclude>software.amazon.awssdk.regions.servicemetadata.*ServiceMetadata</exclude>
-                            <exclude>software.amazon.awssdk.regions.DefaultServiceMetadata</exclude>
-                            <exclude>software.amazon.awssdk.services.applicationinsights.*</exclude>
-                            <exclude>software.amazon.awssdk.services.finspacedata.*</exclude>
                         </excludes>
 
-                        <excludeModules>
-                            <excludeModule>codegen-lite-maven-plugin</excludeModule>
-                            <excludeModule>codegen-maven-plugin</excludeModule>
-                            <excludeModule>codegen</excludeModule>
-                            <excludeModule>codegen-lite</excludeModule>
-                            <excludeModule>.*tests*</excludeModule>
-                            <excludeModule>.*test*</excludeModule>
-                            <excludeModule>protocol-tests-core</excludeModule>
-                            <excludeModule>tests-coverage-reporting</excludeModule>
-                            <excludeModule>aws-sdk-java</excludeModule>
-                            <excludModeule>archetype-lambda</excludModeule>
-                            <excludeModule>archetype-app-quickstart</excludeModule>
-                            <excludeModule>archetype-tools</excludeModule>
-                            <excludeModule>sdk-benchmarks</excludeModule>
-                            <excludeModule>bundle</excludeModule>
-                            <excludeModule>s3-benchmarks</excludeModule>
-                            <!-- ignore crt because it's in preview TODO: remove this when CRT is GA -->
-                            <excludModeule>aws-crt-client</excludModeule>
-                            <excludModeule>s3-transfer-manager</excludModeule>
-                        </excludeModules>
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
                         <breakBuildOnBinaryIncompatibleModifications>true</breakBuildOnBinaryIncompatibleModifications>
                         <breakBuildOnSourceIncompatibleModifications>true</breakBuildOnSourceIncompatibleModifications>
