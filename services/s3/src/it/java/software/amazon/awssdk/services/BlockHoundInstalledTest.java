@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.stability.tests;
+package software.amazon.awssdk.services;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,14 +31,14 @@ import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import reactor.blockhound.BlockingOperationError;
 import software.amazon.awssdk.utils.Logger;
 
-public class BlockHoundIntegrationTest {
-    private static final Logger log = Logger.loggerFor(BlockHoundIntegrationTest.class);
+class BlockHoundInstalledTest {
+    private static final Logger log = Logger.loggerFor(BlockHoundInstalledTest.class);
 
     AtomicReference<Throwable> throwableReference;
     CountDownLatch latch;
@@ -47,7 +47,7 @@ public class BlockHoundIntegrationTest {
     Socket clientSocket;
     Channel serverChannel;
 
-    @Before
+    @BeforeEach
     public void setup() {
         throwableReference = new AtomicReference<>();
         latch = new CountDownLatch(1);
@@ -55,7 +55,7 @@ public class BlockHoundIntegrationTest {
         workerGroup = new NioEventLoopGroup();
     }
 
-    @After
+    @AfterEach
     public void teardown() throws Exception {
         if (clientSocket != null) {
             clientSocket.close();
@@ -68,7 +68,7 @@ public class BlockHoundIntegrationTest {
     }
 
     @Test
-    public void testBlockHoundIntegration() throws Exception {
+    void testBlockHoundInstalled() throws Exception {
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(bossGroup, workerGroup)
                  .channel(NioServerSocketChannel.class)
@@ -94,9 +94,9 @@ public class BlockHoundIntegrationTest {
 
         latch.await(5, TimeUnit.SECONDS);
         assertThat(throwableReference.get())
-            .withFailMessage("BlockHound does not appear to be successfully installed. "
-                             + "Ensure that BlockHoundTestExecutionListener is available on "
-                             + "the class path and correctly registered with JUnit: "
+            .withFailMessage("BlockHound does not appear to be successfully installed. Ensure that either BlockHound.install() "
+                             + "is called prior to all test executions or that BlockHoundTestExecutionListener is available on "
+                             + "the class path and correctly detected by JUnit: "
                              + "https://github.com/reactor/BlockHound/blob/master/docs/supported_testing_frameworks.md")
             .isInstanceOf(BlockingOperationError.class);
     }
