@@ -130,6 +130,7 @@
         <netty-open-ssl-version>2.0.43.Final</netty-open-ssl-version>
         <dynamodb-local.version>1.16.0</dynamodb-local.version>
         <sqllite.version>1.0.392</sqllite.version>
+        <blockhound.version>1.0.6.RELEASE</blockhound.version>
 
         <!-- build plugin dependencies-->
         <maven.surefire.version>3.0.0-M5</maven.surefire.version>

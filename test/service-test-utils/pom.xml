@@ -84,6 +84,18 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>io.projectreactor.tools</groupId>
+            <artifactId>blockhound</artifactId>
+            <version>${blockhound.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor.tools</groupId>
+            <artifactId>blockhound-junit-platform</artifactId>
+            <version>${blockhound.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
             <scope>compile</scope>
@@ -101,6 +113,7 @@
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:test-utils:*</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.junit.jupiter:*</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.junit.vintage:*</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>io.projectreactor.tools:blockhound-junit-platform:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
