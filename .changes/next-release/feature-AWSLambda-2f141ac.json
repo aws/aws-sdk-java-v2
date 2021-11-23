@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "",
+    "description": "Release Lambda event source filtering for SQS, Kinesis Streams, and DynamoDB Streams."
+}
