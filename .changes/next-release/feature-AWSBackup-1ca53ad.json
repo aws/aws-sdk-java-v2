@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Backup",
+    "contributor": "",
+    "description": "This release adds new opt-in settings for advanced features for DynamoDB backups"
+}
