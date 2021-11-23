@@ -52,8 +52,7 @@ import software.amazon.awssdk.utils.Logger;
  *     <li>Using BlockHound's provided {@link BlockHoundTestExecutionListener}, which will be automatically detected by the
  *     JUnit 5 platform upon initialization.</li>
  *     <li>Manually calling {@link BlockHound#install(BlockHoundIntegration...)}. This is done as part of static initialization in
- *     {@link AwsIntegrationTestBase}, as an extra precaution, and in {@link AwsTestBase} for our stability tests, which are not
- *     built upon JUnit.
+ *     {@link AwsIntegrationTestBase} and {@link AwsTestBase}, which most integration/stability tests extend.
  * </ol>
  * <p>
  * This test ensures BlockHound is correctly installed by intentionally performing a blocking operation on the Netty
