@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "contributor": "",
+    "description": "Adds support for Multi-AZ DB clusters for RDS for MySQL and RDS for PostgreSQL."
+}
