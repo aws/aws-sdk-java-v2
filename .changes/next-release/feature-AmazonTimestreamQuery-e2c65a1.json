@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Timestream Query",
-    "contributor": "",
-    "description": "Releasing Amazon Timestream Scheduled Queries. It makes real-time analytics more performant and cost-effective for customers by calculating and storing frequently accessed aggregates, and other computations, typically used in operational dashboards, business reports, and other analytics applications"
-}
