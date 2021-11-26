@@ -1,3 +1,28 @@
+# __2.17.90__ __2021-11-26__
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - Documentation update for Device Advisor GetEndpoint API
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds new APIs for working with Outpost sites and orders.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Added a One-Time Password (OTP) management feature. You can use the Amazon Pinpoint API to generate OTP codes and send them to your users as SMS messages. Your apps can then call the API to verify the OTP codes that your users input
+
+## __Application Migration Service__
+  - ### Features
+    - Application Migration Service now supports an additional replication method that does not require agent installation on each source server. This option is available for source servers running on VMware vCenter versions 6.7 and 7.0.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for Amazon EC2 Auto Scaling.
+
 # __2.17.89__ __2021-11-24__
 ## __AWS IoT SiteWise__
   - ### Features
