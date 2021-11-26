@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Core Device Advisor",
-    "contributor": "",
-    "description": "Documentation update for Device Advisor GetEndpoint API"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Outposts",
-    "contributor": "",
-    "description": "This release adds new APIs for working with Outpost sites and orders."
-}
