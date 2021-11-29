@@ -1,3 +1,52 @@
+# __2.17.92__ __2021-11-29__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Adds support for the enhanced infrastructure metrics paid feature. Also adds support for two new sets of resource efficiency metrics, including savings opportunity metrics and performance improvement opportunity metrics.
+
+## __AWS Data Exchange__
+  - ### Features
+    - This release enables providers and subscribers to use Data Set, Job, and Asset operations to work with API assets from Amazon API Gateway. In addition, this release enables subscribers to use the SendApiAsset operation to invoke a provider's Amazon API Gateway API that they are entitled to.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - AWS IoT SiteWise now supports retention configuration for the hot tier storage.
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - This update provides support for Well-Architected API users to use custom lens features.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - Introducing Amazon CloudWatch Evidently. This is the first public release of Amazon CloudWatch Evidently.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds supports for pull through cache rules and enhanced scanning.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for G5g and M6a instances. This release also adds support for Amazon EBS Snapshots Archive, a feature that enables you to archive your EBS snapshots; and Recycle Bin, a feature that enables you to protect your EBS snapshots against accidental deletion.
+
+## __Amazon Recycle Bin__
+  - ### Features
+    - This release adds support for Recycle Bin.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon S3 Event Notifications adds Amazon EventBridge as a destination and supports additional event types. The PutBucketNotificationConfiguration API can now skip validation of Amazon SQS, Amazon SNS and AWS Lambda destinations.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Added two new attributes to DescribeInstanceInformation called SourceId and SourceType along with new string filters SourceIds and SourceTypes to filter instance records.
+
+## __CloudWatch RUM__
+  - ### Features
+    - This is the first public release of CloudWatch RUM
+
+## __Inspector2__
+  - ### Features
+    - This release adds support for the new Amazon Inspector API. The new Amazon Inspector can automatically discover and scan Amazon EC2 instances and Amazon ECR container images for software vulnerabilities and unintended network exposure, and report centralized findings across multiple AWS accounts.
+
 # __2.17.91__ __2021-11-28__
 ## __AWS Migration Hub Refactor Spaces__
   - ### Features

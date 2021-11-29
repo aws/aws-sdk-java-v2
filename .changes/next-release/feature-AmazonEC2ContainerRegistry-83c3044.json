@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EC2 Container Registry",
-    "contributor": "",
-    "description": "This release adds supports for pull through cache rules and enhanced scanning."
-}
