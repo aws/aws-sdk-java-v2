@@ -1,3 +1,20 @@
+# __2.17.91__ __2021-11-28__
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - This is the initial SDK release for AWS Migration Hub Refactor Spaces
+
+## __Amazon Personalize__
+  - ### Features
+    - This release adds API support for Recommenders and BatchSegmentJobs.
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - This release adds inference support for Recommenders.
+
+## __Amazon Textract__
+  - ### Features
+    - This release adds support for synchronously analyzing identity documents through a new API: AnalyzeID
+
 # __2.17.90__ __2021-11-26__
 ## __AWS IoT Core Device Advisor__
   - ### Features
