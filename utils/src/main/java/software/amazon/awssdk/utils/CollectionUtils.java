@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -124,8 +125,24 @@ public final class CollectionUtils {
         return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue);
     }
 
+    /**
+     *
+     * @param inputMap
+     * @param mapper
+     * @param <K>
+     * @param <VInT>
+     * @param <VOutT>
+     * @return
+     */
     public static <K, VInT, VOutT> Map<K, VOutT> mapValues(Map<K, VInT> inputMap, Function<VInT, VOutT> mapper) {
         return inputMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> mapper.apply(e.getValue())));
+    }
+
+    public static <K, V> Map<K, V> filterMap(Map<K, V> map, Predicate<Map.Entry<K, V>> condition) {
+        return map.entrySet()
+                  .stream()
+                  .filter(condition)
+                  .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     /**

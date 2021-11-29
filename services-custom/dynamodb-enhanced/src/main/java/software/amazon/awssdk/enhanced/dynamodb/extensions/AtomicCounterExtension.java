@@ -78,6 +78,9 @@ public final class AtomicCounterExtension implements DynamoDbEnhancedClientExten
     private Map<String, AttributeValue> addCounterAttributes(Map<String, AttributeValue> items,
                                                              Map<String, AtomicCounter> counters) {
         Map<String, AttributeValue> itemToTransform = new HashMap<>(items);
+        for (String s : itemToTransform.keySet()) {
+            
+        }
         counters.forEach((attribute, counter) -> itemToTransform.put(attribute,
                                                                      AtomicCounter.CounterAttribute
                                                                          .resolvedValue(counter.startValue().value())));
