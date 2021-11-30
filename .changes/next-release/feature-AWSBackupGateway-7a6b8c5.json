@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Backup Gateway",
+    "contributor": "",
+    "description": "Initial release of AWS Backup gateway which enables you to centralize and automate protection of on-premises VMware and VMware Cloud on AWS workloads using AWS Backup."
+}
