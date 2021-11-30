@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis",
-    "contributor": "",
-    "description": "Amazon Kinesis Data Streams now supports on demand streams."
-}

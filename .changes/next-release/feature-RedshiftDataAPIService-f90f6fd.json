@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Redshift Data API Service",
-    "contributor": "",
-    "description": "Data API now supports serverless queries."
-}
