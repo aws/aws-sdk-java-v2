@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Runtime",
-    "contributor": "",
-    "description": "Adding new exception types for InvokeEndpoint"
-}
