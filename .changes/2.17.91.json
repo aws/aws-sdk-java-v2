@@ -1,0 +1,30 @@
+{
+    "version": "2.17.91",
+    "date": "2021-11-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Textract",
+            "contributor": "",
+            "description": "This release adds support for synchronously analyzing identity documents through a new API: AnalyzeID"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Runtime",
+            "contributor": "",
+            "description": "This release adds inference support for Recommenders."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize",
+            "contributor": "",
+            "description": "This release adds API support for Recommenders and BatchSegmentJobs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub Refactor Spaces",
+            "contributor": "",
+            "description": "This is the initial SDK release for AWS Migration Hub Refactor Spaces"
+        }
+    ]
+}

@@ -1,3 +1,204 @@
+# __2.17.93__ __2021-11-30__
+## __AWS Backup Gateway__
+  - ### Features
+    - Initial release of AWS Backup gateway which enables you to centralize and automate protection of on-premises VMware and VMware Cloud on AWS workloads using AWS Backup.
+
+## __AWS Glue__
+  - ### Features
+    - Support for DataLake transactions
+
+## __AWS IoT__
+  - ### Features
+    - Added the ability to enable/disable IoT Fleet Indexing for Device Defender and Named Shadow information, and search them through IoT Fleet Indexing APIs.
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - AWS IoT TwinMaker makes it faster and easier to create, visualize and monitor digital twins of real-world systems like buildings, factories and industrial equipment to optimize operations. Learn more: https://docs.aws.amazon.com/iot-twinmaker/latest/apireference/Welcome.html (New Service) (Preview)
+
+## __AWS Lake Formation__
+  - ### Features
+    - This release adds support for row and cell-based access control in Lake Formation. It also adds support for Lake Formation Governed Tables, which support ACID transactions and automatic storage optimizations.
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds the SupportedHardwareType parameter to CreateOutpost.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Added gateway type VTL_SNOW. Added new SNOWBALL HostEnvironment for gateways running on a Snowball device. Added new field HostEnvironmentId to serve as an identifier for the HostEnvironment on which the gateway is running.
+
+## __Access Analyzer__
+  - ### Features
+    - AWS IAM Access Analyzer now supports policy validation for resource policies attached to S3 buckets and access points. You can run additional policy checks by specifying the S3 resource type you want to attach to your resource policy.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for Is4gen and Im4gn instances. This release also adds a new subnet attribute, enableLniAtDeviceIndex, to support local network interfaces, which are logical networking components that connect an EC2 instance to your on-premises network.
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for the FSx for OpenZFS file system type, FSx for Lustre file systems with the Persistent_2 deployment type, and FSx for Lustre file systems with Amazon S3 data repository associations and automatic export policies.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Tapeball is to integrate tape gateway onto snowball, it enables customer to transfer local data on the tape to snowball,and then ingest the data into tape gateway on the cloud.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Amazon Kinesis Data Streams now supports on demand streams.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Introduce Amazon S3 Glacier Instant Retrieval storage class and a new setting in S3 Object Ownership to disable ACLs for bucket and the objects in it.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - This is the initial SDK release for Amazon WorkSpaces Web. Amazon WorkSpaces Web is a low-cost, fully managed WorkSpace built to deliver secure web-based workloads and software-as-a-service (SaaS) application access to users within existing web browsers.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - This release adds three new V2 APIs. CreateClusterV2 for creating both provisioned and serverless clusters. DescribeClusterV2 for getting information about provisioned and serverless clusters and ListClustersV2 for listing all clusters (both provisioned and serverless) in your account.
+
+## __Redshift Data API Service__
+  - ### Features
+    - Data API now supports serverless queries.
+
+# __2.17.92__ __2021-11-29__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Adds support for the enhanced infrastructure metrics paid feature. Also adds support for two new sets of resource efficiency metrics, including savings opportunity metrics and performance improvement opportunity metrics.
+
+## __AWS Data Exchange__
+  - ### Features
+    - This release enables providers and subscribers to use Data Set, Job, and Asset operations to work with API assets from Amazon API Gateway. In addition, this release enables subscribers to use the SendApiAsset operation to invoke a provider's Amazon API Gateway API that they are entitled to.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - AWS IoT SiteWise now supports retention configuration for the hot tier storage.
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - This update provides support for Well-Architected API users to use custom lens features.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - Introducing Amazon CloudWatch Evidently. This is the first public release of Amazon CloudWatch Evidently.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds supports for pull through cache rules and enhanced scanning.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for G5g and M6a instances. This release also adds support for Amazon EBS Snapshots Archive, a feature that enables you to archive your EBS snapshots; and Recycle Bin, a feature that enables you to protect your EBS snapshots against accidental deletion.
+
+## __Amazon Recycle Bin__
+  - ### Features
+    - This release adds support for Recycle Bin.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon S3 Event Notifications adds Amazon EventBridge as a destination and supports additional event types. The PutBucketNotificationConfiguration API can now skip validation of Amazon SQS, Amazon SNS and AWS Lambda destinations.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Added two new attributes to DescribeInstanceInformation called SourceId and SourceType along with new string filters SourceIds and SourceTypes to filter instance records.
+
+## __CloudWatch RUM__
+  - ### Features
+    - This is the first public release of CloudWatch RUM
+
+## __Inspector2__
+  - ### Features
+    - This release adds support for the new Amazon Inspector API. The new Amazon Inspector can automatically discover and scan Amazon EC2 instances and Amazon ECR container images for software vulnerabilities and unintended network exposure, and report centralized findings across multiple AWS accounts.
+
+# __2.17.91__ __2021-11-28__
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - This is the initial SDK release for AWS Migration Hub Refactor Spaces
+
+## __Amazon Personalize__
+  - ### Features
+    - This release adds API support for Recommenders and BatchSegmentJobs.
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - This release adds inference support for Recommenders.
+
+## __Amazon Textract__
+  - ### Features
+    - This release adds support for synchronously analyzing identity documents through a new API: AnalyzeID
+
+# __2.17.90__ __2021-11-26__
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - Documentation update for Device Advisor GetEndpoint API
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds new APIs for working with Outpost sites and orders.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Added a One-Time Password (OTP) management feature. You can use the Amazon Pinpoint API to generate OTP codes and send them to your users as SMS messages. Your apps can then call the API to verify the OTP codes that your users input
+
+## __Application Migration Service__
+  - ### Features
+    - Application Migration Service now supports an additional replication method that does not require agent installation on each source server. This option is available for source servers running on VMware vCenter versions 6.7 and 7.0.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for Amazon EC2 Auto Scaling.
+
+# __2.17.89__ __2021-11-24__
+## __AWS IoT SiteWise__
+  - ### Features
+    - AWS IoT SiteWise now accepts data streams that aren't associated with any asset properties. You can organize data by updating data stream associations.
+
+## __AWS Lambda__
+  - ### Features
+    - Remove Lambda function url apis
+
+## __AWS Proton__
+  - ### Features
+    - This release adds APIs for getting the outputs and provisioned stacks for Environments, Pipelines, and ServiceInstances. You can now add tags to EnvironmentAccountConnections. It also adds APIs for working with PR-based provisioning. Also, it adds APIs for syncing templates with a git repository.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces a new auto-merging feature for profile matching. The auto-merging configurations can be set via CreateDomain API or UpdateDomain API. You can use GetIdentityResolutionJob API and ListIdentityResolutionJobs API to fetch job status.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Doc only update for ElastiCache
+
+## __Amazon Timestream Query__
+  - ### Features
+    - Releasing Amazon Timestream Scheduled Queries. It makes real-time analytics more performant and cost-effective for customers by calculating and storing frequently accessed aggregates, and other computations, typically used in operational dashboards, business reports, and other analytics applications
+
+## __Amazon Timestream Write__
+  - ### Features
+    - This release adds support for multi-measure records and magnetic store writes. Multi-measure records allow customers to store multiple measures in a single table row. Magnetic store writes enable customers to write late arrival data (data with timestamp in the past) directly into the magnetic store.
+
+## __Amazon Translate__
+  - ### Features
+    - This release enables customers to use translation settings to mask profane words and phrases in their translation output.
+
+## __Auto Scaling__
+  - ### Features
+    - Customers can now configure predictive scaling policies to proactively scale EC2 Auto Scaling groups based on any CloudWatch metrics that more accurately represent the load on the group than the four predefined metrics. They can also use math expressions to further customize the metrics.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds support for sharing AMIs with Organizations within an EC2 Image Builder Distribution Configuration.
+
 # __2.17.88__ __2021-11-23__
 ## __AWS Backup__
   - ### Features
