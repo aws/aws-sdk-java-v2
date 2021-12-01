@@ -19,9 +19,9 @@ import static org.assertj.core.api.Fail.fail;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -42,7 +42,7 @@ public class S3ControlIntegrationTest extends AwsIntegrationTestBase {
 
     private S3ControlClient client;
 
-    @Before
+    @BeforeEach
     public void setup() {
         StsClient sts = StsClient.create();
         accountId = sts.getCallerIdentity().account();
@@ -51,7 +51,7 @@ public class S3ControlIntegrationTest extends AwsIntegrationTestBase {
                                 .build();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         try {
             client.deletePublicAccessBlock(DeletePublicAccessBlockRequest.builder().accountId(accountId).build());

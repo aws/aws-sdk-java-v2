@@ -24,9 +24,9 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.io.IOException;
 import java.util.Iterator;
 import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.cloudtrail.model.CreateTrailRequest;
 import software.amazon.awssdk.services.cloudtrail.model.CreateTrailResponse;
 import software.amazon.awssdk.services.cloudtrail.model.DeleteTrailRequest;
@@ -57,7 +57,7 @@ public class CloudTrailIntegrationTest extends IntegrationTestBase {
      */
     private static final String POLICY_FILE = "/software/amazon/awssdk/services/cloudtrail/samplePolicy.json";
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws IOException {
         IntegrationTestBase.setUp();
         s3.createBucket(CreateBucketRequest.builder()
@@ -69,7 +69,7 @@ public class CloudTrailIntegrationTest extends IntegrationTestBase {
                                            .build());
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         deleteBucketAndAllContents(BUCKET_NAME);
 

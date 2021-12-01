@@ -22,9 +22,9 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
 
 import java.util.Objects;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedLocalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
@@ -116,7 +116,7 @@ public class PutItemWithResponseIntegrationTest extends DynamoDbEnhancedIntegrat
     private static DynamoDbEnhancedClient enhancedClient;
     private static DynamoDbTable<Record> mappedTable;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         dynamoDbClient = createDynamoDbClient();
         enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build();
@@ -125,7 +125,7 @@ public class PutItemWithResponseIntegrationTest extends DynamoDbEnhancedIntegrat
         dynamoDbClient.waiter().waitUntilTableExists(r -> r.tableName(TABLE_NAME));
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() {
         try {
             dynamoDbClient.deleteTable(r -> r.tableName(TABLE_NAME));

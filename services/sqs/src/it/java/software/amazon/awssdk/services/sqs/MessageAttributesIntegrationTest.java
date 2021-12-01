@@ -27,9 +27,9 @@ import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -58,12 +58,12 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
 
     private String queueUrl;
 
-    @Before
+    @BeforeEach
     public void setup() {
         queueUrl = createQueue(sqsAsync);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         sqsAsync.deleteQueue(DeleteQueueRequest.builder().queueUrl(queueUrl).build());
     }

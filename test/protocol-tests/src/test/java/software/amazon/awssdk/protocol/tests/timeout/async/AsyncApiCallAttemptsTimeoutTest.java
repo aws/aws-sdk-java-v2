@@ -30,9 +30,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.assertj.core.api.ThrowableAssert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -60,7 +60,7 @@ public class AsyncApiCallAttemptsTimeoutTest extends BaseApiCallAttemptTimeoutTe
     private static final int DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT = 100;
     private static final int DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT = 1000;
 
-    @Before
+    @BeforeEach
     public void setup() {
         client = ProtocolRestJsonAsyncClient.builder()
                                             .region(Region.US_WEST_1)

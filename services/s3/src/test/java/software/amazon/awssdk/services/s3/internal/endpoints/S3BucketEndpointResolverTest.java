@@ -18,19 +18,15 @@ package software.amazon.awssdk.services.s3.internal.endpoints;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.ConfiguredS3SdkHttpRequest;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.utils.InterceptorTestUtils;
 
@@ -38,7 +34,7 @@ public class S3BucketEndpointResolverTest {
 
     S3BucketEndpointResolver endpointResolver;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         endpointResolver = S3BucketEndpointResolver.create();
     }

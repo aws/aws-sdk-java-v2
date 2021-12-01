@@ -24,11 +24,11 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -66,7 +66,7 @@ public class S3PresignerIntegrationTest {
 
     private S3Presigner presigner;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
         client = S3Client.create();
         testBucket = S3TestUtils.getTestBucket(client);
@@ -78,7 +78,7 @@ public class S3PresignerIntegrationTest {
         S3TestUtils.putObject(S3PresignerIntegrationTest.class, client, testNonDnsCompatibleBucket, testGetObjectKey, testObjectContent);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
         S3TestUtils.runCleanupTasks(S3PresignerIntegrationTest.class);
         client.close();
@@ -88,12 +88,12 @@ public class S3PresignerIntegrationTest {
         return "s3-presigner-it-" + UUID.randomUUID();
     }
 
-    @Before
+    @BeforeEach
     public void setUpInstance() {
         this.presigner = S3Presigner.create();
     }
 
-    @After
+    @AfterEach
     public void testDownInstance() {
         this.presigner.close();
     }

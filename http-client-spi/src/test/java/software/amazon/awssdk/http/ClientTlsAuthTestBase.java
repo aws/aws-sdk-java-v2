@@ -19,8 +19,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 abstract class ClientTlsAuthTestBase {
     protected static final String STORE_PASSWORD = "password";
@@ -32,13 +32,13 @@ abstract class ClientTlsAuthTestBase {
     protected static Path serverKeyStore;
     protected static Path clientKeyStore;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws IOException {
         tempDir = Files.createTempDirectory(ClientTlsAuthTestBase.class.getSimpleName());
         copyCertsToTmpDir();
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() throws IOException {
         Files.deleteIfExists(serverKeyStore);
         Files.deleteIfExists(clientKeyStore);

@@ -17,9 +17,9 @@ package software.amazon.awssdk.services.apigateway;
 
 import java.util.List;
 import junit.framework.Assert;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.apigateway.model.CreateApiKeyRequest;
 import software.amazon.awssdk.services.apigateway.model.CreateApiKeyResponse;
 import software.amazon.awssdk.services.apigateway.model.CreateResourceRequest;
@@ -55,7 +55,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
 
     private static String restApiId = null;
 
-    @BeforeClass
+    @BeforeAll
     public static void createRestApi() {
         CreateRestApiResponse createRestApiResult = apiGateway.createRestApi(
                 CreateRestApiRequest.builder().name(NAME)
@@ -72,7 +72,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         restApiId = createRestApiResult.id();
     }
 
-    @AfterClass
+    @AfterAll
     public static void deleteRestApiKey() {
         if (restApiId != null) {
             apiGateway.deleteRestApi(DeleteRestApiRequest.builder().restApiId(restApiId).build());

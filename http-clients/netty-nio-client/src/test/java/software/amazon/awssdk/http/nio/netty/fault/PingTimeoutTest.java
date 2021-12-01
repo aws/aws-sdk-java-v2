@@ -52,10 +52,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -82,13 +82,13 @@ public class PingTimeoutTest {
     private Server server;
     private SdkAsyncHttpClient netty;
 
-    @Before
+    @BeforeEach
     public void methodSetup() throws Exception {
         server = new Server();
         server.init();
     }
 
-    @After
+    @AfterEach
     public void methodTeardown() throws InterruptedException {
         server.shutdown();
 

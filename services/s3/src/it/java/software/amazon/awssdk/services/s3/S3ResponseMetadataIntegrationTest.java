@@ -20,9 +20,9 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 
 import java.io.File;
 import java.io.IOException;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -41,7 +41,7 @@ public class S3ResponseMetadataIntegrationTest extends S3IntegrationTestBase {
 
     private static File file;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupFixture() throws IOException {
         createBucket(BUCKET);
         file = new RandomTempFile(10_000);
@@ -51,7 +51,7 @@ public class S3ResponseMetadataIntegrationTest extends S3IntegrationTestBase {
                                      .build(), file.toPath());
     }
 
-    @AfterClass
+    @AfterAll
     public static void deleteAllBuckets() {
         deleteBucketAndAllContents(BUCKET);
         file.delete();

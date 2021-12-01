@@ -17,7 +17,7 @@ package software.amazon.awssdk.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SdkBytesTest {
     @Test

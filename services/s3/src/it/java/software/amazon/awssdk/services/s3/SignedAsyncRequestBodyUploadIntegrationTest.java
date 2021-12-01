@@ -27,10 +27,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.signer.AsyncAws4Signer;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -55,7 +55,7 @@ public class SignedAsyncRequestBodyUploadIntegrationTest extends S3IntegrationTe
     private static TestSigner mockSigner;
     private static final CapturingInterceptor capturingInterceptor = new CapturingInterceptor();
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
 
@@ -81,7 +81,7 @@ public class SignedAsyncRequestBodyUploadIntegrationTest extends S3IntegrationTe
         createBucket(BUCKET);
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() {
         S3TestUtils.deleteBucketAndAllContents(s3, BUCKET);
         s3.close();
@@ -89,7 +89,7 @@ public class SignedAsyncRequestBodyUploadIntegrationTest extends S3IntegrationTe
         testClient.close();
     }
 
-    @Before
+    @BeforeEach
     public void methodSetup() {
         capturingInterceptor.reset();
     }

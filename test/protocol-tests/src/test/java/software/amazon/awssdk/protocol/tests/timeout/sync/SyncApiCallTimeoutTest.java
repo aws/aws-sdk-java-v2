@@ -28,9 +28,9 @@ import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import org.assertj.core.api.ThrowableAssert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -53,7 +53,7 @@ public class SyncApiCallTimeoutTest extends BaseApiCallTimeoutTest {
     private ProtocolRestJsonClient client;
     private ProtocolRestJsonClient clientWithRetry;
 
-    @Before
+    @BeforeEach
     public void setup() {
         client = ProtocolRestJsonClient.builder()
                                        .region(Region.US_WEST_1)

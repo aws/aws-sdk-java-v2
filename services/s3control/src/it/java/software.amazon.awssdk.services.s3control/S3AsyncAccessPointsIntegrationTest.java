@@ -19,9 +19,9 @@ import static org.junit.Assert.assertNotNull;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.util.StringJoiner;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -42,7 +42,7 @@ public class S3AsyncAccessPointsIntegrationTest extends S3ControlIntegrationTest
 
     private static String accountId;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupFixture() {
         createBucket(BUCKET);
 
@@ -63,7 +63,7 @@ public class S3AsyncAccessPointsIntegrationTest extends S3ControlIntegrationTest
                  .join();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         s3control.deleteAccessPoint(b -> b.accountId(accountId).name(AP_NAME)).join();
         deleteBucketAndAllContents(BUCKET);

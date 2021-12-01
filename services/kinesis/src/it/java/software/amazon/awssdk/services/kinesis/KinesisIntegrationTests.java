@@ -23,8 +23,8 @@ import java.time.Instant;
 import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.kinesis.model.CreateStreamRequest;
@@ -109,7 +109,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void testKinesisOperations() throws Exception {
         String streamName = "java-test-stream-" + System.currentTimeMillis();
         boolean created = false;

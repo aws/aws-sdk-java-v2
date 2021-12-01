@@ -26,8 +26,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
@@ -87,7 +87,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
     private static StsClient stsClient;
     private static S3Client s3Client;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupFixture() {
         captureInterceptor = new CaptureRequestInterceptor();
 

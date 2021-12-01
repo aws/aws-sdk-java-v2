@@ -19,8 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.AfterClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ssm.model.CreateDocumentRequest;
@@ -41,7 +41,7 @@ public class SSMServiceIntegrationTest extends IntegrationTestBase {
     private static final String DOCUMENT_LOCATION = "documentContent.json";
     private static final String DOCUMENT_NAME = "my-document-" + System.currentTimeMillis();
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         try {
             ssm.deleteDocument(DeleteDocumentRequest.builder().name(DOCUMENT_NAME).build());

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.cloudformation;
 
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
@@ -31,7 +31,7 @@ public class CloudFormationIntegrationTestBase extends AwsTestBase {
      * Loads the AWS account info for the integration tests and creates an S3 client for tests to
      * use.
      */
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         cf = CloudFormationClient.builder()
                                  .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)

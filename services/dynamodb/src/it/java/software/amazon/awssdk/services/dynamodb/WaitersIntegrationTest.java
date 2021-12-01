@@ -19,9 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CompletableFuture;
 import org.assertj.core.api.Condition;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -44,7 +44,7 @@ public class WaitersIntegrationTest extends DynamoDBTestBase {
     private static final String HASH_KEY_NAME = BasicTempTable.HASH_KEY_NAME;
     private static DynamoDbAsyncClient dynamoAsync;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() {
         DynamoDBTestBase.setUpTestBase();
 
@@ -65,7 +65,7 @@ public class WaitersIntegrationTest extends DynamoDBTestBase {
                                              .build());
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanUp() {
         dynamoAsync.deleteTable(DeleteTableRequest.builder().tableName(TABLE_NAME).build());
 

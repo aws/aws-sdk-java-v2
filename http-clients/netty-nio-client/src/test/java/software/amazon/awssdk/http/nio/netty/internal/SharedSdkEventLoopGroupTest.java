@@ -18,7 +18,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 
 public class SharedSdkEventLoopGroupTest {

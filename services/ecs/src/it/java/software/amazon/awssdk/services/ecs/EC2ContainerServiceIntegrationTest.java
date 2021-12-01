@@ -17,10 +17,10 @@ package software.amazon.awssdk.services.ecs;
 
 import java.util.Arrays;
 import java.util.List;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.ecs.model.ContainerDefinition;
 import software.amazon.awssdk.services.ecs.model.CreateClusterRequest;
 import software.amazon.awssdk.services.ecs.model.CreateClusterResponse;
@@ -41,7 +41,7 @@ public class EC2ContainerServiceIntegrationTest extends AwsTestBase {
     private static EcsClient client;
     private static String clusterArn;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws Exception {
         setUpCredentials();
 
@@ -62,7 +62,7 @@ public class EC2ContainerServiceIntegrationTest extends AwsTestBase {
               .orFail();
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanup() {
         if (client != null) {
             client.deleteCluster(DeleteClusterRequest.builder().cluster(CLUSTER_NAME).build());

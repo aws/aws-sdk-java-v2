@@ -419,11 +419,11 @@
                     <ignoredUsedUndeclaredDependencies>
                         <!--Ignore used undeclared test dependencies -->
                         <ignoredUsedUndeclaredDependency>junit:*:*</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>org.junit.*</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>software.amazon.awssdk:test-utils</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.hamcrest:*</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.mockito:*</ignoredUsedUndeclaredDependency>
-                        <ignoredUsedUndeclaredDependency>org.junit.platform:*</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.opentest4j:*</ignoredUsedUndeclaredDependency>
 
                         <!-- TODO: fix this once we start to generate pom.xml for individual services -->
@@ -434,8 +434,7 @@
                     <ignoredUnusedDeclaredDependencies>
                         <!-- TODO: fix this when we've re-merged with netty-reactive-streams -->
                         <ignoredUnusedDeclaredDependency>com.typesafe.netty:*</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.junit.jupiter:*</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.junit.vintage:*</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>org.junit.*</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:aws-sdk-java</ignoredUnusedDeclaredDependency>
                         <!-- Declared by the codegen maven plugins (lite and normal). Not used directly but used to override a transitive dependecy -->
                         <ignoredUnusedDeclaredDependency>org.codehaus.plexus:plexus-utils</ignoredUnusedDeclaredDependency>

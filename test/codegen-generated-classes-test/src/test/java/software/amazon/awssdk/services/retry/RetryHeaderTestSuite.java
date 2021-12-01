@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.stream.Stream;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -36,7 +36,7 @@ public abstract class RetryHeaderTestSuite<T extends MockHttpClient> {
         this.mockHttpClient = mockHttpClient;
     }
 
-    @Before
+    @BeforeEach
     public void setupClient() {
         mockHttpClient.reset();
     }
