@@ -22,9 +22,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class UserHomeDirectoryUtilsTest {
@@ -42,7 +42,7 @@ public class UserHomeDirectoryUtilsTest {
      * Save the current state of the environment variables we're messing around with in these tests so that we can restore them
      * when we are done.
      */
-    @Before
+    @BeforeEach
     public void saveEnvironment() throws Exception {
         // The tests in this file change the os.home for testing windows vs non-windows loading. We need to load the home
         // directory that should be used for the stored file before changing the os.home so that it doesn't try to load
@@ -57,7 +57,7 @@ public class UserHomeDirectoryUtilsTest {
     /**
      * Reset the environment variables after each test.
      */
-    @After
+    @AfterEach
     public void restoreEnvironment() throws Exception {
         for (String variable : SAVED_ENVIRONMENT_VARIABLES) {
             String savedValue = savedEnvironmentVariableValues.get(variable);

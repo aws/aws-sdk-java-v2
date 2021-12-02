@@ -19,14 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.crt.http.HttpHeader;
 
 public class ResponseHeadersHandlerTest {
     private ResponseHeadersHandler handler;
     
-    @Before
+    @BeforeEach
     public void setUp() {
         handler = new ResponseHeadersHandler();
     }

@@ -20,9 +20,9 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 
 import java.util.Objects;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -53,7 +53,7 @@ public class AsyncBasicControlPlaneTableOperationTest extends LocalDynamoDbAsync
 
     private final DynamoDbAsyncTable<AsyncBasicControlPlaneTableOperationTest.Record> asyncMappedTable = enhancedAsyncClient.table(tableName, TABLE_SCHEMA);
 
-    @Before
+    @BeforeEach
     public void createTable() {
         asyncMappedTable.createTable(
             CreateTableEnhancedRequest.builder()
@@ -62,7 +62,7 @@ public class AsyncBasicControlPlaneTableOperationTest extends LocalDynamoDbAsync
         getDynamoDbAsyncClient().waiter().waitUntilTableExists(b -> b.tableName(tableName)).join();
     }
 
-    @After
+    @AfterEach
     public void deleteTable() {
         getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
                                                                .tableName(tableName)

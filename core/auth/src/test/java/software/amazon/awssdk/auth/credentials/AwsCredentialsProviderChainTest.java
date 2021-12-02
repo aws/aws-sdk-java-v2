@@ -18,7 +18,7 @@ package software.amazon.awssdk.auth.credentials;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;

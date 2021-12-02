@@ -21,9 +21,9 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -39,7 +39,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     private static S3TransferManager tm;
     private static File file;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         createBucket(BUCKET);
         file = new RandomTempFile(OBJ_SIZE);
@@ -53,7 +53,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
                               .build();
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
         tm.close();

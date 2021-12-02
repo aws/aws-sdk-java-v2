@@ -19,10 +19,10 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.util.Map;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogGroupRequest;
 import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogStreamRequest;
@@ -136,14 +136,14 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         Assert.assertNull(createdStream.lastIngestionTime());
     }
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         testCreateLogGroup(logGroupName);
         testCreateLogStream(logGroupName, logStreamName);
         testCreateMetricFilter(logGroupName, logMetricFilterName);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         try {
             awsLogs.deleteLogStream(DeleteLogStreamRequest.builder().logGroupName(logGroupName).logStreamName(logStreamName).build());

@@ -30,11 +30,11 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -56,7 +56,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
     private S3CrtAsyncClient s3Crt;
 
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
         S3IntegrationTestBase.createBucket(TEST_BUCKET);
@@ -65,7 +65,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
         executorService = Executors.newFixedThreadPool(2);
     }
 
-    @Before
+    @BeforeEach
     public void methodSetup() {
         s3Crt = S3CrtAsyncClient.builder()
                                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
@@ -73,12 +73,12 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
                                 .build();
     }
 
-    @After
+    @AfterEach
     public void methodTeardown() {
         s3Crt.close();
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() throws IOException {
         S3IntegrationTestBase.deleteBucketAndAllContents(TEST_BUCKET);
         Files.delete(testFile.toPath());

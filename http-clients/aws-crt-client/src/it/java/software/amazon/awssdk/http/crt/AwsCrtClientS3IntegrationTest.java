@@ -22,10 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -54,7 +54,7 @@ public class AwsCrtClientS3IntegrationTest {
 
     private static S3AsyncClient s3;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         CrtResource.waitForNoResources();
 
@@ -67,7 +67,7 @@ public class AwsCrtClientS3IntegrationTest {
                 .build();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         s3.close();
         crtClient.close();

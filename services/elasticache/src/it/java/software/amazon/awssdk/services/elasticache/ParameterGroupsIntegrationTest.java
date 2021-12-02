@@ -21,8 +21,8 @@ import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.elasticache.model.CacheNodeTypeSpecificParameter;
 import software.amazon.awssdk.services.elasticache.model.CacheParameterGroup;
 import software.amazon.awssdk.services.elasticache.model.CreateCacheParameterGroupRequest;
@@ -48,7 +48,7 @@ public class ParameterGroupsIntegrationTest extends ElastiCacheIntegrationTestBa
     private String cacheParameterGroupName;
 
     /** Releases all resources created by tests. */
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         if (cacheParameterGroupName != null) {
             try {

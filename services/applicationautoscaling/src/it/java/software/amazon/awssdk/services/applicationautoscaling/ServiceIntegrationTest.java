@@ -16,8 +16,8 @@
 package software.amazon.awssdk.services.applicationautoscaling;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalingPoliciesRequest;
 import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalingPoliciesResponse;
@@ -28,7 +28,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
     private static ApplicationAutoScalingClient autoscaling;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() {
         autoscaling = ApplicationAutoScalingClient.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(getCredentials()))

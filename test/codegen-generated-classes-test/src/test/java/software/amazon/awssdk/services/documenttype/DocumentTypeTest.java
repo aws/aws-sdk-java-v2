@@ -12,9 +12,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
@@ -56,7 +56,7 @@ public class DocumentTypeTest {
 
     private SdkHttpClient httpClient;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         httpClient = Mockito.mock(SdkHttpClient.class);
         jsonClient = initializeSync(DocumentTypeJsonClient.builder()).build();

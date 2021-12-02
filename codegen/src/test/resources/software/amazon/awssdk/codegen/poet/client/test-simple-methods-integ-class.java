@@ -1,7 +1,7 @@
 package software.amazon.awssdk.services.json;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.regions.Region;
 
@@ -9,7 +9,7 @@ import software.amazon.awssdk.regions.Region;
 public class SimpleMethodsIntegrationTest {
     private static JsonClient client;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         if (JsonClient.serviceMetadata().regions().isEmpty()) {
             client = JsonClient.builder().region(Region.US_EAST_1).build();

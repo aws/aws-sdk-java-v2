@@ -21,7 +21,7 @@ import static org.junit.Assert.fail;
 
 import java.util.Collections;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for the ImmutableMapTest class.

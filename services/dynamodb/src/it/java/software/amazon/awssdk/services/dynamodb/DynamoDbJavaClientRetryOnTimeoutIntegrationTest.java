@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.retry.RetryPolicy;

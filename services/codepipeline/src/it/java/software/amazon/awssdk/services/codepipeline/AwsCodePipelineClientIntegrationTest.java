@@ -20,8 +20,8 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.codepipeline.model.ActionCategory;
 import software.amazon.awssdk.services.codepipeline.model.ActionOwner;
 import software.amazon.awssdk.services.codepipeline.model.ActionType;
@@ -42,7 +42,7 @@ public class AwsCodePipelineClientIntegrationTest extends AwsTestBase {
 
     private static CodePipelineClient client;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws Exception {
         setUpCredentials();
         client = CodePipelineClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();

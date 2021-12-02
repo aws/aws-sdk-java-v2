@@ -21,8 +21,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import org.junit.AfterClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.datapipeline.model.ActivatePipelineRequest;
 import software.amazon.awssdk.services.datapipeline.model.ActivatePipelineResponse;
@@ -56,7 +56,7 @@ public class DataPipelineIntegrationTest extends IntegrationTestBase {
     private static final String FIELD_VALUE = "2012-09-25T17:00:00";
     private static String pipelineId;
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         try {
             dataPipeline.deletePipeline(DeletePipelineRequest.builder().pipelineId(pipelineId).build());

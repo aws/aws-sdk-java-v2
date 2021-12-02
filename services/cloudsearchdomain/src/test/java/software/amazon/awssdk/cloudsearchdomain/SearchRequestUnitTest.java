@@ -28,9 +28,9 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
 import java.net.URI;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -48,7 +48,7 @@ public class SearchRequestUnitTest {
 
     private CloudSearchDomainClient searchClient;
 
-    @Before
+    @BeforeEach
     public void testSetup() {
         searchClient = CloudSearchDomainClient.builder()
                                               .credentialsProvider(StaticCredentialsProvider.create(CREDENTIALS))

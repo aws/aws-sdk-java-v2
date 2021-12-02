@@ -21,9 +21,9 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
@@ -45,7 +45,7 @@ public class ObjectTaggingIntegrationTest extends S3IntegrationTestBase {
     private static final String KEY_PREFIX = "tagged-object-";
     private static final String BUCKET = temporaryBucketName("java-object-tagging-bucket-");
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
@@ -59,7 +59,7 @@ public class ObjectTaggingIntegrationTest extends S3IntegrationTestBase {
                                                          .build());
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         deleteBucketAndAllContents(BUCKET);
     }

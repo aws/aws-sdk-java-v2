@@ -52,9 +52,9 @@ import java.nio.channels.ClosedChannelException;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -78,7 +78,7 @@ public class ServerCloseConnectionTest {
     private SdkAsyncHttpClient netty;
     private Server server;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         server = new Server();
         server.init();
@@ -90,7 +90,7 @@ public class ServerCloseConnectionTest {
                                        .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
     }
 
-    @After
+    @AfterEach
     public void teardown() throws InterruptedException {
         if (server != null) {
             server.shutdown();

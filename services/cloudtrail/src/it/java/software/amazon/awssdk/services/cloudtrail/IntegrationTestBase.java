@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.cloudtrail;
 
 import java.io.IOException;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -28,7 +28,7 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
     protected static S3Client s3;
     protected static Region region = Region.US_WEST_2;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws IOException {
         System.setProperty("software.amazon.awssdk.sdk.disableCertChecking", "true");
         cloudTrail = CloudTrailClient.builder().credentialsProvider(StaticCredentialsProvider.create(getCredentials())).build();

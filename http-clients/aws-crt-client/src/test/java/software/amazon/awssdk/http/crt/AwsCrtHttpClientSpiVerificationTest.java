@@ -38,10 +38,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -67,7 +67,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
 
     private SdkAsyncHttpClient client;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         CrtResource.waitForNoResources();
 
@@ -77,7 +77,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
                                       .build();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         client.close();
         EventLoopGroup.closeStaticDefault();

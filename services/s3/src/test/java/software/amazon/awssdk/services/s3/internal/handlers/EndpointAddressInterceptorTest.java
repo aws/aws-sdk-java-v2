@@ -24,9 +24,8 @@ import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERV
 import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncode;
 
 import java.net.URI;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -50,7 +49,7 @@ public class EndpointAddressInterceptorTest {
 
     private EndpointAddressInterceptor interceptor;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         interceptor = new EndpointAddressInterceptor();
     }

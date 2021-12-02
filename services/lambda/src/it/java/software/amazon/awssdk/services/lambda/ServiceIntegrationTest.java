@@ -20,13 +20,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.lambda.model.CreateEventSourceMappingRequest;
 import software.amazon.awssdk.services.lambda.model.CreateEventSourceMappingResponse;
@@ -49,7 +49,7 @@ import software.amazon.awssdk.services.lambda.model.Runtime;
 import software.amazon.awssdk.testutils.retry.RetryRule;
 import software.amazon.awssdk.utils.BinaryUtils;
 
-@Ignore
+@Disabled
 public class ServiceIntegrationTest extends IntegrationTestBase {
 
     private static final String FUNCTION_NAME = "java-sdk-helloworld-" + System.currentTimeMillis();
@@ -57,12 +57,12 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
     @Rule
     public RetryRule retryRule = new RetryRule(10, 2000, TimeUnit.MILLISECONDS);
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpKinesis() {
         IntegrationTestBase.createKinesisStream();
     }
 
-    @Before
+    @BeforeEach
     public void uploadFunction() throws IOException {
         // Upload function
         SdkBytes functionBits;
@@ -84,7 +84,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         checkValid_CreateFunctionResponse(result);
     }
 
-    @After
+    @AfterEach
     public void deleteFunction() {
         lambda.deleteFunction(DeleteFunctionRequest.builder().functionName(FUNCTION_NAME).build());
     }

@@ -18,8 +18,8 @@ package software.amazon.awssdk.services.sqs.auth.policy;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.auth.policy.Action;
 import software.amazon.awssdk.core.auth.policy.Policy;
 import software.amazon.awssdk.core.auth.policy.Principal;
@@ -47,7 +47,7 @@ public class SqsPolicyIntegrationTest extends IntegrationTestBase {
     /**
      * Releases all test resources
      */
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         sqsSync.deleteQueue(DeleteQueueRequest.builder().queueUrl(queueUrl).build());
     }

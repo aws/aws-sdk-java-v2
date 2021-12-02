@@ -23,9 +23,9 @@ import static org.junit.Assert.fail;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.codedeploy.model.ApplicationInfo;
 import software.amazon.awssdk.services.codedeploy.model.CreateApplicationRequest;
@@ -61,7 +61,7 @@ public class CodeDeployIntegrationTest extends IntegrationTestBase {
      * Creates an application and asserts the result for the application id
      * returned from code deploy service.
      */
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws FileNotFoundException, IOException {
         IntegrationTestBase.setUp();
         CreateApplicationRequest createRequest = CreateApplicationRequest.builder()
@@ -76,7 +76,7 @@ public class CodeDeployIntegrationTest extends IntegrationTestBase {
     /**
      * Delete the application from code deploy service created for this testing.
      */
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         if (applicationId != null) {
             codeDeploy.deleteApplication(DeleteApplicationRequest.builder()

@@ -20,9 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricLevel;
@@ -32,7 +32,7 @@ public class DefaultSdkMetricTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @Before
+    @BeforeEach
     public void methodSetup() {
         DefaultSdkMetric.clearDeclaredMetrics();
     }

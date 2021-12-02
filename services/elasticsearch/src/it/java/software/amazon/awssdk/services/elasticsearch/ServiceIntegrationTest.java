@@ -25,9 +25,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.elasticsearch.model.AddTagsRequest;
 import software.amazon.awssdk.services.elasticsearch.model.CreateElasticsearchDomainRequest;
 import software.amazon.awssdk.services.elasticsearch.model.DeleteElasticsearchDomainRequest;
@@ -51,13 +51,13 @@ public class ServiceIntegrationTest extends AwsTestBase {
 
     private static final String DOMAIN_NAME = "java-es-test-" + System.currentTimeMillis();
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         setUpCredentials();
         es = ElasticsearchClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         es.deleteElasticsearchDomain(DeleteElasticsearchDomainRequest.builder().domainName(DOMAIN_NAME).build());
     }

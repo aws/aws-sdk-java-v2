@@ -16,7 +16,7 @@
 package software.amazon.awssdk.regions;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class PartitionEndpointKeyTest {
     @Test

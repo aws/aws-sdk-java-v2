@@ -21,8 +21,8 @@ import static org.junit.Assert.assertNotNull;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.Optional;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -68,7 +68,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
     private static AwsCredentials userCredentials;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         String accountId = sts.getCallerIdentity().account();
         USER_ARN = String.format(USER_ARN_FORMAT, accountId);

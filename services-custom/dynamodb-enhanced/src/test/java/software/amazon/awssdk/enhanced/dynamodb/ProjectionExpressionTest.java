@@ -3,8 +3,7 @@ package software.amazon.awssdk.enhanced.dynamodb;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.internal.ProjectionExpression;
 
 import java.util.Arrays;

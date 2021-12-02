@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SdkTlsSocketFactoryTest {
     /**

@@ -24,8 +24,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.AttachRolePolicyRequest;
@@ -65,7 +65,7 @@ public class IntegrationTestBase extends AwsTestBase {
     private static IamClient iam;
     private static KinesisClient kinesis;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         setUpCredentials();
         lambda = LambdaAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_WEST_2).build();
@@ -75,7 +75,7 @@ public class IntegrationTestBase extends AwsTestBase {
         createLambdaServiceRole();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         iam.detachRolePolicy(DetachRolePolicyRequest.builder().roleName(LAMBDA_SERVICE_ROLE_NAME).policyArn(
                 roleExecutionPolicyArn).build());

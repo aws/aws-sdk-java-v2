@@ -27,11 +27,10 @@ import java.net.HttpURLConnection;
 import java.net.Inet4Address;
 import java.net.URI;
 import java.util.Collections;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.ClassRule;
 import org.junit.Rule;
-import org.junit.Test;
-import software.amazon.awssdk.regions.internal.util.ConnectionUtils;
+import org.junit.jupiter.api.Test;
 
 public class ConnectionUtilsComponentTest {
 
@@ -43,7 +42,7 @@ public class ConnectionUtilsComponentTest {
 
     private final ConnectionUtils sut = ConnectionUtils.create();
 
-    @After
+    @AfterEach
     public void cleanup() {
         System.getProperties().remove("http.proxyHost");
         System.getProperties().remove("http.proxyPort");
