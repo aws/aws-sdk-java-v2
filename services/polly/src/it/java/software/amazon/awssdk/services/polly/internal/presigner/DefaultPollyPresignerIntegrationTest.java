@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
 import javax.net.ssl.HttpsURLConnection;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.polly.model.OutputFormat;
 import software.amazon.awssdk.services.polly.model.SynthesizeSpeechRequest;
 import software.amazon.awssdk.services.polly.model.VoiceId;
@@ -36,7 +36,7 @@ public class DefaultPollyPresignerIntegrationTest extends AwsIntegrationTestBase
 
     private static PollyPresigner presigner;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         presigner = DefaultPollyPresigner.builder()
                 .credentialsProvider(getCredentialsProvider())

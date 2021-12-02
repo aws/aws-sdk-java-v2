@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.EnumType;
 

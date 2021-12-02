@@ -26,8 +26,8 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.LastHttpContent;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link LastHttpContentSwallower}.
@@ -37,7 +37,7 @@ public class LastHttpContentSwallowerTest {
     private ChannelHandlerContext mockCtx;
     private ChannelPipeline mockPipeline;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         mockCtx = mock(ChannelHandlerContext.class);
         mockPipeline = mock(ChannelPipeline.class);

@@ -28,9 +28,9 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.time.Instant;
 import java.util.AbstractMap.SimpleEntry;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -57,7 +57,7 @@ public class RestJsonExceptionTests {
 
     private ProtocolRestJsonClient client;
 
-    @Before
+    @BeforeEach
     public void setupClient() {
         client = ProtocolRestJsonClient.builder()
                                        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))

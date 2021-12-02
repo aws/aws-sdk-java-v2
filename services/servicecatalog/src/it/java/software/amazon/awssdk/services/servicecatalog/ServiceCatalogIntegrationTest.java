@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.servicecatalog;
 
 import java.util.List;
 import junit.framework.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.servicecatalog.model.ListRecordHistoryRequest;
 import software.amazon.awssdk.services.servicecatalog.model.RecordDetail;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
@@ -27,7 +27,7 @@ public class ServiceCatalogIntegrationTest extends AwsIntegrationTestBase {
 
     private static ServiceCatalogClient serviceCatalog;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         serviceCatalog = ServiceCatalogClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }

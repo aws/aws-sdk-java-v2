@@ -28,8 +28,7 @@ import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils
 
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 
-import org.junit.Test;
-
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;

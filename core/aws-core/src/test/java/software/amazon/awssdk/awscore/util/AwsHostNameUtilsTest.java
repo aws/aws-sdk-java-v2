@@ -18,7 +18,7 @@ package software.amazon.awssdk.awscore.util;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.awscore.util.AwsHostNameUtils.parseSigningRegion;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.regions.Region;
 
 /** Unit tests for the utility methods that parse information from AWS URLs. */

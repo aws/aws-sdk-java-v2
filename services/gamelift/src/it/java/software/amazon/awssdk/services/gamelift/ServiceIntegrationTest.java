@@ -16,10 +16,10 @@
 package software.amazon.awssdk.services.gamelift;
 
 import java.io.IOException;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.gamelift.model.Alias;
 import software.amazon.awssdk.services.gamelift.model.CreateAliasRequest;
 import software.amazon.awssdk.services.gamelift.model.CreateAliasResponse;
@@ -36,12 +36,12 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
     private static String aliasId = null;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws IOException {
         gameLift = GameLiftClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanUp() {
         if (aliasId != null) {
             gameLift.deleteAlias(DeleteAliasRequest.builder().aliasId(aliasId).build());

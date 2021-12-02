@@ -28,8 +28,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -65,7 +65,7 @@ public class TranscribeStreamingIntegrationTest {
 
     private static MetricPublisher mockPublisher;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         mockPublisher = mock(MetricPublisher.class);
         client = TranscribeStreamingAsyncClient.builder()

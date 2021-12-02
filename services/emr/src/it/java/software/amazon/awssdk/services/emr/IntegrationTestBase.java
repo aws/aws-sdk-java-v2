@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.emr;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
@@ -34,7 +34,7 @@ public class IntegrationTestBase extends AwsTestBase {
      * Loads the AWS account info for the integration tests and creates an
      * EMR client for tests to use.
      */
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws FileNotFoundException, IOException {
         setUpCredentials();
         emr = EmrClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();

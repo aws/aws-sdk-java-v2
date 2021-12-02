@@ -32,9 +32,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
@@ -72,7 +72,7 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
     /**
      * Releases all resources created in this test.
      */
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         deleteBucketAndAllContents(bucketName);
     }
@@ -80,7 +80,7 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
     /**
      * Creates all the test resources for the tests.
      */
-    @BeforeClass
+    @BeforeAll
     public static void createResources() throws Exception {
         createBucket(bucketName);
 

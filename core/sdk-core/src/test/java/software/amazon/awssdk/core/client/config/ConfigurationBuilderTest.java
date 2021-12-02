@@ -26,8 +26,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.Test;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import org.junit.jupiter.api.Test;
 
 /**
  * Validate the functionality of the Client*Configuration classes

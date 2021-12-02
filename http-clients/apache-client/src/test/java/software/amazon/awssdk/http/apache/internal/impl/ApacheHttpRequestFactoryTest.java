@@ -25,8 +25,8 @@ import java.time.Duration;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -37,7 +37,7 @@ public class ApacheHttpRequestFactoryTest {
     private ApacheHttpRequestConfig requestConfig;
     private ApacheHttpRequestFactory instance;
 
-    @Before
+    @BeforeEach
     public void setup() {
         instance = new ApacheHttpRequestFactory();
         requestConfig = ApacheHttpRequestConfig.builder()

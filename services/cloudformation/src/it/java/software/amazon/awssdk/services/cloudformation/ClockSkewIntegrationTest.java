@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.cloudformation;
 
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
 

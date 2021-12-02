@@ -21,9 +21,9 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.auth.policy.Action;
 import software.amazon.awssdk.core.auth.policy.Policy;
 import software.amazon.awssdk.core.auth.policy.Principal;
@@ -44,12 +44,12 @@ public final class OperationsWithNonStandardResponsesIntegrationTest extends S3I
      */
     private static String bucketName = temporaryBucketName("single-string-integ-test");
 
-    @BeforeClass
+    @BeforeAll
     public static void setupSuite() {
         createBucket(bucketName);
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanup() {
         s3.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build());
     }

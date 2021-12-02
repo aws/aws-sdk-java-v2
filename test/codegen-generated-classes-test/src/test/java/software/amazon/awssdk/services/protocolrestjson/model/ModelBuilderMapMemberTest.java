@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.protocolrestjson.model;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 
 import java.util.HashMap;

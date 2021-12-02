@@ -31,12 +31,12 @@ import java.net.SocketException;
 import java.net.URI;
 import javax.net.ssl.SSLException;
 import org.apache.http.NoHttpResponseException;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.http.FileStoreTlsKeyManagersProvider;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -60,7 +60,7 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws IOException {
         ClientTlsAuthTestBase.setUp();
 
@@ -82,12 +82,12 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
         keyManagersProvider = FileStoreTlsKeyManagersProvider.create(clientKeyStore, CLIENT_STORE_TYPE, STORE_PASSWORD);
     }
 
-    @Before
+    @BeforeEach
     public void methodSetup() {
         wireMockServer.stubFor(any(urlMatching(".*")).willReturn(aResponse().withStatus(200).withBody("{}")));
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() throws IOException {
         wireMockServer.stop();
         System.clearProperty("javax.net.ssl.trustStore");
@@ -96,7 +96,7 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
         ClientTlsAuthTestBase.teardown();
     }
 
-    @After
+    @AfterEach
     public void methodTeardown() {
         if (client != null) {
             client.close();

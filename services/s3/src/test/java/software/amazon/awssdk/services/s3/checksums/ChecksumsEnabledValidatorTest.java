@@ -29,7 +29,7 @@ import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValid
 import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.shouldRecordChecksum;
 import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AWS_KMS;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;

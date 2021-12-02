@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.elasticache;
 
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class ElastiCacheIntegrationTestBase extends AwsTestBase {
@@ -25,7 +25,7 @@ public class ElastiCacheIntegrationTestBase extends AwsTestBase {
 
     protected static ElastiCacheClient elasticache;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         setUpCredentials();
         elasticache = ElastiCacheClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();

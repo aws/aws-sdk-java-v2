@@ -17,9 +17,9 @@ package software.amazon.awssdk.services.sfn;
 
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class SfnIntegrationTest extends AwsIntegrationTestBase {
@@ -27,13 +27,13 @@ public class SfnIntegrationTest extends AwsIntegrationTestBase {
     private static SfnClient sfnClient;
     private static String activityArn;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClient() {
         sfnClient = SfnClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
         activityArn = sfnClient.createActivity(b -> b.name("test")).activityArn();
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanUp() {
         if (activityArn != null) {
             sfnClient.deleteActivity(b -> b.activityArn(activityArn));

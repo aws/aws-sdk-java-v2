@@ -16,7 +16,8 @@
 package software.amazon.awssdk.http.software.amazon.awssdk.internal.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.internal.http.NoneTlsKeyManagersProvider;
 
 public class NoneTlsKeyManagersProviderTest {

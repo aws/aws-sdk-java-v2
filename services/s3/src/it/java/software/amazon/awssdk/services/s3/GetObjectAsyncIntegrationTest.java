@@ -26,9 +26,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -56,7 +56,7 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
 
     private static File file;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupFixture() throws IOException {
         createBucket(BUCKET);
         file = new RandomTempFile(10_000);
@@ -68,7 +68,7 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
         s3Async.waiter().waitUntilObjectExists(b -> b.bucket(BUCKET).key(KEY)).join();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownFixture() {
         deleteBucketAndAllContents(BUCKET);
         file.delete();

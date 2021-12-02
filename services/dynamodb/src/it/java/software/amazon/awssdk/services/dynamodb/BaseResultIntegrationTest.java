@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;
@@ -28,7 +28,7 @@ public class BaseResultIntegrationTest extends AwsIntegrationTestBase {
 
     private DynamoDbClient dynamoDB;
 
-    @Before
+    @BeforeEach
     public void setup() {
         dynamoDB = DynamoDbClient.builder()
                 .region(Region.US_WEST_2)

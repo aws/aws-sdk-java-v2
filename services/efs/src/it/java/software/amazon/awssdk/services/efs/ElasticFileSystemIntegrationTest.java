@@ -19,9 +19,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.UUID;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.efs.model.CreateFileSystemRequest;
 import software.amazon.awssdk.services.efs.model.DeleteFileSystemRequest;
@@ -36,12 +36,12 @@ public class ElasticFileSystemIntegrationTest extends AwsIntegrationTestBase {
     private static EfsClient client;
     private String fileSystemId;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupFixture() throws Exception {
         client = EfsClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_WEST_2).build();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         if (!StringUtils.isEmpty(fileSystemId)) {
             client.deleteFileSystem(DeleteFileSystemRequest.builder().fileSystemId(fileSystemId).build());

@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.workspaces;
 
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.workspaces.model.CreateWorkspacesRequest;
 import software.amazon.awssdk.services.workspaces.model.CreateWorkspacesResponse;
 import software.amazon.awssdk.services.workspaces.model.DescribeWorkspaceBundlesRequest;
