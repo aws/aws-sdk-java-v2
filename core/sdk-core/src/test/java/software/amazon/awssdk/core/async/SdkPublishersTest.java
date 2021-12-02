@@ -16,12 +16,17 @@
 package software.amazon.awssdk.core.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -82,6 +87,60 @@ public class SdkPublishersTest {
         assertThat(fakeSubscriber.isComplete()).isFalse();
         assertThat(fakeSubscriber.isError()).isTrue();
         assertThat(fakeSubscriber.recordedErrors()).containsExactly(exception);
+    }
+
+    @Test
+    public void subscribeHandlesError() {
+        FakeSdkPublisher<String> fakePublisher = new FakeSdkPublisher<>();
+        RuntimeException exception = new IllegalArgumentException("Failure!");
+
+        CompletableFuture<Void> subscribeFuture = fakePublisher.subscribe(s -> {
+            throw exception;
+        });
+
+        fakePublisher.publish("one");
+        fakePublisher.complete();
+
+        assertThat(subscribeFuture.isCompletedExceptionally()).isTrue();
+        assertThatThrownBy(() -> subscribeFuture.get(5, TimeUnit.SECONDS))
+            .isInstanceOf(ExecutionException.class)
+            .hasCause(exception);
+    }
+
+    @Test
+    public void filterHandlesError() {
+        FakeSdkPublisher<String> fakePublisher = new FakeSdkPublisher<>();
+        RuntimeException exception = new IllegalArgumentException("Failure!");
+
+        CompletableFuture<Void> subscribeFuture = fakePublisher.filter(s -> {
+            throw exception;
+        }).subscribe(r -> {});
+
+        fakePublisher.publish("one");
+        fakePublisher.complete();
+
+        assertThat(subscribeFuture.isCompletedExceptionally()).isTrue();
+        assertThatThrownBy(() -> subscribeFuture.get(5, TimeUnit.SECONDS))
+            .isInstanceOf(ExecutionException.class)
+            .hasCause(exception);
+    }
+
+    @Test
+    public void flatMapIterableHandlesError() {
+        FakeSdkPublisher<String> fakePublisher = new FakeSdkPublisher<>();
+        RuntimeException exception = new IllegalArgumentException("Failure!");
+
+        CompletableFuture<Void> subscribeFuture = fakePublisher.flatMapIterable(s -> {
+            throw exception;
+        }).subscribe(r -> {});
+
+        fakePublisher.publish("one");
+        fakePublisher.complete();
+
+        assertThat(subscribeFuture.isCompletedExceptionally()).isTrue();
+        assertThatThrownBy(() -> subscribeFuture.get(5, TimeUnit.SECONDS))
+            .isInstanceOf(ExecutionException.class)
+            .hasCause(exception);
     }
 
     private final static class FakeByteBufferSubscriber implements Subscriber<ByteBuffer> {
