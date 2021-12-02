@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.dynamodb;
 
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
@@ -26,7 +26,7 @@ public class SecurityManagerIntegrationTest extends AwsIntegrationTestBase {
 
     private static final String JAVA_SECURITY_POLICY_PROPERTY = "java.security.policy";
 
-    @AfterAll
+    @AfterClass
     public static void tearDownFixture() {
         System.setSecurityManager(null);
         System.clearProperty(JAVA_SECURITY_POLICY_PROPERTY);

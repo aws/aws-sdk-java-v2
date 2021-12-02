@@ -22,8 +22,8 @@ import static software.amazon.awssdk.core.traits.TimestampFormatTrait.Format.UNI
 import static software.amazon.awssdk.core.traits.TimestampFormatTrait.Format.UNIX_TIMESTAMP_MILLIS;
 
 import java.util.Map;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 
@@ -31,7 +31,7 @@ public class AwsCborProtocolFactoryTest {
 
     private static AwsCborProtocolFactory factory;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() {
         factory = AwsCborProtocolFactory.builder().build();
     }

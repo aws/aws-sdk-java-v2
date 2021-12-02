@@ -30,7 +30,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.utils.IoUtils;

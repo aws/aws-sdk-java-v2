@@ -26,9 +26,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
 import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.Before;
+import org.junit.Test;
 
-import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -42,7 +42,7 @@ public class AmazonHttpClientWireMockTest extends WireMockTestBase {
     private static final String CONFIG_HEADER_VALUE = "client config header value";
     private static final String REQUEST_HEADER_VALUE = "request header value";
 
-    @BeforeEach
+    @Before
     public void setUp() {
         stubFor(any(urlPathEqualTo(OPERATION)).willReturn(aResponse()));
     }

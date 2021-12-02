@@ -17,7 +17,7 @@ package software.amazon.awssdk.codegen.jmespath;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.codegen.jmespath.component.Comparator;
 import software.amazon.awssdk.codegen.jmespath.component.Expression;
 import software.amazon.awssdk.codegen.jmespath.parser.JmesPathParser;

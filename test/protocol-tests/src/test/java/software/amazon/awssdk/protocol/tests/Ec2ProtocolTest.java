@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.protocol.tests;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.protocol.ProtocolTestSuiteLoader;
 import software.amazon.awssdk.protocol.runners.ProtocolTestRunner;
 
@@ -25,7 +25,7 @@ public class Ec2ProtocolTest extends ProtocolTestBase {
     private static final ProtocolTestSuiteLoader testSuiteLoader = new ProtocolTestSuiteLoader();
     private static ProtocolTestRunner testRunner;
 
-    @BeforeAll
+    @BeforeClass
     public static void setupFixture() {
         testRunner = new ProtocolTestRunner("/models/ec2-2016-03-11-intermediate.json");
     }

@@ -15,14 +15,14 @@
 
 package software.amazon.awssdk.services.cloudhsm;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class IntegrationTestBase extends AwsTestBase {
 
     protected static CloudHsmClient client;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
         client = CloudHsmClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();

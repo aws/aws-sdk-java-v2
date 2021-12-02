@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.iam;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
@@ -26,7 +26,7 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 public class ServiceIntegrationTest extends AwsTestBase {
     protected IamClient iam;
 
-    @BeforeEach
+    @Before
     public void setUp() {
         iam = IamClient.builder()
                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)

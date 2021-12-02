@@ -19,7 +19,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 
 public class DefaultOperationContextTest {

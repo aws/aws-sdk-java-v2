@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.utils.InterceptorTestUtils.modifyHttpRequestContext;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;

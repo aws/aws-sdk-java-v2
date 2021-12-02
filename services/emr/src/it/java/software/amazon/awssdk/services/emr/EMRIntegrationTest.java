@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.emr;
 
 import java.time.Duration;
 import java.time.Instant;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Test;
 import software.amazon.awssdk.services.emr.model.ListClustersRequest;
 import software.amazon.awssdk.services.emr.model.TerminateJobFlowsRequest;
 
@@ -31,7 +31,7 @@ public class EMRIntegrationTest extends IntegrationTestBase {
     /**
      * Cleans up any created tests resources.
      */
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         try {
             if (jobFlowId != null) {

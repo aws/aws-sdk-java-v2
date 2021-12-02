@@ -19,9 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.EncodingType;
@@ -42,7 +42,7 @@ public class UrlEncodingIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET_NAME = temporaryBucketName(UrlEncodingIntegrationTest.class);
     private static final String KEY_NAME_WITH_SPECIAL_CHARS = "filename_@_=_&_?_+_)_.temp";
 
-    @BeforeAll
+    @BeforeClass
     public static void createResources() {
         createBucket(BUCKET_NAME);
         s3.putObject(PutObjectRequest.builder()
@@ -54,7 +54,7 @@ public class UrlEncodingIntegrationTest extends S3IntegrationTestBase {
     /**
      * Releases all resources created in this test.
      */
-    @AfterAll
+    @AfterClass
     public static void tearDown() {
         deleteBucketAndAllContents(BUCKET_NAME);
     }

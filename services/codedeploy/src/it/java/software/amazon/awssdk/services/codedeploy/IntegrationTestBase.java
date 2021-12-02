@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.codedeploy;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class IntegrationTestBase extends AwsTestBase {
@@ -30,7 +30,7 @@ public class IntegrationTestBase extends AwsTestBase {
     /**
      * Reads the credentials and sets up the code deploy the client.
      */
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws FileNotFoundException, IOException {
         setUpCredentials();
         codeDeploy = CodeDeployClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();

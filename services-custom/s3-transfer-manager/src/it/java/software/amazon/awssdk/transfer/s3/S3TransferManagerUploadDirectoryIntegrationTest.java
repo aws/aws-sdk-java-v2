@@ -28,9 +28,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.S3Object;
@@ -46,7 +46,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     private static S3Client s3Client;
     private static String randomString;
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(TEST_BUCKET);
@@ -64,7 +64,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
                            .build();
     }
 
-    @AfterAll
+    @AfterClass
     public static void teardown() {
         try {
             FileUtils.cleanUpTestDirectory(directory);

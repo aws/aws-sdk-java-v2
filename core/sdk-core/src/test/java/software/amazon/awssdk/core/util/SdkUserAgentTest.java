@@ -19,7 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 
 public class SdkUserAgentTest {

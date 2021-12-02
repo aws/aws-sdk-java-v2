@@ -21,7 +21,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.Conv
 
 import java.nio.ByteBuffer;
 import java.util.Set;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ByteArrayAttributeConverter;

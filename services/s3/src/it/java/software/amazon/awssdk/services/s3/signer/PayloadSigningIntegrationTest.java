@@ -25,10 +25,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -53,19 +53,19 @@ public class PayloadSigningIntegrationTest extends S3IntegrationTestBase {
 
     private static final CapturingInterceptor capturingInterceptor = new CapturingInterceptor();
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
     }
 
-    @AfterAll
+    @AfterClass
     public static void teardown() {
         S3TestUtils.deleteBucketAndAllContents(s3, BUCKET);
         s3.close();
     }
 
-    @BeforeEach
+    @Before
     public void methodSetup() {
         capturingInterceptor.reset();
     }

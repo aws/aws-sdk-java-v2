@@ -21,7 +21,7 @@ import static org.junit.Assert.fail;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * This test demonstrates why we should call mark(Integer.MAX_VALUE) instead of

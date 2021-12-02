@@ -22,9 +22,9 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.DeleteBucketInventoryConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketInventoryConfigurationRequest;
@@ -55,7 +55,7 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
      */
     private static final String KEY = "key";
 
-    @BeforeAll
+    @BeforeClass
     public static void setUpFixture() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(BUCKET_NAME);
@@ -66,7 +66,7 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
                      RequestBody.fromFile(new RandomTempFile("foo", 1024)));
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDownFixture() {
         deleteBucketAndAllContents(BUCKET_NAME);
     }

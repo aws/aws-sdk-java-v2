@@ -16,9 +16,9 @@
 package software.amazon.awssdk.services.ecr;
 
 import junit.framework.Assert;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.services.ecr.model.CreateRepositoryRequest;
 import software.amazon.awssdk.services.ecr.model.CreateRepositoryResponse;
 import software.amazon.awssdk.services.ecr.model.DeleteRepositoryRequest;
@@ -31,12 +31,12 @@ public class EcrIntegrationTest extends AwsIntegrationTestBase {
     private static final String REPO_NAME = "java-sdk-test-repo-" + System.currentTimeMillis();
     private static EcrClient ecr;
 
-    @BeforeAll
+    @BeforeClass
     public static void setUpClient() throws Exception {
         ecr = EcrClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDownAfterClass() throws Exception {
         if (ecr != null) {
             ecr.deleteRepository(DeleteRepositoryRequest.builder()

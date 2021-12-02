@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
 import java.io.InputStream;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -46,7 +46,7 @@ public class SyncClientConnectionTest {
     private ProtocolRestJsonClient client;
     private MockHttpClient mockHttpClient;
 
-    @BeforeEach
+    @Before
     public void setupClient() {
         mockHttpClient = new MockHttpClient();
         client = ProtocolRestJsonClient.builder()

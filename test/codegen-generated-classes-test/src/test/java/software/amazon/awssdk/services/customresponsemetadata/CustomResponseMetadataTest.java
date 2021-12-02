@@ -24,9 +24,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -49,7 +49,7 @@ public class CustomResponseMetadataTest {
 
     private ProtocolRestJsonAsyncClient asyncClient;
 
-    @BeforeEach
+    @Before
     public void setupClient() {
         client = ProtocolRestJsonClient.builder()
                                        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))

@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.zip.CRC32;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.internal.util.Crc32ChecksumCalculatingInputStream;
 
 /**

@@ -16,7 +16,7 @@ package software.amazon.awssdk.codegen.internal;
 
 import org.hamcrest.Matchers;
 import org.junit.Assert;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 
 public class DocumentationUtilsTest {

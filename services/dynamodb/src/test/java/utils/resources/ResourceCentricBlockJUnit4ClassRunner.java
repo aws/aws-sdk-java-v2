@@ -17,7 +17,7 @@ package utils.resources;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.jupiter.api.Disabled;
+import org.junit.Ignore;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
@@ -62,7 +62,7 @@ public class ResourceCentricBlockJUnit4ClassRunner extends BlockJUnit4ClassRunne
     @Override
     protected void runChild(final FrameworkMethod method, RunNotifier notifier) {
         Description description = describeChild(method);
-        if (method.getAnnotation(Disabled.class) != null) {
+        if (method.getAnnotation(Ignore.class) != null) {
             notifier.fireTestIgnored(description);
         } else {
             RequiredResources annotation = method.getAnnotation(RequiredResources.class);

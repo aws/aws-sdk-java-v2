@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.waiters;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.exception.SdkException;

@@ -23,10 +23,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.time.Duration;
-import org.junit.jupiter.api.Test;
+import java.util.Collections;
+import org.junit.Test;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.testutils.InputStreamUtils;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class AwsServiceExceptionSerializationTest {

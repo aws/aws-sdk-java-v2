@@ -19,9 +19,11 @@ import static org.junit.Assert.assertEquals;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.File;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import java.util.List;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -29,11 +31,23 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.AccelerateConfiguration;
 import software.amazon.awssdk.services.s3.model.BucketAccelerateStatus;
+import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
+import software.amazon.awssdk.services.s3.model.DeleteBucketTaggingRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketAccelerateConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketTaggingRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketVersioningRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketAccelerateConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketTaggingRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketVersioningRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.Tagging;
+import software.amazon.awssdk.services.s3.model.VersioningConfiguration;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.testutils.retry.AssertCallable;
+import software.amazon.awssdk.testutils.retry.RetryableAssertion;
+import software.amazon.awssdk.testutils.retry.RetryableParams;
 
 /**
  * Integration tests for S3 bucket accelerate configuration.
@@ -45,7 +59,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
 
     private static S3Client accelerateClient;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
 
@@ -61,7 +75,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         setUpBuckets();
     }
 
-    @AfterAll
+    @AfterClass
     public static void cleanup() {
         deleteBucketAndAllContents(US_BUCKET_NAME);
     }

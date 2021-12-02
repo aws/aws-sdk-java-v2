@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -49,7 +49,7 @@ public class DefaultPollyPresignerTest {
 
     private AwsCredentialsProvider credentialsProvider;
 
-    @BeforeEach
+    @Before
     public void methodSetup() {
         credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
     }

@@ -22,9 +22,9 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.StringJoiner;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -54,7 +54,7 @@ public class S3AccessPointsIntegrationTest extends S3ControlIntegrationTestBase 
 
     private static String accountId;
 
-    @BeforeAll
+    @BeforeClass
     public static void setupFixture() {
         createBucket(BUCKET);
 
@@ -74,7 +74,7 @@ public class S3AccessPointsIntegrationTest extends S3ControlIntegrationTestBase 
                                           .name(AP_NAME));
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDown() {
         s3control.deleteAccessPoint(b -> b.accountId(accountId).name(AP_NAME));
         deleteBucketAndAllContents(BUCKET);

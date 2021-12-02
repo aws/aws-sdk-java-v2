@@ -24,6 +24,8 @@ import static software.amazon.awssdk.core.async.AsyncResponseTransformer.toBytes
 
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
+import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
@@ -31,9 +33,9 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 import org.apache.commons.lang3.ArrayUtils;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -63,7 +65,7 @@ public class ChecksumResetsOnRetryTest {
 
     private String bodyEtag;
 
-    @BeforeEach
+    @Before
     public void setup() {
         StaticCredentialsProvider credentials = StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
         s3Client = S3Client.builder()

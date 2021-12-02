@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.s3control.internal.interceptors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.SdkRequest;
@@ -35,7 +35,7 @@ public class PayloadSigningInterceptorTest {
 
     private SdkHttpRequest request;
 
-    @BeforeEach
+    @Before
     public void setup() {
         request = SdkHttpFullRequest.builder()
                                     .protocol(Protocol.HTTPS.toString())

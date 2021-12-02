@@ -23,9 +23,9 @@ import java.io.ByteArrayInputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -66,7 +66,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
     private static final AwsCredentials awsCredentials = CREDENTIALS_PROVIDER_CHAIN.resolveCredentials();
     private static final String SIGNING_NAME = "dynamodb";
 
-    @BeforeAll
+    @BeforeClass
     public static void setUpFixture() throws Exception {
         DynamoDBTestBase.setUpTestBase();
 
@@ -96,7 +96,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
         dynamo.putItem(PutItemRequest.builder().tableName(TABLE_NAME).item(item).build());
     }
 
-    @AfterAll
+    @AfterClass
     public static void cleanUpFixture() {
         boolean deleteWorked =
                 Waiter.run(() -> dynamo.deleteTable(r -> r.tableName(TABLE_NAME)))

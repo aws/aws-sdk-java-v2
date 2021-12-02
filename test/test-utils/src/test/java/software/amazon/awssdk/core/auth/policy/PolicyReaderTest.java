@@ -21,7 +21,7 @@ import static org.junit.Assert.assertThat;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.auth.policy.Principal.Service;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
 import software.amazon.awssdk.core.auth.policy.conditions.ConditionFactory;

@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.core.auth.policy;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Test;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
 import software.amazon.awssdk.core.auth.policy.conditions.StringCondition;
 import software.amazon.awssdk.core.auth.policy.conditions.StringCondition.StringComparisonType;
@@ -34,7 +34,7 @@ public class SnsPolicyIntegrationTest extends IntegrationTestBase {
     /**
      * Releases all test resources.
      */
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         sns.deleteTopic(DeleteTopicRequest.builder().topicArn(topicArn).build());
     }

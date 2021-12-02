@@ -18,9 +18,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 
 public class KeysWithLeadingSlashIntegrationTest extends S3IntegrationTestBase {
@@ -31,13 +31,13 @@ public class KeysWithLeadingSlashIntegrationTest extends S3IntegrationTestBase {
     private static final String KEY_WITH_SLASH_AND_SPECIAL_CHARS = "/special-chars-@$%";
     private static final byte[] CONTENT = "Hello".getBytes(StandardCharsets.UTF_8);
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
     }
 
-    @AfterAll
+    @AfterClass
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
     }

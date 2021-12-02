@@ -20,9 +20,9 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.machinelearning.model.CreateDataSourceFromS3Request;
@@ -91,7 +91,7 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
     private static String dataSourceId;
     private static String mlModelId;
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws IOException {
         setUpCredentials();
         setUpS3();
@@ -122,7 +122,7 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
               .orFail();
     }
 
-    @AfterAll
+    @AfterClass
     public static void cleanUp() {
         if (client != null) {
             if (mlModelId != null) {

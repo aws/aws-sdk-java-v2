@@ -19,9 +19,9 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 
 import java.io.File;
 import java.util.Date;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
@@ -57,7 +57,7 @@ public class CopyObjectIntegrationTest extends S3IntegrationTestBase {
     /**
      * Releases resources used by tests.
      */
-    @AfterAll
+    @AfterClass
     public static void tearDown() {
         deleteBucketAndAllContents(BUCKET_NAME);
         file.delete();
@@ -67,7 +67,7 @@ public class CopyObjectIntegrationTest extends S3IntegrationTestBase {
      * Creates/populates all the test data needed for these tests (bucket,
      * source object, file, source object ETag, etc).
      */
-    @BeforeAll
+    @BeforeClass
     public static void initializeTestData() throws Exception {
         createBucket(BUCKET_NAME);
 

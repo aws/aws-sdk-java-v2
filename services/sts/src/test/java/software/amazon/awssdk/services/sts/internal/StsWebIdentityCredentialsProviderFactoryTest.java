@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.sts.internal;
 
 import org.junit.Assert;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenCredentialsProviderFactory;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityCredentialsUtils;
 

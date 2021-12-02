@@ -27,10 +27,10 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
@@ -121,7 +121,7 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
      * Loads the AWS account info for the integration tests and creates an EC2
      * client for tests to use.
      */
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws IOException {
         elb = ElasticLoadBalancingClient.builder()
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
@@ -146,7 +146,7 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
     /**
      * Create LoadBalancer resource before each unit test
      */
-    @BeforeEach
+    @Before
     public void createDefaultLoadBalancer() {
         loadBalancerName = "integ-test-lb-" + System.currentTimeMillis();
         Listener expectedListener = Listener.builder().instancePort(8080)
@@ -165,7 +165,7 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
     }
 
     /** Release any resources created by this test. */
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         if (loadBalancerName != null) {
             try {

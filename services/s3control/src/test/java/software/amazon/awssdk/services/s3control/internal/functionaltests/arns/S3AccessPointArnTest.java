@@ -15,9 +15,9 @@
 package software.amazon.awssdk.services.s3control.internal.functionaltests.arns;
 
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
@@ -29,7 +29,7 @@ public class S3AccessPointArnTest extends S3ControlWireMockTestBase {
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
-    @BeforeEach
+    @Before
     public void methodSetUp() {
         s3Control = buildClient();
     }

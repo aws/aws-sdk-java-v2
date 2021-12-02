@@ -23,10 +23,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPOutputStream;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -35,7 +36,7 @@ public class HeadObjectIntegrationTest extends S3IntegrationTestBase {
 
     private static final String GZIPPED_KEY = "some-key";
 
-    @BeforeAll
+    @BeforeClass
     public static void setupFixture() throws IOException {
         createBucket(BUCKET);
 
@@ -63,7 +64,7 @@ public class HeadObjectIntegrationTest extends S3IntegrationTestBase {
         assertThat(response.contentEncoding()).isEqualTo("gzip");
     }
 
-    @AfterAll
+    @AfterClass
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
     }

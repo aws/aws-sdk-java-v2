@@ -21,7 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.services.ses.model.ListVerifiedEmailAddressesRequest;
 import software.amazon.awssdk.services.ses.model.ListVerifiedEmailAddressesResponse;
 import software.amazon.awssdk.services.ses.model.VerifyEmailAddressRequest;
@@ -43,7 +43,7 @@ public abstract class IntegrationTestBase extends AwsTestBase {
      * Loads the AWS account info for the integration tests and creates client objects for tests to
      * use.
      */
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws FileNotFoundException, IOException {
         setUpCredentials();
 

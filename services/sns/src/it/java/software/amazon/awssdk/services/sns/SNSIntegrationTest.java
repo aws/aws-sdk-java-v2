@@ -34,10 +34,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.sns.model.AddPermissionRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
@@ -83,7 +84,7 @@ public class SNSIntegrationTest extends IntegrationTestBase {
     private String queueUrl;
     private String subscriptionArn;
 
-    @BeforeEach
+    @Before
     public void setup() {
         topicArn = null;
         queueUrl = null;
@@ -91,7 +92,7 @@ public class SNSIntegrationTest extends IntegrationTestBase {
     }
 
     /** Releases all resources used by this test. */
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         if (topicArn != null) {
             sns.deleteTopic(DeleteTopicRequest.builder().topicArn(topicArn).build());

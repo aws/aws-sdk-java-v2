@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.time.Instant;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -38,7 +38,7 @@ public class SdkJsonGeneratorTest {
 
     private StructuredJsonGenerator jsonGenerator;
 
-    @BeforeEach
+    @Before
     public void setup() {
         jsonGenerator = new SdkJsonGenerator(JsonFactory.builder().build(), "application/json");
     }
