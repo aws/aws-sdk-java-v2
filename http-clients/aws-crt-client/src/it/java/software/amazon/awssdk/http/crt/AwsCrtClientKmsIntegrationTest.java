@@ -5,10 +5,10 @@ import static software.amazon.awssdk.testutils.service.AwsTestBase.CREDENTIALS_P
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
@@ -37,7 +37,7 @@ public class AwsCrtClientKmsIntegrationTest {
     private static EventLoopGroup eventLoopGroup;
     private static HostResolver hostResolver;
 
-    @BeforeEach
+    @Before
     public void setup() {
         CrtResource.waitForNoResources();
 
@@ -59,7 +59,7 @@ public class AwsCrtClientKmsIntegrationTest {
     }
 
 
-    @AfterEach
+    @After
     public void tearDown() {
         hostResolver.close();
         eventLoopGroup.close();

@@ -17,9 +17,9 @@ package software.amazon.awssdk.codegen.customization.processors;
 
 
 import java.io.File;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
@@ -42,7 +42,7 @@ public class UseLegacyEventGenerationSchemeProcessorTest {
     private static ServiceModel serviceModel;
 
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() {
         String c2jFilePath = UseLegacyEventGenerationSchemeProcessorTest.class.getResource(RESOURCE_ROOT + "/service-2.json").getFile();
         File c2jFile = new File(c2jFilePath);

@@ -26,11 +26,11 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_C
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.io.IOException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.http.EmptyPublisher;
 import software.amazon.awssdk.http.FileStoreTlsKeyManagersProvider;
@@ -60,7 +60,7 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
 
     private SdkAsyncHttpClient netty;
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws IOException {
         ClientTlsAuthTestBase.setUp();
 
@@ -89,7 +89,7 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
         keyManagersProvider = FileStoreTlsKeyManagersProvider.create(clientKeyStore, CLIENT_STORE_TYPE, STORE_PASSWORD);
     }
 
-    @AfterAll
+    @AfterClass
     public static void teardown() throws IOException {
         ClientTlsAuthTestBase.teardown();
 
@@ -100,7 +100,7 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
         System.clearProperty("javax.net.ssl.trustStoreType");
     }
 
-    @AfterEach
+    @After
     public void methodTeardown() {
         if (netty != null) {
             netty.close();

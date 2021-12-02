@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.dynamodb.streams;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.model.ListStreamsRequest;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
@@ -24,7 +24,7 @@ public class StreamsIntegrationTest extends AwsTestBase {
 
     private DynamoDbStreamsClient streams;
 
-    @BeforeEach
+    @Before
     public void setup() throws Exception {
         setUpCredentials();
         streams = DynamoDbStreamsClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();

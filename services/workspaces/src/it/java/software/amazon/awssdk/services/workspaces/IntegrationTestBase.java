@@ -16,14 +16,14 @@
 package software.amazon.awssdk.services.workspaces;
 
 import java.io.IOException;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class IntegrationTestBase extends AwsTestBase {
 
     protected static WorkSpacesClient client;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() throws IOException {
         setUpCredentials();
         client = WorkSpacesClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();

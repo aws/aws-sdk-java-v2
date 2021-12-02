@@ -21,8 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
@@ -36,7 +36,7 @@ public class HashCodeEqualsTest {
     private static AllTypesRequest.Builder requestBuilder;
     private static AllTypesResponse.Builder responseBuilder;
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() {
         requestBuilder =
             AllTypesRequest.builder()

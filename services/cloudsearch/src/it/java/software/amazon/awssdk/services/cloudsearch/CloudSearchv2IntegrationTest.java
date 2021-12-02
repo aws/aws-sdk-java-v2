@@ -23,10 +23,10 @@ import static org.junit.Assert.assertTrue;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.cloudsearch.model.AccessPoliciesStatus;
 import software.amazon.awssdk.services.cloudsearch.model.AnalysisScheme;
@@ -114,7 +114,7 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
      * Sets up the credenitals and creates an instance of the Amazon Cloud
      * Search client used for different test case executions.
      */
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws Exception {
         cloudSearch = CloudSearchClient.builder().credentialsProvider(StaticCredentialsProvider.create(getCredentials())).build();
     }
@@ -124,7 +124,7 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
      * execution. This is done to ensure that the state of domain is in
      * consistent state before and after the test case execution.
      */
-    @BeforeEach
+    @Before
     public void createDomain() {
 
         testDomainName = testDomainNamePrefix + System.currentTimeMillis();
@@ -136,7 +136,7 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
     /**
      * Deletes the Amazon Cloud Search domain after every test case execution.
      */
-    @AfterEach
+    @After
     public void deleteDomain() {
         cloudSearch.deleteDomain(DeleteDomainRequest.builder()
                                                     .domainName(testDomainName).build());

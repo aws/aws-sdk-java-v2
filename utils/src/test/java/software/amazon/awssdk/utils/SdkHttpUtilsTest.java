@@ -23,13 +23,14 @@ import static org.assertj.core.api.Assertions.entry;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class SdkHttpUtilsTest {

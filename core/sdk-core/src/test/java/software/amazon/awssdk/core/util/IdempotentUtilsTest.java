@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class IdempotentUtilsTest {
 

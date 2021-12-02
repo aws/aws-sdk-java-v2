@@ -16,8 +16,8 @@
 package software.amazon.awssdk.auth.credentials.internal;
 
 import java.util.function.Supplier;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -28,7 +28,7 @@ public class LazyAwsCredentialsProviderTest {
 
     private AwsCredentialsProvider credentials = Mockito.mock(AwsCredentialsProvider.class);
 
-    @BeforeEach
+    @Before
     public void reset() {
         Mockito.reset(credentials, credentialsConstructor);
         Mockito.when(credentialsConstructor.get()).thenReturn(credentials);

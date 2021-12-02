@@ -35,9 +35,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -76,7 +76,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
      * Loads the AWS account info for the integration tests and creates a
      * CloudWatch client for tests to use.
      */
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws IOException {
         cloudwatch = CloudWatchClient.builder()
                                      .credentialsProvider(getCredentialsProvider())
@@ -87,7 +87,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
     /**
      * Cleans up any existing alarms before and after running the test suite
      */
-    @AfterAll
+    @AfterClass
     public static void cleanupAlarms() {
         if (cloudwatch != null) {
             DescribeAlarmsResponse describeResult = cloudwatch.describeAlarms(DescribeAlarmsRequest.builder().build());

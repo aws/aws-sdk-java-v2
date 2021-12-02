@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.elasticbeanstalk;
 
 import java.io.IOException;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
@@ -30,7 +30,7 @@ public abstract class ElasticBeanstalkIntegrationTestBase extends AwsTestBase {
     /**
      * Loads the AWS account info for the integration tests and creates an clients for tests to use.
      */
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws IOException {
         setUpCredentials();
 

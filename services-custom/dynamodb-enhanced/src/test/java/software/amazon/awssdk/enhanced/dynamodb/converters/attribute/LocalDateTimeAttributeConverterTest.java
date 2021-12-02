@@ -21,7 +21,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.Conv
 import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.transformTo;
 
 import java.time.LocalDateTime;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LocalDateTimeAttributeConverter;
 

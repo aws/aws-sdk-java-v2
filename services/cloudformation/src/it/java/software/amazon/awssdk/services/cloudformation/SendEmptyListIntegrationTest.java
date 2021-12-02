@@ -21,9 +21,9 @@ import static org.junit.Assert.assertThat;
 
 import java.util.Collections;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
@@ -64,7 +64,7 @@ public class SendEmptyListIntegrationTest extends AwsIntegrationTestBase {
     private CloudFormationWaiter waiter;
     private String stackName;
 
-    @BeforeEach
+    @Before
     public void setup() {
         stackName = getClass().getSimpleName() + "-" + System.currentTimeMillis();
         cf = CloudFormationClient.builder()
@@ -81,7 +81,7 @@ public class SendEmptyListIntegrationTest extends AwsIntegrationTestBase {
         waiter.waitUntilStackCreateComplete(b -> b.stackName(stackName));
     }
 
-    @AfterEach
+    @After
     public void tearDown() {
         cf.deleteStack(DeleteStackRequest.builder().stackName(stackName).build());
     }

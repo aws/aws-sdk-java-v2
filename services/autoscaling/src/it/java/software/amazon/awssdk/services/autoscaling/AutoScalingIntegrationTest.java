@@ -30,8 +30,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.codec.binary.Base64;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Test;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.model.AlreadyExistsException;
@@ -135,7 +135,7 @@ public class AutoScalingIntegrationTest extends IntegrationTestBase {
      * Releases any resources created by these tests
      */
 
-    @AfterEach
+    @After
     public void tearDown() {
         if (autoScalingGroupName != null) {
             try {

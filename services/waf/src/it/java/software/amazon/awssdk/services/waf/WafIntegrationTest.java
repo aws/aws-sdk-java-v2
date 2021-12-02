@@ -18,10 +18,10 @@ package software.amazon.awssdk.services.waf;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.waf.model.ChangeAction;
@@ -49,7 +49,7 @@ public class WafIntegrationTest extends AwsTestBase {
     private static WafClient client = null;
     private static String ipSetId = null;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() throws IOException {
         FixedDelayBackoffStrategy fixedBackoffStrategy = FixedDelayBackoffStrategy.create(Duration.ofSeconds(30));
         setUpCredentials();
@@ -60,7 +60,7 @@ public class WafIntegrationTest extends AwsTestBase {
                           .build();
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDown() throws IOException {
         if (client != null) {
 

@@ -21,8 +21,8 @@ import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResp
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -37,7 +37,7 @@ public class S3ObjectLambdaEndpointResolutionTest {
 
     private MockSyncHttpClient mockHttpClient;
 
-    @BeforeEach
+    @Before
     public void setup() throws UnsupportedEncodingException {
         mockHttpClient = new MockSyncHttpClient();
         mockHttpClient.stubNextResponse(mockListObjectsResponse());

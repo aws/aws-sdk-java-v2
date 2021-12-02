@@ -20,14 +20,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class MimetypeTest {
 
     private static Mimetype mimetype;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() {
         mimetype = Mimetype.getInstance();
     }

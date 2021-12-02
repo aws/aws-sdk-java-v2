@@ -18,7 +18,8 @@ package software.amazon.awssdk.services.waiters;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.waiters.WaiterState;
 import software.amazon.awssdk.services.restjsonwithwaiters.waiters.internal.WaitersRuntime;
 

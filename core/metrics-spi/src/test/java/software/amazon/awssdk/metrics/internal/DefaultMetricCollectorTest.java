@@ -17,9 +17,9 @@ package software.amazon.awssdk.metrics.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.AfterClass;
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollection;
@@ -33,7 +33,7 @@ public class DefaultMetricCollectorTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @AfterAll
+    @AfterClass
     public static void teardown() {
         DefaultSdkMetric.clearDeclaredMetrics();
     }

@@ -15,14 +15,14 @@
 
 package software.amazon.awssdk.services.ssm;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class IntegrationTestBase extends AwsTestBase {
 
     protected static SsmClient ssm;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
         ssm = SsmClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();

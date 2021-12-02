@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.cloudwatchlogs;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogGroupsRequest;
 import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogGroupsResponse;
@@ -42,7 +42,7 @@ public abstract class IntegrationTestBase extends AwsIntegrationTestBase {
      * Loads the AWS account info for the integration tests and creates an CloudWatch Logs client
      * for tests to use.
      */
-    @BeforeAll
+    @BeforeClass
     public static void setupFixture() throws FileNotFoundException, IOException {
         awsLogs = CloudWatchLogsClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }

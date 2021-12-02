@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.kinesis;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.services.kinesis.model.DescribeLimitsResponse;
 import software.amazon.awssdk.services.kinesis.model.KinesisResponse;
 

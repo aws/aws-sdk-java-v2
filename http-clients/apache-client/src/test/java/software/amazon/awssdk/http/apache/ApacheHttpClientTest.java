@@ -24,15 +24,15 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.impl.conn.SystemDefaultDnsResolver;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Test;
 import org.mockito.Mockito;
 
 /**
  * @see ApacheHttpClientWireMockTest
  */
 public class ApacheHttpClientTest {
-    @AfterEach
+    @After
     public void cleanup() {
         System.clearProperty("http.proxyHost");
         System.clearProperty("http.proxyPort");

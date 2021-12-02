@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.apigateway;
 
 import java.io.IOException;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
@@ -24,7 +24,7 @@ public class IntegrationTestBase extends AwsTestBase {
 
     protected static ApiGatewayClient apiGateway;
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws IOException {
         apiGateway = ApiGatewayClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }

@@ -31,9 +31,9 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
@@ -51,7 +51,7 @@ public class HttpCredentialsProviderTest {
 
     private static String successResponseWithInvalidBody;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() throws IOException {
         try (InputStream successInputStream = HttpCredentialsProviderTest.class.getResourceAsStream
             ("/resources/wiremock/successResponse.json");

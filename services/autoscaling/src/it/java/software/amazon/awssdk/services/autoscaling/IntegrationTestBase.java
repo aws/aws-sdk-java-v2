@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.autoscaling;
 
 import java.io.IOException;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.model.CreateLaunchConfigurationRequest;
 import software.amazon.awssdk.services.sns.SnsClient;
@@ -51,7 +51,7 @@ public abstract class IntegrationTestBase extends AwsTestBase {
      * Loads the AWS account info for the integration tests and creates an AutoScaling client for
      * tests to use.
      */
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws IOException {
         setUpCredentials();
         autoscaling = AutoScalingClient.builder()

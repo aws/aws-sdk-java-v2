@@ -28,9 +28,9 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
@@ -60,7 +60,7 @@ public class ProxyWireMockTest {
             .dynamicHttpsPort());
 
 
-    @BeforeEach
+    @Before
     public void setup() {
         mockProxy.start();
         mockServer.start();
@@ -77,7 +77,7 @@ public class ProxyWireMockTest {
                 .build();
     }
 
-    @AfterEach
+    @After
     public void teardown() {
         mockServer.stop();
         mockProxy.stop();

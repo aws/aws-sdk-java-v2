@@ -17,7 +17,7 @@ package software.amazon.awssdk.testutils;
 
 import static org.junit.Assert.assertTrue;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class DateUtilsTest {
     @Test

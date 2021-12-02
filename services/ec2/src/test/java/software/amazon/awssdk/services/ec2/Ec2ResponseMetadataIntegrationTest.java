@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.ec2;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.services.ec2.model.DescribeAvailabilityZonesResponse;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 

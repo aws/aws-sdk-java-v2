@@ -21,11 +21,12 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 
 import java.nio.charset.StandardCharsets;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException;
 import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
@@ -39,12 +40,12 @@ public class ExceptionUnmarshallingIntegrationTest extends S3IntegrationTestBase
 
     private static final String KEY = "some-key";
 
-    @BeforeAll
+    @BeforeClass
     public static void setupFixture() {
         createBucket(BUCKET);
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDownFixture() {
         deleteBucketAndAllContents(BUCKET);
     }
@@ -159,7 +160,7 @@ public class ExceptionUnmarshallingIntegrationTest extends S3IntegrationTestBase
     }
 
     @Test
-    @Disabled("TODO")
+    @Ignore("TODO")
     public void errorResponseContainsRawBytes() {
         assertThatThrownBy(() -> s3.getObjectAcl(b -> b.bucket(BUCKET + KEY).key(KEY)))
             .isInstanceOf(NoSuchBucketException.class)

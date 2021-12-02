@@ -22,7 +22,7 @@ import static org.hamcrest.Matchers.is;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.arns.ArnResource;

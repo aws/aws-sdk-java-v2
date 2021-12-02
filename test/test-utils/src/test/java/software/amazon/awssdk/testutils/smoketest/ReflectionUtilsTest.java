@@ -21,7 +21,7 @@ import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 @SuppressWarnings("unused")
 public class ReflectionUtilsTest {

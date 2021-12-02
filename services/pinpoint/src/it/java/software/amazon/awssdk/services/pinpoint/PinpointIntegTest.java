@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.pinpoint;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -27,7 +27,7 @@ public class PinpointIntegTest extends AwsTestBase {
 
     protected static PinpointAsyncClient pinpointAsyncClient;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() {
         pinpointAsyncClient = PinpointAsyncClient.builder()
                                                  .region(Region.US_WEST_2)

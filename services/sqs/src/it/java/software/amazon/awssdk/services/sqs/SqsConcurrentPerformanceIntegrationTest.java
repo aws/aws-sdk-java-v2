@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.Ignore;
+import org.junit.Test;
 import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;
 
 /**
@@ -46,7 +46,7 @@ public class SqsConcurrentPerformanceIntegrationTest extends IntegrationTestBase
      * that they don't sit around in CLOSE_WAIT, and are correctly being reaped.
      */
     @Test
-    @Disabled
+    @Ignore
     public void testIdleConnectionReaping() throws Exception {
         sqs = SqsAsyncClient.builder().credentialsProvider(getCredentialsProvider()).build();
         sqs = SqsAsyncClient.builder().credentialsProvider(getCredentialsProvider()).build();

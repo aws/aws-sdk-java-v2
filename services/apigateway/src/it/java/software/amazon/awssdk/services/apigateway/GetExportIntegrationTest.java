@@ -18,17 +18,17 @@ package software.amazon.awssdk.services.apigateway;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.testutils.Waiter;
 
 /**
  * Integration tests for {@link software.amazon.awssdk.services.apigateway.model.GetExportRequest}.
  */
-@Disabled // Running during release causing TooManyRequests exception
+@Ignore // Running during release causing TooManyRequests exception
 public class GetExportIntegrationTest extends IntegrationTestBase {
     private static final String STAGE = "Alpha";
 
@@ -36,7 +36,7 @@ public class GetExportIntegrationTest extends IntegrationTestBase {
     private static String restApiId;
     private static String deploymentId;
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws IOException {
         IntegrationTestBase.setUp();
         restApi = SdkBytes.fromInputStream(GetExportIntegrationTest.class.getResourceAsStream("/PetStore-Alpha-swagger-apigateway.json"));
@@ -44,7 +44,7 @@ public class GetExportIntegrationTest extends IntegrationTestBase {
         deploymentId = apiGateway.createDeployment(r -> r.stageName(STAGE).restApiId(restApiId)).id();
     }
 
-    @AfterAll
+    @AfterClass
     public static void teardown() {
         Waiter.run(() -> apiGateway.deleteStage(r -> r.restApiId(restApiId).stageName(STAGE))).orFail();
         Waiter.run(() -> apiGateway.deleteDeployment(r -> r.deploymentId(deploymentId).restApiId(restApiId))).orFail();

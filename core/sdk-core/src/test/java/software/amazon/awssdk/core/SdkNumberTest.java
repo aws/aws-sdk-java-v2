@@ -18,7 +18,7 @@ package software.amazon.awssdk.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Objects;

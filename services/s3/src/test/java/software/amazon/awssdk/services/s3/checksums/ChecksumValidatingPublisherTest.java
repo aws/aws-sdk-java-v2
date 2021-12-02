@@ -27,8 +27,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -44,7 +44,7 @@ public class ChecksumValidatingPublisherTest {
   private static byte[] testData;
   private static byte[] testDataWithoutChecksum;
 
-  @BeforeAll
+  @BeforeClass
   public static void populateData() {
     testData = new byte[TEST_DATA_SIZE + CHECKSUM_SIZE];
     for (int i = 0; i < TEST_DATA_SIZE; i++) {

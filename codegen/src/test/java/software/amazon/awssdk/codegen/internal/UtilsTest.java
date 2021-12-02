@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.is;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class UtilsTest {
     final Map<String,String> capitalizedToUncapitalized = new HashMap<String,String>() {{

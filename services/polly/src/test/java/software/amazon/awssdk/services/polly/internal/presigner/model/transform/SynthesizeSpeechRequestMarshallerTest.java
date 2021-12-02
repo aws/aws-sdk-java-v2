@@ -20,8 +20,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.polly.model.SynthesizeSpeechRequest;
 public class SynthesizeSpeechRequestMarshallerTest {
     private static Map<String, Object> properties;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() {
         properties = new HashMap<>();
 

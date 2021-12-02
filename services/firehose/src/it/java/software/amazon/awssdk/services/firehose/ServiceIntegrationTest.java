@@ -23,9 +23,10 @@ import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.firehose.model.CreateDeliveryStreamRequest;
@@ -49,7 +50,7 @@ public class ServiceIntegrationTest extends AwsTestBase {
     private static FirehoseClient firehose;
 
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() throws FileNotFoundException, IOException {
         //        setUpCredentials();
         //        firehose = new AmazonKinesisFirehoseClient(credentials);
@@ -60,7 +61,7 @@ public class ServiceIntegrationTest extends AwsTestBase {
         firehose = FirehoseClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDown() {
         //        firehose.deleteDeliveryStream(new DeleteDeliveryStreamRequest()
         //                .withDeliveryStreamName(DEVLIVERY_STREAM_NAME));

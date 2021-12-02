@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.HashSet;
 import java.util.Set;
 import junit.framework.Assert;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.auth.policy.Principal.Service;
 import software.amazon.awssdk.core.auth.policy.Principal.WebIdentityProvider;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;

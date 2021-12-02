@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.util;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 
 public class ThrowableUtilsTest {

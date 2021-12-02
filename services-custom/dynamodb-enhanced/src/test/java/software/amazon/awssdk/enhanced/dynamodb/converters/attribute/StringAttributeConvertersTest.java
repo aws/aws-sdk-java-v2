@@ -37,7 +37,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Set;
 import java.util.UUID;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;

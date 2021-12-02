@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.dynamodb;
 
 import java.util.UUID;
 import junit.framework.Assert;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
@@ -30,7 +30,7 @@ public class DynamoDbJavaClientExceptionIntegrationTest extends AwsTestBase {
 
     private static DynamoDbClient ddb;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
         ddb = DynamoDbClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();

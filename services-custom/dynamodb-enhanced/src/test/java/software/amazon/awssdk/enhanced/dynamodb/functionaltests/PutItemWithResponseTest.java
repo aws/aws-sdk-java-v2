@@ -20,9 +20,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.Objects;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
@@ -93,7 +93,7 @@ public class PutItemWithResponseTest extends LocalDynamoDbSyncTestBase {
 
     private DynamoDbTable<Record> mappedTable1;
 
-    @BeforeEach
+    @Before
     public void createTable() {
         extension = Mockito.spy(new NoOpExtension());
 
@@ -107,7 +107,7 @@ public class PutItemWithResponseTest extends LocalDynamoDbSyncTestBase {
         mappedTable1.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
 
-    @AfterEach
+    @After
     public void deleteTable() {
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName("table-name-1"))

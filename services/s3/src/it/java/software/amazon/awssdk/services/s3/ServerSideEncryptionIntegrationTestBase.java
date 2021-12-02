@@ -15,14 +15,15 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Fail.fail;
+import static software.amazon.awssdk.services.s3.S3IntegrationTestBase.createBucket;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.SecureRandom;
 import javax.crypto.KeyGenerator;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -41,7 +42,7 @@ public class ServerSideEncryptionIntegrationTestBase extends S3IntegrationTestBa
 
     private static String keyId;
 
-    @BeforeAll
+    @BeforeClass
     public static void setupFixture() throws IOException {
         createBucket(BUCKET);
         createBucket(BUCKET_WITH_SSE);
@@ -56,7 +57,7 @@ public class ServerSideEncryptionIntegrationTestBase extends S3IntegrationTestBa
         file = new RandomTempFile(10_000);
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDownFixture() {
         deleteBucketAndAllContents(BUCKET);
         deleteBucketAndAllContents(BUCKET_WITH_SSE);

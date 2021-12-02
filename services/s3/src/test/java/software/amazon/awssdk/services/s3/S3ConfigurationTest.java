@@ -20,15 +20,15 @@ import static software.amazon.awssdk.profiles.ProfileFileSystemSetting.AWS_CONFI
 import static software.amazon.awssdk.services.s3.S3SystemSetting.AWS_S3_DISABLE_MULTIREGION_ACCESS_POINTS;
 import static software.amazon.awssdk.services.s3.S3SystemSetting.AWS_S3_USE_ARN_REGION;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Test;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class S3ConfigurationTest {
 
     private final EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
 
-    @AfterEach
+    @After
     public void clearSystemProperty() {
         System.clearProperty(AWS_S3_USE_ARN_REGION.property());
         System.clearProperty(AWS_S3_DISABLE_MULTIREGION_ACCESS_POINTS.property());

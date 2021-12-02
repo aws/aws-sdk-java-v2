@@ -40,8 +40,8 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Supplier;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.http.Protocol;
@@ -59,7 +59,7 @@ public class ReadTimeoutTest {
     private TestH2Server testServer;
     private SdkAsyncHttpClient netty;
 
-    @AfterEach
+    @After
     public void methodTeardown() throws InterruptedException {
         if (testServer != null) {
             testServer.shutdown();
