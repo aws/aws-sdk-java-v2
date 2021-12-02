@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.sts;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
@@ -31,7 +31,7 @@ public abstract class IntegrationTestBase extends AwsTestBase {
     /** The shared STS client for all tests to use. */
     protected static StsClient sts;
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws FileNotFoundException, IOException {
         setUpCredentials();
         sts = StsClient.builder()

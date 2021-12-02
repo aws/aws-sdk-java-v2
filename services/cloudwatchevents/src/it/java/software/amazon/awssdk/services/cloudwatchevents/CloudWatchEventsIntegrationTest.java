@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.services.cloudwatchevents;
 
-import org.junit.jupiter.api.AfterAll;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.services.cloudwatchevents.model.DeleteRuleRequest;
 import software.amazon.awssdk.services.cloudwatchevents.model.DescribeRuleRequest;
 import software.amazon.awssdk.services.cloudwatchevents.model.DescribeRuleResponse;
@@ -36,7 +36,7 @@ public class CloudWatchEventsIntegrationTest extends AwsIntegrationTestBase {
 
     private static CloudWatchEventsClient events;
 
-    @BeforeAll
+    @BeforeClass
     public static void setUpClient() throws Exception {
         events = CloudWatchEventsClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
 
@@ -53,7 +53,7 @@ public class CloudWatchEventsIntegrationTest extends AwsIntegrationTestBase {
                                   .state());
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDownAfterClass() throws Exception {
         events.deleteRule(DeleteRuleRequest.builder().name(RULE_NAME).build());
     }

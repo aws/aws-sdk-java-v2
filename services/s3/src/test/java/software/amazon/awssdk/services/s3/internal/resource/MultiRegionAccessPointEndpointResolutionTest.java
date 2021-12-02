@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResponse;
 
 import java.net.URI;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -43,7 +43,7 @@ public class MultiRegionAccessPointEndpointResolutionTest {
         URI.create("https://mfzwi23gnjvgw.mrap.accesspoint.s3-global.amazonaws.com");
     private MockHttpClient mockHttpClient;
 
-    @BeforeEach
+    @Before
     public void setup() {
         mockHttpClient = new MockSyncHttpClient();
     }

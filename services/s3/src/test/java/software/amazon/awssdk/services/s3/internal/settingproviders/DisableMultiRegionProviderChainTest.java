@@ -20,14 +20,14 @@ import static software.amazon.awssdk.profiles.ProfileFileSystemSetting.AWS_CONFI
 import static software.amazon.awssdk.services.s3.S3SystemSetting.AWS_S3_DISABLE_MULTIREGION_ACCESS_POINTS;
 
 import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Test;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class DisableMultiRegionProviderChainTest {
     private final EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
 
-    @AfterEach
+    @After
     public void clearSystemProperty() {
         System.clearProperty(AWS_S3_DISABLE_MULTIREGION_ACCESS_POINTS.property());
         System.clearProperty(AWS_CONFIG_FILE.property());

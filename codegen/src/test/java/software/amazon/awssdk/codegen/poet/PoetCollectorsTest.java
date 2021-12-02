@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.squareup.javapoet.CodeBlock;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * Validate functionality of the {@link PoetCollectors}.

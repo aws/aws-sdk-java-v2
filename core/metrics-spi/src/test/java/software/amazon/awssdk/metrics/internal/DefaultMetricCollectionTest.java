@@ -25,8 +25,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.Test;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.MetricRecord;
@@ -35,7 +35,7 @@ import software.amazon.awssdk.metrics.SdkMetric;
 public class DefaultMetricCollectionTest {
     private static final SdkMetric<Integer> M1 = SdkMetric.create("m1", Integer.class, MetricLevel.INFO, MetricCategory.CORE);
 
-    @AfterAll
+    @AfterClass
     public static void teardown() {
         DefaultSdkMetric.clearDeclaredMetrics();
     }

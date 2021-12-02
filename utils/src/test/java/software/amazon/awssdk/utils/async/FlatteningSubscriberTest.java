@@ -18,8 +18,8 @@ package software.amazon.awssdk.utils.async;
 import static org.mockito.Mockito.times;
 
 import java.util.Arrays;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.reactivestreams.Subscriber;
@@ -30,7 +30,7 @@ public class FlatteningSubscriberTest {
     private Subscription mockUpstream;
     private FlatteningSubscriber<String> flatteningSubscriber;
 
-    @BeforeEach
+    @Before
     @SuppressWarnings("unchecked")
     public void setup() {
         mockDelegate = Mockito.mock(Subscriber.class);

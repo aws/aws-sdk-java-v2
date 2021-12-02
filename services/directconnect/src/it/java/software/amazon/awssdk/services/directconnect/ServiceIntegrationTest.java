@@ -21,9 +21,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.services.directconnect.model.CreateConnectionRequest;
 import software.amazon.awssdk.services.directconnect.model.CreateConnectionResponse;
@@ -45,7 +45,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
 
     private static String connectionId;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() {
         CreateConnectionResponse result = dc.createConnection(CreateConnectionRequest.builder()
                 .connectionName(CONNECTION_NAME)
@@ -55,7 +55,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         connectionId = result.connectionId();
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDown() {
         boolean cleanedUp =
                 Waiter.run(() -> dc.deleteConnection(r -> r.connectionId(connectionId)))

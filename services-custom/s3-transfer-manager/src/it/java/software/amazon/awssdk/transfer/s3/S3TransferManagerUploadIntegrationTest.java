@@ -22,9 +22,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -41,7 +41,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
     private static RandomTempFile testFile;
     private static S3TransferManager tm;
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(TEST_BUCKET);
@@ -56,7 +56,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
 
     }
 
-    @AfterAll
+    @AfterClass
     public static void teardown() throws IOException {
         tm.close();
         Files.delete(testFile.toPath());

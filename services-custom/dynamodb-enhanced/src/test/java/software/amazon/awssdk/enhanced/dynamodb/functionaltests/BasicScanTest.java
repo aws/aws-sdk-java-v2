@@ -26,9 +26,9 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.*;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.InnerAttributeRecord;
@@ -129,14 +129,14 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     }
 
 
-    @BeforeEach
+    @Before
     public void createTable() {
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
         mappedNestedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
 
     }
 
-    @AfterEach
+    @After
     public void deleteTable() {
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName("table-name"))

@@ -3,9 +3,9 @@ package software.amazon.awssdk.services.dynamodb;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -17,12 +17,12 @@ public class DynamoDbRetryPolicyTest {
 
     private EnvironmentVariableHelper environmentVariableHelper;
 
-    @BeforeEach
+    @Before
     public void setup() {
         environmentVariableHelper = new EnvironmentVariableHelper();
     }
 
-    @AfterEach
+    @After
     public void reset() {
         environmentVariableHelper.reset();
     }

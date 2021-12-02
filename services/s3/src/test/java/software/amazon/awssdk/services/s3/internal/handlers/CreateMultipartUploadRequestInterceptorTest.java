@@ -22,7 +22,7 @@ import static software.amazon.awssdk.services.s3.utils.InterceptorTestUtils.sdkH
 
 import java.util.Collections;
 import java.util.Optional;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.sync.RequestBody;

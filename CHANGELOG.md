@@ -1,3 +1,20 @@
+# __2.17.95__ __2021-12-02__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - This release introduces the actions and data types for the new Amplify UI Builder API. The Amplify UI Builder API provides a programmatic interface for creating and configuring user interface (UI) component libraries and themes for use in Amplify applications.
+
+## __AWS Network Manager__
+  - ### Features
+    - This release adds API support for AWS Cloud WAN.
+
+## __AWS Resource Access Manager__
+  - ### Features
+    - This release adds the ability to use the new ResourceRegionScope parameter on List operations that return lists of resources or resource types. This new parameter filters the results by letting you differentiate between global or regional resource types.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Complete the future returned by SdkPublisher.subscribe or filter exceptionally if the subscriber or predicate throws an exception.
+
 # __2.17.94__ __2021-12-01__
 ## __AWS Direct Connect__
   - ### Features

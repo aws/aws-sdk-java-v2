@@ -37,9 +37,9 @@ import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.codec.http2.Http2StreamFrame;
 import io.netty.util.ReferenceCountUtil;
 import java.net.URI;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.http.EmptyPublisher;
 import software.amazon.awssdk.http.Http2Metric;
 import software.amazon.awssdk.http.HttpMetric;
@@ -59,12 +59,12 @@ public class Http2MetricsTest {
 
     private static final TestHttp2Server SERVER = new TestHttp2Server();
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() throws InterruptedException {
         SERVER.start();
     }
 
-    @AfterAll
+    @AfterClass
     public static void teardown() throws InterruptedException {
         SERVER.stop();
     }

@@ -17,7 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 
 public class MetaTableSchemaCacheTest {

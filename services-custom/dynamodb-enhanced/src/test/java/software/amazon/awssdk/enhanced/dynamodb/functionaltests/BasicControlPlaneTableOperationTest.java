@@ -20,9 +20,9 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 
 import java.util.Objects;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -53,7 +53,7 @@ public class BasicControlPlaneTableOperationTest extends LocalDynamoDbSyncTestBa
     private final DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
 
-    @BeforeEach
+    @Before
     public void createTable() {
         mappedTable.createTable(
             CreateTableEnhancedRequest.builder()
@@ -62,7 +62,7 @@ public class BasicControlPlaneTableOperationTest extends LocalDynamoDbSyncTestBa
         getDynamoDbClient().waiter().waitUntilTableExists(b -> b.tableName(tableName));
     }
 
-    @AfterEach
+    @After
     public void deleteTable() {
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                                .tableName(tableName)

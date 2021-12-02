@@ -18,10 +18,10 @@ package software.amazon.awssdk.services.glacier;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.glacier.model.UploadArchiveRequest;
@@ -34,7 +34,7 @@ public class UploadArchiveIntegrationTest extends AwsIntegrationTestBase {
     private static final List<String> CREATED_ARCHIVES = new ArrayList<>();
     private static GlacierAsyncClient asyncClient;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() {
         asyncClient = GlacierAsyncClient.builder()
                 .credentialsProvider(getCredentialsProvider())
@@ -49,7 +49,7 @@ public class UploadArchiveIntegrationTest extends AwsIntegrationTestBase {
         }
     }
 
-    @AfterAll
+    @AfterClass
     // Vault deletion takes at least 24 hours since that's how often Glacier does an inventory and you cannot
     // delete a vault if a vault has been written to since the last inventory!
     public static void teardown() {
@@ -64,7 +64,7 @@ public class UploadArchiveIntegrationTest extends AwsIntegrationTestBase {
     }
 
     @Test
-    @Disabled
+    @Ignore
     public void test_uploadArchive_succeeds() {
         byte[] contents = "Hello Glacier".getBytes(StandardCharsets.UTF_8);
         // echo -n "Hello Glacier" | shasum -a 256

@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.endpoints;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.ConfiguredS3SdkHttpRequest;
@@ -33,7 +33,7 @@ public class S3AccessPointEndpointResolverTest {
 
     S3AccessPointEndpointResolver endpointResolver;
 
-    @BeforeEach
+    @Before
     public void setUp()  {
         endpointResolver = S3AccessPointEndpointResolver.create();
     }

@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 import io.netty.channel.ChannelOption;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class SdkChannelOptionsTest {
 

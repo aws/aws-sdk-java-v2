@@ -24,10 +24,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
@@ -62,7 +64,7 @@ public class S3WithUrlHttpClientIntegrationTest {
     /**
      * Creates all the test resources for the tests.
      */
-    @BeforeAll
+    @BeforeClass
     public static void createResources() throws Exception {
         S3ClientBuilder s3ClientBuilder = S3Client.builder()
                                                   .region(REGION)
@@ -80,13 +82,13 @@ public class S3WithUrlHttpClientIntegrationTest {
     /**
      * Releases all resources created in this test.
      */
-    @AfterAll
+    @AfterClass
     public static void tearDown() {
         deleteObject(BUCKET_NAME, KEY);
         deleteBucket(BUCKET_NAME);
     }
 
-    @BeforeEach
+    @Before
     public void methodSetup() {
         capturingInterceptor.reset();
     }

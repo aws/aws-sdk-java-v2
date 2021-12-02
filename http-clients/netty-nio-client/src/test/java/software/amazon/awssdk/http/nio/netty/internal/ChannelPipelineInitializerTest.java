@@ -33,7 +33,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.http.Protocol;
 
 public class ChannelPipelineInitializerTest {

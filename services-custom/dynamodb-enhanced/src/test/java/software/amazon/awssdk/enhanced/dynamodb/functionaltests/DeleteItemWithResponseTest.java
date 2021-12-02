@@ -19,9 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.Objects;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -88,7 +88,7 @@ public class DeleteItemWithResponseTest extends LocalDynamoDbSyncTestBase {
 
     private DynamoDbTable<Record> mappedTable1;
 
-    @BeforeEach
+    @Before
     public void createTable() {
         enhancedClient = DynamoDbEnhancedClient.builder()
                                                .dynamoDbClient(getDynamoDbClient())
@@ -99,7 +99,7 @@ public class DeleteItemWithResponseTest extends LocalDynamoDbSyncTestBase {
         mappedTable1.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
 
-    @AfterEach
+    @After
     public void deleteTable() {
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName("table-name-1"))

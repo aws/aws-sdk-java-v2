@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Test;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -35,7 +35,7 @@ public class EnhancedS3ServiceMetadataTest {
 
     private EnhancedS3ServiceMetadata enhancedMetadata = new EnhancedS3ServiceMetadata();
 
-    @AfterEach
+    @After
     public void methodSetup() {
         ENVIRONMENT_VARIABLE_HELPER.reset();
         System.clearProperty(ProfileFileSystemSetting.AWS_PROFILE.property());

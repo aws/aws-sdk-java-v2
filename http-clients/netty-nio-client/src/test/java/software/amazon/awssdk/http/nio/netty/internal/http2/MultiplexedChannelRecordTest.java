@@ -33,9 +33,9 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
@@ -45,13 +45,13 @@ public class MultiplexedChannelRecordTest {
     private EventLoopGroup loopGroup;
     private MockChannel channel;
 
-    @BeforeEach
+    @Before
     public void setup() throws Exception {
         loopGroup = new NioEventLoopGroup(4);
         channel = new MockChannel();
     }
 
-    @AfterEach
+    @After
     public void teardown() {
         loopGroup.shutdownGracefully().awaitUninterruptibly();
         channel.close();

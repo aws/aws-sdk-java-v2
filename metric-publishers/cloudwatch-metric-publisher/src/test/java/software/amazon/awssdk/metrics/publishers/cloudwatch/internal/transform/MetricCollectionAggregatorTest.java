@@ -27,7 +27,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.Assert;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.metrics.MetricCategory;

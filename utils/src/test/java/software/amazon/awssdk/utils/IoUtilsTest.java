@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class IoUtilsTest {
 

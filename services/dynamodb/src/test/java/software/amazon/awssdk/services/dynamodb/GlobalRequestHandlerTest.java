@@ -18,8 +18,8 @@ package software.amazon.awssdk.services.dynamodb;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -29,7 +29,7 @@ import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 
 public class GlobalRequestHandlerTest {
 
-    @BeforeEach
+    @Before
     public void setup() {
         TestGlobalExecutionInterceptor.reset();
     }

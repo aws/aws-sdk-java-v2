@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class DescribeTableEnhancedResponseTest {
 

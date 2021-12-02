@@ -24,9 +24,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Properties;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -52,7 +52,7 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
 
     private static File file;
 
-    @BeforeAll
+    @BeforeClass
     public static void setupFixture() throws IOException {
         createBucket(BUCKET);
         file = new RandomTempFile(10_000);
@@ -62,7 +62,7 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
                                      .build(), file.toPath());
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDownFixture() {
         deleteBucketAndAllContents(BUCKET);
         file.delete();

@@ -25,9 +25,9 @@ import java.util.Iterator;
 import java.util.List;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -48,7 +48,7 @@ public class BatchGetItemTest {
     @Rule
     public WireMockRule wireMock = new WireMockRule(0);
 
-    @BeforeEach
+    @Before
     public void setup() {
 
         DynamoDbClient dynamoDbClient =

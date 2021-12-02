@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.kms;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
@@ -23,7 +23,7 @@ public class IntegrationTestBase extends AwsTestBase {
 
     protected static KmsClient kms;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
         kms = KmsClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();

@@ -31,9 +31,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -71,7 +71,7 @@ public class ListObjectsV2PaginatorsIntegrationTest extends S3IntegrationTestBas
     /**
      * Releases all resources created in this test.
      */
-    @AfterAll
+    @AfterClass
     public static void tearDown() {
         deleteBucketAndAllContents(bucketName);
         deleteBucketAndAllContents(emptyBucketName);
@@ -80,7 +80,7 @@ public class ListObjectsV2PaginatorsIntegrationTest extends S3IntegrationTestBas
     /**
      * Creates all the test resources for the tests.
      */
-    @BeforeAll
+    @BeforeClass
     public static void createResources() throws Exception {
         createBucket(bucketName);
         createBucket(emptyBucketName);

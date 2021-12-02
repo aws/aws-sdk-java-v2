@@ -16,7 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.extensions;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class DefaultDynamoDbExtensionContextTest {

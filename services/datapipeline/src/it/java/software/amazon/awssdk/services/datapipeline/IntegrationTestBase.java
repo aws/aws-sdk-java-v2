@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.datapipeline;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
@@ -30,7 +30,7 @@ public class IntegrationTestBase extends AwsTestBase {
     /** The shared DP client for all tests to use. */
     protected static DataPipelineClient dataPipeline;
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws FileNotFoundException, IOException {
         setUpCredentials();
 

@@ -15,7 +15,7 @@
 
 package utils.test.util;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
@@ -39,7 +39,7 @@ public class DynamoDBIntegrationTestBase extends DynamoDBTestBase {
     protected static final String TABLE_WITH_INDEX_RANGE_ATTRIBUTE = "aws-java-sdk-index-range-test";
     protected static long startKey = System.currentTimeMillis();
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws Exception {
         setUpCredentials();
         dynamo = DynamoDbClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();

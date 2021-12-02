@@ -26,7 +26,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.oio.OioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.channel.socket.oio.OioSocketChannel;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.http.nio.netty.internal.DelegatingEventLoopGroup;
 
 public class SocketChannelResolverTest {

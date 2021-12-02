@@ -20,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 
 import java.util.List;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListAvailableSolutionStacksRequest;
 
 /**

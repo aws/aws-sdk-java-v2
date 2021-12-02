@@ -21,8 +21,8 @@ import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.After;
+import org.junit.Before;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -62,13 +62,13 @@ public interface LogCaptor extends SdkAutoCloseable {
         }
 
         @Override
-        @BeforeEach
+        @Before
         public void setupLogging() {
             super.setupLogging();
         }
 
         @Override
-        @AfterEach
+        @After
         public void stopLogging() {
             super.stopLogging();
         }

@@ -28,8 +28,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
 
@@ -38,7 +38,7 @@ public class NonArnOutpostRequestTest extends S3ControlWireMockTestBase {
     private S3ControlClient s3;
     private static final String EXPECTED_URL = "/v20180820/bucket";
 
-    @BeforeEach
+    @Before
     public void methodSetUp() {
         s3 = buildClient();
     }

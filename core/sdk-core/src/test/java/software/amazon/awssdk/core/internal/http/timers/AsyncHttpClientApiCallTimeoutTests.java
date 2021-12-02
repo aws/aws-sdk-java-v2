@@ -35,9 +35,9 @@ import java.util.concurrent.CompletableFuture;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
@@ -63,7 +63,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
 
     private AmazonAsyncHttpClient httpClient;
 
-    @BeforeEach
+    @Before
     public void setup() {
         httpClient = testAsyncClientBuilder()
             .retryPolicy(RetryPolicy.none())

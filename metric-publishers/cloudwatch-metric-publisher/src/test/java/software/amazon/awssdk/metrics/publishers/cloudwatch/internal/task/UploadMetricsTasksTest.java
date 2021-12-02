@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.metrics.publishers.cloudwatch.internal.MetricUploader;
@@ -32,7 +32,7 @@ public class UploadMetricsTasksTest {
     private MetricUploader uploader;
     private UploadMetricsTasks task;
 
-    @BeforeEach
+    @Before
     public void setUp() {
         aggregator = Mockito.mock(MetricCollectionAggregator.class);
         uploader = Mockito.mock(MetricUploader.class);

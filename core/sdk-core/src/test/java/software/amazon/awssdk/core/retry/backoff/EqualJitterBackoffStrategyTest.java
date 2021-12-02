@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.retry.backoff;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.mockito.Mock;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 

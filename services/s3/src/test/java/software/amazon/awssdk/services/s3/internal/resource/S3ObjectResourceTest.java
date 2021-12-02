@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNotEquals;
 import java.util.Optional;
 
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 public class S3ObjectResourceTest {

@@ -18,7 +18,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_C
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.After;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientTestSuite;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -41,7 +41,7 @@ public final class UrlConnectionHttpClientWireMockTest extends SdkHttpClientTest
         return builder.buildWithDefaults(attributeMap.build());
     }
 
-    @AfterEach
+    @After
     public void reset() {
         HttpsURLConnection.setDefaultSSLSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault());
     }

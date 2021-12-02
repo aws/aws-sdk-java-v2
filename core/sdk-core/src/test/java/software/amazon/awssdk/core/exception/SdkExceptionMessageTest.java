@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * Verifies the ways in which a message in an {@link SdkException} can be populated.

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sns;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**

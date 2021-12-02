@@ -32,7 +32,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Optional;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.checksums.Md5Checksum;

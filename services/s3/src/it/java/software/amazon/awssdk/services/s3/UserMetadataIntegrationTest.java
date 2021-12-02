@@ -21,9 +21,9 @@ import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
@@ -51,7 +51,7 @@ public class UserMetadataIntegrationTest extends S3IntegrationTestBase {
      * Creates/populates all the test data needed for these tests (bucket,
      * source object, file, source object ETag, etc).
      */
-    @BeforeAll
+    @BeforeClass
     public static void initializeTestData() throws Exception {
         createBucket(BUCKET_NAME);
 
@@ -62,7 +62,7 @@ public class UserMetadataIntegrationTest extends S3IntegrationTestBase {
                                      .build(), file.toPath());
     }
 
-    @AfterAll
+    @AfterClass
     public static void deleteAllBuckets() {
         deleteBucketAndAllContents(BUCKET_NAME);
     }

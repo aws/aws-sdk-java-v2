@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.sso.internal.SsoTokenFileUtils.generateCachedTokenPath;
 import static software.amazon.awssdk.utils.UserHomeDirectoryUtils.userHomeDirectory;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class SsoTokenFileUtilsTest {
 

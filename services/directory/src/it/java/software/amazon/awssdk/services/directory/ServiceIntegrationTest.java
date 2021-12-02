@@ -19,7 +19,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.List;
 import junit.framework.Assert;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.services.directory.model.CreateDirectoryRequest;
 import software.amazon.awssdk.services.directory.model.DeleteDirectoryRequest;
 import software.amazon.awssdk.services.directory.model.DescribeDirectoriesRequest;

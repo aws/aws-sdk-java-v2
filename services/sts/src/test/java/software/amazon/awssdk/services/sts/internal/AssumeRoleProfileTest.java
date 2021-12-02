@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.sts.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.profiles.ProfileFile;

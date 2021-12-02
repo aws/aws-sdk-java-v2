@@ -28,9 +28,10 @@ import java.util.concurrent.CompletionException;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;

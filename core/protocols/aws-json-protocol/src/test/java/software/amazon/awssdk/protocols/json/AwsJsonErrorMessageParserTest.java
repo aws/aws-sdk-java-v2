@@ -19,8 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonErrorMessageParser;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.ErrorMessageParser;
@@ -40,7 +40,7 @@ public class AwsJsonErrorMessageParserTest {
 
     private JsonNodeParser jsonParser;
 
-    @BeforeEach
+    @Before
     public void setup() {
         jsonParser = JsonNode.parser();
         responseBuilder = ValidSdkObjects.sdkHttpFullResponse();

@@ -22,8 +22,8 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 
@@ -33,7 +33,7 @@ public class WaiterTest extends BaseWaiterTest {
     private static final String NON_SUCCESS_STATE_MESSAGE = "other";
     private BackoffStrategy backoffStrategy;
 
-    @BeforeEach
+    @Before
     public void setup() {
         backoffStrategy = FixedDelayBackoffStrategy.create(Duration.ofMillis(10));
     }
