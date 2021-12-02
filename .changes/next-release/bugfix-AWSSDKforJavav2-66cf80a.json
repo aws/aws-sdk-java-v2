@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fix to set TokenBucket capacity correctly when requested amount greater than capacity"
+}
