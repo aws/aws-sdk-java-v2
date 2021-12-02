@@ -18,8 +18,8 @@ package software.amazon.awssdk.protocol.tests;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -44,7 +44,7 @@ public class EventTransformTest {
     private static final String HEADER_MEMBER = "foo";
     private static AwsJsonProtocolFactory protocolFactory;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         protocolFactory = AwsJsonProtocolFactory.builder()
                                                 .clientConfiguration(

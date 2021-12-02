@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -48,7 +48,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
      * Loads the AWS account info for the integration tests and creates an S3
      * client for tests to use.
      */
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         s3 = s3ClientBuilder().build();
         s3Async = s3AsyncClientBuilder().build();

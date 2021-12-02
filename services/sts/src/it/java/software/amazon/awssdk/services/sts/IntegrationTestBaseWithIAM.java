@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.sts;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
 
@@ -29,7 +29,7 @@ public abstract class IntegrationTestBaseWithIAM extends IntegrationTestBase {
     /** The shared IAM client for all tests to use. */
     protected static IamClient iam;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws FileNotFoundException, IOException {
         IntegrationTestBase.setUp();
         iam = IamClient.builder()

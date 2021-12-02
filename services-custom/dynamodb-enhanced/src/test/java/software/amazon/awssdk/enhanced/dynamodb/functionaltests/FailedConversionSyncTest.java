@@ -16,10 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import java.util.Iterator;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -29,7 +29,6 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeEnum;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeEnumRecord;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeEnumShortenedRecord;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
-import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -51,12 +50,12 @@ public class FailedConversionSyncTest extends LocalDynamoDbSyncTestBase {
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
-    @Before
+    @BeforeEach
     public void createTable() {
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
 
-    @After
+    @AfterEach
     public void deleteTable() {
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName("table-name"))

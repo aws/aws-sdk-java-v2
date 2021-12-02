@@ -19,10 +19,9 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 
 import java.io.File;
 import java.io.IOException;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -37,13 +36,13 @@ public class UploadLargeObjectIntegrationTest extends S3IntegrationTestBase {
 
     private static File file;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupFixture() throws IOException {
         createBucket(BUCKET);
         file = new RandomTempFile(500 * 1024 * 1024);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownFixture() {
         deleteBucketAndAllContents(BUCKET);
         file.delete();

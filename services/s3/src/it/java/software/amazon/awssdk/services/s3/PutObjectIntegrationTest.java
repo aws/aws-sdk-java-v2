@@ -27,12 +27,11 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 /**
  * Integration tests for {@code PutObject}.
@@ -42,13 +41,13 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
     private static final String KEY = "key";
     private static final byte[] CONTENT = "Hello".getBytes(StandardCharsets.UTF_8);
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         deleteBucketAndAllContents(BUCKET);
     }

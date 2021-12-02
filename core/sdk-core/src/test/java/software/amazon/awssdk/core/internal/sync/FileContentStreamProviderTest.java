@@ -25,9 +25,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link FileContentStreamProvider}.
@@ -36,7 +36,7 @@ public class FileContentStreamProviderTest {
     private static FileSystem testFs;
     private static Path testFile;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         testFs = Jimfs.newFileSystem("FileContentStreamProviderTest");
         testFile = testFs.getPath("test_file.dat");
@@ -46,7 +46,7 @@ public class FileContentStreamProviderTest {
         }
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() throws IOException {
         testFs.close();
     }

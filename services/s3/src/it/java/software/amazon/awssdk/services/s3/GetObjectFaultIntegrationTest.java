@@ -22,9 +22,9 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.exception.NonRetryableException;
@@ -45,7 +45,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
 
     private static S3Client s3ClientWithTimeout;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupFixture() {
         createBucket(BUCKET);
         s3.putObject(PutObjectRequest.builder()
@@ -59,7 +59,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
             .build();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownFixture() {
         deleteBucketAndAllContents(BUCKET);
     }

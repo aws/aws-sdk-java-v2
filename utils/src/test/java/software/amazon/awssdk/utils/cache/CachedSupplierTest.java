@@ -29,10 +29,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Validate the functionality of {@link CachedSupplier}.
@@ -53,7 +53,7 @@ public class CachedSupplierTest {
     /**
      * Create an executor service for async testing.
      */
-    @Before
+    @BeforeEach
     public void setup() {
         executorService = Executors.newFixedThreadPool(50);
         allExecutions = new ArrayList<>();
@@ -62,7 +62,7 @@ public class CachedSupplierTest {
     /**
      * Shut down the executor service when we're done.
      */
-    @After
+    @AfterEach
     public void shutdown() {
         executorService.shutdown();
     }

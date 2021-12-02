@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
@@ -62,7 +62,7 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
      * Loads the AWS account info for the integration tests and creates an SQS client for tests to
      * use.
      */
-    @Before
+    @BeforeEach
     public void setUp() {
         sqsAsync = createSqsAyncClient();
         sqsSync = createSqsSyncClient();

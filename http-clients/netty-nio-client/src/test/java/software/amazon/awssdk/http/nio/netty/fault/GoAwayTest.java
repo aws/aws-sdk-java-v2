@@ -55,8 +55,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -78,7 +78,7 @@ public class GoAwayTest {
     private SdkAsyncHttpClient netty;
     private SimpleEndpointDriver endpointDriver;
 
-    @After
+    @AfterEach
     public void teardown() throws InterruptedException {
         if (endpointDriver != null) {
             endpointDriver.shutdown();

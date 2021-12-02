@@ -48,20 +48,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 import org.assertj.core.api.Condition;
-import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
-import software.amazon.awssdk.utils.AttributeMap;
 
 public class NettyNioAsyncHttpClientDefaultWireMockTest {
 
@@ -75,12 +73,12 @@ public class NettyNioAsyncHttpClientDefaultWireMockTest {
 
     private static SdkAsyncHttpClient client = NettyNioAsyncHttpClient.create();
 
-    @Before
+    @BeforeEach
     public void methodSetup() {
         wiremockTrafficListener.reset();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() throws Exception {
         client.close();
     }

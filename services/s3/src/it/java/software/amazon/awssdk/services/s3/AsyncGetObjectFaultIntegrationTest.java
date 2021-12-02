@@ -23,9 +23,9 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -44,7 +44,7 @@ public class AsyncGetObjectFaultIntegrationTest extends S3IntegrationTestBase {
 
     private static S3AsyncClient s3ClientWithTimeout;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupFixture() {
         createBucket(BUCKET);
         s3.putObject(PutObjectRequest.builder()
@@ -58,7 +58,7 @@ public class AsyncGetObjectFaultIntegrationTest extends S3IntegrationTestBase {
             .build();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownFixture() {
         deleteBucketAndAllContents(BUCKET);
     }

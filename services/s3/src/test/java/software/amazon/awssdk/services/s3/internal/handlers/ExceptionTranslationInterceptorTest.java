@@ -19,8 +19,8 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -39,7 +39,7 @@ public class ExceptionTranslationInterceptorTest {
 
     private static ExceptionTranslationInterceptor interceptor;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         interceptor = new ExceptionTranslationInterceptor();
     }

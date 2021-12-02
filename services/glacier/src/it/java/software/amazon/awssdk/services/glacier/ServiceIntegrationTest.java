@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.assertj.core.api.Condition;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -36,7 +36,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
     private CapturingExecutionInterceptor capturingExecutionInterceptor = new CapturingExecutionInterceptor();
 
-    @Before
+    @BeforeEach
     public void setup() {
         client = GlacierClient.builder()
                               .credentialsProvider(getCredentialsProvider())

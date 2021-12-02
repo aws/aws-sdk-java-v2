@@ -29,9 +29,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.EncodingType;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
@@ -64,7 +64,7 @@ public class ListObjectsIntegrationTest extends S3IntegrationTestBase {
     /**
      * Releases all resources created in this test.
      */
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         deleteBucketAndAllContents(bucketName);
     }
@@ -72,7 +72,7 @@ public class ListObjectsIntegrationTest extends S3IntegrationTestBase {
     /**
      * Creates all the test resources for the tests.
      */
-    @BeforeClass
+    @BeforeAll
     public static void createResources() throws Exception {
         createBucket(bucketName);
 

@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.internal.util;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the behavior of the {@link CapacityManager}

@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;

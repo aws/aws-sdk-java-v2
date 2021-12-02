@@ -30,9 +30,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkBytes;
@@ -59,7 +59,7 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
     private static String consumerArn;
     private static String shardId;
 
-    @Before
+    @BeforeEach
     public void setup() throws InterruptedException {
         streamName = "subscribe-to-shard-integ-test-" + System.currentTimeMillis();
 
@@ -80,7 +80,7 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
         waitForConsumerToBeActive();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         asyncClient.deleteStream(r -> r.streamName(streamName)
                                        .enforceConsumerDeletion(true)).join();

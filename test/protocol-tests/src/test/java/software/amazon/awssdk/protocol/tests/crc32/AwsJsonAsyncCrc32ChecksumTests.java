@@ -27,9 +27,9 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.exception.Crc32MismatchException;
@@ -62,7 +62,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
     private ProtocolJsonRpcCustomizedAsyncClient customizedJsonRpcAsync;
     private ProtocolJsonRpcAsyncClient jsonRpcAsync;
 
-    @Before
+    @BeforeEach
     public void setup() {
         jsonRpcAsync = ProtocolJsonRpcAsyncClient.builder()
                                                  .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)

@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.model.Subscription;
@@ -47,7 +47,7 @@ public abstract class IntegrationTestBase extends AwsIntegrationTestBase {
      * Loads the AWS account info for the integration tests and creates SNS and SQS clients for
      * tests to use.
      */
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws FileNotFoundException, IOException {
         sns = SnsClient.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(getCredentials()))

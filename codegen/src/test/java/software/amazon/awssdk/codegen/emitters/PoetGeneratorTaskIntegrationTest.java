@@ -31,8 +31,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 
 public final class PoetGeneratorTaskIntegrationTest {
@@ -54,7 +54,7 @@ public final class PoetGeneratorTaskIntegrationTest {
         assertThat(contents, both(containsString(PACKAGE)).and(startsWith(fileHeader)));
     }
 
-    @After
+    @AfterEach
     public void cleanUp() {
         tempDirectories.forEach(safeConsumer(tempDir -> {
             List<Path> files = Files.walk(Paths.get(tempDir)).collect(toList());

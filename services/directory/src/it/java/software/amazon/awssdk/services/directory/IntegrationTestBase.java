@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.directory;
 
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
@@ -25,7 +25,7 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
     protected static DirectoryClient dsClient;
     protected static Ec2Client ec2Client;
 
-    @BeforeClass
+    @BeforeAll
     public static void baseSetupFixture() {
         dsClient = DirectoryClient.builder()
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)

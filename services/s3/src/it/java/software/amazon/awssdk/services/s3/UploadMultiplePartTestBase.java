@@ -22,9 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
@@ -48,12 +48,12 @@ public abstract class UploadMultiplePartTestBase extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(AsyncUploadMultiplePartIntegrationTest.class);
     private static final String CONTENT = RandomStringUtils.randomAscii(1000);
 
-    @BeforeClass
+    @BeforeAll
     public static void setupFixture() {
         createBucket(BUCKET);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownFixture() {
         deleteBucketAndAllContents(BUCKET);
     }

@@ -30,7 +30,7 @@ import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.EventExecutor;
 import java.time.Duration;
 import javax.net.ssl.SSLEngine;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
 
 public class NettyUtilsTest {

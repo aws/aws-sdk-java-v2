@@ -22,9 +22,9 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 import java.util.UUID;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -88,7 +88,7 @@ public class Route53IntegrationTest extends AwsIntegrationTestBase {
      */
     private String healthCheckId;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         route53 = Route53Client.builder()
                                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
@@ -109,7 +109,7 @@ public class Route53IntegrationTest extends AwsIntegrationTestBase {
     /**
      * Ensures the HostedZone we create during this test is correctly released.
      */
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         try {
             route53.deleteHostedZone(DeleteHostedZoneRequest.builder().id(createdZoneId).build());
