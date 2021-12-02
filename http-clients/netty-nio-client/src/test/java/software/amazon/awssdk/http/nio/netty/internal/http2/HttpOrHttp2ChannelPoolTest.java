@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -241,7 +242,9 @@ public class HttpOrHttp2ChannelPoolTest {
 
     public void incompleteProtocolFutureDelaysMetricsDelegationAndForwardsSuccessForProtocol(Protocol protocol) throws Exception {
         Promise<Channel> acquirePromise = eventLoopGroup.next().newPromise();
+        Promise<Void> releasePromise = eventLoopGroup.next().newPromise();
         when(mockDelegatePool.acquire()).thenReturn(acquirePromise);
+        when(mockDelegatePool.release(any(Channel.class))).thenReturn(releasePromise);
 
         // startConnection
         httpOrHttp2ChannelPool.acquire();
@@ -258,6 +261,7 @@ public class HttpOrHttp2ChannelPoolTest {
         eventLoopGroup.register(channel);
         channel.attr(PROTOCOL_FUTURE).set(CompletableFuture.completedFuture(protocol));
         acquirePromise.setSuccess(channel);
+        releasePromise.setSuccess(null);
 
         metricsFuture.join();
         MetricCollection metrics = metricCollector.collect();

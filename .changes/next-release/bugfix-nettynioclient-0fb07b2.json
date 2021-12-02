@@ -1,0 +1,6 @@
+{
+    "category": "netty-nio-client", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Ensure initial channel used for protocol detection is released before re-acquiring"
+}
