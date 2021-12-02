@@ -43,11 +43,10 @@ public class MergeCustomHeadersStageTest {
     // with modifications:
     // removed: accept-ranges, if-match, if-none-match, vary since it looks like they're defined as lists
     public static Stream<String> singleHeaders() {
-        return Stream.of("age", "authorization",
-                         "content-length", "content-location", "content-md5", "content-range", "content-type",
-                         "date", "etag", "expires", "from", "host", "if-modified-since", "if-range",
-                         "if-unmodified-since", "last-modified", "location", "max-forwards",
-                         "proxy-authorization", "range", "referer", "retry-after", "server", "user-agent");
+        return Stream.of("age", "authorization", "content-length", "content-location", "content-md5", "content-range",
+                         "content-type", "date", "etag", "expires", "from", "host", "if-modified-since", "if-range",
+                         "if-unmodified-since", "last-modified", "location", "max-forwards", "proxy-authorization", "range",
+                         "referer", "retry-after", "server", "user-agent");
     }
 
     @ParameterizedTest
