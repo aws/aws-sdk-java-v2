@@ -182,7 +182,6 @@ public final class NettyRequestExecutor {
         channel.attr(REQUEST_CONTEXT_KEY).set(context);
         channel.attr(RESPONSE_COMPLETE_KEY).set(false);
         channel.attr(LAST_HTTP_CONTENT_RECEIVED_KEY).set(false);
-        channel.attr(IN_USE).set(true);
         channel.config().setOption(ChannelOption.AUTO_READ, false);
     }
 

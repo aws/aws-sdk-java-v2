@@ -1,0 +1,6 @@
+{
+    "category": "netty-nio-client", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Ensure in-use channels are not incorrectly closed"
+}

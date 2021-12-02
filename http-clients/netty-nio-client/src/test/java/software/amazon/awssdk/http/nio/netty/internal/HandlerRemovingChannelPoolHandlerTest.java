@@ -21,7 +21,6 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 
-import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -37,9 +36,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
 
 @RunWith(MockitoJUnitRunner.class)
-public class HandlerRemovingChannelPoolTest {
+public class HandlerRemovingChannelPoolHandlerTest {
     @Mock
     private SdkChannelPool channelPool;
 
@@ -49,7 +49,7 @@ public class HandlerRemovingChannelPoolTest {
     private Channel mockChannel;
     private ChannelPipeline pipeline;
     private NioEventLoopGroup nioEventLoopGroup;
-    private HandlerRemovingChannelPool handlerRemovingChannelPool;
+    private HandlerRemovingChannelPoolHandler handler;
 
     @Before
     public void setup() throws Exception {
@@ -71,7 +71,7 @@ public class HandlerRemovingChannelPoolTest {
         pipeline.addLast(ResponseHandler.getInstance());
         pipeline.addLast(new ReadTimeoutHandler(10));
         pipeline.addLast(new WriteTimeoutHandler(10));
-        handlerRemovingChannelPool = new HandlerRemovingChannelPool(channelPool);
+        handler = HandlerRemovingChannelPoolHandler.create();
     }
 
     @After
@@ -82,7 +82,7 @@ public class HandlerRemovingChannelPoolTest {
     @Test
     public void release_openChannel_handlerShouldBeRemovedFromChannelPool() {
         assertHandlersNotRemoved();
-        handlerRemovingChannelPool.release(mockChannel);
+        handler.channelReleased(mockChannel);
 
         assertHandlersRemoved();
     }
@@ -93,7 +93,7 @@ public class HandlerRemovingChannelPoolTest {
 
         // CLOSE -> INACTIVE -> UNREGISTERED: channel handlers should be removed at this point
         assertHandlersRemoved();
-        handlerRemovingChannelPool.release(mockChannel);
+        handler.channelReleased(mockChannel);
         assertHandlersRemoved();
     }
 
@@ -101,7 +101,7 @@ public class HandlerRemovingChannelPoolTest {
     public void release_deregisteredOpenChannel_handlerShouldBeRemovedFromChannelPool() {
         mockChannel.deregister().awaitUninterruptibly();
         assertHandlersNotRemoved();
-        handlerRemovingChannelPool.release(mockChannel);
+        handler.channelReleased(mockChannel);
 
         assertHandlersRemoved();
     }

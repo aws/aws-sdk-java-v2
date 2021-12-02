@@ -18,7 +18,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.CHANNEL_POOL_CLOSE_TIMEOUT_SECONDS;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
+import io.netty.channel.EventLoop;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.handler.ssl.SslContext;
@@ -26,7 +26,10 @@ import io.netty.handler.ssl.SslProvider;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,20 +53,6 @@ import software.amazon.awssdk.utils.Logger;
 public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, SimpleChannelPoolAwareChannelPool> {
 
     private static final Logger log = Logger.loggerFor(AwaitCloseChannelPoolMap.class);
-
-    private static final ChannelPoolHandler NOOP_HANDLER = new ChannelPoolHandler() {
-        @Override
-        public void channelReleased(Channel ch) throws Exception {
-        }
-
-        @Override
-        public void channelAcquired(Channel ch) throws Exception {
-        }
-
-        @Override
-        public void channelCreated(Channel ch) throws Exception {
-        }
-    };
 
     // IMPORTANT: If the default bootstrap provider is changed, ensure that the new implementation is compliant with
     // DNS resolver testing in BootstrapProviderTest, specifically that no caching of hostname lookups is taking place.
@@ -135,12 +124,12 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         BetterSimpleChannelPool tcpChannelPool;
         ChannelPool baseChannelPool;
         if (shouldUseProxyForHost(key)) {
-            tcpChannelPool = new BetterSimpleChannelPool(bootstrap, NOOP_HANDLER);
+            tcpChannelPool = new BetterSimpleChannelPool(bootstrap, getChannelPoolHandlers());
             baseChannelPool = new Http1TunnelConnectionPool(bootstrap.config().group().next(), tcpChannelPool, sslContext,
                                             proxyAddress(key), proxyConfiguration.username(), proxyConfiguration.password(),
                                             key, pipelineInitializer, configuration);
         } else {
-            tcpChannelPool = new BetterSimpleChannelPool(bootstrap, pipelineInitializer);
+            tcpChannelPool = new BetterSimpleChannelPool(bootstrap, getChannelPoolHandlers(pipelineInitializer));
             baseChannelPool = tcpChannelPool;
         }
 
@@ -225,6 +214,29 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         }
     }
 
+    /**
+     * Merge the provided {@link ChannelPoolHandler}s with handlers that are common for all channels. Note that {@link
+     * ChannelPoolHandler}s are guaranteed to be invoked from within the channel's {@link EventLoop}.
+     */
+    private List<ChannelPoolHandler> getChannelPoolHandlers(ChannelPoolHandler... handlers) {
+        List<ChannelPoolHandler> list = new ArrayList<>();
+        Collections.addAll(list, handlers);
+
+        // Add a handler that ensures acquired channels are marked IN_USE and thus not eligible for certain idle timeouts.
+        list.add(InUseTrackingChannelPoolHandler.create());
+
+        // Add a handler that removes request-specific handlers with each request.
+        list.add(HandlerRemovingChannelPoolHandler.create());
+
+        return Collections.unmodifiableList(list);
+    }
+
+    /**
+     * Wrap the base {@link ChannelPool} with implementations that may alter the general acquire/release control flow. Note that
+     * {@link ChannelPool} interactions are NOT guaranteed to be invoked from within the corresponding channel's {@link
+     * EventLoop}. For implementations that don't need to alter the control flow, registering a {@link ChannelPoolHandler} (above)
+     * may be simpler.
+     */
     private SdkChannelPool wrapBaseChannelPool(Bootstrap bootstrap, ChannelPool channelPool) {
 
         // Wrap the channel pool such that the ChannelAttributeKey.CLOSE_ON_RELEASE flag is honored.
@@ -235,9 +247,6 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
                                                                    bootstrap.config().group(),
                                                                    configuration.maxConnections(),
                                                                    configuration);
-
-        // Wrap the channel pool such that we remove request-specific handlers with each request.
-        sdkChannelPool = new HandlerRemovingChannelPool(sdkChannelPool);
 
         // Wrap the channel pool such that an individual channel can only be released to the underlying pool once.
         sdkChannelPool = new ReleaseOnceChannelPool(sdkChannelPool);
