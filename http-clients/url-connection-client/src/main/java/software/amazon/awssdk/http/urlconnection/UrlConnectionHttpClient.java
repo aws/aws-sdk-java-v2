@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.urlconnection;
 
+import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.HttpStatusFamily.CLIENT_ERROR;
 import static software.amazon.awssdk.http.HttpStatusFamily.SERVER_ERROR;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
@@ -139,6 +140,9 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         // Disable following redirects since it breaks SDK error handling and matches Apache.
         // See: https://github.com/aws/aws-sdk-java-v2/issues/975
         connection.setInstanceFollowRedirects(false);
+
+        request.httpRequest().firstMatchingHeader(CONTENT_LENGTH).map(Long::parseLong)
+               .ifPresent(connection::setFixedLengthStreamingMode);
 
         return connection;
     }
