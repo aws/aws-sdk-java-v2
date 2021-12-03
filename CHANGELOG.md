@@ -1,3 +1,12 @@
+# __2.17.96__ __2021-12-03__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix to set TokenBucket capacity correctly when requested amount greater than capacity
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release added new KnownGender types for Celebrity Recognition.
+
 # __2.17.95__ __2021-12-02__
 ## __AWS Amplify UI Builder__
   - ### Features

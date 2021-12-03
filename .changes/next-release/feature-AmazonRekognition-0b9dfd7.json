@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Rekognition",
-    "contributor": "",
-    "description": "This release added new KnownGender types for Celebrity Recognition."
-}
