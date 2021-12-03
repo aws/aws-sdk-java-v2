@@ -16,104 +16,112 @@
 package software.amazon.awssdk.auth.credentials.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import java.util.Arrays;
+import java.util.function.Supplier;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
+@RunWith(Parameterized.class)
 public class Ec2MetadataConfigProviderEndpointModeTest {
     private static final String TEST_PROFILES_PATH_PREFIX = "/software/amazon/awssdk/auth/credentials/internal/ec2metadataconfigprovider/";
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
     private static final String CUSTOM_PROFILE = "myprofile";
 
-    public static Stream<Arguments> testData() {
-        return Stream.of(
-            arguments(null, null, null, null, null, Ec2MetadataConfigProvider.EndpointMode.IPV4, null),
-            arguments("ipv4", null, null, null, null, Ec2MetadataConfigProvider.EndpointMode.IPV4, null),
-            arguments("IPv4", null, null, null, null, Ec2MetadataConfigProvider.EndpointMode.IPV4, null),
-            arguments("ipv6", null, null, null, null, Ec2MetadataConfigProvider.EndpointMode.IPV6, null),
-            arguments("IPv6", null, null, null, null, Ec2MetadataConfigProvider.EndpointMode.IPV6, null),
-            arguments("Ipv99", null, null, null, null, null, IllegalArgumentException.class),
+    @Parameterized.Parameter
+    public TestCase testCase;
 
-            arguments(null, "ipv4", null, null, null, Ec2MetadataConfigProvider.EndpointMode.IPV4, null),
-            arguments(null, "IPv4", null, null, null, Ec2MetadataConfigProvider.EndpointMode.IPV4, null),
-            arguments(null, "ipv6", null, null, null, Ec2MetadataConfigProvider.EndpointMode.IPV6, null),
-            arguments(null, "IPv6", null, null, null, Ec2MetadataConfigProvider.EndpointMode.IPV6, null),
-            arguments(null, "Ipv99", null, null, null, null, IllegalArgumentException.class),
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
-            arguments(null, null, TEST_PROFILES_PATH_PREFIX + "endpoint_mode_ipv6", null, null,
-                      Ec2MetadataConfigProvider.EndpointMode.IPV6, null),
-            arguments(null, null, TEST_PROFILES_PATH_PREFIX + "endpoint_mode_invalidValue", null, null, null,
-                      IllegalArgumentException.class),
+    @Parameterized.Parameters(name = "{0}")
+    public static Iterable<Object> testCases() {
+        return Arrays.asList(
+                new TestCase().expectedEndpointMode(null).expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV4),
 
-            // System property takes highest precedence
-            arguments("ipv4", "ipv6", null, null, null, Ec2MetadataConfigProvider.EndpointMode.IPV6, null),
-            arguments(null, "ipv6", TEST_PROFILES_PATH_PREFIX + "endpoint_mode_ipv4", null, null,
-                      Ec2MetadataConfigProvider.EndpointMode.IPV6, null),
+                new TestCase().envEndpointMode("ipv4").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV4),
+                new TestCase().envEndpointMode("IPv4").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV4),
+                new TestCase().envEndpointMode("ipv6").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
+                new TestCase().envEndpointMode("IPv6").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
+                new TestCase().envEndpointMode("Ipv99").expectedException(IllegalArgumentException.class),
 
-            // env var has higher precedence than shared config
-            arguments("ipv6", null, TEST_PROFILES_PATH_PREFIX + "endpoint_mode_ipv4", null, null,
-                      Ec2MetadataConfigProvider.EndpointMode.IPV6, null),
+                new TestCase().systemPropertyEndpointMode("ipv4").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV4),
+                new TestCase().systemPropertyEndpointMode("IPv4").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV4),
+                new TestCase().systemPropertyEndpointMode("ipv6").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
+                new TestCase().systemPropertyEndpointMode("IPv6").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
+                new TestCase().systemPropertyEndpointMode("Ipv99").expectedException(IllegalArgumentException.class),
 
-            // Test custom profile supplier and custom profile name
-            arguments(null, null, TEST_PROFILES_PATH_PREFIX + "endpoint_mode_ipv6_custom_profile", null, CUSTOM_PROFILE,
-                      Ec2MetadataConfigProvider.EndpointMode.IPV6, null),
-            arguments(null, null, null, customProfileFile(), CUSTOM_PROFILE, Ec2MetadataConfigProvider.EndpointMode.IPV6, null)
+                new TestCase().sharedConfigFile(TEST_PROFILES_PATH_PREFIX + "endpoint_mode_ipv6")
+                        .expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
+                new TestCase().sharedConfigFile(TEST_PROFILES_PATH_PREFIX + "endpoint_mode_invalidValue")
+                        .expectedException(IllegalArgumentException.class),
+
+                // System property takes highest precedence
+                new TestCase().systemPropertyEndpointMode("ipv6").envEndpointMode("ipv4")
+                        .expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
+                new TestCase().systemPropertyEndpointMode("ipv6").sharedConfigFile(TEST_PROFILES_PATH_PREFIX + "endpoint_mode_ipv4")
+                        .expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
+
+                // env var has higher precedence than shared config
+                new TestCase().envEndpointMode("ipv6").sharedConfigFile(TEST_PROFILES_PATH_PREFIX + "endpoint_mode_ipv4")
+                        .expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
+
+                // Test custom profile supplier and custom profile name
+                new TestCase().sharedConfigFile(TEST_PROFILES_PATH_PREFIX + "endpoint_mode_ipv6_custom_profile")
+                        .customProfileName(CUSTOM_PROFILE).expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
+                new TestCase().customProfileFile(Ec2MetadataConfigProviderEndpointModeTest::customProfileFile)
+                        .customProfileName(CUSTOM_PROFILE).expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6)
         );
     }
 
-    @BeforeEach
-    @AfterEach
-    public void cleanup() {
+    @Before
+    public void setup() {
+        ENVIRONMENT_VARIABLE_HELPER.reset();
+        System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE.property());
+
+        if (testCase.envEndpointMode != null) {
+            ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE.environmentVariable(),
+                    testCase.envEndpointMode);
+        }
+
+        if (testCase.systemPropertyEndpointMode != null) {
+            System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE.property(),
+                    testCase.systemPropertyEndpointMode);
+        }
+        if (testCase.sharedConfigFile != null) {
+            ENVIRONMENT_VARIABLE_HELPER.set(ProfileFileSystemSetting.AWS_CONFIG_FILE.environmentVariable(),
+                    getTestFilePath(testCase.sharedConfigFile));
+        }
+
+        if (testCase.expectedException != null) {
+            thrown.expect(testCase.expectedException);
+        }
+    }
+
+    @After
+    public void teardown() {
         ENVIRONMENT_VARIABLE_HELPER.reset();
         System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE.property());
     }
 
-    @ParameterizedTest
-    @MethodSource("testData")
-    void resolvesCorrectEndpointMode(String envEndpointMode,
-                                     String systemPropertyEndpointMode,
-                                     String sharedConfigFile,
-                                     ProfileFile customProfileFile,
-                                     String customProfileName,
-                                     Ec2MetadataConfigProvider.EndpointMode expectedEndpointMode,
-                                     Class<? extends Throwable> expectedException) {
-        if (envEndpointMode != null) {
-            ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE.environmentVariable(),
-                                            envEndpointMode);
-        }
-
-        if (systemPropertyEndpointMode != null) {
-            System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE.property(),
-                               systemPropertyEndpointMode);
-        }
-        if (sharedConfigFile != null) {
-            ENVIRONMENT_VARIABLE_HELPER.set(ProfileFileSystemSetting.AWS_CONFIG_FILE.environmentVariable(),
-                                            getTestFilePath(sharedConfigFile));
-        }
-
+    @Test
+    public void resolvesCorrectEndpointMode() {
         Ec2MetadataConfigProvider configProvider = Ec2MetadataConfigProvider.builder()
-                                                                            .profileFile(customProfileFile == null ? null :
-                                                                                         () -> customProfileFile)
-                                                                            .profileName(customProfileName)
-                                                                            .build();
+                .profileFile(testCase.customProfileFile)
+                .profileName(testCase.customProfileName)
+                .build();
 
-        if (expectedException != null) {
-            assertThatThrownBy(configProvider::getEndpointMode).isInstanceOf(expectedException);
-        } else {
-            assertThat(configProvider.getEndpointMode()).isEqualTo(expectedEndpointMode);
-        }
+        assertThat(configProvider.getEndpointMode()).isEqualTo(testCase.expectedEndpointMode);
     }
 
     private static String getTestFilePath(String testFile) {
@@ -128,5 +136,66 @@ public class Ec2MetadataConfigProviderEndpointModeTest {
                 .type(ProfileFile.Type.CONFIGURATION)
                 .content(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)))
                 .build();
+    }
+
+    private static class TestCase {
+        private String envEndpointMode;
+        private String systemPropertyEndpointMode;
+
+        private String sharedConfigFile;
+
+        private Supplier<ProfileFile> customProfileFile;
+
+        private String customProfileName;
+
+        private Ec2MetadataConfigProvider.EndpointMode expectedEndpointMode;
+        private Class<? extends Throwable> expectedException;
+
+        public TestCase envEndpointMode(String envEndpointMode) {
+            this.envEndpointMode = envEndpointMode;
+            return this;
+        }
+        public TestCase systemPropertyEndpointMode(String systemPropertyEndpointMode) {
+            this.systemPropertyEndpointMode = systemPropertyEndpointMode;
+            return this;
+        }
+
+        public TestCase sharedConfigFile(String sharedConfigFile) {
+            this.sharedConfigFile = sharedConfigFile;
+            return this;
+        }
+
+        public TestCase customProfileFile(Supplier<ProfileFile> customProfileFile) {
+            this.customProfileFile = customProfileFile;
+            return this;
+        }
+
+        private TestCase customProfileName(String customProfileName) {
+            this.customProfileName = customProfileName;
+            return this;
+        }
+
+        public TestCase expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode expectedEndpointMode) {
+            this.expectedEndpointMode = expectedEndpointMode;
+            return this;
+        }
+
+        public TestCase expectedException(Class<? extends Throwable> expectedException) {
+            this.expectedException = expectedException;
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return "TestCase{" +
+                    "envEndpointMode='" + envEndpointMode + '\'' +
+                    ", systemPropertyEndpointMode='" + systemPropertyEndpointMode + '\'' +
+                    ", sharedConfigFile='" + sharedConfigFile + '\'' +
+                    ", customProfileFile=" + customProfileFile +
+                    ", customProfileName='" + customProfileName + '\'' +
+                    ", expectedEndpointMode=" + expectedEndpointMode +
+                    ", expectedException=" + expectedException +
+                    '}';
+        }
     }
 }

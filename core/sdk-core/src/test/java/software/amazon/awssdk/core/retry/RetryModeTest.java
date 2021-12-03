@@ -17,61 +17,66 @@ package software.amazon.awssdk.core.retry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.Callable;
-import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.Validate;
 
+@RunWith(Parameterized.class)
 public class RetryModeTest {
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
 
-    public static Stream<Arguments> testData() {
-        return Stream.of(
+    @Parameterized.Parameter
+    public TestData testData;
+
+    @Parameterized.Parameters
+    public static Collection<Object> data() {
+        return Arrays.asList(new Object[] {
             // Test defaults
-            arguments(null, null, null, null, RetryMode.LEGACY),
-            arguments(null, null, "PropertyNotSet", null, RetryMode.LEGACY),
+            new TestData(null, null, null, null, RetryMode.LEGACY),
+            new TestData(null, null, "PropertyNotSet", null, RetryMode.LEGACY),
 
             // Test resolution
-            arguments("legacy", null, null, null, RetryMode.LEGACY),
-            arguments("standard", null, null, null, RetryMode.STANDARD),
-            arguments("adaptive", null, null, null, RetryMode.ADAPTIVE),
-            arguments("lEgAcY", null, null, null, RetryMode.LEGACY),
-            arguments("sTanDaRd", null, null, null, RetryMode.STANDARD),
-            arguments("aDaPtIvE", null, null, null, RetryMode.ADAPTIVE),
+            new TestData("legacy", null, null, null, RetryMode.LEGACY),
+            new TestData("standard", null, null, null, RetryMode.STANDARD),
+            new TestData("adaptive", null, null, null, RetryMode.ADAPTIVE),
+            new TestData("lEgAcY", null, null, null, RetryMode.LEGACY),
+            new TestData("sTanDaRd", null, null, null, RetryMode.STANDARD),
+            new TestData("aDaPtIvE", null, null, null, RetryMode.ADAPTIVE),
 
             // Test precedence
-            arguments("standard", "legacy", "PropertySetToLegacy", RetryMode.LEGACY, RetryMode.STANDARD),
-            arguments("standard", null, null, RetryMode.LEGACY, RetryMode.STANDARD),
-            arguments(null, "standard", "PropertySetToLegacy", RetryMode.LEGACY, RetryMode.STANDARD),
-            arguments(null, "standard", null, RetryMode.LEGACY, RetryMode.STANDARD),
-            arguments(null, null, "PropertySetToStandard", RetryMode.LEGACY, RetryMode.STANDARD),
-            arguments(null, null, null, RetryMode.STANDARD, RetryMode.STANDARD),
+            new TestData("standard", "legacy", "PropertySetToLegacy", RetryMode.LEGACY, RetryMode.STANDARD),
+            new TestData("standard", null, null, RetryMode.LEGACY, RetryMode.STANDARD),
+            new TestData(null, "standard", "PropertySetToLegacy", RetryMode.LEGACY, RetryMode.STANDARD),
+            new TestData(null, "standard", null, RetryMode.LEGACY, RetryMode.STANDARD),
+            new TestData(null, null, "PropertySetToStandard", RetryMode.LEGACY, RetryMode.STANDARD),
+            new TestData(null, null, null, RetryMode.STANDARD, RetryMode.STANDARD),
 
             // Test invalid values
-            arguments("wrongValue", null, null, null, IllegalStateException.class),
-            arguments(null, "wrongValue", null, null, IllegalStateException.class),
-            arguments(null, null, "PropertySetToUnsupportedValue", null, IllegalStateException.class),
+            new TestData("wrongValue", null, null, null, IllegalStateException.class),
+            new TestData(null, "wrongValue", null, null, IllegalStateException.class),
+            new TestData(null, null, "PropertySetToUnsupportedValue", null, IllegalStateException.class),
 
             // Test capitalization standardization
-            arguments("sTaNdArD", null, null, null, RetryMode.STANDARD),
-            arguments(null, "sTaNdArD", null, null, RetryMode.STANDARD),
-            arguments(null, null, "PropertyMixedCase", null, RetryMode.STANDARD)
-        );
+            new TestData("sTaNdArD", null, null, null, RetryMode.STANDARD),
+            new TestData(null, "sTaNdArD", null, null, RetryMode.STANDARD),
+            new TestData(null, null, "PropertyMixedCase", null, RetryMode.STANDARD),
+            });
     }
 
-    @BeforeEach
-    @AfterEach
+    @Before
+    @After
     public void methodSetup() {
         ENVIRONMENT_VARIABLE_HELPER.reset();
         System.clearProperty(SdkSystemSetting.AWS_RETRY_MODE.property());
@@ -79,38 +84,50 @@ public class RetryModeTest {
         System.clearProperty(ProfileFileSystemSetting.AWS_CONFIG_FILE.property());
     }
 
-    @ParameterizedTest
-    @MethodSource("testData")
-    void differentCombinationOfConfigs_shouldResolveCorrectly(String systemProperty,
-                                                              String envVarValue,
-                                                              String configFile,
-                                                              RetryMode defaultMode,
-                                                              Object expected) throws Exception {
-        if (envVarValue != null) {
-            ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_RETRY_MODE.environmentVariable(), envVarValue);
+    @Test
+    public void differentCombinationOfConfigs_shouldResolveCorrectly() throws Exception {
+        if (testData.envVarValue != null) {
+            ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_RETRY_MODE.environmentVariable(), testData.envVarValue);
         }
 
-        if (systemProperty != null) {
-            System.setProperty(SdkSystemSetting.AWS_RETRY_MODE.property(), systemProperty);
+        if (testData.systemProperty != null) {
+            System.setProperty(SdkSystemSetting.AWS_RETRY_MODE.property(), testData.systemProperty);
         }
 
-        if (configFile != null) {
-            String diskLocationForFile = diskLocationForConfig(configFile);
+        if (testData.configFile != null) {
+            String diskLocationForFile = diskLocationForConfig(testData.configFile);
             Validate.isTrue(Files.isReadable(Paths.get(diskLocationForFile)), diskLocationForFile + " is not readable.");
             System.setProperty(ProfileFileSystemSetting.AWS_PROFILE.property(), "default");
             System.setProperty(ProfileFileSystemSetting.AWS_CONFIG_FILE.property(), diskLocationForFile);
         }
 
-        Callable<RetryMode> result = RetryMode.resolver().defaultRetryMode(defaultMode)::resolve;
-        if (expected instanceof Class<?>) {
-            Class<?> expectedClassType = (Class<?>) expected;
+        Callable<RetryMode> result = RetryMode.resolver().defaultRetryMode(testData.defaultMode)::resolve;
+        if (testData.expected instanceof Class<?>) {
+            Class<?> expectedClassType = (Class<?>) testData.expected;
             assertThatThrownBy(result::call).isInstanceOf(expectedClassType);
         } else {
-            assertThat(result.call()).isEqualTo(expected);
+            assertThat(result.call()).isEqualTo(testData.expected);
         }
     }
 
     private String diskLocationForConfig(String configFileName) {
         return getClass().getResource(configFileName).getFile();
+    }
+
+
+    private static class TestData {
+        private final String envVarValue;
+        private final String systemProperty;
+        private final String configFile;
+        private final RetryMode defaultMode;
+        private final Object expected;
+
+        TestData(String systemProperty, String envVarValue, String configFile, RetryMode defaultMode, Object expected) {
+            this.envVarValue = envVarValue;
+            this.systemProperty = systemProperty;
+            this.configFile = configFile;
+            this.defaultMode = defaultMode;
+            this.expected = expected;
+        }
     }
 }

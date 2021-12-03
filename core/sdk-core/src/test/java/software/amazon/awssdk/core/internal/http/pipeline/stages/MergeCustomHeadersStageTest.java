@@ -16,15 +16,18 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -37,21 +40,28 @@ import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndReques
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import utils.ValidSdkObjects;
 
+@RunWith(Parameterized.class)
 public class MergeCustomHeadersStageTest {
     // List of headers that may appear only once in a request; i.e. is not a list of values.
-    // Taken from https://github.com/apache/httpcomponents-client/blob/81c1bc4dc3ca5a3134c5c60e8beff08be2fd8792/httpclient5-cache/src/test/java/org/apache/hc/client5/http/impl/cache/HttpTestUtils.java#L69-L85
-    // with modifications:
+    // Taken from https://github.com/apache/httpcomponents-client/blob/81c1bc4dc3ca5a3134c5c60e8beff08be2fd8792/httpclient5-cache/src/test/java/org/apache/hc/client5/http/impl/cache/HttpTestUtils.java#L69-L85 with modifications:
     // removed: accept-ranges, if-match, if-none-match, vary since it looks like they're defined as lists
-    public static Stream<String> singleHeaders() {
-        return Stream.of("age", "authorization", "content-length", "content-location", "content-md5", "content-range",
-                         "content-type", "date", "etag", "expires", "from", "host", "if-modified-since", "if-range",
-                         "if-unmodified-since", "last-modified", "location", "max-forwards", "proxy-authorization", "range",
-                         "referer", "retry-after", "server", "user-agent");
+    private static final Set<String> SINGLE_HEADERS = Stream.of("age", "authorization",
+            "content-length", "content-location", "content-md5", "content-range", "content-type",
+            "date", "etag", "expires", "from", "host", "if-modified-since", "if-range",
+            "if-unmodified-since", "last-modified", "location", "max-forwards",
+            "proxy-authorization", "range", "referer", "retry-after", "server", "user-agent")
+            .collect(Collectors.toSet());
+
+    @Parameterized.Parameters(name = "Header = {0}")
+    public static Collection<Object> data() {
+        return Arrays.asList(SINGLE_HEADERS.toArray(new Object[0]));
     }
 
-    @ParameterizedTest
-    @MethodSource("singleHeaders")
-    void singleHeader_inMarshalledRequest_overriddenOnClient(String singleHeaderName) throws Exception {
+    @Parameterized.Parameter
+    public String singleHeaderName;
+
+    @Test
+    public void singleHeader_inMarshalledRequest_overriddenOnClient() throws Exception {
         SdkHttpFullRequest.Builder requestBuilder = SdkHttpFullRequest.builder();
 
         RequestExecutionContext ctx = requestContext(NoopTestRequest.builder().build());
@@ -72,9 +82,8 @@ public class MergeCustomHeadersStageTest {
         assertThat(requestBuilder.headers().get(singleHeaderName)).containsExactly("client");
     }
 
-    @ParameterizedTest
-    @MethodSource("singleHeaders")
-    void singleHeader_inMarshalledRequest_overriddenOnRequest(String singleHeaderName) throws Exception {
+    @Test
+    public void singleHeader_inMarshalledRequest_overriddenOnRequest() throws Exception {
         SdkHttpFullRequest.Builder requestBuilder = SdkHttpFullRequest.builder();
         requestBuilder.putHeader(singleHeaderName, "marshaller");
 
@@ -95,9 +104,8 @@ public class MergeCustomHeadersStageTest {
         assertThat(requestBuilder.headers().get(singleHeaderName)).containsExactly("request");
     }
 
-    @ParameterizedTest
-    @MethodSource("singleHeaders")
-    void singleHeader_inClient_overriddenOnRequest(String singleHeaderName) throws Exception {
+    @Test
+    public void singleHeader_inClient_overriddenOnRequest() throws Exception {
         SdkHttpFullRequest.Builder requestBuilder = SdkHttpFullRequest.builder();
 
         RequestExecutionContext ctx = requestContext(NoopTestRequest.builder()
@@ -119,9 +127,8 @@ public class MergeCustomHeadersStageTest {
         assertThat(requestBuilder.headers().get(singleHeaderName)).containsExactly("request");
     }
 
-    @ParameterizedTest
-    @MethodSource("singleHeaders")
-    void singleHeader_inMarshalledRequest_inClient_inRequest(String singleHeaderName) throws Exception {
+    @Test
+    public void singleHeader_inMarshalledRequest_inClient_inRequest() throws Exception {
         SdkHttpFullRequest.Builder requestBuilder = SdkHttpFullRequest.builder();
         requestBuilder.putHeader(singleHeaderName, "marshaller");
 
@@ -144,9 +151,8 @@ public class MergeCustomHeadersStageTest {
         assertThat(requestBuilder.headers().get(singleHeaderName)).containsExactly("request");
     }
 
-    @ParameterizedTest
-    @MethodSource("singleHeaders")
-    void singleHeader_inRequestAsList_keepsMultipleValues(String singleHeaderName) throws Exception {
+    @Test
+    public void singleHeader_inRequestAsList_keepsMultipleValues() throws Exception {
         SdkHttpFullRequest.Builder requestBuilder = SdkHttpFullRequest.builder();
         requestBuilder.putHeader(singleHeaderName, "marshaller");
 
