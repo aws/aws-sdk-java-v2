@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Assert;
@@ -28,6 +29,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.services.lambda.model.CreateEventSourceMappingRequest;
 import software.amazon.awssdk.services.lambda.model.CreateEventSourceMappingResponse;
 import software.amazon.awssdk.services.lambda.model.CreateFunctionResponse;
@@ -46,6 +48,7 @@ import software.amazon.awssdk.services.lambda.model.ListFunctionsRequest;
 import software.amazon.awssdk.services.lambda.model.ListFunctionsResponse;
 import software.amazon.awssdk.services.lambda.model.LogType;
 import software.amazon.awssdk.services.lambda.model.Runtime;
+import software.amazon.awssdk.services.lambda.waiters.LambdaAsyncWaiter;
 import software.amazon.awssdk.testutils.retry.RetryRule;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -81,6 +84,9 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
                                                                     .timeout(10)
                                                                     .role(lambdaServiceRoleArn)).join();
 
+        lambda.waiter()
+              .waitUntilFunctionActive(r -> r.functionName(FUNCTION_NAME))
+              .whenComplete((r, t) -> {}).join();
         checkValid_CreateFunctionResponse(result);
     }
 
