@@ -15,15 +15,24 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
+import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression.keyRef;
+import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression.valueRef;
+
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.AtomicCounterTag;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.AtomicCounter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateActionType;
+import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.CollectionUtils;
 
@@ -72,15 +81,36 @@ public final class AtomicCounterExtension implements DynamoDbEnhancedClientExten
 
         return WriteModification.builder()
                                 .transformedItem(addCounterAttributes(context.items(), counters))
+                                .updateExpression(createUpdateExpression(counters))
                                 .build();
+    }
+
+    private UpdateExpression createUpdateExpression(Map<String, AtomicCounter> counters) {
+        return UpdateExpression.builder()
+                               .actions(createCounterActions(counters))
+                               .build();
+    }
+
+    private Collection<UpdateAction> createCounterActions(Map<String, AtomicCounter> counters) {
+        return counters.keySet().stream()
+                       .map(attributeName -> {
+                           AttributeValue attributeValue =
+                               AtomicCounter.CounterAttribute.resolvedValue(counters.get(attributeName).startValue().value());
+                           String valueName = attributeName + "_AMZN_ADD_NUM";
+                           return UpdateAction.builder()
+                                              .type(UpdateActionType.ADD)
+                                              .attributeName(attributeName)
+                                              .expression(keyRef(attributeName) + " " + valueRef(valueName))
+                                              .expressionNames(UpdateExpressionUtils.expressionNamesFor(attributeName, valueName))
+                                              .expressionValues(Collections.singletonMap(valueRef(valueName), attributeValue))
+                                              .build();
+                       })
+                       .collect(Collectors.toList());
     }
 
     private Map<String, AttributeValue> addCounterAttributes(Map<String, AttributeValue> items,
                                                              Map<String, AtomicCounter> counters) {
         Map<String, AttributeValue> itemToTransform = new HashMap<>(items);
-        for (String s : itemToTransform.keySet()) {
-            
-        }
         counters.forEach((attribute, counter) -> itemToTransform.put(attribute,
                                                                      AtomicCounter.CounterAttribute
                                                                          .resolvedValue(counter.startValue().value())));

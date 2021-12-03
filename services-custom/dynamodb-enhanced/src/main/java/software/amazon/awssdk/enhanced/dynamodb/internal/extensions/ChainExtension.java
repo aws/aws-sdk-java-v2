@@ -27,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -94,6 +95,7 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
     public WriteModification beforeWrite(DynamoDbExtensionContext.BeforeWrite context) {
         Map<String, AttributeValue> transformedItem = null;
         Expression conditionalExpression = null;
+        UpdateExpression updateExpression = null;
 
         for (DynamoDbEnhancedClientExtension extension : this.extensionChain) {
             Map<String, AttributeValue> itemToTransform = transformedItem == null ? context.items() : transformedItem;
@@ -112,23 +114,40 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
             if (writeModification.transformedItem() != null) {
                 transformedItem = writeModification.transformedItem();
             }
-
-            if (writeModification.additionalConditionalExpression() != null) {
-                if (conditionalExpression == null) {
-                    conditionalExpression = writeModification.additionalConditionalExpression();
-                } else {
-                    conditionalExpression =
-                        Expression.join(conditionalExpression,
-                                        writeModification.additionalConditionalExpression(),
-                                        " AND ");
-                }
-            }
+            conditionalExpression = mergeConditionalExpressions(conditionalExpression, writeModification);
+            updateExpression = mergeUpdateExpressions(updateExpression, writeModification);
         }
 
         return WriteModification.builder()
                                 .transformedItem(transformedItem)
                                 .additionalConditionalExpression(conditionalExpression)
+                                .updateExpression(updateExpression)
                                 .build();
+    }
+
+    private UpdateExpression mergeUpdateExpressions(UpdateExpression updateExpression, WriteModification writeModification) {
+        if (writeModification.updateExpression() != null) {
+            if (updateExpression == null) {
+                updateExpression = writeModification.updateExpression();
+            } else {
+                updateExpression = UpdateExpression.mergeExpressions(updateExpression, writeModification.updateExpression());
+            }
+        }
+        return updateExpression;
+    }
+
+    private Expression mergeConditionalExpressions(Expression conditionalExpression, WriteModification writeModification) {
+        if (writeModification.additionalConditionalExpression() != null) {
+            if (conditionalExpression == null) {
+                conditionalExpression = writeModification.additionalConditionalExpression();
+            } else {
+                conditionalExpression =
+                    Expression.join(conditionalExpression,
+                                    writeModification.additionalConditionalExpression(),
+                                    " AND ");
+            }
+        }
+        return conditionalExpression;
     }
 
     /**

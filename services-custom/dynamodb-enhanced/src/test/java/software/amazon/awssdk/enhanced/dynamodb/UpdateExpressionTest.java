@@ -17,20 +17,17 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression.keyRef;
 import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression.valueRef;
 
 import java.util.Collections;
-import java.util.Map;
-import org.junit.Test;
-import org.w3c.dom.Attr;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.internal.update.AddUpdateAction;
 import software.amazon.awssdk.enhanced.dynamodb.internal.update.DeleteUpdateAction;
 import software.amazon.awssdk.enhanced.dynamodb.internal.update.RemoveUpdateAction;
 import software.amazon.awssdk.enhanced.dynamodb.internal.update.SetUpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateActionType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateAction;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -39,186 +36,190 @@ public class UpdateExpressionTest {
 
     @Test
     public void build_minimal() {
-        UpdateExpression expression1 = UpdateExpression.builder().build();
-        Expression resultExpression = expression1.toExpression();
-        assertEquals("", resultExpression.expression());
-        assertTrue(resultExpression.expressionNames().isEmpty());
-        assertTrue(resultExpression.expressionValues().isEmpty());
+        UpdateExpression expression = UpdateExpression.builder().build();
+        Expression resultExpression = expression.toExpression();
+        assertThat(resultExpression.expression()).isEqualTo("");
+        assertThat(resultExpression.expressionNames()).isEmpty();
+        assertThat(resultExpression.expressionValues()).isEmpty();
     }
 
     @Test
-    public void create_attributesWithinSetAreUnique_ok() {
-        UpdateExpression expression1 = UpdateExpression.builder()
-                                                       .addAction(addAction("attr4", numeric("4")))
-                                                       .addAction(addAction("attr5", numeric("5")))
-                                                       .build();
-        Expression resultExpression = expression1.toExpression();
+    public void create_attributesWithinActionAreUnique_ok() {
+        UpdateExpression expression = UpdateExpression.builder()
+                                                      .addAction(addAction("attr1", numeric("4")))
+                                                      .addAction(addAction("attr2", numeric("5")))
+                                                      .build();
+        assertThat(expression.updateActionFor("attr1")).isPresent();
+        assertThat(expression.updateActionFor("attr2")).isPresent();
+        Expression resultExpression = expression.toExpression();
         assertThat(resultExpression.expression()).contains("ADD");
-        assertThat(resultExpression.expressionNames()).hasSize(7);
-        assertThat(resultExpression.expressionNames()).containsValues("attr1", "attr2", "attr3", "attr4");
-        assertThat(resultExpression.expressionValues()).hasSize(3);
+        assertThat(resultExpression.expression()).doesNotContain("SET", "REMOVE", "DELETE");
     }
 
     @Test
-    public void create_attributesWithinSetAreNotUnique_error() {
+    public void create_attributesWithinActionAreNotUnique_error() {
         assertThatThrownBy(() -> UpdateExpression.builder()
-                                   .addRemoveAction(removeAction("attr1"))
-                                   .addRemoveAction(removeAction("attr1"))
-                                   .build())
+                                                 .addAction(removeAction("attr1"))
+                                                 .addAction(removeAction("attr1"))
+                                                 .build())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Attempt to coalesce two expressions with conflicting expression names");
+            .hasMessageContaining("duplicate")
+            .hasMessageContaining("attr1");
     }
 
     @Test
     public void create_attributesBetweenActionsAreUnique_ok() {
-        UpdateExpression expression1 = UpdateExpression.builder()
-                                                       .addRemoveAction(removeAction("attr1"))
-                                                       .addSetAction(setAction("attr2", string("3")))
-                                                       .addDeleteAction(deleteAction("attr3", string("3")))
-                                                       .addAction(addAction("attr4", numeric("4")))
-                                                       .build();
-        Expression resultExpression = expression1.toExpression();
+        UpdateExpression expression = UpdateExpression.builder()
+                                                      .addAction(removeAction("attr1"))
+                                                      .addAction(setAction("attr2", string("2")))
+                                                      .addAction(deleteAction("attr3", string("3")))
+                                                      .addAction(addAction("attr4", numeric("4")))
+                                                      .build();
+        assertThat(expression.updateActionFor("attr1")).isPresent();
+        assertThat(expression.updateActionFor("attr2")).isPresent();
+        assertThat(expression.updateActionFor("attr3")).isPresent();
+        assertThat(expression.updateActionFor("attr4")).isPresent();
+        Expression resultExpression = expression.toExpression();
         assertThat(resultExpression.expression()).contains("REMOVE", "SET", "DELETE", "ADD");
-        assertThat(resultExpression.expressionNames()).hasSize(7);
-        assertThat(resultExpression.expressionNames()).containsValues("attr1", "attr2", "attr3", "attr4");
-        assertThat(resultExpression.expressionValues()).hasSize(3);
     }
 
     @Test
     public void create_attributesBetweenActionsAreNotUnique_error() {
-        UpdateExpression expression1 = UpdateExpression.builder()
-                                                       .addRemoveAction(RemoveUpdateAction.remove("attr1"))
-                                                       .addSetAction(SetUpdateAction.setValue("attr2",
-                                                                                              AttributeValue.builder().n("3").build(),
-                                                                                              UpdateBehavior.WRITE_IF_NOT_EXISTS))
-                                                       .addDeleteAction(DeleteUpdateAction.builder().build())
-                                                       .addAction(AddUpdateAction.builder().build())
-                                                       .build();
-        Expression resultExpression = expression1.toExpression();
-        assertEquals("", resultExpression.expression());
-        assertTrue(resultExpression.expressionNames().isEmpty());
-        assertTrue(resultExpression.expressionValues().isEmpty());
+        assertThatThrownBy(() -> UpdateExpression.builder()
+                                                 .addAction(removeAction("attr1"))
+                                                 .addAction(deleteAction("attr1", string("3")))
+                                                 .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("duplicate")
+            .hasMessageContaining("attr1");
     }
 
     @Test
-    public void merge_attributesWithinSetAreUnique_ok() {
+    public void merge_uniqueAttributes_ok() {
         UpdateExpression expression1 = UpdateExpression.builder()
-                                                       .addRemoveAction(RemoveUpdateAction.remove("attr1"))
-                                                       .addSetAction(SetUpdateAction.setValue("attr2",
-                                                                                              AttributeValue.builder().n("3").build(),
-                                                                                              UpdateBehavior.WRITE_IF_NOT_EXISTS))
-                                                       .addDeleteAction(DeleteUpdateAction.builder().build())
-                                                       .addAction(AddUpdateAction.builder().build())
+                                                      .addAction(removeAction("attr1"))
+                                                      .addAction(setAction("attr2", string("2")))
+                                                      .addAction(deleteAction("attr3", string("3")))
+                                                      .addAction(addAction("attr4", numeric("4")))
+                                                      .build();
+        UpdateExpression expression2 = UpdateExpression.builder()
+                                                       .addAction(removeAction("attrA"))
+                                                       .addAction(setAction("attrB", string("2")))
+                                                       .addAction(deleteAction("attrC", string("3")))
+                                                       .addAction(addAction("attrD", numeric("4")))
                                                        .build();
-        Expression resultExpression = expression1.toExpression();
-        assertEquals("", resultExpression.expression());
-        assertTrue(resultExpression.expressionNames().isEmpty());
-        assertTrue(resultExpression.expressionValues().isEmpty());
+        UpdateExpression expression = UpdateExpression.mergeExpressions(expression1, expression2);
+        assertThat(expression.updateActionFor("attr1")).isPresent();
+        assertThat(expression.updateActionFor("attr2")).isPresent();
+        assertThat(expression.updateActionFor("attr3")).isPresent();
+        assertThat(expression.updateActionFor("attr4")).isPresent();
+        assertThat(expression.updateActionFor("attrA")).isPresent();
+        assertThat(expression.updateActionFor("attrB")).isPresent();
+        assertThat(expression.updateActionFor("attrC")).isPresent();
+        assertThat(expression.updateActionFor("attrD")).isPresent();
+        Expression resultExpression = expression.toExpression();
+        assertThat(resultExpression.expression()).contains("REMOVE", "SET", "DELETE", "ADD");
     }
 
     @Test
-    public void merge_attributesWithinSetAreNotUnique_error() {
+    public void merge_nonUniqueAttributes_error() {
         UpdateExpression expression1 = UpdateExpression.builder()
-                                                       .addRemoveAction(RemoveUpdateAction.remove("attr1"))
-                                                       .addSetAction(SetUpdateAction.setValue("attr2",
-                                                                                              AttributeValue.builder().n("3").build(),
-                                                                                              UpdateBehavior.WRITE_IF_NOT_EXISTS))
-                                                       .addDeleteAction(DeleteUpdateAction.builder().build())
-                                                       .addAction(AddUpdateAction.builder().build())
+                                                       .addAction(removeAction("attr1"))
                                                        .build();
-        Expression resultExpression = expression1.toExpression();
-        assertEquals("", resultExpression.expression());
-        assertTrue(resultExpression.expressionNames().isEmpty());
-        assertTrue(resultExpression.expressionValues().isEmpty());
+        UpdateExpression expression2 = UpdateExpression.builder()
+                                                       .addAction(addAction("attr1", numeric("4")))
+                                                       .build();
+        assertThatThrownBy(() -> UpdateExpression.mergeExpressions(expression1, expression2))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("duplicate")
+            .hasMessageContaining("attr1");
     }
 
-    @Test
-    public void merge_attributesBetweenActionsAreUnique_ok() {
-        UpdateExpression expression1 = UpdateExpression.builder()
-                                                       .addRemoveAction(RemoveUpdateAction.remove("attr1"))
-                                                       .addSetAction(SetUpdateAction.setValue("attr2",
-                                                                                              AttributeValue.builder().n("3").build(),
-                                                                                              UpdateBehavior.WRITE_IF_NOT_EXISTS))
-                                                       .addDeleteAction(DeleteUpdateAction.builder().build())
-                                                       .addAction(AddUpdateAction.builder().build())
-                                                       .build();
-        Expression resultExpression = expression1.toExpression();
-        assertEquals("", resultExpression.expression());
-        assertTrue(resultExpression.expressionNames().isEmpty());
-        assertTrue(resultExpression.expressionValues().isEmpty());
+    private static UpdateAction removeActionSimple(String attr) {
+        return UpdateAction.builder()
+                           .type(UpdateActionType.REMOVE)
+                           .attributeName(attr)
+                           .expression("expr(" + attr + ")")
+                           .expressionNames(Collections.singletonMap(keyRef(attr), attr))
+                           .build();
     }
 
-    @Test
-    public void merge_attributesBetweenActionsAreNotUnique_error() {
-        UpdateExpression expression1 = UpdateExpression.builder()
-                                                       .addRemoveAction(RemoveUpdateAction.remove("attr1"))
-                                                       .addSetAction(SetUpdateAction.setValue("attr2",
-                                                                                              AttributeValue.builder().n("3").build(),
-                                                                                              UpdateBehavior.WRITE_IF_NOT_EXISTS))
-                                                       .addDeleteAction(DeleteUpdateAction.builder().build())
-                                                       .addAction(AddUpdateAction.builder().build())
-                                                       .build();
-        Expression resultExpression = expression1.toExpression();
-        assertEquals("", resultExpression.expression());
-        assertTrue(resultExpression.expressionNames().isEmpty());
-        assertTrue(resultExpression.expressionValues().isEmpty());
+    private static UpdateAction setActionSimple(String attr, AttributeValue value) {
+        String valueName = attr + "_for_";
+        return UpdateAction.builder()
+                           .type(UpdateActionType.SET)
+                           .attributeName(attr)
+                           .expression("expr(" + attr + ")")
+                           .expressionNames(UpdateExpressionUtils.expressionNamesFor(attr, valueName))
+                           .expressionValues(Collections.singletonMap(valueRef(valueName), value))
+                           .build();
     }
 
-    @Test
-    public void build_maximal() {
-        UpdateExpression expression1 = UpdateExpression.builder()
-                                                       .addRemoveAction(RemoveUpdateAction.remove("attr1"))
-                                                       .addSetAction(SetUpdateAction.setValue("attr2",
-                                                                                              AttributeValue.builder().n("3").build(),
-                                                                                              UpdateBehavior.WRITE_IF_NOT_EXISTS))
-                                                       .addDeleteAction(DeleteUpdateAction.builder().build())
-                                                       .addAction(AddUpdateAction.builder().build())
-                                                       .build();
-        Expression resultExpression = expression1.toExpression();
-        assertEquals("", resultExpression.expression());
-        assertTrue(resultExpression.expressionNames().isEmpty());
-        assertTrue(resultExpression.expressionValues().isEmpty());
+    private static UpdateAction addActionSimple(String attr, AttributeValue value) {
+        String valueName = attr + "_for_";
+        return UpdateAction.builder()
+                           .type(UpdateActionType.ADD)
+                           .attributeName(attr)
+                           .expression("expr(" + attr + ")")
+                           .expressionNames(UpdateExpressionUtils.expressionNamesFor(attr, valueName))
+                           .expressionValues(Collections.singletonMap(valueRef(valueName), value))
+                           .build();
     }
 
-    private RemoveUpdateAction removeAction(String attr) {
+    private static UpdateAction deleteActionSimple(String attr, AttributeValue value) {
+        String valueName = attr + "_for_";
+        return UpdateAction.builder()
+                           .type(UpdateActionType.DELETE)
+                           .attributeName(attr)
+                           .expression("expr(" + attr + ")")
+                           .expressionNames(UpdateExpressionUtils.expressionNamesFor(attr, valueName))
+                           .expressionValues(Collections.singletonMap(valueRef(valueName), value))
+                           .build();
+    }
+
+    private static UpdateAction removeAction(String attr) {
         return RemoveUpdateAction.builder()
-                                 .actionExpression("expr(" + attr + ")")
+                                 .attributeName(attr)
+                                 .expression("expr(" + attr + ")")
                                  .expressionNames(Collections.singletonMap(keyRef(attr), attr))
                                  .build();
     }
 
-    private SetUpdateAction setAction(String attr, AttributeValue value) {
-        String valueName = "set_valueName";
+    private static UpdateAction setAction(String attr, AttributeValue value) {
+        String valueName = attr + "_for_";
         return SetUpdateAction.builder()
-                              .actionExpression("expr(" + attr + ")")
+                              .attributeName(attr)
+                              .expression("expr(" + attr + ")")
                               .expressionNames(UpdateExpressionUtils.expressionNamesFor(attr, valueName))
                               .expressionValues(Collections.singletonMap(valueRef(valueName), value))
                               .build();
     }
 
-    private AddUpdateAction addAction(String attr, AttributeValue value) {
-        String valueName = "add_valueName";
+    private static UpdateAction addAction(String attr, AttributeValue value) {
+        String valueName = attr + "_for_";
         return AddUpdateAction.builder()
-                              .actionExpression("expr(" + attr + ")")
+                              .attributeName(attr)
+                              .expression("expr(" + attr + ")")
                               .expressionNames(UpdateExpressionUtils.expressionNamesFor(attr, valueName))
                               .expressionValues(Collections.singletonMap(valueRef(valueName), value))
                               .build();
     }
 
-    private DeleteUpdateAction deleteAction(String attr, AttributeValue value) {
-        String valueName = "delete_valueName";
+    private static UpdateAction deleteAction(String attr, AttributeValue value) {
+        String valueName = attr + "_for_";
         return DeleteUpdateAction.builder()
-                              .actionExpression("expr(" + attr + ")")
-                              .expressionNames(UpdateExpressionUtils.expressionNamesFor(attr, valueName))
-                              .expressionValues(Collections.singletonMap(valueRef(valueName), value))
-                              .build();
+                                 .attributeName(attr)
+                                 .expression("expr(" + attr + ")")
+                                 .expressionNames(UpdateExpressionUtils.expressionNamesFor(attr, valueName))
+                                 .expressionValues(Collections.singletonMap(valueRef(valueName), value))
+                                 .build();
     }
 
-    private AttributeValue numeric(String n) {
+    private static AttributeValue numeric(String n) {
         return AttributeValue.builder().n(n).build();
     }
 
-    private AttributeValue string(String s) {
+    private static AttributeValue string(String s) {
         return AttributeValue.builder().s(s).build();
     }
 }

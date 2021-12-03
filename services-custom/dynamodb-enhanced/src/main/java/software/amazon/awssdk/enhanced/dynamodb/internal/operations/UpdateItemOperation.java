@@ -30,11 +30,13 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTag;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateAction;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
-import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
@@ -138,10 +140,10 @@ public class UpdateItemOperation<T>
         requestBuilder = requestBuilder.updateExpression(resolvedUpdateExpression.expression());
         requestBuilder.conditionExpression(conditionExpression.expression());
 
-        if (expressionNames != null && !expressionNames.isEmpty()) {
+        if (CollectionUtils.isNullOrEmpty(expressionNames)) {
             requestBuilder = requestBuilder.expressionAttributeNames(expressionNames);
         }
-        if (expressionValues != null && !expressionValues.isEmpty()) {
+        if (CollectionUtils.isNullOrEmpty(expressionValues)) {
             requestBuilder = requestBuilder.expressionAttributeValues(expressionValues);
         }
         return requestBuilder.build();
@@ -217,21 +219,27 @@ public class UpdateItemOperation<T>
 
         UpdateExpression updateExpression = null;
         Map<String, AttributeValue> attributesToUpdate = attributes;
-        if (transformation != null && transformation.additionalUpdateExpression() != null) {
-            updateExpression = transformation.additionalUpdateExpression();
+        if (transformation != null && transformation.updateExpression() != null) {
+            updateExpression = transformation.updateExpression();
             Collection<String> overrideAttributes = updateExpression.toExpression().expressionNames().values();
             attributesToUpdate = filterMap(attributes, entry -> !overrideAttributes.contains(entry.getKey()));
         }
 
         if (!attributesToUpdate.isEmpty()) {
-            Map<String, AttributeValue> setAttributes = filterMap(attributesToUpdate, entry -> !isNullAttributeValue(entry.getValue()));
-            UpdateExpression setAttributeExpression = UpdateExpressionUtils.setExpressionFor(setAttributes, tableMetadata);
-
-            Map<String, AttributeValue> removeAttributes = filterMap(attributesToUpdate, entry -> isNullAttributeValue(entry.getValue()));
-            UpdateExpression removeAttributeExpression = UpdateExpressionUtils.removeExpressionFor(removeAttributes);
-
-            UpdateExpression operationUpdateExpression = UpdateExpression.mergeExpressions(setAttributeExpression, removeAttributeExpression);
-            updateExpression = updateExpression == null ? operationUpdateExpression :
+            UpdateExpression.Builder updateExpressionBuilder = UpdateExpression.builder();
+            for (Map.Entry<String, AttributeValue> attributeValue : attributesToUpdate.entrySet()) {
+                if (isNullAttributeValue(attributeValue.getValue())) {
+                    updateExpressionBuilder.addAction(UpdateAction.removeAttribute(attributeValue.getKey()));
+                } else {
+                    UpdateBehavior behavior = UpdateBehaviorTag.resolveForAttribute(attributeValue.getKey(), tableMetadata);
+                    updateExpressionBuilder.addAction(UpdateAction.setAttribute(attributeValue.getKey(),
+                                                                                attributeValue.getValue(),
+                                                                                behavior));
+                }
+            }
+            UpdateExpression operationUpdateExpression = updateExpressionBuilder.build();
+            updateExpression = updateExpression == null ?
+                               operationUpdateExpression :
                                UpdateExpression.mergeExpressions(updateExpression, operationUpdateExpression);
         }
         return updateExpression.toExpression();

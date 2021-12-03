@@ -15,12 +15,10 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
-import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression.EQUALS;
 import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression.keyRef;
 import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression.listKeyRef;
 import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression.valueRef;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,16 +31,23 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class SetUpdateAction implements UpdateAction {
 
-    public static final String NAME = "SET ";
+    public static final String EQUALS = " = ";
 
     private final String actionExpression;
     private final Map<String, String> expressionNames;
     private final Map<String, AttributeValue> expressionValues;
+    private final String attributeName;
 
     public SetUpdateAction(BuilderImpl builder) {
         this.actionExpression = builder.actionExpression;
-        this.expressionNames = builder.expressionNames;
-        this.expressionValues = builder.expressionValues;
+        this.expressionNames = builder.expressionNames == null ? Collections.emptyMap() : builder.expressionNames;
+        this.expressionValues = builder.expressionValues == null ? Collections.emptyMap() : builder.expressionValues;
+        this.attributeName = builder.attributeName;
+    }
+
+    @Override
+    public UpdateActionType type() {
+        return UpdateActionType.SET;
     }
 
     public static BuilderImpl builder() {
@@ -82,10 +87,10 @@ public class SetUpdateAction implements UpdateAction {
                behaviorBasedValue(updateBehavior).apply(attributeName);
     }
 
-    private static String appendToListExpression(String attributeName, String valuesName) {
+    private static String appendToListExpression(String attributeName, String valuesName, boolean prepend) {
         return keyRef(attributeName) +
                EQUALS +
-               listAppend(attributeName, valuesName);
+               (prepend ? listPrepend(attributeName, valuesName) : listAppend(attributeName, valuesName));
     }
 
     private static String setListValue(String attributeName, int index, String itemName) {
@@ -104,9 +109,10 @@ public class SetUpdateAction implements UpdateAction {
                addValue(deltaName);
     }
 
-    public static SetUpdateAction setValue(String attributeName, AttributeValue value, UpdateBehavior updateBehavior) {
+    public static SetUpdateAction setAttribute(String attributeName, AttributeValue value, UpdateBehavior updateBehavior) {
         String valueName = attributeName + "_AMZN_VALUE";
-        return builder().actionExpression(setValueExpression(attributeName, updateBehavior))
+        return builder().attributeName(attributeName)
+                        .expression(setValueExpression(attributeName, updateBehavior))
                         .expressionNames(UpdateExpressionUtils.expressionNamesFor(attributeName, valueName))
                         .expressionValues(Collections.singletonMap(valueRef(valueName), value))
                         .build();
@@ -114,7 +120,8 @@ public class SetUpdateAction implements UpdateAction {
 
     public static UpdateAction addValue(String attributeName, AttributeValue deltaValue) {
         String deltaName = attributeName + "_AMZN_DELTA";
-        return builder().actionExpression(addValueExpression(attributeName, deltaName))
+        return builder().attributeName(attributeName)
+                        .expression(addValueExpression(attributeName, deltaName))
                         .expressionNames(Collections.singletonMap(keyRef(deltaName), deltaName))
                         .expressionValues(Collections.singletonMap(valueRef(deltaName), deltaValue))
                         .build();
@@ -131,7 +138,8 @@ public class SetUpdateAction implements UpdateAction {
         expressionValues.put(valueRef(startName), subtract(startValue, deltaValue));
         expressionValues.put(valueRef(deltaName), deltaValue);
 
-        return builder().actionExpression(addValueWithOptionalStartExpression(attributeName, startName, deltaName))
+        return builder().attributeName(attributeName)
+                        .expression(addValueWithOptionalStartExpression(attributeName, startName, deltaName))
                         .expressionNames(expressionNames)
                         .expressionValues(expressionValues)
                         .build();
@@ -143,19 +151,21 @@ public class SetUpdateAction implements UpdateAction {
         expressionNames.put(keyRef(listItemName), listItemName);
         expressionNames.put(keyRef(attributeName), attributeName);
 
-        return builder().actionExpression(setListValue(attributeName, index, listItemName))
+        return builder().attributeName(attributeName)
+                        .expression(setListValue(attributeName, index, listItemName))
                         .expressionNames(expressionNames)
                         .expressionValues(Collections.singletonMap(valueRef(listItemName), value))
                         .build();
     }
 
-    public static UpdateAction appendToList(String attributeName, AttributeValue list) {
+    public static UpdateAction appendToList(String attributeName, AttributeValue list, boolean prepend) {
         Map<String, String> expressionNames = new HashMap<>();
         String listName = attributeName + "_AMZN_LIST";
         expressionNames.put(keyRef(attributeName), attributeName);
         expressionNames.put(keyRef(listName), listName);
 
-        return builder().actionExpression(appendToListExpression(attributeName, listName))
+        return builder().attributeName(attributeName)
+                        .expression(appendToListExpression(attributeName, listName, prepend))
                         .expressionNames(expressionNames)
                         .expressionValues(Collections.singletonMap(valueRef(listName), list))
                         .build();
@@ -168,7 +178,7 @@ public class SetUpdateAction implements UpdateAction {
     }
 
     @Override
-    public String actionExpression() {
+    public String expression() {
         return actionExpression;
     }
 
@@ -182,14 +192,31 @@ public class SetUpdateAction implements UpdateAction {
         return expressionValues;
     }
 
+    @Override
+    public String attributeName() {
+        return attributeName;
+    }
+
     public static class BuilderImpl implements Builder {
 
+        private String attributeName;
         private String actionExpression;
         private Map<String, String> expressionNames;
         private Map<String, AttributeValue> expressionValues;
 
         @Override
-        public BuilderImpl actionExpression(String actionExpression) {
+        public BuilderImpl type(UpdateActionType updateActionType) {
+            return this;
+        }
+
+        @Override
+        public BuilderImpl attributeName(String attributeName) {
+            this.attributeName = attributeName;
+            return this;
+        }
+
+        @Override
+        public BuilderImpl expression(String actionExpression) {
             this.actionExpression = actionExpression;
             return this;
         }

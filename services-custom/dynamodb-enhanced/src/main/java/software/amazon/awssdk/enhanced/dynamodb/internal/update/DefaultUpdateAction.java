@@ -15,48 +15,36 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
-import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression.keyRef;
-import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression.listKeyRef;
-
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateAction;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-public class RemoveUpdateAction implements UpdateAction {
+public class DefaultUpdateAction implements UpdateAction {
 
+    public static final String EQUALS = " = ";
+
+    private final UpdateActionType type;
     private final String actionExpression;
     private final Map<String, String> expressionNames;
+    private final Map<String, AttributeValue> expressionValues;
     private final String attributeName;
 
-    public RemoveUpdateAction(BuilderImpl builder) {
-        this.actionExpression = builder.actionExpression;
-        this.expressionNames = builder.expressionNames == null ? Collections.emptyMap() : builder.expressionNames;
+    public DefaultUpdateAction(BuilderImpl builder) {
+        this.type = builder.updateActionType;
         this.attributeName = builder.attributeName;
+        this.actionExpression = builder.expression;
+        this.expressionNames = builder.expressionNames == null ? Collections.emptyMap() : builder.expressionNames;
+        this.expressionValues = builder.expressionValues == null ? Collections.emptyMap() : builder.expressionValues;
     }
 
     @Override
     public UpdateActionType type() {
-        return UpdateActionType.REMOVE;
+        return type;
     }
 
-    public static Builder builder() {
+    public static BuilderImpl builder() {
         return new BuilderImpl();
-    }
-
-    public static UpdateAction remove(String attributeName) {
-        return builder().attributeName(attributeName)
-                        .expression(keyRef(attributeName))
-                        .expressionNames(Collections.singletonMap(keyRef(attributeName), attributeName))
-                        .build();
-    }
-
-    public static UpdateAction removeFromList(String attributeName, int index) {
-        return builder().attributeName(attributeName)
-                        .expression(listKeyRef(attributeName, index))
-                        .expressionNames(Collections.singletonMap(keyRef(attributeName), attributeName))
-                        .build();
     }
 
     @Override
@@ -71,7 +59,7 @@ public class RemoveUpdateAction implements UpdateAction {
 
     @Override
     public Map<String, AttributeValue> expressionValues() {
-        return new HashMap<>();
+        return expressionValues;
     }
 
     @Override
@@ -79,14 +67,17 @@ public class RemoveUpdateAction implements UpdateAction {
         return attributeName;
     }
 
-    public static class BuilderImpl implements UpdateAction.Builder {
+    public static class BuilderImpl implements Builder {
 
+        private UpdateActionType updateActionType;
         private String attributeName;
-        private String actionExpression;
+        private String expression;
         private Map<String, String> expressionNames;
+        private Map<String, AttributeValue> expressionValues;
 
         @Override
         public BuilderImpl type(UpdateActionType updateActionType) {
+            this.updateActionType = updateActionType;
             return this;
         }
 
@@ -98,7 +89,7 @@ public class RemoveUpdateAction implements UpdateAction {
 
         @Override
         public BuilderImpl expression(String actionExpression) {
-            this.actionExpression = actionExpression;
+            this.expression = actionExpression;
             return this;
         }
 
@@ -109,12 +100,14 @@ public class RemoveUpdateAction implements UpdateAction {
         }
 
         @Override
-        public Builder expressionValues(Map<String, AttributeValue> expressionValues) {
+        public BuilderImpl expressionValues(Map<String, AttributeValue> expressionValues) {
+            this.expressionValues = expressionValues;
             return this;
         }
 
-        public RemoveUpdateAction build() {
-            return new RemoveUpdateAction(this);
+        @Override
+        public UpdateAction build() {
+            return new DefaultUpdateAction(this);
         }
     }
 }

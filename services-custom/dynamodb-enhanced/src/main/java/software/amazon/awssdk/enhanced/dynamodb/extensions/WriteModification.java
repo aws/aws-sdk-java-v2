@@ -37,12 +37,12 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 public final class WriteModification {
     private final Map<String, AttributeValue> transformedItem;
     private final Expression additionalConditionalExpression;
-    private final UpdateExpression additionalUpdateExpression;
+    private final UpdateExpression updateExpression;
 
     private WriteModification(Builder builder) {
         this.transformedItem = builder.transformedItem;
         this.additionalConditionalExpression = builder.additionalConditionalExpression;
-        this.additionalUpdateExpression = builder.build().additionalUpdateExpression;
+        this.updateExpression = builder.updateExpression;
     }
 
     public static Builder builder() {
@@ -57,8 +57,8 @@ public final class WriteModification {
         return additionalConditionalExpression;
     }
 
-    public UpdateExpression additionalUpdateExpression() {
-        return additionalUpdateExpression;
+    public UpdateExpression updateExpression() {
+        return updateExpression;
     }
 
     @Override
@@ -81,23 +81,23 @@ public final class WriteModification {
             return false;
         }
 
-        return additionalUpdateExpression != null ?
-               additionalUpdateExpression.equals(that.additionalUpdateExpression) :
-               that.additionalUpdateExpression == null;
+        return updateExpression != null ?
+               updateExpression.equals(that.updateExpression) :
+               that.updateExpression == null;
     }
 
     @Override
     public int hashCode() {
         int result = transformedItem != null ? transformedItem.hashCode() : 0;
         result = 31 * result + (additionalConditionalExpression != null ? additionalConditionalExpression.hashCode() : 0);
-        result = 31 * result + (additionalUpdateExpression != null ? additionalUpdateExpression.hashCode() : 0);
+        result = 31 * result + (updateExpression != null ? updateExpression.hashCode() : 0);
         return result;
     }
 
     public static final class Builder {
         private Map<String, AttributeValue> transformedItem;
         private Expression additionalConditionalExpression;
-        private UpdateExpression additionalUpdateExpression;
+        private UpdateExpression updateExpression;
 
         private Builder() {
         }
@@ -112,8 +112,8 @@ public final class WriteModification {
             return this;
         }
 
-        public Builder additionalUpdateExpression(UpdateExpression additionalUpdateExpression) {
-            this.additionalUpdateExpression = additionalUpdateExpression;
+        public Builder updateExpression(UpdateExpression updateExpression) {
+            this.updateExpression = updateExpression;
             return this;
         }
 

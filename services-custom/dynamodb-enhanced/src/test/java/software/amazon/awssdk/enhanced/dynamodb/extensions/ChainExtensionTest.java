@@ -44,6 +44,9 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.ChainExtensi
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationName;
+import software.amazon.awssdk.enhanced.dynamodb.internal.update.RemoveUpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -78,17 +81,24 @@ public class ChainExtensionTest {
         Expression expression1 = Expression.builder().expression("one").expressionValues(ATTRIBUTE_VALUES_1).build();
         Expression expression2 = Expression.builder().expression("two").expressionValues(ATTRIBUTE_VALUES_2).build();
         Expression expression3 = Expression.builder().expression("three").expressionValues(ATTRIBUTE_VALUES_3).build();
+        UpdateExpression updateExpression1 = simpleUpdateExpression("attr1");
+        UpdateExpression updateExpression2 = simpleUpdateExpression("attr2");
+        UpdateExpression updateExpression3 = simpleUpdateExpression("attr3");
+
         ChainExtension extension = ChainExtension.create(mockExtension1, mockExtension2, mockExtension3);
         WriteModification writeModification1 = WriteModification.builder()
                                                                 .additionalConditionalExpression(expression1)
+                                                                .updateExpression(updateExpression1)
                                                                 .transformedItem(fakeItems.get(1))
                                                                 .build();
         WriteModification writeModification2 = WriteModification.builder()
                                                                 .additionalConditionalExpression(expression2)
+                                                                .updateExpression(updateExpression2)
                                                                 .transformedItem(fakeItems.get(2))
                                                                 .build();
         WriteModification writeModification3 = WriteModification.builder()
                                                                 .additionalConditionalExpression(expression3)
+                                                                .updateExpression(updateExpression3)
                                                                 .transformedItem(fakeItems.get(3))
                                                                 .build();
         when(mockExtension1.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class))).thenReturn(writeModification1);
@@ -104,6 +114,8 @@ public class ChainExtensionTest {
             Expression.builder().expression("((one) AND (two)) AND (three)").expressionValues(combinedMap).build();
         assertThat(result.transformedItem(), is(fakeItems.get(3)));
         assertThat(result.additionalConditionalExpression(), is(expectedExpression));
+        assertThat(result.updateExpression().toExpression().expression(), is(""));
+        assertThat(result.updateExpression().toExpression(), is(Expression.builder().expression("").build()));
 
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
         inOrder.verify(mockExtension1).beforeWrite(getWriteExtensionContext(0));
@@ -282,5 +294,14 @@ public class ChainExtensionTest {
             context.operationName(OperationName.BATCH_WRITE_ITEM);
         }
         return context.build();
+    }
+
+    private UpdateExpression simpleUpdateExpression(String attributeName) {
+        return UpdateExpression.builder()
+                               .addAction(RemoveUpdateAction.builder()
+                                                            .attributeName(attributeName)
+                                                            .expression(attributeName)
+                                                            .build())
+                               .build();
     }
 }

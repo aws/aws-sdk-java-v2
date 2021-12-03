@@ -16,116 +16,107 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
-import software.amazon.awssdk.enhanced.dynamodb.internal.update.AddUpdateAction;
-import software.amazon.awssdk.enhanced.dynamodb.internal.update.DeleteUpdateAction;
-import software.amazon.awssdk.enhanced.dynamodb.internal.update.RemoveUpdateAction;
-import software.amazon.awssdk.enhanced.dynamodb.internal.update.SetUpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateActionType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
- * Contains sets of UpdateAction that represent the four DynamoDB update actions: SET, ADD, REMOVE and DELETE.
- *
+ * Contains sets of {@link UpdateAction} that represent the four DynamoDB update actions: SET, ADD, REMOVE and DELETE.
+ * <p>
  * Use this class to build an immutable UpdateExpression with one or more UpdateAction. An UpdateExpression may be merged
  * with another.
- *
- * In order to convert it to the format that DynamoDB accepts, the toExpression() method will create an Expression
+ * <p>
+ * In order to convert it to the format that DynamoDB accepts, the {@link #toExpression()} method will create an Expression
  * with a coalesced string representation of its actions, and the ExpressionNames and ExpressionValues maps associated
  * with all present actions.
- *
- * Note: Once an Expression has been obtained, you cannot combine it with another update Expression since they can't be
+ * <p>
+ * <b>Note:</b> Once an Expression has been obtained, you cannot combine it with another update Expression since they can't be
  * reliably combined using a token.
- *
- * Creating expressions
- * The builder supports three levels of granularity when you create a new UpdateExpression, going from fluent/less verbose
- * to more verbose with maximum flexibility:
- * 1. Use one of the ..For() methods such as removeFor() and directly supply the attribute name(s) and any other required
- * parameters.
- * 2. Add an UpdateAction of the appropriate type and use the pre-built methods to get a syntactically correct expression
- * 3. Add an UpdateAction of the appropriate type and directly supply the low level code and the correct values for the
+ * <p>
+ * <b>Creating expressions</b> Create expressions from scratch or use the built-in support:
+ * <ol>
+ * <li> Add an UpdateAction of the appropriate type and use static methods to get a syntactically correct expression
+ * <li> Add an UpdateAction of the appropriate type and directly supply the low level code and the correct values for the
  * ExpressionNames and ExpressionValues
+ * </ol>
+ * Examples of adding actions using built-in syntax support:
+ * <pre>
+ * {@code
  *
- * Examples of adding actions for attributes directly:
  * UpdateExpression.builder()
- *                 .addSetActionFor("attr1", value1, UpdateBehavior.WRITE_ALWAYS)
- *                 .removeActions("attr2", "attr3")
+ *                 .addAction(UpdateAction.setAttribute("attr1", value1, UpdateBehavior.WRITE_ALWAYS))
+ *                 .addAction(UpdateAction.removeAttribute("attr2"))
  *                 .build();
- *
- * Examples of adding actions using build in syntax support:
- * UpdateExpression.builder()
- *                 .addSetAction(SetUpdateAction.setValue("attr1", value1, UpdateBehavior.WRITE_ALWAYS))
- *                 .addRemoveAction(RemoveUpdateAction.remove("attr2"))
- *                 .build();
+ * }
+ * </pre>
  *
  * Examples of adding actions supplying values directly:
+ * <pre>
+ * {@code
+ *
  * UpdateExpression.builder()
- *                 .addSetAction(SetUpdateAction.builder()
- *                                              .expression()
- *                                              .expressionNames()
- *                                              .expressionValues()
- *                                              .build())
- *                 .addRemoveAction(RemoveUpdateAction.builder()
- *                                              .expression()
- *                                              .expressionNames()
- *                                              .expressionValues()
+ *                 .addAction(SetUpdateAction.builder()
+ *                                           .attributeName("attr1")
+ *                                           .expression("#ref_attr1 = :ref_value1")
+ *                                           .expressionNames(expressionNameMap)
+ *                                           .expressionValues(expressionValueMap)
+ *                                           .build())
+ *                 .addAction(RemoveUpdateAction.builder()
+ *                                              .attributeName("attr2")
+ *                                              .expression("#ref_attr2")
+ *                                              .expressionNames(expressionNameMap)
  *                                              .build())
  *                 .build();
+ * }
+ * </pre>
  *
- * It's recommended to use the first or second version. See the respective UpdateAction in order to understand in detail how each
- * action works.
- *
- * Validation
- * When an UpdateExpression is created or merged with another, the code validates the integrity of the expression to ensure
- * a successful database update.
- * - The same attribute MAY NOT be chosen for updates in more than one action expression. This is checked by verifying that
- * attribute only has one representation in the AttributeNames map.
- * - The same attribute MAY NOT have more than one value. This is checked by verifying that attribute only has one
- * representation in the AttributeValues map.
- *
- * Merging
+ * See {@link UpdateAction} for details on how to create actions.
+ * <p>
+ * <b>Validation</b> When an UpdateExpression is created or merged with another, the code validates the integrity of the
+ * expression to ensure a successful database update.
+ * <ul>
+ * <li> The same attribute MAY NOT be chosen for updates in more than one action expression.
+ * <li> The same attribute MAY NOT have more than one value.
+ * </ul>
+ * <p>
+ * <b>Merging</b>
  * When two UpdateExpression are joined, the actions of each group of UpdateAction, should they exist, are combined; all SET
- * actions from each expression are concatenated, all REMOVE actions etc.
- *
- * The same validations that are applied when an UpdateExpression is created are also applied at merge time.
+ * actions from each expression are concatenated, all REMOVE actions etc.The same validations that are applied when creating an
+ * UpdateExpression are also applied at merge time.
  */
 @SdkPublicApi
 public final class UpdateExpression {
 
-    private final Set<RemoveUpdateAction> removeActions;
-    private final Set<SetUpdateAction> setActions;
-    private final Set<DeleteUpdateAction> deleteActions;
-    private final Set<AddUpdateAction> addActions;
+    private final Map<String, UpdateAction> actions;
 
     private final Map<String, String> expressionNames;
     private final Map<String, AttributeValue> expressionValues;
 
-    public static final String EQUALS = " = ";
-    public static final String ACTION_SEPARATOR = ", ";
-    public static final String ACTION_TYPE_SEPARATOR = " ";
+    public static final String COMMA = ", ";
+    public static final String SPACE = " ";
 
     private UpdateExpression(Builder builder) {
-        this.setActions = builder.setActions != null ? Collections.unmodifiableSet(builder.setActions) : Collections.emptySet();
-        this.addActions = builder.addActions != null ? Collections.unmodifiableSet(builder.addActions) : Collections.emptySet();
-        this.removeActions = builder.removeActions != null ? Collections.unmodifiableSet(builder.removeActions) :
-                             Collections.emptySet();
-        this.deleteActions = builder.deleteActions != null ? Collections.unmodifiableSet(builder.deleteActions) :
-                             Collections.emptySet();
-
+        this.actions = mapAndValidate(builder.actions);
         this.expressionNames = validateAndMergeExpressionNames();
         this.expressionValues = validateAndMergeExpressionValues();
+    }
+
+    private Map<String, UpdateAction> actions() {
+        return actions;
+    }
+
+    public Optional<UpdateAction> updateActionFor(String attributeName) {
+        return Optional.ofNullable(actions.get(attributeName));
     }
 
     /**
@@ -135,7 +126,6 @@ public final class UpdateExpression {
         return new Builder();
     }
 
-    //should move these to internal lib
     public static String keyRef(String key) {
         return "#AMZN_MAPPED_" + EnhancedClientUtils.cleanAttributeName(key);
     }
@@ -151,21 +141,54 @@ public final class UpdateExpression {
     /**
      * Coalesces two update expressions into a single expression.
      *
-     * @param expression1 The first expression to coalesce
-     * @param expression2 The second expression to coalesce
+     * @param primaryExpression The first expression to coalesce
+     * @param secondaryExpression The second expression to coalesce
      * @return The coalesced expression
      */
-    public static UpdateExpression mergeExpressions(UpdateExpression expression1, UpdateExpression expression2) {
-        if (expression1 == null) {
-            return expression2;
+    public static UpdateExpression mergeExpressions(UpdateExpression primaryExpression, UpdateExpression secondaryExpression) {
+        if (primaryExpression == null) {
+            return secondaryExpression;
         }
 
-        if (expression2 == null) {
-            return expression1;
+        if (secondaryExpression == null) {
+            return primaryExpression;
         }
 
-        return UpdateExpression.builder()
-                               .build();
+        List<String> duplicates = secondaryExpression.actions().keySet().stream()
+                                                     .filter(attribute -> primaryExpression.actions().containsKey(attribute))
+                                                     .collect(Collectors.toList());
+        validateNoDuplicates(duplicates);
+
+        Collection<UpdateAction> mergedUpdateActions = new ArrayList<>(primaryExpression.actions().values());
+        mergedUpdateActions.addAll(secondaryExpression.actions().values());
+        return builder().actions(mergedUpdateActions).build();
+    }
+
+    private static Map<String, UpdateAction> mapAndValidate(Collection<UpdateAction> unvalidatedActions) {
+        Map<String, UpdateAction> mappedValidatedActions = new HashMap<>();
+        if (unvalidatedActions == null) {
+            return mappedValidatedActions;
+        }
+
+        List<String> duplicates = new ArrayList<>();
+        for (UpdateAction unvalidatedAction : unvalidatedActions) {
+            if (mappedValidatedActions.containsKey(unvalidatedAction.attributeName())) {
+                duplicates.add(unvalidatedAction.attributeName());
+            } else {
+                mappedValidatedActions.put(unvalidatedAction.attributeName(), unvalidatedAction);
+            }
+        }
+        validateNoDuplicates(duplicates);
+        return mappedValidatedActions;
+    }
+
+    private static void validateNoDuplicates(List<String> duplicates) {
+        if (duplicates.isEmpty()) {
+            return;
+        }
+        throw new IllegalArgumentException(String.format("UpdateExpression must only contain one unique action per attribute. "
+                                                         + "Found the following duplicate attributes: %s",
+                                                         String.join(", ", duplicates)));
     }
 
     @Override
@@ -179,24 +202,12 @@ public final class UpdateExpression {
 
         UpdateExpression that = (UpdateExpression) o;
 
-        if (removeActions != null ? ! removeActions.equals(that.removeActions) : that.removeActions != null) {
-            return false;
-        }
-        if (setActions != null ? ! setActions.equals(that.setActions) : that.setActions != null) {
-            return false;
-        }
-        if (deleteActions != null ? ! deleteActions.equals(that.deleteActions) : that.deleteActions != null) {
-            return false;
-        }
-        return addActions != null ? addActions.equals(that.addActions) : that.addActions == null;
+        return actions != null ? actions.equals(that.actions) : that.actions == null;
     }
 
     @Override
     public int hashCode() {
-        int result = removeActions != null ? removeActions.hashCode() : 0;
-        result = 31 * result + (setActions != null ? setActions.hashCode() : 0);
-        result = 31 * result + (deleteActions != null ? deleteActions.hashCode() : 0);
-        result = 31 * result + (addActions != null ? addActions.hashCode() : 0);
+        int result = actions != null ? actions.hashCode() : 0;
         return result;
     }
 
@@ -212,161 +223,61 @@ public final class UpdateExpression {
      * @return an Expression representing the concatenation of all actions in this UpdateExpression
      */
     public Expression toExpression() {
-        List<String> expressions = new ArrayList<>();
+        List<String> actionTypeExpressions = new ArrayList<>();
 
-        if (!CollectionUtils.isNullOrEmpty(removeActions)) {
-            expressions.add(extractActionExpressions(removeActions, RemoveUpdateAction.NAME));
-        }
-        if (!CollectionUtils.isNullOrEmpty(setActions)) {
-            expressions.add(extractActionExpressions(setActions, SetUpdateAction.NAME));
-        }
-        if (!CollectionUtils.isNullOrEmpty(deleteActions)) {
-            expressions.add(extractActionExpressions(deleteActions, DeleteUpdateAction.NAME));
-        }
-        if (!CollectionUtils.isNullOrEmpty(addActions)) {
-            expressions.add(extractActionExpressions(addActions, AddUpdateAction.NAME));
+        for (UpdateActionType actionType : UpdateActionType.values()) {
+            List<String> actionsForType = actions.values().stream()
+                                                 .filter(action -> action.type() == actionType)
+                                                 .map(UpdateAction::expression)
+                                                 .collect(Collectors.toList());
+
+            if (!CollectionUtils.isNullOrEmpty(actionsForType)) {
+                actionTypeExpressions.add(actionType.name() + SPACE + String.join(COMMA, actionsForType));
+            }
         }
 
         return Expression.builder()
-                         .expression(String.join(ACTION_TYPE_SEPARATOR, expressions))
+                         .expression(String.join(SPACE, actionTypeExpressions))
                          .expressionNames(expressionNames)
                          .expressionValues(expressionValues)
                          .build();
     }
 
-
-    private static String extractActionExpressions(Set<? extends UpdateAction> updateActions, String actionName) {
-        List<String> actionExpressions = updateActions.stream()
-                                                      .map(UpdateAction::actionExpression)
-                                                      .collect(Collectors.toList());
-        return actionName + String.join(ACTION_SEPARATOR, actionExpressions);
-    }
-
     private Map<String, String> validateAndMergeExpressionNames() {
-        Map<String, String> combinedExpressionNames = new HashMap<>();
-        Map<String, String> removeNames = mergeExpressionNames(removeActions);
-        Map<String, String> setNames = mergeExpressionNames(setActions);
-        Map<String, String> deleteNames = mergeExpressionNames(deleteActions);
-        Map<String, String> addNames = mergeExpressionNames(addActions);
-        combinedExpressionNames = Expression.joinNames(combinedExpressionNames, removeNames);
-        combinedExpressionNames = Expression.joinNames(combinedExpressionNames, setNames);
-        combinedExpressionNames = Expression.joinNames(combinedExpressionNames, deleteNames);
-        combinedExpressionNames = Expression.joinNames(combinedExpressionNames, addNames);
-        return combinedExpressionNames;
-    }
-
-    private static Map<String, String> mergeExpressionNames(Collection<? extends UpdateAction> updateActions) {
-        return updateActions.stream()
-                            .map(UpdateAction::expressionNames)
-                            .reduce(Expression::joinNames)
-                            .orElse(null);
+        return actions.values().stream()
+                      .map(UpdateAction::expressionNames)
+                      .reduce(Expression::joinNames)
+                      .orElseGet(HashMap::new);
     }
 
     private Map<String, AttributeValue> validateAndMergeExpressionValues() {
-        Map<String, AttributeValue> combinedExpressionValues = new HashMap<>();
-        Map<String, AttributeValue> setValues = mergeExpressionValues(setActions);
-        Map<String, AttributeValue> deleteValues = mergeExpressionValues(deleteActions);
-        Map<String, AttributeValue> addValues = mergeExpressionValues(addActions);
-        combinedExpressionValues = Expression.joinValues(combinedExpressionValues, setValues);
-        combinedExpressionValues = Expression.joinValues(combinedExpressionValues, deleteValues);
-        combinedExpressionValues = Expression.joinValues(combinedExpressionValues, addValues);
-        return combinedExpressionValues;
-    }
-
-    private static Map<String, AttributeValue> mergeExpressionValues(Collection<? extends UpdateAction> updateActions) {
-        return updateActions.stream()
-                            .map(UpdateAction::expressionValues)
-                            .reduce(Expression::joinValues)
-                            .orElse(null);
+        return actions.values().stream()
+                      .map(UpdateAction::expressionValues)
+                      .reduce(Expression::joinValues)
+                      .orElseGet(HashMap::new);
     }
 
     public static final class Builder {
-        private Set<RemoveUpdateAction> removeActions;
-        private Set<SetUpdateAction> setActions;
-        private Set<DeleteUpdateAction> deleteActions;
-        private Set<AddUpdateAction> addActions;
+        private Collection<UpdateAction> actions;
 
         private Builder() {
         }
 
-        public Builder removeActions(Set<RemoveUpdateAction> removeActions) {
-            this.removeActions = removeActions;
-            return this;
-        }
-
-        public Builder addRemoveAction(RemoveUpdateAction removeAction) {
-            if (removeActions == null) {
-                removeActions = new HashSet<>();
+        public Builder addAction(UpdateAction action) {
+            if (this.actions == null) {
+                this.actions = new ArrayList<>();
             }
-            this.removeActions.add(removeAction);
+            actions.add(action);
             return this;
         }
 
-        public Builder removeActionsFor(Set<String> attributeNames) {
-            this.removeActions = attributeNames.stream()
-                                               .map(RemoveUpdateAction::remove)
-                                               .collect(Collectors.toSet());
+        public Builder actions(Collection<UpdateAction> actions) {
+            this.actions = actions;
             return this;
         }
 
-        public Builder addRemoveActionFor(String attributeName) {
-            if (removeActions == null) {
-                removeActions = new HashSet<>();
-            }
-            removeActions.add(RemoveUpdateAction.remove(attributeName));
-            return this;
-        }
-
-        public Builder setActions(Set<SetUpdateAction> setActions) {
-            this.setActions = setActions;
-            return this;
-        }
-
-        public Builder addSetAction(SetUpdateAction setAction) {
-            if (setActions == null) {
-                this.setActions = new HashSet<>();
-            }
-            setActions.add(setAction);
-            return this;
-        }
-
-        public Builder addSetActionFor(String attributeName, AttributeValue value, UpdateBehavior updateBehavior) {
-            if (setActions == null) {
-                setActions = new HashSet<>();
-            }
-            setActions.add(SetUpdateAction.setValue(attributeName, value, updateBehavior));
-            return this;
-        }
-
-        public Builder addDeleteAction(DeleteUpdateAction deleteAction) {
-            if (deleteActions == null) {
-                deleteActions = new HashSet<>();
-            }
-            deleteActions.add(deleteAction);
-            return this;
-        }
-
-        public Builder addDeleteActionFor(String attributeName, AttributeValue value) {
-            if (deleteActions == null) {
-                deleteActions = new HashSet<>();
-            }
-            deleteActions.add(DeleteUpdateAction.removeElements(attributeName, value));
-            return this;
-        }
-
-        public Builder addAction(AddUpdateAction addAction) {
-            if (addActions == null) {
-                addActions = new HashSet<>();
-            }
-            addActions.add(addAction);
-            return this;
-        }
-
-        public Builder addActionFor(String attributeName, AttributeValue value) {
-            if (addActions == null) {
-                addActions = new HashSet<>();
-            }
-            addActions.add(AddUpdateAction.addValue(attributeName, value));
+        public Builder actions(UpdateAction... actions) {
+            this.actions = Arrays.asList(actions);
             return this;
         }
 

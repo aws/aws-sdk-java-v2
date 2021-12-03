@@ -17,11 +17,14 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateAction;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpression;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTag;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -54,29 +57,29 @@ public final class UpdateExpressionUtils {
      * Creates an UpdateExpression containing the REMOVE action for the supplied attributes.
      */
     public static UpdateExpression removeExpression(Map<String, AttributeValue> attributeValues) {
+        List<UpdateAction> removeActions = attributeValues.keySet().stream()
+                                                          .map(UpdateAction::removeAttribute)
+                                                          .collect(Collectors.toList());
         return UpdateExpression.builder()
-                               .removeActionsFor(new HashSet<>(attributeValues.keySet()))
+                               .actions(removeActions)
                                .build();
-    }
-
-    /**
-     * Creates an UpdateExpression containing the REMOVE action for the supplied attributes.
-     */
-    public static UpdateExpression removeExpressionFor(Map<String, AttributeValue> attributeValues) {
-        UpdateExpression.Builder builder = UpdateExpression.builder();
-        attributeValues.forEach((key, value) -> builder.addRemoveActionFor(key));
-        return builder.build();
     }
 
     /**
      * Creates an UpdateExpression containing the SET action for the supplied attributes and their values.
      */
-    public static UpdateExpression setExpressionFor(Map<String, AttributeValue> attributeValues, TableMetadata tableMetadata) {
-        UpdateExpression.Builder builder = UpdateExpression.builder();
-        attributeValues.forEach((key, value) -> {
-            builder.addSetActionFor(key, value, UpdateBehaviorTag.resolveForAttribute(key, tableMetadata));
-        });
-        return builder.build();
+    public static UpdateExpression setExpression(Map<String, AttributeValue> attributeValues, TableMetadata tableMetadata) {
+        List<UpdateAction> setActions = attributeValues.entrySet().stream()
+                                                          .map(e -> setAction(e, tableMetadata))
+                                                          .collect(Collectors.toList());
+        return UpdateExpression.builder()
+                               .actions(setActions)
+                               .build();
+    }
+
+    private static UpdateAction setAction(Map.Entry<String, AttributeValue> attributeValue, TableMetadata tableMetadata) {
+        UpdateBehavior behavior = UpdateBehaviorTag.resolveForAttribute(attributeValue.getKey(), tableMetadata);
+        return UpdateAction.setAttribute(attributeValue.getKey(), attributeValue.getValue(), behavior);
     }
 
     // public static Expression generateUpdateExpression(Map<String, AttributeValue> attributeValuesToUpdate,

@@ -16,29 +16,82 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.Map;
+import software.amazon.awssdk.enhanced.dynamodb.internal.update.AddUpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.internal.update.DefaultUpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.internal.update.DeleteUpdateAction;
 import software.amazon.awssdk.enhanced.dynamodb.internal.update.RemoveUpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.internal.update.SetUpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateActionType;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public interface UpdateAction {
 
-    String actionExpression();
+    UpdateActionType type();
+
+    String expression();
 
     Map<String, String> expressionNames();
 
     Map<String, AttributeValue> expressionValues();
 
-    static UpdateAction removeFor(String attributeName) {
+    String attributeName();
+
+    static Builder builder() {
+        return DefaultUpdateAction.builder();
+    }
+
+    static UpdateAction setAttribute(String attributeName, AttributeValue value) {
+        return SetUpdateAction.setAttribute(attributeName, value, UpdateBehavior.WRITE_ALWAYS);
+    }
+
+    static UpdateAction setAttribute(String attributeName, AttributeValue value, UpdateBehavior updateBehavior) {
+        return SetUpdateAction.setAttribute(attributeName, value, updateBehavior);
+    }
+
+    static UpdateAction removeAttribute(String attributeName) {
         return RemoveUpdateAction.remove(attributeName);
     }
 
-    static UpdateAction removeAction(String expression,
-                                     Map<String, String> expressionNames,
-                                     Map<String, AttributeValue> expressionValues) {
-        return RemoveUpdateAction.builder().build();
+    static UpdateAction addToValue(String attributeName, AttributeValue deltaValue) {
+        return AddUpdateAction.addValue(attributeName, deltaValue);
+    }
+
+    static UpdateAction addToValueWithStartValue(String attributeName, AttributeValue deltaValue, AttributeValue startValue) {
+        return SetUpdateAction.addWithStartValue(attributeName, deltaValue, startValue);
+    }
+
+    static UpdateAction addToSet(String attributeName, AttributeValue value) {
+        return AddUpdateAction.addToSet(attributeName, value);
+    }
+
+    static UpdateAction deleteFromSet(String attributeName, AttributeValue value) {
+        return DeleteUpdateAction.removeElements(attributeName, value);
+    }
+
+    static UpdateAction appendToList(String attributeName, AttributeValue listValue) {
+       return SetUpdateAction.appendToList(attributeName, listValue, false);
+    }
+
+    static UpdateAction prependToList(String attributeName, AttributeValue listValue) {
+        return SetUpdateAction.appendToList(attributeName, listValue, true);
+    }
+
+    static UpdateAction setListItemAt(String attributeName, int index, AttributeValue value) {
+        return SetUpdateAction.updateListItem(attributeName, index, value);
+    }
+
+    static UpdateAction removeFromListAt(String attributeName, int index) {
+        return RemoveUpdateAction.removeFromList(attributeName, index);
     }
 
     interface Builder {
-        Builder actionExpression(String actionExpression);
+
+        Builder type(UpdateActionType type);
+
+        Builder attributeName(String attributeName);
+
+        Builder expression(String actionExpression);
 
         Builder expressionNames(Map<String, String> expressionNames);
 
