@@ -17,55 +17,60 @@ package software.amazon.awssdk.core.retry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import java.util.Arrays;
+import java.util.Collection;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.Validate;
 
+@RunWith(Parameterized.class)
 public class RetryPolicyMaxRetriesTest {
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
 
-    public static Stream<Arguments> testData() {
-        return Stream.of(
+    @Parameterized.Parameter
+    public TestData testData;
+
+    @Parameterized.Parameters
+    public static Collection<Object> data() {
+        return Arrays.asList(new Object[] {
             // Test defaults
-            arguments(null, null, null, null, null, 3),
-            arguments(null, null, null, null, "PropertyNotSet", 3),
+            new TestData(null, null, null, null, null, 3),
+            new TestData(null, null, null, null, "PropertyNotSet", 3),
 
             // Test precedence
-            arguments("9", "2", "standard", "standard", "PropertySetToStandard", 8),
-            arguments(null, "9", "standard", "standard", "PropertySetToStandard", 8),
-            arguments(null, null, "standard", "standard", "PropertySetToStandard", 2),
-            arguments(null, null, null, "standard", "PropertySetToStandard", 2),
-            arguments(null, null, null, null, "PropertySetToStandard", 2),
+            new TestData("9", "2", "standard", "standard", "PropertySetToStandard", 8),
+            new TestData(null, "9", "standard", "standard", "PropertySetToStandard", 8),
+            new TestData(null, null, "standard", "standard", "PropertySetToStandard", 2),
+            new TestData(null, null, null, "standard", "PropertySetToStandard", 2),
+            new TestData(null, null, null, null, "PropertySetToStandard", 2),
 
             // Test invalid values
-            arguments("wrongValue", null, null, null, null, null),
-            arguments(null, "wrongValue", null, null, null, null),
-            arguments(null, null, "wrongValue", null, null, null),
-            arguments(null, null, null, "wrongValue", null, null),
-            arguments(null, null, null, null, "PropertySetToUnsupportedValue", null)
-        );
+            new TestData("wrongValue", null, null, null, null, null),
+            new TestData(null, "wrongValue", null, null, null, null),
+            new TestData(null, null, "wrongValue", null, null, null),
+            new TestData(null, null, null, "wrongValue", null, null),
+            new TestData(null, null, null, null, "PropertySetToUnsupportedValue", null),
+            });
     }
 
-    @BeforeAll
+    @BeforeClass
     public static void classSetup() {
         // If this caches any values, make sure it's cached with the default (non-modified) configuration.
         RetryPolicy.defaultRetryPolicy();
     }
 
-    @BeforeEach
-    @AfterEach
+    @Before
+    @After
     public void methodSetup() {
         ENVIRONMENT_VARIABLE_HELPER.reset();
         System.clearProperty(SdkSystemSetting.AWS_MAX_ATTEMPTS.property());
@@ -74,45 +79,62 @@ public class RetryPolicyMaxRetriesTest {
         System.clearProperty(ProfileFileSystemSetting.AWS_CONFIG_FILE.property());
     }
 
-    @ParameterizedTest
-    @MethodSource("testData")
-    void differentCombinationOfConfigs_shouldResolveCorrectly(String attemptCountSystemProperty,
-                                                              String attemptCountEnvVarValue,
-                                                              String systemProperty,
-                                                              String envVarValue,
-                                                              String configFile,
-                                                              Integer expected) {
-        if (attemptCountEnvVarValue != null) {
-            ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_MAX_ATTEMPTS.environmentVariable(), attemptCountEnvVarValue);
+    @Test
+    public void differentCombinationOfConfigs_shouldResolveCorrectly() {
+        if (testData.attemptCountEnvVarValue != null) {
+            ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_MAX_ATTEMPTS.environmentVariable(), testData.attemptCountEnvVarValue);
         }
 
-        if (attemptCountSystemProperty != null) {
-            System.setProperty(SdkSystemSetting.AWS_MAX_ATTEMPTS.property(), attemptCountSystemProperty);
+        if (testData.attemptCountSystemProperty != null) {
+            System.setProperty(SdkSystemSetting.AWS_MAX_ATTEMPTS.property(), testData.attemptCountSystemProperty);
         }
 
-        if (envVarValue != null) {
-            ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_RETRY_MODE.environmentVariable(), envVarValue);
+        if (testData.envVarValue != null) {
+            ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_RETRY_MODE.environmentVariable(), testData.envVarValue);
         }
 
-        if (systemProperty != null) {
-            System.setProperty(SdkSystemSetting.AWS_RETRY_MODE.property(), systemProperty);
+        if (testData.systemProperty != null) {
+            System.setProperty(SdkSystemSetting.AWS_RETRY_MODE.property(), testData.systemProperty);
         }
 
-        if (configFile != null) {
-            String diskLocationForFile = diskLocationForConfig(configFile);
+        if (testData.configFile != null) {
+            String diskLocationForFile = diskLocationForConfig(testData.configFile);
             Validate.isTrue(Files.isReadable(Paths.get(diskLocationForFile)), diskLocationForFile + " is not readable.");
             System.setProperty(ProfileFileSystemSetting.AWS_PROFILE.property(), "default");
             System.setProperty(ProfileFileSystemSetting.AWS_CONFIG_FILE.property(), diskLocationForFile);
         }
 
-        if (expected == null) {
+        if (testData.expected == null) {
             assertThatThrownBy(() -> RetryPolicy.forRetryMode(RetryMode.defaultRetryMode())).isInstanceOf(RuntimeException.class);
         } else {
-            assertThat(RetryPolicy.forRetryMode(RetryMode.defaultRetryMode()).numRetries()).isEqualTo(expected);
+            assertThat(RetryPolicy.forRetryMode(RetryMode.defaultRetryMode()).numRetries()).isEqualTo(testData.expected);
         }
     }
 
     private String diskLocationForConfig(String configFileName) {
         return getClass().getResource(configFileName).getFile();
+    }
+
+    private static class TestData {
+        private final String attemptCountSystemProperty;
+        private final String attemptCountEnvVarValue;
+        private final String envVarValue;
+        private final String systemProperty;
+        private final String configFile;
+        private final Integer expected;
+
+        TestData(String attemptCountSystemProperty,
+                 String attemptCountEnvVarValue,
+                 String retryModeSystemProperty,
+                 String retryModeEnvVarValue,
+                 String configFile,
+                 Integer expected) {
+            this.attemptCountSystemProperty = attemptCountSystemProperty;
+            this.attemptCountEnvVarValue = attemptCountEnvVarValue;
+            this.envVarValue = retryModeEnvVarValue;
+            this.systemProperty = retryModeSystemProperty;
+            this.configFile = configFile;
+            this.expected = expected;
+        }
     }
 }
