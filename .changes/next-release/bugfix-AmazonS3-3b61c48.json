@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixed an issue that resulted in a NullPointerException when an invalid or global region was used on an S3 client. Fixes [#2885](https://github.com/aws/aws-sdk-java-v2/issues/2885)."
+}
