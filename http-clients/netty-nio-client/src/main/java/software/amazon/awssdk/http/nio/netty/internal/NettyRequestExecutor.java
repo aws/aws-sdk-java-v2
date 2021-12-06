@@ -67,6 +67,7 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ToHttpInboundAd
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpRequest;
+import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelLogHelper;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -129,7 +130,10 @@ public final class NettyRequestExecutor {
                         }
                     });
                 } catch (Throwable exc) {
-                    log.warn("Unable to add a task to cancel the request to channel's EventLoop", exc);
+                    ChannelLogHelper.warn(log,
+                                          ch,
+                                          () -> "Unable to add a task to cancel the request to channel's EventLoop",
+                                          exc);
                 }
             }
         });
@@ -172,7 +176,7 @@ public final class NettyRequestExecutor {
                 }
             });
         } else {
-            handleFailure(() -> "Failed to create connection to " + endpoint(), channelFuture.cause());
+            handleFailure(channel, () -> "Failed to create connection to " + endpoint(), channelFuture.cause());
         }
     }
 
@@ -203,7 +207,7 @@ public final class NettyRequestExecutor {
             default:
                 String errorMsg = "Unknown protocol: " + protocol;
                 closeAndRelease(channel);
-                handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
+                handleFailure(channel, () -> errorMsg, new RuntimeException(errorMsg));
                 return false;
         }
 
@@ -220,7 +224,7 @@ public final class NettyRequestExecutor {
         if (!channel.isActive()) {
             String errorMessage = "Channel was closed before it could be written to.";
             closeAndRelease(channel);
-            handleFailure(() -> errorMessage, new IOException(errorMessage));
+            handleFailure(channel, () -> errorMessage, new IOException(errorMessage));
             return false;
         }
 
@@ -254,7 +258,7 @@ public final class NettyRequestExecutor {
                    } else {
                        // TODO: Are there cases where we can keep the channel open?
                        closeAndRelease(channel);
-                       handleFailure(() -> "Failed to make request to " + endpoint(), wireCall.cause());
+                       handleFailure(channel, () -> "Failed to make request to " + endpoint(), wireCall.cause());
                    }
                });
 
@@ -297,8 +301,8 @@ public final class NettyRequestExecutor {
         return context.executeRequest().request().getUri();
     }
 
-    private void handleFailure(Supplier<String> msg, Throwable cause) {
-        log.debug(msg.get(), cause);
+    private void handleFailure(Channel channel, Supplier<String> msgSupplier, Throwable cause) {
+        ChannelLogHelper.debug(log, channel, msgSupplier, cause);
         cause = decorateException(cause);
         context.handler().onError(cause);
         executeFuture.completeExceptionally(cause);
@@ -379,7 +383,7 @@ public final class NettyRequestExecutor {
      * @param channel The channel.
      */
     private void closeAndRelease(Channel channel) {
-        log.trace("closing and releasing channel {}", channel.id().asLongText());
+        ChannelLogHelper.trace(log, channel, () -> String.format("closing and releasing channel %s", channel.id().asLongText()));
         channel.attr(KEEP_ALIVE).set(false);
         channel.close();
         context.channelPool().release(channel);
