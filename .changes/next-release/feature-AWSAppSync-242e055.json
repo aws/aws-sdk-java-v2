@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS AppSync",
+    "contributor": "",
+    "description": "AWS AppSync now supports custom domain names, allowing you to associate a domain name that you own with an AppSync API in your account."
+}
