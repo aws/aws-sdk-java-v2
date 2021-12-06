@@ -131,7 +131,6 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withMetricCollector(apiCallMetricCollector).hostPrefixExpression(resolvedHostExpression)
                              .withInput(aPostOperationRequest));
-            AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationRequest.overrideConfiguration().orElse(null);
             CompletableFuture<APostOperationResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -188,8 +187,6 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withMetricCollector(apiCallMetricCollector).withInput(aPostOperationWithOutputRequest));
-            AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationWithOutputRequest.overrideConfiguration()
-                                                                                                   .orElse(null);
             CompletableFuture<APostOperationWithOutputResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -246,8 +243,6 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withMetricCollector(apiCallMetricCollector)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                                     HttpChecksumRequired.create()).withInput(operationWithChecksumRequiredRequest));
-            AwsRequestOverrideConfiguration requestOverrideConfig = operationWithChecksumRequiredRequest.overrideConfiguration()
-                                                                                                        .orElse(null);
             CompletableFuture<OperationWithChecksumRequiredResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -311,8 +306,6 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                                                                 .asyncRequestBody(requestBody).build()).withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler).withMetricCollector(apiCallMetricCollector)
                              .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
-            AwsRequestOverrideConfiguration requestOverrideConfig = streamingInputOperationRequest.overrideConfiguration()
-                                                                                                  .orElse(null);
             CompletableFuture<StreamingInputOperationResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -372,8 +365,6 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withMetricCollector(apiCallMetricCollector).withInput(streamingOutputOperationRequest),
                 asyncResponseTransformer);
-            AwsRequestOverrideConfiguration requestOverrideConfig = streamingOutputOperationRequest.overrideConfiguration()
-                                                                                                   .orElse(null);
             CompletableFuture<ReturnT> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {

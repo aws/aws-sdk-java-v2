@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -108,6 +109,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
     }
 
     @Test
+    @Ignore
     public void testKinesisOperations() throws Exception {
         String streamName = "java-test-stream-" + System.currentTimeMillis();
         boolean created = false;

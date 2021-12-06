@@ -1328,7 +1328,8 @@
         "Statements":{
           "shape":"PartiQLBatchRequest",
           "documentation":"<p>The list of PartiQL statements representing the batch to run.</p>"
-        }
+        },
+        "ReturnConsumedCapacity":{"shape":"ReturnConsumedCapacity"}
       }
     },
     "BatchExecuteStatementOutput":{
@@ -1337,6 +1338,10 @@
         "Responses":{
           "shape":"PartiQLBatchResponse",
           "documentation":"<p>The response to each PartiQL statement in the batch.</p>"
+        },
+        "ConsumedCapacity":{
+          "shape":"ConsumedCapacityMultiple",
+          "documentation":"<p>The capacity units consumed by the entire operation. The values of the list are ordered according to the ordering of the statements.</p>"
         }
       }
     },
@@ -1884,6 +1889,10 @@
         "GlobalSecondaryIndexes":{
           "shape":"ReplicaGlobalSecondaryIndexList",
           "documentation":"<p>Replica-specific global secondary index settings.</p>"
+        },
+        "TableClassOverride":{
+          "shape":"TableClass",
+          "documentation":"<p>Replica-specific table class. If not specified, uses the source table's table class.</p>"
         }
       },
       "documentation":"<p>Represents a replica to be created.</p>"
@@ -1935,6 +1944,10 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>A list of key-value pairs to label the table. For more information, see <a href=\"https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tagging.html\">Tagging for DynamoDB</a>.</p>"
+        },
+        "TableClass":{
+          "shape":"TableClass",
+          "documentation":"<p>The table class of the new table. Valid values are <code>STANDARD</code> and <code>STANDARD_INFREQUENT_ACCESS</code>.</p>"
         }
       },
       "documentation":"<p>Represents the input of a <code>CreateTable</code> operation.</p>"
@@ -2463,7 +2476,8 @@
         "NextToken":{
           "shape":"PartiQLNextToken",
           "documentation":"<p>Set this value to get remaining results, if <code>NextToken</code> was returned in the statement response.</p>"
-        }
+        },
+        "ReturnConsumedCapacity":{"shape":"ReturnConsumedCapacity"}
       }
     },
     "ExecuteStatementOutput":{
@@ -2476,7 +2490,8 @@
         "NextToken":{
           "shape":"PartiQLNextToken",
           "documentation":"<p>If the response of a read request exceeds the response payload limit DynamoDB will set this value in the response. If set, you can use that this value in the subsequent request to get the remaining results.</p>"
-        }
+        },
+        "ConsumedCapacity":{"shape":"ConsumedCapacity"}
       }
     },
     "ExecuteTransactionInput":{
@@ -2491,6 +2506,10 @@
           "shape":"ClientRequestToken",
           "documentation":"<p>Set this value to get remaining results, if <code>NextToken</code> was returned in the statement response.</p>",
           "idempotencyToken":true
+        },
+        "ReturnConsumedCapacity":{
+          "shape":"ReturnConsumedCapacity",
+          "documentation":"<p>Determines the level of detail about either provisioned or on-demand throughput consumption that is returned in the response. For more information, see <a href=\"https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactGetItems.html\">TransactGetItems</a> and <a href=\"https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactWriteItems.html\">TransactWriteItems</a>.</p>"
         }
       }
     },
@@ -2500,6 +2519,10 @@
         "Responses":{
           "shape":"ItemResponseList",
           "documentation":"<p>The response to a PartiQL transaction.</p>"
+        },
+        "ConsumedCapacity":{
+          "shape":"ConsumedCapacityMultiple",
+          "documentation":"<p>The capacity units consumed by the entire operation. The values of the list are ordered according to the ordering of the statements.</p>"
         }
       }
     },
@@ -4162,7 +4185,8 @@
         "ReplicaInaccessibleDateTime":{
           "shape":"Date",
           "documentation":"<p>The time at which the replica was first detected as inaccessible. To determine cause of inaccessibility check the <code>ReplicaStatus</code> property.</p>"
-        }
+        },
+        "ReplicaTableClassSummary":{"shape":"TableClassSummary"}
       },
       "documentation":"<p>Contains the details of the replica.</p>"
     },
@@ -4350,7 +4374,8 @@
         "ReplicaGlobalSecondaryIndexSettings":{
           "shape":"ReplicaGlobalSecondaryIndexSettingsDescriptionList",
           "documentation":"<p>Replica global secondary index settings for the global table.</p>"
-        }
+        },
+        "ReplicaTableClassSummary":{"shape":"TableClassSummary"}
       },
       "documentation":"<p>Represents the properties of a replica.</p>"
     },
@@ -4377,6 +4402,10 @@
         "ReplicaGlobalSecondaryIndexSettingsUpdate":{
           "shape":"ReplicaGlobalSecondaryIndexSettingsUpdateList",
           "documentation":"<p>Represents the settings of a global secondary index for a global table that will be modified.</p>"
+        },
+        "ReplicaTableClass":{
+          "shape":"TableClass",
+          "documentation":"<p>Replica-specific table class. If not specified, uses the source table's table class.</p>"
         }
       },
       "documentation":"<p>Represents the settings for a global table in a Region that will be modified.</p>"
@@ -4607,7 +4636,7 @@
     },
     "ReturnConsumedCapacity":{
       "type":"string",
-      "documentation":"<p>Determines the level of detail about provisioned throughput consumption that is returned in the response:</p> <ul> <li> <p> <code>INDEXES</code> - The response includes the aggregate <code>ConsumedCapacity</code> for the operation, together with <code>ConsumedCapacity</code> for each table and secondary index that was accessed.</p> <p>Note that some operations, such as <code>GetItem</code> and <code>BatchGetItem</code>, do not access any indexes at all. In these cases, specifying <code>INDEXES</code> will only return <code>ConsumedCapacity</code> information for table(s).</p> </li> <li> <p> <code>TOTAL</code> - The response includes only the aggregate <code>ConsumedCapacity</code> for the operation.</p> </li> <li> <p> <code>NONE</code> - No <code>ConsumedCapacity</code> details are included in the response.</p> </li> </ul>",
+      "documentation":"<p>Determines the level of detail about either provisioned or on-demand throughput consumption that is returned in the response:</p> <ul> <li> <p> <code>INDEXES</code> - The response includes the aggregate <code>ConsumedCapacity</code> for the operation, together with <code>ConsumedCapacity</code> for each table and secondary index that was accessed.</p> <p>Note that some operations, such as <code>GetItem</code> and <code>BatchGetItem</code>, do not access any indexes at all. In these cases, specifying <code>INDEXES</code> will only return <code>ConsumedCapacity</code> information for table(s).</p> </li> <li> <p> <code>TOTAL</code> - The response includes only the aggregate <code>ConsumedCapacity</code> for the operation.</p> </li> <li> <p> <code>NONE</code> - No <code>ConsumedCapacity</code> details are included in the response.</p> </li> </ul>",
       "enum":[
         "INDEXES",
         "TOTAL",
@@ -4975,6 +5004,27 @@
       },
       "documentation":"<p>Represents the auto scaling configuration for a global table.</p>"
     },
+    "TableClass":{
+      "type":"string",
+      "enum":[
+        "STANDARD",
+        "STANDARD_INFREQUENT_ACCESS"
+      ]
+    },
+    "TableClassSummary":{
+      "type":"structure",
+      "members":{
+        "TableClass":{
+          "shape":"TableClass",
+          "documentation":"<p>The table class of the specified table. Valid values are <code>STANDARD</code> and <code>STANDARD_INFREQUENT_ACCESS</code>.</p>"
+        },
+        "LastUpdateDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The date and time at which the table class was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Contains details of the table class.</p>"
+    },
     "TableCreationDateTime":{"type":"timestamp"},
     "TableDescription":{
       "type":"structure",
@@ -5062,6 +5112,10 @@
         "ArchivalSummary":{
           "shape":"ArchivalSummary",
           "documentation":"<p>Contains information about the table archive.</p>"
+        },
+        "TableClassSummary":{
+          "shape":"TableClassSummary",
+          "documentation":"<p>Contains details of the table class.</p>"
         }
       },
       "documentation":"<p>Represents the properties of a table.</p>"
@@ -5643,6 +5697,10 @@
         "GlobalSecondaryIndexes":{
           "shape":"ReplicaGlobalSecondaryIndexList",
           "documentation":"<p>Replica-specific global secondary index settings.</p>"
+        },
+        "TableClassOverride":{
+          "shape":"TableClass",
+          "documentation":"<p>Replica-specific table class. If not specified, uses the source table's table class.</p>"
         }
       },
       "documentation":"<p>Represents a replica to be modified.</p>"
@@ -5682,6 +5740,10 @@
         "ReplicaUpdates":{
           "shape":"ReplicationGroupUpdateList",
           "documentation":"<p>A list of replica update actions (create, delete, or update) for the table.</p> <note> <p>This property only applies to <a href=\"https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V2.html\">Version 2019.11.21</a> of global tables.</p> </note>"
+        },
+        "TableClass":{
+          "shape":"TableClass",
+          "documentation":"<p>The table class of the table to be updated. Valid values are <code>STANDARD</code> and <code>STANDARD_INFREQUENT_ACCESS</code>.</p>"
         }
       },
       "documentation":"<p>Represents the input of an <code>UpdateTable</code> operation.</p>"

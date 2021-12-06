@@ -1,0 +1,6 @@
+{
+    "category": "URL Connection Http Client", 
+    "contributor": "rtyley", 
+    "type": "feature", 
+    "description": "Lower memory consumption for HTTP requests by enabling fixed-length streaming mode."
+}

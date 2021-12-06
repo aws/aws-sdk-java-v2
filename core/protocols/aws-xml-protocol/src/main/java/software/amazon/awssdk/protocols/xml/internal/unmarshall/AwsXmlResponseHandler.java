@@ -17,73 +17,42 @@ package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
 import static software.amazon.awssdk.awscore.util.AwsHeader.AWS_REQUEST_ID;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
-import software.amazon.awssdk.core.SdkPojo;
-import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
- * Response handler for REST-XML services (Cloudfront, Route53, and S3).
+ * Response handler that adds {@link AwsResponseMetadata} to the response.
  *
  * @param <T> Indicates the type being unmarshalled by this response handler.
  */
 @SdkInternalApi
-public final class AwsXmlResponseHandler<T extends AwsResponse> implements HttpResponseHandler<T> {
+public final class AwsXmlResponseHandler<T> implements HttpResponseHandler<T> {
 
-    private static final Logger log = Logger.loggerFor(AwsXmlResponseHandler.class);
+    private final HttpResponseHandler<T> delegate;
 
-    private final XmlProtocolUnmarshaller unmarshaller;
-    private final Function<SdkHttpFullResponse, SdkPojo> pojoSupplier;
-    private final boolean needsConnectionLeftOpen;
-
-    public AwsXmlResponseHandler(XmlProtocolUnmarshaller unmarshaller,
-                                 Function<SdkHttpFullResponse, SdkPojo> pojoSupplier,
-                                 boolean needsConnectionLeftOpen) {
-        this.unmarshaller = unmarshaller;
-        this.pojoSupplier = pojoSupplier;
-        this.needsConnectionLeftOpen = needsConnectionLeftOpen;
+    public AwsXmlResponseHandler(HttpResponseHandler<T> responseHandler) {
+        this.delegate = responseHandler;
     }
 
     @Override
     public T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
-        try {
-            return unmarshallResponse(response);
-        } finally {
-            if (!needsConnectionLeftOpen) {
-                closeStream(response);
-            }
+        T result = delegate.handle(response, executionAttributes);
+
+        if (result instanceof AwsResponse) {
+            AwsResponseMetadata responseMetadata = generateResponseMetadata(response);
+            return (T) ((AwsResponse) result).toBuilder().responseMetadata(responseMetadata).build();
         }
-    }
 
-    private void closeStream(SdkHttpFullResponse response) {
-        response.content().ifPresent(i -> {
-            try {
-                i.close();
-            } catch (IOException e) {
-                log.warn(() -> "Error closing HTTP content.", e);
-            }
-        });
-    }
-
-    @SuppressWarnings("unchecked")
-    private T unmarshallResponse(SdkHttpFullResponse response) throws Exception {
-        SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Parsing service response XML.");
-        T result = unmarshaller.unmarshall(pojoSupplier.apply(response), response);
-        SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Done parsing service response.");
-        AwsResponseMetadata responseMetadata = generateResponseMetadata(response);
-        return (T) result.toBuilder().responseMetadata(responseMetadata).build();
+        return result;
     }
 
     /**
@@ -101,6 +70,6 @@ public final class AwsXmlResponseHandler<T extends AwsResponse> implements HttpR
 
     @Override
     public boolean needsConnectionLeftOpen() {
-        return needsConnectionLeftOpen;
+        return delegate.needsConnectionLeftOpen();
     }
 }
