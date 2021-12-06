@@ -271,4 +271,31 @@ public class HttpOrHttp2ChannelPoolTest {
         assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY).get(0)).isBetween(0, 1);
         assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY).get(0)).isBetween(0, 1);
     }
+
+    @Test(timeout = 5_000)
+    public void protocolFutureAwaitsReleaseFuture() throws Exception {
+        Promise<Channel> delegateAcquirePromise = eventLoopGroup.next().newPromise();
+        Promise<Void> releasePromise = eventLoopGroup.next().newPromise();
+        when(mockDelegatePool.acquire()).thenReturn(delegateAcquirePromise);
+        when(mockDelegatePool.release(any(Channel.class))).thenReturn(releasePromise);
+
+        MockChannel channel = new MockChannel();
+        eventLoopGroup.register(channel);
+        channel.attr(PROTOCOL_FUTURE).set(CompletableFuture.completedFuture(Protocol.HTTP1_1));
+
+        // Acquire a new connection and save the returned future
+        Future<Channel> acquireFuture = httpOrHttp2ChannelPool.acquire();
+        
+        // Return a successful connection from the delegate pool
+        delegateAcquirePromise.setSuccess(channel);
+
+        // The returned future should not complete until the release completes
+        assertThat(acquireFuture.isDone()).isFalse();
+        
+        // Complete the release
+        releasePromise.setSuccess(null);
+        
+        // Assert the returned future completes (within the test timeout)
+        acquireFuture.await();
+    }
 }
