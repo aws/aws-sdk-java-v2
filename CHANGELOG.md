@@ -1,3 +1,29 @@
+# __2.17.97__ __2021-12-06__
+## __AWS AppSync__
+  - ### Features
+    - AWS AppSync now supports custom domain names, allowing you to associate a domain name that you own with an AppSync API in your account.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds support for Accuracy position filtering, position metadata and autocomplete for addresses and points of interest based on partial or misspelled free-form text.
+
+## __Amazon Route 53__
+  - ### Features
+    - Add PriorRequestNotComplete exception to UpdateHostedZoneComment API
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue that resulted in a NullPointerException when an invalid or global region was used on an S3 client. Fixes [#2885](https://github.com/aws/aws-sdk-java-v2/issues/2885).
+
+## __URL Connection Http Client__
+  - ### Features
+    - Lower memory consumption for HTTP requests by enabling fixed-length streaming mode.
+        - Contributed by: [@rtyley](https://github.com/rtyley)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@rtyley](https://github.com/rtyley)
 # __2.17.96__ __2021-12-03__
 ## __AWS SDK for Java v2__
   - ### Bugfixes

@@ -697,6 +697,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "rtyley",
+      "name": "Roberto Tyley",
+      "avatar_url": "https://avatars.githubusercontent.com/u/52038?v=4",
+      "profile": "https://www.theguardian.com/profile/roberto-tyley",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
