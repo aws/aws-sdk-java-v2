@@ -1,3 +1,165 @@
+# __2.17.97__ __2021-12-06__
+## __AWS AppSync__
+  - ### Features
+    - AWS AppSync now supports custom domain names, allowing you to associate a domain name that you own with an AppSync API in your account.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds support for Accuracy position filtering, position metadata and autocomplete for addresses and points of interest based on partial or misspelled free-form text.
+
+## __Amazon Route 53__
+  - ### Features
+    - Add PriorRequestNotComplete exception to UpdateHostedZoneComment API
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue that resulted in a NullPointerException when an invalid or global region was used on an S3 client. Fixes [#2885](https://github.com/aws/aws-sdk-java-v2/issues/2885).
+
+## __URL Connection Http Client__
+  - ### Features
+    - Lower memory consumption for HTTP requests by enabling fixed-length streaming mode.
+        - Contributed by: [@rtyley](https://github.com/rtyley)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@rtyley](https://github.com/rtyley)
+# __2.17.96__ __2021-12-03__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix to set TokenBucket capacity correctly when requested amount greater than capacity
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release added new KnownGender types for Celebrity Recognition.
+
+# __2.17.95__ __2021-12-02__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - This release introduces the actions and data types for the new Amplify UI Builder API. The Amplify UI Builder API provides a programmatic interface for creating and configuring user interface (UI) component libraries and themes for use in Amplify applications.
+
+## __AWS Network Manager__
+  - ### Features
+    - This release adds API support for AWS Cloud WAN.
+
+## __AWS Resource Access Manager__
+  - ### Features
+    - This release adds the ability to use the new ResourceRegionScope parameter on List operations that return lists of resources or resource types. This new parameter filters the results by letting you differentiate between global or regional resource types.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Complete the future returned by SdkPublisher.subscribe or filter exceptionally if the subscriber or predicate throws an exception.
+
+# __2.17.94__ __2021-12-01__
+## __AWS Direct Connect__
+  - ### Features
+    - Adds SiteLink support to private and transit virtual interfaces. SiteLink is a new Direct Connect feature that allows routing between Direct Connect points of presence.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Shield__
+  - ### Features
+    - This release adds API support for Automatic Application Layer DDoS Mitigation for AWS Shield Advanced. Customers can now enable automatic DDoS mitigation in count or block mode for layer 7 protected resources.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Experience Builder allows customers to build search applications without writing code. Analytics Dashboard provides quality and usability metrics for Kendra indexes. Custom Document Enrichment allows customers to build a custom ingestion pipeline to pre-process documents and generate metadata.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - DevOps Guru now provides detailed, database-specific analyses of performance issues and recommends corrective actions for Amazon Aurora database instances with Performance Insights turned on. You can also use AWS tags to choose which resources to analyze and define your applications.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Add support for Table Classes and introduce the Standard Infrequent Access table class.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for Amazon VPC IP Address Manager (IPAM), which enables you to plan, track, and monitor IP addresses for your workloads. This release also adds support for VPC Network Access Analyzer, which enables you to analyze network access to resources in your Virtual Private Clouds.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release introduces a new feature, Automated Chatbot Designer, that helps customers automatically create a bot design from existing conversation transcripts. The feature uses machine learning to discover most common intents and the information needed to fulfill them.
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Adding new exception types for InvokeEndpoint
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release enables - 1/ Inference endpoint configuration recommendations and ability to run custom load tests to meet performance needs. 2/ Deploy serverless inference endpoints. 3/ Query, filter and retrieve end-to-end ML lineage graph, and incorporate model quality/bias detection in ML workflow.
+
+# __2.17.93__ __2021-11-30__
+## __AWS Backup Gateway__
+  - ### Features
+    - Initial release of AWS Backup gateway which enables you to centralize and automate protection of on-premises VMware and VMware Cloud on AWS workloads using AWS Backup.
+
+## __AWS Glue__
+  - ### Features
+    - Support for DataLake transactions
+
+## __AWS IoT__
+  - ### Features
+    - Added the ability to enable/disable IoT Fleet Indexing for Device Defender and Named Shadow information, and search them through IoT Fleet Indexing APIs.
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - AWS IoT TwinMaker makes it faster and easier to create, visualize and monitor digital twins of real-world systems like buildings, factories and industrial equipment to optimize operations. Learn more: https://docs.aws.amazon.com/iot-twinmaker/latest/apireference/Welcome.html (New Service) (Preview)
+
+## __AWS Lake Formation__
+  - ### Features
+    - This release adds support for row and cell-based access control in Lake Formation. It also adds support for Lake Formation Governed Tables, which support ACID transactions and automatic storage optimizations.
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds the SupportedHardwareType parameter to CreateOutpost.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Added gateway type VTL_SNOW. Added new SNOWBALL HostEnvironment for gateways running on a Snowball device. Added new field HostEnvironmentId to serve as an identifier for the HostEnvironment on which the gateway is running.
+
+## __Access Analyzer__
+  - ### Features
+    - AWS IAM Access Analyzer now supports policy validation for resource policies attached to S3 buckets and access points. You can run additional policy checks by specifying the S3 resource type you want to attach to your resource policy.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for Is4gen and Im4gn instances. This release also adds a new subnet attribute, enableLniAtDeviceIndex, to support local network interfaces, which are logical networking components that connect an EC2 instance to your on-premises network.
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for the FSx for OpenZFS file system type, FSx for Lustre file systems with the Persistent_2 deployment type, and FSx for Lustre file systems with Amazon S3 data repository associations and automatic export policies.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Tapeball is to integrate tape gateway onto snowball, it enables customer to transfer local data on the tape to snowball,and then ingest the data into tape gateway on the cloud.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Amazon Kinesis Data Streams now supports on demand streams.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Introduce Amazon S3 Glacier Instant Retrieval storage class and a new setting in S3 Object Ownership to disable ACLs for bucket and the objects in it.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - This is the initial SDK release for Amazon WorkSpaces Web. Amazon WorkSpaces Web is a low-cost, fully managed WorkSpace built to deliver secure web-based workloads and software-as-a-service (SaaS) application access to users within existing web browsers.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - This release adds three new V2 APIs. CreateClusterV2 for creating both provisioned and serverless clusters. DescribeClusterV2 for getting information about provisioned and serverless clusters and ListClustersV2 for listing all clusters (both provisioned and serverless) in your account.
+
+## __Redshift Data API Service__
+  - ### Features
+    - Data API now supports serverless queries.
+
 # __2.17.92__ __2021-11-29__
 ## __AWS Compute Optimizer__
   - ### Features
