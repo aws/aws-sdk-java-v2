@@ -23,6 +23,7 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.security.KeyManagementException;
@@ -208,8 +209,12 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         public HttpExecuteResponse call() throws IOException {
             connection.connect();
 
-            request.contentStreamProvider().ifPresent(provider ->
-                    invokeSafely(() -> IoUtils.copy(provider.newStream(), connection.getOutputStream())));
+            try {
+                request.contentStreamProvider().ifPresent(provider ->
+                                                              invokeSafely(() -> IoUtils.copy(provider.newStream(), connection.getOutputStream())));
+            } catch(UncheckedIOException e) {
+                throw e.getCause();
+            }
 
             int responseCode = getResponseCodeSafely(connection);
             boolean isErrorResponse = HttpStatusFamily.of(responseCode).isOneOf(CLIENT_ERROR, SERVER_ERROR);
