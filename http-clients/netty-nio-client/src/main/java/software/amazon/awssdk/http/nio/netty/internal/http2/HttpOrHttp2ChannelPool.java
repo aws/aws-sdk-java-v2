@@ -17,7 +17,6 @@ package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
-import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.runOrPropagate;
 
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
@@ -141,7 +140,7 @@ public class HttpOrHttp2ChannelPool implements SdkChannelPool {
                 closeAndRelease(newChannel, new IllegalStateException("Pool closed"));
             } else {
                 try {
-                    configureProtocol(newChannel, protocol);
+                    protocolImplPromise.setSuccess(configureProtocol(newChannel, protocol));
                 } catch (Throwable e) {
                     closeAndRelease(newChannel, e);
                 }
@@ -155,7 +154,7 @@ public class HttpOrHttp2ChannelPool implements SdkChannelPool {
         protocolImplPromise.setFailure(e);
     }
 
-    private void configureProtocol(Channel newChannel, Protocol protocol) {
+    private ChannelPool configureProtocol(Channel newChannel, Protocol protocol) {
         if (Protocol.HTTP1_1 == protocol) {
             // For HTTP/1.1 we use a traditional channel pool without multiplexing
             SdkChannelPool idleConnectionMetricChannelPool = new IdleConnectionCountingChannelPool(eventLoop, delegatePool);
@@ -181,10 +180,8 @@ public class HttpOrHttp2ChannelPool implements SdkChannelPool {
                                                  .build();
         }
         // Give the channel back so it can be acquired again by protocolImpl
-        // Await the release completion to ensure we do not unnecessarily acquire a second channel
-        delegatePool.release(newChannel).addListener(runOrPropagate(protocolImplPromise, () -> {
-            protocolImplPromise.trySuccess(protocolImpl);
-        }));
+        delegatePool.release(newChannel);
+        return protocolImpl;
     }
 
     @Override
