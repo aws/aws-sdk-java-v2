@@ -1,0 +1,6 @@
+{
+    "category": "Netty NIO HTTP Client", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Allow-list known blocking methods from BlockHound"
+}
