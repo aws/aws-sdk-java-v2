@@ -13,4 +13,4 @@
 # permissions and limitations under the License.
 #
 
-software.amazon.awssdk.http.nio.netty.internal.SdkBlockHoundIntegration
+software.amazon.awssdk.testutils.service.BlockHoundAllowlist

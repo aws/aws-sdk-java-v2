@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.nio.netty.internal;
+package software.amazon.awssdk.testutils.service;
 
 import reactor.blockhound.BlockHound;
 import reactor.blockhound.integration.BlockHoundIntegration;
@@ -27,7 +27,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * https://github.com/reactor/BlockHound/blob/master/docs/custom_integrations.md
  */
 @SdkInternalApi
-class SdkBlockHoundIntegration implements BlockHoundIntegration {
+class BlockHoundAllowlist implements BlockHoundIntegration {
     @Override
     public void applyTo(BlockHound.Builder builder) {
         // https://github.com/aws/aws-sdk-java-v2/issues/2145

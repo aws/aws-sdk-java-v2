@@ -101,14 +101,6 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
 
-        <!--Optional Dependencies-->
-        <dependency>
-            <groupId>io.projectreactor.tools</groupId>
-            <artifactId>blockhound</artifactId>
-            <version>${blockhound.version}</version>
-            <optional>true</optional>
-        </dependency>
-
         <!--Test Dependencies-->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
