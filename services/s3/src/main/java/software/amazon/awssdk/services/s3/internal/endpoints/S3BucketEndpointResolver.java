@@ -26,6 +26,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.regions.PartitionMetadata;
 import software.amazon.awssdk.regions.RegionMetadata;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.BucketUtils;
@@ -69,7 +70,10 @@ public final class S3BucketEndpointResolver implements S3EndpointResolver {
     private static URI resolveEndpoint(S3EndpointResolverContext context) {
         SdkHttpRequest request = context.request();
         String protocol = request.protocol();
-        String dnsSuffixWithoutTagConsideration = RegionMetadata.of(context.region()).domain();
+        RegionMetadata regionMetadata = RegionMetadata.of(context.region());
+        String dnsSuffixWithoutTagConsideration = regionMetadata != null ?
+                                                  regionMetadata.domain() :
+                                                  PartitionMetadata.of(context.region()).dnsSuffix();
         S3Configuration serviceConfiguration = context.serviceConfiguration();
 
         boolean useAccelerate = isAccelerateEnabled(serviceConfiguration) && isAccelerateSupported(context.originalRequest());

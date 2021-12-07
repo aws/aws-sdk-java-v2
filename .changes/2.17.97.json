@@ -1,0 +1,36 @@
+{
+    "version": "2.17.97",
+    "date": "2021-12-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "URL Connection Http Client",
+            "contributor": "rtyley",
+            "description": "Lower memory consumption for HTTP requests by enabling fixed-length streaming mode."
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "contributor": "",
+            "description": "AWS AppSync now supports custom domain names, allowing you to associate a domain name that you own with an AppSync API in your account."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service",
+            "contributor": "",
+            "description": "This release adds support for Accuracy position filtering, position metadata and autocomplete for addresses and points of interest based on partial or misspelled free-form text."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Add PriorRequestNotComplete exception to UpdateHostedZoneComment API"
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fixed an issue that resulted in a NullPointerException when an invalid or global region was used on an S3 client. Fixes [#2885](https://github.com/aws/aws-sdk-java-v2/issues/2885)."
+        }
+    ]
+}

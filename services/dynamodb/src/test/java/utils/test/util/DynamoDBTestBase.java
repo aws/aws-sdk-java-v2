@@ -24,10 +24,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
@@ -43,6 +43,8 @@ public class DynamoDBTestBase extends AwsTestBase {
 
     protected static DynamoDbClient dynamo;
 
+    protected static DynamoDbAsyncClient dynamoAsync;
+
     private static final Logger log = Logger.loggerFor(DynamoDBTestBase.class);
 
     public static void setUpTestBase() {
@@ -53,6 +55,7 @@ public class DynamoDBTestBase extends AwsTestBase {
         }
 
         dynamo = DynamoDbClient.builder().region(REGION).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        dynamoAsync = DynamoDbAsyncClient.builder().region(REGION).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
     public static DynamoDbClient getClient() {
