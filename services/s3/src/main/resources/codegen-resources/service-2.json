@@ -8483,7 +8483,7 @@
     "ReplicationStatus":{
       "type":"string",
       "enum":[
-        "COMPLETE",
+        "COMPLETED",
         "PENDING",
         "FAILED",
         "REPLICA"
