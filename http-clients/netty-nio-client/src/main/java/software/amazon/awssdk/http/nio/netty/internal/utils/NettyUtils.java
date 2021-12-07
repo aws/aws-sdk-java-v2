@@ -29,7 +29,6 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
@@ -221,49 +220,5 @@ public final class NettyUtils {
         SSLParameters sslParameters = sslEngine.getSSLParameters();
         sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
         sslEngine.setSSLParameters(sslParameters);
-    }
-
-    /**
-     * Create a {@link GenericFutureListener} that will propagate any failures or cancellations to the provided {@link Promise},
-     * or invoke the provided {@link Consumer} with the result of a successful operation completion. This is useful for chaining
-     * together multiple futures that may depend upon each other but that may not have the same return type.
-     * <p>
-     * Note that if you do not need the value returned by a successful completion (or if it returns {@link Void}) you may use
-     * {@link #runOrPropagate(Promise, Runnable)} instead.
-     *
-     * @param destination the Promise to notify upon failure or cancellation
-     * @param onSuccess   the Consumer to invoke upon success
-     */
-    public static <T> GenericFutureListener<Future<T>> consumeOrPropagate(Promise<?> destination, Consumer<T> onSuccess) {
-        return f -> {
-            if (f.isSuccess()) {
-                T result = f.getNow();
-                onSuccess.accept(result);
-            } else if (f.isCancelled()) {
-                destination.cancel(false);
-            } else {
-                destination.tryFailure(f.cause());
-            }
-        };
-    }
-
-    /**
-     * Create a {@link GenericFutureListener} that will propagate any failures or cancellations to the provided {@link Promise},
-     * or invoke the provided {@link Runnable} upon successful operation completion. This is useful for chaining together multiple
-     * futures that may depend upon each other but that may not have the same return type.
-     *
-     * @param destination the Promise to notify upon failure or cancellation
-     * @param onSuccess   the Runnable to invoke upon success
-     */
-    public static <T> GenericFutureListener<Future<T>> runOrPropagate(Promise<?> destination, Runnable onSuccess) {
-        return f -> {
-            if (f.isSuccess()) {
-                onSuccess.run();
-            } else if (f.isCancelled()) {
-                destination.cancel(false);
-            } else {
-                destination.tryFailure(f.cause());
-            }
-        };
     }
 }
