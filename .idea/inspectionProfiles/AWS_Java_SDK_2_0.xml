@@ -67,7 +67,7 @@
     <inspection_tool class="ClassNewInstance" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ClassReferencesSubclass" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="ClassWithMultipleLoggers" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="loggerNamesString" value="java.util.logging.Logger,org.slf4j.Logger,org.apache.commons.logging.Log,org.apache.log4j.Logger,org.apache.logging.log4j.Logger,software.amazon.awssdk.utils.Logger" />
+      <option name="loggerNamesString" value="java.util.logging.Logger,org.slf4j.Logger,org.apache.commons.logging.Log,org.apache.log4j.Logger,org.apache.logging.log4j.Logger,software.amazon.awssdk.utils.Logger,software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger" />
     </inspection_tool>
     <inspection_tool class="ClassWithOnlyPrivateConstructors" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="CloneCallsConstructors" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -195,7 +195,7 @@
       <option name="m_ignoreStaticMethods" value="true" />
     </inspection_tool>
     <inspection_tool class="LoggerInitializedWithForeignClass" enabled="true" level="WEAK WARNING" enabled_by_default="true">
-      <option name="loggerClassName" value="org.apache.log4j.Logger,org.slf4j.LoggerFactory,org.apache.commons.logging.LogFactory,java.util.logging.Logger,org.apache.logging.log4j.LogManager,software.amazon.awssdk.utils.Logger" />
+      <option name="loggerClassName" value="org.apache.log4j.Logger,org.slf4j.LoggerFactory,org.apache.commons.logging.LogFactory,java.util.logging.Logger,org.apache.logging.log4j.LogManager,software.amazon.awssdk.utils.Logger,software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger" />
       <option name="loggerFactoryMethodName" value="getLogger,getLogger,getLog,getLogger,getLogger,loggerFor" />
     </inspection_tool>
     <inspection_tool class="LoggingConditionDisagreesWithLogStatement" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -260,7 +260,7 @@
     <inspection_tool class="NonSerializableWithSerializationMethods" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonShortCircuitBoolean" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonStaticFinalLogger" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="loggerClassName" value="java.util.logging.Logger,org.slf4j.Logger,org.apache.commons.logging.Log,org.apache.log4j.Logger,org.apache.logging.log4j.Logger,software.amazon.awssdk.utils.Logger" />
+      <option name="loggerClassName" value="java.util.logging.Logger,org.slf4j.Logger,org.apache.commons.logging.Log,org.apache.log4j.Logger,org.apache.logging.log4j.Logger,software.amazon.awssdk.utils.Logger,software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger" />
     </inspection_tool>
     <inspection_tool class="NonSynchronizedMethodOverridesSynchronizedMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonThreadSafeLazyInitialization" enabled="true" level="WARNING" enabled_by_default="true" />

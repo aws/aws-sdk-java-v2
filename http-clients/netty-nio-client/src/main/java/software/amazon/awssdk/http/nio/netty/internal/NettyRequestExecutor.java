@@ -57,8 +57,6 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler;
@@ -68,12 +66,13 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundA
 import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpRequest;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
 public final class NettyRequestExecutor {
-    private static final Logger log = LoggerFactory.getLogger(NettyRequestExecutor.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(NettyRequestExecutor.class);
     private static final RequestAdapter REQUEST_ADAPTER_HTTP2 = new RequestAdapter(Protocol.HTTP2);
     private static final RequestAdapter REQUEST_ADAPTER_HTTP1_1 = new RequestAdapter(Protocol.HTTP1_1);
     private static final AtomicLong EXECUTION_COUNTER = new AtomicLong(0L);
@@ -129,7 +128,7 @@ public final class NettyRequestExecutor {
                         }
                     });
                 } catch (Throwable exc) {
-                    log.warn("Unable to add a task to cancel the request to channel's EventLoop", exc);
+                    log.warn(ch, () -> "Unable to add a task to cancel the request to channel's EventLoop", exc);
                 }
             }
         });
@@ -151,13 +150,13 @@ public final class NettyRequestExecutor {
         }
 
         if (!metricsFuture.isDone()) {
-            log.debug("HTTP request metric collection did not finish in time, so results may be incomplete.");
+            log.debug(null, () -> "HTTP request metric collection did not finish in time, so results may be incomplete.");
             metricsFuture.cancel(false);
             return;
         }
 
         metricsFuture.exceptionally(t -> {
-            log.debug("HTTP request metric collection failed, so results may be incomplete.", t);
+            log.debug(null, () -> "HTTP request metric collection failed, so results may be incomplete.", t);
             return null;
         });
     }
@@ -172,7 +171,7 @@ public final class NettyRequestExecutor {
                 }
             });
         } else {
-            handleFailure(() -> "Failed to create connection to " + endpoint(), channelFuture.cause());
+            handleFailure(channel, () -> "Failed to create connection to " + endpoint(), channelFuture.cause());
         }
     }
 
@@ -203,7 +202,7 @@ public final class NettyRequestExecutor {
             default:
                 String errorMsg = "Unknown protocol: " + protocol;
                 closeAndRelease(channel);
-                handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
+                handleFailure(channel, () -> errorMsg, new RuntimeException(errorMsg));
                 return false;
         }
 
@@ -220,7 +219,7 @@ public final class NettyRequestExecutor {
         if (!channel.isActive()) {
             String errorMessage = "Channel was closed before it could be written to.";
             closeAndRelease(channel);
-            handleFailure(() -> errorMessage, new IOException(errorMessage));
+            handleFailure(channel, () -> errorMessage, new IOException(errorMessage));
             return false;
         }
 
@@ -254,7 +253,7 @@ public final class NettyRequestExecutor {
                    } else {
                        // TODO: Are there cases where we can keep the channel open?
                        closeAndRelease(channel);
-                       handleFailure(() -> "Failed to make request to " + endpoint(), wireCall.cause());
+                       handleFailure(channel, () -> "Failed to make request to " + endpoint(), wireCall.cause());
                    }
                });
 
@@ -297,8 +296,8 @@ public final class NettyRequestExecutor {
         return context.executeRequest().request().getUri();
     }
 
-    private void handleFailure(Supplier<String> msg, Throwable cause) {
-        log.debug(msg.get(), cause);
+    private void handleFailure(Channel channel, Supplier<String> msgSupplier, Throwable cause) {
+        log.debug(channel, msgSupplier, cause);
         cause = decorateException(cause);
         context.handler().onError(cause);
         executeFuture.completeExceptionally(cause);
@@ -379,7 +378,7 @@ public final class NettyRequestExecutor {
      * @param channel The channel.
      */
     private void closeAndRelease(Channel channel) {
-        log.trace("closing and releasing channel {}", channel.id().asLongText());
+        log.trace(channel, () -> String.format("closing and releasing channel %s", channel.id().asLongText()));
         channel.attr(KEEP_ALIVE).set(false);
         channel.close();
         context.channelPool().release(channel);
@@ -472,7 +471,7 @@ public final class NettyRequestExecutor {
     /**
      * Decorator around {@link StreamedHttpRequest} to adapt a publisher of {@link ByteBuffer} (i.e. {@link
      * software.amazon.awssdk.http.async.SdkHttpContentPublisher}) to a publisher of {@link HttpContent}.
-     * <p />
+     * <p>
      * This publisher also prevents the adapted publisher from publishing more content to the subscriber than
      * the specified 'Content-Length' of the request.
      */
@@ -565,7 +564,7 @@ public final class NettyRequestExecutor {
                 try {
                     return Optional.of(Long.parseLong(value));
                 } catch (NumberFormatException e) {
-                    log.warn("Unable  to parse 'Content-Length' header. Treating it as non existent.");
+                    log.warn(null, () -> "Unable  to parse 'Content-Length' header. Treating it as non existent.");
                 }
             }
             return Optional.empty();
