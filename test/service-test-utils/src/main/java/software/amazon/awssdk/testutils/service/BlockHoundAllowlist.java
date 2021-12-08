@@ -17,7 +17,6 @@ package software.amazon.awssdk.testutils.service;
 
 import reactor.blockhound.BlockHound;
 import reactor.blockhound.integration.BlockHoundIntegration;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Implements {@link BlockHoundIntegration} to explicitly allow SDK calls that are known to be blocking. Some calls (with an
@@ -26,7 +25,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * <p>
  * https://github.com/reactor/BlockHound/blob/master/docs/custom_integrations.md
  */
-@SdkInternalApi
 class BlockHoundAllowlist implements BlockHoundIntegration {
     @Override
     public void applyTo(BlockHound.Builder builder) {
