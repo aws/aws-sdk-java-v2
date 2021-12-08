@@ -23,39 +23,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.netty.channel.Channel;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.EventExecutor;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
-import io.netty.util.concurrent.Promise;
 import java.time.Duration;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLEngine;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
 
 public class NettyUtilsTest {
-
-    private static EventLoopGroup eventLoopGroup;
-
-    @BeforeClass
-    public static void setup() {
-        eventLoopGroup = new NioEventLoopGroup(1);
-    }
-
-    @AfterClass
-    public static void teardown() throws InterruptedException {
-        eventLoopGroup.shutdownGracefully().await();
-    }
-    
     @Test
     public void testGetOrCreateAttributeKey_calledTwiceWithSameName_returnsSameInstance() {
         String attr = "NettyUtilsTest.Foo";
@@ -98,99 +76,5 @@ public class NettyUtilsTest {
 
         NettyUtils.doInEventLoop(mockExecutor, () -> {});
         verify(mockExecutor).submit(any(Runnable.class));
-    }
-
-    @Test
-    public void runOrPropagate_success_runs() throws Exception {
-        Promise<String> destination = eventLoopGroup.next().newPromise();
-        AtomicBoolean reference = new AtomicBoolean();
-
-        GenericFutureListener<Future<Void>> listener =
-            NettyUtils.runOrPropagate(destination, () -> reference.set(true));
-
-        Promise<Void> source = eventLoopGroup.next().newPromise();
-        source.setSuccess(null);
-        listener.operationComplete(source);
-
-        assertThat(reference.get()).isTrue();
-    }
-
-    @Test
-    public void runOrPropagate_exception_propagates() throws Exception {
-        Promise<String> destination = eventLoopGroup.next().newPromise();
-
-        GenericFutureListener<Future<Void>> listener =
-            NettyUtils.runOrPropagate(destination, () -> {
-            });
-
-        Promise<Void> source = eventLoopGroup.next().newPromise();
-        source.setFailure(new RuntimeException("Intentional exception for testing purposes"));
-        listener.operationComplete(source);
-
-        assertThat(destination.cause())
-            .isInstanceOf(RuntimeException.class)
-            .hasMessage("Intentional exception for testing purposes");
-    }
-
-    @Test
-    public void runOrPropagate_cancel_propagates() throws Exception {
-        Promise<String> destination = eventLoopGroup.next().newPromise();
-
-        GenericFutureListener<Future<Void>> listener =
-            NettyUtils.runOrPropagate(destination, () -> {
-            });
-
-        Promise<Void> source = eventLoopGroup.next().newPromise();
-        source.cancel(false);
-        listener.operationComplete(source);
-
-        assertThat(destination.isCancelled()).isTrue();
-    }
-
-    @Test
-    public void consumeOrPropagate_success_consumes() throws Exception {
-        Promise<String> destination = eventLoopGroup.next().newPromise();
-        AtomicReference<String> reference = new AtomicReference<>();
-
-        GenericFutureListener<Future<String>> listener =
-            NettyUtils.consumeOrPropagate(destination, reference::set);
-
-        Promise<String> source = eventLoopGroup.next().newPromise();
-        source.setSuccess("test");
-        listener.operationComplete(source);
-
-        assertThat(reference.get()).isEqualTo("test");
-    }
-
-    @Test
-    public void consumeOrPropagate_exception_propagates() throws Exception {
-        Promise<String> destination = eventLoopGroup.next().newPromise();
-
-        GenericFutureListener<Future<String>> listener =
-            NettyUtils.consumeOrPropagate(destination, s -> {
-            });
-
-        Promise<String> source = eventLoopGroup.next().newPromise();
-        source.setFailure(new RuntimeException("Intentional exception for testing purposes"));
-        listener.operationComplete(source);
-
-        assertThat(destination.cause())
-            .isInstanceOf(RuntimeException.class)
-            .hasMessage("Intentional exception for testing purposes");
-    }
-
-    @Test
-    public void consumeOrPropagate_cancel_propagates() throws Exception {
-        Promise<String> destination = eventLoopGroup.next().newPromise();
-
-        GenericFutureListener<Future<String>> listener =
-            NettyUtils.consumeOrPropagate(destination, s -> {
-            });
-
-        Promise<String> source = eventLoopGroup.next().newPromise();
-        source.cancel(false);
-        listener.operationComplete(source);
-
-        assertThat(destination.isCancelled()).isTrue();
     }
 }
