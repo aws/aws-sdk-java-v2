@@ -41,29 +41,6 @@ public final class NettyClientLogger {
     }
 
     /**
-     * Log a DEBUG level message.
-     *
-     * @param msgSupplier Supplier for the log message
-     */
-    public void debug(Supplier<String> msgSupplier) {
-        debug(msgSupplier, null);
-    }
-
-    /**
-     * Log a DEBUG level message with the given exception.
-     *
-     * @param msgSupplier Supplier for the log message
-     * @param t The throwable to log
-     */
-    public void debug(Supplier<String> msgSupplier, Throwable t) {
-        if (!delegateLogger.isDebugEnabled()) {
-            return;
-        }
-
-        delegateLogger.debug(msgSupplier.get(), t);
-    }
-
-    /**
      * Log a DEBUG level message including the channel information.
      *
      * @param channel The channel for this message is being logged
@@ -85,31 +62,8 @@ public final class NettyClientLogger {
             return;
         }
 
-        Supplier<String> finalMessage = prependChannelInfo(true, msgSupplier, channel);
+        Supplier<String> finalMessage = prependChannelInfo(msgSupplier, channel);
         delegateLogger.debug(finalMessage.get(), t);
-    }
-
-    /**
-     * Log a WARN level message.
-     *
-     * @param msgSupplier Supplier for the log message
-     */
-    public void warn(Supplier<String> msgSupplier) {
-        warn(msgSupplier, null);
-    }
-
-    /**
-     * Log a WARN level message with the given exception.
-     *
-     * @param msgSupplier Supplier for the log message
-     * @param t The throwable to log
-     */
-    public void warn(Supplier<String> msgSupplier, Throwable t) {
-        if (!delegateLogger.isWarnEnabled()) {
-            return;
-        }
-
-        delegateLogger.warn(msgSupplier.get(), t);
     }
 
     /**
@@ -139,19 +93,6 @@ public final class NettyClientLogger {
     }
 
     /**
-     * Log a TRACE level message.
-     *
-     * @param msgSupplier Supplier for the log message
-     */
-    public void trace(Supplier<String> msgSupplier) {
-        if (!delegateLogger.isTraceEnabled()) {
-            return;
-        }
-
-        delegateLogger.trace(msgSupplier.get());
-    }
-
-    /**
      * Log a TRACE level message including the channel information.
      *
      * @param channel The channel for this message is being logged
@@ -162,22 +103,22 @@ public final class NettyClientLogger {
             return;
         }
 
-        Supplier<String> finalMessage = prependChannelInfo(true, msgSupplier, channel);
+        Supplier<String> finalMessage = prependChannelInfo(msgSupplier, channel);
         delegateLogger.trace(finalMessage.get());
     }
 
-    private static Supplier<String> prependChannelInfo(Supplier<String> msgSupplier, Channel channel) {
-        return prependChannelInfo(false, msgSupplier, channel);
-    }
+    private Supplier<String> prependChannelInfo(Supplier<String> msgSupplier, Channel channel) {
+        if (channel == null) {
+            return msgSupplier;
+        }
 
-    private static Supplier<String> prependChannelInfo(boolean useShortId, Supplier<String> msgSupplier, Channel channel) {
         String id;
-        if (useShortId) {
+        if (!delegateLogger.isDebugEnabled()) {
             id = channel.id().asShortText();
         } else {
             id = channel.toString();
         }
 
-        return () -> String.format("[Channel ID: %s] %s", id, msgSupplier.get());
+        return () -> String.format("[Channel: %s] %s", id, msgSupplier.get());
     }
 }

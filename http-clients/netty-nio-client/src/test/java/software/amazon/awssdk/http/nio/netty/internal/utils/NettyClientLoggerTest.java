@@ -43,10 +43,10 @@ public class NettyClientLoggerTest {
     private static final String TEST_MSG = "test";
     private static final ChannelId CHANNEL_ID = DefaultChannelId.newInstance();
     private static final String CHANNEL_TO_STRING = "NettyClientLoggerTest_TestChannel";
-    private static final String EXPECTED_MESSAGE_SHORT = String.format("[Channel ID: %s] %s",
+    private static final String EXPECTED_MESSAGE_SHORT = String.format("[Channel: %s] %s",
                                                                  CHANNEL_ID.asShortText(),
                                                                  TEST_MSG);
-    private static final String EXPECTED_MESSAGE_FULL = String.format("[Channel ID: %s] %s",
+    private static final String EXPECTED_MESSAGE_FULL = String.format("[Channel: %s] %s",
                                                                        CHANNEL_TO_STRING,
                                                                        TEST_MSG);
 
@@ -96,14 +96,14 @@ public class NettyClientLoggerTest {
 
         logger.debug(ch, msgSupplier, exception);
 
-        verify(delegateLogger).debug(EXPECTED_MESSAGE_SHORT, exception);
+        verify(delegateLogger).debug(EXPECTED_MESSAGE_FULL, exception);
     }
 
     @Test
     public void debugNotEnabled_channelNotProvided_doesNotInvokeLogger() {
         when(delegateLogger.isDebugEnabled()).thenReturn(false);
 
-        logger.debug(msgSupplier, null);
+        logger.debug(null, msgSupplier, null);
 
         verify(delegateLogger, never()).debug(anyString(), any(Throwable.class));
         verifyZeroInteractions(msgSupplier);
@@ -114,7 +114,7 @@ public class NettyClientLoggerTest {
         when(delegateLogger.isDebugEnabled()).thenReturn(true);
         RuntimeException exception = new RuntimeException("boom!");
 
-        logger.debug(msgSupplier, exception);
+        logger.debug(null, msgSupplier, exception);
 
         verify(delegateLogger).debug(TEST_MSG, exception);
     }
@@ -138,6 +138,18 @@ public class NettyClientLoggerTest {
 
         logger.warn(ch, msgSupplier, exception);
 
+        verify(delegateLogger).warn(EXPECTED_MESSAGE_SHORT, exception);
+    }
+
+    @Test
+    public void warnEnabled_debugEnabled_invokesLogger() {
+        when(delegateLogger.isWarnEnabled()).thenReturn(true);
+        when(delegateLogger.isDebugEnabled()).thenReturn(true);
+
+        RuntimeException exception = new RuntimeException("boom!");
+
+        logger.warn(ch, msgSupplier, exception);
+
         verify(delegateLogger).warn(EXPECTED_MESSAGE_FULL, exception);
     }
 
@@ -145,7 +157,7 @@ public class NettyClientLoggerTest {
     public void warnNotEnabled_noChannelProvided_doesNotInvokeLogger() {
         when(delegateLogger.isWarnEnabled()).thenReturn(false);
 
-        logger.warn(msgSupplier, null);
+        logger.warn(null, msgSupplier, null);
 
         verify(delegateLogger, never()).warn(anyString(), any(Throwable.class));
         verifyZeroInteractions(msgSupplier);
@@ -156,7 +168,7 @@ public class NettyClientLoggerTest {
         when(delegateLogger.isWarnEnabled()).thenReturn(true);
         RuntimeException exception = new RuntimeException("boom!");
 
-        logger.warn(msgSupplier, exception);
+        logger.warn(null, msgSupplier, exception);
 
         verify(delegateLogger).warn(TEST_MSG, exception);
     }
@@ -176,17 +188,18 @@ public class NettyClientLoggerTest {
     @Test
     public void traceEnabled_invokesLogger() {
         when(delegateLogger.isTraceEnabled()).thenReturn(true);
+        when(delegateLogger.isDebugEnabled()).thenReturn(true);
 
         logger.trace(ch, msgSupplier);
 
-        verify(delegateLogger).trace(EXPECTED_MESSAGE_SHORT);
+        verify(delegateLogger).trace(EXPECTED_MESSAGE_FULL);
     }
 
     @Test
     public void traceNotEnabled_noChannelProvided_doesNotInvokeLogger() {
         when(delegateLogger.isTraceEnabled()).thenReturn(false);
 
-        logger.trace(msgSupplier);
+        logger.trace(null, msgSupplier);
 
         verify(delegateLogger, never()).trace(anyString());
         verifyZeroInteractions(msgSupplier);
@@ -196,7 +209,7 @@ public class NettyClientLoggerTest {
     public void traceEnabled_noChannelProvided_invokesLogger() {
         when(delegateLogger.isTraceEnabled()).thenReturn(true);
 
-        logger.trace(msgSupplier);
+        logger.trace(null, msgSupplier);
 
         verify(delegateLogger).trace(TEST_MSG);
     }

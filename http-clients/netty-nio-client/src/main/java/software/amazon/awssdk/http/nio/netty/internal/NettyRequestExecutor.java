@@ -128,7 +128,7 @@ public final class NettyRequestExecutor {
                         }
                     });
                 } catch (Throwable exc) {
-                    log.warn(() -> "Unable to add a task to cancel the request to channel's EventLoop", exc);
+                    log.warn(ch, () -> "Unable to add a task to cancel the request to channel's EventLoop", exc);
                 }
             }
         });
@@ -150,13 +150,13 @@ public final class NettyRequestExecutor {
         }
 
         if (!metricsFuture.isDone()) {
-            log.debug(() -> "HTTP request metric collection did not finish in time, so results may be incomplete.");
+            log.debug(null, () -> "HTTP request metric collection did not finish in time, so results may be incomplete.");
             metricsFuture.cancel(false);
             return;
         }
 
         metricsFuture.exceptionally(t -> {
-            log.debug(() -> "HTTP request metric collection failed, so results may be incomplete.", t);
+            log.debug(null, () -> "HTTP request metric collection failed, so results may be incomplete.", t);
             return null;
         });
     }
@@ -564,7 +564,7 @@ public final class NettyRequestExecutor {
                 try {
                     return Optional.of(Long.parseLong(value));
                 } catch (NumberFormatException e) {
-                    log.warn(() -> "Unable  to parse 'Content-Length' header. Treating it as non existent.");
+                    log.warn(null, () -> "Unable  to parse 'Content-Length' header. Treating it as non existent.");
                 }
             }
             return Optional.empty();
