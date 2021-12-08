@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Logs",
+    "contributor": "",
+    "description": "This release adds AWS Organizations support as condition key in destination policy for cross account Subscriptions in CloudWatch Logs."
+}
