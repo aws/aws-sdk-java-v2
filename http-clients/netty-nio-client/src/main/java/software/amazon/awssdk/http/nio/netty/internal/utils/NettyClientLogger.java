@@ -23,8 +23,16 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 
 /**
- * Logger facade similar to {@link software.amazon.awssdk.utils.Logger}, that also includes the Channel ID in the message when
- * provided.
+ * Logger facade similar to {@link software.amazon.awssdk.utils.Logger}, that also includes channel information in the message
+ * when provided. When the logger has at least DEBUG level enabled, the logger uses {@link Channel#toString()} to provide the
+ * complete information about the channel. If only less verbose levels are available, then only the channel's ID is logged.
+ * <p>
+ * Having the channel information associated with the log message whenever available makes correlating messages that are all
+ * logged within the context of that channel possible; this is impossible to do otherwise because there is a 1:M mapping from
+ * event loops to channels.
+ * <p>
+ * <b>NOTE:</b> The absence of overrides that don't take a {@code Channel} parameter is deliberate. This is done to lessen the
+ * chances that a {code Channel} is omitted from the log by accident.
  */
 @SdkInternalApi
 public final class NettyClientLogger {
@@ -62,8 +70,8 @@ public final class NettyClientLogger {
             return;
         }
 
-        Supplier<String> finalMessage = prependChannelInfo(msgSupplier, channel);
-        delegateLogger.debug(finalMessage.get(), t);
+        String finalMessage = prependChannelInfo(msgSupplier, channel);
+        delegateLogger.debug(finalMessage, t);
     }
 
     /**
@@ -88,8 +96,8 @@ public final class NettyClientLogger {
             return;
         }
 
-        Supplier<String> finalMessage = prependChannelInfo(msgSupplier, channel);
-        delegateLogger.warn(finalMessage.get(), t);
+        String finalMessage = prependChannelInfo(msgSupplier, channel);
+        delegateLogger.warn(finalMessage, t);
     }
 
     /**
@@ -103,13 +111,13 @@ public final class NettyClientLogger {
             return;
         }
 
-        Supplier<String> finalMessage = prependChannelInfo(msgSupplier, channel);
-        delegateLogger.trace(finalMessage.get());
+        String finalMessage = prependChannelInfo(msgSupplier, channel);
+        delegateLogger.trace(finalMessage);
     }
 
-    private Supplier<String> prependChannelInfo(Supplier<String> msgSupplier, Channel channel) {
+    private String prependChannelInfo(Supplier<String> msgSupplier, Channel channel) {
         if (channel == null) {
-            return msgSupplier;
+            return msgSupplier.get();
         }
 
         String id;
@@ -119,6 +127,6 @@ public final class NettyClientLogger {
             id = channel.toString();
         }
 
-        return () -> String.format("[Channel: %s] %s", id, msgSupplier.get());
+        return String.format("[Channel: %s] %s", id, msgSupplier.get());
     }
 }
