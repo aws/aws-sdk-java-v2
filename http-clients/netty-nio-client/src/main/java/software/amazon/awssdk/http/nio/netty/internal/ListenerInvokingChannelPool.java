@@ -41,8 +41,6 @@ import software.amazon.awssdk.metrics.MetricCollector;
  * HttpOrHttp2ChannelPool} may choose not to release HTTP/2 stream channels to the lowest-level pool (and instead store the
  * channels in its own pool), but by instrumenting listeners that sit on top of this layer, we are still given visibility into
  * these events occurring.
- * <p>
- * All {@link ChannelPoolListener} events are guaranteed to be invoked as part of the {@link Channel}'s {@link EventLoop}.
  */
 @SdkInternalApi
 public final class ListenerInvokingChannelPool implements SdkChannelPool {
@@ -50,6 +48,11 @@ public final class ListenerInvokingChannelPool implements SdkChannelPool {
     private final Supplier<Promise<Channel>> promiseFactory;
     private final List<ChannelPoolListener> listeners;
 
+    /**
+     * Listener which is called for various actions performed on a {@link SdkChannelPool}. All listener events are guaranteed to
+     * be invoked as part of the {@link Channel}'s {@link EventLoop}.
+     */
+    @SdkInternalApi
     public interface ChannelPoolListener {
 
         /**
@@ -115,8 +118,9 @@ public final class ListenerInvokingChannelPool implements SdkChannelPool {
     public Future<Void> release(Channel channel, Promise<Void> promise) {
         delegatePool.release(channel, promise)
                     .addListener(runOrPropagate(promise, () -> {
-                        NettyUtils.doInEventLoop(channel.eventLoop(), () ->
-                            invokeChannelReleased(channel));
+                        NettyUtils.doInEventLoop(channel.eventLoop(), () -> {
+                            invokeChannelReleased(channel);
+                        });
                     }));
         return promise;
     }
