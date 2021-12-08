@@ -22,15 +22,15 @@ import io.netty.channel.Channel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class InUseTrackingChannelPoolHandlerTest {
+class InUseTrackingChannelPoolListenerTest {
 
     Channel mockChannel;
-    InUseTrackingChannelPoolHandler handler;
+    InUseTrackingChannelPoolListener handler;
 
     @BeforeEach
     void setUp() throws Exception {
         mockChannel = new MockChannel();
-        handler = InUseTrackingChannelPoolHandler.create();
+        handler = InUseTrackingChannelPoolListener.create();
     }
 
     @Test

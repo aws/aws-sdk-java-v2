@@ -39,7 +39,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
 
 @RunWith(MockitoJUnitRunner.class)
-public class HandlerRemovingChannelPoolHandlerTest {
+public class HandlerRemovingChannelPoolListenerTest {
     @Mock
     private SdkChannelPool channelPool;
 
@@ -49,7 +49,7 @@ public class HandlerRemovingChannelPoolHandlerTest {
     private Channel mockChannel;
     private ChannelPipeline pipeline;
     private NioEventLoopGroup nioEventLoopGroup;
-    private HandlerRemovingChannelPoolHandler handler;
+    private HandlerRemovingChannelPoolListener handler;
 
     @Before
     public void setup() throws Exception {
@@ -71,7 +71,7 @@ public class HandlerRemovingChannelPoolHandlerTest {
         pipeline.addLast(ResponseHandler.getInstance());
         pipeline.addLast(new ReadTimeoutHandler(10));
         pipeline.addLast(new WriteTimeoutHandler(10));
-        handler = HandlerRemovingChannelPoolHandler.create();
+        handler = HandlerRemovingChannelPoolListener.create();
     }
 
     @After

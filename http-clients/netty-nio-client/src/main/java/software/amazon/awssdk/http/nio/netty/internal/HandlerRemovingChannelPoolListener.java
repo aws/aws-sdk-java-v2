@@ -19,10 +19,10 @@ import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils.
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
-import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.ListenerInvokingChannelPool.ChannelPoolListener;
 import software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
 
@@ -30,34 +30,24 @@ import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandl
  * Removes any per-request {@link ChannelHandler} from the pipeline when releasing it to the pool.
  */
 @SdkInternalApi
-public final class HandlerRemovingChannelPoolHandler implements ChannelPoolHandler {
+public final class HandlerRemovingChannelPoolListener implements ChannelPoolListener {
 
-    private static final HandlerRemovingChannelPoolHandler INSTANCE = new HandlerRemovingChannelPoolHandler();
+    private static final HandlerRemovingChannelPoolListener INSTANCE = new HandlerRemovingChannelPoolListener();
 
-    private HandlerRemovingChannelPoolHandler() {
+    private HandlerRemovingChannelPoolListener() {
     }
 
-    public static HandlerRemovingChannelPoolHandler create() {
+    public static HandlerRemovingChannelPoolListener create() {
         return INSTANCE;
     }
 
     @Override
-    public void channelCreated(Channel ch) {
-        // no-op
-    }
-
-    @Override
-    public void channelAcquired(Channel ch) {
-        // no-op
-    }
-
-    @Override
-    public void channelReleased(Channel ch) {
+    public void channelReleased(Channel channel) {
         // Only remove per request handler if the channel is registered
         // or open since DefaultChannelPipeline would remove handlers if
         // channel is closed and unregistered
-        if (ch.isOpen() || ch.isRegistered()) {
-            removeIfExists(ch.pipeline(),
+        if (channel.isOpen() || channel.isRegistered()) {
+            removeIfExists(channel.pipeline(),
                            HttpStreamsClientHandler.class,
                            LastHttpContentHandler.class,
                            FlushOnReadHandler.class,
