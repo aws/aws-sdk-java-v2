@@ -25,7 +25,7 @@ import reactor.blockhound.integration.BlockHoundIntegration;
  * <p>
  * https://github.com/reactor/BlockHound/blob/master/docs/custom_integrations.md
  */
-class BlockHoundAllowlist implements BlockHoundIntegration {
+public class BlockHoundAllowlist implements BlockHoundIntegration {
     @Override
     public void applyTo(BlockHound.Builder builder) {
         // https://github.com/aws/aws-sdk-java-v2/issues/2145
