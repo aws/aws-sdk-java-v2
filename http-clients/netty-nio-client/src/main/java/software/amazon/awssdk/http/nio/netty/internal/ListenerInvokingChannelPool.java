@@ -53,18 +53,19 @@ public final class ListenerInvokingChannelPool implements SdkChannelPool {
     public interface ChannelPoolListener {
 
         /**
-         * Callback invoked once a {@link Channel} has been successfully acquired from the delegate pool, before it is returned
-         * from this pool.
+         * Called once a {@link Channel} was acquired by calling {@link SdkChannelPool#acquire()} or {@link
+         * SdkChannelPool#acquire(Promise)}.
          * <p>
-         * This callback is invoked from within the {@link Channel}'s {@link EventLoop}.
+         * This method will be called by the {@link EventLoop} of the {@link Channel}.
          */
         default void channelAcquired(Channel channel) {
         }
 
         /**
-         * Callback invoked before a {@link Channel} is released to the delegate pool.
+         * Called once a {@link Channel} was released by calling {@link SdkChannelPool#release(Channel)} or {@link
+         * SdkChannelPool#release(Channel, Promise)}.
          * <p>
-         * This callback is invoked from within the {@link Channel}'s {@link EventLoop}.
+         * This method will be called by the {@link EventLoop} of the {@link Channel}.
          */
         default void channelReleased(Channel channel) {
         }
@@ -93,17 +94,12 @@ public final class ListenerInvokingChannelPool implements SdkChannelPool {
     public Future<Channel> acquire(Promise<Channel> returnFuture) {
         delegatePool.acquire(promiseFactory.get())
                     .addListener(consumeOrPropagate(returnFuture, channel -> {
-                        onAcquire(returnFuture, channel);
+                        NettyUtils.doInEventLoop(channel.eventLoop(), () -> {
+                            invokeChannelAcquired(channel);
+                            returnFuture.trySuccess(channel);
+                        });
                     }));
         return returnFuture;
-    }
-
-    private void onAcquire(Promise<Channel> returnFuture, Channel channel) {
-        NettyUtils.doInEventLoop(channel.eventLoop(), () -> {
-            invokeChannelAcquired(channel);
-        }).addListener(runOrPropagate(returnFuture, () -> {
-            returnFuture.trySuccess(channel);
-        }));
     }
 
     private void invokeChannelAcquired(Channel channel) {
@@ -117,10 +113,11 @@ public final class ListenerInvokingChannelPool implements SdkChannelPool {
 
     @Override
     public Future<Void> release(Channel channel, Promise<Void> promise) {
-        NettyUtils.doInEventLoop(channel.eventLoop(), () -> {
-            invokeChannelReleased(channel);
-        }).addListener(runOrPropagate(promise, () ->
-            delegatePool.release(channel, promise)));
+        delegatePool.release(channel, promise)
+                    .addListener(runOrPropagate(promise, () -> {
+                        NettyUtils.doInEventLoop(channel.eventLoop(), () ->
+                            invokeChannelReleased(channel));
+                    }));
         return promise;
     }
 
