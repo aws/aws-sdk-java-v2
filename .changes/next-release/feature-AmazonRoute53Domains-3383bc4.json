@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Route 53 Domains",
+    "contributor": "",
+    "description": "Amazon Route 53 domain registration APIs now support filtering and sorting in the ListDomains API, deleting a domain by using the DeleteDomain API and getting domain pricing information by using the ListPrices API."
+}
