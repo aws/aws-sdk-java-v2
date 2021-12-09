@@ -21,21 +21,21 @@ import java.util.Collections;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-public class RemoveUpdateActionTest {
+class RemoveUpdateActionTest {
 
     private static final String PATH = "path string";
     private static final String ATTRIBUTE_TOKEN = "#attributeToken";
     private static final String ATTRIBUTE_NAME = "attribute1";
 
     @Test
-    public void equalsHashcode() {
+    void equalsHashcode() {
         EqualsVerifier.forClass(RemoveUpdateAction.class)
                       .usingGetClass()
                       .verify();
     }
 
     @Test
-    public void build_minimal() {
+    void build_minimal() {
         RemoveUpdateAction action = RemoveUpdateAction.builder()
                                                       .path(PATH)
                                                       .build();
@@ -44,7 +44,7 @@ public class RemoveUpdateActionTest {
     }
 
     @Test
-    public void build_maximal() {
+    void build_maximal() {
         RemoveUpdateAction action = RemoveUpdateAction.builder()
                                                       .path(PATH)
                                                       .expressionNames(Collections.singletonMap(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME))

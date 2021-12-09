@@ -15,18 +15,12 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.update;
 
-import java.util.Map;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * An update action represents a part of an {@link UpdateExpression}
  */
+@SdkPublicApi
 public interface UpdateAction {
-
-    // String expression();
-    //
-    // Map<String, String> expressionNames();
-    //
-    // Map<String, AttributeValue> expressionValues();
 
 }

@@ -16,12 +16,13 @@
 package software.amazon.awssdk.enhanced.dynamodb.update;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-public class UpdateExpressionTest {
+class UpdateExpressionTest {
 
     private static final AttributeValue VAL = AttributeValue.builder().n("5").build();
 
@@ -43,7 +44,7 @@ public class UpdateExpressionTest {
                                                                     .build();
 
     @Test
-    public void equalsHashcode() {
+    void equalsHashcode() {
         EqualsVerifier.forClass(UpdateExpression.class)
                       .withPrefabValues(AttributeValue.class,
                                         AttributeValue.builder().s("1").build(),
@@ -52,7 +53,7 @@ public class UpdateExpressionTest {
     }
 
     @Test
-    public void build_minimal() {
+    void build_minimal() {
         UpdateExpression updateExpression = UpdateExpression.builder().build();
         assertThat(updateExpression.removeActions()).isEmpty();
         assertThat(updateExpression.setActions()).isEmpty();
@@ -61,7 +62,7 @@ public class UpdateExpressionTest {
     }
 
     @Test
-    public void build_maximal_single() {
+    void build_maximal_single() {
         UpdateExpression updateExpression = UpdateExpression.builder()
                                                             .addAction(removeAction)
                                                             .addAction(setAction)
@@ -75,7 +76,7 @@ public class UpdateExpressionTest {
     }
 
     @Test
-    public void build_maximal_plural() {
+    void build_maximal_plural() {
         UpdateExpression updateExpression = UpdateExpression.builder()
                                                             .actions(removeAction, setAction, deleteAction, addAction)
                                                             .build();
@@ -86,7 +87,14 @@ public class UpdateExpressionTest {
     }
 
     @Test
-    public void merge_null_expression() {
+    void unknown_action_generates_error() {
+        assertThatThrownBy(() -> UpdateExpression.builder().actions(new UnknownUpdateAction()).build())
+            .hasMessageContaining("Do not recognize UpdateAction")
+            .hasMessageContaining("UnknownUpdateAction");
+    }
+
+    @Test
+    void merge_null_expression() {
         UpdateExpression updateExpression = UpdateExpression.builder()
                                                             .actions(removeAction, setAction, deleteAction, addAction)
                                                             .build();
@@ -98,7 +106,7 @@ public class UpdateExpressionTest {
     }
 
     @Test
-    public void merge_empty_expression() {
+    void merge_empty_expression() {
         UpdateExpression updateExpression = UpdateExpression.builder()
                                                             .actions(removeAction, setAction, deleteAction, addAction)
                                                             .build();
@@ -110,7 +118,7 @@ public class UpdateExpressionTest {
     }
 
     @Test
-    public void merge_expression_with_one_action_type() {
+    void merge_expression_with_one_action_type() {
         UpdateExpression updateExpression = UpdateExpression.builder()
                                                             .actions(removeAction, setAction, deleteAction, addAction)
                                                             .build();
@@ -127,7 +135,7 @@ public class UpdateExpressionTest {
     }
 
     @Test
-    public void merge_expression_with_all_action_types() {
+    void merge_expression_with_all_action_types() {
         UpdateExpression updateExpression = UpdateExpression.builder()
                                                             .actions(removeAction, setAction, deleteAction, addAction)
                                                             .build();
@@ -144,5 +152,9 @@ public class UpdateExpressionTest {
         assertThat(updateExpression.setActions()).containsExactly(setAction, extraSetAction);
         assertThat(updateExpression.deleteActions()).containsExactly(deleteAction, extraDeleteAction);
         assertThat(updateExpression.addActions()).containsExactly(addAction, extraAddAction);
+    }
+
+    private static final class UnknownUpdateAction implements UpdateAction {
+
     }
 }

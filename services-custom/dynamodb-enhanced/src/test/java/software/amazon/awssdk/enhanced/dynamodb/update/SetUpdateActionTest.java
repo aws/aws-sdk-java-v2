@@ -22,7 +22,7 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-public class SetUpdateActionTest {
+class SetUpdateActionTest {
 
     private static final String PATH = "path string";
     private static final String VALUE = "value string";
@@ -32,7 +32,7 @@ public class SetUpdateActionTest {
     private static final AttributeValue NUMERIC_VALUE = AttributeValue.builder().n("5").build();
 
     @Test
-    public void equalsHashcode() {
+    void equalsHashcode() {
         EqualsVerifier.forClass(SetUpdateAction.class)
                       .usingGetClass()
                       .withPrefabValues(AttributeValue.class,
@@ -42,7 +42,7 @@ public class SetUpdateActionTest {
     }
 
     @Test
-    public void build_minimal() {
+    void build_minimal() {
         SetUpdateAction action = SetUpdateAction.builder()
                                                 .path(PATH)
                                                 .value(VALUE)
@@ -55,7 +55,7 @@ public class SetUpdateActionTest {
     }
 
     @Test
-    public void build_maximal() {
+    void build_maximal() {
         SetUpdateAction action = SetUpdateAction.builder()
                                                 .path(PATH)
                                                 .value(VALUE)

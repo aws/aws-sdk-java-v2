@@ -15,9 +15,11 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.update;
 
-import java.util.Collections;
+import static java.util.Collections.unmodifiableMap;
+
 import java.util.HashMap;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Validate;
 
@@ -45,6 +47,7 @@ import software.amazon.awssdk.utils.Validate;
  * }
  * </pre>
  */
+@SdkPublicApi
 public final class DeleteUpdateAction implements UpdateAction {
 
     private final String path;
@@ -55,8 +58,8 @@ public final class DeleteUpdateAction implements UpdateAction {
     private DeleteUpdateAction(Builder builder) {
         this.path = Validate.paramNotNull(builder.path, "path");
         this.value = Validate.paramNotNull(builder.value, "value");
-        this.expressionValues = Validate.paramNotNull(builder.expressionValues, "expressionValues");
-        this.expressionNames = builder.expressionNames != null ? builder.expressionNames : new HashMap<>();
+        this.expressionValues = unmodifiableMap(Validate.paramNotNull(builder.expressionValues, "expressionValues"));
+        this.expressionNames = unmodifiableMap(builder.expressionNames != null ? builder.expressionNames : new HashMap<>());
     }
 
     /**
@@ -77,11 +80,11 @@ public final class DeleteUpdateAction implements UpdateAction {
     }
 
     public Map<String, String> expressionNames() {
-        return Collections.unmodifiableMap(expressionNames);
+        return expressionNames;
     }
 
     public Map<String, AttributeValue> expressionValues() {
-        return Collections.unmodifiableMap(expressionValues);
+        return expressionValues;
     }
 
     @Override
@@ -145,8 +148,11 @@ public final class DeleteUpdateAction implements UpdateAction {
         }
 
         /**
-         * The 'expression values' token map that maps from value references (expression attribute values) to DynamoDB
-         * AttributeValues. The value reference should always start with ':' (colon).
+         * Sets the 'expression values' token map that maps from value references (expression attribute values) to
+         * DynamoDB AttributeValues, overriding any existing values.
+         * The value reference should always start with ':' (colon).
+         *
+         * @see #putExpressionValue(String, AttributeValue)
          */
         public Builder expressionValues(Map<String, AttributeValue> expressionValues) {
             this.expressionValues = expressionValues == null ? null : new HashMap<>(expressionValues);
@@ -156,7 +162,7 @@ public final class DeleteUpdateAction implements UpdateAction {
         /**
          * Adds a single element to the 'expression values' token map.
          *
-         * @see #expressionValues
+         * @see #expressionValues(Map)
          */
         public Builder putExpressionValue(String key, AttributeValue value) {
             if (this.expressionValues == null) {
@@ -168,12 +174,11 @@ public final class DeleteUpdateAction implements UpdateAction {
         }
 
         /**
-         * Optional 'expression names' token map, to be used if the attribute references in the path expression are
-         * token ('expression attribute names') prepended with the '#' (pound) sign. It should map from token name
-         * to real attribute name.
+         * Sets the optional 'expression names' token map, overriding any existing values. Use if the attribute
+         * references in the path expression are token ('expression attribute names') prepended with the
+         * '#' (pound) sign. It should map from token name to real attribute name.
          *
-         * @param expressionNames
-         * @return
+         * @see #putExpressionName(String, String)
          */
         public Builder expressionNames(Map<String, String> expressionNames) {
             this.expressionNames = expressionNames == null ? null : new HashMap<>(expressionNames);
@@ -183,7 +188,7 @@ public final class DeleteUpdateAction implements UpdateAction {
         /**
          * Adds a single element to the optional 'expression names' token map.
          *
-         * @see #expressionNames
+         * @see #expressionNames(Map)
          */
         public Builder putExpressionName(String key, String value) {
             if (this.expressionNames == null) {

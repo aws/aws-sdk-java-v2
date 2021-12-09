@@ -17,8 +17,8 @@ package software.amazon.awssdk.enhanced.dynamodb.update;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -47,10 +47,10 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 @SdkPublicApi
 public final class UpdateExpression {
 
-    private final Collection<RemoveUpdateAction> removeActions;
-    private final Collection<SetUpdateAction> setActions;
-    private final Collection<DeleteUpdateAction> deleteActions;
-    private final Collection<AddUpdateAction> addActions;
+    private final List<RemoveUpdateAction> removeActions;
+    private final List<SetUpdateAction> setActions;
+    private final List<DeleteUpdateAction> deleteActions;
+    private final List<AddUpdateAction> addActions;
 
     private UpdateExpression(Builder builder) {
         this.removeActions = builder.removeActions != null ? builder.removeActions : new ArrayList<>();
@@ -68,20 +68,20 @@ public final class UpdateExpression {
         return new Builder();
     }
 
-    public Collection<RemoveUpdateAction> removeActions() {
-        return Collections.unmodifiableCollection(removeActions);
+    public List<RemoveUpdateAction> removeActions() {
+        return Collections.unmodifiableList(removeActions);
     }
 
-    public Collection<SetUpdateAction> setActions() {
-        return Collections.unmodifiableCollection(setActions);
+    public List<SetUpdateAction> setActions() {
+        return Collections.unmodifiableList(setActions);
     }
 
-    public Collection<DeleteUpdateAction> deleteActions() {
-        return Collections.unmodifiableCollection(deleteActions);
+    public List<DeleteUpdateAction> deleteActions() {
+        return Collections.unmodifiableList(deleteActions);
     }
 
-    public Collection<AddUpdateAction> addActions() {
-        return Collections.unmodifiableCollection(addActions);
+    public List<AddUpdateAction> addActions() {
+        return Collections.unmodifiableList(addActions);
     }
 
     /**
@@ -134,10 +134,10 @@ public final class UpdateExpression {
      */
     public static final class Builder {
 
-        private Collection<RemoveUpdateAction> removeActions;
-        private Collection<SetUpdateAction> setActions;
-        private Collection<DeleteUpdateAction> deleteActions;
-        private Collection<AddUpdateAction> addActions;
+        private List<RemoveUpdateAction> removeActions;
+        private List<SetUpdateAction> setActions;
+        private List<DeleteUpdateAction> deleteActions;
+        private List<AddUpdateAction> addActions;
 
         private Builder() {
         }
@@ -187,17 +187,17 @@ public final class UpdateExpression {
         }
 
         /**
-         * Adds a collection of {@link UpdateAction} of any subtype to the builder. Calling this operation
-         * repeatedly will add the new collection to existing items and not overwrite them.
+         * Adds a list of {@link UpdateAction} of any subtype to the builder. Calling this operation
+         * repeatedly will add the new list to existing items and not overwrite them.
          */
-        public Builder actions(Collection<UpdateAction> actions) {
+        public Builder actions(List<UpdateAction> actions) {
             addActions(actions);
             return this;
         }
 
         /**
-         * Adds a collection of {@link UpdateAction} of any subtype to the builder. Calling this operation
-         * repeatedly will add the new collection to existing items and not overwrite them.
+         * Adds a lsit of {@link UpdateAction} of any subtype to the builder. Calling this operation
+         * repeatedly will add the new list to existing items and not overwrite them.
          */
         public Builder actions(UpdateAction... actions) {
             actions(Arrays.asList(actions));
@@ -211,7 +211,7 @@ public final class UpdateExpression {
             return new UpdateExpression(this);
         }
 
-        private void addActions(Collection<UpdateAction> actions) {
+        private void addActions(List<UpdateAction> actions) {
             if (actions != null) {
                 actions.forEach(this::assignAction);
             }
@@ -227,7 +227,8 @@ public final class UpdateExpression {
             } else if (action instanceof AddUpdateAction) {
                 addAction((AddUpdateAction) action);
             } else {
-                throw new IllegalArgumentException("Do not recognize this UpdateAction");
+                throw new IllegalArgumentException(
+                    String.format("Do not recognize UpdateAction: %s", action.getClass()));
             }
         }
     }
