@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
  * Contains sets of {@link UpdateAction} that represent the four DynamoDB update actions: SET, ADD, REMOVE and DELETE.
@@ -53,10 +54,10 @@ public final class UpdateExpression {
     private final List<AddUpdateAction> addActions;
 
     private UpdateExpression(Builder builder) {
-        this.removeActions = builder.removeActions != null ? builder.removeActions : new ArrayList<>();
-        this.setActions = builder.setActions != null ? builder.setActions : new ArrayList<>();
-        this.deleteActions = builder.deleteActions != null ? builder.deleteActions : new ArrayList<>();
-        this.addActions = builder.addActions != null ? builder.addActions : new ArrayList<>();
+        this.removeActions = builder.removeActions;
+        this.setActions = builder.setActions;
+        this.deleteActions = builder.deleteActions;
+        this.addActions = builder.addActions;
     }
 
     /**
@@ -91,10 +92,18 @@ public final class UpdateExpression {
         if (expression == null) {
             return;
         }
-        removeActions.addAll(expression.removeActions());
-        setActions.addAll(expression.setActions());
-        deleteActions.addAll(expression.deleteActions());
-        addActions.addAll(expression.addActions());
+        if (!CollectionUtils.isNullOrEmpty(expression.removeActions)) {
+            removeActions.addAll(expression.removeActions());
+        }
+        if (!CollectionUtils.isNullOrEmpty(expression.setActions)) {
+            setActions.addAll(expression.setActions());
+        }
+        if (!CollectionUtils.isNullOrEmpty(expression.deleteActions)) {
+            deleteActions.addAll(expression.deleteActions());
+        }
+        if (!CollectionUtils.isNullOrEmpty(expression.addActions)) {
+            addActions.addAll(expression.addActions());
+        }
     }
 
     @Override
@@ -134,10 +143,10 @@ public final class UpdateExpression {
      */
     public static final class Builder {
 
-        private List<RemoveUpdateAction> removeActions;
-        private List<SetUpdateAction> setActions;
-        private List<DeleteUpdateAction> deleteActions;
-        private List<AddUpdateAction> addActions;
+        private List<RemoveUpdateAction> removeActions = new ArrayList<>();
+        private List<SetUpdateAction> setActions = new ArrayList<>();
+        private List<DeleteUpdateAction> deleteActions = new ArrayList<>();
+        private List<AddUpdateAction> addActions = new ArrayList<>();
 
         private Builder() {
         }
@@ -146,9 +155,6 @@ public final class UpdateExpression {
          * Add an action of type {@link RemoveUpdateAction}
          */
         public Builder addAction(RemoveUpdateAction action) {
-            if (this.removeActions == null) {
-                this.removeActions = new ArrayList<>();
-            }
             removeActions.add(action);
             return this;
         }
@@ -157,9 +163,6 @@ public final class UpdateExpression {
          * Add an action of type {@link SetUpdateAction}
          */
         public Builder addAction(SetUpdateAction action) {
-            if (this.setActions == null) {
-                this.setActions = new ArrayList<>();
-            }
             setActions.add(action);
             return this;
         }
@@ -168,9 +171,6 @@ public final class UpdateExpression {
          * Add an action of type {@link DeleteUpdateAction}
          */
         public Builder addAction(DeleteUpdateAction action) {
-            if (this.deleteActions == null) {
-                this.deleteActions = new ArrayList<>();
-            }
             deleteActions.add(action);
             return this;
         }
@@ -179,25 +179,20 @@ public final class UpdateExpression {
          * Add an action of type {@link AddUpdateAction}
          */
         public Builder addAction(AddUpdateAction action) {
-            if (this.addActions == null) {
-                this.addActions = new ArrayList<>();
-            }
             addActions.add(action);
             return this;
         }
 
         /**
-         * Adds a list of {@link UpdateAction} of any subtype to the builder. Calling this operation
-         * repeatedly will add the new list to existing items and not overwrite them.
+         * Adds a list of {@link UpdateAction} of any subtype to the builder, overwriting any previous values.
          */
-        public Builder actions(List<UpdateAction> actions) {
-            addActions(actions);
+        public Builder actions(List<? extends UpdateAction> actions) {
+            replaceActions(actions);
             return this;
         }
 
         /**
-         * Adds a lsit of {@link UpdateAction} of any subtype to the builder. Calling this operation
-         * repeatedly will add the new list to existing items and not overwrite them.
+         * Adds a lsit of {@link UpdateAction} of any subtype to the builder, overwriting any previous values.
          */
         public Builder actions(UpdateAction... actions) {
             actions(Arrays.asList(actions));
@@ -211,8 +206,12 @@ public final class UpdateExpression {
             return new UpdateExpression(this);
         }
 
-        private void addActions(List<UpdateAction> actions) {
+        private void replaceActions(List<? extends UpdateAction> actions) {
             if (actions != null) {
+                this.removeActions = new ArrayList<>();
+                this.setActions = new ArrayList<>();
+                this.deleteActions = new ArrayList<>();
+                this.addActions = new ArrayList<>();
                 actions.forEach(this::assignAction);
             }
         }

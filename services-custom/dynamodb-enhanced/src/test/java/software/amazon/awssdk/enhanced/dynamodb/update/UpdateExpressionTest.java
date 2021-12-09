@@ -18,6 +18,8 @@ package software.amazon.awssdk.enhanced.dynamodb.update;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.Arrays;
+import java.util.List;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -80,7 +82,22 @@ class UpdateExpressionTest {
         UpdateExpression updateExpression = UpdateExpression.builder()
                                                             .actions(removeAction, setAction, deleteAction, addAction)
                                                             .build();
+
         assertThat(updateExpression.removeActions()).containsExactly(removeAction);
+        assertThat(updateExpression.setActions()).containsExactly(setAction);
+        assertThat(updateExpression.deleteActions()).containsExactly(deleteAction);
+        assertThat(updateExpression.addActions()).containsExactly(addAction);
+    }
+
+    @Test
+    void build_plural_is_not_additive() {
+        List<RemoveUpdateAction> removeActions = Arrays.asList(removeAction, removeAction);
+        UpdateExpression updateExpression = UpdateExpression.builder()
+                                                            .actions(removeActions)
+                                                            .actions(setAction, deleteAction, addAction)
+                                                            .build();
+
+        assertThat(updateExpression.removeActions()).isEmpty();
         assertThat(updateExpression.setActions()).containsExactly(setAction);
         assertThat(updateExpression.deleteActions()).containsExactly(deleteAction);
         assertThat(updateExpression.addActions()).containsExactly(addAction);
