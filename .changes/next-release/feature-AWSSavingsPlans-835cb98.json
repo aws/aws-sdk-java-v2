@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Savings Plans",
-    "contributor": "",
-    "description": "Adds the ability to specify Savings Plans hourly commitments using five digits after the decimal point."
-}
