@@ -106,8 +106,8 @@ public class AsyncFaultTest {
             @Override
             public void onSubscribe(Subscription s) {
                 this.subscription = s;
-                subscription.cancel();
                 resultFuture.completeExceptionally(new SelfCancelException());
+                subscription.cancel();
             }
 
             @Override
