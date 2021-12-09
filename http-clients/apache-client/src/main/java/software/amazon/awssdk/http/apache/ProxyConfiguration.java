@@ -365,7 +365,11 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
         @Override
         public Builder nonProxyHosts(Set<String> nonProxyHosts) {
-            this.nonProxyHosts = new HashSet<>(nonProxyHosts);
+            if (nonProxyHosts != null) {
+                this.nonProxyHosts = new HashSet<>(nonProxyHosts);
+            } else {
+                this.nonProxyHosts = Collections.emptySet();
+            }
             return this;
         }
 
