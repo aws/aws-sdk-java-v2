@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http;
 
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricLevel;
@@ -103,6 +104,19 @@ public final class HttpMetric {
      */
     public static final SdkMetric<Integer> HTTP_STATUS_CODE =
         metric("HttpStatusCode", Integer.class, MetricLevel.TRACE);
+
+    /**
+     * The time taken to acquire a channel from the channel pool.
+     *
+     * <p>For HTTP/1 operations, a channel is equivalent to a TCP connection. For HTTP/2 operations, a channel is equivalent to
+     * an HTTP/2 stream channel. For both protocols, the time to acquire a new channel may or may not involve establishing a new
+     * connection, depending on whether an existing channel is available in the pool or not. New connection establishment time may
+     * also include TLS handshake time, if TLS is enabled.
+     *
+     * <p>Note: This metric is currently only supported in 'netty-nio-client'.
+     */
+    public static final SdkMetric<Duration> CHANNEL_ACQUIRE_DURATION =
+        metric("ChannelAcquireDuration", Duration.class, MetricLevel.INFO);
 
     private HttpMetric() {
     }
