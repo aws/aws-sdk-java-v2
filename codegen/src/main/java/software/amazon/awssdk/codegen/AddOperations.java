@@ -54,7 +54,7 @@ final class AddOperations {
     }
 
     private static boolean isAuthenticated(Operation op) {
-        return op.getAuthtype() == null || !op.getAuthtype().equals(AuthType.NONE);
+        return op.getAuthtype() == null || op.getAuthtype() != AuthType.NONE;
     }
 
     private static String getOperationDocumentation(final Output output, final Shape outputShape) {

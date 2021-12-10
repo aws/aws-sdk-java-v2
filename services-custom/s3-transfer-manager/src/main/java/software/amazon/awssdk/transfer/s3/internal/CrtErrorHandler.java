@@ -53,7 +53,7 @@ public class CrtErrorHandler {
         Exception exception = crtS3RuntimeExceptionOptional
                 .filter(CrtErrorHandler::isErrorDetailsAvailable)
                 .map(e -> getServiceSideException(e))
-                .orElse(SdkClientException.create(crtRuntimeException.getMessage(), crtRuntimeException));
+                .orElseGet(() -> SdkClientException.create(crtRuntimeException.getMessage(), crtRuntimeException));
         return exception;
     }
 

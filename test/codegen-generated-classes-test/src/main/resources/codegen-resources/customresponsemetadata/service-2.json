@@ -143,6 +143,20 @@
         "requestUri":"/2016-03-11/operationWithNoInputOrOutput"
       }
     },
+    "PaginatedOperationWithResultKey": {
+      "name": "PaginatedOperationWithResultKey",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "PaginatedOperationWithResultKeyRequest"
+      },
+      "output": {
+        "shape": "PaginatedOperationWithResultKeyResponse"
+      },
+      "documentation": "Some paginated operation with result_key in paginators.json file"
+    },
     "QueryParamWithoutValue":{
       "name":"QueryParamWithoutValue",
       "http":{
@@ -571,6 +585,33 @@
           "locationName":"Content-Type"
         }
       }
+    },
+    "PaginatedOperationWithResultKeyRequest": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "String",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "MaxResults": {
+          "shape": "String",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        }
+      }
+    },
+    "PaginatedOperationWithResultKeyResponse": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "String",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "Items": {
+          "shape": "ListOfSimpleStructs",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        }
+      },
+      "documentation": "<p>Response type of a single page</p>"
     },
     "PayloadStructType":{
       "type":"structure",

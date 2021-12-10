@@ -431,6 +431,7 @@ public class PutItemOperationTest {
             DefaultDynamoDbExtensionContext.builder()
                                            .items(baseMap)
                                            .operationContext(PRIMARY_CONTEXT)
+                                           .operationName(OperationName.PUT_ITEM)
                                            .tableSchema(FakeItem.getTableSchema())
                                            .tableMetadata(FakeItem.getTableMetadata()).build());
     }

@@ -173,6 +173,17 @@ public enum SdkSystemSetting implements SystemSetting {
      */
     AWS_DEFAULTS_MODE("aws.defaultsMode", null),
 
+    /**
+     * Defines whether dualstack endpoints should be resolved during default endpoint resolution instead of non-dualstack
+     * endpoints.
+     */
+    AWS_USE_DUALSTACK_ENDPOINT("aws.useDualstackEndpoint", null),
+
+    /**
+     * Defines whether fips endpoints should be resolved during default endpoint resolution instead of non-fips endpoints.
+     */
+    AWS_USE_FIPS_ENDPOINT("aws.useFipsEndpoint", null),
+
     ;
 
     private final String systemProperty;

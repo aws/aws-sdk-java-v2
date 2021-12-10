@@ -1,0 +1,54 @@
+{
+    "version": "2.17.84",
+    "date": "2021-11-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AmplifyBackend",
+            "contributor": "",
+            "description": "New APIs to support the Amplify Storage category. Add and manage file storage in your Amplify app backend."
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Data API Service",
+            "contributor": "",
+            "description": "Data API now supports serverless requests."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Notification Service",
+            "contributor": "",
+            "description": "Amazon SNS introduces the PublishBatch API, which enables customers to publish up to 10 messages per API request. The new API is valid for Standard and FIFO topics."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DevOps Guru",
+            "contributor": "",
+            "description": "Add paginator for DescribeResourceCollectionHealth"
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Disaster Recovery Service",
+            "contributor": "",
+            "description": "Introducing AWS Elastic Disaster Recovery (AWS DRS), a new service that minimizes downtime and data loss with fast, reliable recovery of on-premises and cloud-based applications using affordable storage, minimal compute, and point-in-time recovery."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppConfig Data",
+            "contributor": "",
+            "description": "AWS AppConfig Data is a new service that allows you to retrieve configuration deployed by AWS AppConfig. See the AppConfig user guide for more details on getting started. https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon API Gateway",
+            "contributor": "",
+            "description": "Documentation updates for Amazon API Gateway."
+        }
+    ]
+}

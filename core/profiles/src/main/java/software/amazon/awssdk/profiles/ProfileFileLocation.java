@@ -45,8 +45,8 @@ public final class ProfileFileLocation {
     public static Path configurationFilePath() {
         return resolveProfileFilePath(
             ProfileFileSystemSetting.AWS_CONFIG_FILE.getStringValue()
-                                                    .orElse(Paths.get(userHomeDirectory(),
-                                                                      ".aws", "config").toString()));
+                                                    .orElseGet(() -> Paths.get(userHomeDirectory(),
+                                                                               ".aws", "config").toString()));
     }
 
     /**
@@ -57,8 +57,8 @@ public final class ProfileFileLocation {
     public static Path credentialsFilePath() {
         return resolveProfileFilePath(
             ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE.getStringValue()
-                                                                .orElse(Paths.get(userHomeDirectory(),
-                                                                                  ".aws", "credentials").toString()));
+                                                                .orElseGet(() -> Paths.get(userHomeDirectory(),
+                                                                                           ".aws", "credentials").toString()));
     }
 
     /**

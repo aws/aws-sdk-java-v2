@@ -54,6 +54,11 @@ public class CreateTableOperation<T> implements TableOperation<T, CreateTableReq
     }
 
     @Override
+    public OperationName operationName() {
+        return OperationName.CREATE_TABLE;
+    }
+
+    @Override
     public CreateTableRequest generateRequest(TableSchema<T> tableSchema,
                                               OperationContext operationContext,
                                               DynamoDbEnhancedClientExtension extension) {

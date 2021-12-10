@@ -24,6 +24,7 @@ import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.ServiceEndpointKey;
 import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.regions.ServiceMetadataConfiguration;
@@ -59,16 +60,16 @@ public final class EnhancedS3ServiceMetadata implements ServiceMetadata {
     }
 
     @Override
-    public URI endpointFor(Region region) {
-        if (Region.US_EAST_1.equals(region) && !useUsEast1RegionalEndpoint.getValue()) {
+    public URI endpointFor(ServiceEndpointKey key) {
+        if (Region.US_EAST_1.equals(key.region()) && key.tags().isEmpty() && !useUsEast1RegionalEndpoint.getValue()) {
             return URI.create("s3.amazonaws.com");
         }
-        return s3ServiceMetadata.endpointFor(region);
+        return s3ServiceMetadata.endpointFor(key);
     }
 
     @Override
-    public Region signingRegion(Region region) {
-        return s3ServiceMetadata.signingRegion(region);
+    public Region signingRegion(ServiceEndpointKey key) {
+        return s3ServiceMetadata.signingRegion(key);
     }
 
     @Override

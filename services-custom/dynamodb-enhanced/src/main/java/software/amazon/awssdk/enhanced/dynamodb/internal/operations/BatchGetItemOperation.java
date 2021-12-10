@@ -51,6 +51,11 @@ public class BatchGetItemOperation
     }
 
     @Override
+    public OperationName operationName() {
+        return OperationName.BATCH_GET_ITEM;
+    }
+
+    @Override
     public BatchGetItemRequest generateRequest(DynamoDbEnhancedClientExtension extension) {
         Map<String, KeysAndAttributes> requestItems = new HashMap<>();
         request.readBatches().forEach(readBatch -> addReadRequestsToMap(readBatch, requestItems));

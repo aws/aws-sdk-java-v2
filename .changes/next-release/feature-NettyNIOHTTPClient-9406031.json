@@ -1,6 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Allow users to configure tlsNegotiationTimeout on NettyNioAsyncHttpClient"
-}

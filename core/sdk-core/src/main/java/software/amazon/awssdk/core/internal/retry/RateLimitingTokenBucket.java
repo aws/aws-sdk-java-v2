@@ -185,15 +185,14 @@ public class RateLimitingTokenBucket {
      * @return The unfulfilled amount.
      */
     double tryAcquireCapacity(double amount) {
+        double result;
         if (amount <= currentCapacity) {
-            currentCapacity = currentCapacity - amount;
-            amount = 0;
+            result = 0;
         } else {
-            amount = amount - currentCapacity;
-            currentCapacity = 0;
+            result = amount - currentCapacity;
         }
-
-        return amount;
+        currentCapacity = currentCapacity - amount;
+        return result;
     }
 
     private void initialize() {
@@ -347,9 +346,10 @@ public class RateLimitingTokenBucket {
 
     /**
      * Sleep for a given amount of seconds.
+     *
      * @param seconds The amount of time to sleep in seconds.
      */
-    private static void sleep(double seconds) {
+    void sleep(double seconds) {
         long millisToSleep = (long) (seconds * 1000);
         try {
             Thread.sleep(millisToSleep);

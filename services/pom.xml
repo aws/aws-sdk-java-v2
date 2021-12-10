@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.17.73-SNAPSHOT</version>
+        <version>2.17.100-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -305,6 +305,20 @@
         <module>cloudcontrol</module>
         <module>grafana</module>
         <module>panorama</module>
+        <module>chimesdkmeetings</module>
+        <module>resiliencehub</module>
+        <module>migrationhubstrategy</module>
+        <module>drs</module>
+        <module>appconfigdata</module>
+        <module>migrationhubrefactorspaces</module>
+        <module>inspector2</module>
+        <module>evidently</module>
+        <module>rum</module>
+        <module>rbin</module>
+        <module>iottwinmaker</module>
+        <module>workspacesweb</module>
+        <module>backupgateway</module>
+        <module>amplifyuibuilder</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
@@ -371,6 +385,18 @@
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor.tools</groupId>
+            <artifactId>blockhound</artifactId>
+            <version>${blockhound.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor.tools</groupId>
+            <artifactId>blockhound-junit-platform</artifactId>
+            <version>${blockhound.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <artifactId>service-test-utils</artifactId>

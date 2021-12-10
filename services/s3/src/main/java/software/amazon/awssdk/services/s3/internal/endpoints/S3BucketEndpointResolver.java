@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.endpoints;
 
+import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.accelerateDualstackEndpoint;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.accelerateEndpoint;
-import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.dualstackEndpoint;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isAccelerateEnabled;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isAccelerateSupported;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isDualstackEnabled;
@@ -26,6 +26,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.regions.PartitionMetadata;
 import software.amazon.awssdk.regions.RegionMetadata;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.BucketUtils;
@@ -70,14 +71,25 @@ public final class S3BucketEndpointResolver implements S3EndpointResolver {
         SdkHttpRequest request = context.request();
         String protocol = request.protocol();
         RegionMetadata regionMetadata = RegionMetadata.of(context.region());
+        String dnsSuffixWithoutTagConsideration = regionMetadata != null ?
+                                                  regionMetadata.domain() :
+                                                  PartitionMetadata.of(context.region()).dnsSuffix();
         S3Configuration serviceConfiguration = context.serviceConfiguration();
 
-        if (isAccelerateEnabled(serviceConfiguration) && isAccelerateSupported(context.originalRequest())) {
-            return accelerateEndpoint(serviceConfiguration, regionMetadata.domain(), protocol);
+        boolean useAccelerate = isAccelerateEnabled(serviceConfiguration) && isAccelerateSupported(context.originalRequest());
+        boolean useDualstack = isDualstackEnabled(serviceConfiguration);
+        boolean useFips = context.fipsEnabled();
+
+        if (useAccelerate && useFips) {
+            throw new IllegalStateException("FIPS is not currently supported for S3 accelerate endpoints.");
         }
 
-        if (isDualstackEnabled(serviceConfiguration)) {
-            return dualstackEndpoint(regionMetadata.id(), regionMetadata.domain(), protocol);
+        if (useAccelerate && useDualstack) {
+            return accelerateDualstackEndpoint(dnsSuffixWithoutTagConsideration, protocol);
+        }
+
+        if (useAccelerate) {
+            return accelerateEndpoint(dnsSuffixWithoutTagConsideration, protocol);
         }
 
         return invokeSafely(() -> new URI(protocol, null, request.host(), request.port(), null, null, null));

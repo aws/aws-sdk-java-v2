@@ -67,6 +67,11 @@ public class PutItemOperation<T>
     }
 
     @Override
+    public OperationName operationName() {
+        return OperationName.PUT_ITEM;
+    }
+
+    @Override
     public PutItemRequest generateRequest(TableSchema<T> tableSchema,
                                           OperationContext operationContext,
                                           DynamoDbEnhancedClientExtension extension) {
@@ -91,6 +96,7 @@ public class PutItemOperation<T>
                                                .operationContext(operationContext)
                                                .tableMetadata(tableMetadata)
                                                .tableSchema(tableSchema)
+                                               .operationName(operationName())
                                                .build())
                 : null;
 

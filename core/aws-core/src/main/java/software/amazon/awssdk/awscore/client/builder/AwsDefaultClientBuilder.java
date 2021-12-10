@@ -29,6 +29,8 @@ import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
+import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.eventstream.EventStreamInitialRequestInterceptor;
 import software.amazon.awssdk.awscore.interceptor.HelpfulUnknownHostExceptionInterceptor;
 import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDiscovery;
@@ -174,6 +176,9 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
         configuration = configuration.toBuilder()
                                      .option(AwsClientOption.AWS_REGION, resolveRegion(configuration))
+                                     .option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED,
+                                             resolveDualstackEndpointEnabled(configuration))
+                                     .option(AwsClientOption.FIPS_ENDPOINT_ENABLED, resolveFipsEndpointEnabled(configuration))
                                      .build();
 
         configuration = mergeSmartDefaults(configuration);
@@ -234,10 +239,12 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     private URI endpointFromConfig(SdkClientConfiguration config) {
         return new DefaultServiceEndpointBuilder(serviceEndpointPrefix(), DEFAULT_ENDPOINT_PROTOCOL)
             .withRegion(config.option(AwsClientOption.AWS_REGION))
-            .withProfileFile(config.option(SdkClientOption.PROFILE_FILE))
+            .withProfileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
             .withProfileName(config.option(SdkClientOption.PROFILE_NAME))
             .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
                                config.option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
+            .withDualstackEnabled(config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+            .withFipsEnabled(config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED))
             .getServiceEndpoint();
     }
 
@@ -288,6 +295,52 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     /**
+     * Resolve whether a dualstack endpoint should be used for this client.
+     */
+    private Boolean resolveDualstackEndpointEnabled(SdkClientConfiguration config) {
+        return config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED) != null
+               ? config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED)
+               : resolveUseDualstackFromDefaultProvider(config);
+    }
+
+    /**
+     * Load the dualstack endpoint setting from the default provider logic.
+     */
+    private Boolean resolveUseDualstackFromDefaultProvider(SdkClientConfiguration config) {
+        ProfileFile profileFile = config.option(SdkClientOption.PROFILE_FILE);
+        String profileName = config.option(SdkClientOption.PROFILE_NAME);
+        return DualstackEnabledProvider.builder()
+                                       .profileFile(() -> profileFile)
+                                       .profileName(profileName)
+                                       .build()
+                                       .isDualstackEnabled()
+                                       .orElse(null);
+    }
+
+    /**
+     * Resolve whether a dualstack endpoint should be used for this client.
+     */
+    private Boolean resolveFipsEndpointEnabled(SdkClientConfiguration config) {
+        return config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED) != null
+               ? config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)
+               : resolveUseFipsFromDefaultProvider(config);
+    }
+
+    /**
+     * Load the dualstack endpoint setting from the default provider logic.
+     */
+    private Boolean resolveUseFipsFromDefaultProvider(SdkClientConfiguration config) {
+        ProfileFile profileFile = config.option(SdkClientOption.PROFILE_FILE);
+        String profileName = config.option(SdkClientOption.PROFILE_NAME);
+        return FipsEnabledProvider.builder()
+                                  .profileFile(() -> profileFile)
+                                  .profileName(profileName)
+                                  .build()
+                                  .isFipsEnabled()
+                                  .orElse(null);
+    }
+
+    /**
      * Resolve the credentials that should be used based on the customer's configuration.
      */
     private AwsCredentialsProvider resolveCredentials(SdkClientConfiguration config) {
@@ -326,6 +379,26 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     public final void setRegion(Region region) {
         region(region);
+    }
+
+    @Override
+    public BuilderT dualstackEnabled(Boolean dualstackEndpointEnabled) {
+        clientConfiguration.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED, dualstackEndpointEnabled);
+        return thisBuilder();
+    }
+
+    public final void setDualstackEnabled(Boolean dualstackEndpointEnabled) {
+        dualstackEnabled(dualstackEndpointEnabled);
+    }
+
+    @Override
+    public BuilderT fipsEnabled(Boolean dualstackEndpointEnabled) {
+        clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, dualstackEndpointEnabled);
+        return thisBuilder();
+    }
+
+    public final void setFipsEnabled(Boolean fipsEndpointEnabled) {
+        fipsEnabled(fipsEndpointEnabled);
     }
 
     @Override
