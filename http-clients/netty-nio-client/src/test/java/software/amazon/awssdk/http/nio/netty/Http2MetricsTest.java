@@ -86,7 +86,7 @@ public class Http2MetricsTest {
             assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY).get(0)).isBetween(0, 1);
             assertThat(metrics.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES).get(0)).isBetween(0, 1);
             assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).containsExactly(0);
-            assertThat(metrics.metricValues(HttpMetric.CHANNEL_ACQUIRE_DURATION).get(0)).isPositive();
+            assertThat(metrics.metricValues(HttpMetric.CONCURRENCY_ACQUIRE_DURATION).get(0)).isPositive();
             // The stream window doesn't get initialized with the connection
             // initial setting and the update appears to be asynchronous so
             // this may be the default window size just based on when the
@@ -114,7 +114,7 @@ public class Http2MetricsTest {
             assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY).get(0)).isBetween(0, 1);
             assertThat(metrics.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES).get(0)).isBetween(0, 1);
             assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY).get(0)).isIn(0, 2, 3);
-            assertThat(metrics.metricValues(HttpMetric.CHANNEL_ACQUIRE_DURATION).get(0)).isPositive();
+            assertThat(metrics.metricValues(HttpMetric.CONCURRENCY_ACQUIRE_DURATION).get(0)).isPositive();
             // The stream window doesn't get initialized with the connection
             // initial setting and the update appears to be asynchronous so
             // this may be the default window size just based on when the

@@ -2,5 +2,5 @@
     "category": "Netty NIO HTTP Client", 
     "contributor": "", 
     "type": "feature", 
-    "description": "Add \"ChannelAcquireDuration\" metric for netty-nio-client"
+    "description": "Add \"ConcurrencyAcquireDuration\" metric for netty-nio-client"
 }

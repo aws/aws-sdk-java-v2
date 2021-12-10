@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import static software.amazon.awssdk.http.HttpMetric.CHANNEL_ACQUIRE_DURATION;
+import static software.amazon.awssdk.http.HttpMetric.CONCURRENCY_ACQUIRE_DURATION;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTION_ID_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.IN_USE;
@@ -100,7 +100,7 @@ public final class NettyRequestExecutor {
     private void acquireChannel(Promise<Channel> channelFuture) {
         NettyRequestMetrics.ifMetricsAreEnabled(context.metricCollector(), metrics -> {
             measureTimeTaken(channelFuture, duration -> {
-                metrics.reportMetric(CHANNEL_ACQUIRE_DURATION, duration);
+                metrics.reportMetric(CONCURRENCY_ACQUIRE_DURATION, duration);
             });
         });
         context.channelPool().acquire(channelFuture);
