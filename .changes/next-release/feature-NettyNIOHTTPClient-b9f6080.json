@@ -1,0 +1,6 @@
+{
+    "category": "Netty NIO HTTP Client", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Add \"ConcurrencyAcquireDuration\" metric for netty-nio-client"
+}
