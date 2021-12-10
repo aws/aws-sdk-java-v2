@@ -15,12 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.update;
 
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.cleanAttributeName;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.UnaryOperator;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Validate;
 
