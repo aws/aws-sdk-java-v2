@@ -31,14 +31,14 @@ import software.amazon.awssdk.utils.CollectionUtils;
  * <p>
  * DynamoDb Enhanced will convert the UpdateExpression to a format readable by DynamoDb,
  * <p>
- * Examples of adding actions for attributes directly:
+ * Example:-
  * <pre>
  * {@code
  * RemoveUpdateAction removeAction = ...
- * List<SetUpdateAction> setActions = ...
+ * SetUpdateAction setAction = ...
  * UpdateExpression.builder()
  *                 .addAction(removeAction)
- *                 .actions(setActions)
+ *                 .addAction(setAction)
  *                 .build();
  * }
  * </pre>
@@ -70,19 +70,19 @@ public final class UpdateExpression {
     }
 
     public List<RemoveUpdateAction> removeActions() {
-        return Collections.unmodifiableList(removeActions);
+        return Collections.unmodifiableList(new ArrayList<>(removeActions));
     }
 
     public List<SetUpdateAction> setActions() {
-        return Collections.unmodifiableList(setActions);
+        return Collections.unmodifiableList(new ArrayList<>(setActions));
     }
 
     public List<DeleteUpdateAction> deleteActions() {
-        return Collections.unmodifiableList(deleteActions);
+        return Collections.unmodifiableList(new ArrayList<>(deleteActions));
     }
 
     public List<AddUpdateAction> addActions() {
-        return Collections.unmodifiableList(addActions);
+        return Collections.unmodifiableList(new ArrayList<>(addActions));
     }
 
     /**
@@ -192,7 +192,7 @@ public final class UpdateExpression {
         }
 
         /**
-         * Adds a lsit of {@link UpdateAction} of any subtype to the builder, overwriting any previous values.
+         * Adds a list of {@link UpdateAction} of any subtype to the builder, overwriting any previous values.
          */
         public Builder actions(UpdateAction... actions) {
             actions(Arrays.asList(actions));

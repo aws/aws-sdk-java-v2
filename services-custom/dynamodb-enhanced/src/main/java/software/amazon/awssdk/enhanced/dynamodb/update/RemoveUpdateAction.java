@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.update;
 
-import static java.util.Collections.unmodifiableMap;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.cleanAttributeName;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Validate;
 
@@ -50,7 +52,11 @@ public final class RemoveUpdateAction implements UpdateAction {
 
     private RemoveUpdateAction(Builder builder) {
         this.path = Validate.paramNotNull(builder.path, "path");
-        this.expressionNames = unmodifiableMap(builder.expressionNames != null ? builder.expressionNames : new HashMap<>());
+        this.expressionNames = wrapSecure(builder.expressionNames != null ? builder.expressionNames : new HashMap<>());
+    }
+
+    private static <T, U> Map<T, U> wrapSecure(Map<T, U> map) {
+        return Collections.unmodifiableMap(new HashMap<>(map));
     }
 
     /**
