@@ -29,6 +29,7 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Platform;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
@@ -53,7 +54,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * </ul>
  */
 @SdkPublicApi
-public final class ProcessCredentialsProvider implements AwsCredentialsProvider {
+public final class ProcessCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     private static final JsonNodeParser PARSER = JsonNodeParser.builder()
                                                                .removeErrorLocations(true)
                                                                .build();
@@ -202,6 +203,11 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
         } finally {
             process.destroy();
         }
+    }
+
+    @Override
+    public void close() {
+        processCredentialCache.close();
     }
 
     /**
