@@ -26,6 +26,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
@@ -39,7 +40,7 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncCli
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
-
+@Ignore
 public class AsyncFaultTest {
     @Rule
     public WireMockRule wireMock = new WireMockRule(0);
