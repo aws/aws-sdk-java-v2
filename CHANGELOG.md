@@ -1,3 +1,73 @@
+# __2.17.99__ __2021-12-09__
+## __AWS Network Firewall__
+  - ### Features
+    - This release adds support for managed rule groups.
+
+## __AWS Route53 Recovery Control Config__
+  - ### Features
+    - This release adds tagging supports to Route53 Recovery Control Configuration. New APIs: TagResource, UntagResource and ListTagsForResource. Updates: add optional field `tags` to support tagging while calling CreateCluster, CreateControlPanel and CreateSafetyRule.
+
+## __AWS Savings Plans__
+  - ### Features
+    - Adds the ability to specify Savings Plans hourly commitments using five digits after the decimal point.
+
+## __AWS Server Migration Service__
+  - ### Features
+    - This release adds SMS discontinuation information to the API and CLI references.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds waiters support for internet gateways.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Added support for grammar slot type in Amazon Lex. You can author your own grammar in the XML format per the SRGS specification to collect information in a conversation.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Amazon Route 53 domain registration APIs now support filtering and sorting in the ListDomains API, deleting a domain by using the DeleteDomain API and getting domain pricing information by using the ListPrices API.
+
+# __2.17.98__ __2021-12-08__
+## __AWS Comprehend Medical__
+  - ### Features
+    - This release adds a new set of APIs (synchronous and batch) to support the SNOMED-CT ontology.
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Documentation updates for AWS Health
+
+## __AWS IoT__
+  - ### Features
+    - This release allows customer to enable caching of custom authorizer on HTTP protocol for clients that use persistent or Keep-Alive connection in order to reduce the number of Lambda invocations.
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds the UpdateOutpost API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Support__
+  - ### Features
+    - Documentation updates for AWS Support.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release adds AWS Organizations support as condition key in destination policy for cross account Subscriptions in CloudWatch Logs.
+
+## __Amazon Lookout for Vision__
+  - ### Features
+    - This release adds new APIs for packaging an Amazon Lookout for Vision model as an AWS IoT Greengrass component.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release added a new Ambarella device(amba_cv2) compilation support for Sagemaker Neo.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Ensure initial channel used for protocol detection is released before re-acquiring
+
 # __2.17.97__ __2021-12-06__
 ## __AWS AppSync__
   - ### Features
