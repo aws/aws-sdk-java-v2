@@ -123,13 +123,11 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
      */
     private static void finalizeResponse(RequestContext requestContext, ChannelHandlerContext channelContext) {
         channelContext.channel().attr(RESPONSE_COMPLETE_KEY).set(true);
+        executeFuture(channelContext).complete(null);
         if (!channelContext.channel().attr(KEEP_ALIVE).get()) {
             closeAndRelease(channelContext);
-            executeFuture(channelContext).complete(null);
         } else {
-            requestContext.channelPool().release(channelContext.channel()).addListener(f -> {
-                executeFuture(channelContext).complete(null);
-            });
+            requestContext.channelPool().release(channelContext.channel());
         }
     }
 

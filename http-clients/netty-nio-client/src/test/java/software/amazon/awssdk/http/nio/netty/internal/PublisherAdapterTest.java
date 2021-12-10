@@ -17,7 +17,6 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,7 +29,6 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.EmptyByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
 import io.netty.handler.codec.http.DefaultHttpContent;
@@ -39,9 +37,6 @@ import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.util.concurrent.DefaultPromise;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GlobalEventExecutor;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -50,7 +45,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -111,8 +105,6 @@ public class PublisherAdapterTest {
 
     @Test
     public void successfulStreaming_shouldNotInvokeChannelRead() {
-        stubChannelReleaseForSuccess();
-
         Flowable<HttpContent> testPublisher = Flowable.just(fullHttpResponse);
 
         StreamedHttpResponse streamedHttpResponse = new DefaultStreamedHttpResponse(HttpVersion.HTTP_1_1,
@@ -136,14 +128,6 @@ public class PublisherAdapterTest {
         verify(channelPool).release(channel);
         executeFuture.join();
         assertThat(executeFuture).isCompleted();
-    }
-
-    private void stubChannelReleaseForSuccess() {
-        when(channelPool.release(any(Channel.class))).thenAnswer((Answer<Future<Void>>) invocation -> {
-            DefaultPromise<Void> future = new DefaultPromise<>(GlobalEventExecutor.INSTANCE);
-            future.setSuccess(null);
-            return future;
-        });
     }
 
     @Test
