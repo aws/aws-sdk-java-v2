@@ -20,9 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -46,6 +45,7 @@ import software.amazon.awssdk.services.lambda.model.ListFunctionsRequest;
 import software.amazon.awssdk.services.lambda.model.ListFunctionsResponse;
 import software.amazon.awssdk.services.lambda.model.LogType;
 import software.amazon.awssdk.services.lambda.model.Runtime;
+import software.amazon.awssdk.services.lambda.waiters.LambdaAsyncWaiter;
 import software.amazon.awssdk.testutils.retry.RetryRule;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -58,12 +58,12 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
     public RetryRule retryRule = new RetryRule(10, 2000, TimeUnit.MILLISECONDS);
 
     @BeforeClass
-    public static void setUpKinesis() {
+    public static void setUpKinesis() throws IOException {
         IntegrationTestBase.createKinesisStream();
+        uploadFunction();
     }
 
-    @Before
-    public void uploadFunction() throws IOException {
+    public static void uploadFunction() throws IOException {
         // Upload function
         SdkBytes functionBits;
         InputStream functionZip = new FileInputStream(cloudFuncZip);
@@ -81,11 +81,13 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
                                                                     .timeout(10)
                                                                     .role(lambdaServiceRoleArn)).join();
 
+        lambda.waiter()
+              .waitUntilFunctionActive(r -> r.functionName(FUNCTION_NAME));
         checkValid_CreateFunctionResponse(result);
     }
 
-    @After
-    public void deleteFunction() {
+    @AfterClass
+    public static void deleteFunction() {
         lambda.deleteFunction(DeleteFunctionRequest.builder().functionName(FUNCTION_NAME).build());
     }
 

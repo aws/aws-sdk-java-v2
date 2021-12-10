@@ -1,0 +1,66 @@
+{
+    "version": "2.17.98",
+    "date": "2021-12-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Support",
+            "contributor": "",
+            "description": "Documentation updates for AWS Support."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Comprehend Medical",
+            "contributor": "",
+            "description": "This release adds a new set of APIs (synchronous and batch) to support the SNOMED-CT ontology."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release added a new Ambarella device(amba_cv2) compilation support for Sagemaker Neo."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Outposts",
+            "contributor": "",
+            "description": "This release adds the UpdateOutpost API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Vision",
+            "contributor": "",
+            "description": "This release adds new APIs for packaging an Amazon Lookout for Vision model as an AWS IoT Greengrass component."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "This release allows customer to enable caching of custom authorizer on HTTP protocol for clients that use persistent or Keep-Alive connection in order to reduce the number of Lambda invocations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Health APIs and Notifications",
+            "contributor": "",
+            "description": "Documentation updates for AWS Health"
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Ensure initial channel used for protocol detection is released before re-acquiring"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "This release adds AWS Organizations support as condition key in destination policy for cross account Subscriptions in CloudWatch Logs."
+        }
+    ]
+}
