@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -131,30 +132,22 @@ public class UpdateItemOperationTest {
     public void generateRequest_nullValuesNotIgnoredByDefault() {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
         item.setOtherAttribute1("value-1");
-        UpdateItemOperation<FakeItemWithSort> updateItemOperation = UpdateItemOperation.create(
-            UpdateItemEnhancedRequest.builder(FakeItemWithSort.class).item(item).build());
-        Map<String, AttributeValue> expectedKey = new HashMap<>();
-        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
-        expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
+        UpdateItemOperation<FakeItemWithSort> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItemWithSort(item, b -> { }));
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
+
+        String expectedUpdateExpression = "SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
+                                  " REMOVE " + OTHER_ATTRIBUTE_2_NAME;
         Map<String, AttributeValue> expectedValues = new HashMap<>();
         expectedValues.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
         Map<String, String> expectedNames = new HashMap<>();
         expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
         expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
-        UpdateItemRequest.Builder baseExpectedRequest = UpdateItemRequest.builder()
-                                                                         .tableName(TABLE_NAME)
-                                                                         .expressionAttributeValues(expectedValues)
-                                                                         .expressionAttributeNames(expectedNames)
-                                                                         .key(expectedKey)
-                                                                         .returnValues(ReturnValue.ALL_NEW);
-        UpdateItemRequest expectedRequest =
-            baseExpectedRequest.updateExpression("SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
-                                                 " REMOVE " + OTHER_ATTRIBUTE_2_NAME)
-                               .build();
-
-        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
-                                                                        PRIMARY_CONTEXT,
-                                                                        null);
+        UpdateItemRequest.Builder expectedRequestBuilder = ddbRequestBuilder(ddbKey(item.getId(), item.getSort()));
+        expectedRequestBuilder.expressionAttributeValues(expectedValues);
+        expectedRequestBuilder.expressionAttributeNames(expectedNames);
+        expectedRequestBuilder.updateExpression(expectedUpdateExpression);
+        UpdateItemRequest expectedRequest = expectedRequestBuilder.build();
 
         assertThat(request, is(expectedRequest));
     }
@@ -164,34 +157,24 @@ public class UpdateItemOperationTest {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
         item.setOtherAttribute1("value-1");
         UpdateItemOperation<FakeItemWithSort> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItemWithSort.class)
-                                                                .item(item)
-                                                                .conditionExpression(CONDITION_EXPRESSION)
-                                                                .build());
-        Map<String, AttributeValue> expectedKey = new HashMap<>();
-        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
-        expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
+            UpdateItemOperation.create(requestFakeItemWithSort(item, b -> b.conditionExpression(CONDITION_EXPRESSION)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
+
+
+        String expectedUpdateExpression = "SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
+                                          " REMOVE " + OTHER_ATTRIBUTE_2_NAME;
         Map<String, AttributeValue> expectedValues = new HashMap<>(CONDITION_EXPRESSION.expressionValues());
         expectedValues.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
         Map<String, String> expectedNames = new HashMap<>(CONDITION_EXPRESSION.expressionNames());
         expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
         expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
-        UpdateItemRequest.Builder baseExpectedRequest =
-            UpdateItemRequest.builder()
-                             .tableName(TABLE_NAME)
-                             .expressionAttributeValues(expectedValues)
-                             .expressionAttributeNames(expectedNames)
-                             .conditionExpression(CONDITION_EXPRESSION.expression())
-                             .key(expectedKey)
-                             .returnValues(ReturnValue.ALL_NEW);
-        UpdateItemRequest expectedRequest =
-            baseExpectedRequest.updateExpression("SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
-                                                 " REMOVE " + OTHER_ATTRIBUTE_2_NAME)
-                               .build();
-
-        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
-                                                                        PRIMARY_CONTEXT,
-                                                                        null);
+        UpdateItemRequest.Builder expectedRequestBuilder = ddbRequestBuilder(ddbKey(item.getId(), item.getSort()));
+        expectedRequestBuilder.expressionAttributeValues(expectedValues);
+        expectedRequestBuilder.expressionAttributeNames(expectedNames);
+        expectedRequestBuilder.updateExpression(expectedUpdateExpression);
+        expectedRequestBuilder.conditionExpression(CONDITION_EXPRESSION.expression());
+        UpdateItemRequest expectedRequest = expectedRequestBuilder.build();
 
         assertThat(request, is(expectedRequest));
     }
@@ -202,20 +185,16 @@ public class UpdateItemOperationTest {
         item.setOtherAttribute1("value-1");
 
         UpdateItemOperation<FakeItemWithSort> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItemWithSort.class)
-                                                                .item(item)
-                                                                .conditionExpression(MINIMAL_CONDITION_EXPRESSION)
-                                                                .build());
+            UpdateItemOperation.create(requestFakeItemWithSort(item, b -> b.conditionExpression(MINIMAL_CONDITION_EXPRESSION)));
 
-        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
-                                                                        PRIMARY_CONTEXT,
-                                                                        null);
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
 
         Map<String, AttributeValue> expectedValues = new HashMap<>();
         expectedValues.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
         Map<String, String> expectedNames = new HashMap<>();
         expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
         expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
+
         assertThat(request.conditionExpression(), is(MINIMAL_CONDITION_EXPRESSION.expression()));
         assertThat(request.expressionAttributeNames(), is(expectedNames));
         assertThat(request.expressionAttributeValues(), is(expectedValues));
@@ -226,32 +205,22 @@ public class UpdateItemOperationTest {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
         item.setOtherAttribute1("value-1");
         UpdateItemOperation<FakeItemWithSort> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItemWithSort.class)
-                                                                .item(item)
-                                                                .ignoreNulls(false)
-                                                                .build());
-        Map<String, AttributeValue> expectedKey = new HashMap<>();
-        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
-        expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
+            UpdateItemOperation.create(requestFakeItemWithSort(item, b-> b.ignoreNulls(false)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
+
+        String expectedUpdateExpression = "SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
+                                          " REMOVE " + OTHER_ATTRIBUTE_2_NAME;
         Map<String, AttributeValue> expectedValues = new HashMap<>();
         expectedValues.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
         Map<String, String> expectedNames = new HashMap<>();
         expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
         expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
-        UpdateItemRequest.Builder baseExpectedRequest = UpdateItemRequest.builder()
-                                                                         .tableName(TABLE_NAME)
-                                                                         .expressionAttributeValues(expectedValues)
-                                                                         .expressionAttributeNames(expectedNames)
-                                                                         .key(expectedKey)
-                                                                         .returnValues(ReturnValue.ALL_NEW);
-        UpdateItemRequest expectedRequest =
-            baseExpectedRequest.updateExpression("SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
-                                                 " REMOVE " + OTHER_ATTRIBUTE_2_NAME)
-                               .build();
-
-        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
-                                                                        PRIMARY_CONTEXT,
-                                                                        null);
+        UpdateItemRequest.Builder expectedRequestBuilder = ddbRequestBuilder(ddbKey(item.getId(), item.getSort()));
+        expectedRequestBuilder.expressionAttributeValues(expectedValues);
+        expectedRequestBuilder.expressionAttributeNames(expectedNames);
+        expectedRequestBuilder.updateExpression(expectedUpdateExpression);
+        UpdateItemRequest expectedRequest = expectedRequestBuilder.build();
 
         assertThat(request, is(expectedRequest));
     }
@@ -262,37 +231,27 @@ public class UpdateItemOperationTest {
         item.setOtherAttribute1("value-1");
         item.setOtherAttribute2("value-2");
         UpdateItemOperation<FakeItemWithSort> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItemWithSort.class)
-                                                                .item(item)
-                                                                .ignoreNulls(false)
-                                                                .build());
-        Map<String, AttributeValue> expectedKey = new HashMap<>();
-        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
-        expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
+            UpdateItemOperation.create(requestFakeItemWithSort(item, b-> b.ignoreNulls(false)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
+
         Map<String, AttributeValue> expectedValues = new HashMap<>();
         expectedValues.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
         expectedValues.put(OTHER_ATTRIBUTE_2_VALUE, AttributeValue.builder().s("value-2").build());
         Map<String, String> expectedNames = new HashMap<>();
         expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
         expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
-        UpdateItemRequest.Builder baseExpectedRequest = UpdateItemRequest.builder()
-                                                                         .tableName(TABLE_NAME)
-                                                                         .expressionAttributeValues(expectedValues)
-                                                                         .expressionAttributeNames(expectedNames)
-                                                                         .key(expectedKey)
-                                                                         .returnValues(ReturnValue.ALL_NEW);
-        UpdateItemRequest expectedRequest1 =
-            baseExpectedRequest.updateExpression("SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
-                                                 ", " + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE)
-                               .build();
-        UpdateItemRequest expectedRequest2 =
-            baseExpectedRequest.updateExpression("SET " + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE +
-                                                 ", " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE)
-                               .build();
 
-        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
-                                                                        PRIMARY_CONTEXT,
-                                                                        null);
+        UpdateItemRequest.Builder expectedRequestBuilder = ddbRequestBuilder(ddbKey(item.getId(), item.getSort()));
+        expectedRequestBuilder.expressionAttributeValues(expectedValues);
+        expectedRequestBuilder.expressionAttributeNames(expectedNames);
+
+        String updateExpression1 = "SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
+                                  ", " + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE;
+        UpdateItemRequest expectedRequest1 = expectedRequestBuilder.updateExpression(updateExpression1).build();
+        String updateExpression2 = "SET " + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE +
+                                  ", " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE;
+        UpdateItemRequest expectedRequest2 = expectedRequestBuilder.updateExpression(updateExpression2).build();
 
         assertThat(request, either(is(expectedRequest1)).or(is(expectedRequest2)));
     }
@@ -301,31 +260,18 @@ public class UpdateItemOperationTest {
     public void generateRequest_multipleDeletes() {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
         UpdateItemOperation<FakeItemWithSort> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItemWithSort.class)
-                                                                .item(item)
-                                                                .ignoreNulls(false)
-                                                                .build());
-        Map<String, AttributeValue> expectedKey = new HashMap<>();
-        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
-        expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
+            UpdateItemOperation.create(requestFakeItemWithSort(item, b-> b.ignoreNulls(false)));
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
+
         Map<String, String> expectedNames = new HashMap<>();
         expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
         expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
-        UpdateItemRequest.Builder baseExpectedRequest = UpdateItemRequest.builder()
-                                                                         .tableName(TABLE_NAME)
-                                                                         .expressionAttributeNames(expectedNames)
-                                                                         .key(expectedKey)
-                                                                         .returnValues(ReturnValue.ALL_NEW);
-        UpdateItemRequest expectedRequest1 =
-            baseExpectedRequest.updateExpression("REMOVE " + OTHER_ATTRIBUTE_1_NAME + ", " + OTHER_ATTRIBUTE_2_NAME)
-                               .build();
-        UpdateItemRequest expectedRequest2 =
-            baseExpectedRequest.updateExpression("REMOVE " + OTHER_ATTRIBUTE_2_NAME + ", " + OTHER_ATTRIBUTE_1_NAME)
-                               .build();
-
-        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
-                                                                        PRIMARY_CONTEXT,
-                                                                        null);
+        UpdateItemRequest.Builder expectedRequestBuilder = ddbRequestBuilder(ddbKey(item.getId(), item.getSort()));
+        expectedRequestBuilder.expressionAttributeNames(expectedNames);
+        String updateExpression1 = "REMOVE " + OTHER_ATTRIBUTE_1_NAME + ", " + OTHER_ATTRIBUTE_2_NAME;
+        UpdateItemRequest expectedRequest1 = expectedRequestBuilder.updateExpression(updateExpression1).build();
+        String updateExpression2 = "REMOVE " + OTHER_ATTRIBUTE_2_NAME + ", " + OTHER_ATTRIBUTE_1_NAME;
+        UpdateItemRequest expectedRequest2 = expectedRequestBuilder.updateExpression(updateExpression2).build();
 
         assertThat(request,either(is(expectedRequest1)).or(is(expectedRequest2)));
     }
@@ -335,29 +281,18 @@ public class UpdateItemOperationTest {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
         item.setOtherAttribute1("value-1");
         UpdateItemOperation<FakeItemWithSort> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItemWithSort.class)
-                                                                .item(item)
-                                                                .ignoreNulls(true)
-                                                                .build());
-        Map<String, AttributeValue> expectedKey = new HashMap<>();
-        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
-        expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
-        Map<String, AttributeValue> expectedValues =
-            singletonMap(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
+            UpdateItemOperation.create(requestFakeItemWithSort(item, b-> b.ignoreNulls(true)));
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
+
+        String expectedUpdateExpression = "SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE;
+        Map<String, AttributeValue> expectedValues = singletonMap(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
         Map<String, String> expectedNames = singletonMap(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
-        UpdateItemRequest expectedRequest = UpdateItemRequest.builder()
-            .tableName(TABLE_NAME)
-            .updateExpression("SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE)
-            .expressionAttributeValues(expectedValues)
-            .expressionAttributeNames(expectedNames)
-            .key(expectedKey)
-            .returnValues(ReturnValue.ALL_NEW)
-            .build();
 
-
-        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
-                                                                        PRIMARY_CONTEXT,
-                                                                        null);
+        UpdateItemRequest.Builder expectedRequestBuilder = ddbRequestBuilder(ddbKey(item.getId(), item.getSort()));
+        expectedRequestBuilder.expressionAttributeValues(expectedValues);
+        expectedRequestBuilder.expressionAttributeNames(expectedNames);
+        expectedRequestBuilder.updateExpression(expectedUpdateExpression);
+        UpdateItemRequest expectedRequest = expectedRequestBuilder.build();
 
         assertThat(request, is(expectedRequest));
     }
@@ -366,23 +301,9 @@ public class UpdateItemOperationTest {
     public void generateRequest_keyOnlyItem() {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
         UpdateItemOperation<FakeItemWithSort> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItemWithSort.class)
-                                                                .item(item)
-                                                                .ignoreNulls(true)
-                                                                .build());
-        Map<String, AttributeValue> expectedKey = new HashMap<>();
-        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
-        expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
-        UpdateItemRequest expectedRequest = UpdateItemRequest.builder()
-                                                             .tableName(TABLE_NAME)
-                                                             .key(expectedKey)
-                                                             .returnValues(ReturnValue.ALL_NEW)
-                                                             .build();
-
-
-        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
-                                                                        PRIMARY_CONTEXT,
-                                                                        null);
+            UpdateItemOperation.create(requestFakeItemWithSort(item, b-> b.ignoreNulls(true)));
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
+        UpdateItemRequest expectedRequest = ddbRequestBuilder(ddbKey(item.getId(), item.getSort())).build();
 
         assertThat(request, is(expectedRequest));
     }
@@ -407,12 +328,7 @@ public class UpdateItemOperationTest {
                                                                         mockDynamoDbEnhancedClientExtension);
 
         assertThat(request.key(), is(keyMap));
-        verify(mockDynamoDbEnhancedClientExtension).beforeWrite(DefaultDynamoDbExtensionContext.builder()
-                                                                                               .tableSchema(FakeItem.getTableSchema())
-                                                                                               .tableMetadata(FakeItem.getTableMetadata())
-                                                                                               .operationContext(PRIMARY_CONTEXT)
-                                                                                               .operationName(OperationName.UPDATE_ITEM)
-                                                                                               .items(baseMap).build());
+        verify(mockDynamoDbEnhancedClientExtension).beforeWrite(extensionContext(baseMap, b -> b.operationName(OperationName.UPDATE_ITEM)));
     }
 
     @Test
@@ -426,12 +342,8 @@ public class UpdateItemOperationTest {
         when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().transformedItem(fakeMap).build());
 
-
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(fakeItem)
-                                                                .ignoreNulls(true)
-                                                                .build());
+            UpdateItemOperation.create(requestFakeItem(fakeItem, b -> b.ignoreNulls(true)));
 
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                         PRIMARY_CONTEXT,
@@ -444,25 +356,6 @@ public class UpdateItemOperationTest {
     }
 
     @Test
-    public void transformResponse_mapsAttributesReturnedInResponse() {
-        FakeItem fakeItem1 = FakeItem.createUniqueFakeItem();
-        FakeItem fakeItem2 = FakeItem.createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItem2Attributes = FakeItem.getTableSchema().itemToMap(fakeItem2, true);
-
-        UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(fakeItem1).build());
-
-        FakeItem result = updateItemOperation.transformResponse(
-                                                 UpdateItemResponse.builder().attributes(fakeItem2Attributes).build(),
-                                                 FakeItem.getTableSchema(),
-                                                 PRIMARY_CONTEXT,
-                                                 null)
-                                             .attributes();
-
-        assertThat(result, is(fakeItem2));
-    }
-
-    @Test
     public void generateRequest_withExtensions_singleCondition() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
@@ -471,10 +364,7 @@ public class UpdateItemOperationTest {
         when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(baseFakeItem)
-                                                                .ignoreNulls(true)
-                                                                .build());
+            UpdateItemOperation.create(requestFakeItem(baseFakeItem, b -> b.ignoreNulls(true)));
 
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                         PRIMARY_CONTEXT,
@@ -495,10 +385,7 @@ public class UpdateItemOperationTest {
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition1).build());
 
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(baseFakeItem)
-                                                                .ignoreNulls(true)
-                                                                .build());
+            UpdateItemOperation.create(requestFakeItem(baseFakeItem, b -> b.ignoreNulls(true)));
 
         try {
             updateItemOperation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, mockDynamoDbEnhancedClientExtension);
@@ -519,10 +406,7 @@ public class UpdateItemOperationTest {
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition1).build());
 
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(baseFakeItem)
-                                                                .ignoreNulls(true)
-                                                                .build());
+            UpdateItemOperation.create(requestFakeItem(baseFakeItem, b -> b.ignoreNulls(true)));
 
         try {
             updateItemOperation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, mockDynamoDbEnhancedClientExtension);
@@ -544,10 +428,7 @@ public class UpdateItemOperationTest {
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
 
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(baseFakeItem)
-                                                                .ignoreNulls(true)
-                                                                .build());
+            UpdateItemOperation.create(requestFakeItem(baseFakeItem, b -> b.ignoreNulls(true)));
 
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                         PRIMARY_CONTEXT,
@@ -566,10 +447,7 @@ public class UpdateItemOperationTest {
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
 
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(baseFakeItem)
-                                                                .ignoreNulls(true)
-                                                                .build());
+            UpdateItemOperation.create(requestFakeItem(baseFakeItem, b -> b.ignoreNulls(true)));
 
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                         PRIMARY_CONTEXT,
@@ -585,10 +463,7 @@ public class UpdateItemOperationTest {
             .thenReturn(WriteModification.builder().build());
 
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(baseFakeItem)
-                                                                .ignoreNulls(true)
-                                                                .build());
+            UpdateItemOperation.create(requestFakeItem(baseFakeItem, b -> b.ignoreNulls(true)));
 
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                         PRIMARY_CONTEXT,
@@ -618,10 +493,7 @@ public class UpdateItemOperationTest {
                                          .build());
 
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(baseFakeItem)
-                                                                .ignoreNulls(true)
-                                                                .build());
+            UpdateItemOperation.create(requestFakeItem(baseFakeItem, b -> b.ignoreNulls(true)));
 
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                         PRIMARY_CONTEXT,
@@ -641,25 +513,10 @@ public class UpdateItemOperationTest {
         String returnConsumedCapacity = UUID.randomUUID().toString();
 
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(item)
-                                                                .ignoreNulls(true)
-                                                                .returnConsumedCapacity(returnConsumedCapacity)
-                                                                .build());
-
-        Map<String, AttributeValue> expectedKey = new HashMap<>();
-        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
-
-        UpdateItemRequest expectedRequest = UpdateItemRequest.builder()
-                                                             .tableName(TABLE_NAME)
-                                                             .key(expectedKey).returnValues(ReturnValue.ALL_NEW)
-                                                             .returnConsumedCapacity(returnConsumedCapacity)
-                                                             .build();
-
-        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
-                                                                        PRIMARY_CONTEXT,
-                                                                        null);
-
+            UpdateItemOperation.create(requestFakeItem(item, b -> b.ignoreNulls(true)
+                                                                   .returnConsumedCapacity(returnConsumedCapacity)));
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+        UpdateItemRequest expectedRequest = ddbRequest(ddbKey(item.getId()), b -> b.returnConsumedCapacity(returnConsumedCapacity));
         assertThat(request, is(expectedRequest));
     }
 
@@ -669,24 +526,11 @@ public class UpdateItemOperationTest {
         ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.TOTAL;
 
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(item)
-                                                                .ignoreNulls(true)
-                                                                .returnConsumedCapacity(returnConsumedCapacity)
-                                                                .build());
+            UpdateItemOperation.create(requestFakeItem(item, b -> b.ignoreNulls(true)
+                                                                   .returnConsumedCapacity(returnConsumedCapacity)));
 
-        Map<String, AttributeValue> expectedKey = new HashMap<>();
-        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
-
-        UpdateItemRequest expectedRequest = UpdateItemRequest.builder()
-                                                             .tableName(TABLE_NAME)
-                                                             .key(expectedKey).returnValues(ReturnValue.ALL_NEW)
-                                                             .returnConsumedCapacity(returnConsumedCapacity)
-                                                             .build();
-
-        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
-                                                                        PRIMARY_CONTEXT,
-                                                                        null);
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+        UpdateItemRequest expectedRequest = ddbRequest(ddbKey(item.getId()), b -> b.returnConsumedCapacity(returnConsumedCapacity));
 
         assertThat(request, is(expectedRequest));
     }
@@ -697,24 +541,11 @@ public class UpdateItemOperationTest {
         String returnItemCollectionMetrics = UUID.randomUUID().toString();
 
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(item)
-                                                                .ignoreNulls(true)
-                                                                .returnItemCollectionMetrics(returnItemCollectionMetrics)
-                                                                .build());
+            UpdateItemOperation.create(requestFakeItem(item, b -> b.ignoreNulls(true)
+                                                                   .returnItemCollectionMetrics(returnItemCollectionMetrics)));
 
-        Map<String, AttributeValue> expectedKey = new HashMap<>();
-        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
-
-        UpdateItemRequest expectedRequest = UpdateItemRequest.builder()
-                                                             .tableName(TABLE_NAME)
-                                                             .key(expectedKey).returnValues(ReturnValue.ALL_NEW)
-                                                             .returnItemCollectionMetrics(returnItemCollectionMetrics)
-                                                             .build();
-
-        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
-                                                                        PRIMARY_CONTEXT,
-                                                                        null);
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+        UpdateItemRequest expectedRequest = ddbRequest(ddbKey(item.getId()), b -> b.returnItemCollectionMetrics(returnItemCollectionMetrics));
 
         assertThat(request, is(expectedRequest));
     }
@@ -725,24 +556,11 @@ public class UpdateItemOperationTest {
         ReturnItemCollectionMetrics returnItemCollectionMetrics = ReturnItemCollectionMetrics.SIZE;
 
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(item)
-                                                                .ignoreNulls(true)
-                                                                .returnItemCollectionMetrics(returnItemCollectionMetrics)
-                                                                .build());
+            UpdateItemOperation.create(requestFakeItem(item, b -> b.ignoreNulls(true)
+                                                                   .returnItemCollectionMetrics(returnItemCollectionMetrics)));
 
-        Map<String, AttributeValue> expectedKey = new HashMap<>();
-        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
-
-        UpdateItemRequest expectedRequest = UpdateItemRequest.builder()
-                                                             .tableName(TABLE_NAME)
-                                                             .key(expectedKey).returnValues(ReturnValue.ALL_NEW)
-                                                             .returnItemCollectionMetrics(returnItemCollectionMetrics)
-                                                             .build();
-
-        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
-                                                                        PRIMARY_CONTEXT,
-                                                                        null);
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+        UpdateItemRequest expectedRequest = ddbRequest(ddbKey(item.getId()), b -> b.returnItemCollectionMetrics(returnItemCollectionMetrics));
 
         assertThat(request, is(expectedRequest));
     }
@@ -754,72 +572,35 @@ public class UpdateItemOperationTest {
         Map<String, AttributeValue> baseFakeMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, true);
         Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
 
-        UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(baseFakeItem)
-                                                                .ignoreNulls(true)
-                                                                .build());
-
         when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(
             ReadModification.builder().transformedItem(fakeMap).build());
-        UpdateItemResponse response = UpdateItemResponse.builder()
-                                                        .attributes(baseFakeMap)
-                                                        .build();
 
-        FakeItem resultItem = updateItemOperation.transformResponse(response, FakeItem.getTableSchema(),
-                                                                    PRIMARY_CONTEXT,
-                                                                    mockDynamoDbEnhancedClientExtension)
-                                                 .attributes();
+        FakeItem resultItem = transformResponse(baseFakeItem);
 
         assertThat(resultItem, is(fakeItem));
-        verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
-                                                                                             .tableMetadata(FakeItem.getTableMetadata())
-                                                                                             .tableSchema(FakeItem.getTableSchema())
-                                                                                             .operationContext(PRIMARY_CONTEXT)
-                                                                                             .items(baseFakeMap).build());
+        verify(mockDynamoDbEnhancedClientExtension).afterRead(extensionContext(baseFakeMap));
     }
 
     @Test
     public void transformResponse_withNoOpExtension_returnsCorrectItem() {
+        when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class)))
+            .thenReturn(ReadModification.builder().build());
+
         FakeItem baseFakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> baseFakeMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, true);
 
-        UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                .item(baseFakeItem)
-                                                                .ignoreNulls(true)
-                                                                .build());
-
-        when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(
-            ReadModification.builder().build());
-        UpdateItemResponse response = UpdateItemResponse.builder()
-                                                        .attributes(baseFakeMap)
-                                                        .build();
-
-        FakeItem resultItem = updateItemOperation.transformResponse(response, FakeItem.getTableSchema(),
-                                                                    PRIMARY_CONTEXT, mockDynamoDbEnhancedClientExtension)
-                                                 .attributes();
+        FakeItem resultItem = transformResponse(baseFakeItem);
 
         assertThat(resultItem, is(baseFakeItem));
-        verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
-                                                                                             .tableMetadata(FakeItem.getTableMetadata())
-                                                                                             .tableSchema(FakeItem.getTableSchema())
-                                                                                             .operationContext(PRIMARY_CONTEXT)
-                                                                                             .items(baseFakeMap).build());
+        verify(mockDynamoDbEnhancedClientExtension).afterRead(extensionContext(baseFakeMap));
     }
 
     @Test(expected = IllegalStateException.class)
     public void transformResponse_afterReadThrowsException_throwsIllegalStateException() {
-        when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenThrow(RuntimeException.class);
-        UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(createUniqueFakeItem()).build());
+        when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class)))
+            .thenThrow(RuntimeException.class);
 
-        UpdateItemResponse response =
-            UpdateItemResponse.builder()
-                              .attributes(FakeItem.getTableSchema().itemToMap(FakeItem.createUniqueFakeItem(), true))
-                              .build();
-
-        updateItemOperation.transformResponse(response, FakeItem.getTableSchema(), PRIMARY_CONTEXT, mockDynamoDbEnhancedClientExtension);
+        transformResponse(createUniqueFakeItem());
     }
 
     @Test
@@ -833,13 +614,12 @@ public class UpdateItemOperationTest {
         Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));
         Map<String, String> attributeNames = Collections.singletonMap("key", "value2");
 
-        UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
-                                                               .tableName(TABLE_NAME)
-                                                               .key(fakeItemMap)
-                                                               .updateExpression(updateExpression)
-                                                               .expressionAttributeValues(attributeValues)
-                                                               .expressionAttributeNames(attributeNames)
-                                                               .build();
+        UpdateItemRequest.Builder builder = ddbRequestBuilder(fakeItemMap);
+        builder.updateExpression(updateExpression);
+        builder.expressionAttributeValues(attributeValues);
+        builder.expressionAttributeNames(attributeNames);
+        UpdateItemRequest updateItemRequest = builder.build();
+
         doReturn(updateItemRequest).when(updateItemOperation).generateRequest(any(), any(), any());
 
         TransactWriteItem actualResult = updateItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
@@ -871,14 +651,13 @@ public class UpdateItemOperationTest {
         Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));
         Map<String, String> attributeNames = Collections.singletonMap("key", "value2");
 
-        UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
-                                                               .tableName(TABLE_NAME)
-                                                               .key(fakeItemMap)
-                                                               .updateExpression(updateExpression)
-                                                               .conditionExpression(conditionExpression)
-                                                               .expressionAttributeValues(attributeValues)
-                                                               .expressionAttributeNames(attributeNames)
-                                                               .build();
+        UpdateItemRequest.Builder builder = ddbRequestBuilder(fakeItemMap);
+        builder.updateExpression(updateExpression);
+        builder.expressionAttributeValues(attributeValues);
+        builder.expressionAttributeNames(attributeNames);
+        builder.conditionExpression(conditionExpression);
+        UpdateItemRequest updateItemRequest = builder.build();
+
         doReturn(updateItemRequest).when(updateItemOperation).generateRequest(any(), any(), any());
 
         TransactWriteItem actualResult = updateItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
@@ -912,11 +691,7 @@ public class UpdateItemOperationTest {
                                                                             .build()));
         OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
-        UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
-                                                               .tableName(TABLE_NAME)
-                                                               .key(fakeItemMap)
-                                                               .build();
-        doReturn(updateItemRequest).when(updateItemOperation).generateRequest(any(), any(), any());
+        doReturn(ddbRequest(fakeItemMap, b -> {})).when(updateItemOperation).generateRequest(any(), any(), any());
 
         TransactWriteItem actualResult = updateItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
                                                                                        context,
@@ -931,5 +706,73 @@ public class UpdateItemOperationTest {
                                                             .build();
         assertThat(actualResult, is(expectedResult));
         verify(updateItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
+    }
+
+    private Map<String, AttributeValue> ddbKey(String partitionKey) {
+        return singletonMap("id", AttributeValue.builder().s(partitionKey).build());
+    }
+
+    private Map<String, AttributeValue> ddbKey(String partitionKey, String sortKey) {
+        Map<String, AttributeValue> expectedKey = new HashMap<>();
+        expectedKey.put("id", AttributeValue.builder().s(partitionKey).build());
+        expectedKey.put("sort", AttributeValue.builder().s(sortKey).build());
+        return expectedKey;
+    }
+
+    private UpdateItemRequest ddbRequest(Map<String, AttributeValue> keys, Consumer<UpdateItemRequest.Builder> modify) {
+        UpdateItemRequest.Builder builder = ddbBaseRequestBuilder(keys);
+        modify.accept(builder);
+        return builder.build();
+    }
+
+    private UpdateItemRequest.Builder ddbRequestBuilder(Map<String, AttributeValue> keys) {
+        return ddbBaseRequestBuilder(keys);
+    }
+
+    private UpdateItemRequest.Builder ddbBaseRequestBuilder(Map<String, AttributeValue> keys) {
+        return UpdateItemRequest.builder().tableName(TABLE_NAME)
+                                .key(keys)
+                                .returnValues(ReturnValue.ALL_NEW);
+    }
+
+    private UpdateItemEnhancedRequest<FakeItem> requestFakeItem(
+            FakeItem item, Consumer<UpdateItemEnhancedRequest.Builder<FakeItem>> modify) {
+        UpdateItemEnhancedRequest.Builder<FakeItem> builder = UpdateItemEnhancedRequest.builder(FakeItem.class).item(item);
+        modify.accept(builder);
+        return builder.build();
+    }
+
+    private UpdateItemEnhancedRequest<FakeItemWithSort> requestFakeItemWithSort(
+            FakeItemWithSort item, Consumer<UpdateItemEnhancedRequest.Builder<FakeItemWithSort>> modify) {
+        UpdateItemEnhancedRequest.Builder<FakeItemWithSort> builder = UpdateItemEnhancedRequest.builder(FakeItemWithSort.class)
+                                                                                               .item(item);
+        modify.accept(builder);
+        return builder.build();
+    }
+
+    private DefaultDynamoDbExtensionContext extensionContext(Map<String, AttributeValue> fakeMap) {
+        return extensionContext(fakeMap, b -> {});
+    }
+
+    private DefaultDynamoDbExtensionContext extensionContext(Map<String, AttributeValue> fakeMap,
+                                                             Consumer<DefaultDynamoDbExtensionContext.Builder> modify) {
+        DefaultDynamoDbExtensionContext.Builder builder = DefaultDynamoDbExtensionContext.builder()
+                                                                                         .tableMetadata(FakeItem.getTableMetadata())
+                                                                                         .tableSchema(FakeItem.getTableSchema())
+                                                                                         .operationContext(PRIMARY_CONTEXT)
+                                                                                         .items(fakeMap);
+        modify.accept(builder);
+        return builder.build();
+    }
+
+    private FakeItem transformResponse(FakeItem item) {
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItem(item, b -> b.ignoreNulls(true)));
+
+        Map<String, AttributeValue> itemMap = FakeItem.getTableSchema().itemToMap(item, true);
+        return updateItemOperation.transformResponse(UpdateItemResponse.builder().attributes(itemMap).build(),
+                                                     FakeItem.getTableSchema(),
+                                                     PRIMARY_CONTEXT,
+                                                     mockDynamoDbEnhancedClientExtension).attributes();
     }
 }
