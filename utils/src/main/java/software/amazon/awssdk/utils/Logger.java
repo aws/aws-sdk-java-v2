@@ -19,6 +19,7 @@ import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.util.function.Supplier;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
@@ -135,6 +136,28 @@ public final class Logger {
     public void trace(Supplier<String> msg, Throwable throwable) {
         if (log.isTraceEnabled()) {
             log.trace(msg.get(), throwable);
+        }
+    }
+
+    /**
+     * Determines if the provided log-level is enabled.
+     * @param logLevel the SLF4J log level enum
+     * @return whether that level is enabled
+     */
+    public boolean isLoggingLevelEnabled(Level logLevel) {
+        switch (logLevel) {
+            case TRACE:
+                return log.isTraceEnabled();
+            case DEBUG:
+                return log.isDebugEnabled();
+            case INFO:
+                return log.isInfoEnabled();
+            case WARN:
+                return log.isWarnEnabled();
+            case ERROR:
+                return log.isErrorEnabled();
+            default:
+                throw new IllegalStateException("Unsupported log level: " + logLevel);
         }
     }
 
