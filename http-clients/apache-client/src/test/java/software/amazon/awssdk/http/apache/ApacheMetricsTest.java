@@ -72,7 +72,7 @@ public class ApacheMetricsTest {
     }
 
     @Test
-    public void defaultTlsKeyManagersProviderIsSystemPropertyProvider() throws IOException {
+    public void concurrencyAcquireDurationIsRecorded() throws IOException {
         client = ApacheHttpClient.create();
         MetricCollector collector = MetricCollector.create("test");
         makeRequestWithMetrics(client, collector);
