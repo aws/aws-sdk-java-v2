@@ -81,6 +81,7 @@ import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache.internal.conn.ClientConnectionManagerFactory;
+import software.amazon.awssdk.http.apache.internal.conn.ClientConnectionRequestFactory;
 import software.amazon.awssdk.http.apache.internal.conn.IdleConnectionReaper;
 import software.amazon.awssdk.http.apache.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache.internal.conn.SdkTlsSocketFactory;
@@ -230,7 +231,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         return new ExecutableHttpRequest() {
             @Override
             public HttpExecuteResponse call() throws IOException {
-                HttpExecuteResponse executeResponse = execute(apacheRequest);
+                HttpExecuteResponse executeResponse = execute(apacheRequest, metricCollector);
                 collectPoolMetric(metricCollector);
                 return executeResponse;
             }
@@ -249,10 +250,15 @@ public final class ApacheHttpClient implements SdkHttpClient {
         cm.shutdown();
     }
 
-    private HttpExecuteResponse execute(HttpRequestBase apacheRequest) throws IOException {
+    private HttpExecuteResponse execute(HttpRequestBase apacheRequest, MetricCollector metricCollector) throws IOException {
         HttpClientContext localRequestContext = ApacheUtils.newClientContext(requestConfig.proxyConfiguration());
-        HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
-        return createResponse(httpResponse, apacheRequest);
+        ClientConnectionRequestFactory.THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.set(metricCollector);
+        try {
+            HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
+            return createResponse(httpResponse, apacheRequest);
+        } finally {
+            ClientConnectionRequestFactory.THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.remove();
+        }
     }
 
     private HttpRequestBase toApacheRequest(HttpExecuteRequest request) {

@@ -20,13 +20,24 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.time.Duration;
+import java.time.Instant;
 import org.apache.http.conn.ConnectionRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
-final class ClientConnectionRequestFactory {
+public final class ClientConnectionRequestFactory {
+
+    /**
+     * {@link ThreadLocal}, request-level {@link MetricCollector}, set and removed by {@link ApacheHttpClient}.
+     */
+    public static final ThreadLocal<MetricCollector> THREAD_LOCAL_REQUEST_METRIC_COLLECTOR = new ThreadLocal<>();
+    
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionRequestFactory.class);
     private static final Class<?>[] INTERFACES = {
             ConnectionRequest.class,
@@ -69,22 +80,27 @@ final class ClientConnectionRequestFactory {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             try {
-                // TODO v2 service metrics
-                //                if ("get".equals(method.getName())) {
-                //                    ServiceLatencyProvider latencyProvider = new ServiceLatencyProvider(
-                //                            AWSServiceMetrics.HttpClientGetConnectionTime);
-                //                    try {
-                //                        return method.invoke(orig, args);
-                //                    } finally {
-                //                        AwsSdkMetrics.getServiceMetricCollector()
-                //                                .collectLatency(latencyProvider.endTiming());
-                //                    }
-                //                }
-                return method.invoke(orig, args);
+                Instant startGet = null;
+                if ("get".equals(method.getName())) {
+                    startGet = Instant.now();
+                }
+                try {
+                    return method.invoke(orig, args);
+                } finally {
+                    if (startGet != null) {
+                        recordGetTime(startGet);
+                    }
+                }
             } catch (InvocationTargetException e) {
                 log.debug("", e);
                 throw e.getCause();
             }
+        }
+
+        private void recordGetTime(Instant startGet) {
+            Duration elapsed = Duration.between(startGet, Instant.now());
+            MetricCollector metricCollector = THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.get();
+            metricCollector.reportMetric(HttpMetric.CONCURRENCY_ACQUIRE_DURATION, elapsed);
         }
     }
 }
