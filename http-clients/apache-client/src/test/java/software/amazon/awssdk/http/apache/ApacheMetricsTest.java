@@ -79,7 +79,7 @@ public class ApacheMetricsTest {
 
         MetricCollection collection = collector.collect();
 
-        assertThat(collection.metricValues(CONCURRENCY_ACQUIRE_DURATION).get(0)).isPositive();
+        assertThat(collection.metricValues(CONCURRENCY_ACQUIRE_DURATION)).isNotEmpty();
     }
 
     private HttpExecuteResponse makeRequestWithMetrics(SdkHttpClient httpClient, MetricCollector metricCollector) throws IOException {
