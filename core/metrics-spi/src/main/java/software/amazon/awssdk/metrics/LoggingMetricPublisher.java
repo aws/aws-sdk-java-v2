@@ -126,7 +126,8 @@ public final class LoggingMetricPublisher implements MetricPublisher {
                 LOGGER.log(logLevel, () -> "Metrics published: " + metrics);
                 break;
             case PRETTY:
-                logPretty(Integer.toHexString(metrics.hashCode()), metrics, 0);
+                String guid = Integer.toHexString(metrics.hashCode());
+                logPretty(guid, metrics, 0);
                 break;
             default:
                 throw new IllegalStateException("Unsupported format: " + format);
