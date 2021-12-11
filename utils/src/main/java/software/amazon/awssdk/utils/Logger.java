@@ -185,6 +185,34 @@ public final class Logger {
     }
 
     /**
+     * Log a message at the given log level (if it is enabled).
+     *
+     * @param logLevel the SLF4J log level
+     * @param msg      supplier for the log message
+     */
+    public void log(Level logLevel, Supplier<String> msg) {
+        switch (logLevel) {
+            case TRACE:
+                trace(msg);
+                break;
+            case DEBUG:
+                debug(msg);
+                break;
+            case INFO:
+                info(msg);
+                break;
+            case WARN:
+                warn(msg);
+                break;
+            case ERROR:
+                error(msg);
+                break;
+            default:
+                throw new IllegalStateException("Unsupported log level: " + logLevel);
+        }
+    }
+
+    /**
      * Static factory to get a logger instance for a given class
      * @param clz - class to get the logger for
      * @return a Logger instance
