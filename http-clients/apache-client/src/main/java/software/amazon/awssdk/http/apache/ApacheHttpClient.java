@@ -23,6 +23,7 @@ import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 import static software.amazon.awssdk.http.HttpMetric.LEASED_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.MAX_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRES;
+import static software.amazon.awssdk.http.apache.internal.conn.ClientConnectionRequestFactory.THREAD_LOCAL_REQUEST_METRIC_COLLECTOR;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
@@ -81,7 +82,6 @@ import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache.internal.conn.ClientConnectionManagerFactory;
-import software.amazon.awssdk.http.apache.internal.conn.ClientConnectionRequestFactory;
 import software.amazon.awssdk.http.apache.internal.conn.IdleConnectionReaper;
 import software.amazon.awssdk.http.apache.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache.internal.conn.SdkTlsSocketFactory;
@@ -252,12 +252,12 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
     private HttpExecuteResponse execute(HttpRequestBase apacheRequest, MetricCollector metricCollector) throws IOException {
         HttpClientContext localRequestContext = ApacheUtils.newClientContext(requestConfig.proxyConfiguration());
-        ClientConnectionRequestFactory.THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.set(metricCollector);
+        THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.set(metricCollector);
         try {
             HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
             return createResponse(httpResponse, apacheRequest);
         } finally {
-            ClientConnectionRequestFactory.THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.remove();
+            THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.remove();
         }
     }
 
