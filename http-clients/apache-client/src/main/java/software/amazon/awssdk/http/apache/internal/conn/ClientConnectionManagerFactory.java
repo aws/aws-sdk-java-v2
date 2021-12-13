@@ -15,20 +15,17 @@
 
 package software.amazon.awssdk.http.apache.internal.conn;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import org.apache.http.HttpClientConnection;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.pool.ConnPoolControl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.protocol.HttpContext;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public final class ClientConnectionManagerFactory {
-    private static final Logger log = LoggerFactory.getLogger(ClientConnectionManagerFactory.class);
 
     private ClientConnectionManagerFactory() {
     }
@@ -40,52 +37,77 @@ public final class ClientConnectionManagerFactory {
      * @param orig the target instance to be wrapped
      */
     public static HttpClientConnectionManager wrap(HttpClientConnectionManager orig) {
-        if (orig instanceof Wrapped) {
+        if (orig instanceof DelegatingHttpClientConnectionManager) {
             throw new IllegalArgumentException();
         }
-        Class<?>[] interfaces;
-        if (orig instanceof ConnPoolControl) {
-            interfaces = new Class<?>[]{
-                    HttpClientConnectionManager.class,
-                    ConnPoolControl.class,
-                    Wrapped.class};
-        } else {
-            interfaces = new Class<?>[]{
-                    HttpClientConnectionManager.class,
-                    Wrapped.class
-            };
-        }
-        return (HttpClientConnectionManager) Proxy.newProxyInstance(
-                // https://github.com/aws/aws-sdk-java/pull/48#issuecomment-29454423
-                ClientConnectionManagerFactory.class.getClassLoader(),
-                interfaces,
-                new Handler(orig));
+        return new InstrumentedHttpClientConnectionManager(orig);
     }
 
     /**
-     * The handler behind the dynamic proxy for {@link HttpClientConnectionManager}
-     * so that the any returned instance of {@link ConnectionRequest} can
-     * further wrapped for capturing performance metrics.
+     * Further wraps {@link ConnectionRequest} to capture performance metrics.
      */
-    private static class Handler implements InvocationHandler {
-        private final HttpClientConnectionManager orig;
+    private static class InstrumentedHttpClientConnectionManager extends DelegatingHttpClientConnectionManager {
 
-        Handler(HttpClientConnectionManager real) {
-            this.orig = real;
+        private InstrumentedHttpClientConnectionManager(HttpClientConnectionManager delegate) {
+            super(delegate);
         }
 
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            try {
-                Object ret = method.invoke(orig, args);
-                return ret instanceof ConnectionRequest
-                        ? ClientConnectionRequestFactory.wrap((ConnectionRequest) ret)
-                        : ret
-                        ;
-            } catch (InvocationTargetException e) {
-                log.debug("", e);
-                throw e.getCause();
-            }
+        public ConnectionRequest requestConnection(HttpRoute route, Object state) {
+            ConnectionRequest connectionRequest = super.requestConnection(route, state);
+            return ClientConnectionRequestFactory.wrap(connectionRequest);
+        }
+    }
+
+    /**
+     * Delegates all methods to {@link HttpClientConnectionManager}. Subclasses can override select methods to change behavior.
+     */
+    private static class DelegatingHttpClientConnectionManager implements HttpClientConnectionManager {
+
+        private final HttpClientConnectionManager delegate;
+    
+        protected DelegatingHttpClientConnectionManager(HttpClientConnectionManager delegate) {
+            this.delegate = delegate;
+        }
+    
+        @Override
+        public ConnectionRequest requestConnection(HttpRoute route, Object state) {
+            return delegate.requestConnection(route, state);
+        }
+    
+        @Override
+        public void releaseConnection(HttpClientConnection conn, Object newState, long validDuration, TimeUnit timeUnit) {
+            delegate.releaseConnection(conn, newState, validDuration, timeUnit);
+        }
+    
+        @Override
+        public void connect(HttpClientConnection conn, HttpRoute route, int connectTimeout, HttpContext context) throws IOException {
+            delegate.connect(conn, route, connectTimeout, context);
+        }
+    
+        @Override
+        public void upgrade(HttpClientConnection conn, HttpRoute route, HttpContext context) throws IOException {
+            delegate.upgrade(conn, route, context);
+        }
+    
+        @Override
+        public void routeComplete(HttpClientConnection conn, HttpRoute route, HttpContext context) throws IOException {
+            delegate.routeComplete(conn, route, context);
+        }
+    
+        @Override
+        public void closeIdleConnections(long idletime, TimeUnit timeUnit) {
+            delegate.closeIdleConnections(idletime, timeUnit);
+        }
+    
+        @Override
+        public void closeExpiredConnections() {
+            delegate.closeExpiredConnections();
+        }
+    
+        @Override
+        public void shutdown() {
+            delegate.shutdown();
         }
     }
 }

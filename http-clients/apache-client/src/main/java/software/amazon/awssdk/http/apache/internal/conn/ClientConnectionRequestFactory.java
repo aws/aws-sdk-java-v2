@@ -16,15 +16,13 @@
 
 package software.amazon.awssdk.http.apache.internal.conn;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import org.apache.http.HttpClientConnection;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ConnectionRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -37,12 +35,6 @@ public final class ClientConnectionRequestFactory {
      * {@link ThreadLocal}, request-level {@link MetricCollector}, set and removed by {@link ApacheHttpClient}.
      */
     public static final ThreadLocal<MetricCollector> THREAD_LOCAL_REQUEST_METRIC_COLLECTOR = new ThreadLocal<>();
-    
-    private static final Logger log = LoggerFactory.getLogger(ClientConnectionRequestFactory.class);
-    private static final Class<?>[] INTERFACES = {
-            ConnectionRequest.class,
-            Wrapped.class
-    };
 
     private ClientConnectionRequestFactory() {
     }
@@ -54,53 +46,55 @@ public final class ClientConnectionRequestFactory {
      * @param orig the target instance to be wrapped
      */
     static ConnectionRequest wrap(ConnectionRequest orig) {
-        if (orig instanceof Wrapped) {
+        if (orig instanceof DelegatingConnectionRequest) {
             throw new IllegalArgumentException();
         }
-        return (ConnectionRequest) Proxy.newProxyInstance(
-                // https://github.com/aws/aws-sdk-java/pull/48#issuecomment-29454423
-                ClientConnectionRequestFactory.class.getClassLoader(),
-                INTERFACES,
-                new Handler(orig));
+        return new InstrumentedConnectionRequest(orig);
     }
 
     /**
-     * The handler behind the dynamic proxy for {@link ConnectionRequest}
-     * so that the latency of the
-     * {@link ConnectionRequest#get(long, java.util.concurrent.TimeUnit)}
-     * can be captured.
+     * Measures the latency of {@link ConnectionRequest#get(long, java.util.concurrent.TimeUnit)}.
      */
-    private static class Handler implements InvocationHandler {
-        private final ConnectionRequest orig;
+    private static class InstrumentedConnectionRequest extends DelegatingConnectionRequest {
 
-        Handler(ConnectionRequest orig) {
-            this.orig = orig;
+        private InstrumentedConnectionRequest(ConnectionRequest delegate) {
+            super(delegate);
         }
 
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        public HttpClientConnection get(long timeout, TimeUnit timeUnit) throws InterruptedException, ExecutionException,
+                                                                                ConnectionPoolTimeoutException {
+            Instant startTime = Instant.now();
             try {
-                Instant startGet = null;
-                if ("get".equals(method.getName())) {
-                    startGet = Instant.now();
-                }
-                try {
-                    return method.invoke(orig, args);
-                } finally {
-                    if (startGet != null) {
-                        recordGetTime(startGet);
-                    }
-                }
-            } catch (InvocationTargetException e) {
-                log.debug("", e);
-                throw e.getCause();
+                return super.get(timeout, timeUnit);
+            } finally {
+                Duration elapsed = Duration.between(startTime, Instant.now());
+                MetricCollector metricCollector = THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.get();
+                metricCollector.reportMetric(HttpMetric.CONCURRENCY_ACQUIRE_DURATION, elapsed);
             }
         }
+    }
 
-        private void recordGetTime(Instant startGet) {
-            Duration elapsed = Duration.between(startGet, Instant.now());
-            MetricCollector metricCollector = THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.get();
-            metricCollector.reportMetric(HttpMetric.CONCURRENCY_ACQUIRE_DURATION, elapsed);
+    /**
+     * Delegates all methods to {@link ConnectionRequest}. Subclasses can override select methods to change behavior.
+     */
+    private static class DelegatingConnectionRequest implements ConnectionRequest {
+    
+        private final ConnectionRequest delegate;
+
+        private DelegatingConnectionRequest(ConnectionRequest delegate) {
+            this.delegate = delegate;
+        }
+    
+        @Override
+        public HttpClientConnection get(long timeout, TimeUnit timeUnit) throws InterruptedException, ExecutionException,
+                                                                                ConnectionPoolTimeoutException {
+            return delegate.get(timeout, timeUnit);
+        }
+    
+        @Override
+        public boolean cancel() {
+            return delegate.cancel();
         }
     }
 }

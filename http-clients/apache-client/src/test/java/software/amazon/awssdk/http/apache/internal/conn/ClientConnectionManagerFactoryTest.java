@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.http.apache.internal.conn;
 
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpClientConnection;
@@ -72,8 +70,7 @@ public class ClientConnectionManagerFactoryTest {
 
     @Test
     public void wrapOnce() {
-        HttpClientConnectionManager wrapped = ClientConnectionManagerFactory.wrap(noop);
-        assertTrue(wrapped instanceof Wrapped);
+        ClientConnectionManagerFactory.wrap(noop);
     }
 
     @Test(expected = IllegalArgumentException.class)
