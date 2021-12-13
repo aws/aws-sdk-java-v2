@@ -544,6 +544,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         public Builder connectionTimeout(Duration timeout) {
             Validate.isPositive(timeout, "connectionTimeout");
             standardOptions.put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, timeout);
+            standardOptions.put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT, timeout);
             return this;
         }
 
