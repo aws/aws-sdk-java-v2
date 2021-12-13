@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Make `ProcessCredentialsProvider` closeable, so that the internal credentials cache (which may be async and need to be closed) can be closed."
-}

@@ -1,3 +1,19 @@
+# __2.17.100__ __2021-12-13__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Make `ProcessCredentialsProvider` closeable, so that the internal credentials cache (which may be async and need to be closed) can be closed.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Add "ConcurrencyAcquireDuration" metric for netty-nio-client
+
 # __2.17.99__ __2021-12-09__
 ## __AWS Network Firewall__
   - ### Features
