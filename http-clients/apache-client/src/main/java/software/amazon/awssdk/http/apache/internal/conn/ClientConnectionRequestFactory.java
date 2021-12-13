@@ -79,19 +79,19 @@ public final class ClientConnectionRequestFactory {
      * Delegates all methods to {@link ConnectionRequest}. Subclasses can override select methods to change behavior.
      */
     private static class DelegatingConnectionRequest implements ConnectionRequest {
-    
+
         private final ConnectionRequest delegate;
 
         private DelegatingConnectionRequest(ConnectionRequest delegate) {
             this.delegate = delegate;
         }
-    
+
         @Override
         public HttpClientConnection get(long timeout, TimeUnit timeUnit) throws InterruptedException, ExecutionException,
                                                                                 ConnectionPoolTimeoutException {
             return delegate.get(timeout, timeUnit);
         }
-    
+
         @Override
         public boolean cancel() {
             return delegate.cancel();

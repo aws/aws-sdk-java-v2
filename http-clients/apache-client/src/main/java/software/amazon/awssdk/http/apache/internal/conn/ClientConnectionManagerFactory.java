@@ -65,46 +65,47 @@ public final class ClientConnectionManagerFactory {
     private static class DelegatingHttpClientConnectionManager implements HttpClientConnectionManager {
 
         private final HttpClientConnectionManager delegate;
-    
+
         protected DelegatingHttpClientConnectionManager(HttpClientConnectionManager delegate) {
             this.delegate = delegate;
         }
-    
+
         @Override
         public ConnectionRequest requestConnection(HttpRoute route, Object state) {
             return delegate.requestConnection(route, state);
         }
-    
+
         @Override
         public void releaseConnection(HttpClientConnection conn, Object newState, long validDuration, TimeUnit timeUnit) {
             delegate.releaseConnection(conn, newState, validDuration, timeUnit);
         }
-    
+
         @Override
-        public void connect(HttpClientConnection conn, HttpRoute route, int connectTimeout, HttpContext context) throws IOException {
+        public void connect(HttpClientConnection conn, HttpRoute route, int connectTimeout, HttpContext context)
+            throws IOException {
             delegate.connect(conn, route, connectTimeout, context);
         }
-    
+
         @Override
         public void upgrade(HttpClientConnection conn, HttpRoute route, HttpContext context) throws IOException {
             delegate.upgrade(conn, route, context);
         }
-    
+
         @Override
         public void routeComplete(HttpClientConnection conn, HttpRoute route, HttpContext context) throws IOException {
             delegate.routeComplete(conn, route, context);
         }
-    
+
         @Override
         public void closeIdleConnections(long idletime, TimeUnit timeUnit) {
             delegate.closeIdleConnections(idletime, timeUnit);
         }
-    
+
         @Override
         public void closeExpiredConnections() {
             delegate.closeExpiredConnections();
         }
-    
+
         @Override
         public void shutdown() {
             delegate.shutdown();
