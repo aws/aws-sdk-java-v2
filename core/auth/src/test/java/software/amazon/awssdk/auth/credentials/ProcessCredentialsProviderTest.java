@@ -164,6 +164,16 @@ public class ProcessCredentialsProviderTest {
         Assertions.assertThat(sessionCredentials.accessKeyId()).isEqualTo("accessKeyId");
         Assertions.assertThat(sessionCredentials.sessionToken()).isNotNull();
     }
+    
+    @Test
+    public void closeDoesNotRaise() {
+        ProcessCredentialsProvider credentialsProvider =
+            ProcessCredentialsProvider.builder()
+                                      .command(scriptLocation + " accessKeyId secretAccessKey sessionToken")
+                                      .build();
+        credentialsProvider.resolveCredentials();
+        credentialsProvider.close();
+    }
 
     public static String copyProcessCredentialsScript() {
         String scriptClasspathFilename = Platform.isWindows() ? "windows-credentials-script.bat"
