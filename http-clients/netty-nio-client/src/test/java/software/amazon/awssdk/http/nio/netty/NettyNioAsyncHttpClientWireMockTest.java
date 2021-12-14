@@ -133,6 +133,18 @@ public class NettyNioAsyncHttpClientWireMockTest {
                                                                                                .build()) {
             assertThat(client.configuration().tlsHandshakeTimeout()).isEqualTo(connectTimeout);
         }
+        Duration timeoutOverride = Duration.ofSeconds(2);
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                                                               .connectionTimeout(connectTimeout)
+                                                                                               .connectionTimeout(timeoutOverride)
+                                                                                               .build()) {
+            assertThat(client.configuration().tlsHandshakeTimeout()).isEqualTo(timeoutOverride);
+        }
+
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.create()) {
+            assertThat(client.configuration().tlsHandshakeTimeout().toMillis()).
+                isEqualTo(client.configuration().connectTimeoutMillis());
+        }
     }
 
     @Test

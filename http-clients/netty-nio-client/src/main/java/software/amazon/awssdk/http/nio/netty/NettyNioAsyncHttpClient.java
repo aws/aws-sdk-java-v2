@@ -544,9 +544,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         public Builder connectionTimeout(Duration timeout) {
             Validate.isPositive(timeout, "connectionTimeout");
             standardOptions.put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, timeout);
-            if (standardOptions.get(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT) == null) {
-                standardOptions.put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT, timeout);
-            }
             return this;
         }
 
@@ -723,6 +720,11 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         @Override
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
+            if (standardOptions.get(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT) == null) {
+                standardOptions.put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT,
+                                    standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT));
+            }
+
             return new NettyNioAsyncHttpClient(this, standardOptions.build()
                                                                     .merge(serviceDefaults)
                                                                     .merge(NETTY_HTTP_DEFAULTS)
