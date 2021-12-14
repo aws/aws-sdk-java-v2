@@ -1,0 +1,30 @@
+{
+    "version": "2.17.100",
+    "date": "2021-12-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Add \"ConcurrencyAcquireDuration\" metric for netty-nio-client"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Make `ProcessCredentialsProvider` closeable, so that the internal credentials cache (which may be async and need to be closed) can be closed."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Secrets Manager",
+            "contributor": "",
+            "description": "Documentation updates for Secrets Manager"
+        }
+    ]
+}
