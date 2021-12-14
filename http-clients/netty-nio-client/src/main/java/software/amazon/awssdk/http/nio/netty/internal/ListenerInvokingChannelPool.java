@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.consumeOrPropagate;
-import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.runOrPropagate;
 
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
@@ -116,13 +115,10 @@ public final class ListenerInvokingChannelPool implements SdkChannelPool {
 
     @Override
     public Future<Void> release(Channel channel, Promise<Void> returnFuture) {
-        delegatePool.release(channel, channel.newPromise())
-                    .addListener(runOrPropagate(returnFuture, () -> {
-                        NettyUtils.doInEventLoop(channel.eventLoop(), () -> {
-                            invokeChannelReleased(channel);
-                            returnFuture.trySuccess(null);
-                        }, returnFuture);
-                    }));
+        NettyUtils.doInEventLoop(channel.eventLoop(), () -> {
+            invokeChannelReleased(channel);
+            delegatePool.release(channel, returnFuture);
+        }, channel.newPromise());
         return returnFuture;
     }
 
