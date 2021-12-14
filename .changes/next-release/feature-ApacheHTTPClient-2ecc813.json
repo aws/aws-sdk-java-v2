@@ -1,0 +1,6 @@
+{
+    "category": "Apache HTTP Client", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Add \"ConcurrencyAcquireDuration\" metric for apache-client"
+}
