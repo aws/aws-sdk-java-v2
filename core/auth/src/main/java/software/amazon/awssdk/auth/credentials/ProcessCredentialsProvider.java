@@ -185,7 +185,8 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider,
      * Execute the external process to retrieve credentials.
      */
     private String executeCommand() throws IOException, InterruptedException {
-        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        ProcessBuilder processBuilder = new ProcessBuilder(command)
+            .redirectError(Redirect.INHERIT);
 
         ByteArrayOutputStream commandOutput = new ByteArrayOutputStream();
 
