@@ -2,5 +2,5 @@
     "category": "Netty NIO HTTP Client", 
     "contributor": "", 
     "type": "feature", 
-    "description": "If `tlsNegotiationTimeout` is not configured, it will be set to the resolved `connectionTimeout`. By default, `tlsNegotiationTimeout` is 2s instead of 10s"
+    "description": "If `tlsNegotiationTimeout` is not configured, it will be set to the resolved `connectionTimeout`. By default, `tlsNegotiationTimeout` is now 2s instead of 10s"
 }
