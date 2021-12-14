@@ -103,7 +103,7 @@ public class H2ServerErrorTest {
         CompletableFuture<?> firstRequest = sendGetRequest(server.port(), netty);
         firstRequest.join();
         
-        // The request-complete-future does not currently await the channel-release-future
+        // The request-complete-future does not await the channel-release-future
         // Wait a small amount to allow the channel release to complete
         Thread.sleep(100);
         

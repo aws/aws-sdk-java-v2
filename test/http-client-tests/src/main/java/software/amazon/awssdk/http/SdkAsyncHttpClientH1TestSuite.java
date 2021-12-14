@@ -102,7 +102,7 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
 
         HttpTestUtils.sendGetRequest(server.port(), client).join();
 
-        // The request-complete-future does not currently await the channel-release-future
+        // The request-complete-future does not await the channel-release-future
         // Wait a small amount to allow the channel release to complete
         Thread.sleep(100);
         
