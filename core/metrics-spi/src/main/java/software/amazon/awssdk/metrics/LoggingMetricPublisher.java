@@ -136,12 +136,12 @@ public final class LoggingMetricPublisher implements MetricPublisher {
 
     private void logPretty(String guid, MetricCollection metrics, int indent) {
         // Pre-determine metric key-value-pairs so that we can calculate the necessary padding
-        List<String> kvps = new ArrayList<>();
+        List<String> metricValues = new ArrayList<>();
         metrics.forEach(m -> {
-            kvps.add(String.format("%s=%s", m.metric().name(), m.value()));
+            metricValues.add(String.format("%s=%s", m.metric().name(), m.value()));
         });
 
-        int maxLen = getMaxLen(kvps);
+        int maxLen = getMaxLen(metricValues);
 
         // MetricCollection name
         LOGGER.log(logLevel, () -> String.format("[%s]%s %s",
@@ -156,11 +156,11 @@ public final class LoggingMetricPublisher implements MetricPublisher {
                                                  repeat("─", maxLen + 2)));
 
         // Metric key-value-pairs
-        kvps.forEach(kvp -> LOGGER.log(logLevel, () -> {
+        metricValues.forEach(metric -> LOGGER.log(logLevel, () -> {
             return String.format("[%s]%s │ %s │",
                                  guid,
                                  repeat(" ", indent),
-                                 pad(kvp, maxLen));
+                                 pad(metric, maxLen));
         }));
 
         // Close box
