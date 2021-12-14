@@ -1,4 +1,5 @@
 @ECHO OFF
+ECHO %0 called for credentials 1>&2
 SET input=%1
 ECHO {
 ECHO "Version": 1,
