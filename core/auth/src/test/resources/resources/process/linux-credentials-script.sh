@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+>&2 echo "$0 called for credentials"
 echo '{';
 echo '"Version": 1,';
 echo "\"AccessKeyId\": \"$1\",";
