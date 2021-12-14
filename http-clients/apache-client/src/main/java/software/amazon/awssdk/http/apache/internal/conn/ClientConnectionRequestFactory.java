@@ -87,8 +87,8 @@ public final class ClientConnectionRequestFactory {
         }
 
         @Override
-        public HttpClientConnection get(long timeout, TimeUnit timeUnit) throws InterruptedException, ExecutionException,
-                                                                                ConnectionPoolTimeoutException {
+        public HttpClientConnection get(long timeout, TimeUnit timeUnit)
+                throws InterruptedException, ExecutionException, ConnectionPoolTimeoutException {
             return delegate.get(timeout, timeUnit);
         }
 

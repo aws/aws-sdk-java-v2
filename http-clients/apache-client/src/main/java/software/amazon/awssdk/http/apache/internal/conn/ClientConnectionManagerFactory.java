@@ -82,7 +82,7 @@ public final class ClientConnectionManagerFactory {
 
         @Override
         public void connect(HttpClientConnection conn, HttpRoute route, int connectTimeout, HttpContext context)
-            throws IOException {
+                throws IOException {
             delegate.connect(conn, route, connectTimeout, context);
         }
 
