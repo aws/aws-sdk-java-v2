@@ -140,6 +140,13 @@ public class NettyNioAsyncHttpClientWireMockTest {
         Duration connectTimeout = Duration.ofSeconds(1);
         Duration tlsTimeout = Duration.ofSeconds(3);
         try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                                                               .tlsNegotiationTimeout(tlsTimeout)
+                                                                                               .connectionTimeout(connectTimeout)
+                                                                                               .build()) {
+            assertThat(client.configuration().tlsHandshakeTimeout()).isEqualTo(tlsTimeout);
+        }
+
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
                                                                                                .connectionTimeout(connectTimeout)
                                                                                                .tlsNegotiationTimeout(tlsTimeout)
                                                                                                .build()) {
