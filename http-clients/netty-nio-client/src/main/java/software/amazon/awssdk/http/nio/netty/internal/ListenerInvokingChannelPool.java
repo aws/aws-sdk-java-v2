@@ -55,7 +55,7 @@ public final class ListenerInvokingChannelPool implements SdkChannelPool {
     public interface ChannelPoolListener {
 
         /**
-         * Called once a {@link Channel} was acquired by calling {@link SdkChannelPool#acquire()} or {@link
+         * Called <b>after</b> a {@link Channel} was acquired by calling {@link SdkChannelPool#acquire()} or {@link
          * SdkChannelPool#acquire(Promise)}.
          * <p>
          * This method will be called by the {@link EventLoop} of the {@link Channel}.
@@ -64,7 +64,7 @@ public final class ListenerInvokingChannelPool implements SdkChannelPool {
         }
 
         /**
-         * Called once a {@link Channel} was released by calling {@link SdkChannelPool#release(Channel)} or {@link
+         * Called <b>before</b> a {@link Channel} is released by calling {@link SdkChannelPool#release(Channel)} or {@link
          * SdkChannelPool#release(Channel, Promise)}.
          * <p>
          * This method will be called by the {@link EventLoop} of the {@link Channel}.
@@ -118,7 +118,7 @@ public final class ListenerInvokingChannelPool implements SdkChannelPool {
         NettyUtils.doInEventLoop(channel.eventLoop(), () -> {
             invokeChannelReleased(channel);
             delegatePool.release(channel, returnFuture);
-        }, channel.newPromise());
+        }, returnFuture);
         return returnFuture;
     }
 
