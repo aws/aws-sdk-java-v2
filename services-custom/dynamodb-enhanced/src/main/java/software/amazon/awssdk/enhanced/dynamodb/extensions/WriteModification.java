@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.extensions;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -28,15 +29,20 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * <p>
  * If an additionalConditionalExpression is supplied then this condition will be coalesced with any other conditions
  * and added as a parameter to the write operation.
+ * <p>
+ * If an updateExpression is supplied then this update expression will be coalesced with any other update expressions
+ * and added as a parameter to the write operation.
  */
 @SdkPublicApi
 public final class WriteModification {
     private final Map<String, AttributeValue> transformedItem;
     private final Expression additionalConditionalExpression;
+    private final UpdateExpression updateExpression;
 
-    private WriteModification(Map<String, AttributeValue> transformedItem, Expression additionalConditionalExpression) {
-        this.transformedItem = transformedItem;
-        this.additionalConditionalExpression = additionalConditionalExpression;
+    private WriteModification(Builder builder) {
+        this.transformedItem = builder.transformedItem;
+        this.additionalConditionalExpression = builder.additionalConditionalExpression;
+        this.updateExpression = builder.updateExpression;
     }
 
     public static Builder builder() {
@@ -49,6 +55,10 @@ public final class WriteModification {
 
     public Expression additionalConditionalExpression() {
         return additionalConditionalExpression;
+    }
+
+    public UpdateExpression updateExpression() {
+        return updateExpression;
     }
 
     @Override
@@ -65,21 +75,29 @@ public final class WriteModification {
         if (transformedItem != null ? ! transformedItem.equals(that.transformedItem) : that.transformedItem != null) {
             return false;
         }
-        return additionalConditionalExpression != null ?
-            additionalConditionalExpression.equals(that.additionalConditionalExpression) :
-            that.additionalConditionalExpression == null;
+        if (additionalConditionalExpression != null ?
+                ! additionalConditionalExpression.equals(that.additionalConditionalExpression) :
+                that.additionalConditionalExpression != null) {
+            return false;
+        }
+
+        return updateExpression != null ?
+               updateExpression.equals(that.updateExpression) :
+               that.updateExpression == null;
     }
 
     @Override
     public int hashCode() {
         int result = transformedItem != null ? transformedItem.hashCode() : 0;
         result = 31 * result + (additionalConditionalExpression != null ? additionalConditionalExpression.hashCode() : 0);
+        result = 31 * result + (updateExpression != null ? updateExpression.hashCode() : 0);
         return result;
     }
 
     public static final class Builder {
         private Map<String, AttributeValue> transformedItem;
         private Expression additionalConditionalExpression;
+        private UpdateExpression updateExpression;
 
         private Builder() {
         }
@@ -94,8 +112,13 @@ public final class WriteModification {
             return this;
         }
 
+        public Builder updateExpression(UpdateExpression updateExpression) {
+            this.updateExpression = updateExpression;
+            return this;
+        }
+
         public WriteModification build() {
-            return new WriteModification(transformedItem, additionalConditionalExpression);
+            return new WriteModification(this);
         }
     }
 }

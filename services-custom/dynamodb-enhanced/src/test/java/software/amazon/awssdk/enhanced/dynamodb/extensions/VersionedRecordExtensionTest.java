@@ -144,7 +144,6 @@ public class VersionedRecordExtensionTest {
                                                      .tableMetadata(FakeItem.getTableMetadata())
                                                      .operationContext(PRIMARY_CONTEXT).build());
 
-
         assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
     }
 
@@ -159,7 +158,6 @@ public class VersionedRecordExtensionTest {
                                                                                                                    .operationContext(PRIMARY_CONTEXT)
                                                                                                                    .tableMetadata(FakeItemWithSort.getTableMetadata())
                                                                                                                    .build());
-
         assertThat(writeModification, is(WriteModification.builder().build()));
     }
 

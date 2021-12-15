@@ -26,20 +26,19 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -54,15 +53,14 @@ import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
-import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.update.DeleteUpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
-import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
-import software.amazon.awssdk.services.dynamodb.model.Update;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 
@@ -78,11 +76,11 @@ public class UpdateItemOperationTest {
 
     private static final OperationContext PRIMARY_CONTEXT =
         DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
-    private static final OperationContext GSI_1_CONTEXT =
-        DefaultOperationContext.create(TABLE_NAME, "gsi_1");
+    private static final OperationContext GSI_1_CONTEXT = DefaultOperationContext.create(TABLE_NAME, "gsi_1");
     private static final Expression CONDITION_EXPRESSION;
     private static final Expression MINIMAL_CONDITION_EXPRESSION = Expression.builder().expression("foo = bar").build();
-
+    private static final Map<String, AttributeValue> EXPRESSION_VALUES;
+    private static final Map<String, String> EXPRESSION_NAMES;
 
     static {
         Map<String, String> expressionNames = new HashMap<>();
@@ -96,6 +94,12 @@ public class UpdateItemOperationTest {
                                          .expressionNames(Collections.unmodifiableMap(expressionNames))
                                          .expressionValues(Collections.unmodifiableMap(expressionValues))
                                          .build();
+        EXPRESSION_VALUES = new HashMap<>();
+        EXPRESSION_VALUES.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
+        EXPRESSION_VALUES.put(OTHER_ATTRIBUTE_2_VALUE, AttributeValue.builder().s("value-2").build());
+        EXPRESSION_NAMES = new HashMap<>();
+        EXPRESSION_NAMES.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
+        EXPRESSION_NAMES.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
     }
 
     @Mock
@@ -137,19 +141,13 @@ public class UpdateItemOperationTest {
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
 
         String expectedUpdateExpression = "SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
-                                  " REMOVE " + OTHER_ATTRIBUTE_2_NAME;
-        Map<String, AttributeValue> expectedValues = new HashMap<>();
-        expectedValues.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
-        Map<String, String> expectedNames = new HashMap<>();
-        expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
-        expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
+                                         " REMOVE " + OTHER_ATTRIBUTE_2_NAME;
         UpdateItemRequest.Builder expectedRequestBuilder = ddbRequestBuilder(ddbKey(item.getId(), item.getSort()));
-        expectedRequestBuilder.expressionAttributeValues(expectedValues);
-        expectedRequestBuilder.expressionAttributeNames(expectedNames);
+        expectedRequestBuilder.expressionAttributeValues(expressionValuesFor(OTHER_ATTRIBUTE_1_VALUE));
+        expectedRequestBuilder.expressionAttributeNames(expressionNamesFor(OTHER_ATTRIBUTE_1_NAME, OTHER_ATTRIBUTE_2_NAME));
         expectedRequestBuilder.updateExpression(expectedUpdateExpression);
-        UpdateItemRequest expectedRequest = expectedRequestBuilder.build();
 
-        assertThat(request, is(expectedRequest));
+        assertThat(request, is(expectedRequestBuilder.build()));
     }
 
     @Test
@@ -161,22 +159,16 @@ public class UpdateItemOperationTest {
 
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
 
-
         String expectedUpdateExpression = "SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
-                                          " REMOVE " + OTHER_ATTRIBUTE_2_NAME;
-        Map<String, AttributeValue> expectedValues = new HashMap<>(CONDITION_EXPRESSION.expressionValues());
-        expectedValues.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
-        Map<String, String> expectedNames = new HashMap<>(CONDITION_EXPRESSION.expressionNames());
-        expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
-        expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
+                                         " REMOVE " + OTHER_ATTRIBUTE_2_NAME;
         UpdateItemRequest.Builder expectedRequestBuilder = ddbRequestBuilder(ddbKey(item.getId(), item.getSort()));
-        expectedRequestBuilder.expressionAttributeValues(expectedValues);
-        expectedRequestBuilder.expressionAttributeNames(expectedNames);
+        expectedRequestBuilder.expressionAttributeValues(expressionValuesFor(CONDITION_EXPRESSION.expressionValues(), OTHER_ATTRIBUTE_1_VALUE));
+        expectedRequestBuilder.expressionAttributeNames(expressionNamesFor(CONDITION_EXPRESSION.expressionNames(),
+                                                                           OTHER_ATTRIBUTE_1_NAME, OTHER_ATTRIBUTE_2_NAME));
         expectedRequestBuilder.updateExpression(expectedUpdateExpression);
         expectedRequestBuilder.conditionExpression(CONDITION_EXPRESSION.expression());
-        UpdateItemRequest expectedRequest = expectedRequestBuilder.build();
 
-        assertThat(request, is(expectedRequest));
+        assertThat(request, is(expectedRequestBuilder.build()));
     }
 
     @Test
@@ -189,15 +181,9 @@ public class UpdateItemOperationTest {
 
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
 
-        Map<String, AttributeValue> expectedValues = new HashMap<>();
-        expectedValues.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
-        Map<String, String> expectedNames = new HashMap<>();
-        expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
-        expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
-
         assertThat(request.conditionExpression(), is(MINIMAL_CONDITION_EXPRESSION.expression()));
-        assertThat(request.expressionAttributeNames(), is(expectedNames));
-        assertThat(request.expressionAttributeValues(), is(expectedValues));
+        assertThat(request.expressionAttributeNames(), is(expressionNamesFor(OTHER_ATTRIBUTE_1_NAME, OTHER_ATTRIBUTE_2_NAME)));
+        assertThat(request.expressionAttributeValues(), is(expressionValuesFor(OTHER_ATTRIBUTE_1_VALUE)));
     }
 
     @Test
@@ -211,18 +197,12 @@ public class UpdateItemOperationTest {
 
         String expectedUpdateExpression = "SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
                                           " REMOVE " + OTHER_ATTRIBUTE_2_NAME;
-        Map<String, AttributeValue> expectedValues = new HashMap<>();
-        expectedValues.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
-        Map<String, String> expectedNames = new HashMap<>();
-        expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
-        expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
         UpdateItemRequest.Builder expectedRequestBuilder = ddbRequestBuilder(ddbKey(item.getId(), item.getSort()));
-        expectedRequestBuilder.expressionAttributeValues(expectedValues);
-        expectedRequestBuilder.expressionAttributeNames(expectedNames);
+        expectedRequestBuilder.expressionAttributeValues(expressionValuesFor(OTHER_ATTRIBUTE_1_VALUE));
+        expectedRequestBuilder.expressionAttributeNames(expressionNamesFor(OTHER_ATTRIBUTE_1_NAME, OTHER_ATTRIBUTE_2_NAME));
         expectedRequestBuilder.updateExpression(expectedUpdateExpression);
-        UpdateItemRequest expectedRequest = expectedRequestBuilder.build();
 
-        assertThat(request, is(expectedRequest));
+        assertThat(request, is(expectedRequestBuilder.build()));
     }
 
     @Test
@@ -235,16 +215,9 @@ public class UpdateItemOperationTest {
 
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
 
-        Map<String, AttributeValue> expectedValues = new HashMap<>();
-        expectedValues.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
-        expectedValues.put(OTHER_ATTRIBUTE_2_VALUE, AttributeValue.builder().s("value-2").build());
-        Map<String, String> expectedNames = new HashMap<>();
-        expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
-        expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
-
         UpdateItemRequest.Builder expectedRequestBuilder = ddbRequestBuilder(ddbKey(item.getId(), item.getSort()));
-        expectedRequestBuilder.expressionAttributeValues(expectedValues);
-        expectedRequestBuilder.expressionAttributeNames(expectedNames);
+        expectedRequestBuilder.expressionAttributeValues(expressionValuesFor(OTHER_ATTRIBUTE_1_VALUE, OTHER_ATTRIBUTE_2_VALUE));
+        expectedRequestBuilder.expressionAttributeNames(expressionNamesFor(OTHER_ATTRIBUTE_1_NAME, OTHER_ATTRIBUTE_2_NAME));
 
         String updateExpression1 = "SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
                                   ", " + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE;
@@ -263,11 +236,8 @@ public class UpdateItemOperationTest {
             UpdateItemOperation.create(requestFakeItemWithSort(item, b-> b.ignoreNulls(false)));
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
 
-        Map<String, String> expectedNames = new HashMap<>();
-        expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
-        expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
         UpdateItemRequest.Builder expectedRequestBuilder = ddbRequestBuilder(ddbKey(item.getId(), item.getSort()));
-        expectedRequestBuilder.expressionAttributeNames(expectedNames);
+        expectedRequestBuilder.expressionAttributeNames(expressionNamesFor(OTHER_ATTRIBUTE_1_NAME, OTHER_ATTRIBUTE_2_NAME));
         String updateExpression1 = "REMOVE " + OTHER_ATTRIBUTE_1_NAME + ", " + OTHER_ATTRIBUTE_2_NAME;
         UpdateItemRequest expectedRequest1 = expectedRequestBuilder.updateExpression(updateExpression1).build();
         String updateExpression2 = "REMOVE " + OTHER_ATTRIBUTE_2_NAME + ", " + OTHER_ATTRIBUTE_1_NAME;
@@ -285,12 +255,10 @@ public class UpdateItemOperationTest {
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(), PRIMARY_CONTEXT, null);
 
         String expectedUpdateExpression = "SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE;
-        Map<String, AttributeValue> expectedValues = singletonMap(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
-        Map<String, String> expectedNames = singletonMap(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
 
         UpdateItemRequest.Builder expectedRequestBuilder = ddbRequestBuilder(ddbKey(item.getId(), item.getSort()));
-        expectedRequestBuilder.expressionAttributeValues(expectedValues);
-        expectedRequestBuilder.expressionAttributeNames(expectedNames);
+        expectedRequestBuilder.expressionAttributeValues(expressionValuesFor(OTHER_ATTRIBUTE_1_VALUE));
+        expectedRequestBuilder.expressionAttributeNames(expressionNamesFor(OTHER_ATTRIBUTE_1_NAME));
         expectedRequestBuilder.updateExpression(expectedUpdateExpression);
         UpdateItemRequest expectedRequest = expectedRequestBuilder.build();
 
@@ -332,7 +300,7 @@ public class UpdateItemOperationTest {
     }
 
     @Test
-    public void generateRequest_withExtension_modifiesUpdateExpression() {
+    public void generateRequest_withExtension_transformedItemModifiesUpdateExpression() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> baseMap = new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
 
@@ -372,6 +340,60 @@ public class UpdateItemOperationTest {
 
         assertThat(request.conditionExpression(), is("condition"));
         assertThat(request.expressionAttributeValues(), is(fakeMap));
+    }
+
+    @Test
+    public void generateRequest_withExtensions_singleUpdateExpression() {
+        Map<String, AttributeValue> deleteActionMap = singletonMap(":val", AttributeValue.builder().s("s").build());
+        DeleteUpdateAction deleteUpdateAction = DeleteUpdateAction.builder().path("attr1")
+                                                                  .value(":val")
+                                                                  .expressionValues(deleteActionMap)
+                                                                  .build();
+        UpdateExpression updateExpression = UpdateExpression.builder().addAction(deleteUpdateAction).build();
+
+        FakeItem item = createUniqueFakeItem();
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
+            .thenReturn(WriteModification.builder().updateExpression(updateExpression).build());
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItem(item, b -> b.ignoreNulls(true)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        mockDynamoDbEnhancedClientExtension);
+
+        assertThat(request.updateExpression(), is("DELETE attr1 :val"));
+        assertThat(request.expressionAttributeValues(), is(deleteActionMap));
+    }
+
+    @Test
+    public void generateRequest_withExtensions_conditionAndUpdateExpression() {
+        FakeItem baseFakeItem = createUniqueFakeItem();
+        FakeItem fakeItem = createUniqueFakeItem();
+        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+        Expression condition = Expression.builder().expression("condition").expressionValues(fakeMap).build();
+
+        Map<String, AttributeValue> deleteActionMap = singletonMap(":val", AttributeValue.builder().s("s").build());
+        DeleteUpdateAction deleteUpdateAction = DeleteUpdateAction.builder().path("attr1")
+                                                                  .value(":val")
+                                                                  .expressionValues(deleteActionMap)
+                                                                  .build();
+        UpdateExpression updateExpression = UpdateExpression.builder().addAction(deleteUpdateAction).build();
+
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
+            .thenReturn(WriteModification.builder()
+                                         .additionalConditionalExpression(condition)
+                                         .updateExpression(updateExpression)
+                                         .build());
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItem(baseFakeItem, b -> b.ignoreNulls(true)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        mockDynamoDbEnhancedClientExtension);
+
+        assertThat(request.conditionExpression(), is("condition"));
+        assertThat(request.updateExpression(), is("DELETE attr1 :val"));
+        assertThat(request.expressionAttributeValues(), is(Expression.joinValues(fakeMap, deleteActionMap)));
     }
 
     @Test
@@ -603,111 +625,6 @@ public class UpdateItemOperationTest {
         transformResponse(createUniqueFakeItem());
     }
 
-    @Test
-    public void generateTransactWriteItem_basicRequest() {
-        FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        UpdateItemOperation<FakeItem> updateItemOperation =
-            spy(UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(fakeItem).build()));
-        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
-        String updateExpression = "update-expression";
-        Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));
-        Map<String, String> attributeNames = Collections.singletonMap("key", "value2");
-
-        UpdateItemRequest.Builder builder = ddbRequestBuilder(fakeItemMap);
-        builder.updateExpression(updateExpression);
-        builder.expressionAttributeValues(attributeValues);
-        builder.expressionAttributeNames(attributeNames);
-        UpdateItemRequest updateItemRequest = builder.build();
-
-        doReturn(updateItemRequest).when(updateItemOperation).generateRequest(any(), any(), any());
-
-        TransactWriteItem actualResult = updateItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
-                                                                                       context,
-                                                                                       mockDynamoDbEnhancedClientExtension);
-
-        TransactWriteItem expectedResult = TransactWriteItem.builder()
-                                                            .update(Update.builder()
-                                                                          .key(fakeItemMap)
-                                                                          .tableName(TABLE_NAME)
-                                                                          .updateExpression(updateExpression)
-                                                                          .expressionAttributeNames(attributeNames)
-                                                                          .expressionAttributeValues(attributeValues)
-                                                                          .build())
-                                                            .build();
-        assertThat(actualResult, is(expectedResult));
-        verify(updateItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
-    }
-
-    @Test
-    public void generateTransactWriteItem_conditionalRequest() {
-        FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        UpdateItemOperation<FakeItem> updateItemOperation =
-            spy(UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(fakeItem).build()));
-        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
-        String updateExpression = "update-expression";
-        String conditionExpression = "condition-expression";
-        Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));
-        Map<String, String> attributeNames = Collections.singletonMap("key", "value2");
-
-        UpdateItemRequest.Builder builder = ddbRequestBuilder(fakeItemMap);
-        builder.updateExpression(updateExpression);
-        builder.expressionAttributeValues(attributeValues);
-        builder.expressionAttributeNames(attributeNames);
-        builder.conditionExpression(conditionExpression);
-        UpdateItemRequest updateItemRequest = builder.build();
-
-        doReturn(updateItemRequest).when(updateItemOperation).generateRequest(any(), any(), any());
-
-        TransactWriteItem actualResult = updateItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
-                                                                                       context,
-                                                                                       mockDynamoDbEnhancedClientExtension);
-
-        TransactWriteItem expectedResult = TransactWriteItem.builder()
-                                                            .update(Update.builder()
-                                                                          .key(fakeItemMap)
-                                                                          .tableName(TABLE_NAME)
-                                                                          .updateExpression(updateExpression)
-                                                                          .conditionExpression(conditionExpression)
-                                                                          .expressionAttributeNames(attributeNames)
-                                                                          .expressionAttributeValues(attributeValues)
-                                                                          .build())
-                                                            .build();
-        assertThat(actualResult, is(expectedResult));
-        verify(updateItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
-    }
-
-    @Test
-    public void generateTransactWriteItem_returnValuesOnConditionCheckFailure_generatesCorrectRequest() {
-        FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        String returnValues = "return-values";
-
-        UpdateItemOperation<FakeItem> updateItemOperation =
-            spy(UpdateItemOperation.create(TransactUpdateItemEnhancedRequest.builder(FakeItem.class)
-                                                                            .item(fakeItem)
-                                                                            .returnValuesOnConditionCheckFailure(returnValues)
-                                                                            .build()));
-        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
-
-        doReturn(ddbRequest(fakeItemMap, b -> {})).when(updateItemOperation).generateRequest(any(), any(), any());
-
-        TransactWriteItem actualResult = updateItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
-                                                                                       context,
-                                                                                       mockDynamoDbEnhancedClientExtension);
-
-        TransactWriteItem expectedResult = TransactWriteItem.builder()
-                                                            .update(Update.builder()
-                                                                          .key(fakeItemMap)
-                                                                          .tableName(TABLE_NAME)
-                                                                          .returnValuesOnConditionCheckFailure(returnValues)
-                                                                          .build())
-                                                            .build();
-        assertThat(actualResult, is(expectedResult));
-        verify(updateItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
-    }
-
     private Map<String, AttributeValue> ddbKey(String partitionKey) {
         return singletonMap("id", AttributeValue.builder().s(partitionKey).build());
     }
@@ -733,6 +650,26 @@ public class UpdateItemOperationTest {
         return UpdateItemRequest.builder().tableName(TABLE_NAME)
                                 .key(keys)
                                 .returnValues(ReturnValue.ALL_NEW);
+    }
+
+    private static Map<String, AttributeValue> expressionValuesFor(Map<String, AttributeValue> initValues, String... tokens) {
+        Map<String, AttributeValue> expressionValues = new HashMap<>(initValues);
+        expressionValues.putAll(expressionValuesFor(tokens));
+        return expressionValues;
+    }
+
+    private static Map<String, AttributeValue> expressionValuesFor(String... tokens) {
+        return Stream.of(tokens).collect(Collectors.toMap(String::toString, EXPRESSION_VALUES::get));
+    }
+
+    private static Map<String, String> expressionNamesFor(Map<String, String> initValues, String... tokens) {
+        Map<String, String> expressionNames = new HashMap<>(initValues);
+        expressionNames.putAll(expressionNamesFor(tokens));
+        return expressionNames;
+    }
+
+    private static Map<String, String> expressionNamesFor(String... tokens) {
+        return Stream.of(tokens).collect(Collectors.toMap(String::toString, EXPRESSION_NAMES::get));
     }
 
     private UpdateItemEnhancedRequest<FakeItem> requestFakeItem(
