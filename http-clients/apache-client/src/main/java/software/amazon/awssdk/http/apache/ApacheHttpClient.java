@@ -23,6 +23,7 @@ import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 import static software.amazon.awssdk.http.HttpMetric.LEASED_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.MAX_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRES;
+import static software.amazon.awssdk.http.apache.internal.conn.ClientConnectionRequestFactory.THREAD_LOCAL_REQUEST_METRIC_COLLECTOR;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
@@ -230,7 +231,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         return new ExecutableHttpRequest() {
             @Override
             public HttpExecuteResponse call() throws IOException {
-                HttpExecuteResponse executeResponse = execute(apacheRequest);
+                HttpExecuteResponse executeResponse = execute(apacheRequest, metricCollector);
                 collectPoolMetric(metricCollector);
                 return executeResponse;
             }
@@ -249,10 +250,15 @@ public final class ApacheHttpClient implements SdkHttpClient {
         cm.shutdown();
     }
 
-    private HttpExecuteResponse execute(HttpRequestBase apacheRequest) throws IOException {
+    private HttpExecuteResponse execute(HttpRequestBase apacheRequest, MetricCollector metricCollector) throws IOException {
         HttpClientContext localRequestContext = ApacheUtils.newClientContext(requestConfig.proxyConfiguration());
-        HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
-        return createResponse(httpResponse, apacheRequest);
+        THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.set(metricCollector);
+        try {
+            HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
+            return createResponse(httpResponse, apacheRequest);
+        } finally {
+            THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.remove();
+        }
     }
 
     private HttpRequestBase toApacheRequest(HttpExecuteRequest request) {
