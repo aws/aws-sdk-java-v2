@@ -237,8 +237,12 @@ public final class NettyUtils {
     public static <T> GenericFutureListener<Future<T>> consumeOrPropagate(Promise<?> destination, Consumer<T> onSuccess) {
         return f -> {
             if (f.isSuccess()) {
-                T result = f.getNow();
-                onSuccess.accept(result);
+                try {
+                    T result = f.getNow();
+                    onSuccess.accept(result);
+                } catch (Throwable t) {
+                    destination.tryFailure(t);
+                }
             } else if (f.isCancelled()) {
                 destination.cancel(false);
             } else {
@@ -258,7 +262,11 @@ public final class NettyUtils {
     public static <T> GenericFutureListener<Future<T>> runOrPropagate(Promise<?> destination, Runnable onSuccess) {
         return f -> {
             if (f.isSuccess()) {
-                onSuccess.run();
+                try {
+                    onSuccess.run();
+                } catch (Throwable t) {
+                    destination.tryFailure(t);
+                }
             } else if (f.isCancelled()) {
                 destination.cancel(false);
             } else {
