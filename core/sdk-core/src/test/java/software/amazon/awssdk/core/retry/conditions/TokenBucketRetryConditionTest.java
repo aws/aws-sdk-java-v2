@@ -22,8 +22,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -155,7 +155,7 @@ public class TokenBucketRetryConditionTest {
 
         executor.shutdown();
         if (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
-            Assert.fail();
+            Assertions.fail();
         }
 
         assertThat(failure.get()).isFalse();

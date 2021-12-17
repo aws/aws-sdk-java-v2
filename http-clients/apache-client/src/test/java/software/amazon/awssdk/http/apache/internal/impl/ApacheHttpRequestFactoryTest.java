@@ -25,8 +25,9 @@ import java.time.Duration;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -37,7 +38,7 @@ public class ApacheHttpRequestFactoryTest {
     private ApacheHttpRequestConfig requestConfig;
     private ApacheHttpRequestFactory instance;
 
-    @Before
+    @BeforeEach
     public void setup() {
         instance = new ApacheHttpRequestFactory();
         requestConfig = ApacheHttpRequestConfig.builder()
@@ -59,9 +60,9 @@ public class ApacheHttpRequestFactoryTest {
                 .build();
         HttpRequestBase result = instance.create(request, requestConfig);
         Header[] hostHeaders = result.getHeaders(HttpHeaders.HOST);
-        assertNotNull(hostHeaders);
-        assertEquals(1, hostHeaders.length);
-        assertEquals("localhost:12345", hostHeaders[0].getValue());
+        Assertions.assertNotNull(hostHeaders);
+        Assertions.assertEquals(1, hostHeaders.length);
+        Assertions.assertEquals("localhost:12345", hostHeaders[0].getValue());
     }
 
     @Test
@@ -75,9 +76,9 @@ public class ApacheHttpRequestFactoryTest {
                 .build();
         HttpRequestBase result = instance.create(request, requestConfig);
         Header[] hostHeaders = result.getHeaders(HttpHeaders.HOST);
-        assertNotNull(hostHeaders);
-        assertEquals(1, hostHeaders.length);
-        assertEquals("localhost", hostHeaders[0].getValue());
+        Assertions.assertNotNull(hostHeaders);
+        Assertions.assertEquals(1, hostHeaders.length);
+        Assertions.assertEquals("localhost", hostHeaders[0].getValue());
 
         sdkRequest = SdkHttpRequest.builder()
                 .uri(URI.create("https://localhost:443/"))
@@ -88,9 +89,9 @@ public class ApacheHttpRequestFactoryTest {
                 .build();
         result = instance.create(request, requestConfig);
         hostHeaders = result.getHeaders(HttpHeaders.HOST);
-        assertNotNull(hostHeaders);
-        assertEquals(1, hostHeaders.length);
-        assertEquals("localhost", hostHeaders[0].getValue());
+        Assertions.assertNotNull(hostHeaders);
+        Assertions.assertEquals(1, hostHeaders.length);
+        Assertions.assertEquals("localhost", hostHeaders[0].getValue());
     }
 
     @Test

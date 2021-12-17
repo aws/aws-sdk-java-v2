@@ -26,7 +26,8 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http2.HttpConversionUtil;
 import java.net.URI;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -152,9 +153,9 @@ public class RequestAdapterTest {
         HttpRequest result = h1Adapter.adapt(sdkRequest);
         List<String> hostHeaders = result.headers()
                 .getAll(HttpHeaderNames.HOST.toString());
-        assertNotNull(hostHeaders);
-        assertEquals(1, hostHeaders.size());
-        assertEquals("localhost", hostHeaders.get(0));
+        Assertions.assertNotNull(hostHeaders);
+        Assertions.assertEquals(1, hostHeaders.size());
+        Assertions.assertEquals("localhost", hostHeaders.get(0));
 
         sdkRequest = SdkHttpRequest.builder()
                 .uri(URI.create("https://localhost:443/"))
@@ -163,9 +164,9 @@ public class RequestAdapterTest {
         result = h1Adapter.adapt(sdkRequest);
         hostHeaders = result.headers()
                 .getAll(HttpHeaderNames.HOST.toString());
-        assertNotNull(hostHeaders);
-        assertEquals(1, hostHeaders.size());
-        assertEquals("localhost", hostHeaders.get(0));
+        Assertions.assertNotNull(hostHeaders);
+        Assertions.assertEquals(1, hostHeaders.size());
+        Assertions.assertEquals("localhost", hostHeaders.get(0));
     }
 
     @Test

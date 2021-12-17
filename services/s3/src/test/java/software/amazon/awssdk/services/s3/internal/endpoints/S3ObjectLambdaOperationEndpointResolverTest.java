@@ -22,9 +22,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
@@ -39,7 +39,7 @@ import software.amazon.awssdk.services.s3.utils.InterceptorTestUtils;
 public class S3ObjectLambdaOperationEndpointResolverTest {
     private S3ObjectLambdaOperationEndpointResolver endpointResolver;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         endpointResolver = S3ObjectLambdaOperationEndpointResolver.create();
     }
@@ -113,7 +113,7 @@ public class S3ObjectLambdaOperationEndpointResolverTest {
     }
 
     @Test
-    @Ignore // TODO: Taken from the SEP but this test case is suspect. The SEP
+    @Disabled // TODO: Taken from the SEP but this test case is suspect. The SEP
     // expects s3-external-1 to be translated to the us-east-1 region for this
     // operation, which is weird. Currently, we do not do this. 's3-external-1'
     // doesn't exist in endpoints.json, so we use heuristics to get the
@@ -131,7 +131,7 @@ public class S3ObjectLambdaOperationEndpointResolverTest {
     }
 
     @Test
-    @Ignore // TODO: Taken from the SEP but this test case is suspect. The SEP
+    @Disabled // TODO: Taken from the SEP but this test case is suspect. The SEP
     // expects aws-global to be translated to the us-east-1 region for this
     // operation, which is weird. We do not do this; we lookup the endpoint
     // from the region metadata which maps aws-global => s3.amazonaws.com, so
@@ -149,7 +149,7 @@ public class S3ObjectLambdaOperationEndpointResolverTest {
     }
 
     @Test
-    @Ignore // SDK doesn't resolve fips endpoints correctly
+    @Disabled // SDK doesn't resolve fips endpoints correctly
     public void writeGetObjectResponse_regionIsFipsInPrefix_shouldConvertEndpoint() {
         String requestRoute = "route";
         String region = "fips-us-gov-east-1";
@@ -163,7 +163,7 @@ public class S3ObjectLambdaOperationEndpointResolverTest {
     }
 
     @Test
-    @Ignore // SDK doesn't resolve fips endpoints correctly
+    @Disabled // SDK doesn't resolve fips endpoints correctly
     public void writeGetObjectResponse_regionIsFipsInSuffix_shouldConvertEndpoint() {
         String requestRoute = "route";
         String region = "us-gov-east-1-fips";

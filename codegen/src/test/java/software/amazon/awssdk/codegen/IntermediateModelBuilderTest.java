@@ -21,7 +21,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
@@ -57,8 +58,8 @@ public class IntermediateModelBuilderTest {
                      .build())
             .build();
 
-        assertEquals("PingResponse", testModel.getOperation("Ping").getOutputShape().getShapeName());
-        assertEquals("SecurePingResponse", testModel.getOperation("SecurePing").getOutputShape().getShapeName());
+        Assertions.assertEquals("PingResponse", testModel.getOperation("Ping").getOutputShape().getShapeName());
+        Assertions.assertEquals("SecurePingResponse", testModel.getOperation("SecurePing").getOutputShape().getShapeName());
     }
 
     @Test
@@ -72,7 +73,7 @@ public class IntermediateModelBuilderTest {
                      .build())
             .build();
 
-        assertTrue(testModel.getEndpointOperation().get().isEndpointCacheRequired());
+        Assertions.assertTrue(testModel.getEndpointOperation().get().isEndpointCacheRequired());
     }
 
     @Test
@@ -86,7 +87,7 @@ public class IntermediateModelBuilderTest {
                      .build())
             .build();
 
-        assertFalse(testModel.getEndpointOperation().get().isEndpointCacheRequired());
+        Assertions.assertFalse(testModel.getEndpointOperation().get().isEndpointCacheRequired());
     }
 
 }

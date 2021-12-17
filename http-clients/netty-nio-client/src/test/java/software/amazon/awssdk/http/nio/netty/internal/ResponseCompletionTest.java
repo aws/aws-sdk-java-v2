@@ -50,8 +50,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -70,7 +70,7 @@ public class ResponseCompletionTest {
     private SdkAsyncHttpClient netty;
     private Server server;
 
-    @After
+    @AfterEach
     public void teardown() throws InterruptedException {
         if (server != null) {
             server.shutdown();

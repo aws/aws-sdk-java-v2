@@ -21,7 +21,9 @@ import static org.junit.Assert.assertThat;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.junit.Test;
+import org.hamcrest.MatcherAssert;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.auth.policy.Principal.Service;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
 import software.amazon.awssdk.core.auth.policy.conditions.ConditionFactory;
@@ -46,62 +48,62 @@ public class PolicyReaderTest {
                                       .withActions(new Action("action")));
 
         policy = Policy.fromJson(policy.toJson());
-        assertEquals(1, policy.getStatements().size());
+        Assertions.assertEquals(1, policy.getStatements().size());
         List<Statement> statements = new LinkedList<Statement>(policy.getStatements());
 
-        assertEquals(Effect.Allow, statements.get(0).getEffect());
-        assertEquals("action", statements.get(0).getActions().get(0).getActionName());
-        assertEquals("resource", statements.get(0).getResources().get(0).getId());
-        assertEquals(2, statements.get(0).getPrincipals().size());
-        assertEquals("AWS", statements.get(0).getPrincipals().get(0).getProvider());
-        assertEquals("accountId1", statements.get(0).getPrincipals().get(0).getId());
-        assertEquals("AWS", statements.get(0).getPrincipals().get(1).getProvider());
-        assertEquals("accountId2", statements.get(0).getPrincipals().get(1).getId());
+        Assertions.assertEquals(Effect.Allow, statements.get(0).getEffect());
+        Assertions.assertEquals("action", statements.get(0).getActions().get(0).getActionName());
+        Assertions.assertEquals("resource", statements.get(0).getResources().get(0).getId());
+        Assertions.assertEquals(2, statements.get(0).getPrincipals().size());
+        Assertions.assertEquals("AWS", statements.get(0).getPrincipals().get(0).getProvider());
+        Assertions.assertEquals("accountId1", statements.get(0).getPrincipals().get(0).getId());
+        Assertions.assertEquals("AWS", statements.get(0).getPrincipals().get(1).getProvider());
+        Assertions.assertEquals("accountId2", statements.get(0).getPrincipals().get(1).getId());
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow).withResources(new Resource("resource")).withPrincipals(new Principal(
                 Principal.Service.AmazonEC2), new Principal(Service.AmazonElasticTranscoder))
                                                          .withActions(new Action("action")));
         policy = Policy.fromJson(policy.toJson());
-        assertEquals(1, policy.getStatements().size());
+        Assertions.assertEquals(1, policy.getStatements().size());
         statements = new LinkedList<Statement>(policy.getStatements());
 
-        assertEquals(Effect.Allow, statements.get(0).getEffect());
-        assertEquals(1, statements.get(0).getActions().size());
-        assertEquals("action", statements.get(0).getActions().get(0).getActionName());
-        assertEquals(2, statements.get(0).getPrincipals().size());
-        assertEquals("Service", statements.get(0).getPrincipals().get(0).getProvider());
-        assertEquals(Principal.Service.AmazonEC2.getServiceId(), statements.get(0).getPrincipals().get(0).getId());
-        assertEquals("Service", statements.get(0).getPrincipals().get(1).getProvider());
-        assertEquals(Principal.Service.AmazonElasticTranscoder.getServiceId(), statements.get(0).getPrincipals().get(1).getId());
+        Assertions.assertEquals(Effect.Allow, statements.get(0).getEffect());
+        Assertions.assertEquals(1, statements.get(0).getActions().size());
+        Assertions.assertEquals("action", statements.get(0).getActions().get(0).getActionName());
+        Assertions.assertEquals(2, statements.get(0).getPrincipals().size());
+        Assertions.assertEquals("Service", statements.get(0).getPrincipals().get(0).getProvider());
+        Assertions.assertEquals(Principal.Service.AmazonEC2.getServiceId(), statements.get(0).getPrincipals().get(0).getId());
+        Assertions.assertEquals("Service", statements.get(0).getPrincipals().get(1).getProvider());
+        Assertions.assertEquals(Principal.Service.AmazonElasticTranscoder.getServiceId(), statements.get(0).getPrincipals().get(1).getId());
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow).withResources(new Resource("resource")).withPrincipals(Principal.ALL)
                                                          .withActions(new Action("action")));
         policy = Policy.fromJson(policy.toJson());
-        assertEquals(1, policy.getStatements().size());
+        Assertions.assertEquals(1, policy.getStatements().size());
         statements = new LinkedList<Statement>(policy.getStatements());
 
-        assertEquals(Effect.Allow, statements.get(0).getEffect());
-        assertEquals(1, statements.get(0).getActions().size());
-        assertEquals("action", statements.get(0).getActions().get(0).getActionName());
-        assertEquals(1, statements.get(0).getPrincipals().size());
-        assertEquals(Principal.ALL, statements.get(0).getPrincipals().get(0));
+        Assertions.assertEquals(Effect.Allow, statements.get(0).getEffect());
+        Assertions.assertEquals(1, statements.get(0).getActions().size());
+        Assertions.assertEquals("action", statements.get(0).getActions().get(0).getActionName());
+        Assertions.assertEquals(1, statements.get(0).getPrincipals().size());
+        Assertions.assertEquals(Principal.ALL, statements.get(0).getPrincipals().get(0));
 
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow).withResources(new Resource("resource")).withPrincipals(Principal.ALL_USERS, Principal.ALL_SERVICES, Principal.ALL_WEB_PROVIDERS)
                                                          .withActions(new Action("action")));
         policy = Policy.fromJson(policy.toJson());
-        assertEquals(1, policy.getStatements().size());
+        Assertions.assertEquals(1, policy.getStatements().size());
         statements = new LinkedList<Statement>(policy.getStatements());
 
-        assertEquals(Effect.Allow, statements.get(0).getEffect());
-        assertEquals(1, statements.get(0).getActions().size());
-        assertEquals("action", statements.get(0).getActions().get(0).getActionName());
-        assertEquals(3, statements.get(0).getPrincipals().size());
-        assertThat(statements.get(0).getPrincipals(),
-                   contains(Principal.ALL_USERS, Principal.ALL_SERVICES, Principal.ALL_WEB_PROVIDERS));
+        Assertions.assertEquals(Effect.Allow, statements.get(0).getEffect());
+        Assertions.assertEquals(1, statements.get(0).getActions().size());
+        Assertions.assertEquals("action", statements.get(0).getActions().get(0).getActionName());
+        Assertions.assertEquals(3, statements.get(0).getPrincipals().size());
+        MatcherAssert.assertThat(statements.get(0).getPrincipals(),
+                                 contains(Principal.ALL_USERS, Principal.ALL_SERVICES, Principal.ALL_WEB_PROVIDERS));
     }
 
     @Test
@@ -117,18 +119,18 @@ public class PolicyReaderTest {
 
         policy = Policy.fromJson(policy.toJson());
 
-        assertEquals(1, policy.getStatements().size());
+        Assertions.assertEquals(1, policy.getStatements().size());
         List<Statement> statements = new LinkedList<Statement>(policy.getStatements());
 
-        assertEquals(Effect.Allow, statements.get(0).getEffect());
-        assertEquals(1, statements.get(0).getActions().size());
-        assertEquals("foo", statements.get(0).getActions().get(0).getActionName());
-        assertEquals(1, statements.get(0).getConditions().size());
-        assertEquals("StringNotLike", statements.get(0).getConditions().get(0).getType());
-        assertEquals("key1", statements.get(0).getConditions().get(0).getConditionKey());
-        assertEquals(2, statements.get(0).getConditions().get(0).getValues().size());
-        assertEquals("foo", statements.get(0).getConditions().get(0).getValues().get(0));
-        assertEquals("bar", statements.get(0).getConditions().get(0).getValues().get(1));
+        Assertions.assertEquals(Effect.Allow, statements.get(0).getEffect());
+        Assertions.assertEquals(1, statements.get(0).getActions().size());
+        Assertions.assertEquals("foo", statements.get(0).getActions().get(0).getActionName());
+        Assertions.assertEquals(1, statements.get(0).getConditions().size());
+        Assertions.assertEquals("StringNotLike", statements.get(0).getConditions().get(0).getType());
+        Assertions.assertEquals("key1", statements.get(0).getConditions().get(0).getConditionKey());
+        Assertions.assertEquals(2, statements.get(0).getConditions().get(0).getValues().size());
+        Assertions.assertEquals("foo", statements.get(0).getConditions().get(0).getValues().get(0));
+        Assertions.assertEquals("bar", statements.get(0).getConditions().get(0).getValues().get(1));
     }
 
     /**
@@ -149,11 +151,11 @@ public class PolicyReaderTest {
                 "}";
 
         Policy policy = Policy.fromJson(jsonString);
-        assertEquals(1, policy.getStatements().size());
+        Assertions.assertEquals(1, policy.getStatements().size());
         List<Statement> statements = new LinkedList<Statement>(policy.getStatements());
 
-        assertEquals(Effect.Deny, statements.get(0).getEffect());
-        assertEquals(1, statements.size());
+        Assertions.assertEquals(Effect.Deny, statements.get(0).getEffect());
+        Assertions.assertEquals(1, statements.size());
     }
 
     @Test
@@ -177,43 +179,43 @@ public class PolicyReaderTest {
 
         policy = Policy.fromJson(policy.toJson());
 
-        assertEquals(2, policy.getStatements().size());
-        assertEquals("S3PolicyId1", policy.getId());
+        Assertions.assertEquals(2, policy.getStatements().size());
+        Assertions.assertEquals("S3PolicyId1", policy.getId());
         List<Statement> statements = new LinkedList<Statement>(policy.getStatements());
 
-        assertEquals(Effect.Allow, statements.get(0).getEffect());
-        assertEquals("0", statements.get(0).getId());
-        assertEquals(1, statements.get(0).getPrincipals().size());
-        assertEquals("*", statements.get(0).getPrincipals().get(0).getId());
-        assertEquals("AWS", statements.get(0).getPrincipals().get(0).getProvider());
-        assertEquals(1, statements.get(0).getResources().size());
-        assertEquals("resource", statements.get(0).getResources().get(0).getId());
-        assertEquals(1, statements.get(0).getActions().size());
-        assertEquals("action1", statements.get(0).getActions().get(0).getActionName());
-        assertEquals(2, statements.get(0).getConditions().size());
-        assertEquals("IpAddress", statements.get(0).getConditions().get(0).getType());
-        assertEquals(ConditionFactory.SOURCE_IP_CONDITION_KEY, statements.get(0).getConditions().get(0).getConditionKey());
-        assertEquals(1, statements.get(0).getConditions().get(0).getValues().size());
-        assertEquals("192.168.143.0/24", statements.get(0).getConditions().get(0).getValues().get(0));
-        assertEquals("NotIpAddress", statements.get(0).getConditions().get(1).getType());
-        assertEquals(1, statements.get(0).getConditions().get(1).getValues().size());
-        assertEquals("192.168.143.188/32", statements.get(0).getConditions().get(1).getValues().get(0));
+        Assertions.assertEquals(Effect.Allow, statements.get(0).getEffect());
+        Assertions.assertEquals("0", statements.get(0).getId());
+        Assertions.assertEquals(1, statements.get(0).getPrincipals().size());
+        Assertions.assertEquals("*", statements.get(0).getPrincipals().get(0).getId());
+        Assertions.assertEquals("AWS", statements.get(0).getPrincipals().get(0).getProvider());
+        Assertions.assertEquals(1, statements.get(0).getResources().size());
+        Assertions.assertEquals("resource", statements.get(0).getResources().get(0).getId());
+        Assertions.assertEquals(1, statements.get(0).getActions().size());
+        Assertions.assertEquals("action1", statements.get(0).getActions().get(0).getActionName());
+        Assertions.assertEquals(2, statements.get(0).getConditions().size());
+        Assertions.assertEquals("IpAddress", statements.get(0).getConditions().get(0).getType());
+        Assertions.assertEquals(ConditionFactory.SOURCE_IP_CONDITION_KEY, statements.get(0).getConditions().get(0).getConditionKey());
+        Assertions.assertEquals(1, statements.get(0).getConditions().get(0).getValues().size());
+        Assertions.assertEquals("192.168.143.0/24", statements.get(0).getConditions().get(0).getValues().get(0));
+        Assertions.assertEquals("NotIpAddress", statements.get(0).getConditions().get(1).getType());
+        Assertions.assertEquals(1, statements.get(0).getConditions().get(1).getValues().size());
+        Assertions.assertEquals("192.168.143.188/32", statements.get(0).getConditions().get(1).getValues().get(0));
 
-        assertEquals(ConditionFactory.SOURCE_IP_CONDITION_KEY, statements.get(1).getConditions().get(0).getConditionKey());
-        assertEquals(Effect.Deny, statements.get(1).getEffect());
-        assertEquals("1", statements.get(1).getId());
-        assertEquals(1, statements.get(1).getPrincipals().size());
-        assertEquals("*", statements.get(1).getPrincipals().get(0).getId());
-        assertEquals("AWS", statements.get(1).getPrincipals().get(0).getProvider());
-        assertEquals(1, statements.get(1).getResources().size());
-        assertEquals("resource", statements.get(1).getResources().get(0).getId());
-        assertEquals(1, statements.get(1).getActions().size());
-        assertEquals("action2", statements.get(1).getActions().get(0).getActionName());
-        assertEquals(1, statements.get(1).getConditions().size());
-        assertEquals("IpAddress", statements.get(1).getConditions().get(0).getType());
-        assertEquals(ConditionFactory.SOURCE_IP_CONDITION_KEY, statements.get(0).getConditions().get(0).getConditionKey());
-        assertEquals(1, statements.get(0).getConditions().get(0).getValues().size());
-        assertEquals("10.1.2.0/24", statements.get(1).getConditions().get(0).getValues().get(0));
+        Assertions.assertEquals(ConditionFactory.SOURCE_IP_CONDITION_KEY, statements.get(1).getConditions().get(0).getConditionKey());
+        Assertions.assertEquals(Effect.Deny, statements.get(1).getEffect());
+        Assertions.assertEquals("1", statements.get(1).getId());
+        Assertions.assertEquals(1, statements.get(1).getPrincipals().size());
+        Assertions.assertEquals("*", statements.get(1).getPrincipals().get(0).getId());
+        Assertions.assertEquals("AWS", statements.get(1).getPrincipals().get(0).getProvider());
+        Assertions.assertEquals(1, statements.get(1).getResources().size());
+        Assertions.assertEquals("resource", statements.get(1).getResources().get(0).getId());
+        Assertions.assertEquals(1, statements.get(1).getActions().size());
+        Assertions.assertEquals("action2", statements.get(1).getActions().get(0).getActionName());
+        Assertions.assertEquals(1, statements.get(1).getConditions().size());
+        Assertions.assertEquals("IpAddress", statements.get(1).getConditions().get(0).getType());
+        Assertions.assertEquals(ConditionFactory.SOURCE_IP_CONDITION_KEY, statements.get(0).getConditions().get(0).getConditionKey());
+        Assertions.assertEquals(1, statements.get(0).getConditions().get(0).getValues().size());
+        Assertions.assertEquals("10.1.2.0/24", statements.get(1).getConditions().get(0).getValues().get(0));
     }
 
     @Test
@@ -238,20 +240,20 @@ public class PolicyReaderTest {
                 "}";
 
         Policy policy = Policy.fromJson(jsonString);
-        assertEquals(POLICY_VERSION, policy.getVersion());
+        Assertions.assertEquals(POLICY_VERSION, policy.getVersion());
         List<Statement> statements = new LinkedList<Statement>(policy.getStatements());
-        assertEquals(1, statements.size());
-        assertEquals(1, statements.get(0).getActions().size());
-        assertEquals(Effect.Allow, statements.get(0).getEffect());
-        assertEquals("sts:AssumeRole", statements.get(0).getActions().get(0).getActionName());
-        assertEquals(1, statements.get(0).getConditions().size());
-        assertEquals("IpAddress", statements.get(0).getConditions().get(0).getType());
-        assertEquals("aws:SourceIp", statements.get(0).getConditions().get(0).getConditionKey());
-        assertEquals(1, statements.get(0).getConditions().get(0).getValues().size());
-        assertEquals("10.10.10.10/32", statements.get(0).getConditions().get(0).getValues().get(0));
-        assertEquals(1, statements.get(0).getPrincipals().size());
-        assertEquals("*", statements.get(0).getPrincipals().get(0).getId());
-        assertEquals("AWS", statements.get(0).getPrincipals().get(0).getProvider());
+        Assertions.assertEquals(1, statements.size());
+        Assertions.assertEquals(1, statements.get(0).getActions().size());
+        Assertions.assertEquals(Effect.Allow, statements.get(0).getEffect());
+        Assertions.assertEquals("sts:AssumeRole", statements.get(0).getActions().get(0).getActionName());
+        Assertions.assertEquals(1, statements.get(0).getConditions().size());
+        Assertions.assertEquals("IpAddress", statements.get(0).getConditions().get(0).getType());
+        Assertions.assertEquals("aws:SourceIp", statements.get(0).getConditions().get(0).getConditionKey());
+        Assertions.assertEquals(1, statements.get(0).getConditions().get(0).getValues().size());
+        Assertions.assertEquals("10.10.10.10/32", statements.get(0).getConditions().get(0).getValues().get(0));
+        Assertions.assertEquals(1, statements.get(0).getPrincipals().size());
+        Assertions.assertEquals("*", statements.get(0).getPrincipals().get(0).getId());
+        Assertions.assertEquals("AWS", statements.get(0).getPrincipals().get(0).getProvider());
 
     }
 
@@ -281,20 +283,20 @@ public class PolicyReaderTest {
                 "}";
 
         Policy policy = Policy.fromJson(jsonString);
-        assertEquals(POLICY_VERSION, policy.getVersion());
+        Assertions.assertEquals(POLICY_VERSION, policy.getVersion());
         List<Statement> statements = new LinkedList<Statement>(policy.getStatements());
-        assertEquals(1, statements.size());
-        assertEquals(1, statements.get(0).getActions().size());
-        assertEquals(Effect.Allow, statements.get(0).getEffect());
-        assertEquals("sts:AssumeRoleWithSAML", statements.get(0).getActions().get(0).getActionName());
-        assertEquals(1, statements.get(0).getConditions().size());
-        assertEquals("StringEquals", statements.get(0).getConditions().get(0).getType());
-        assertEquals("SAML:aud", statements.get(0).getConditions().get(0).getConditionKey());
-        assertEquals(1, statements.get(0).getConditions().get(0).getValues().size());
-        assertEquals("https://signin.aws.amazon.com/saml", statements.get(0).getConditions().get(0).getValues().get(0));
-        assertEquals(1, statements.get(0).getPrincipals().size());
-        assertEquals("arn:aws:iam::862954416975:saml-provider/myprovider", statements.get(0).getPrincipals().get(0).getId());
-        assertEquals("Federated", statements.get(0).getPrincipals().get(0).getProvider());
+        Assertions.assertEquals(1, statements.size());
+        Assertions.assertEquals(1, statements.get(0).getActions().size());
+        Assertions.assertEquals(Effect.Allow, statements.get(0).getEffect());
+        Assertions.assertEquals("sts:AssumeRoleWithSAML", statements.get(0).getActions().get(0).getActionName());
+        Assertions.assertEquals(1, statements.get(0).getConditions().size());
+        Assertions.assertEquals("StringEquals", statements.get(0).getConditions().get(0).getType());
+        Assertions.assertEquals("SAML:aud", statements.get(0).getConditions().get(0).getConditionKey());
+        Assertions.assertEquals(1, statements.get(0).getConditions().get(0).getValues().size());
+        Assertions.assertEquals("https://signin.aws.amazon.com/saml", statements.get(0).getConditions().get(0).getValues().get(0));
+        Assertions.assertEquals(1, statements.get(0).getPrincipals().size());
+        Assertions.assertEquals("arn:aws:iam::862954416975:saml-provider/myprovider", statements.get(0).getPrincipals().get(0).getId());
+        Assertions.assertEquals("Federated", statements.get(0).getPrincipals().get(0).getProvider());
     }
 
     @Test
@@ -310,16 +312,16 @@ public class PolicyReaderTest {
                 "]" +
                 "}";
         Policy policy = Policy.fromJson(jsonString);
-        assertEquals(POLICY_VERSION, policy.getVersion());
+        Assertions.assertEquals(POLICY_VERSION, policy.getVersion());
         List<Statement> statements = new LinkedList<Statement>(policy.getStatements());
-        assertEquals(1, statements.size());
-        assertEquals(1, statements.get(0).getActions().size());
-        assertEquals(Effect.Allow, statements.get(0).getEffect());
-        assertEquals("sts:AssumeRole", statements.get(0).getActions().get(0).getActionName());
-        assertEquals(0, statements.get(0).getConditions().size());
-        assertEquals(1, statements.get(0).getPrincipals().size());
-        assertEquals(Service.AWSCloudHSM.getServiceId(), statements.get(0).getPrincipals().get(0).getId());
-        assertEquals("Service", statements.get(0).getPrincipals().get(0).getProvider());
+        Assertions.assertEquals(1, statements.size());
+        Assertions.assertEquals(1, statements.get(0).getActions().size());
+        Assertions.assertEquals(Effect.Allow, statements.get(0).getEffect());
+        Assertions.assertEquals("sts:AssumeRole", statements.get(0).getActions().get(0).getActionName());
+        Assertions.assertEquals(0, statements.get(0).getConditions().size());
+        Assertions.assertEquals(1, statements.get(0).getPrincipals().size());
+        Assertions.assertEquals(Service.AWSCloudHSM.getServiceId(), statements.get(0).getPrincipals().get(0).getId());
+        Assertions.assertEquals("Service", statements.get(0).getPrincipals().get(0).getProvider());
     }
 
     /**
@@ -342,20 +344,20 @@ public class PolicyReaderTest {
                             + "\"Action\":\"sts:AssumeRole\"" + "}" + "]" + "}";
 
         Policy policy = Policy.fromJson(jsonString);
-        assertEquals(POLICY_VERSION, policy.getVersion());
+        Assertions.assertEquals(POLICY_VERSION, policy.getVersion());
         List<Statement> statements = new LinkedList<Statement>(
                 policy.getStatements());
-        assertEquals(1, statements.size());
-        assertEquals(1, statements.get(0).getActions().size());
-        assertEquals(Effect.Allow, statements.get(0).getEffect());
-        assertEquals("sts:AssumeRole", statements.get(0).getActions().get(0)
-                                                 .getActionName());
-        assertEquals(0, statements.get(0).getConditions().size());
-        assertEquals(1, statements.get(0).getPrincipals().size());
-        assertEquals("workspaces.amazonaws.com", statements.get(0)
-                                                           .getPrincipals().get(0).getId());
-        assertEquals("Service", statements.get(0).getPrincipals().get(0)
-                                          .getProvider());
+        Assertions.assertEquals(1, statements.size());
+        Assertions.assertEquals(1, statements.get(0).getActions().size());
+        Assertions.assertEquals(Effect.Allow, statements.get(0).getEffect());
+        Assertions.assertEquals("sts:AssumeRole", statements.get(0).getActions().get(0)
+                                                            .getActionName());
+        Assertions.assertEquals(0, statements.get(0).getConditions().size());
+        Assertions.assertEquals(1, statements.get(0).getPrincipals().size());
+        Assertions.assertEquals("workspaces.amazonaws.com", statements.get(0)
+                                                                      .getPrincipals().get(0).getId());
+        Assertions.assertEquals("Service", statements.get(0).getPrincipals().get(0)
+                                                     .getProvider());
     }
 
 }

@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.protocols.query.interceptor;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -46,7 +46,7 @@ public class QueryParametersToBodyInterceptorTest {
 
     private SdkHttpFullRequest.Builder requestBuilder;
 
-    @Before
+    @BeforeEach
     public void setup() {
 
         interceptor = new QueryParametersToBodyInterceptor();

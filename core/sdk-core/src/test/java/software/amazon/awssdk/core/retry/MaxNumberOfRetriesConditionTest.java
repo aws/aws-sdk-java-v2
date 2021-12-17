@@ -18,23 +18,24 @@ package software.amazon.awssdk.core.retry;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.retry.conditions.MaxNumberOfRetriesCondition;
 
 public class MaxNumberOfRetriesConditionTest {
 
     @Test
     public void positiveMaxRetries_OneMoreAttemptToMax_ReturnsTrue() {
-        assertTrue(MaxNumberOfRetriesCondition.create(3).shouldRetry(RetryPolicyContexts.withRetriesAttempted(2)));
+        Assertions.assertTrue(MaxNumberOfRetriesCondition.create(3).shouldRetry(RetryPolicyContexts.withRetriesAttempted(2)));
     }
 
     @Test
     public void positiveMaxRetries_AtMaxAttempts_ReturnsFalse() {
-        assertFalse(MaxNumberOfRetriesCondition.create(3).shouldRetry(RetryPolicyContexts.withRetriesAttempted(3)));
+        Assertions.assertFalse(MaxNumberOfRetriesCondition.create(3).shouldRetry(RetryPolicyContexts.withRetriesAttempted(3)));
     }
 
     @Test
     public void positiveMaxRetries_PastMaxAttempts_ReturnsFalse() {
-        assertFalse(MaxNumberOfRetriesCondition.create(3).shouldRetry(RetryPolicyContexts.withRetriesAttempted(4)));
+        Assertions.assertFalse(MaxNumberOfRetriesCondition.create(3).shouldRetry(RetryPolicyContexts.withRetriesAttempted(4)));
     }
 }

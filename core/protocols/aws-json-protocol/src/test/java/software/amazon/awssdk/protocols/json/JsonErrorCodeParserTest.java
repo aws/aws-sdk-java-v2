@@ -19,7 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonErrorCodeParser;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
@@ -60,7 +61,7 @@ public class JsonErrorCodeParserTest {
         String actualErrorType = parser.parseErrorCode(
             httpResponseWithHeaders(JsonErrorCodeParser.X_AMZN_ERROR_TYPE, HEADER_ERROR_TYPE),
             toJsonContent(JSON_ERROR_TYPE));
-        assertEquals(HEADER_ERROR_TYPE, actualErrorType);
+        Assertions.assertEquals(HEADER_ERROR_TYPE, actualErrorType);
     }
 
     @Test
@@ -68,7 +69,7 @@ public class JsonErrorCodeParserTest {
         String actualErrorType = parser.parseErrorCode(
             httpResponseWithHeaders(JsonErrorCodeParser.X_AMZN_ERROR_TYPE,
                                     String.format("%s:%s", HEADER_ERROR_TYPE, "someSuffix")), toJsonContent(JSON_ERROR_TYPE));
-        assertEquals(HEADER_ERROR_TYPE, actualErrorType);
+        Assertions.assertEquals(HEADER_ERROR_TYPE, actualErrorType);
     }
 
     @Test
@@ -76,30 +77,30 @@ public class JsonErrorCodeParserTest {
         String actualErrorType = parser.parseErrorCode(
             httpResponseWithHeaders("x-amzn-errortype",
                                     String.format("%s:%s", HEADER_ERROR_TYPE, "someSuffix")), toJsonContent(JSON_ERROR_TYPE));
-        assertEquals(HEADER_ERROR_TYPE, actualErrorType);
+        Assertions.assertEquals(HEADER_ERROR_TYPE, actualErrorType);
     }
 
     @Test
     public void parseErrorType_ErrorTypeInContent_NoPrefix() throws IOException {
         String actualErrorType = parser.parseErrorCode(httpResponseWithoutHeaders(), toJsonContent(JSON_ERROR_TYPE));
-        assertEquals(JSON_ERROR_TYPE, actualErrorType);
+        Assertions.assertEquals(JSON_ERROR_TYPE, actualErrorType);
     }
 
     @Test
     public void parseErrorType_ErrorTypeInContent_PrefixIgnored() throws IOException {
         String actualErrorType = parser.parseErrorCode(httpResponseWithoutHeaders(),
                                                        toJsonContent(String.format("%s#%s", "somePrefix", JSON_ERROR_TYPE)));
-        assertEquals(JSON_ERROR_TYPE, actualErrorType);
+        Assertions.assertEquals(JSON_ERROR_TYPE, actualErrorType);
     }
 
     @Test
     public void parseErrorType_NotPresentInHeadersAndNullContent_ReturnsNull() {
-        assertNull(parser.parseErrorCode(httpResponseWithoutHeaders(), null));
+        Assertions.assertNull(parser.parseErrorCode(httpResponseWithoutHeaders(), null));
     }
 
     @Test
     public void parseErrorType_NotPresentInHeadersAndEmptyContent_ReturnsNull() {
-        assertNull(parser.parseErrorCode(httpResponseWithoutHeaders(),
-                                         new JsonContent(null, JsonNode.emptyObjectNode())));
+        Assertions.assertNull(parser.parseErrorCode(httpResponseWithoutHeaders(),
+                                                    new JsonContent(null, JsonNode.emptyObjectNode())));
     }
 }

@@ -21,9 +21,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.checksums.Md5Checksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.IoUtils;
@@ -35,7 +35,7 @@ public class ChecksumValidatingInputStreamTest {
     private static byte[] testData;
     private static byte[] testDataWithoutChecksum;
 
-    @BeforeClass
+    @BeforeAll
     public static void populateData() {
         testData = new byte[TEST_DATA_SIZE + CHECKSUM_SIZE];
         for (int i = 0; i < TEST_DATA_SIZE; i++) {
@@ -58,7 +58,7 @@ public class ChecksumValidatingInputStreamTest {
         InputStream validatingInputStream = newValidatingStream(testData);
         byte[] dataFromValidatingStream = IoUtils.toByteArray(validatingInputStream);
 
-        assertArrayEquals(testDataWithoutChecksum, dataFromValidatingStream);
+        Assertions.assertArrayEquals(testDataWithoutChecksum, dataFromValidatingStream);
     }
 
     @Test
@@ -72,7 +72,7 @@ public class ChecksumValidatingInputStreamTest {
 
             try {
                 IoUtils.toByteArray(validatingInputStream);
-                Assert.fail("Corruption at byte " + i + " was not detected.");
+                Assertions.fail("Corruption at byte " + i + " was not detected.");
             } catch (SdkClientException e) {
                 // Expected
             }

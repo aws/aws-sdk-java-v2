@@ -21,7 +21,8 @@ import static org.junit.Assert.fail;
 
 import java.util.Collections;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for the ImmutableMapTest class.
@@ -35,39 +36,39 @@ public class ImmutableMapTest {
                 .put(2, "two")
                 .put(3, "three")
                 .build();
-        assertEquals(3, builtMap.size());
-        assertEquals("one", builtMap.get(1));
-        assertEquals("two", builtMap.get(2));
-        assertEquals("three", builtMap.get(3));
+        Assertions.assertEquals(3, builtMap.size());
+        Assertions.assertEquals("one", builtMap.get(1));
+        Assertions.assertEquals("two", builtMap.get(2));
+        Assertions.assertEquals("three", builtMap.get(3));
     }
 
     @Test
     public void testOfBuilder() {
         Map<Integer, String> builtMap = ImmutableMap.of(1, "one");
-        assertEquals(1, builtMap.size());
-        assertEquals("one", builtMap.get(1));
+        Assertions.assertEquals(1, builtMap.size());
+        Assertions.assertEquals("one", builtMap.get(1));
         builtMap = ImmutableMap.of(1, "one", 2, "two");
-        assertEquals(2, builtMap.size());
-        assertEquals("one", builtMap.get(1));
-        assertEquals("two", builtMap.get(2));
+        Assertions.assertEquals(2, builtMap.size());
+        Assertions.assertEquals("one", builtMap.get(1));
+        Assertions.assertEquals("two", builtMap.get(2));
         builtMap = ImmutableMap.of(1, "one", 2, "two", 3, "three");
-        assertEquals(3, builtMap.size());
-        assertEquals("one", builtMap.get(1));
-        assertEquals("two", builtMap.get(2));
-        assertEquals("three", builtMap.get(3));
+        Assertions.assertEquals(3, builtMap.size());
+        Assertions.assertEquals("one", builtMap.get(1));
+        Assertions.assertEquals("two", builtMap.get(2));
+        Assertions.assertEquals("three", builtMap.get(3));
         builtMap = ImmutableMap.of(1, "one", 2, "two", 3, "three", 4, "four");
-        assertEquals(4, builtMap.size());
-        assertEquals("one", builtMap.get(1));
-        assertEquals("two", builtMap.get(2));
-        assertEquals("three", builtMap.get(3));
-        assertEquals("four", builtMap.get(4));
+        Assertions.assertEquals(4, builtMap.size());
+        Assertions.assertEquals("one", builtMap.get(1));
+        Assertions.assertEquals("two", builtMap.get(2));
+        Assertions.assertEquals("three", builtMap.get(3));
+        Assertions.assertEquals("four", builtMap.get(4));
         builtMap = ImmutableMap.of(1, "one", 2, "two", 3, "three", 4, "four", 5, "five");
-        assertEquals(5, builtMap.size());
-        assertEquals("one", builtMap.get(1));
-        assertEquals("two", builtMap.get(2));
-        assertEquals("three", builtMap.get(3));
-        assertEquals("four", builtMap.get(4));
-        assertEquals("five", builtMap.get(5));
+        Assertions.assertEquals(5, builtMap.size());
+        Assertions.assertEquals("one", builtMap.get(1));
+        Assertions.assertEquals("two", builtMap.get(2));
+        Assertions.assertEquals("three", builtMap.get(3));
+        Assertions.assertEquals("four", builtMap.get(4));
+        Assertions.assertEquals("five", builtMap.get(5));
     }
 
     @Test
@@ -77,11 +78,11 @@ public class ImmutableMapTest {
                     .put(1, "one")
                     .put(1, "two")
                     .build();
-            fail("IllegalArgumentException expected.");
+            Assertions.fail("IllegalArgumentException expected.");
         } catch (IllegalArgumentException iae) {
             // Ignored or expected.
         } catch (Exception e) {
-            fail("IllegalArgumentException expected.");
+            Assertions.fail("IllegalArgumentException expected.");
         }
     }
 
@@ -92,47 +93,47 @@ public class ImmutableMapTest {
                 .put(2, "two")
                 .put(3, "three")
                 .build();
-        assertTrue(builtMap.containsKey(1));
-        assertTrue(builtMap.containsValue("one"));
-        assertTrue(builtMap.values().contains("one"));
-        assertEquals("one", builtMap.get(1));
-        assertEquals(3, builtMap.entrySet().size());
-        assertEquals(3, builtMap.values().size());
+        Assertions.assertTrue(builtMap.containsKey(1));
+        Assertions.assertTrue(builtMap.containsValue("one"));
+        Assertions.assertTrue(builtMap.values().contains("one"));
+        Assertions.assertEquals("one", builtMap.get(1));
+        Assertions.assertEquals(3, builtMap.entrySet().size());
+        Assertions.assertEquals(3, builtMap.values().size());
 
-        assertEquals(3, builtMap.size());
+        Assertions.assertEquals(3, builtMap.size());
 
         /** Unsupported methods **/
         try {
             builtMap.clear();
-            fail("UnsupportedOperationException expected.");
+            Assertions.fail("UnsupportedOperationException expected.");
         } catch (UnsupportedOperationException iae) {
             // Ignored or expected.
         } catch (Exception e) {
-            fail("UnsupportedOperationException expected.");
+            Assertions.fail("UnsupportedOperationException expected.");
         }
         try {
             builtMap.put(4, "four");
-            fail("UnsupportedOperationException expected.");
+            Assertions.fail("UnsupportedOperationException expected.");
         } catch (UnsupportedOperationException iae) {
             // Ignored or expected.
         } catch (Exception e) {
-            fail("UnsupportedOperationException expected.");
+            Assertions.fail("UnsupportedOperationException expected.");
         }
         try {
             builtMap.putAll(Collections.singletonMap(4, "four"));
-            fail("UnsupportedOperationException expected.");
+            Assertions.fail("UnsupportedOperationException expected.");
         } catch (UnsupportedOperationException iae) {
             // Ignored or expected.
         } catch (Exception e) {
-            fail("UnsupportedOperationException expected.");
+            Assertions.fail("UnsupportedOperationException expected.");
         }
         try {
             builtMap.remove(1);
-            fail("UnsupportedOperationException expected.");
+            Assertions.fail("UnsupportedOperationException expected.");
         } catch (UnsupportedOperationException iae) {
             // Ignored or expected.
         } catch (Exception e) {
-            fail("UnsupportedOperationException expected.");
+            Assertions.fail("UnsupportedOperationException expected.");
         }
     }
 }

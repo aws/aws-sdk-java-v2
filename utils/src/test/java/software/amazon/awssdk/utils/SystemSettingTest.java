@@ -16,7 +16,8 @@
 package software.amazon.awssdk.utils;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 public class SystemSettingTest {
 

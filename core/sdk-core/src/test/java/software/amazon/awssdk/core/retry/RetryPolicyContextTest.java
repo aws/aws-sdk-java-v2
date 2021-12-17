@@ -18,7 +18,8 @@ package software.amazon.awssdk.core.retry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.NoopTestRequest;
@@ -29,17 +30,17 @@ public class RetryPolicyContextTest {
 
     @Test
     public void totalRequests_IsOneMoreThanRetriesAttempted() {
-        assertEquals(4, RetryPolicyContexts.withRetriesAttempted(3).totalRequests());
+        Assertions.assertEquals(4, RetryPolicyContexts.withRetriesAttempted(3).totalRequests());
     }
 
     @Test
     public void nullHttpStatusCodeAllowed() {
-        assertNull(RetryPolicyContexts.withStatusCode(null).httpStatusCode());
+        Assertions.assertNull(RetryPolicyContexts.withStatusCode(null).httpStatusCode());
     }
 
     @Test
     public void nullExceptionAllowed() {
-        assertNull(RetryPolicyContexts.withException(null).exception());
+        Assertions.assertNull(RetryPolicyContexts.withException(null).exception());
     }
 
     @Test
@@ -56,11 +57,11 @@ public class RetryPolicyContextTest {
                                                              .build();
 
 
-        assertEquals(3, context.retriesAttempted());
-        assertEquals(Integer.valueOf(400), context.httpStatusCode());
-        assertEquals(request, context.request());
-        assertEquals(exception, context.exception());
-        assertEquals(origRequest, context.originalRequest());
+        Assertions.assertEquals(3, context.retriesAttempted());
+        Assertions.assertEquals(Integer.valueOf(400), context.httpStatusCode());
+        Assertions.assertEquals(request, context.request());
+        Assertions.assertEquals(exception, context.exception());
+        Assertions.assertEquals(origRequest, context.originalRequest());
     }
 
 }

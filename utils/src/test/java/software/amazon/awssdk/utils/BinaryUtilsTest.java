@@ -23,7 +23,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.utils.internal.Base16Lower;
 
 public class BinaryUtilsTest {
@@ -34,20 +35,20 @@ public class BinaryUtilsTest {
             String hex = BinaryUtils.toHex(new byte[] {0});
             System.out.println(hex);
             String hex2 = Base16Lower.encodeAsString(new byte[] {0});
-            assertEquals(hex, hex2);
+            Assertions.assertEquals(hex, hex2);
         }
         {
             String hex = BinaryUtils.toHex(new byte[] {-1});
             System.out.println(hex);
             String hex2 = Base16Lower.encodeAsString(new byte[] {-1});
-            assertEquals(hex, hex2);
+            Assertions.assertEquals(hex, hex2);
         }
     }
 
     @Test
     public void testCopyBytes_Nulls() {
-        assertNull(BinaryUtils.copyAllBytesFrom(null));
-        assertNull(BinaryUtils.copyBytesFrom(null));
+        Assertions.assertNull(BinaryUtils.copyAllBytesFrom(null));
+        Assertions.assertNull(BinaryUtils.copyBytesFrom(null));
     }
 
     @Test
@@ -58,22 +59,22 @@ public class BinaryUtilsTest {
         b.put(ba);
         // limit: 5
         b.limit(5);
-        assertTrue(b.capacity() > b.limit());
+        Assertions.assertTrue(b.capacity() > b.limit());
         b.rewind();
-        assertTrue(b.position() == 0);
+        Assertions.assertTrue(b.position() == 0);
         b.get();
-        assertTrue(b.position() == 1);
+        Assertions.assertTrue(b.position() == 1);
         // backing array
         byte[] array = b.array();
-        assertTrue(array.length == 100);
+        Assertions.assertTrue(array.length == 100);
         // actual data length
         byte[] allData = BinaryUtils.copyAllBytesFrom(b);
-        assertTrue(allData.length == 5);
+        Assertions.assertTrue(allData.length == 5);
         // copy, not reference
-        assertFalse(ba == allData);
+        Assertions.assertFalse(ba == allData);
         // partial data length
         byte[] partialData = BinaryUtils.copyBytesFrom(b);
-        assertTrue(partialData.length == 4);
+        Assertions.assertTrue(partialData.length == 4);
     }
 
     @Test
@@ -84,22 +85,22 @@ public class BinaryUtilsTest {
         b.put(ba);
         // limit: 5
         b.limit(5);
-        assertTrue(b.capacity() > b.limit());
+        Assertions.assertTrue(b.capacity() > b.limit());
         b.rewind();
-        assertTrue(b.position() == 0);
+        Assertions.assertTrue(b.position() == 0);
         b.get();
-        assertTrue(b.position() == 1);
+        Assertions.assertTrue(b.position() == 1);
         // backing array
-        assertFalse(b.hasArray());
-        assertTrue(b.capacity() == 100);
+        Assertions.assertFalse(b.hasArray());
+        Assertions.assertTrue(b.capacity() == 100);
         // actual data length
         byte[] allData = BinaryUtils.copyAllBytesFrom(b);
-        assertTrue(allData.length == 5);
+        Assertions.assertTrue(allData.length == 5);
         // copy, not reference
-        assertFalse(ba == allData);
+        Assertions.assertFalse(ba == allData);
         // partial data length
         byte[] partialData = BinaryUtils.copyBytesFrom(b);
-        assertTrue(partialData.length == 4);
+        Assertions.assertTrue(partialData.length == 4);
     }
 
     @Test
@@ -107,28 +108,28 @@ public class BinaryUtilsTest {
         byte[] ba = {1, 2, 3, 4, 5};
         final ByteBuffer b = ByteBuffer.wrap(ba);
         b.limit(4);
-        assertTrue(b.limit() == 4);
+        Assertions.assertTrue(b.limit() == 4);
         b.rewind();
-        assertTrue(b.position() == 0);
+        Assertions.assertTrue(b.position() == 0);
         b.get();
-        assertTrue(b.position() == 1);
+        Assertions.assertTrue(b.position() == 1);
         // copy all bytes should be idempotent
         byte[] allData1 = BinaryUtils.copyAllBytesFrom(b);
-        assertTrue(b.position() == 1);
+        Assertions.assertTrue(b.position() == 1);
         byte[] allData2 = BinaryUtils.copyAllBytesFrom(b);
-        assertTrue(b.position() == 1);
-        assertFalse(allData1 == allData2);
-        assertTrue(allData1.length == 4);
-        assertTrue(Arrays.equals(new byte[] {1, 2, 3, 4}, allData1));
+        Assertions.assertTrue(b.position() == 1);
+        Assertions.assertFalse(allData1 == allData2);
+        Assertions.assertTrue(allData1.length == 4);
+        Assertions.assertTrue(Arrays.equals(new byte[] {1, 2, 3, 4}, allData1));
 
         // copy partial bytes should be idempotent
         byte[] partial1 = BinaryUtils.copyBytesFrom(b);
-        assertTrue(b.position() == 1);
+        Assertions.assertTrue(b.position() == 1);
         byte[] partial2 = BinaryUtils.copyBytesFrom(b);
-        assertTrue(b.position() == 1);
-        assertFalse(partial1 == partial2);
-        assertTrue(partial1.length == 3);
-        assertTrue(Arrays.equals(new byte[] {2, 3, 4}, partial1));
+        Assertions.assertTrue(b.position() == 1);
+        Assertions.assertFalse(partial1 == partial2);
+        Assertions.assertTrue(partial1.length == 3);
+        Assertions.assertTrue(Arrays.equals(new byte[] {2, 3, 4}, partial1));
     }
 
     @Test
@@ -137,28 +138,28 @@ public class BinaryUtilsTest {
         final ByteBuffer b = ByteBuffer.allocateDirect(ba.length);
         b.put(ba).rewind();
         b.limit(4);
-        assertTrue(b.limit() == 4);
+        Assertions.assertTrue(b.limit() == 4);
         b.rewind();
-        assertTrue(b.position() == 0);
+        Assertions.assertTrue(b.position() == 0);
         b.get();
-        assertTrue(b.position() == 1);
+        Assertions.assertTrue(b.position() == 1);
         // copy all bytes should be idempotent
         byte[] allData1 = BinaryUtils.copyAllBytesFrom(b);
-        assertTrue(b.position() == 1);
+        Assertions.assertTrue(b.position() == 1);
         byte[] allData2 = BinaryUtils.copyAllBytesFrom(b);
-        assertTrue(b.position() == 1);
-        assertFalse(allData1 == allData2);
-        assertTrue(allData1.length == 4);
-        assertTrue(Arrays.equals(new byte[] {1, 2, 3, 4}, allData1));
+        Assertions.assertTrue(b.position() == 1);
+        Assertions.assertFalse(allData1 == allData2);
+        Assertions.assertTrue(allData1.length == 4);
+        Assertions.assertTrue(Arrays.equals(new byte[] {1, 2, 3, 4}, allData1));
 
         // copy partial bytes should be idempotent
         byte[] partial1 = BinaryUtils.copyBytesFrom(b);
-        assertTrue(b.position() == 1);
+        Assertions.assertTrue(b.position() == 1);
         byte[] partial2 = BinaryUtils.copyBytesFrom(b);
-        assertTrue(b.position() == 1);
-        assertFalse(partial1 == partial2);
-        assertTrue(partial1.length == 3);
-        assertTrue(Arrays.equals(new byte[] {2, 3, 4}, partial1));
+        Assertions.assertTrue(b.position() == 1);
+        Assertions.assertFalse(partial1 == partial2);
+        Assertions.assertTrue(partial1.length == 3);
+        Assertions.assertTrue(Arrays.equals(new byte[] {2, 3, 4}, partial1));
     }
 
     @Test

@@ -20,8 +20,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.UUID;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.utils.internal.Base16;
 import software.amazon.awssdk.utils.internal.Base16Lower;
 
@@ -38,13 +38,13 @@ public class Base16LowerCodecTest {
             String data = testVectors[i];
             byte[] source = data.getBytes("UTF-8");
             String b16encoded = Base16Lower.encodeAsString(data.getBytes("UTF-8"));
-            Assert.assertEquals(expected[i], b16encoded);
+            Assertions.assertEquals(expected[i], b16encoded);
             byte[] b16 = b16encoded.getBytes("UTF-8");
 
             byte[] decoded = Base16.decode(b16);
-            Assert.assertTrue(Arrays.equals(source, decoded));
+            Assertions.assertTrue(Arrays.equals(source, decoded));
             decoded = Base16Lower.decode(b16);
-            Assert.assertTrue(Arrays.equals(source, decoded));
+            Assertions.assertTrue(Arrays.equals(source, decoded));
         }
     }
 
@@ -60,15 +60,15 @@ public class Base16LowerCodecTest {
             String b16Encoded = Base16Lower.encodeAsString(digest);
             {
                 decoded = Base16.decode(b16Encoded);
-                Assert.assertTrue(Arrays.equals(decoded, digest));
+                Assertions.assertTrue(Arrays.equals(decoded, digest));
                 decoded = Base16Lower.decode(b16Encoded);
-                Assert.assertTrue(Arrays.equals(decoded, digest));
+                Assertions.assertTrue(Arrays.equals(decoded, digest));
             }
             {   // test decoding case insensitivity
                 decoded = Base16.decode(b16Encoded.toLowerCase());
-                Assert.assertTrue(Arrays.equals(decoded, digest));
+                Assertions.assertTrue(Arrays.equals(decoded, digest));
                 decoded = Base16Lower.decode(b16Encoded.toLowerCase());
-                Assert.assertTrue(Arrays.equals(decoded, digest));
+                Assertions.assertTrue(Arrays.equals(decoded, digest));
             }
         }
     }

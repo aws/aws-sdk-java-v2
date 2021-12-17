@@ -20,7 +20,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -37,23 +38,23 @@ public class S3EndpointUtilsTest {
 
     @Test
     public void isFipsRegion() {
-        assertTrue(S3EndpointUtils.isFipsRegion("fips-us-east-1"));
-        assertTrue(S3EndpointUtils.isFipsRegion("us-east-1-fips"));
-        assertFalse(S3EndpointUtils.isFipsRegion("us-fips-1"));
+        Assertions.assertTrue(S3EndpointUtils.isFipsRegion("fips-us-east-1"));
+        Assertions.assertTrue(S3EndpointUtils.isFipsRegion("us-east-1-fips"));
+        Assertions.assertFalse(S3EndpointUtils.isFipsRegion("us-fips-1"));
     }
 
     @Test
     public void isAccelerateEnabled() {
-        assertFalse(S3EndpointUtils.isAccelerateEnabled(S3Configuration.builder().build()));
-        assertFalse(S3EndpointUtils.isAccelerateEnabled(null));
-        assertFalse(S3EndpointUtils.isAccelerateEnabled(S3Configuration.builder().accelerateModeEnabled(false).build()));
-        assertTrue(S3EndpointUtils.isAccelerateEnabled(S3Configuration.builder().accelerateModeEnabled(true).build()));
+        Assertions.assertFalse(S3EndpointUtils.isAccelerateEnabled(S3Configuration.builder().build()));
+        Assertions.assertFalse(S3EndpointUtils.isAccelerateEnabled(null));
+        Assertions.assertFalse(S3EndpointUtils.isAccelerateEnabled(S3Configuration.builder().accelerateModeEnabled(false).build()));
+        Assertions.assertTrue(S3EndpointUtils.isAccelerateEnabled(S3Configuration.builder().accelerateModeEnabled(true).build()));
     }
 
     @Test
     public void isAccelerateSupported() {
-        assertFalse(S3EndpointUtils.isAccelerateSupported(ListBucketsRequest.builder().build()));
-        assertTrue(S3EndpointUtils.isAccelerateSupported(PutObjectRequest.builder().build()));
+        Assertions.assertFalse(S3EndpointUtils.isAccelerateSupported(ListBucketsRequest.builder().build()));
+        Assertions.assertTrue(S3EndpointUtils.isAccelerateSupported(PutObjectRequest.builder().build()));
     }
 
     @Test
@@ -67,10 +68,10 @@ public class S3EndpointUtilsTest {
 
     @Test
     public void isDualstackEnabled() {
-        assertFalse(S3EndpointUtils.isDualstackEnabled(S3Configuration.builder().build()));
-        assertFalse(S3EndpointUtils.isDualstackEnabled(null));
-        assertFalse(S3EndpointUtils.isDualstackEnabled(S3Configuration.builder().dualstackEnabled(false).build()));
-        assertTrue(S3EndpointUtils.isDualstackEnabled(S3Configuration.builder().dualstackEnabled(true).build()));
+        Assertions.assertFalse(S3EndpointUtils.isDualstackEnabled(S3Configuration.builder().build()));
+        Assertions.assertFalse(S3EndpointUtils.isDualstackEnabled(null));
+        Assertions.assertFalse(S3EndpointUtils.isDualstackEnabled(S3Configuration.builder().dualstackEnabled(false).build()));
+        Assertions.assertTrue(S3EndpointUtils.isDualstackEnabled(S3Configuration.builder().dualstackEnabled(true).build()));
     }
 
     @Test
@@ -81,18 +82,18 @@ public class S3EndpointUtilsTest {
 
     @Test
     public void isPathstyleAccessEnabled() {
-        assertFalse(S3EndpointUtils.isPathStyleAccessEnabled(S3Configuration.builder().build()));
-        assertFalse(S3EndpointUtils.isPathStyleAccessEnabled(null));
-        assertFalse(S3EndpointUtils.isPathStyleAccessEnabled(S3Configuration.builder().pathStyleAccessEnabled(false).build()));
-        assertTrue(S3EndpointUtils.isPathStyleAccessEnabled(S3Configuration.builder().pathStyleAccessEnabled(true).build()));
+        Assertions.assertFalse(S3EndpointUtils.isPathStyleAccessEnabled(S3Configuration.builder().build()));
+        Assertions.assertFalse(S3EndpointUtils.isPathStyleAccessEnabled(null));
+        Assertions.assertFalse(S3EndpointUtils.isPathStyleAccessEnabled(S3Configuration.builder().pathStyleAccessEnabled(false).build()));
+        Assertions.assertTrue(S3EndpointUtils.isPathStyleAccessEnabled(S3Configuration.builder().pathStyleAccessEnabled(true).build()));
     }
 
     @Test
     public void isArnRegionEnabled() {
-        assertFalse(S3EndpointUtils.isArnRegionEnabled(S3Configuration.builder().build()));
-        assertFalse(S3EndpointUtils.isArnRegionEnabled(null));
-        assertFalse(S3EndpointUtils.isArnRegionEnabled(S3Configuration.builder().useArnRegionEnabled(false).build()));
-        assertTrue(S3EndpointUtils.isArnRegionEnabled(S3Configuration.builder().useArnRegionEnabled(true).build()));
+        Assertions.assertFalse(S3EndpointUtils.isArnRegionEnabled(S3Configuration.builder().build()));
+        Assertions.assertFalse(S3EndpointUtils.isArnRegionEnabled(null));
+        Assertions.assertFalse(S3EndpointUtils.isArnRegionEnabled(S3Configuration.builder().useArnRegionEnabled(false).build()));
+        Assertions.assertTrue(S3EndpointUtils.isArnRegionEnabled(S3Configuration.builder().useArnRegionEnabled(true).build()));
     }
 
     @Test
@@ -105,8 +106,8 @@ public class S3EndpointUtilsTest {
 
     @Test
     public void isArn() {
-        assertFalse(S3EndpointUtils.isArn("bucketName"));
-        assertFalse(S3EndpointUtils.isArn("test:arn:"));
-        assertTrue(S3EndpointUtils.isArn("arn:test"));
+        Assertions.assertFalse(S3EndpointUtils.isArn("bucketName"));
+        Assertions.assertFalse(S3EndpointUtils.isArn("test:arn:"));
+        Assertions.assertTrue(S3EndpointUtils.isArn("arn:test"));
     }
 }

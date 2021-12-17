@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
-import org.junit.Test;
-import software.amazon.awssdk.core.util.SdkUserAgent;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 
 public class SdkUserAgentTest {
@@ -28,7 +28,7 @@ public class SdkUserAgentTest {
     @Test
     public void userAgent() {
         String userAgent = SdkUserAgent.create().userAgent();
-        assertNotNull(userAgent);
+        Assertions.assertNotNull(userAgent);
         Arrays.stream(userAgent.split(" ")).forEach(str -> assertThat(isValidInput(str)).isTrue());
     }
 

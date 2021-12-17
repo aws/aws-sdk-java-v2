@@ -22,7 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -61,6 +62,6 @@ public class PutItemRequestMarshallerTest {
         JsonNode marshalledContent = MAPPER.readTree(marshalled.contentStreamProvider().get().newStream());
         String base64Binary = marshalledContent.get("Item").get("binaryProp").get("B").asText();
         // Only the remaining data in the byte buffer should have been read and marshalled.
-        assertEquals(BinaryUtils.toBase64(new byte[] {1, 1, 1}), base64Binary);
+        Assertions.assertEquals(BinaryUtils.toBase64(new byte[] {1, 1, 1}), base64Binary);
     }
 }

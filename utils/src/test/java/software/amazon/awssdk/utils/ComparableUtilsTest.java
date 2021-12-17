@@ -20,32 +20,33 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
 
-import org.junit.Test;
+import org.hamcrest.MatcherAssert;
+import org.junit.jupiter.api.Test;
 
 public class ComparableUtilsTest {
 
     @Test
     public void safeCompare_SecondNull_ReturnsPositive() {
-        assertThat(ComparableUtils.safeCompare(1.0, null), greaterThan(0));
+        MatcherAssert.assertThat(ComparableUtils.safeCompare(1.0, null), greaterThan(0));
     }
 
     @Test
     public void safeCompare_FirstNull_ReturnsNegative() {
-        assertThat(ComparableUtils.safeCompare(null, 7.0), lessThan(0));
+        MatcherAssert.assertThat(ComparableUtils.safeCompare(null, 7.0), lessThan(0));
     }
 
     @Test
     public void safeCompare_BothNull_ReturnsZero() {
-        assertThat(ComparableUtils.safeCompare(null, null), equalTo(0));
+        MatcherAssert.assertThat(ComparableUtils.safeCompare(null, null), equalTo(0));
     }
 
     @Test
     public void safeCompare_FirstLarger_ReturnsPositive() {
-        assertThat(ComparableUtils.safeCompare(7.0, 6.0), greaterThan(0));
+        MatcherAssert.assertThat(ComparableUtils.safeCompare(7.0, 6.0), greaterThan(0));
     }
 
     @Test
     public void safeCompare_SecondLarger_ReturnsNegative() {
-        assertThat(ComparableUtils.safeCompare(6.0, 7.0), lessThan(0));
+        MatcherAssert.assertThat(ComparableUtils.safeCompare(6.0, 7.0), lessThan(0));
     }
 }

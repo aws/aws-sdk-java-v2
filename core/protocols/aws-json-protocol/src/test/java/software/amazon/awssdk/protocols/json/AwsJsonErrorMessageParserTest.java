@@ -19,8 +19,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.util.UUID;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonErrorMessageParser;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.ErrorMessageParser;
@@ -40,7 +41,7 @@ public class AwsJsonErrorMessageParserTest {
 
     private JsonNodeParser jsonParser;
 
-    @Before
+    @BeforeEach
     public void setup() {
         jsonParser = JsonNode.parser();
         responseBuilder = ValidSdkObjects.sdkHttpFullResponse();
@@ -50,7 +51,7 @@ public class AwsJsonErrorMessageParserTest {
     public void testErrorMessageAt_message() {
         JsonNode jsonNode = parseJson("message", MESSAGE_CONTENT);
         String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
-        assertEquals(MESSAGE_CONTENT, parsed);
+        Assertions.assertEquals(MESSAGE_CONTENT, parsed);
     }
 
     private JsonNode parseJson(String fieldName, String value) {
@@ -65,34 +66,34 @@ public class AwsJsonErrorMessageParserTest {
     public void testErrorMessageAt_Message() {
         JsonNode jsonNode = parseJson("Message", MESSAGE_CONTENT);
         String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
-        assertEquals(MESSAGE_CONTENT, parsed);
+        Assertions.assertEquals(MESSAGE_CONTENT, parsed);
     }
 
     @Test
     public void testErrorMessageAt_errorMessage() {
         JsonNode jsonNode = parseJson("errorMessage", MESSAGE_CONTENT);
         String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
-        assertEquals(MESSAGE_CONTENT, parsed);
+        Assertions.assertEquals(MESSAGE_CONTENT, parsed);
     }
 
     @Test
     public void testNoErrorMessage_ReturnsNull() {
         String parsed = parser.parseErrorMessage(responseBuilder.build(), parseJson("{}"));
-        assertNull(parsed);
+        Assertions.assertNull(parsed);
     }
 
     @Test
     public void testErrorMessageIsNumber_ReturnsStringValue() {
         JsonNode jsonNode = parseJson("{\"message\": 1}");
         String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
-        assertEquals("1", parsed);
+        Assertions.assertEquals("1", parsed);
     }
 
     @Test
     public void testErrorMessageIsObject_ReturnsNull() {
         JsonNode jsonNode = parseJson("{\"message\": {\"foo\": \"bar\"}}");
         String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
-        assertNull(parsed);
+        Assertions.assertNull(parsed);
     }
 
     @Test
@@ -106,21 +107,21 @@ public class AwsJsonErrorMessageParserTest {
                                     "Message", randomStuff,
                                     "errorMessage", randomStuff);
         String parsed = parser.parseErrorMessage(responseBuilder.build(), parseJson(json));
-        assertEquals(MESSAGE_CONTENT, parsed);
+        Assertions.assertEquals(MESSAGE_CONTENT, parsed);
     }
 
     @Test
     public void errorMessageInHeader_ReturnsHeaderValue() {
         responseBuilder.putHeader(X_AMZN_ERROR_MESSAGE, MESSAGE_CONTENT);
         String parsed = parser.parseErrorMessage(responseBuilder.build(), parseJson("{}"));
-        assertEquals(MESSAGE_CONTENT, parsed);
+        Assertions.assertEquals(MESSAGE_CONTENT, parsed);
     }
 
     @Test
     public void errorMessageInHeader_ReturnsHeaderValue_CaseInsensitive() {
         responseBuilder.putHeader("x-AMZN-error-message", MESSAGE_CONTENT);
         String parsed = parser.parseErrorMessage(responseBuilder.build(), parseJson("{}"));
-        assertEquals(MESSAGE_CONTENT, parsed);
+        Assertions.assertEquals(MESSAGE_CONTENT, parsed);
     }
 
     @Test
@@ -128,7 +129,7 @@ public class AwsJsonErrorMessageParserTest {
         responseBuilder.putHeader(X_AMZN_ERROR_MESSAGE, MESSAGE_CONTENT);
         JsonNode jsonNode = parseJson("message", "other message in body");
         String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
-        assertEquals(MESSAGE_CONTENT, parsed);
+        Assertions.assertEquals(MESSAGE_CONTENT, parsed);
     }
 
 }

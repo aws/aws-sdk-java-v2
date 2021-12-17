@@ -20,8 +20,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.UUID;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class Base64UtilsCodecTest {
     @Test
@@ -33,11 +33,11 @@ public class Base64UtilsCodecTest {
             String data = testVectors[i];
             byte[] source = data.getBytes("UTF-8");
             String b64encoded = BinaryUtils.toBase64(data.getBytes("UTF-8"));
-            Assert.assertEquals(expected[i], b64encoded);
+            Assertions.assertEquals(expected[i], b64encoded);
             byte[] b64 = b64encoded.getBytes("UTF-8");
 
             byte[] decoded = BinaryUtils.fromBase64Bytes(b64);
-            Assert.assertTrue(Arrays.equals(source, decoded));
+            Assertions.assertTrue(Arrays.equals(source, decoded));
         }
     }
 
@@ -49,7 +49,7 @@ public class Base64UtilsCodecTest {
             byte[] digest = MessageDigest.getInstance("SHA-1").digest(UUID.randomUUID().toString().getBytes("UTF-8"));
             String b64Encoded = BinaryUtils.toBase64(digest);
             decoded = BinaryUtils.fromBase64(b64Encoded);
-            Assert.assertTrue(Arrays.equals(decoded, digest));
+            Assertions.assertTrue(Arrays.equals(decoded, digest));
         }
     }
 }

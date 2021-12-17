@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -151,13 +151,13 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
                  .mapToObj(i -> new Record2().setId(i).setAttribute(Integer.toString(i)))
                  .collect(Collectors.toList());
 
-    @Before
+    @BeforeEach
     public void createTable() {
         mappedTable1.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
         mappedTable2.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
 
-    @After
+    @AfterEach
     public void deleteTable() {
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName("table-name-1"))

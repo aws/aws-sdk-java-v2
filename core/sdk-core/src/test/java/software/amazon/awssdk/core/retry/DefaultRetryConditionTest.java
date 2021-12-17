@@ -19,7 +19,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.function.Consumer;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -30,47 +31,47 @@ public class DefaultRetryConditionTest {
 
     @Test
     public void retriesOnThrottlingExceptions() {
-        assertTrue(shouldRetry(applyStatusCode(429)));
+        Assertions.assertTrue(shouldRetry(applyStatusCode(429)));
     }
 
     @Test
     public void retriesOnInternalError() {
-        assertTrue(shouldRetry(applyStatusCode(500)));
+        Assertions.assertTrue(shouldRetry(applyStatusCode(500)));
     }
 
     @Test
     public void retriesOnBadGateway() {
-        assertTrue(shouldRetry(applyStatusCode(502)));
+        Assertions.assertTrue(shouldRetry(applyStatusCode(502)));
     }
 
     @Test
     public void retriesOnServiceUnavailable() {
-        assertTrue(shouldRetry(applyStatusCode(503)));
+        Assertions.assertTrue(shouldRetry(applyStatusCode(503)));
     }
 
     @Test
     public void retriesOnGatewayTimeout() {
-        assertTrue(shouldRetry(applyStatusCode(504)));
+        Assertions.assertTrue(shouldRetry(applyStatusCode(504)));
     }
 
     @Test
     public void retriesOnIOException() {
-        assertTrue(shouldRetry(b -> b.exception(SdkClientException.builder().message("IO").cause(new IOException()).build())));
+        Assertions.assertTrue(shouldRetry(b -> b.exception(SdkClientException.builder().message("IO").cause(new IOException()).build())));
     }
 
     @Test
     public void retriesOnRetryableException() {
-        assertTrue(shouldRetry(b -> b.exception(RetryableException.builder().message("this is retryable").build())));
+        Assertions.assertTrue(shouldRetry(b -> b.exception(RetryableException.builder().message("this is retryable").build())));
     }
 
     @Test
     public void doesNotRetryOnNonRetryableException() {
-        assertFalse(shouldRetry(b -> b.exception(NonRetryableException.builder().message("this is NOT retryable").build())));
+        Assertions.assertFalse(shouldRetry(b -> b.exception(NonRetryableException.builder().message("this is NOT retryable").build())));
     }
 
     @Test
     public void doesNotRetryOnNonRetryableStatusCode() {
-        assertFalse(shouldRetry(applyStatusCode(404)));
+        Assertions.assertFalse(shouldRetry(applyStatusCode(404)));
     }
 
     private boolean shouldRetry(Consumer<RetryPolicyContext.Builder> builder) {

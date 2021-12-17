@@ -26,7 +26,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class SdkTlsSocketFactoryTest {
     /**
@@ -48,7 +49,7 @@ public class SdkTlsSocketFactoryTest {
 
             @Override
             public void setEnabledProtocols(String[] protocols) {
-                fail();
+                Assertions.fail();
             }
         }) {
             f.prepareSocket(socket);
@@ -71,7 +72,7 @@ public class SdkTlsSocketFactoryTest {
 
             @Override
             public void setEnabledProtocols(String[] protocols) {
-                assertTrue(Arrays.equals(protocols, new String[] {"TLSv1.2", "TLSv1.1", "TLSv1", "SSLv3"}));
+                Assertions.assertTrue(Arrays.equals(protocols, new String[] {"TLSv1.2", "TLSv1.1", "TLSv1", "SSLv3"}));
             }
         }) {
             f.prepareSocket(socket);
@@ -95,7 +96,7 @@ public class SdkTlsSocketFactoryTest {
             @Override
             public void setEnabledProtocols(String[] protocols) {
                 // For backward compatibility
-                assertTrue(Arrays.equals(protocols, new String[] {"SSLv3"}));
+                Assertions.assertTrue(Arrays.equals(protocols, new String[] {"SSLv3"}));
             }
         }) {
             f.prepareSocket(socket);
@@ -118,7 +119,7 @@ public class SdkTlsSocketFactoryTest {
 
             @Override
             public void setEnabledProtocols(String[] protocols) {
-                assertTrue(Arrays.equals(protocols, new String[] {"TLSv1.1", "TLSv1", "SSLv3"}));
+                Assertions.assertTrue(Arrays.equals(protocols, new String[] {"TLSv1.1", "TLSv1", "SSLv3"}));
             }
         }) {
             f.prepareSocket(socket);

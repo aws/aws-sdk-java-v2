@@ -17,7 +17,8 @@ package software.amazon.awssdk.services.route53;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -70,7 +71,7 @@ public class Route53InterceptorTest {
 
         createResult = (CreateHostedZoneResponse) modifyResponse(interceptor, createResult);
 
-        assertEquals(createResult.delegationSet().id(), id);
+        Assertions.assertEquals(createResult.delegationSet().id(), id);
 
         CreateReusableDelegationSetResponse createResuableResult = CreateReusableDelegationSetResponse.builder()
                 .delegationSet(delegationSet)
@@ -78,7 +79,7 @@ public class Route53InterceptorTest {
 
         createResuableResult = (CreateReusableDelegationSetResponse) modifyResponse(interceptor, createResuableResult);
 
-        assertEquals(createResuableResult.delegationSet().id(), id);
+        Assertions.assertEquals(createResuableResult.delegationSet().id(), id);
 
         GetHostedZoneResponse getZoneResult = GetHostedZoneResponse.builder()
                 .delegationSet(delegationSet)
@@ -87,7 +88,7 @@ public class Route53InterceptorTest {
         getZoneResult = (GetHostedZoneResponse) modifyResponse(interceptor, getZoneResult);
 
         // This assert works, but only because of the other operations the are sequenced before this, that modify the id.
-        assertEquals(getZoneResult.delegationSet().id(), id);
+        Assertions.assertEquals(getZoneResult.delegationSet().id(), id);
 
         GetReusableDelegationSetResponse getResuableResult = GetReusableDelegationSetResponse.builder()
                 .delegationSet(delegationSet)
@@ -95,7 +96,7 @@ public class Route53InterceptorTest {
 
         getResuableResult = (GetReusableDelegationSetResponse) modifyResponse(interceptor, getResuableResult);
 
-        assertEquals(getResuableResult.delegationSet().id(), id);
+        Assertions.assertEquals(getResuableResult.delegationSet().id(), id);
 
         ListReusableDelegationSetsResponse listResult = ListReusableDelegationSetsResponse.builder()
                 .delegationSets(delegationSet)
@@ -103,7 +104,7 @@ public class Route53InterceptorTest {
 
         listResult = (ListReusableDelegationSetsResponse) modifyResponse(interceptor, listResult);
 
-        assertEquals(listResult.delegationSets().get(0).id(), id);
+        Assertions.assertEquals(listResult.delegationSets().get(0).id(), id);
 
         delegationSet = delegationSet.toBuilder().id(id).build();
 
@@ -113,7 +114,7 @@ public class Route53InterceptorTest {
 
         createResult = (CreateHostedZoneResponse) modifyResponse(interceptor, createResult);
 
-        assertEquals(createResult.delegationSet().id(), id);
+        Assertions.assertEquals(createResult.delegationSet().id(), id);
     }
 
     private SdkResponse modifyResponse(ExecutionInterceptor interceptor, SdkResponse responseObject) {
@@ -134,31 +135,31 @@ public class Route53InterceptorTest {
         CreateKeySigningKeyResponse createKeySigningKeyResponse = CreateKeySigningKeyResponse.builder()
                 .changeInfo(changeInfo).build();
         createKeySigningKeyResponse = (CreateKeySigningKeyResponse) modifyResponse(interceptor, createKeySigningKeyResponse);
-        assertEquals(createKeySigningKeyResponse.changeInfo().id(), changeInfoId);
+        Assertions.assertEquals(createKeySigningKeyResponse.changeInfo().id(), changeInfoId);
 
         DeleteKeySigningKeyResponse deleteKeySigningKeyResponse = DeleteKeySigningKeyResponse.builder()
                 .changeInfo(changeInfo).build();
         deleteKeySigningKeyResponse = (DeleteKeySigningKeyResponse) modifyResponse(interceptor, deleteKeySigningKeyResponse);
-        assertEquals(deleteKeySigningKeyResponse.changeInfo().id(), changeInfoId);
+        Assertions.assertEquals(deleteKeySigningKeyResponse.changeInfo().id(), changeInfoId);
 
         ActivateKeySigningKeyResponse activateKeySigningKeyResponse = ActivateKeySigningKeyResponse.builder()
                 .changeInfo(changeInfo).build();
         activateKeySigningKeyResponse = (ActivateKeySigningKeyResponse) modifyResponse(interceptor, activateKeySigningKeyResponse);
-        assertEquals(activateKeySigningKeyResponse.changeInfo().id(), changeInfoId);
+        Assertions.assertEquals(activateKeySigningKeyResponse.changeInfo().id(), changeInfoId);
 
         DeactivateKeySigningKeyResponse deactivateKeySigningKeyResponse = DeactivateKeySigningKeyResponse.builder()
                 .changeInfo(changeInfo).build();
         deactivateKeySigningKeyResponse = (DeactivateKeySigningKeyResponse) modifyResponse(interceptor, deactivateKeySigningKeyResponse);
-        assertEquals(deactivateKeySigningKeyResponse.changeInfo().id(), changeInfoId);
+        Assertions.assertEquals(deactivateKeySigningKeyResponse.changeInfo().id(), changeInfoId);
 
         EnableHostedZoneDnssecResponse enableHostedZoneDnssecResponse = EnableHostedZoneDnssecResponse.builder()
                 .changeInfo(changeInfo).build();
         enableHostedZoneDnssecResponse = (EnableHostedZoneDnssecResponse) modifyResponse(interceptor, enableHostedZoneDnssecResponse);
-        assertEquals(enableHostedZoneDnssecResponse.changeInfo().id(), changeInfoId);
+        Assertions.assertEquals(enableHostedZoneDnssecResponse.changeInfo().id(), changeInfoId);
 
         DisableHostedZoneDnssecResponse disableHostedZoneDnssecResponse = DisableHostedZoneDnssecResponse.builder()
                 .changeInfo(changeInfo).build();
         disableHostedZoneDnssecResponse = (DisableHostedZoneDnssecResponse) modifyResponse(interceptor, disableHostedZoneDnssecResponse);
-        assertEquals(disableHostedZoneDnssecResponse.changeInfo().id(), changeInfoId);
+        Assertions.assertEquals(disableHostedZoneDnssecResponse.changeInfo().id(), changeInfoId);
     }
 }

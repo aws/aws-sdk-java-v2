@@ -22,9 +22,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.ProcessCredentialsProviderTest;
@@ -35,12 +35,12 @@ import software.amazon.awssdk.utils.StringInputStream;
 public class ProfileCredentialsUtilsTest {
     private static String scriptLocation;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup()  {
         scriptLocation = ProcessCredentialsProviderTest.copyProcessCredentialsScript();
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() {
         if (scriptLocation != null && !new File(scriptLocation).delete()) {
             throw new IllegalStateException("Failed to delete file: " + scriptLocation);

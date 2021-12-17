@@ -15,15 +15,15 @@
 
 package software.amazon.awssdk.core.retry.backoff;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
 import java.time.Duration;
 import java.util.Random;
 
+import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertThrows;
@@ -106,7 +106,7 @@ public class EqualJitterBackoffStrategyTest {
         when(mockRandom.nextInt(expectedCeilingMillis /2 + 1)).thenReturn(RANDOM_RESULT);
 
         assertThat(backoffStrategy.computeDelayBeforeNextRetry(toRetryContext(retriesAttempted)),
-                is(Duration.ofMillis(expectedCeilingMillis / 2 + RANDOM_RESULT)));
+                                 is(Duration.ofMillis(expectedCeilingMillis / 2 + RANDOM_RESULT)));
     }
 
     private static RetryPolicyContext toRetryContext(final int retriesAttempted) {

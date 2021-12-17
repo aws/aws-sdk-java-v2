@@ -33,23 +33,24 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class CollectionUtilsTest {
 
     @Test
     public void isEmpty_NullCollection_ReturnsTrue() {
-        assertTrue(CollectionUtils.isNullOrEmpty((Collection<?>) null));
+        Assertions.assertTrue(CollectionUtils.isNullOrEmpty((Collection<?>) null));
     }
 
     @Test
     public void isEmpty_EmptyCollection_ReturnsTrue() {
-        assertTrue(CollectionUtils.isNullOrEmpty(Collections.emptyList()));
+        Assertions.assertTrue(CollectionUtils.isNullOrEmpty(Collections.emptyList()));
     }
 
     @Test
     public void isEmpty_NonEmptyCollection_ReturnsFalse() {
-        assertFalse(CollectionUtils.isNullOrEmpty(Arrays.asList("something")));
+        Assertions.assertFalse(CollectionUtils.isNullOrEmpty(Arrays.asList("something")));
     }
 
     @Test

@@ -20,11 +20,11 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.function.Consumer;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.retry.conditions.RetryOnErrorCodeCondition;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
 public class RetryOnErrorCodeConditionTest {
@@ -33,18 +33,18 @@ public class RetryOnErrorCodeConditionTest {
 
     @Test
     public void noExceptionInContext_ReturnsFalse() {
-        assertFalse(shouldRetry(builder -> builder.exception(null)));
+        Assertions.assertFalse(shouldRetry(builder -> builder.exception(null)));
     }
 
     @Test
     public void retryableErrorCodes_ReturnsTrue() {
-        assertTrue(shouldRetry(applyErrorCode("Foo")));
-        assertTrue(shouldRetry(applyErrorCode("Bar")));
+        Assertions.assertTrue(shouldRetry(applyErrorCode("Foo")));
+        Assertions.assertTrue(shouldRetry(applyErrorCode("Bar")));
     }
 
     @Test
     public void nonRetryableErrorCode_ReturnsFalse() {
-        assertFalse(shouldRetry(applyErrorCode("HelloWorld")));
+        Assertions.assertFalse(shouldRetry(applyErrorCode("HelloWorld")));
     }
 
     private boolean shouldRetry(Consumer<RetryPolicyContext.Builder> builder) {

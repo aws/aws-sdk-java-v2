@@ -17,7 +17,8 @@ package software.amazon.awssdk.awscore.client.endpoint;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
@@ -28,21 +29,21 @@ public class DefaultServiceEndpointBuilderTest {
     public void getServiceEndpoint_S3StandardRegion_HttpsProtocol() throws Exception {
         DefaultServiceEndpointBuilder endpointBuilder = new DefaultServiceEndpointBuilder("s3", "https")
                 .withRegion(Region.US_EAST_1);
-        assertEquals("https://s3.amazonaws.com", endpointBuilder.getServiceEndpoint().toString());
+        Assertions.assertEquals("https://s3.amazonaws.com", endpointBuilder.getServiceEndpoint().toString());
     }
 
     @Test
     public void getServiceEndpoint_S3StandardRegion_HttpProtocol() throws Exception {
         DefaultServiceEndpointBuilder endpointBuilder = new DefaultServiceEndpointBuilder("s3", "http")
                 .withRegion(Region.US_EAST_1);
-        assertEquals("http://s3.amazonaws.com", endpointBuilder.getServiceEndpoint().toString());
+        Assertions.assertEquals("http://s3.amazonaws.com", endpointBuilder.getServiceEndpoint().toString());
     }
 
     @Test
     public void getServiceEndpoint_S3NonStandardRegion_HttpProtocol() throws Exception {
         DefaultServiceEndpointBuilder endpointBuilder = new DefaultServiceEndpointBuilder("s3", "http")
                 .withRegion(Region.EU_CENTRAL_1);
-        assertEquals("http://s3.eu-central-1.amazonaws.com", endpointBuilder.getServiceEndpoint().toString());
+        Assertions.assertEquals("http://s3.eu-central-1.amazonaws.com", endpointBuilder.getServiceEndpoint().toString());
     }
 
     @Test

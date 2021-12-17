@@ -20,7 +20,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.regions.util.ResourcesEndpointRetryParameters;
 
 /**
@@ -31,8 +32,8 @@ public class CredentialsEndpointRetryParametersTest {
     @Test
     public void defaultParams() {
         ResourcesEndpointRetryParameters params = ResourcesEndpointRetryParameters.builder().build();
-        assertNull(params.getStatusCode());
-        assertNull(params.getException());
+        Assertions.assertNull(params.getStatusCode());
+        Assertions.assertNull(params.getException());
     }
 
     @Test
@@ -41,8 +42,8 @@ public class CredentialsEndpointRetryParametersTest {
         ResourcesEndpointRetryParameters params = ResourcesEndpointRetryParameters.builder()
                                                                                   .withStatusCode(statusCode)
                                                                                   .build();
-        assertEquals(statusCode, params.getStatusCode());
-        assertNull(params.getException());
+        Assertions.assertEquals(statusCode, params.getStatusCode());
+        Assertions.assertNull(params.getException());
     }
 
     @Test
@@ -52,8 +53,8 @@ public class CredentialsEndpointRetryParametersTest {
                                                                                   .withStatusCode(statusCode)
                                                                                   .withException(new IOException())
                                                                                   .build();
-        assertEquals(statusCode, params.getStatusCode());
-        assertTrue(params.getException() instanceof IOException);
+        Assertions.assertEquals(statusCode, params.getStatusCode());
+        Assertions.assertTrue(params.getException() instanceof IOException);
     }
 
 }

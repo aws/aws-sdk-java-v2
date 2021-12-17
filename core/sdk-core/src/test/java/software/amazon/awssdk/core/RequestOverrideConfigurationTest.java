@@ -27,7 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
@@ -235,14 +236,14 @@ public class RequestOverrideConfigurationTest {
                 .build();
         try {
             overrideConfig.executionAttributes().putAttribute(testAttribute, 2);
-            fail("Expected unsupported operation exception");
+            Assertions.fail("Expected unsupported operation exception");
         } catch(Exception ex) {
             assertThat(ex instanceof UnsupportedOperationException).isTrue();
         }
 
         try {
             overrideConfig.executionAttributes().putAttributeIfAbsent(testAttribute, 2);
-            fail("Expected unsupported operation exception");
+            Assertions.fail("Expected unsupported operation exception");
         } catch(Exception ex) {
             assertThat(ex instanceof UnsupportedOperationException).isTrue();
         }

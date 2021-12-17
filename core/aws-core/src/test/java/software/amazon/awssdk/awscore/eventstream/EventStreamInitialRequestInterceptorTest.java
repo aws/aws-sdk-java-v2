@@ -30,7 +30,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context.ModifyHttpRequest;
@@ -58,8 +59,8 @@ public class EventStreamInitialRequestInterceptorTest {
         SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(context, attr);
 
         List<String> contentType = modifiedRequest.headers().get(CONTENT_TYPE);
-        assertEquals(1, contentType.size());
-        assertEquals(MIMETYPE_EVENT_STREAM, contentType.get(0));
+        Assertions.assertEquals(1, contentType.size());
+        Assertions.assertEquals(MIMETYPE_EVENT_STREAM, contentType.get(0));
     }
 
     @Test
@@ -70,8 +71,8 @@ public class EventStreamInitialRequestInterceptorTest {
 
         List<Message> messages = Flowable.fromPublisher(modifiedBody.get()).map(Message::decode).toList().blockingGet();
         Message initialRequestEvent = messages.get(0);
-        assertArrayEquals(payload, initialRequestEvent.getPayload());
-        assertEquals(RPC_CONTENT_TYPE, initialRequestEvent.getHeaders().get(":content-type").getString());
+        Assertions.assertArrayEquals(payload, initialRequestEvent.getPayload());
+        Assertions.assertEquals(RPC_CONTENT_TYPE, initialRequestEvent.getHeaders().get(":content-type").getString());
     }
 
     @Test
@@ -81,9 +82,9 @@ public class EventStreamInitialRequestInterceptorTest {
         Optional<AsyncRequestBody> modifiedBody = interceptor.modifyAsyncHttpContent(context, attr);
 
         List<Message> messages = Flowable.fromPublisher(modifiedBody.get()).map(Message::decode).toList().blockingGet();
-        assertEquals(3, messages.size());
-        assertEquals(eventMessage, messages.get(1));
-        assertEquals(eventMessage, messages.get(2));
+        Assertions.assertEquals(3, messages.size());
+        Assertions.assertEquals(eventMessage, messages.get(1));
+        Assertions.assertEquals(eventMessage, messages.get(2));
     }
 
     @Test
@@ -91,8 +92,8 @@ public class EventStreamInitialRequestInterceptorTest {
         ModifyHttpRequest context = buildContext(bytePublisher, payload);
         attr.putAttribute(HAS_INITIAL_REQUEST_EVENT, false);
 
-        assertSame(context.httpRequest(), interceptor.modifyHttpRequest(context, attr));
-        assertSame(context.asyncRequestBody(), interceptor.modifyAsyncHttpContent(context, attr));
+        Assertions.assertSame(context.httpRequest(), interceptor.modifyHttpRequest(context, attr));
+        Assertions.assertSame(context.asyncRequestBody(), interceptor.modifyAsyncHttpContent(context, attr));
     }
 
     private ModifyHttpRequest buildContext(Flowable<ByteBuffer> bytePublisher, byte[] payload) {

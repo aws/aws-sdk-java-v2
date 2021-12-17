@@ -23,8 +23,8 @@ import static org.junit.Assert.assertTrue;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.HashSet;
 import java.util.Set;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.auth.policy.Principal.Service;
 import software.amazon.awssdk.core.auth.policy.Principal.WebIdentityProvider;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
@@ -51,19 +51,19 @@ public class PolicyTest {
         JsonNode jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         JsonNode statementArray = jsonPolicyNode.get("Statement");
 
-        assertTrue(statementArray.isArray());
-        assertTrue(statementArray.size() == 1);
+        Assertions.assertTrue(statementArray.isArray());
+        Assertions.assertTrue(statementArray.size() == 1);
 
         JsonNode statement = statementArray.get(0);
-        assertTrue(statement.has("Resource"));
-        assertTrue(statement.has("Principal"));
-        assertTrue(statement.has("Action"));
-        assertTrue(statement.has("Effect"));
+        Assertions.assertTrue(statement.has("Resource"));
+        Assertions.assertTrue(statement.has("Principal"));
+        Assertions.assertTrue(statement.has("Action"));
+        Assertions.assertTrue(statement.has("Effect"));
 
         JsonNode users = statement.get("Principal").get("AWS");
-        assertEquals(2, users.size());
-        assertEquals(users.get(0).asText(), "accountId1");
-        assertEquals(users.get(1).asText(), "accountId2");
+        Assertions.assertEquals(2, users.size());
+        Assertions.assertEquals(users.get(0).asText(), "accountId1");
+        Assertions.assertEquals(users.get(1).asText(), "accountId2");
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow)
@@ -74,20 +74,20 @@ public class PolicyTest {
 
         jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
-        assertTrue(statementArray.size() == 1);
+        Assertions.assertTrue(statementArray.size() == 1);
 
         statement = statementArray.get(0);
-        assertTrue(statement.has("Resource"));
-        assertTrue(statement.has("Principal"));
-        assertTrue(statement.has("Action"));
-        assertTrue(statement.has("Effect"));
+        Assertions.assertTrue(statement.has("Resource"));
+        Assertions.assertTrue(statement.has("Principal"));
+        Assertions.assertTrue(statement.has("Action"));
+        Assertions.assertTrue(statement.has("Effect"));
 
         JsonNode services = statement.get("Principal").get("Service");
-        assertTrue(services.isArray());
-        assertTrue(services.size() == 2);
-        assertEquals(Service.AmazonEC2.getServiceId(), services.get(0)
-                                                               .asText());
-        assertEquals(Principal.Service.AmazonElasticTranscoder.getServiceId(), services
+        Assertions.assertTrue(services.isArray());
+        Assertions.assertTrue(services.size() == 2);
+        Assertions.assertEquals(Service.AmazonEC2.getServiceId(), services.get(0)
+                                                                          .asText());
+        Assertions.assertEquals(Principal.Service.AmazonElasticTranscoder.getServiceId(), services
                 .get(1).asText());
 
         policy = new Policy();
@@ -98,16 +98,16 @@ public class PolicyTest {
 
         jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
-        assertTrue(statementArray.size() == 1);
+        Assertions.assertTrue(statementArray.size() == 1);
 
         statement = statementArray.get(0);
-        assertTrue(statement.has("Resource"));
-        assertTrue(statement.has("Principal"));
-        assertTrue(statement.has("Action"));
-        assertTrue(statement.has("Effect"));
+        Assertions.assertTrue(statement.has("Resource"));
+        Assertions.assertTrue(statement.has("Principal"));
+        Assertions.assertTrue(statement.has("Action"));
+        Assertions.assertTrue(statement.has("Effect"));
 
         users = statement.get("Principal").get("AWS");
-        assertEquals(users.asText(), "*");
+        Assertions.assertEquals(users.asText(), "*");
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow)
@@ -117,18 +117,18 @@ public class PolicyTest {
 
         jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
-        assertTrue(statementArray.size() == 1);
+        Assertions.assertTrue(statementArray.size() == 1);
 
         statement = statementArray.get(0);
-        assertTrue(statement.has("Resource"));
-        assertTrue(statement.has("Principal"));
-        assertTrue(statement.has("Action"));
-        assertTrue(statement.has("Effect"));
+        Assertions.assertTrue(statement.has("Resource"));
+        Assertions.assertTrue(statement.has("Principal"));
+        Assertions.assertTrue(statement.has("Action"));
+        Assertions.assertTrue(statement.has("Effect"));
 
         users = statement.get("Principal").get("AWS");
         services = statement.get("Principal").get("Service");
-        assertEquals(users.asText(), "*");
-        assertEquals(services.asText(), "*");
+        Assertions.assertEquals(users.asText(), "*");
+        Assertions.assertEquals(services.asText(), "*");
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow)
@@ -139,21 +139,21 @@ public class PolicyTest {
 
         jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
-        assertTrue(statementArray.size() == 1);
+        Assertions.assertTrue(statementArray.size() == 1);
 
         statement = statementArray.get(0);
-        assertTrue(statement.has("Resource"));
-        assertTrue(statement.has("Principal"));
-        assertTrue(statement.has("Action"));
-        assertTrue(statement.has("Effect"));
+        Assertions.assertTrue(statement.has("Resource"));
+        Assertions.assertTrue(statement.has("Principal"));
+        Assertions.assertTrue(statement.has("Action"));
+        Assertions.assertTrue(statement.has("Effect"));
 
         users = statement.get("Principal").get("AWS");
         services = statement.get("Principal").get("Service");
         JsonNode webProviders = statement.get("Principal").get("Federated");
 
-        assertEquals(users.asText(), "*");
-        assertEquals(services.asText(), "*");
-        assertEquals(webProviders.asText(), "*");
+        Assertions.assertEquals(users.asText(), "*");
+        Assertions.assertEquals(services.asText(), "*");
+        Assertions.assertEquals(webProviders.asText(), "*");
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow)
@@ -164,23 +164,23 @@ public class PolicyTest {
 
         jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
-        assertTrue(statementArray.size() == 1);
+        Assertions.assertTrue(statementArray.size() == 1);
 
         statement = statementArray.get(0);
-        assertTrue(statement.has("Resource"));
-        assertTrue(statement.has("Principal"));
-        assertTrue(statement.has("Action"));
-        assertTrue(statement.has("Effect"));
+        Assertions.assertTrue(statement.has("Resource"));
+        Assertions.assertTrue(statement.has("Principal"));
+        Assertions.assertTrue(statement.has("Action"));
+        Assertions.assertTrue(statement.has("Effect"));
 
         users = statement.get("Principal").get("AWS");
         services = statement.get("Principal").get("Service");
         webProviders = statement.get("Principal").get("Federated");
         JsonNode allUsers = statement.get("Principal").get("*");
 
-        assertEquals(users.asText(), "*");
-        assertEquals(services.asText(), "*");
-        assertEquals(webProviders.asText(), "*");
-        assertEquals(allUsers.asText(), "*");
+        Assertions.assertEquals(users.asText(), "*");
+        Assertions.assertEquals(services.asText(), "*");
+        Assertions.assertEquals(webProviders.asText(), "*");
+        Assertions.assertEquals(allUsers.asText(), "*");
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow)
@@ -190,18 +190,18 @@ public class PolicyTest {
 
         jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
-        assertTrue(statementArray.size() == 1);
+        Assertions.assertTrue(statementArray.size() == 1);
 
         statement = statementArray.get(0);
-        assertTrue(statement.has("Resource"));
-        assertTrue(statement.has("Principal"));
-        assertTrue(statement.has("Action"));
-        assertTrue(statement.has("Effect"));
+        Assertions.assertTrue(statement.has("Resource"));
+        Assertions.assertTrue(statement.has("Principal"));
+        Assertions.assertTrue(statement.has("Action"));
+        Assertions.assertTrue(statement.has("Effect"));
 
         users = statement.get("Principal").get("AWS");
-        assertTrue(users.isArray());
-        assertEquals(users.get(0).asText(), "accountId1");
-        assertEquals(users.get(1).asText(), "*");
+        Assertions.assertTrue(users.isArray());
+        Assertions.assertEquals(users.get(0).asText(), "accountId1");
+        Assertions.assertEquals(users.get(1).asText(), "*");
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow)
@@ -212,21 +212,21 @@ public class PolicyTest {
 
         jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
-        assertTrue(statementArray.size() == 1);
+        Assertions.assertTrue(statementArray.size() == 1);
 
         statement = statementArray.get(0);
-        assertTrue(statement.has("Resource"));
-        assertTrue(statement.has("Principal"));
-        assertTrue(statement.has("Action"));
-        assertTrue(statement.has("Effect"));
+        Assertions.assertTrue(statement.has("Resource"));
+        Assertions.assertTrue(statement.has("Principal"));
+        Assertions.assertTrue(statement.has("Action"));
+        Assertions.assertTrue(statement.has("Effect"));
 
         users = statement.get("Principal").get("AWS");
         services = statement.get("Principal").get("Service");
 
-        assertEquals(users.asText(), "accountId1");
-        assertEquals(services.get(0).asText(),
-                     Service.AmazonEC2.getServiceId());
-        assertEquals(services.get(1).asText(), "*");
+        Assertions.assertEquals(users.asText(), "accountId1");
+        Assertions.assertEquals(services.get(0).asText(),
+                                Service.AmazonEC2.getServiceId());
+        Assertions.assertEquals(services.get(1).asText(), "*");
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow)
@@ -239,25 +239,25 @@ public class PolicyTest {
 
         jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
-        assertTrue(statementArray.size() == 1);
+        Assertions.assertTrue(statementArray.size() == 1);
 
         statement = statementArray.get(0);
-        assertTrue(statement.has("Resource"));
-        assertTrue(statement.has("Principal"));
-        assertTrue(statement.has("Action"));
-        assertTrue(statement.has("Effect"));
+        Assertions.assertTrue(statement.has("Resource"));
+        Assertions.assertTrue(statement.has("Principal"));
+        Assertions.assertTrue(statement.has("Action"));
+        Assertions.assertTrue(statement.has("Effect"));
 
         users = statement.get("Principal").get("AWS");
         services = statement.get("Principal").get("Service");
         webProviders = statement.get("Principal").get("Federated");
 
-        assertEquals(services.get(0).asText(),
-                     Service.AmazonEC2.getServiceId());
-        assertEquals(services.get(1).asText(), "*");
-        assertEquals(users.asText(), "accountId1");
-        assertEquals(webProviders.get(0).asText(),
-                     WebIdentityProvider.Amazon.getWebIdentityProvider());
-        assertEquals(webProviders.get(1).asText(), "*");
+        Assertions.assertEquals(services.get(0).asText(),
+                                Service.AmazonEC2.getServiceId());
+        Assertions.assertEquals(services.get(1).asText(), "*");
+        Assertions.assertEquals(users.asText(), "accountId1");
+        Assertions.assertEquals(webProviders.get(0).asText(),
+                                WebIdentityProvider.Amazon.getWebIdentityProvider());
+        Assertions.assertEquals(webProviders.get(1).asText(), "*");
     }
 
     /**
@@ -283,13 +283,13 @@ public class PolicyTest {
         JsonNode jsonPolicy = JacksonUtils.jsonNodeOf(policy.toJson());
 
         JsonNode statementArray = jsonPolicy.get("Statement");
-        assertEquals(statementArray.size(), 1);
+        Assertions.assertEquals(statementArray.size(), 1);
         JsonNode conditions = statementArray.get(0).get("Condition");
-        assertEquals(conditions.size(), 1);
+        Assertions.assertEquals(conditions.size(), 1);
 
         JsonNode stringLikeCondition = conditions.get(StringComparisonType.StringNotLike.toString());
-        assertTrue(stringLikeCondition.has("key1"));
-        assertFalse(stringLikeCondition.has("key2"));
+        Assertions.assertTrue(stringLikeCondition.has("key1"));
+        Assertions.assertFalse(stringLikeCondition.has("key2"));
         assertValidStatementIds(policy);
     }
 
@@ -313,21 +313,21 @@ public class PolicyTest {
                                           .withConditions(new IpAddressCondition("10.1.2.0/24")));
 
         JsonNode jsonPolicy = JacksonUtils.jsonNodeOf(policy.toJson());
-        assertTrue(jsonPolicy.has("Id"));
+        Assertions.assertTrue(jsonPolicy.has("Id"));
 
         JsonNode statementArray = jsonPolicy.get("Statement");
-        assertEquals(statementArray.size(), 2);
+        Assertions.assertEquals(statementArray.size(), 2);
         assertValidStatementIds(policy);
 
         JsonNode statement;
         for (int i = 0; i < statementArray.size(); i++) {
             statement = statementArray.get(i);
-            assertTrue(statement.has("Sid"));
-            assertTrue(statement.has("Effect"));
-            assertTrue(statement.has("Principal"));
-            assertTrue(statement.has("Action"));
-            assertTrue(statement.has("Resource"));
-            assertTrue(statement.has("Condition"));
+            Assertions.assertTrue(statement.has("Sid"));
+            Assertions.assertTrue(statement.has("Effect"));
+            Assertions.assertTrue(statement.has("Principal"));
+            Assertions.assertTrue(statement.has("Action"));
+            Assertions.assertTrue(statement.has("Resource"));
+            Assertions.assertTrue(statement.has("Condition"));
         }
     }
 
@@ -358,8 +358,8 @@ public class PolicyTest {
     private void assertValidStatementIds(Policy policy) {
         Set<String> statementIds = new HashSet<String>();
         for (Statement statement : policy.getStatements()) {
-            assertNotNull(statement.getId());
-            assertFalse(statementIds.contains(statement.getId()));
+            Assertions.assertNotNull(statement.getId());
+            Assertions.assertFalse(statementIds.contains(statement.getId()));
             statementIds.add(statement.getId());
         }
     }
@@ -369,14 +369,14 @@ public class PolicyTest {
         String ID_WITH_HYPHEN = "a-b-c-d-e-f-g";
         String ID_WITHOUT_HYPHEN = "abcdefg";
 
-        Assert.assertEquals(ID_WITHOUT_HYPHEN,
-                            new Principal(ID_WITH_HYPHEN).getId());
-        Assert.assertEquals(ID_WITHOUT_HYPHEN,
-                            new Principal("AWS", ID_WITH_HYPHEN).getId());
+        Assertions.assertEquals(ID_WITHOUT_HYPHEN,
+                                new Principal(ID_WITH_HYPHEN).getId());
+        Assertions.assertEquals(ID_WITHOUT_HYPHEN,
+                                new Principal("AWS", ID_WITH_HYPHEN).getId());
 
-        Assert.assertEquals(ID_WITH_HYPHEN,
-                            new Principal("Federated", ID_WITH_HYPHEN).getId());
-        Assert.assertEquals(ID_WITH_HYPHEN,
-                            new Principal("AWS", ID_WITH_HYPHEN, false).getId());
+        Assertions.assertEquals(ID_WITH_HYPHEN,
+                                new Principal("Federated", ID_WITH_HYPHEN).getId());
+        Assertions.assertEquals(ID_WITH_HYPHEN,
+                                new Principal("AWS", ID_WITH_HYPHEN, false).getId());
     }
 }

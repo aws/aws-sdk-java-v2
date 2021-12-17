@@ -18,24 +18,25 @@ package software.amazon.awssdk.core.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class IdempotentUtilsTest {
 
     @Test
     public void resolveString_returns_givenString_when_nonnullString_is_passed() {
         String idempotencyToken = "120c7d4a-e982-4323-a53e-28989a0a9f26";
-        assertEquals(idempotencyToken, IdempotentUtils.resolveString(idempotencyToken));
+        Assertions.assertEquals(idempotencyToken, IdempotentUtils.resolveString(idempotencyToken));
     }
 
     @Test
     public void resolveString_returns_emptyString_when_emptyString_is_passed() {
         String idempotencyToken = "";
-        assertEquals(idempotencyToken, IdempotentUtils.resolveString(idempotencyToken));
+        Assertions.assertEquals(idempotencyToken, IdempotentUtils.resolveString(idempotencyToken));
     }
 
     @Test
     public void resolveString_returns_newUniqueToken_when_nullString_is_passed() {
-        assertNotNull(IdempotentUtils.resolveString(null));
+        Assertions.assertNotNull(IdempotentUtils.resolveString(null));
     }
 }
