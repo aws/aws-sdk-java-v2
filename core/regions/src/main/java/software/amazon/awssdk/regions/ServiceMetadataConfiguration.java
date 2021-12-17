@@ -15,10 +15,13 @@
 
 package software.amazon.awssdk.regions;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Configuration for a {@link ServiceMetadata}. This allows modifying the values used by default when a metadata instance is
@@ -30,10 +33,12 @@ import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 public final class ServiceMetadataConfiguration {
     private final Supplier<ProfileFile> profileFile;
     private final String profileName;
+    private final AttributeMap advancedOptions;
 
     private ServiceMetadataConfiguration(Builder builder) {
         this.profileFile = builder.profileFile;
         this.profileName = builder.profileName;
+        this.advancedOptions = builder.advancedOptions.build();
     }
 
     /**
@@ -57,9 +62,19 @@ public final class ServiceMetadataConfiguration {
         return profileName;
     }
 
+    /**
+     * Load the optional requested advanced option that was configured on the service metadata builder.
+     *
+     * @see ServiceMetadataConfiguration.Builder#putAdvancedOption(ServiceMetadataAdvancedOption, Object)
+     */
+    public <T> Optional<T> advancedOption(ServiceMetadataAdvancedOption<T> option) {
+        return Optional.ofNullable(advancedOptions.get(option));
+    }
+
     public static final class Builder {
         private Supplier<ProfileFile> profileFile;
         private String profileName;
+        private AttributeMap.Builder advancedOptions = AttributeMap.builder();
 
         private Builder() {
         }
@@ -82,6 +97,24 @@ public final class ServiceMetadataConfiguration {
          */
         public Builder profileName(String profileName) {
             this.profileName = profileName;
+            return this;
+        }
+
+        /**
+         * Configure the map of advanced override options. This will override all values currently configured. The values in the
+         * map must match the key type of the map, or a runtime exception will be raised.
+         */
+        public <T> Builder putAdvancedOption(ServiceMetadataAdvancedOption<T> option, T value) {
+            this.advancedOptions.put(option, value);
+            return this;
+        }
+
+        /**
+         * Configure an advanced override option.
+         * @see ServiceMetadataAdvancedOption
+         */
+        public Builder advancedOptions(Map<ServiceMetadataAdvancedOption<?>, ?> advancedOptions) {
+            this.advancedOptions.putAll(advancedOptions);
             return this;
         }
 
