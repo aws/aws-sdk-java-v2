@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import java.time.Duration;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
 public class GetObjectPresignRequestTest {

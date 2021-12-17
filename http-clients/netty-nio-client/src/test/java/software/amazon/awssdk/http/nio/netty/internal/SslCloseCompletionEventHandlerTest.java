@@ -23,23 +23,23 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.ssl.SslCloseCompletionEvent;
 import java.nio.channels.ClosedChannelException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class SslCloseCompletionEventHandlerTest {
 
     private ChannelHandlerContext ctx;
     private MockChannel channel;
 
-    @BeforeEach
+    @Before
     public void setup() throws Exception {
         ctx = mock(ChannelHandlerContext.class);
         channel = new MockChannel();
         when(ctx.channel()).thenReturn(channel);
     }
 
-    @AfterEach
+    @After
     public void teardown() {
         channel.close();
     }

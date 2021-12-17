@@ -21,7 +21,7 @@ import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERV
 
 import java.net.URI;
 import java.util.Optional;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;

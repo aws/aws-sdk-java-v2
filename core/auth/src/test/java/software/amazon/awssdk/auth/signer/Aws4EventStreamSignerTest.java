@@ -43,8 +43,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.assertj.core.util.Lists;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.mockito.Mockito;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -152,13 +152,13 @@ public class Aws4EventStreamSignerTest {
 
             @Override
             public void onError(Throwable t) {
-                Assertions.fail("onError should never been called");
+                Assert.fail("onError should never been called");
 
             }
 
             @Override
             public void onComplete() {
-                Assertions.fail("onComplete should never been called");
+                Assert.fail("onComplete should never been called");
 
             }
         });

@@ -18,8 +18,7 @@ package software.amazon.awssdk.core.retry;
 import static org.junit.Assert.assertEquals;
 
 import java.time.Duration;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 
 public class FixedDelayBackoffStrategyTest {
@@ -28,7 +27,7 @@ public class FixedDelayBackoffStrategyTest {
     public void positiveBackoff_ReturnsFixedBackoffOnDelay() {
         long delay = FixedDelayBackoffStrategy.create(Duration.ofMillis(100)).computeDelayBeforeNextRetry(RetryPolicyContexts.EMPTY)
                                                                           .toMillis();
-        Assertions.assertEquals(100, delay);
+        assertEquals(100, delay);
     }
 
 }

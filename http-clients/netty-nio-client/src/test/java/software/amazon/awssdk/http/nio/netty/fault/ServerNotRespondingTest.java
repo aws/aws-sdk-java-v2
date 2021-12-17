@@ -54,9 +54,9 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -80,7 +80,7 @@ public class ServerNotRespondingTest {
     private SdkAsyncHttpClient netty;
     private Server server;
 
-    @BeforeEach
+    @Before
     public void setup() throws Exception {
         server = new Server();
         server.init();
@@ -93,7 +93,7 @@ public class ServerNotRespondingTest {
                                        .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
     }
 
-    @AfterEach
+    @After
     public void teardown() throws InterruptedException {
         if (server != null) {
             server.shutdown();

@@ -18,8 +18,8 @@ package software.amazon.awssdk.services.route53;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import junit.framework.Assert;
+import org.junit.Test;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -55,12 +55,12 @@ public class QueryParamBindingTest {
                 .build();
 
         SdkHttpFullRequest httpReq_List = new ListHealthChecksRequestMarshaller(PROTOCOL_FACTORY).marshall(listReq);
-        Assertions.assertEquals("/2013-04-01/healthcheck", httpReq_List.encodedPath());
+        Assert.assertEquals("/2013-04-01/healthcheck", httpReq_List.encodedPath());
 
         Map<String, List<String>> queryParams = httpReq_List.rawQueryParameters();
-        Assertions.assertEquals(2, queryParams.size());
-        Assertions.assertEquals(VALUE_WITH_SEMICOLON, queryParams.get("marker").get(0));
-        Assertions.assertEquals(VALUE_WITH_AMPERSAND, queryParams.get("maxitems").get(0));
+        Assert.assertEquals(2, queryParams.size());
+        Assert.assertEquals(VALUE_WITH_SEMICOLON, queryParams.get("marker").get(0));
+        Assert.assertEquals(VALUE_WITH_AMPERSAND, queryParams.get("maxitems").get(0));
 
         GetHealthCheckLastFailureReasonRequest getFailureReq = GetHealthCheckLastFailureReasonRequest.builder()
                 .healthCheckId(VALUE_WITH_QUESTION_MARK)
@@ -70,11 +70,11 @@ public class QueryParamBindingTest {
                 new GetHealthCheckLastFailureReasonRequestMarshaller(PROTOCOL_FACTORY).marshall(getFailureReq);
         System.out.println(httpReq_GetFailure);
         // parameter value should be URL encoded
-        Assertions.assertEquals(
+        Assert.assertEquals(
                 "/2013-04-01/healthcheck/%3Fcharlie/lastfailurereason",
                 httpReq_GetFailure.encodedPath());
 
         queryParams = httpReq_GetFailure.rawQueryParameters();
-        Assertions.assertEquals(0, queryParams.size());
+        Assert.assertEquals(0, queryParams.size());
     }
 }

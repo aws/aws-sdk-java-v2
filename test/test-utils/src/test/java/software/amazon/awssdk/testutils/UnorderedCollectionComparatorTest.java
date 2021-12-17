@@ -20,8 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class UnorderedCollectionComparatorTest {
 
@@ -31,33 +30,33 @@ public class UnorderedCollectionComparatorTest {
      */
     @Test
     public void testEqualUnorderedLists() {
-        Assertions.assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(null, null));
-        Assertions.assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(null, Collections.emptyList()));
-        Assertions.assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(Collections.emptyList(), Collections.emptyList()));
+        assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(null, null));
+        assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(null, Collections.emptyList()));
+        assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(Collections.emptyList(), Collections.emptyList()));
 
         // Lists of Strings
-        Assertions.assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
+        assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
                 Arrays.asList("a", "b", "c"),
                 Arrays.asList("a", "b", "c")));
-        Assertions.assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
+        assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
                 Arrays.asList("a", "b", "c"),
                 Arrays.asList("a", "c", "b")));
-        Assertions.assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
+        assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
                 Arrays.asList("a", "b", "c"),
                 Arrays.asList("b", "a", "c")));
-        Assertions.assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
+        assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
                 Arrays.asList("a", "b", "c"),
                 Arrays.asList("b", "c", "a")));
-        Assertions.assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
+        assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
                 Arrays.asList("a", "b", "c"),
                 Arrays.asList("c", "a", "b")));
-        Assertions.assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
+        assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
                 Arrays.asList("a", "b", "c"),
                 Arrays.asList("c", "b", "a")));
-        Assertions.assertFalse(UnorderedCollectionComparator.equalUnorderedCollections(
+        assertFalse(UnorderedCollectionComparator.equalUnorderedCollections(
                 Arrays.asList("a", "b", "c"),
                 Arrays.asList("a")));
-        Assertions.assertFalse(UnorderedCollectionComparator.equalUnorderedCollections(
+        assertFalse(UnorderedCollectionComparator.equalUnorderedCollections(
                 Arrays.asList("a", "b", "c"),
                 Arrays.asList("a", "b", "d")));
     }

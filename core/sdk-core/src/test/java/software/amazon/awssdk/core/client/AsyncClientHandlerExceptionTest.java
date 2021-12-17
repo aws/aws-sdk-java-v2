@@ -30,9 +30,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -79,7 +78,7 @@ public class AsyncClientHandlerExceptionTest {
 
     private ClientExecutionParams<SdkRequest, SdkResponse> executionParams;
 
-    @BeforeEach
+    @Before
     public void methodSetup() throws Exception {
         executionParams = new ClientExecutionParams<SdkRequest, SdkResponse>()
                 .withInput(request)
@@ -151,7 +150,7 @@ public class AsyncClientHandlerExceptionTest {
             cf.get();
             fail("get() method did not fail as expected.");
         } catch (Throwable t) {
-            Assertions.assertTrue(assertFn.test(t));
+            assertTrue(assertFn.test(t));
         }
     }
 }

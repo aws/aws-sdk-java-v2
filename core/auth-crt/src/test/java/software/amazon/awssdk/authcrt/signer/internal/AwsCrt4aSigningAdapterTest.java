@@ -9,9 +9,8 @@ import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
 import java.util.Arrays;
 import java.util.List;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.authcrt.signer.SignerTestUtils;
@@ -26,7 +25,7 @@ public class AwsCrt4aSigningAdapterTest {
     AwsCrt4aSigningAdapter crtSigningAdapter;
     SigningConfigProvider configProvider;
 
-    @BeforeEach
+    @Before
     public void setup() {
         crtSigningAdapter = new AwsCrt4aSigningAdapter();
         configProvider = new SigningConfigProvider();
@@ -43,7 +42,7 @@ public class AwsCrt4aSigningAdapterTest {
 
         String signatureValue = extractSignatureFromAuthHeader(signed);
 
-        Assertions.assertTrue(SignerTestUtils.verifyEcdsaSignature(request, testCase.expectedCanonicalRequest, signingConfig, signatureValue));
+        assertTrue(SignerTestUtils.verifyEcdsaSignature(request, testCase.expectedCanonicalRequest, signingConfig, signatureValue));
     }
 
     @Test
@@ -58,7 +57,7 @@ public class AwsCrt4aSigningAdapterTest {
         SdkHttpFullRequest signedRequest = signed.getSignedRequest();
         String signatureValue = extractSignatureFromAuthHeader(signedRequest);
 
-        Assertions.assertTrue(SignerTestUtils.verifyEcdsaSignature(request, testCase.expectedCanonicalRequest, signingConfig, signatureValue));
+        assertTrue(SignerTestUtils.verifyEcdsaSignature(request, testCase.expectedCanonicalRequest, signingConfig, signatureValue));
     }
 
     @Test

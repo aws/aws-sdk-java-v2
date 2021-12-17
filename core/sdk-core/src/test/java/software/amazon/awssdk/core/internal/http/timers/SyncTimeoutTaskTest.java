@@ -21,13 +21,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.Test;
 
 public class SyncTimeoutTaskTest {
     private static final ExecutorService EXEC = Executors.newSingleThreadExecutor();
 
-    @AfterAll
+    @AfterClass
     public static void teardown() {
         EXEC.shutdown();
     }

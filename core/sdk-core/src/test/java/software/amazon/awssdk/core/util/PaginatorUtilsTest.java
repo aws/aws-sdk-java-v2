@@ -21,55 +21,54 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class PaginatorUtilsTest {
 
     @Test
     public void nullOutputToken_shouldReturnFalse() {
-       Assertions.assertFalse(PaginatorUtils.isOutputTokenAvailable(null));
+       assertFalse(PaginatorUtils.isOutputTokenAvailable(null));
     }
 
     @Test
     public void nonNullString_shouldReturnTrue() {
-        Assertions.assertTrue(PaginatorUtils.isOutputTokenAvailable("next"));
+        assertTrue(PaginatorUtils.isOutputTokenAvailable("next"));
     }
 
     @Test
     public void nonNullInteger_shouldReturnTrue() {
-        Assertions.assertTrue(PaginatorUtils.isOutputTokenAvailable(12));
+        assertTrue(PaginatorUtils.isOutputTokenAvailable(12));
     }
 
     @Test
     public void emptyCollection_shouldReturnFalse() {
-        Assertions.assertFalse(PaginatorUtils.isOutputTokenAvailable(new ArrayList<>()));
+        assertFalse(PaginatorUtils.isOutputTokenAvailable(new ArrayList<>()));
     }
 
     @Test
     public void nonEmptyCollection_shouldReturnTrue() {
-        Assertions.assertTrue(PaginatorUtils.isOutputTokenAvailable(Arrays.asList("foo", "bar")));
+        assertTrue(PaginatorUtils.isOutputTokenAvailable(Arrays.asList("foo", "bar")));
     }
 
     @Test
     public void emptyMap_shouldReturnFalse() {
-        Assertions.assertFalse(PaginatorUtils.isOutputTokenAvailable(new HashMap<>()));
+        assertFalse(PaginatorUtils.isOutputTokenAvailable(new HashMap<>()));
     }
 
     @Test
     public void nonEmptyMap_shouldReturnTrue() {
         HashMap<String, String> outputTokens = new HashMap<>();
         outputTokens.put("foo", "bar");
-        Assertions.assertTrue(PaginatorUtils.isOutputTokenAvailable(outputTokens));
+        assertTrue(PaginatorUtils.isOutputTokenAvailable(outputTokens));
     }
 
     @Test
     public void sdkAutoConstructList_shouldReturnFalse() {
-        Assertions.assertFalse(PaginatorUtils.isOutputTokenAvailable(DefaultSdkAutoConstructList.getInstance()));
+        assertFalse(PaginatorUtils.isOutputTokenAvailable(DefaultSdkAutoConstructList.getInstance()));
     }
 
     @Test
     public void sdkAutoConstructMap_shouldReturnFalse() {
-        Assertions.assertFalse(PaginatorUtils.isOutputTokenAvailable(DefaultSdkAutoConstructMap.getInstance()));
+        assertFalse(PaginatorUtils.isOutputTokenAvailable(DefaultSdkAutoConstructMap.getInstance()));
     }
 }

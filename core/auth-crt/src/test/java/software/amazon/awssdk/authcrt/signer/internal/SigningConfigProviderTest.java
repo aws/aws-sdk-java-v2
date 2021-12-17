@@ -21,9 +21,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
@@ -36,7 +35,7 @@ public class SigningConfigProviderTest {
 
     SigningConfigProvider configProvider;
 
-    @BeforeEach
+    @Before
     public void setup() {
         configProvider = new SigningConfigProvider();
     }
@@ -48,12 +47,12 @@ public class SigningConfigProviderTest {
 
         AwsSigningConfig signingConfig = configProvider.createCrtSigningConfig(executionAttributes);
 
-        Assertions.assertTrue(signingConfig.getAlgorithm() == AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
-        Assertions.assertTrue(signingConfig.getSignatureType() == AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS);
-        Assertions.assertTrue(signingConfig.getRegion().equals(testCase.regionSet));
-        Assertions.assertTrue(signingConfig.getService().equals(testCase.signingName));
-        Assertions.assertTrue(signingConfig.getShouldNormalizeUriPath());
-        Assertions.assertTrue(signingConfig.getUseDoubleUriEncode());
+        assertTrue(signingConfig.getAlgorithm() == AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
+        assertTrue(signingConfig.getSignatureType() == AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS);
+        assertTrue(signingConfig.getRegion().equals(testCase.regionSet));
+        assertTrue(signingConfig.getService().equals(testCase.signingName));
+        assertTrue(signingConfig.getShouldNormalizeUriPath());
+        assertTrue(signingConfig.getUseDoubleUriEncode());
     }
 
     @Test
@@ -63,13 +62,13 @@ public class SigningConfigProviderTest {
 
         AwsSigningConfig signingConfig = configProvider.createCrtPresigningConfig(executionAttributes);
 
-        Assertions.assertTrue(signingConfig.getAlgorithm() == AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
-        Assertions.assertTrue(signingConfig.getSignatureType() == AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS);
-        Assertions.assertTrue(signingConfig.getRegion().equals(testCase.regionSet));
-        Assertions.assertTrue(signingConfig.getService().equals(testCase.signingName));
-        Assertions.assertTrue(signingConfig.getShouldNormalizeUriPath());
-        Assertions.assertTrue(signingConfig.getUseDoubleUriEncode());
-        Assertions.assertTrue(signingConfig.getExpirationInSeconds() == SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS);
+        assertTrue(signingConfig.getAlgorithm() == AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
+        assertTrue(signingConfig.getSignatureType() == AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS);
+        assertTrue(signingConfig.getRegion().equals(testCase.regionSet));
+        assertTrue(signingConfig.getService().equals(testCase.signingName));
+        assertTrue(signingConfig.getShouldNormalizeUriPath());
+        assertTrue(signingConfig.getUseDoubleUriEncode());
+        assertTrue(signingConfig.getExpirationInSeconds() == SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS);
     }
 
     @Test
@@ -82,7 +81,7 @@ public class SigningConfigProviderTest {
 
         AwsSigningConfig signingConfig = configProvider.createCrtPresigningConfig(executionAttributes);
 
-        Assertions.assertTrue(signingConfig.getExpirationInSeconds() == 900);
+        assertTrue(signingConfig.getExpirationInSeconds() == 900);
     }
 
     @Test
@@ -96,23 +95,23 @@ public class SigningConfigProviderTest {
         AwsSigningConfig signingConfig = configProvider.createS3CrtSigningConfig(executionAttributes);
 
         /* first check basic configuration */
-        Assertions.assertTrue(signingConfig.getAlgorithm() == AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
-        Assertions.assertTrue(signingConfig.getSignatureType() == AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS);
-        Assertions.assertTrue(signingConfig.getRegion().equals(testCase.regionSet));
-        Assertions.assertTrue(signingConfig.getService().equals(testCase.signingName));
-        Assertions.assertTrue(signingConfig.getShouldNormalizeUriPath());
-        Assertions.assertFalse(signingConfig.getUseDoubleUriEncode());
+        assertTrue(signingConfig.getAlgorithm() == AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
+        assertTrue(signingConfig.getSignatureType() == AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS);
+        assertTrue(signingConfig.getRegion().equals(testCase.regionSet));
+        assertTrue(signingConfig.getService().equals(testCase.signingName));
+        assertTrue(signingConfig.getShouldNormalizeUriPath());
+        assertFalse(signingConfig.getUseDoubleUriEncode());
 
         /* body signing should be enabled */
-        Assertions.assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
-        Assertions.assertTrue(signingConfig.getSignedBodyValue() == null);
+        assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
+        assertTrue(signingConfig.getSignedBodyValue() == null);
 
         /* try again with body signing explicitly disabled
          * we should still see the header but it should be using UNSIGNED_PAYLOAD for the value */
         executionAttributes.putAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, false);
         signingConfig = configProvider.createS3CrtSigningConfig(executionAttributes);
 
-        Assertions.assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
+        assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
     }
 
     @Test
@@ -126,16 +125,16 @@ public class SigningConfigProviderTest {
         AwsSigningConfig signingConfig = configProvider.createS3CrtPresigningConfig(executionAttributes);
 
         /* first check basic configuration */
-        Assertions.assertTrue(signingConfig.getAlgorithm() == AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
-        Assertions.assertTrue(signingConfig.getSignatureType() == AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS);
-        Assertions.assertTrue(signingConfig.getRegion().equals(testCase.regionSet));
-        Assertions.assertTrue(signingConfig.getService().equals(testCase.signingName));
-        Assertions.assertTrue(signingConfig.getShouldNormalizeUriPath());
-        Assertions.assertFalse(signingConfig.getUseDoubleUriEncode());
+        assertTrue(signingConfig.getAlgorithm() == AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
+        assertTrue(signingConfig.getSignatureType() == AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS);
+        assertTrue(signingConfig.getRegion().equals(testCase.regionSet));
+        assertTrue(signingConfig.getService().equals(testCase.signingName));
+        assertTrue(signingConfig.getShouldNormalizeUriPath());
+        assertFalse(signingConfig.getUseDoubleUriEncode());
 
         /* body signing should be disabled and the body should be UNSIGNED_PAYLOAD */
-        Assertions.assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
-        Assertions.assertTrue(signingConfig.getSignedBodyValue() == AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
+        assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
+        assertTrue(signingConfig.getSignedBodyValue() == AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
     }
 
     @Test

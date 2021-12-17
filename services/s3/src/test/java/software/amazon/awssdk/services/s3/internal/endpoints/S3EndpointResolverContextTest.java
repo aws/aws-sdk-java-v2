@@ -21,8 +21,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.regions.Region;
@@ -34,10 +33,10 @@ public class S3EndpointResolverContextTest {
     @Test
     public void toBuilder_minimal() {
         S3EndpointResolverContext context = S3EndpointResolverContext.builder().build();
-        Assertions.assertNull(context.originalRequest());
-        Assertions.assertNull(context.region());
-        Assertions.assertNull(context.serviceConfiguration());
-        Assertions.assertNull(context.request());
+        assertNull(context.originalRequest());
+        assertNull(context.region());
+        assertNull(context.serviceConfiguration());
+        assertNull(context.request());
     }
 
     @Test

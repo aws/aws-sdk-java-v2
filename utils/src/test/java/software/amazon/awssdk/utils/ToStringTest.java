@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Collections;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * Validate the functionality of {@link ToString}.

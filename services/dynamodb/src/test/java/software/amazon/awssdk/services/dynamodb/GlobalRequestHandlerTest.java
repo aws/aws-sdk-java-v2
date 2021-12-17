@@ -18,9 +18,8 @@ package software.amazon.awssdk.services.dynamodb;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -30,31 +29,31 @@ import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 
 public class GlobalRequestHandlerTest {
 
-    @BeforeEach
+    @Before
     public void setup() {
         TestGlobalExecutionInterceptor.reset();
     }
 
     @Test
     public void clientCreatedWithConstructor_RegistersGlobalHandlers() {
-        Assertions.assertFalse(TestGlobalExecutionInterceptor.wasCalled());
+        assertFalse(TestGlobalExecutionInterceptor.wasCalled());
         DynamoDbClient client = DynamoDbClient.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                 .region(Region.US_WEST_2)
                 .build();
         callApi(client);
-        Assertions.assertTrue(TestGlobalExecutionInterceptor.wasCalled());
+        assertTrue(TestGlobalExecutionInterceptor.wasCalled());
     }
 
     @Test
     public void clientCreatedWithBuilder_RegistersGlobalHandlers() {
-        Assertions.assertFalse(TestGlobalExecutionInterceptor.wasCalled());
+        assertFalse(TestGlobalExecutionInterceptor.wasCalled());
         DynamoDbClient client = DynamoDbClient.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                 .region(Region.US_WEST_2)
                 .build();
         callApi(client);
-        Assertions.assertTrue(TestGlobalExecutionInterceptor.wasCalled());
+        assertTrue(TestGlobalExecutionInterceptor.wasCalled());
     }
 
     private void callApi(DynamoDbClient client) {

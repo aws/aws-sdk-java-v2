@@ -22,27 +22,27 @@ import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE_TYPE;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.security.Security;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class SystemPropertyTlsKeyManagersProviderTest extends ClientTlsAuthTestBase {
     private static final SystemPropertyTlsKeyManagersProvider PROVIDER = SystemPropertyTlsKeyManagersProvider.create();
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws IOException {
         ClientTlsAuthTestBase.setUp();
     }
 
-    @AfterEach
+    @After
     public void methodTeardown() {
         System.clearProperty(SSL_KEY_STORE.property());
         System.clearProperty(SSL_KEY_STORE_TYPE.property());
         System.clearProperty(SSL_KEY_STORE_PASSWORD.property());
     }
 
-    @AfterAll
+    @AfterClass
     public static void teardown() throws IOException {
         ClientTlsAuthTestBase.teardown();
     }

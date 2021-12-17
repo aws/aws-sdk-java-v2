@@ -39,10 +39,9 @@ import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -62,7 +61,7 @@ public class ChannelPublisherTest {
     private Publisher<Channel> publisher;
     private SubscriberProbe<Channel> subscriber;
 
-    @BeforeEach
+    @Before
     public void start() throws Exception {
         group = new NioEventLoopGroup();
         EventLoop eventLoop = group.next();
@@ -83,7 +82,7 @@ public class ChannelPublisherTest {
         subscriber = new SubscriberProbe<>();
     }
 
-    @AfterEach
+    @After
     public void stop() throws Exception {
         channel.unsafe().closeForcibly();
         group.shutdownGracefully();
@@ -127,7 +126,7 @@ public class ChannelPublisherTest {
         InputStream is = socket.getInputStream();
         int received = is.read();
         socket.close();
-        Assertions.assertEquals(received, data);
+        assertEquals(received, data);
     }
 
     private void receiveConnection() throws Exception {
@@ -163,19 +162,19 @@ public class ChannelPublisherTest {
 
         Subscription takeSubscription() throws Exception {
             Subscription sub = subscriptions.poll(100, TimeUnit.MILLISECONDS);
-            Assertions.assertNotNull(sub);
+            assertNotNull(sub);
             return sub;
         }
 
         T take() throws Exception {
             T t = elements.poll(1000, TimeUnit.MILLISECONDS);
-            Assertions.assertNotNull(t);
+            assertNotNull(t);
             return t;
         }
 
         void expectNoElements() throws Exception {
             T t = elements.poll(100, TimeUnit.MILLISECONDS);
-            Assertions.assertNull(t);
+            assertNull(t);
         }
 
         void expectComplete() throws Exception {

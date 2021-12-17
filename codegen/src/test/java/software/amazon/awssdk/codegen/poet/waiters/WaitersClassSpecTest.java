@@ -18,9 +18,25 @@ package software.amazon.awssdk.codegen.poet.waiters;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
-import org.junit.jupiter.api.Test;
+import java.io.File;
+import java.io.IOException;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import software.amazon.awssdk.codegen.C2jModels;
+import software.amazon.awssdk.codegen.IntermediateModelBuilder;
+import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
+import software.amazon.awssdk.codegen.poet.client.AsyncClientClass;
+import software.amazon.awssdk.codegen.poet.client.AsyncClientInterface;
+import software.amazon.awssdk.codegen.poet.client.ClientSimpleMethodsIntegrationTests;
+import software.amazon.awssdk.codegen.poet.client.SyncClientClass;
+import software.amazon.awssdk.codegen.poet.client.SyncClientInterface;
+import software.amazon.awssdk.codegen.poet.paginators.PaginatedResponseClassSpecTest;
+import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 
 public class WaitersClassSpecTest {
 

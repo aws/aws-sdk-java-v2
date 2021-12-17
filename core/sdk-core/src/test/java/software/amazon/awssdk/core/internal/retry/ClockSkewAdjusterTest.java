@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.within;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.DateUtils;
 

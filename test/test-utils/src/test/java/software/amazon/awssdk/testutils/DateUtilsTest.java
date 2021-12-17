@@ -17,12 +17,11 @@ package software.amazon.awssdk.testutils;
 
 import static org.junit.Assert.assertTrue;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class DateUtilsTest {
     @Test
     public void test() {
-        Assertions.assertTrue("yyMMdd-hhmmss".length() == DateUtils.yyMMddhhmmss().length());
+        assertTrue("yyMMdd-hhmmss".length() == DateUtils.yyMMddhhmmss().length());
     }
 }

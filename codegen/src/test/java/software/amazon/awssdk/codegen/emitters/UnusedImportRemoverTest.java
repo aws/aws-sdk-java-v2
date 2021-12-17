@@ -21,7 +21,7 @@ import static org.hamcrest.text.IsEqualIgnoringWhiteSpace.equalToIgnoringWhiteSp
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class UnusedImportRemoverTest {
 

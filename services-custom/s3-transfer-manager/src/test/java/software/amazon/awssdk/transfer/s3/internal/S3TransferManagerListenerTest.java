@@ -37,9 +37,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ThreadLocalRandom;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -68,7 +68,7 @@ public class S3TransferManagerListenerTest {
     private S3TransferManager tm;
     private long contentLength;
 
-    @BeforeEach
+    @Before
     public void methodSetup() {
         s3Crt = mock(S3CrtAsyncClient.class);
         tm = new DefaultS3TransferManager(s3Crt, mock(UploadDirectoryHelper.class), mock(TransferManagerConfiguration.class));
@@ -79,7 +79,7 @@ public class S3TransferManagerListenerTest {
             .thenAnswer(randomGetResponseBody(contentLength));
     }
 
-    @AfterEach
+    @After
     public void methodTeardown() {
         tm.close();
     }

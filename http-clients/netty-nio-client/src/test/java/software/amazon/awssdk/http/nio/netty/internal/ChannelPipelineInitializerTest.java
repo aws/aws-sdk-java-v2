@@ -33,8 +33,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
-import org.hamcrest.MatcherAssert;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.http.Protocol;
 
 public class ChannelPipelineInitializerTest {
@@ -70,7 +69,7 @@ public class ChannelPipelineInitializerTest {
 
         pipelineInitializer.channelCreated(channel);
 
-        MatcherAssert.assertThat(channel.config().getOption(ChannelOption.ALLOCATOR), is(UnpooledByteBufAllocator.DEFAULT));
+        assertThat(channel.config().getOption(ChannelOption.ALLOCATOR), is(UnpooledByteBufAllocator.DEFAULT));
 
     }
 }

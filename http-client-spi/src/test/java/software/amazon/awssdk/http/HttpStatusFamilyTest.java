@@ -17,7 +17,7 @@ package software.amazon.awssdk.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class HttpStatusFamilyTest {
     @Test

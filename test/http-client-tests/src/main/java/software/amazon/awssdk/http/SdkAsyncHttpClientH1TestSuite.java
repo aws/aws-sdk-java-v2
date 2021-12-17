@@ -48,9 +48,9 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
 /**
@@ -65,7 +65,7 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
 
     protected abstract SdkAsyncHttpClient setupClient();
 
-    @BeforeEach
+    @Before
     public void setup() throws Exception {
         server = new Server();
         server.init();
@@ -73,7 +73,7 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
         this.client = setupClient();
     }
 
-    @AfterEach
+    @After
     public void teardown() throws InterruptedException {
         if (server != null) {
             server.shutdown();

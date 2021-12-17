@@ -20,18 +20,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.Test;
 
 public class ProxyConfigurationTest {
 
-    @BeforeEach
+    @Before
     public void setup() {
         clearProxyProperties();
     }
 
-    @AfterAll
+    @AfterClass
     public static void cleanup() {
         clearProxyProperties();
     }

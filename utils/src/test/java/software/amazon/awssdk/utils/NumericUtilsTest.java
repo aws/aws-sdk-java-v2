@@ -17,10 +17,10 @@ package software.amazon.awssdk.utils;
 
 import java.time.Duration;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.*;
+import static org.junit.Assert.*;
 import static software.amazon.awssdk.utils.NumericUtils.max;
 import static software.amazon.awssdk.utils.NumericUtils.min;
 

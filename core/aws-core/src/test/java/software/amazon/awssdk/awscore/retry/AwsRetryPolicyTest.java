@@ -23,8 +23,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Consumer;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.NonRetryableException;
@@ -32,74 +31,75 @@ import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.DateUtils;
 
 public class AwsRetryPolicyTest {
 
     @Test
     public void retriesOnRetryableErrorCodes() {
-        Assertions.assertTrue(shouldRetry(applyErrorCode("PriorRequestNotComplete")));
+        assertTrue(shouldRetry(applyErrorCode("PriorRequestNotComplete")));
     }
 
     @Test
     public void retriesOnThrottlingExceptions() {
-        Assertions.assertTrue(shouldRetry(applyErrorCode("ThrottlingException")));
-        Assertions.assertTrue(shouldRetry(applyErrorCode("ThrottledException")));
-        Assertions.assertTrue(shouldRetry(applyStatusCode(429)));
+        assertTrue(shouldRetry(applyErrorCode("ThrottlingException")));
+        assertTrue(shouldRetry(applyErrorCode("ThrottledException")));
+        assertTrue(shouldRetry(applyStatusCode(429)));
     }
 
     @Test
     public void retriesOnClockSkewErrors() {
-        Assertions.assertTrue(shouldRetry(applyErrorCode("RequestTimeTooSkewed")));
-        Assertions.assertTrue(shouldRetry(applyErrorCode("AuthFailure", Duration.ZERO, Instant.now().minus(1, HOURS))));
+        assertTrue(shouldRetry(applyErrorCode("RequestTimeTooSkewed")));
+        assertTrue(shouldRetry(applyErrorCode("AuthFailure", Duration.ZERO, Instant.now().minus(1, HOURS))));
     }
 
     @Test
     public void retriesOnInternalError() {
-        Assertions.assertTrue(shouldRetry(applyStatusCode(500)));
+        assertTrue(shouldRetry(applyStatusCode(500)));
     }
 
     @Test
     public void retriesOnBadGateway() {
-        Assertions.assertTrue(shouldRetry(applyStatusCode(502)));
+        assertTrue(shouldRetry(applyStatusCode(502)));
     }
 
     @Test
     public void retriesOnServiceUnavailable() {
-        Assertions.assertTrue(shouldRetry(applyStatusCode(503)));
+        assertTrue(shouldRetry(applyStatusCode(503)));
     }
 
     @Test
     public void retriesOnGatewayTimeout() {
-        Assertions.assertTrue(shouldRetry(applyStatusCode(504)));
+        assertTrue(shouldRetry(applyStatusCode(504)));
     }
 
     @Test
     public void retriesOnIOException() {
-        Assertions.assertTrue(shouldRetry(b -> b.exception(SdkClientException.builder()
-                                                                             .message("IO")
-                                                                             .cause(new IOException())
-                                                                             .build())));
+        assertTrue(shouldRetry(b -> b.exception(SdkClientException.builder()
+                                                                  .message("IO")
+                                                                  .cause(new IOException())
+                                                                  .build())));
     }
 
     @Test
     public void retriesOnRetryableException() {
-        Assertions.assertTrue(shouldRetry(b -> b.exception(RetryableException.builder().build())));
+        assertTrue(shouldRetry(b -> b.exception(RetryableException.builder().build())));
     }
 
     @Test
     public void doesNotRetryOnNonRetryableException() {
-        Assertions.assertFalse(shouldRetry(b -> b.exception(NonRetryableException.builder().build())));
+        assertFalse(shouldRetry(b -> b.exception(NonRetryableException.builder().build())));
     }
 
     @Test
     public void doesNotRetryOnNonRetryableStatusCode() {
-        Assertions.assertFalse(shouldRetry(applyStatusCode(404)));
+        assertFalse(shouldRetry(applyStatusCode(404)));
     }
 
     @Test
     public void doesNotRetryOnNonRetryableErrorCode() {
-        Assertions.assertFalse(shouldRetry(applyErrorCode("ValidationError")));
+        assertFalse(shouldRetry(applyErrorCode("ValidationError")));
     }
 
     @Test
@@ -110,7 +110,7 @@ public class AwsRetryPolicyTest {
                                                                                     .build())
                                                     .build();
 
-        Assertions.assertTrue(shouldRetry(b -> b.exception(ex)));
+        assertTrue(shouldRetry(b -> b.exception(ex)));
     }
 
     private boolean shouldRetry(Consumer<RetryPolicyContext.Builder> builder) {

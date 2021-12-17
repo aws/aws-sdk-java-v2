@@ -19,9 +19,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.internal.ContainerCredentialsRetryPolicy;
 import software.amazon.awssdk.regions.util.ResourcesEndpointRetryParameters;
 
@@ -29,40 +28,40 @@ public class ContainerCredentialsRetryPolicyTest {
 
     private static ContainerCredentialsRetryPolicy retryPolicy;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() {
         retryPolicy = new ContainerCredentialsRetryPolicy();
     }
 
     @Test
     public void shouldRetry_ReturnsTrue_For5xxStatusCode() {
-        Assertions.assertTrue(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder().withStatusCode(501).build()));
+        assertTrue(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder().withStatusCode(501).build()));
     }
 
     @Test
     public void shouldRetry_ReturnsFalse_ForNon5xxStatusCode() {
-        Assertions.assertFalse(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder().withStatusCode(404).build()));
-        Assertions.assertFalse(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder().withStatusCode(300).build()));
-        Assertions.assertFalse(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder().withStatusCode(202).build()));
+        assertFalse(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder().withStatusCode(404).build()));
+        assertFalse(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder().withStatusCode(300).build()));
+        assertFalse(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder().withStatusCode(202).build()));
     }
 
     @Test
     public void shouldRetry_ReturnsTrue_ForIoException() {
-        Assertions.assertTrue(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder()
-                                                                                         .withException(new IOException()).build()));
+        assertTrue(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder()
+                                                                              .withException(new IOException()).build()));
 
     }
 
     @Test
     public void shouldRetry_ReturnsFalse_ForNonIoException() {
-        Assertions.assertFalse(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder()
-                                                                                          .withException(new RuntimeException()).build()));
-        Assertions.assertFalse(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder()
-                                                                                          .withException(new Exception()).build()));
+        assertFalse(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder()
+                                                                               .withException(new RuntimeException()).build()));
+        assertFalse(retryPolicy.shouldRetry(1, ResourcesEndpointRetryParameters.builder()
+                                                                               .withException(new Exception()).build()));
     }
 
     @Test
     public void shouldRetry_ReturnsFalse_WhenMaxRetriesExceeded() {
-        Assertions.assertFalse(retryPolicy.shouldRetry(5, ResourcesEndpointRetryParameters.builder().withStatusCode(501).build()));
+        assertFalse(retryPolicy.shouldRetry(5, ResourcesEndpointRetryParameters.builder().withStatusCode(501).build()));
     }
 }

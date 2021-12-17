@@ -22,8 +22,7 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link SdkProxyRoutePlanner}.
@@ -38,8 +37,8 @@ public class SdkProxyRoutePlannerTest {
         SdkProxyRoutePlanner planner = new SdkProxyRoutePlanner("localhost", 1234, "https", Collections.emptySet());
 
         HttpHost proxyHost = planner.determineRoute(S3_HOST, S3_REQUEST, CONTEXT).getProxyHost();
-        Assertions.assertEquals("localhost", proxyHost.getHostName());
-        Assertions.assertEquals("https", proxyHost.getSchemeName());
+        assertEquals("localhost", proxyHost.getHostName());
+        assertEquals("https", proxyHost.getSchemeName());
     }
 
     @Test
@@ -47,7 +46,7 @@ public class SdkProxyRoutePlannerTest {
         SdkProxyRoutePlanner planner = new SdkProxyRoutePlanner("localhost", 1234, "http", Collections.emptySet());
 
         HttpHost proxyHost = planner.determineRoute(S3_HOST, S3_REQUEST, CONTEXT).getProxyHost();
-        Assertions.assertEquals("localhost", proxyHost.getHostName());
-        Assertions.assertEquals("http", proxyHost.getSchemeName());
+        assertEquals("localhost", proxyHost.getHostName());
+        assertEquals("http", proxyHost.getSchemeName());
     }
 }

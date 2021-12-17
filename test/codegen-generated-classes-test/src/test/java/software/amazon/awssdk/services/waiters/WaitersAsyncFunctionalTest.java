@@ -26,9 +26,9 @@ import static org.mockito.Mockito.when;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.restjsonwithwaiters.RestJsonWithWaitersAsyncClient;
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesRequest;
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesResponse;
@@ -49,7 +50,7 @@ public class WaitersAsyncFunctionalTest {
     public RestJsonWithWaitersAsyncClient asyncClient;
     public RestJsonWithWaitersAsyncWaiter asyncWaiter;
 
-    @BeforeEach
+    @Before
     public void setup() {
         asyncClient = mock(RestJsonWithWaitersAsyncClient.class);
         asyncWaiter = RestJsonWithWaitersAsyncWaiter.builder()
@@ -61,7 +62,7 @@ public class WaitersAsyncFunctionalTest {
                                                     .build();
     }
 
-    @AfterEach
+    @After
     public void cleanup() {
         asyncClient.close();
         asyncWaiter.close();

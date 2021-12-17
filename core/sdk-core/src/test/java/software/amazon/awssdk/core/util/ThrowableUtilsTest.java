@@ -18,8 +18,7 @@ package software.amazon.awssdk.core.util;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 
 public class ThrowableUtilsTest {
@@ -28,8 +27,8 @@ public class ThrowableUtilsTest {
     public void typical() {
         Throwable a = new Throwable();
         Throwable b = new Throwable(a);
-        Assertions.assertSame(a, ThrowableUtils.getRootCause(b));
-        Assertions.assertSame(a, ThrowableUtils.getRootCause(a));
+        assertSame(a, ThrowableUtils.getRootCause(b));
+        assertSame(a, ThrowableUtils.getRootCause(a));
     }
 
     @Test
@@ -38,18 +37,18 @@ public class ThrowableUtilsTest {
         Throwable a = new Throwable();
         Throwable b = new Throwable(a);
         a.initCause(b);
-        Assertions.assertSame(b, ThrowableUtils.getRootCause(b));
-        Assertions.assertSame(a, ThrowableUtils.getRootCause(a));
+        assertSame(b, ThrowableUtils.getRootCause(b));
+        assertSame(a, ThrowableUtils.getRootCause(a));
     }
 
     @Test
     public void nullCause() {
         Throwable a = new Throwable();
-        Assertions.assertSame(a, ThrowableUtils.getRootCause(a));
+        assertSame(a, ThrowableUtils.getRootCause(a));
     }
 
     @Test
     public void simplyNull() {
-        Assertions.assertNull(ThrowableUtils.getRootCause(null));
+        assertNull(ThrowableUtils.getRootCause(null));
     }
 }

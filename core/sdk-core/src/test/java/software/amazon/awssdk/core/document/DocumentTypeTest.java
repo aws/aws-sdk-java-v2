@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.document;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.SdkNumber;
 import software.amazon.awssdk.core.document.internal.ListDocument;
 

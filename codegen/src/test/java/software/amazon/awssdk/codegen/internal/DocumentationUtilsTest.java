@@ -14,10 +14,9 @@
  */
 package software.amazon.awssdk.codegen.internal;
 
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Assert;
+import org.junit.Test;
 
 
 public class DocumentationUtilsTest {
@@ -25,24 +24,24 @@ public class DocumentationUtilsTest {
     @Test
     public void strip_html_tags_null_or_empty_input_returns_empty_string() {
 
-        MatcherAssert.assertThat(DocumentationUtils.stripHtmlTags(null), Matchers
+        Assert.assertThat(DocumentationUtils.stripHtmlTags(null), Matchers
                 .isEmptyString());
-        MatcherAssert.assertThat(DocumentationUtils.stripHtmlTags(""), Matchers
+        Assert.assertThat(DocumentationUtils.stripHtmlTags(""), Matchers
                 .isEmptyString());
 
     }
 
     @Test
     public void html_tags_at_start_of_string_are_removed() {
-        Assertions.assertEquals("foo", DocumentationUtils.stripHtmlTags
+        Assert.assertEquals("foo", DocumentationUtils.stripHtmlTags
                 ("<bar>foo</bar>"));
     }
 
     @Test
     public void empty_html_tags_at_start_are_removed() {
-        MatcherAssert.assertThat(DocumentationUtils.stripHtmlTags("<p></p>"), Matchers
+        Assert.assertThat(DocumentationUtils.stripHtmlTags("<p></p>"), Matchers
                 .isEmptyString());
-        MatcherAssert.assertThat(DocumentationUtils.stripHtmlTags("<p/>"), Matchers
+        Assert.assertThat(DocumentationUtils.stripHtmlTags("<p/>"), Matchers
                 .isEmptyString());
     }
 }

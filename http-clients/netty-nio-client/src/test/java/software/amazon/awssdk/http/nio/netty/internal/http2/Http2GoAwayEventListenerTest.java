@@ -28,10 +28,10 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.http2.DefaultHttp2GoAwayFrame;
 import io.netty.util.Attribute;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 
 public class Http2GoAwayEventListenerTest {
@@ -40,7 +40,7 @@ public class Http2GoAwayEventListenerTest {
     private ChannelPipeline channelPipeline;
     private Attribute<Http2MultiplexedChannelPool> attribute;
 
-    @BeforeEach
+    @Before
     public void setup() {
         this.ctx = mock(ChannelHandlerContext.class);
         this.channel = mock(Channel.class);
@@ -58,7 +58,7 @@ public class Http2GoAwayEventListenerTest {
         ByteBuf emptyBuffer = Unpooled.EMPTY_BUFFER;
         new Http2GoAwayEventListener(channel).onGoAwayReceived(0, 0, emptyBuffer);
         verify(channelPipeline).fireExceptionCaught(isA(GoAwayException.class));
-        Assertions.assertEquals(1, emptyBuffer.refCnt());
+        assertEquals(1, emptyBuffer.refCnt());
     }
 
     @Test
@@ -69,6 +69,6 @@ public class Http2GoAwayEventListenerTest {
         new Http2GoAwayEventListener(channel).onGoAwayReceived(0, 0, emptyBuffer);
         verify(record).handleGoAway(eq(channel), eq(0), isA(GoAwayException.class));
         verifyNoMoreInteractions(record);
-        Assertions.assertEquals(1, emptyBuffer.refCnt());
+        assertEquals(1, emptyBuffer.refCnt());
     }
 }

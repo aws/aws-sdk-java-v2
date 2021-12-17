@@ -20,9 +20,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Random;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Tests for {@link ProxyConfiguration}.
@@ -34,12 +34,12 @@ public class ProxyConfigurationTest {
     private static final String TEST_USER = "testuser";
     private static final String TEST_PASSWORD = "123";
 
-    @BeforeEach
+    @Before
     public void setup() {
         clearProxyProperties();
     }
 
-    @AfterAll
+    @AfterClass
     public static void cleanup() {
         clearProxyProperties();
     }

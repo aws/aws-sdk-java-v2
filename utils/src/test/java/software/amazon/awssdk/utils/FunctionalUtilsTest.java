@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 
 public class FunctionalUtilsTest {

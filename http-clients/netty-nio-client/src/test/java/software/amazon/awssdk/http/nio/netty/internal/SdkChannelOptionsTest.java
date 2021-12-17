@@ -20,8 +20,7 @@ import static org.junit.Assert.assertEquals;
 import io.netty.channel.ChannelOption;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class SdkChannelOptionsTest {
 
@@ -31,7 +30,7 @@ public class SdkChannelOptionsTest {
 
         Map<ChannelOption, Object> expectedOptions = new HashMap<>();
         expectedOptions.put(ChannelOption.TCP_NODELAY, Boolean.TRUE);
-        Assertions.assertEquals(expectedOptions, channelOptions.channelOptions());
+        assertEquals(expectedOptions, channelOptions.channelOptions());
     }
 
     @Test
@@ -43,6 +42,6 @@ public class SdkChannelOptionsTest {
         expectedOptions.put(ChannelOption.TCP_NODELAY, Boolean.TRUE);
         expectedOptions.put(ChannelOption.SO_LINGER, 0);
 
-        Assertions.assertEquals(expectedOptions, channelOptions.channelOptions());
+        assertEquals(expectedOptions, channelOptions.channelOptions());
     }
 }

@@ -29,8 +29,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -64,7 +63,7 @@ public class PresignRequestHandlerTest {
         CopyDbClusterSnapshotRequest request = makeTestRequest();
         SdkHttpRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
-        Assertions.assertNotNull(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
+        assertNotNull(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
     }
 
     @Test
@@ -106,7 +105,7 @@ public class PresignRequestHandlerTest {
                 "&X-Amz-Expires=604800" +
                 "&X-Amz-Credential=foo%2F20161221%2Fus-east-1%2Frds%2Faws4_request" +
                 "&X-Amz-Signature=00822ebbba95e2e6ac09112aa85621fbef060a596e3e1480f9f4ac61493e9821";
-        Assertions.assertEquals(expectedPreSignedUrl, presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
+        assertEquals(expectedPreSignedUrl, presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
     }
 
     @Test
@@ -119,7 +118,7 @@ public class PresignRequestHandlerTest {
 
         SdkHttpRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
-        Assertions.assertEquals("PRESIGNED", presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
+        assertEquals("PRESIGNED", presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
     }
 
     @Test
@@ -128,7 +127,7 @@ public class PresignRequestHandlerTest {
 
         SdkHttpRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
-        Assertions.assertNull(presignedRequest.rawQueryParameters().get("PreSignedUrl"));
+        assertNull(presignedRequest.rawQueryParameters().get("PreSignedUrl"));
     }
 
     @Test
@@ -142,7 +141,7 @@ public class PresignRequestHandlerTest {
         final SdkHttpRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshalled);
 
         final URI presignedUrl = new URI(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
-        Assertions.assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.id()));
+        assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.id()));
     }
 
     @Test
@@ -151,7 +150,7 @@ public class PresignRequestHandlerTest {
         SdkHttpFullRequest marshalled = marshallRequest(request);
         SdkHttpRequest actual = modifyHttpRequest(presignInterceptor, request, marshalled);
 
-        Assertions.assertFalse(actual.rawQueryParameters().containsKey("SourceRegion"));
+        assertFalse(actual.rawQueryParameters().containsKey("SourceRegion"));
     }
 
     private SdkHttpFullRequest marshallRequest(CopyDbClusterSnapshotRequest request) {

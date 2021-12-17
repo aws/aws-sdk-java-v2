@@ -16,7 +16,7 @@
 package software.amazon.awssdk.regions.servicemetadata;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.regions.GeneratedServiceMetadataProvider;
 
 public class GeneratedServiceMetadataProviderTest {

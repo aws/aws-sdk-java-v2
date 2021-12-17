@@ -24,9 +24,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.time.Instant;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -39,7 +38,7 @@ public class SdkJsonGeneratorTest {
 
     private StructuredJsonGenerator jsonGenerator;
 
-    @BeforeEach
+    @Before
     public void setup() {
         jsonGenerator = new SdkJsonGenerator(JsonFactory.builder().build(), "application/json");
     }
@@ -53,11 +52,11 @@ public class SdkJsonGeneratorTest {
         jsonGenerator.writeFieldName("doubleProp").writeValue(123.456);
         jsonGenerator.writeEndObject();
         JsonNode node = toJsonNode();
-        Assertions.assertTrue(node.isObject());
-        Assertions.assertEquals("stringVal", node.asObject().get("stringProp").text());
-        Assertions.assertEquals("42", node.asObject().get("integralProp").asNumber());
-        Assertions.assertEquals(true, node.asObject().get("booleanProp").asBoolean());
-        Assertions.assertEquals(123.456, Double.parseDouble(node.asObject().get("doubleProp").asNumber()), DELTA);
+        assertTrue(node.isObject());
+        assertEquals("stringVal", node.asObject().get("stringProp").text());
+        assertEquals("42", node.asObject().get("integralProp").asNumber());
+        assertEquals(true, node.asObject().get("booleanProp").asBoolean());
+        assertEquals(123.456, Double.parseDouble(node.asObject().get("doubleProp").asNumber()), DELTA);
     }
 
     @Test
@@ -66,7 +65,7 @@ public class SdkJsonGeneratorTest {
         jsonGenerator.writeFieldName("longProp").writeValue(Long.MAX_VALUE);
         jsonGenerator.writeEndObject();
         JsonNode node = toJsonNode();
-        Assertions.assertEquals(Long.toString(Long.MAX_VALUE), node.asObject().get("longProp").asNumber());
+        assertEquals(Long.toString(Long.MAX_VALUE), node.asObject().get("longProp").asNumber());
     }
 
     @Test
@@ -76,7 +75,7 @@ public class SdkJsonGeneratorTest {
         jsonGenerator.writeFieldName("binaryProp").writeValue(ByteBuffer.wrap(data));
         jsonGenerator.writeEndObject();
         JsonNode node = toJsonNode();
-        Assertions.assertEquals(BinaryUtils.toBase64(data), node.asObject().get("binaryProp").text());
+        assertEquals(BinaryUtils.toBase64(data), node.asObject().get("binaryProp").text());
     }
 
     @Test
@@ -86,7 +85,7 @@ public class SdkJsonGeneratorTest {
         jsonGenerator.writeFieldName("dateProp").writeValue(instant);
         jsonGenerator.writeEndObject();
         JsonNode node = toJsonNode();
-        Assertions.assertEquals(123.456, Double.parseDouble(node.asObject().get("dateProp").asNumber()), DELTA);
+        assertEquals(123.456, Double.parseDouble(node.asObject().get("dateProp").asNumber()), DELTA);
     }
 
     @Test
@@ -97,10 +96,10 @@ public class SdkJsonGeneratorTest {
         jsonGenerator.writeValue("valThree");
         jsonGenerator.writeEndArray();
         JsonNode node = toJsonNode();
-        Assertions.assertTrue(node.isArray());
-        Assertions.assertEquals("valOne", node.asArray().get(0).text());
-        Assertions.assertEquals("valTwo", node.asArray().get(1).text());
-        Assertions.assertEquals("valThree", node.asArray().get(2).text());
+        assertTrue(node.isArray());
+        assertEquals("valOne", node.asArray().get(0).text());
+        assertEquals("valTwo", node.asArray().get(1).text());
+        assertEquals("valThree", node.asArray().get(2).text());
     }
 
     @Test
@@ -111,7 +110,7 @@ public class SdkJsonGeneratorTest {
         jsonGenerator.writeEndObject();
         jsonGenerator.writeEndArray();
         JsonNode node = toJsonNode();
-        Assertions.assertEquals("nestedVal", node.asArray().get(0).asObject().get("nestedProp").text());
+        assertEquals("nestedVal", node.asArray().get(0).asObject().get("nestedProp").text());
     }
 
     @Test
@@ -119,7 +118,7 @@ public class SdkJsonGeneratorTest {
         jsonGenerator.writeStartObject();
         jsonGenerator.writeFieldName("stringProp").writeValue("stringVal");
         JsonNode node = toJsonNode();
-        Assertions.assertTrue(node.isObject());
+        assertTrue(node.isObject());
     }
 
     @Test
@@ -129,8 +128,8 @@ public class SdkJsonGeneratorTest {
         jsonGenerator.writeValue("valTwo");
         jsonGenerator.writeValue("valThree");
         JsonNode node = toJsonNode();
-        Assertions.assertTrue(node.isArray());
-        Assertions.assertEquals(3, node.asArray().size());
+        assertTrue(node.isArray());
+        assertEquals(3, node.asArray().size());
     }
 
     // See https://forums.aws.amazon.com/thread.jspa?threadID=158756
@@ -146,30 +145,30 @@ public class SdkJsonGeneratorTest {
         // (with no decimal point nor places.)
         System.out.println(s);
         final String prefix = "{\"foo\":";
-        Assertions.assertTrue(s.startsWith(prefix), s);
+        assertTrue(s, s.startsWith(prefix));
         final int startPos = prefix.length();
         // verify no starting quote for the value
-        Assertions.assertFalse(s.startsWith("{\"foo\":\""), s);
-        Assertions.assertTrue(s.endsWith("}"), s);
+        assertFalse(s, s.startsWith("{\"foo\":\""));
+        assertTrue(s, s.endsWith("}"));
         // Not: {"foo":"1408378076.135"}.
         // verify no ending quote for the value
-        Assertions.assertFalse(s.endsWith("\"}"), s);
+        assertFalse(s, s.endsWith("\"}"));
         final int endPos = s.indexOf("}");
         final int dotPos = s.length() - 5;
-        Assertions.assertTrue(s.charAt(dotPos) == '.', s);
+        assertTrue(s, s.charAt(dotPos) == '.');
         // verify all numeric before '.'
         char[] a = s.toCharArray();
         for (int i = startPos; i < dotPos; i++) {
-            Assertions.assertTrue(a[i] <= '9' && a[i] >= '0');
+            assertTrue(a[i] <= '9' && a[i] >= '0');
         }
         int j = 0;
         // verify all numeric after '.'
         for (int i = dotPos + 1; i < endPos; i++) {
-            Assertions.assertTrue(a[i] <= '9' && a[i] >= '0');
+            assertTrue(a[i] <= '9' && a[i] >= '0');
             j++;
         }
         // verify decimal precision of exactly 3
-        Assertions.assertTrue(j == 3);
+        assertTrue(j == 3);
     }
 
     private JsonNode toJsonNode() throws IOException {

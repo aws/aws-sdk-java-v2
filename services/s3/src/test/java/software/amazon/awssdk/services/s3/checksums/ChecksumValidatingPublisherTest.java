@@ -27,9 +27,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -45,7 +44,7 @@ public class ChecksumValidatingPublisherTest {
   private static byte[] testData;
   private static byte[] testDataWithoutChecksum;
 
-  @BeforeAll
+  @BeforeClass
   public static void populateData() {
     testData = new byte[TEST_DATA_SIZE + CHECKSUM_SIZE];
     for (int i = 0; i < TEST_DATA_SIZE; i++) {
@@ -71,9 +70,9 @@ public class ChecksumValidatingPublisherTest {
     driver.doOnNext(ByteBuffer.wrap(testData));
     driver.doOnComplete();
 
-    Assertions.assertArrayEquals(testDataWithoutChecksum, s.receivedData());
-    Assertions.assertTrue(s.hasCompleted());
-    Assertions.assertFalse(s.isOnErrorCalled());
+    assertArrayEquals(testDataWithoutChecksum, s.receivedData());
+    assertTrue(s.hasCompleted());
+    assertFalse(s.isOnErrorCalled());
   }
 
   @Test
@@ -89,8 +88,8 @@ public class ChecksumValidatingPublisherTest {
     driver.doOnNext(ByteBuffer.wrap(incorrectChecksumData));
     driver.doOnComplete();
 
-    Assertions.assertFalse(s.hasCompleted());
-    Assertions.assertTrue(s.isOnErrorCalled());
+    assertFalse(s.hasCompleted());
+    assertTrue(s.isOnErrorCalled());
   }
 
   @Test
@@ -105,9 +104,9 @@ public class ChecksumValidatingPublisherTest {
       driver.doOnNext(ByteBuffer.wrap(testData, i, TEST_DATA_SIZE + CHECKSUM_SIZE - i));
       driver.doOnComplete();
 
-      Assertions.assertArrayEquals(testDataWithoutChecksum, s.receivedData());
-      Assertions.assertTrue(s.hasCompleted());
-      Assertions.assertFalse(s.isOnErrorCalled());
+      assertArrayEquals(testDataWithoutChecksum, s.receivedData());
+      assertTrue(s.hasCompleted());
+      assertFalse(s.isOnErrorCalled());
     }
   }
 
@@ -126,9 +125,9 @@ public class ChecksumValidatingPublisherTest {
       }
       driver.doOnComplete();
 
-      Assertions.assertArrayEquals(testDataWithoutChecksum, s.receivedData());
-      Assertions.assertTrue(s.hasCompleted());
-      Assertions.assertFalse(s.isOnErrorCalled());
+      assertArrayEquals(testDataWithoutChecksum, s.receivedData());
+      assertTrue(s.hasCompleted());
+      assertFalse(s.isOnErrorCalled());
     }
   }
 
@@ -149,9 +148,9 @@ public class ChecksumValidatingPublisherTest {
     driver.doOnNext(ByteBuffer.wrap(randomChecksumData));
     driver.doOnComplete();
 
-    Assertions.assertArrayEquals(testDataWithoutChecksum, s.receivedData());
-    Assertions.assertTrue(s.hasCompleted());
-    Assertions.assertFalse(s.isOnErrorCalled());
+    assertArrayEquals(testDataWithoutChecksum, s.receivedData());
+    assertTrue(s.hasCompleted());
+    assertFalse(s.isOnErrorCalled());
   }
 
   @Test
@@ -165,8 +164,8 @@ public class ChecksumValidatingPublisherTest {
     driver.doOnNext(ByteBuffer.wrap(incorrectData));
     driver.doOnComplete();
 
-    Assertions.assertTrue(s.isOnErrorCalled());
-    Assertions.assertFalse(s.hasCompleted());
+    assertTrue(s.isOnErrorCalled());
+    assertFalse(s.hasCompleted());
   }
 
   private class TestSubscriber implements Subscriber<ByteBuffer> {
@@ -181,7 +180,7 @@ public class ChecksumValidatingPublisherTest {
 
     @Override
     public void onSubscribe(Subscription s) {
-      Assertions.fail("This method not expected to be invoked");
+      fail("This method not expected to be invoked");
       throw new UnsupportedOperationException("!!!TODO: implement this");
     }
 

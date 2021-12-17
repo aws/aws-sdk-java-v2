@@ -21,8 +21,7 @@ import static org.junit.Assert.fail;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * This test demonstrates why we should call mark(Integer.MAX_VALUE) instead of
@@ -50,9 +49,9 @@ public class BufferedInputStreamResetTest {
         bis.read(new byte[20]);
         try {
             bis.reset();
-            Assertions.fail();
+            fail();
         } catch (IOException ex) {
-            Assertions.assertEquals("Resetting to invalid mark", ex.getMessage());
+            assertEquals("Resetting to invalid mark", ex.getMessage());
         }
     }
 

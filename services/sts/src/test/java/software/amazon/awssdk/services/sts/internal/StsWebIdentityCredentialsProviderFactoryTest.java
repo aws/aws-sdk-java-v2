@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.sts.internal;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenCredentialsProviderFactory;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityCredentialsUtils;
 
@@ -26,7 +26,7 @@ public class StsWebIdentityCredentialsProviderFactoryTest {
     @Test
     public void stsWebIdentityCredentialsProviderFactory_with_webIdentityCredentialsUtils() {
         WebIdentityTokenCredentialsProviderFactory factory = WebIdentityCredentialsUtils.factory();
-        Assertions.assertNotNull(factory);
+        Assert.assertNotNull(factory);
     }
 
 }

@@ -20,7 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Optional;
 import java.util.function.Function;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 

@@ -19,8 +19,8 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 
@@ -89,13 +89,13 @@ public class ProtocolUtilsTest {
 
     @Test
     public void request_null_returns_null() {
-        Assertions.assertNull(ProtocolUtils.addStaticQueryParametersToRequest(null,
-                                                                              "foo"));
+        Assert.assertNull(ProtocolUtils.addStaticQueryParametersToRequest(null,
+                                                                          "foo"));
     }
 
     @Test
     public void uri_resource_path_null_returns_null() {
-        Assertions.assertNull(ProtocolUtils
+        Assert.assertNull(ProtocolUtils
                               .addStaticQueryParametersToRequest(emptyRequest(), null));
     }
 
@@ -108,7 +108,7 @@ public class ProtocolUtilsTest {
 
         final String uriResourcePath = "/foo/bar";
 
-        Assertions.assertEquals(uriResourcePath, ProtocolUtils
+        Assert.assertEquals(uriResourcePath, ProtocolUtils
             .addStaticQueryParametersToRequest(emptyRequest(), uriResourcePath));
 
     }
@@ -119,7 +119,7 @@ public class ProtocolUtilsTest {
         final String expectedResourcePath = "/foo/bar";
         final String pathWithEmptyStaticQueryParams = expectedResourcePath + "?";
 
-        Assertions.assertEquals(expectedResourcePath, ProtocolUtils
+        Assert.assertEquals(expectedResourcePath, ProtocolUtils
             .addStaticQueryParametersToRequest(emptyRequest(), pathWithEmptyStaticQueryParams));
 
     }
@@ -132,11 +132,11 @@ public class ProtocolUtilsTest {
 
         SdkHttpFullRequest.Builder request = emptyRequest();
 
-        Assertions.assertEquals(uriResourcePath, ProtocolUtils
+        Assert.assertEquals(uriResourcePath, ProtocolUtils
             .addStaticQueryParametersToRequest(request,
                                                uriResourcePathWithParams));
-        Assertions.assertTrue(request.rawQueryParameters().containsKey("param1"));
-        Assertions.assertEquals(singletonList(""), request.rawQueryParameters().get("param1"));
+        Assert.assertTrue(request.rawQueryParameters().containsKey("param1"));
+        Assert.assertEquals(singletonList(""), request.rawQueryParameters().get("param1"));
     }
 
     @Test
@@ -146,13 +146,13 @@ public class ProtocolUtilsTest {
             uriResourcePath + "?param1=value1&param2=value2";
         SdkHttpFullRequest.Builder request = emptyRequest();
 
-        Assertions.assertEquals(uriResourcePath, ProtocolUtils
+        Assert.assertEquals(uriResourcePath, ProtocolUtils
             .addStaticQueryParametersToRequest(request,
                                                uriResourcePathWithParams));
-        Assertions.assertTrue(request.rawQueryParameters().containsKey("param1"));
-        Assertions.assertTrue(request.rawQueryParameters().containsKey("param2"));
-        Assertions.assertEquals(singletonList("value1"), request.rawQueryParameters().get("param1"));
-        Assertions.assertEquals(singletonList("value2"), request.rawQueryParameters().get("param2"));
+        Assert.assertTrue(request.rawQueryParameters().containsKey("param1"));
+        Assert.assertTrue(request.rawQueryParameters().containsKey("param2"));
+        Assert.assertEquals(singletonList("value1"), request.rawQueryParameters().get("param1"));
+        Assert.assertEquals(singletonList("value2"), request.rawQueryParameters().get("param2"));
 
     }
 
@@ -163,10 +163,10 @@ public class ProtocolUtilsTest {
             uriResourcePath + "?param";
         SdkHttpFullRequest.Builder request = emptyRequest();
 
-        Assertions.assertEquals(uriResourcePath, ProtocolUtils.addStaticQueryParametersToRequest(request, uriResourcePathWithParams));
+        Assert.assertEquals(uriResourcePath, ProtocolUtils.addStaticQueryParametersToRequest(request, uriResourcePathWithParams));
 
-        Assertions.assertTrue(request.rawQueryParameters().containsKey("param"));
-        Assertions.assertEquals(singletonList((String) null), request.rawQueryParameters().get("param"));
+        Assert.assertTrue(request.rawQueryParameters().containsKey("param"));
+        Assert.assertEquals(singletonList((String) null), request.rawQueryParameters().get("param"));
     }
 
 }

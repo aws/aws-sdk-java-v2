@@ -18,9 +18,8 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 
 public class DefaultOperationContextTest {
@@ -28,16 +27,16 @@ public class DefaultOperationContextTest {
     public void createWithTableNameAndIndexName() {
         DefaultOperationContext context = DefaultOperationContext.create("table_name", "index_name");
 
-        MatcherAssert.assertThat(context.tableName(), is("table_name"));
-        MatcherAssert.assertThat(context.indexName(), is("index_name"));
+        assertThat(context.tableName(), is("table_name"));
+        assertThat(context.indexName(), is("index_name"));
     }
 
     @Test
     public void createWithTableName() {
         DefaultOperationContext context = DefaultOperationContext.create("table_name");
 
-        MatcherAssert.assertThat(context.tableName(), is("table_name"));
-        MatcherAssert.assertThat(context.indexName(), Matchers.is(TableMetadata.primaryIndexName()));
+        assertThat(context.tableName(), is("table_name"));
+        assertThat(context.indexName(), Matchers.is(TableMetadata.primaryIndexName()));
     }
 
 }

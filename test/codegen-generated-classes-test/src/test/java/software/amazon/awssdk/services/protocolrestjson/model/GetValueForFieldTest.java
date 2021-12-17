@@ -19,8 +19,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-import org.hamcrest.MatcherAssert;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * Tests for the generated {@code getValueForField} methods on model objects.
@@ -31,7 +30,7 @@ public class GetValueForFieldTest {
     public void nullMemberShouldReturnEmptyOptional() {
         AllTypesRequest request = AllTypesRequest.builder().build();
 
-        MatcherAssert.assertThat(request.getValueForField("StringMember", String.class).isPresent(), is(equalTo(false)));
+        assertThat(request.getValueForField("StringMember", String.class).isPresent(), is(equalTo(false)));
     }
 
     @Test
@@ -40,6 +39,6 @@ public class GetValueForFieldTest {
                 .stringMember("hello, world")
                 .build();
 
-        MatcherAssert.assertThat(request.getValueForField("StringMember", String.class).get(), is(equalTo("hello, world")));
+        assertThat(request.getValueForField("StringMember", String.class).get(), is(equalTo("hello, world")));
     }
 }

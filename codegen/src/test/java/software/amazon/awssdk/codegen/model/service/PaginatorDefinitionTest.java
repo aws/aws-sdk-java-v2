@@ -21,8 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class PaginatorDefinitionTest {
 
@@ -30,22 +29,22 @@ public class PaginatorDefinitionTest {
     public void isValid_ReturnsFalse_WhenInputToken_IsNullOrEmpty() {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
 
-        Assertions.assertNull(paginatorDefinition.getInputToken());
-        Assertions.assertFalse(paginatorDefinition.isValid());
+        assertNull(paginatorDefinition.getInputToken());
+        assertFalse(paginatorDefinition.isValid());
 
         paginatorDefinition.setInputToken(Collections.emptyList());
-        Assertions.assertFalse(paginatorDefinition.isValid());
+        assertFalse(paginatorDefinition.isValid());
     }
 
     @Test
     public void isValid_ReturnsFalse_WhenOutputToken_IsNullOrEmpty() {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
 
-        Assertions.assertNull(paginatorDefinition.getOutputToken());
-        Assertions.assertFalse(paginatorDefinition.isValid());
+        assertNull(paginatorDefinition.getOutputToken());
+        assertFalse(paginatorDefinition.isValid());
 
         paginatorDefinition.setOutputToken(Collections.emptyList());
-        Assertions.assertFalse(paginatorDefinition.isValid());
+        assertFalse(paginatorDefinition.isValid());
     }
 
     @Test
@@ -53,7 +52,7 @@ public class PaginatorDefinitionTest {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
         paginatorDefinition.setInputToken(Arrays.asList("inputToken"));
 
-        Assertions.assertFalse(paginatorDefinition.isValid());
+        assertFalse(paginatorDefinition.isValid());
     }
 
     @Test
@@ -62,7 +61,7 @@ public class PaginatorDefinitionTest {
         paginatorDefinition.setInputToken(Arrays.asList("inputToken"));
         paginatorDefinition.setOutputToken(Arrays.asList("foo", "bar"));
 
-        Assertions.assertTrue(paginatorDefinition.isValid());
+        assertTrue(paginatorDefinition.isValid());
     }
 
     @Test
@@ -71,8 +70,8 @@ public class PaginatorDefinitionTest {
         paginatorDefinition.setInputToken(Arrays.asList("inputToken"));
         paginatorDefinition.setOutputToken(Arrays.asList("foo", "bar"));
 
-        Assertions.assertNull(paginatorDefinition.getResultKey());
-        Assertions.assertTrue(paginatorDefinition.isValid());
+        assertNull(paginatorDefinition.getResultKey());
+        assertTrue(paginatorDefinition.isValid());
     }
 
     @Test
@@ -81,7 +80,7 @@ public class PaginatorDefinitionTest {
         paginatorDefinition.setOutputToken(Arrays.asList("Foo", "Foo.Bar"));
         paginatorDefinition.setInputToken(Arrays.asList("token"));
 
-        Assertions.assertTrue(paginatorDefinition.isValid());
+        assertTrue(paginatorDefinition.isValid());
     }
 
     @Test
@@ -90,7 +89,7 @@ public class PaginatorDefinitionTest {
         paginatorDefinition.setOutputToken(Arrays.asList("Contents[-1]"));
         paginatorDefinition.setInputToken(Arrays.asList("token"));
 
-        Assertions.assertFalse(paginatorDefinition.isValid());
+        assertFalse(paginatorDefinition.isValid());
     }
 
     @Test
@@ -99,6 +98,6 @@ public class PaginatorDefinitionTest {
         paginatorDefinition.setOutputToken(Arrays.asList("NextMarker || Contents"));
         paginatorDefinition.setInputToken(Arrays.asList("token"));
 
-        Assertions.assertFalse(paginatorDefinition.isValid());
+        assertFalse(paginatorDefinition.isValid());
     }
 }

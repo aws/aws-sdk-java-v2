@@ -22,8 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class IoUtilsTest {
 
@@ -32,7 +31,7 @@ public class IoUtilsTest {
     @Test
     public void testEmptyByteArray() throws Exception {
         String s = IoUtils.toUtf8String(new ByteArrayInputStream(new byte[0]));
-        Assertions.assertEquals("", s);
+        assertEquals("", s);
     }
 
     @Test
@@ -43,13 +42,13 @@ public class IoUtilsTest {
                 return -1;
             }
         });
-        Assertions.assertEquals("", s);
+        assertEquals("", s);
     }
 
     @Test
     public void test() throws Exception {
         String s = IoUtils.toUtf8String(new ByteArrayInputStream("Testing".getBytes(StandardCharsets.UTF_8)));
-        Assertions.assertEquals("Testing", s);
+        assertEquals("Testing", s);
     }
 
     @Test
@@ -64,7 +63,7 @@ public class IoUtilsTest {
     public void drainInputStream_RemainingBytesInStream_ReadsAllRemainingData() throws IOException {
         final InputStream inputStream = randomInputStream();
         IoUtils.drainInputStream(inputStream);
-        Assertions.assertEquals(-1, inputStream.read());
+        assertEquals(-1, inputStream.read());
     }
 
     private InputStream randomInputStream() {

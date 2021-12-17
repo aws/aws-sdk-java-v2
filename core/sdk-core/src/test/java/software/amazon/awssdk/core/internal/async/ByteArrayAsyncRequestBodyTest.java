@@ -18,8 +18,7 @@ package software.amazon.awssdk.core.internal.async;
 import static org.junit.Assert.assertTrue;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.internal.util.Mimetype;
@@ -59,7 +58,7 @@ public class ByteArrayAsyncRequestBodyTest {
         ByteArrayAsyncRequestBody byteArrayReq = new ByteArrayAsyncRequestBody("Hello World!".getBytes(),
                                                                                Mimetype.MIMETYPE_OCTET_STREAM);
         byteArrayReq.subscribe(subscriber);
-        Assertions.assertTrue(subscriber.onCompleteCalled.get());
+        assertTrue(subscriber.onCompleteCalled.get());
     }
 
 }

@@ -15,11 +15,12 @@
 
 package software.amazon.awssdk.core.internal.retry;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.mockito.Mockito;
 
 public class RateLimitingTokenBucketTest {

@@ -29,10 +29,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Validate the functionality of {@link CachedSupplier}.
@@ -53,7 +53,7 @@ public class CachedSupplierTest {
     /**
      * Create an executor service for async testing.
      */
-    @BeforeEach
+    @Before
     public void setup() {
         executorService = Executors.newFixedThreadPool(50);
         allExecutions = new ArrayList<>();
@@ -62,7 +62,7 @@ public class CachedSupplierTest {
     /**
      * Shut down the executor service when we're done.
      */
-    @AfterEach
+    @After
     public void shutdown() {
         executorService.shutdown();
     }
@@ -106,7 +106,7 @@ public class CachedSupplierTest {
                 permits.acquire(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                Assertions.fail();
+                fail();
             }
 
             finishedGetPermits.release(1);
@@ -121,7 +121,7 @@ public class CachedSupplierTest {
          * time if the "gets" never actually start.
          */
         public void waitForGetsToHaveStarted(int numExpectedGets) {
-            Assertions.assertTrue(invokeSafely(() -> startedGetPermits.tryAcquire(numExpectedGets, 10, TimeUnit.SECONDS)));
+            Assert.assertTrue(invokeSafely(() -> startedGetPermits.tryAcquire(numExpectedGets, 10, TimeUnit.SECONDS)));
         }
 
         /**
@@ -129,7 +129,7 @@ public class CachedSupplierTest {
          * time if the "gets" never finish.
          */
         public void waitForGetsToHaveFinished(int numExpectedGets) {
-            Assertions.assertTrue(invokeSafely(() -> finishedGetPermits.tryAcquire(numExpectedGets, 10, TimeUnit.SECONDS)));
+            Assert.assertTrue(invokeSafely(() -> finishedGetPermits.tryAcquire(numExpectedGets, 10, TimeUnit.SECONDS)));
         }
 
         /**

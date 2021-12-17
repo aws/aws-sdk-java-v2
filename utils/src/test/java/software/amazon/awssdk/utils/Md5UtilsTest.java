@@ -22,8 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.utils.internal.Base16;
 
 public class Md5UtilsTest {
@@ -31,19 +30,19 @@ public class Md5UtilsTest {
     @Test
     public void testBytes() {
         byte[] md5 = Md5Utils.computeMD5Hash("Testing MD5".getBytes(StandardCharsets.UTF_8));
-        Assertions.assertEquals("0b4f503b8eb7714ce12402406895cf68", StringUtils.lowerCase(Base16.encodeAsString(md5)));
+        assertEquals("0b4f503b8eb7714ce12402406895cf68", StringUtils.lowerCase(Base16.encodeAsString(md5)));
 
         String b64 = Md5Utils.md5AsBase64("Testing MD5".getBytes(StandardCharsets.UTF_8));
-        Assertions.assertEquals("C09QO463cUzhJAJAaJXPaA==", b64);
+        assertEquals("C09QO463cUzhJAJAaJXPaA==", b64);
     }
 
     @Test
     public void testStream() throws IOException {
         byte[] md5 = Md5Utils.computeMD5Hash(new ByteArrayInputStream("Testing MD5".getBytes(StandardCharsets.UTF_8)));
-        Assertions.assertEquals("0b4f503b8eb7714ce12402406895cf68", StringUtils.lowerCase(Base16.encodeAsString(md5)));
+        assertEquals("0b4f503b8eb7714ce12402406895cf68", StringUtils.lowerCase(Base16.encodeAsString(md5)));
 
         String b64 = Md5Utils.md5AsBase64(new ByteArrayInputStream("Testing MD5".getBytes(StandardCharsets.UTF_8)));
-        Assertions.assertEquals("C09QO463cUzhJAJAaJXPaA==", b64);
+        assertEquals("C09QO463cUzhJAJAaJXPaA==", b64);
     }
 
     @Test
@@ -52,9 +51,9 @@ public class Md5UtilsTest {
         f.deleteOnExit();
         FileUtils.writeStringToFile(f, "Testing MD5");
         byte[] md5 = Md5Utils.computeMD5Hash(f);
-        Assertions.assertEquals("0b4f503b8eb7714ce12402406895cf68", StringUtils.lowerCase(Base16.encodeAsString(md5)));
+        assertEquals("0b4f503b8eb7714ce12402406895cf68", StringUtils.lowerCase(Base16.encodeAsString(md5)));
 
         String b64 = Md5Utils.md5AsBase64(f);
-        Assertions.assertEquals("C09QO463cUzhJAJAaJXPaA==", b64);
+        assertEquals("C09QO463cUzhJAJAaJXPaA==", b64);
     }
 }

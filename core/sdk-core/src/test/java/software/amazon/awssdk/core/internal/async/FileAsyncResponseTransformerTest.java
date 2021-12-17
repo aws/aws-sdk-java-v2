@@ -28,9 +28,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -41,12 +41,12 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 public class FileAsyncResponseTransformerTest {
     private static FileSystem testFs;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() {
         testFs = Jimfs.newFileSystem();
     }
 
-    @AfterAll
+    @AfterClass
     public static void teardown() throws IOException {
         testFs.close();
     }
