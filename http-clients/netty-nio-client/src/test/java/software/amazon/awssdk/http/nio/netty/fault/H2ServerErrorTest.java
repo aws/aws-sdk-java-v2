@@ -98,11 +98,15 @@ public class H2ServerErrorTest {
     }
 
     @Test
-    public void serviceReturn200_newRequestShouldReuseNewConnection() {
+    public void serviceReturn200_newRequestShouldReuseExistingConnection() throws Exception {
         server.return500OnFirstRequest = false;
         CompletableFuture<?> firstRequest = sendGetRequest(server.port(), netty);
         firstRequest.join();
-
+        
+        // The request-complete-future does not await the channel-release-future
+        // Wait a small amount to allow the channel release to complete
+        Thread.sleep(100);
+        
         sendGetRequest(server.port(), netty).join();
         assertThat(server.h2ConnectionCount.get()).isEqualTo(1);
     }

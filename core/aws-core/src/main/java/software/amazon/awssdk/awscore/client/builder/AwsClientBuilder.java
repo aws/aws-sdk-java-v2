@@ -17,6 +17,7 @@ package software.amazon.awssdk.awscore.client.builder;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
 import software.amazon.awssdk.regions.Region;
 
@@ -65,6 +66,26 @@ public interface AwsClientBuilder<BuilderT extends AwsClientBuilder<BuilderT, Cl
      * <p>If the region is not found in any of the locations above, an exception will be thrown at {@link #build()} time.
      */
     BuilderT region(Region region);
+
+    /**
+     * Sets the {@link DefaultsMode} that will be used to determine how certain default configuration options are resolved in
+     * the SDK.
+     *
+     * <p>
+     * If this is not specified, the SDK will attempt to identify the defaults mode automatically using the following logic:
+     * <ol>
+     *     <li>Check the "defaults_mode" profile file property.</li>
+     *     <li>Check "aws.defaultsMode" system property.</li>
+     *     <li>Check the "AWS_DEFAULTS_MODE" environment variable.</li>
+     * </ol>
+     *
+     * @param defaultsMode the defaultsMode to use
+     * @return This object for method chaining.
+     * @see DefaultsMode
+     */
+    default BuilderT defaultsMode(DefaultsMode defaultsMode) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Configure whether the SDK should use the AWS dualstack endpoint.

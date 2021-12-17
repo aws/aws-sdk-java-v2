@@ -79,6 +79,25 @@ public final class SdkClientConfiguration
         attributes.close();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        SdkClientConfiguration that = (SdkClientConfiguration) o;
+
+        return attributes.equals(that.attributes);
+    }
+
+    @Override
+    public int hashCode() {
+        return attributes.hashCode();
+    }
+
     public static final class Builder implements CopyableBuilder<Builder, SdkClientConfiguration> {
         private final AttributeMap.Builder attributes;
 

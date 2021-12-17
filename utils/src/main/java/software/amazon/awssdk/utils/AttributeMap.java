@@ -36,6 +36,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkProtectedApi
 @Immutable
 public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builder, AttributeMap>, SdkAutoCloseable {
+    private static final AttributeMap EMPTY = AttributeMap.builder().build();
     private final Map<Key<?>, Object> attributes;
 
     private AttributeMap(Map<? extends Key<?>, ?> attributes) {
@@ -74,7 +75,7 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
     }
 
     public static AttributeMap empty() {
-        return builder().build();
+        return EMPTY;
     }
 
     public AttributeMap copy() {

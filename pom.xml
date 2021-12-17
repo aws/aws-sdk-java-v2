@@ -419,6 +419,7 @@
                     <ignoredUsedUndeclaredDependencies>
                         <!--Ignore used undeclared test dependencies -->
                         <ignoredUsedUndeclaredDependency>junit:*:*</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>org.junit.jupiter:*</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>software.amazon.awssdk:test-utils</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.hamcrest:*</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
