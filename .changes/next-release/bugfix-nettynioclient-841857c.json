@@ -1,0 +1,6 @@
+{
+    "category": "Netty NIO HTTP Client", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Ensure in-use channels are not incorrectly closed"
+}

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.HttpMetric.CONCURRENCY_ACQUIRE_DURATION;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTION_ID_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.IN_USE;
@@ -22,6 +23,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.LAST_HTTP_CONTENT_RECEIVED_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.NettyRequestMetrics.measureTimeTaken;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.CLOSED_CHANNEL_MESSAGE;
 
 import io.netty.buffer.ByteBuf;
@@ -90,9 +92,18 @@ public final class NettyRequestExecutor {
     public CompletableFuture<Void> execute() {
         Promise<Channel> channelFuture = context.eventLoopGroup().next().newPromise();
         executeFuture = createExecutionFuture(channelFuture);
-        context.channelPool().acquire(channelFuture);
+        acquireChannel(channelFuture);
         channelFuture.addListener((GenericFutureListener) this::makeRequestListener);
         return executeFuture;
+    }
+
+    private void acquireChannel(Promise<Channel> channelFuture) {
+        NettyRequestMetrics.ifMetricsAreEnabled(context.metricCollector(), metrics -> {
+            measureTimeTaken(channelFuture, duration -> {
+                metrics.reportMetric(CONCURRENCY_ACQUIRE_DURATION, duration);
+            });
+        });
+        context.channelPool().acquire(channelFuture);
     }
 
     /**
@@ -181,7 +192,6 @@ public final class NettyRequestExecutor {
         channel.attr(REQUEST_CONTEXT_KEY).set(context);
         channel.attr(RESPONSE_COMPLETE_KEY).set(false);
         channel.attr(LAST_HTTP_CONTENT_RECEIVED_KEY).set(false);
-        channel.attr(IN_USE).set(true);
         channel.config().setOption(ChannelOption.AUTO_READ, false);
     }
 
