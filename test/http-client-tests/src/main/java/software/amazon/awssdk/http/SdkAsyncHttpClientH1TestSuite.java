@@ -17,15 +17,12 @@ package software.amazon.awssdk.http;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
-import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -45,7 +42,6 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -133,7 +129,6 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
     }
 
     private static class Server extends ChannelInitializer<Channel> {
-        private static final byte[] CONTENT = "helloworld".getBytes(StandardCharsets.UTF_8);
         private ServerBootstrap bootstrap;
         private ServerSocketChannel serverSock;
         private List<Channel> channels = new ArrayList<>();
@@ -185,12 +180,8 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
                         status = OK;
                     }
 
-                    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status,
-                                                                            Unpooled.wrappedBuffer(CONTENT));
-
-                    response.headers()
-                            .set(CONTENT_TYPE, TEXT_PLAIN)
-                            .setInt(CONTENT_LENGTH, response.content().readableBytes());
+                    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status);
+                    response.headers().set(CONTENT_LENGTH, 0);
 
                     if (closeConnection) {
                         response.headers().set(CONNECTION, CLOSE);

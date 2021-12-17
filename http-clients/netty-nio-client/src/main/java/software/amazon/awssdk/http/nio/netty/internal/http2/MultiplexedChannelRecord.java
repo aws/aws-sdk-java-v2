@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
+import software.amazon.awssdk.http.nio.netty.internal.ChannelDiagnostics;
 import software.amazon.awssdk.http.nio.netty.internal.UnusedChannelExceptionHandler;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
@@ -111,6 +112,7 @@ public class MultiplexedChannelRecord {
                 Http2StreamChannel channel = future.getNow();
                 channel.pipeline().addLast(UnusedChannelExceptionHandler.getInstance());
                 channel.attr(ChannelAttributeKey.HTTP2_FRAME_STREAM).set(channel.stream());
+                channel.attr(ChannelAttributeKey.CHANNEL_DIAGNOSTICS).set(new ChannelDiagnostics(channel));
                 childChannels.put(channel.id(), channel);
                 promise.setSuccess(channel);
 
