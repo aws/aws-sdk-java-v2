@@ -1,3 +1,69 @@
+# __2.17.101__ __2021-12-20__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports FSx Lustre Locations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Introduce a defaults mode configuration that determines how certain default configuration options are resolved in the SDK. See `DefaultsMode` for more information.
+    - Updated SDK default configurations.
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource details objects to ASFF, including resources for Firewall, and RuleGroup, FirewallPolicy Added additional details for AutoScalingGroup, LaunchConfiguration, and S3 buckets.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release adds an optional parameter, ObjectTypeNames to the PutIntegration API to support multiple object types per integration option. Besides, this release introduces Standard Order Objects which contain data from third party systems and each order object belongs to a specific profile.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Adds Tags support to DescribeOrganizationResourceCollectionHealth
+
+## __Amazon Forecast Service__
+  - ### Features
+    - Adds ForecastDimensions field to the DescribeAutoPredictorResponse
+
+## __Amazon Location Service__
+  - ### Features
+    - Making PricingPlan optional as part of create resource API.
+
+## __Amazon Redshift__
+  - ### Features
+    - This release adds API support for managed Redshift datashares. Customers can now interact with a Redshift datashare that is managed by a different service, such as AWS Data Exchange.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds a new ContentType field in AutoMLChannel for SageMaker CreateAutoMLJob InputDataConfig.
+
+## __Apache HTTP Client__
+  - ### Features
+    - Add "ConcurrencyAcquireDuration" metric for apache-client
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds support for importing and exporting VM Images as part of the Image Creation workflow via EC2 VM Import/Export.
+
+## __FinSpace Public API__
+  - ### Features
+    - Make dataset description optional and allow s3 export for dataviews
+
+## __Metrics__
+  - ### Features
+    - Add pretty-format support to LoggingMetricPublisher
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - If `tlsNegotiationTimeout` is not configured, it will be set to the resolved `connectionTimeout`. By default, `tlsNegotiationTimeout` is now 2s instead of 10s
+
+  - ### Bugfixes
+    - Ensure in-use channels are not incorrectly closed
+
 # __2.17.100__ __2021-12-13__
 ## __AWS SDK for Java v2__
   - ### Features

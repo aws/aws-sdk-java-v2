@@ -18,7 +18,9 @@ package software.amazon.awssdk.awscore.endpoint;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -29,6 +31,7 @@ import software.amazon.awssdk.regions.EndpointTag;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceEndpointKey;
 import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Validate;
 
@@ -46,6 +49,7 @@ public final class DefaultServiceEndpointBuilder {
     private Region region;
     private Supplier<ProfileFile> profileFile;
     private String profileName;
+    private final Map<ServiceMetadataAdvancedOption<?>, Object> advancedOptions = new HashMap<>();
     private Boolean dualstackEnabled;
     private Boolean fipsEnabled;
 
@@ -74,6 +78,11 @@ public final class DefaultServiceEndpointBuilder {
 
     public DefaultServiceEndpointBuilder withProfileName(String profileName) {
         this.profileName = profileName;
+        return this;
+    }
+
+    public <T> DefaultServiceEndpointBuilder putAdvancedOption(ServiceMetadataAdvancedOption<T> option, T value) {
+        advancedOptions.put(option, value);
         return this;
     }
 
@@ -126,7 +135,8 @@ public final class DefaultServiceEndpointBuilder {
 
         ServiceMetadata serviceMetadata = ServiceMetadata.of(serviceName)
                                                          .reconfigure(c -> c.profileFile(profileFile)
-                                                                            .profileName(profileName));
+                                                                            .profileName(profileName)
+                                                                            .advancedOptions(advancedOptions));
         URI endpoint = addProtocolToServiceEndpoint(serviceMetadata.endpointFor(ServiceEndpointKey.builder()
                                                                                                   .region(region)
                                                                                                   .tags(endpointTags)
