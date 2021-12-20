@@ -16,7 +16,8 @@
 package software.amazon.awssdk.core.interceptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 public class ExecutionAttributesTest {
     private static final ExecutionAttribute<String> ATTR_1 = new ExecutionAttribute<>("Attr1");

@@ -21,8 +21,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResponse;
 
 import java.net.URI;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.signer.Signer;
@@ -42,7 +42,7 @@ public class OutpostAccessPointArnEndpointResolutionTest {
     private MockSyncHttpClient mockHttpClient;
     private Signer mockSigner;
 
-    @Before
+    @BeforeEach
     public void setup() {
         mockHttpClient = new MockSyncHttpClient();
         mockSigner = (request, executionAttributes) -> request;

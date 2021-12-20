@@ -19,9 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -48,7 +48,7 @@ public class EndpointDiscoveryRequestOverrideConfigTest {
     private static final AwsBasicCredentials CLIENT_CREDENTIALS = AwsBasicCredentials.create("ca", "cs");
     private static final AwsBasicCredentials REQUEST_CREDENTIALS = AwsBasicCredentials.create("ra", "rs");
 
-    @Before
+    @BeforeEach
     public void setupClient() {
         httpClient = new MockSyncHttpClient();
         asyncHttpClient = new MockAsyncHttpClient();
@@ -68,7 +68,7 @@ public class EndpointDiscoveryRequestOverrideConfigTest {
                                                       .build();
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         httpClient.reset();
         asyncHttpClient.reset();

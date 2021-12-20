@@ -15,8 +15,16 @@
 
 package software.amazon.awssdk.protocols.query.interceptor;
 
-import org.junit.Before;
-import org.junit.Test;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.ByteArrayInputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -28,15 +36,6 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.IoUtils;
 
-import java.io.ByteArrayInputStream;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class QueryParametersToBodyInterceptorTest {
 
     public static final URI HTTP_LOCALHOST = URI.create("http://localhost:8080");
@@ -46,7 +45,7 @@ public class QueryParametersToBodyInterceptorTest {
 
     private SdkHttpFullRequest.Builder requestBuilder;
 
-    @Before
+    @BeforeEach
     public void setup() {
 
         interceptor = new QueryParametersToBodyInterceptor();

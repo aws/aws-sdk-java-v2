@@ -19,8 +19,8 @@ import static software.amazon.awssdk.codegen.lite.PoetMatchers.generatesTo;
 
 import java.io.File;
 import java.nio.file.Paths;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DefaultsModeGenerationTest {
 
@@ -30,7 +30,7 @@ public class DefaultsModeGenerationTest {
     private File file;
     private DefaultConfiguration defaultConfiguration;
 
-    @Before
+    @BeforeEach
     public void before() throws Exception {
         this.file = Paths.get(getClass().getResource(DEFAULT_CONFIGURATION).toURI()).toFile();
         this.defaultConfiguration = DefaultsLoader.load(file);

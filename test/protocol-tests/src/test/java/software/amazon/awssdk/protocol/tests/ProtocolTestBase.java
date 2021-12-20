@@ -15,8 +15,7 @@
 
 package software.amazon.awssdk.protocol.tests;
 
-import org.junit.BeforeClass;
-
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.core.util.IdempotentUtils;
 
 /**
@@ -24,7 +23,7 @@ import software.amazon.awssdk.core.util.IdempotentUtils;
  * client class is loaded and the generator is cached, otherwise some tests in this suite can break.
  */
 public class ProtocolTestBase {
-    @BeforeClass
+    @BeforeAll
     public static void overrideIdempotencyTokenGenerator() {
         IdempotentUtils.setGenerator(() -> "00000000-0000-4000-8000-000000000000");
     }

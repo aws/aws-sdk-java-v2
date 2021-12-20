@@ -15,25 +15,23 @@
 
 package software.amazon.awssdk.http.apache.internal.conn;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SdkTlsSocketFactoryTest {
     /**
      * Test when the edge case when the both supported and enabled protocols are null.
      */
     @Test
-    public void preparedSocket_NullProtocols() throws NoSuchAlgorithmException, IOException {
+    public void preparedSocket_NullProtocols() throws Exception {
         SdkTlsSocketFactory f = new SdkTlsSocketFactory(SSLContext.getDefault(), null);
         try (SSLSocket socket = new TestSSLSocket() {
             @Override
@@ -56,7 +54,7 @@ public class SdkTlsSocketFactoryTest {
     }
 
     @Test
-    public void typical() throws NoSuchAlgorithmException, IOException {
+    public void typical() throws Exception {
         SdkTlsSocketFactory f = new SdkTlsSocketFactory(SSLContext.getDefault(), null);
         try (SSLSocket socket = new TestSSLSocket() {
             @Override
@@ -79,7 +77,7 @@ public class SdkTlsSocketFactoryTest {
     }
 
     @Test
-    public void noTLS() throws NoSuchAlgorithmException, IOException {
+    public void noTLS() throws Exception {
         SdkTlsSocketFactory f = new SdkTlsSocketFactory(SSLContext.getDefault(), null);
         try (SSLSocket socket = new TestSSLSocket() {
             @Override
@@ -103,7 +101,7 @@ public class SdkTlsSocketFactoryTest {
     }
 
     @Test
-    public void notIdeal() throws NoSuchAlgorithmException, IOException {
+    public void notIdeal() throws Exception {
         SdkTlsSocketFactory f = new SdkTlsSocketFactory(SSLContext.getDefault(), null);
         try (SSLSocket socket = new TestSSLSocket() {
             @Override

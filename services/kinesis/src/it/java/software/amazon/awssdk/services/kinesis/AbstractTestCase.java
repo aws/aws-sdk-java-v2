@@ -20,7 +20,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Properties;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
@@ -29,7 +29,7 @@ public class AbstractTestCase extends AwsTestBase {
     protected static KinesisClient client;
     protected static KinesisAsyncClient asyncClient;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() throws IOException {
         setUpCredentials();
         KinesisClientBuilder builder = KinesisClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
