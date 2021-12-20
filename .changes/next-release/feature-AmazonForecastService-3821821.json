@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Forecast Service",
+    "contributor": "",
+    "description": "Adds ForecastDimensions field to the DescribeAutoPredictorResponse"
+}
