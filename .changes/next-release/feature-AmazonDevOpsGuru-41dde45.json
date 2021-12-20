@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DevOps Guru",
-    "contributor": "",
-    "description": "Adds Tags support to DescribeOrganizationResourceCollectionHealth"
-}

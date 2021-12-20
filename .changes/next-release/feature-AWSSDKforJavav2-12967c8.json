@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Introduce a defaults mode configuration that determines how certain default configuration options are resolved in the SDK. See `DefaultsMode` for more information."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "FinSpace Public API",
-    "contributor": "",
-    "description": "Make dataset description optional and allow s3 export for dataviews"
-}

@@ -1,6 +1,0 @@
-{
-    "category": "Metrics", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Add pretty-format support to LoggingMetricPublisher"
-}

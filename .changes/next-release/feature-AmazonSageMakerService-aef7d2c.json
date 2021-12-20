@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "This release adds a new ContentType field in AutoMLChannel for SageMaker CreateAutoMLJob InputDataConfig."
-}
