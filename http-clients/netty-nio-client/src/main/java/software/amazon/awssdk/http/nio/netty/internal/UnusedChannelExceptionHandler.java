@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
  * A handler for exceptions occurring on channels not current in use (according to {@link ChannelAttributeKey#IN_USE}). This
@@ -39,7 +39,7 @@ import software.amazon.awssdk.utils.Logger;
 public final class UnusedChannelExceptionHandler extends ChannelInboundHandlerAdapter {
     public static final UnusedChannelExceptionHandler INSTANCE = new UnusedChannelExceptionHandler();
 
-    private static final Logger log = Logger.loggerFor(UnusedChannelExceptionHandler.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(UnusedChannelExceptionHandler.class);
 
     private UnusedChannelExceptionHandler() {
     }
@@ -56,18 +56,20 @@ public final class UnusedChannelExceptionHandler extends ChannelInboundHandlerAd
             Optional<CompletableFuture<Void>> executeFuture = getAttribute(ctx.channel(), ChannelAttributeKey.EXECUTE_FUTURE_KEY);
 
             if (executeFuture.isPresent() && !executeFuture.get().isDone()) {
-                log.error(() -> "An exception occurred on an channel (" + ctx.channel().id() + ") that was not in use, " +
-                                "but was associated with a future that wasn't completed. This indicates a bug in the " +
-                                "Java SDK, where a future was not completed while the channel was in use. The channel has " +
-                                "been closed, and the future will be completed to prevent any ongoing issues.", cause);
+                log.error(ctx.channel(), () -> "An exception occurred on an channel (" + ctx.channel().id() + ") that was not "
+                                               + "in use, but was associated with a future that wasn't completed. This "
+                                               + "indicates a bug in the Java SDK, where a future was not completed while the "
+                                               + "channel was in use. The channel has been closed, and the future will be "
+                                               + "completed to prevent any ongoing issues.", cause);
                 executeFuture.get().completeExceptionally(cause);
             } else if (isNettyIoException(cause) || hasNettyIoExceptionCause(cause)) {
-                log.debug(() -> "An I/O exception (" + cause.getMessage() + ") occurred on a channel (" + ctx.channel().id() +
+                log.debug(ctx.channel(),
+                          () -> "An I/O exception (" + cause.getMessage() + ") occurred on a channel (" + ctx.channel().id() +
                                 ") that was not in use. The channel has been closed. This is usually normal.");
 
             } else {
-                log.warn(() -> "A non-I/O exception occurred on a channel (" + ctx.channel().id() + ") that was not in use. " +
-                               "The channel has been closed to prevent any ongoing issues.", cause);
+                log.warn(ctx.channel(), () -> "A non-I/O exception occurred on a channel (" + ctx.channel().id() + ") that was "
+                                              + "not in use. The channel has been closed to prevent any ongoing issues.", cause);
             }
         }
     }

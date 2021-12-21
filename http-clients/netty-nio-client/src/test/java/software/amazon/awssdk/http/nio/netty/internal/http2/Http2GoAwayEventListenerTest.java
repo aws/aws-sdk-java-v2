@@ -28,6 +28,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.DefaultChannelId;
 import io.netty.handler.codec.http2.DefaultHttp2GoAwayFrame;
 import io.netty.util.Attribute;
 import org.junit.Before;
@@ -50,6 +51,7 @@ public class Http2GoAwayEventListenerTest {
         when(ctx.channel()).thenReturn(channel);
         when(channel.pipeline()).thenReturn(channelPipeline);
         when(channel.attr(ChannelAttributeKey.HTTP2_MULTIPLEXED_CHANNEL_POOL)).thenReturn(attribute);
+        when(channel.id()).thenReturn(DefaultChannelId.newInstance());
     }
 
     @Test

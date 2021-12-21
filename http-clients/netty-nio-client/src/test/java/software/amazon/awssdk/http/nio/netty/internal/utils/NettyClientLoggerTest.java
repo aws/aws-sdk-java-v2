@@ -154,6 +154,60 @@ public class NettyClientLoggerTest {
     }
 
     @Test
+    public void errorNotEnabled_noChannelProvided_doesNotInvokeLogger() {
+        when(delegateLogger.isErrorEnabled()).thenReturn(false);
+
+        logger.error(null, msgSupplier, null);
+
+        verify(delegateLogger, never()).error(anyString(), any(Throwable.class));
+        verifyZeroInteractions(msgSupplier);
+    }
+
+    @Test
+    public void errorEnabled_noChannelProvided_invokesLogger() {
+        when(delegateLogger.isErrorEnabled()).thenReturn(true);
+        RuntimeException exception = new RuntimeException("boom!");
+
+        logger.error(null, msgSupplier, exception);
+
+        verify(delegateLogger).error(TEST_MSG, exception);
+    }
+
+    @Test
+    public void errorNotEnabled_doesNotInvokeLogger() {
+        when(delegateLogger.isErrorEnabled()).thenReturn(false);
+        Channel channel = mock(Channel.class);
+
+        logger.error(channel, msgSupplier, null);
+
+        verify(delegateLogger, never()).error(anyString(), any(Throwable.class));
+        verifyZeroInteractions(msgSupplier);
+        verifyZeroInteractions(channel);
+    }
+
+    @Test
+    public void errorEnabled_invokesLogger() {
+        when(delegateLogger.isErrorEnabled()).thenReturn(true);
+        RuntimeException exception = new RuntimeException("boom!");
+
+        logger.error(ch, msgSupplier, exception);
+
+        verify(delegateLogger).error(EXPECTED_MESSAGE_SHORT, exception);
+    }
+
+    @Test
+    public void errorEnabled_debugEnabled_invokesLogger() {
+        when(delegateLogger.isErrorEnabled()).thenReturn(true);
+        when(delegateLogger.isDebugEnabled()).thenReturn(true);
+
+        RuntimeException exception = new RuntimeException("boom!");
+
+        logger.error(ch, msgSupplier, exception);
+
+        verify(delegateLogger).error(EXPECTED_MESSAGE_FULL, exception);
+    }
+
+    @Test
     public void warnNotEnabled_noChannelProvided_doesNotInvokeLogger() {
         when(delegateLogger.isWarnEnabled()).thenReturn(false);
 

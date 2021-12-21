@@ -42,7 +42,7 @@ import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
  * Implementation of {@link SdkChannelPoolMap} that awaits channel pools to be closed upon closing.
@@ -50,7 +50,7 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, SimpleChannelPoolAwareChannelPool> {
 
-    private static final Logger log = Logger.loggerFor(AwaitCloseChannelPoolMap.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(AwaitCloseChannelPoolMap.class);
 
     private static final ChannelPoolHandler NOOP_HANDLER = new ChannelPoolHandler() {
         @Override
@@ -153,7 +153,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
     @Override
     public void close() {
-        log.trace(() -> "Closing channel pools");
+        log.trace(null, () -> "Closing channel pools");
         // If there is a new pool being added while we are iterating the pools, there might be a
         // race condition between the close call of the newly acquired pool and eventLoopGroup.shutdown and it
         // could cause the eventLoopGroup#shutdownGracefully to hang before it times out.

@@ -31,8 +31,8 @@ import io.netty.util.concurrent.Promise;
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -43,7 +43,7 @@ public class Http1TunnelConnectionPool implements ChannelPool {
     static final AttributeKey<Boolean> TUNNEL_ESTABLISHED_KEY = NettyUtils.getOrCreateAttributeKey(
             "aws.http.nio.netty.async.Http1TunnelConnectionPool.tunnelEstablished");
 
-    private static final Logger log = Logger.loggerFor(Http1TunnelConnectionPool.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(Http1TunnelConnectionPool.class);
 
     private final EventLoop eventLoop;
     private final ChannelPool delegate;
@@ -124,13 +124,13 @@ public class Http1TunnelConnectionPool implements ChannelPool {
 
     private void setupChannel(Channel ch, Promise<Channel> acquirePromise) {
         if (isTunnelEstablished(ch)) {
-            log.debug(() -> String.format("Tunnel already established for %s", ch.id().asShortText()));
+            log.debug(ch, () -> String.format("Tunnel already established for %s", ch.id().asShortText()));
             acquirePromise.setSuccess(ch);
             return;
         }
 
-        log.debug(() -> String.format("Tunnel not yet established for channel %s. Establishing tunnel now.",
-                ch.id().asShortText()));
+        log.debug(ch, () -> String.format("Tunnel not yet established for channel %s. Establishing tunnel now.",
+                                          ch.id().asShortText()));
 
         Promise<Channel> tunnelEstablishedPromise = eventLoop.newPromise();
 
@@ -151,7 +151,7 @@ public class Http1TunnelConnectionPool implements ChannelPool {
                 delegate.release(ch);
 
                 Throwable cause = f.cause();
-                log.error(() -> String.format("Unable to establish tunnel for channel %s", ch.id().asShortText()), cause);
+                log.error(ch, () -> String.format("Unable to establish tunnel for channel %s", ch.id().asShortText()), cause);
                 acquirePromise.setFailure(cause);
             }
         });
