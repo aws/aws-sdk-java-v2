@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lookout for Metrics",
+    "contributor": "",
+    "description": "This release adds support for Causal Relationships. Added new ListAnomalyGroupRelatedMetrics API operation and InterMetricImpactDetails API data type"
+}
