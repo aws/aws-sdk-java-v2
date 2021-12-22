@@ -30,9 +30,6 @@ import software.amazon.awssdk.http.apache.internal.net.SdkSocket;
 import software.amazon.awssdk.http.apache.internal.net.SdkSslSocket;
 import software.amazon.awssdk.utils.Logger;
 
-/**
- * Used to enforce the preferred TLS protocol during SSL handshake.
- */
 @SdkInternalApi
 public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
 
