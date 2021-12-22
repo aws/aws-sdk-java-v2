@@ -1,3 +1,41 @@
+# __2.17.102__ __2021-12-21__
+## __AWS MediaConnect__
+  - ### Features
+    - You can now use the Fujitsu-QoS protocol for your MediaConnect sources and outputs to transport content to and from Fujitsu devices.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated SDK default configurations.
+    - Updated service endpoint metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Property for Transfer Family used with the FTPS protocol. TLS Session Resumption provides a mechanism to resume or share a negotiated secret key between the control and data connection for an FTPS session.
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - The Amazon Chime SDK now supports updating message attributes via channel flows
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - This release adds support for Causal Relationships. Added new ListAnomalyGroupRelatedMetrics API operation and InterMetricImpactDetails API data type
+
+## __Amazon QLDB__
+  - ### Features
+    - Amazon QLDB now supports journal exports in JSON and Ion Binary formats. This release adds an optional OutputFormat parameter to the ExportJournalToS3 API.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release allows customers to change their email monitoring configuration in Amazon WorkMail.
+
+## __AmazonNimbleStudio__
+  - ### Features
+    - Amazon Nimble Studio adds support for users to upload files during a streaming session using NICE DCV native client or browser.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Added a note to infrastructure configuration actions and data types concerning delivery of Image Builder event messages to encrypted SNS topics. The key that's used to encrypt the SNS topic must reside in the account that Image Builder runs under.
+
 # __2.17.101__ __2021-12-20__
 ## __AWS DataSync__
   - ### Features
