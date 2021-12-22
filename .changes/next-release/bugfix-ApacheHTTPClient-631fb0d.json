@@ -1,0 +1,6 @@
+{
+    "category": "Apache HTTP Client", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Stop auto-enabling TLS protocol versions"
+}
