@@ -43,6 +43,10 @@ public final class CollectionUtils {
         return map == null || map.isEmpty();
     }
 
+    public static boolean isNotEmpty(Map<?, ?> map) {
+        return map != null && !map.isEmpty();
+    }
+
     /**
      * Returns a new list containing the second list appended to the first list.
      */

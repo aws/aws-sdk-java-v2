@@ -16,7 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -58,6 +58,8 @@ public final class UpdateExpressionConverter {
 
     private static final String ACTION_SEPARATOR = ", ";
     private static final String GROUP_SEPARATOR = " ";
+    private static final char DOT = '.';
+    private static final char LEFT_BRACKET = '[';
 
     private UpdateExpressionConverter() {
     }
@@ -99,6 +101,9 @@ public final class UpdateExpressionConverter {
      * @return A list of top level attribute names that have update actions associated.
      */
     public static List<String> findAttributeNames(UpdateExpression updateExpression) {
+        if (updateExpression == null) {
+            return Collections.emptyList();
+        }
         List<String> attributeNames = listPathsWithoutTokens(updateExpression);
         List<String> attributeNamesFromTokens = listAttributeNamesFromTokens(updateExpression);
         attributeNames.addAll(attributeNamesFromTokens);
@@ -142,7 +147,7 @@ public final class UpdateExpressionConverter {
     private static Map<String, AttributeValue> mergeExpressionValues(UpdateExpression expression) {
         return streamOfExpressionValues(expression)
             .reduce(Expression::joinValues)
-            .orElseGet(HashMap::new);
+            .orElseGet(Collections::emptyMap);
     }
 
     private static Stream<Map<String, AttributeValue>> streamOfExpressionValues(UpdateExpression expression) {
@@ -154,7 +159,7 @@ public final class UpdateExpressionConverter {
     private static Map<String, String> mergeExpressionNames(UpdateExpression expression) {
         return streamOfExpressionNames(expression)
             .reduce(Expression::joinNames)
-            .orElseGet(HashMap::new);
+            .orElseGet(Collections::emptyMap);
     }
 
     private static List<String> listPathsWithoutTokens(UpdateExpression expression) {
@@ -178,8 +183,9 @@ public final class UpdateExpressionConverter {
     }
 
     private static int getRemovalIndex(String attributeName) {
-        for (char c : attributeName.toCharArray()) {
-            if (c == '.' || c == '[') {
+        for (int i = 0; i < attributeName.length(); i++) {
+            char c = attributeName.charAt(i);
+            if (c == DOT || c == LEFT_BRACKET) {
                 return attributeName.indexOf(c);
             }
         }

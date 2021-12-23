@@ -115,8 +115,9 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
             if (writeModification.transformedItem() != null) {
                 transformedItem = writeModification.transformedItem();
             }
-            conditionalExpression = mergeConditionalExpressions(conditionalExpression, writeModification);
-            updateExpression = mergeUpdateExpressions(updateExpression, writeModification);
+            conditionalExpression = mergeConditionalExpressions(conditionalExpression,
+                                                                writeModification.additionalConditionalExpression());
+            updateExpression = mergeUpdateExpressions(updateExpression, writeModification.updateExpression());
         }
 
         return WriteModification.builder()
@@ -126,29 +127,26 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
                                 .build();
     }
 
-    private UpdateExpression mergeUpdateExpressions(UpdateExpression updateExpression, WriteModification writeModification) {
-        if (writeModification.updateExpression() != null) {
-            if (updateExpression == null) {
-                updateExpression = writeModification.updateExpression();
+    private UpdateExpression mergeUpdateExpressions(UpdateExpression existingExpression, UpdateExpression newExpression) {
+        if (newExpression != null) {
+            if (existingExpression == null) {
+                existingExpression = newExpression;
             } else {
-                updateExpression.mergeExpression(writeModification.updateExpression());
+                existingExpression = UpdateExpression.mergeExpressions(existingExpression, newExpression);
             }
         }
-        return updateExpression;
+        return existingExpression;
     }
 
-    private Expression mergeConditionalExpressions(Expression conditionalExpression, WriteModification writeModification) {
-        if (writeModification.additionalConditionalExpression() != null) {
-            if (conditionalExpression == null) {
-                conditionalExpression = writeModification.additionalConditionalExpression();
+    private Expression mergeConditionalExpressions(Expression existingExpression, Expression newExpression) {
+        if (newExpression != null) {
+            if (existingExpression == null) {
+                existingExpression = newExpression;
             } else {
-                conditionalExpression =
-                    Expression.join(conditionalExpression,
-                                    writeModification.additionalConditionalExpression(),
-                                    " AND ");
+                existingExpression = existingExpression.and(newExpression);
             }
         }
-        return conditionalExpression;
+        return existingExpression;
     }
 
     /**

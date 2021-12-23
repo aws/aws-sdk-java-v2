@@ -40,18 +40,30 @@ public final class UpdateExpressionUtils {
     private UpdateExpressionUtils() {
     }
 
+    /**
+     * Creates a key token to be used with an ExpressionNames map.
+     */
     private static String keyRef(String key) {
         return "#AMZN_MAPPED_" + EnhancedClientUtils.cleanAttributeName(key);
     }
 
+    /**
+     * Creates a value token to be used with an ExpressionValues map.
+     */
     private static String valueRef(String value) {
         return ":AMZN_MAPPED_" + EnhancedClientUtils.cleanAttributeName(value);
     }
 
+    /**
+     * A function to specify an initial value if the attribute represented by 'key' does not exist.
+     */
     private static String ifNotExists(String key, String initValue) {
         return "if_not_exists(" + keyRef(key) + ", " + valueRef(initValue) + ")";
     }
 
+    /**
+     * Generates an UpdateExpression representing a POJO, with only SET and REMOVE actions.
+     */
     public static UpdateExpression operationExpression(Map<String, AttributeValue> itemMap,
                                                        TableMetadata tableMetadata,
                                                        List<String> nonRemoveAttributes) {
@@ -68,10 +80,12 @@ public final class UpdateExpressionUtils {
                                                                      .actions(removeActionsFor(removeAttributes))
                                                                      .build();
 
-        setAttributeExpression.mergeExpression(removeAttributeExpression);
-        return setAttributeExpression;
+        return UpdateExpression.mergeExpressions(setAttributeExpression, removeAttributeExpression);
     }
 
+    /**
+     * Creates a list of SET actions for all attributes supplied in the map.
+     */
     private static List<SetUpdateAction> setActionsFor(Map<String, AttributeValue> attributesToSet, TableMetadata tableMetadata) {
         return attributesToSet.entrySet()
                               .stream()
@@ -81,6 +95,9 @@ public final class UpdateExpressionUtils {
                               .collect(Collectors.toList());
     }
 
+    /**
+     * Creates a list of REMOVE actions for all attributes supplied in the map.
+     */
     private static List<RemoveUpdateAction> removeActionsFor(Map<String, AttributeValue> attributesToSet) {
         return attributesToSet.entrySet()
                               .stream()
@@ -88,6 +105,9 @@ public final class UpdateExpressionUtils {
                               .collect(Collectors.toList());
     }
 
+    /**
+     * Creates a REMOVE action for an attribute, using a token as a placeholder for the attribute name.
+     */
     private static RemoveUpdateAction remove(String attributeName) {
         return RemoveUpdateAction.builder()
                                  .path(keyRef(attributeName))
@@ -95,6 +115,11 @@ public final class UpdateExpressionUtils {
                                  .build();
     }
 
+    /**
+     * Creates a SET action for an attribute, using a token as a placeholder for the attribute name.
+     *
+     * @see UpdateBehavior for information about the values available.
+     */
     private static SetUpdateAction setValue(String attributeName, AttributeValue value, UpdateBehavior updateBehavior) {
         return SetUpdateAction.builder()
                               .path(keyRef(attributeName))
@@ -104,6 +129,11 @@ public final class UpdateExpressionUtils {
                               .build();
     }
 
+    /**
+     * When we know we want to update the attribute no matter if it exists or not, we simply need to replace the value with
+     * a value token in the expression. If we only want to set the value if the attribute doesn't exist, we use
+     * the DDB function ifNotExists.
+     */
     private static Function<String, String> behaviorBasedValue(UpdateBehavior updateBehavior) {
         switch (updateBehavior) {
             case WRITE_ALWAYS:
@@ -115,6 +145,9 @@ public final class UpdateExpressionUtils {
         }
     }
 
+    /**
+     * Simple utility method that can create an ExpressionNames map based on a list of attribute names.
+     */
     private static Map<String, String> expressionNamesFor(String... attributeNames) {
         return Arrays.stream(attributeNames)
                      .collect(Collectors.toMap(UpdateExpressionUtils::keyRef, Function.identity()));

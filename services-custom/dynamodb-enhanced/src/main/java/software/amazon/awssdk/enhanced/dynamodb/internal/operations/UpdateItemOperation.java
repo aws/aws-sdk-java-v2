@@ -19,7 +19,6 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUt
 import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.operationExpression;
 import static software.amazon.awssdk.utils.CollectionUtils.filterMap;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -134,10 +133,10 @@ public class UpdateItemOperation<T>
         if (conditionExpression != null) {
             requestBuilder.conditionExpression(conditionExpression.expression());
         }
-        if (expressionNames != null && !expressionNames.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(expressionNames)) {
             requestBuilder = requestBuilder.expressionAttributeNames(expressionNames);
         }
-        if (expressionValues != null && !expressionValues.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(expressionValues)) {
             requestBuilder = requestBuilder.expressionAttributeValues(expressionValues);
         }
 
@@ -201,26 +200,34 @@ public class UpdateItemOperation<T>
                                 .build();
     }
 
+    /**
+     * Retrieves the UpdateExpression from extensions if existing, and then creates an UpdateExpression for the request POJO
+     * if there are attributes to be updated (most likely). If both exist, they are merged and the code generates a final
+     * Expression that represent the result.
+     */
     private Expression generateUpdateExpressionIfExist(TableMetadata tableMetadata,
                                                        WriteModification transformation,
                                                        Map<String, AttributeValue> attributes) {
         UpdateExpression updateExpression = null;
-        List<String> nonRemoveAttributes = new ArrayList<>();
         if (transformation != null && transformation.updateExpression() != null) {
             updateExpression = transformation.updateExpression();
-            nonRemoveAttributes = UpdateExpressionConverter.findAttributeNames(updateExpression);
         }
         if (!attributes.isEmpty()) {
+            List<String> nonRemoveAttributes = UpdateExpressionConverter.findAttributeNames(updateExpression);
             UpdateExpression operationUpdateExpression = operationExpression(attributes, tableMetadata, nonRemoveAttributes);
             if (updateExpression == null) {
                 updateExpression = operationUpdateExpression;
             } else {
-                updateExpression.mergeExpression(operationUpdateExpression);
+                updateExpression = UpdateExpression.mergeExpressions(updateExpression, operationUpdateExpression);
             }
         }
         return UpdateExpressionConverter.toExpression(updateExpression);
     }
 
+    /**
+     * Retrieves the ConditionExpression from extensions if existing, and retrieves the ConditionExpression from the request
+     * if existing. If both exist, they are merged.
+     */
     private Expression generateConditionExpressionIfExist(
             WriteModification transformation,
             Either<UpdateItemEnhancedRequest<T>, TransactUpdateItemEnhancedRequest<T>> request) {
@@ -235,7 +242,7 @@ public class UpdateItemOperation<T>
                                                               r -> Optional.ofNullable(r.conditionExpression()))
                                                          .orElse(null);
         if (operationConditionExpression != null) {
-            conditionExpression = Expression.join(conditionExpression, operationConditionExpression, " AND ");
+            conditionExpression = operationConditionExpression.and(conditionExpression);
         }
         return conditionExpression;
     }

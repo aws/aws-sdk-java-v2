@@ -19,8 +19,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
  * Contains sets of {@link UpdateAction} that represent the four DynamoDB update actions: SET, ADD, REMOVE and DELETE.
@@ -86,24 +87,25 @@ public final class UpdateExpression {
     }
 
     /**
-     * Merges the supplied UpdateExpression with the current
+     * Merges two UpdateExpression, returning a new
      */
-    public void mergeExpression(UpdateExpression expression) {
-        if (expression == null) {
-            return;
+    public static UpdateExpression mergeExpressions(UpdateExpression expression1, UpdateExpression expression2) {
+        if (expression1 == null) {
+            return expression2;
         }
-        if (!CollectionUtils.isNullOrEmpty(expression.removeActions)) {
-            removeActions.addAll(expression.removeActions());
+        if (expression2 == null) {
+            return expression1;
         }
-        if (!CollectionUtils.isNullOrEmpty(expression.setActions)) {
-            setActions.addAll(expression.setActions());
-        }
-        if (!CollectionUtils.isNullOrEmpty(expression.deleteActions)) {
-            deleteActions.addAll(expression.deleteActions());
-        }
-        if (!CollectionUtils.isNullOrEmpty(expression.addActions)) {
-            addActions.addAll(expression.addActions());
-        }
+        Builder builder = builder();
+        builder.removeActions = Stream.concat(expression1.removeActions.stream(),
+                                              expression2.removeActions.stream()).collect(Collectors.toList());
+        builder.setActions = Stream.concat(expression1.setActions.stream(),
+                                           expression2.setActions.stream()).collect(Collectors.toList());
+        builder.deleteActions = Stream.concat(expression1.deleteActions.stream(),
+                                              expression2.deleteActions.stream()).collect(Collectors.toList());
+        builder.addActions = Stream.concat(expression1.addActions.stream(),
+                                           expression2.addActions.stream()).collect(Collectors.toList());
+        return builder.build();
     }
 
     @Override

@@ -115,11 +115,11 @@ class UpdateExpressionTest {
         UpdateExpression updateExpression = UpdateExpression.builder()
                                                             .actions(removeAction, setAction, deleteAction, addAction)
                                                             .build();
-        updateExpression.mergeExpression(null);
-        assertThat(updateExpression.removeActions()).containsExactly(removeAction);
-        assertThat(updateExpression.setActions()).containsExactly(setAction);
-        assertThat(updateExpression.deleteActions()).containsExactly(deleteAction);
-        assertThat(updateExpression.addActions()).containsExactly(addAction);
+        UpdateExpression result = UpdateExpression.mergeExpressions(updateExpression, null);
+        assertThat(result.removeActions()).containsExactly(removeAction);
+        assertThat(result.setActions()).containsExactly(setAction);
+        assertThat(result.deleteActions()).containsExactly(deleteAction);
+        assertThat(result.addActions()).containsExactly(addAction);
     }
 
     @Test
@@ -127,11 +127,11 @@ class UpdateExpressionTest {
         UpdateExpression updateExpression = UpdateExpression.builder()
                                                             .actions(removeAction, setAction, deleteAction, addAction)
                                                             .build();
-        updateExpression.mergeExpression(UpdateExpression.builder().build());
-        assertThat(updateExpression.removeActions()).containsExactly(removeAction);
-        assertThat(updateExpression.setActions()).containsExactly(setAction);
-        assertThat(updateExpression.deleteActions()).containsExactly(deleteAction);
-        assertThat(updateExpression.addActions()).containsExactly(addAction);
+        UpdateExpression result = UpdateExpression.mergeExpressions(updateExpression, UpdateExpression.builder().build());
+        assertThat(result.removeActions()).containsExactly(removeAction);
+        assertThat(result.setActions()).containsExactly(setAction);
+        assertThat(result.deleteActions()).containsExactly(deleteAction);
+        assertThat(result.addActions()).containsExactly(addAction);
     }
 
     @Test
@@ -144,11 +144,11 @@ class UpdateExpressionTest {
         UpdateExpression additionalExpression = UpdateExpression.builder()
                                                                 .addAction(extraRemoveAction)
                                                                 .build();
-        updateExpression.mergeExpression(additionalExpression);
-        assertThat(updateExpression.removeActions()).containsExactly(removeAction, extraRemoveAction);
-        assertThat(updateExpression.setActions()).containsExactly(setAction);
-        assertThat(updateExpression.deleteActions()).containsExactly(deleteAction);
-        assertThat(updateExpression.addActions()).containsExactly(addAction);
+        UpdateExpression result = UpdateExpression.mergeExpressions(updateExpression, additionalExpression);
+        assertThat(result.removeActions()).containsExactly(removeAction, extraRemoveAction);
+        assertThat(result.setActions()).containsExactly(setAction);
+        assertThat(result.deleteActions()).containsExactly(deleteAction);
+        assertThat(result.addActions()).containsExactly(addAction);
     }
 
     @Test
@@ -164,11 +164,11 @@ class UpdateExpressionTest {
         UpdateExpression additionalExpression = UpdateExpression.builder()
                                                                 .actions(extraRemoveAction, extraSetAction, extraDeleteAction, extraAddAction)
                                                                 .build();
-        updateExpression.mergeExpression(additionalExpression);
-        assertThat(updateExpression.removeActions()).containsExactly(removeAction, extraRemoveAction);
-        assertThat(updateExpression.setActions()).containsExactly(setAction, extraSetAction);
-        assertThat(updateExpression.deleteActions()).containsExactly(deleteAction, extraDeleteAction);
-        assertThat(updateExpression.addActions()).containsExactly(addAction, extraAddAction);
+        UpdateExpression result = UpdateExpression.mergeExpressions(updateExpression, additionalExpression);
+        assertThat(result.removeActions()).containsExactly(removeAction, extraRemoveAction);
+        assertThat(result.setActions()).containsExactly(setAction, extraSetAction);
+        assertThat(result.deleteActions()).containsExactly(deleteAction, extraDeleteAction);
+        assertThat(result.addActions()).containsExactly(addAction, extraAddAction);
     }
 
     private static final class UnknownUpdateAction implements UpdateAction {
