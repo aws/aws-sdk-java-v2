@@ -19,7 +19,7 @@ package software.amazon.awssdk.codegen.model.intermediate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.codegen.TestStringUtils.toPlatformLfs;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
 
 public class DocumentationBuilderTest {

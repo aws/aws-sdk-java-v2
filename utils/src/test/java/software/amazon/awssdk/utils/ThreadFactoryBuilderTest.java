@@ -18,12 +18,12 @@ package software.amazon.awssdk.utils;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ThreadFactoryBuilderTest {
 
-    @Before
+    @BeforeEach
     public void setup() {
         ThreadFactoryBuilder.resetPoolNumber();
     }

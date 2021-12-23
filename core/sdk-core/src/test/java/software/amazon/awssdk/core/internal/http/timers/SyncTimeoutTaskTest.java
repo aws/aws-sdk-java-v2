@@ -17,17 +17,18 @@ package software.amazon.awssdk.core.internal.http.timers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.junit.AfterClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 
 public class SyncTimeoutTaskTest {
     private static final ExecutorService EXEC = Executors.newSingleThreadExecutor();
 
-    @AfterClass
+    @AfterAll
     public static void teardown() {
         EXEC.shutdown();
     }

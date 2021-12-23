@@ -16,13 +16,14 @@
 package software.amazon.awssdk.http.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Random;
 import java.util.stream.Stream;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link ProxyConfiguration}.
@@ -34,12 +35,12 @@ public class ProxyConfigurationTest {
     private static final String TEST_USER = "testuser";
     private static final String TEST_PASSWORD = "123";
 
-    @Before
+    @BeforeEach
     public void setup() {
         clearProxyProperties();
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanup() {
         clearProxyProperties();
     }

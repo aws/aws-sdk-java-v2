@@ -16,13 +16,13 @@
 package software.amazon.awssdk.authcrt.signer.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
@@ -35,7 +35,7 @@ public class SigningConfigProviderTest {
 
     SigningConfigProvider configProvider;
 
-    @Before
+    @BeforeEach
     public void setup() {
         configProvider = new SigningConfigProvider();
     }

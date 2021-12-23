@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Check if the behavior of {@link SsoAccessTokenProvider} is correct while consuming different formats of cached token

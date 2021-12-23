@@ -15,16 +15,15 @@
 
 package software.amazon.awssdk.core.auth.policy;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.HashSet;
 import java.util.Set;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.auth.policy.Principal.Service;
 import software.amazon.awssdk.core.auth.policy.Principal.WebIdentityProvider;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
@@ -369,14 +368,14 @@ public class PolicyTest {
         String ID_WITH_HYPHEN = "a-b-c-d-e-f-g";
         String ID_WITHOUT_HYPHEN = "abcdefg";
 
-        Assert.assertEquals(ID_WITHOUT_HYPHEN,
+        assertEquals(ID_WITHOUT_HYPHEN,
                             new Principal(ID_WITH_HYPHEN).getId());
-        Assert.assertEquals(ID_WITHOUT_HYPHEN,
+        assertEquals(ID_WITHOUT_HYPHEN,
                             new Principal("AWS", ID_WITH_HYPHEN).getId());
 
-        Assert.assertEquals(ID_WITH_HYPHEN,
+        assertEquals(ID_WITH_HYPHEN,
                             new Principal("Federated", ID_WITH_HYPHEN).getId());
-        Assert.assertEquals(ID_WITH_HYPHEN,
+        assertEquals(ID_WITH_HYPHEN,
                             new Principal("AWS", ID_WITH_HYPHEN, false).getId());
     }
 }

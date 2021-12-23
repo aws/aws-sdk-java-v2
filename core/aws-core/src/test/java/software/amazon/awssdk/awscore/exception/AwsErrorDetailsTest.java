@@ -15,14 +15,13 @@
 
 package software.amazon.awssdk.awscore.exception;
 
-import java.io.IOException;
 import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AwsErrorDetailsTest {
 
     @Test
-    public void equals_hashcode() throws IOException, ClassNotFoundException {
+    public void equals_hashcode() throws Exception {
         EqualsVerifier.forClass(AwsErrorDetails.class)
                       .usingGetClass()
                       .verify();

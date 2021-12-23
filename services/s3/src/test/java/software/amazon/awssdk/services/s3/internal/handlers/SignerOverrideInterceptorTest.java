@@ -20,7 +20,7 @@ import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncode;
 
 import java.net.URI;
 import java.util.Optional;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsCrtS3V4aSigner;
 import software.amazon.awssdk.core.SdkRequest;
