@@ -15,117 +15,77 @@
 
 package software.amazon.awssdk.http.apache.internal.conn;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-public class SdkTlsSocketFactoryTest {
-    /**
-     * Test when the edge case when the both supported and enabled protocols are null.
-     */
-    @Test
-    public void preparedSocket_NullProtocols() throws Exception {
-        SdkTlsSocketFactory f = new SdkTlsSocketFactory(SSLContext.getDefault(), null);
-        try (SSLSocket socket = new TestSSLSocket() {
-            @Override
-            public String[] getSupportedProtocols() {
-                return null;
-            }
+class SdkTlsSocketFactoryTest {
 
-            @Override
-            public String[] getEnabledProtocols() {
-                return null;
-            }
+    SdkTlsSocketFactory factory;
+    SSLSocket socket;
 
-            @Override
-            public void setEnabledProtocols(String[] protocols) {
-                fail();
-            }
-        }) {
-            f.prepareSocket(socket);
-        }
+    @BeforeEach
+    public void before() throws Exception {
+        factory = new SdkTlsSocketFactory(SSLContext.getDefault(), null);
+        socket = Mockito.mock(SSLSocket.class);
     }
 
     @Test
-    public void typical() throws Exception {
-        SdkTlsSocketFactory f = new SdkTlsSocketFactory(SSLContext.getDefault(), null);
-        try (SSLSocket socket = new TestSSLSocket() {
-            @Override
-            public String[] getSupportedProtocols() {
-                return shuffle(new String[] {"SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2"});
-            }
+    void nullProtocols() {
+        when(socket.getSupportedProtocols()).thenReturn(null);
+        when(socket.getEnabledProtocols()).thenReturn(null);
 
-            @Override
-            public String[] getEnabledProtocols() {
-                return shuffle(new String[] {"SSLv3", "TLSv1"});
-            }
+        factory.prepareSocket(socket);
 
-            @Override
-            public void setEnabledProtocols(String[] protocols) {
-                assertTrue(Arrays.equals(protocols, new String[] {"TLSv1.2", "TLSv1.1", "TLSv1", "SSLv3"}));
-            }
-        }) {
-            f.prepareSocket(socket);
-        }
+        verify(socket, never()).setEnabledProtocols(any());
     }
 
     @Test
-    public void noTLS() throws Exception {
-        SdkTlsSocketFactory f = new SdkTlsSocketFactory(SSLContext.getDefault(), null);
-        try (SSLSocket socket = new TestSSLSocket() {
-            @Override
-            public String[] getSupportedProtocols() {
-                return shuffle(new String[] {"SSLv2Hello", "SSLv3"});
-            }
+    void amazonCorretto_8_0_292_defaultEnabledProtocols() {
+        when(socket.getSupportedProtocols()).thenReturn(new String[] {
+            "TLSv1.3", "TLSv1.2", "TLSv1.1", "TLSv1", "SSLv3", "SSLv2Hello"
+        });
+        when(socket.getEnabledProtocols()).thenReturn(new String[] {
+            "TLSv1.2", "TLSv1.1", "TLSv1"
+        });
 
-            @Override
-            public String[] getEnabledProtocols() {
-                return new String[] {"SSLv3"};
-            }
+        factory.prepareSocket(socket);
 
-            @Override
-            public void setEnabledProtocols(String[] protocols) {
-                // For backward compatibility
-                assertTrue(Arrays.equals(protocols, new String[] {"SSLv3"}));
-            }
-        }) {
-            f.prepareSocket(socket);
-        }
+        verify(socket, never()).setEnabledProtocols(any());
     }
 
     @Test
-    public void notIdeal() throws Exception {
-        SdkTlsSocketFactory f = new SdkTlsSocketFactory(SSLContext.getDefault(), null);
-        try (SSLSocket socket = new TestSSLSocket() {
-            @Override
-            public String[] getSupportedProtocols() {
-                return shuffle(new String[] {"SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.1"});
-            }
+    void amazonCorretto_11_0_08_defaultEnabledProtocols() {
+        when(socket.getSupportedProtocols()).thenReturn(new String[] {
+            "TLSv1.3", "TLSv1.2", "TLSv1.1", "TLSv1", "SSLv3", "SSLv2Hello"
+        });
+        when(socket.getEnabledProtocols()).thenReturn(new String[] {
+            "TLSv1.3", "TLSv1.2", "TLSv1.1", "TLSv1"
+        });
 
-            @Override
-            public String[] getEnabledProtocols() {
-                return shuffle(new String[] {"SSLv3", "TLSv1"});
-            }
+        factory.prepareSocket(socket);
 
-            @Override
-            public void setEnabledProtocols(String[] protocols) {
-                assertTrue(Arrays.equals(protocols, new String[] {"TLSv1.1", "TLSv1", "SSLv3"}));
-            }
-        }) {
-            f.prepareSocket(socket);
-        }
+        verify(socket, never()).setEnabledProtocols(any());
     }
 
-    private String[] shuffle(String[] in) {
-        List<String> list = new ArrayList<String>(Arrays.asList(in));
-        Collections.shuffle(list);
-        return list.toArray(new String[0]);
+    @Test
+    void amazonCorretto_17_0_1_defaultEnabledProtocols() {
+        when(socket.getSupportedProtocols()).thenReturn(new String[] {
+            "TLSv1.3", "TLSv1.2", "TLSv1.1", "TLSv1", "SSLv3", "SSLv2Hello"
+        });
+        when(socket.getEnabledProtocols()).thenReturn(new String[] {
+            "TLSv1.3", "TLSv1.2"
+        });
+
+        factory.prepareSocket(socket);
+
+        verify(socket, never()).setEnabledProtocols(any());
     }
 }
