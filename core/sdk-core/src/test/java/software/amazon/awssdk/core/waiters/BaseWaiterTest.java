@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.waiters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -25,9 +24,9 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.BiFunction;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 
@@ -37,12 +36,12 @@ public abstract class BaseWaiterTest {
     static final String NON_SUCCESS_STATE_MESSAGE = "other";
     static ScheduledExecutorService executorService;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() {
         executorService = Executors.newScheduledThreadPool(2);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         executorService.shutdown();
     }

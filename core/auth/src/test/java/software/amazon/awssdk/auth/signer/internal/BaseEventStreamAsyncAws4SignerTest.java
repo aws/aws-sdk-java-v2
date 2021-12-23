@@ -16,12 +16,13 @@
 package software.amazon.awssdk.auth.signer.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.eventstream.HeaderValue;
 import software.amazon.eventstream.Message;
@@ -29,7 +30,7 @@ import software.amazon.eventstream.Message;
 public class BaseEventStreamAsyncAws4SignerTest {
     private static Map<String, HeaderValue> headers;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         headers = new LinkedHashMap<>();
         headers.put("header1", HeaderValue.fromInteger(42));

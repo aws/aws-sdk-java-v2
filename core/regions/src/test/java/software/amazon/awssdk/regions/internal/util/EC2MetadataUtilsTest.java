@@ -24,11 +24,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -49,7 +51,7 @@ public class EC2MetadataUtilsTest {
     @Rule
     public WireMockRule mockMetadataEndpoint = new WireMockRule();
 
-    @Before
+    @BeforeEach
     public void methodSetup() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "http://localhost:" + mockMetadataEndpoint.port());
         EC2MetadataUtils.clearCache();
@@ -130,5 +132,18 @@ public class EC2MetadataUtilsTest {
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
         EC2MetadataUtils.getAmiId();
+    }
+
+    @Test
+    public void fetchDataWithAttemptNumber_ioError_shouldHonor() {
+        int attempts = 1;
+        thrown.expect(SdkClientException.class);
+        thrown.expectMessage("Unable to contact EC2 metadata service");
+
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));;
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+
+        EC2MetadataUtils.fetchData(AMI_ID_RESOURCE, false, attempts);
+        WireMock.verify(attempts, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE)));
     }
 }

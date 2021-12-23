@@ -39,7 +39,15 @@ import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 
 /**
- * Utility class for retrieving Amazon EC2 instance metadata.<br>
+
+ *
+ * Utility class for retrieving Amazon EC2 instance metadata.
+ *
+ * <p>
+ * <b>Note</b>: this is an internal API subject to change. Users of the SDK
+ * should not depend on this.
+ *
+ * <p>
  * You can use the data to build more generic AMIs that can be modified by
  * configuration files supplied at launch time. For example, if you run web
  * servers for various small businesses, they can all use the same AMI and
@@ -73,7 +81,7 @@ public final class EC2MetadataUtils {
 
     private static final String EC2_METADATA_TOKEN_HEADER = "x-aws-ec2-metadata-token";
 
-    private static final int DEFAULT_QUERY_RETRIES = 3;
+    private static final int DEFAULT_QUERY_ATTEMPTS = 3;
     private static final int MINIMUM_RETRY_WAIT_TIME_MILLISECONDS = 250;
     private static final Logger log = LoggerFactory.getLogger(EC2MetadataUtils.class);
     private static final Map<String, String> CACHE = new ConcurrentHashMap<>();
@@ -341,7 +349,7 @@ public final class EC2MetadataUtils {
     }
 
     public static String getData(String path) {
-        return getData(path, DEFAULT_QUERY_RETRIES);
+        return getData(path, DEFAULT_QUERY_ATTEMPTS);
     }
 
     public static String getData(String path, int tries) {
@@ -353,7 +361,7 @@ public final class EC2MetadataUtils {
     }
 
     public static List<String> getItems(String path) {
-        return getItems(path, DEFAULT_QUERY_RETRIES, false);
+        return getItems(path, DEFAULT_QUERY_ATTEMPTS, false);
     }
 
     public static List<String> getItems(String path, int tries) {
@@ -361,7 +369,7 @@ public final class EC2MetadataUtils {
     }
 
     @SdkTestInternalApi
-    static void clearCache() {
+    public static void clearCache() {
         CACHE.clear();
     }
 
@@ -391,8 +399,13 @@ public final class EC2MetadataUtils {
             log.warn("Unable to retrieve the requested metadata.");
             return null;
         } catch (IOException | URISyntaxException | RuntimeException e) {
+            // If there is no retry available, just throw exception instead of pausing.
+            if (tries - 1 == 0) {
+                throw SdkClientException.builder().message("Unable to contact EC2 metadata service.").cause(e).build();
+            }
+
             // Retry on any other exceptions
-            int pause = (int) (Math.pow(2, DEFAULT_QUERY_RETRIES - tries) * MINIMUM_RETRY_WAIT_TIME_MILLISECONDS);
+            int pause = (int) (Math.pow(2, DEFAULT_QUERY_ATTEMPTS - tries) * MINIMUM_RETRY_WAIT_TIME_MILLISECONDS);
             try {
                 Thread.sleep(pause < MINIMUM_RETRY_WAIT_TIME_MILLISECONDS ? MINIMUM_RETRY_WAIT_TIME_MILLISECONDS
                                                                           : pause);
@@ -427,19 +440,30 @@ public final class EC2MetadataUtils {
         }
     }
 
-
     private static String fetchData(String path) {
         return fetchData(path, false);
     }
 
     private static String fetchData(String path, boolean force) {
+        return fetchData(path, force, DEFAULT_QUERY_ATTEMPTS);
+    }
+
+    /**
+     * Fetch data using the given path
+     *
+     * @param path the path
+     * @param force whether to force to override the value in the cache
+     * @param attempts the number of attempts that should be executed.
+     * @return the value retrieved from the path
+     */
+    public static String fetchData(String path, boolean force, int attempts) {
         if (SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow()) {
             throw SdkClientException.builder().message("EC2 metadata usage is disabled.").build();
         }
 
         try {
             if (force || !CACHE.containsKey(path)) {
-                CACHE.put(path, getData(path));
+                CACHE.put(path, getData(path, attempts));
             }
             return CACHE.get(path);
         } catch (SdkClientException e) {

@@ -19,19 +19,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
@@ -44,7 +40,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryAsyncClient;
 import software.amazon.awssdk.services.protocolquery.model.ProtocolQueryException;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
-import software.amazon.awssdk.services.protocolrestjson.model.GetOperationWithBodyResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.ProtocolRestJsonException;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -56,7 +51,7 @@ public class AsyncResponseTransformerTest {
     private ProtocolRestJsonAsyncClient jsonClient;
     private ProtocolQueryAsyncClient xmlClient;
 
-    @Before
+    @BeforeEach
     public void setupClient() {
         jsonClient = ProtocolRestJsonAsyncClient.builder()
                                                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))

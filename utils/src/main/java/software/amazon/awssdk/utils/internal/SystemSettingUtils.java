@@ -73,7 +73,7 @@ public final class SystemSettingUtils {
     /**
      * Attempt to load this setting from the environment variables.
      */
-    private static Optional<String> resolveEnvironmentVariable(SystemSetting setting) {
+    public static Optional<String> resolveEnvironmentVariable(SystemSetting setting) {
         try {
             // CHECKSTYLE:OFF - This is the only place we're allowed to use System.getenv
             return Optional.ofNullable(setting.environmentVariable()).map(System::getenv);

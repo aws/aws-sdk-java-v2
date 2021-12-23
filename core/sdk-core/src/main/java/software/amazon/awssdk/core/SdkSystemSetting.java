@@ -169,6 +169,11 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_MAX_ATTEMPTS("aws.maxAttempts", null),
 
     /**
+     * Which {@code DefaultsMode} to use, case insensitive
+     */
+    AWS_DEFAULTS_MODE("aws.defaultsMode", null),
+
+    /**
      * Defines whether dualstack endpoints should be resolved during default endpoint resolution instead of non-dualstack
      * endpoints.
      */

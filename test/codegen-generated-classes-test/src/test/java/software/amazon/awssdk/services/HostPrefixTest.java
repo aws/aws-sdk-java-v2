@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -43,7 +43,7 @@ public class HostPrefixTest {
 
     private ProtocolRestJsonAsyncClient asyncClient;
 
-    @Before
+    @BeforeEach
     public void setupClient() {
         mockHttpClient = new MockSyncHttpClient();
         mockAsyncClient = new MockAsyncHttpClient();

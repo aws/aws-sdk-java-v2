@@ -17,8 +17,8 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -33,7 +33,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                                                                 .dynamoDbClient(getDynamoDbClient())
                                                                                 .build();
 
-    @After
+    @AfterEach
     public void deleteTable() {
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName(TABLE_NAME))

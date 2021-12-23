@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class OptionalAttributeValueConverterTest {

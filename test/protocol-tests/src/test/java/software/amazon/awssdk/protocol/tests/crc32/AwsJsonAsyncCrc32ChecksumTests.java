@@ -15,21 +15,21 @@
 
 package software.amazon.awssdk.protocol.tests.crc32;
 
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.github.tomakehurst.wiremock.common.SingleRootFileSource;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
-import java.util.concurrent.ExecutionException;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.exception.Crc32MismatchException;
@@ -62,7 +62,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
     private ProtocolJsonRpcCustomizedAsyncClient customizedJsonRpcAsync;
     private ProtocolJsonRpcAsyncClient jsonRpcAsync;
 
-    @Before
+    @BeforeEach
     public void setup() {
         jsonRpcAsync = ProtocolJsonRpcAsyncClient.builder()
                                                  .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
@@ -79,7 +79,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
     }
 
     @Test
-    public void clientCalculatesCrc32FromCompressedData_WhenCrc32IsValid() throws ExecutionException, InterruptedException {
+    public void clientCalculatesCrc32FromCompressedData_WhenCrc32IsValid() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("Content-Encoding", "gzip")
@@ -87,7 +87,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
                                                      .withBodyFile(JSON_BODY_GZIP)));
 
         SimpleResponse result = customizedJsonRpcAsync.simple(SimpleRequest.builder().build()).get();
-        Assert.assertEquals("foo", result.stringMember());
+        assertEquals("foo", result.stringMember());
     }
 
     /**
@@ -97,8 +97,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
      * Crc32 calculated is accurate.
      */
     @Test
-    public void clientCalculatesCrc32FromCompressedData_ExtraData_WhenCrc32IsValid() throws ExecutionException,
-                                                                                            InterruptedException {
+    public void clientCalculatesCrc32FromCompressedData_ExtraData_WhenCrc32IsValid() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("Content-Encoding", "gzip")
@@ -106,12 +105,11 @@ public class AwsJsonAsyncCrc32ChecksumTests {
                                                      .withBodyFile(JSON_BODY_EXTRA_DATA_GZIP)));
 
         SimpleResponse result = customizedJsonRpcAsync.simple(SimpleRequest.builder().build()).get();
-        Assert.assertEquals("foo", result.stringMember());
+        assertEquals("foo", result.stringMember());
     }
 
     @Test
-    public void clientCalculatesCrc32FromCompressedData_WhenCrc32IsInvalid_ThrowsException() throws ExecutionException,
-                                                                                                    InterruptedException {
+    public void clientCalculatesCrc32FromCompressedData_WhenCrc32IsInvalid_ThrowsException() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("Content-Encoding", "gzip")
@@ -123,7 +121,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
     }
 
     @Test
-    public void clientCalculatesCrc32FromDecompressedData_WhenCrc32IsValid() throws ExecutionException, InterruptedException {
+    public void clientCalculatesCrc32FromDecompressedData_WhenCrc32IsValid() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("Content-Encoding", "gzip")
@@ -132,12 +130,11 @@ public class AwsJsonAsyncCrc32ChecksumTests {
 
         AllTypesResponse result =
             jsonRpcAsync.allTypes(AllTypesRequest.builder().build()).get();
-        Assert.assertEquals("foo", result.stringMember());
+        assertEquals("foo", result.stringMember());
     }
 
     @Test
-    public void clientCalculatesCrc32FromDecompressedData_WhenCrc32IsInvalid_ThrowsException() throws ExecutionException,
-                                                                                                      InterruptedException {
+    public void clientCalculatesCrc32FromDecompressedData_WhenCrc32IsInvalid_ThrowsException() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("Content-Encoding", "gzip")
@@ -149,7 +146,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
     }
 
     @Test
-    public void useGzipFalse_WhenCrc32IsValid() throws ExecutionException, InterruptedException {
+    public void useGzipFalse_WhenCrc32IsValid() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("x-amz-crc32", JSON_BODY_Crc32_CHECKSUM)
@@ -157,11 +154,11 @@ public class AwsJsonAsyncCrc32ChecksumTests {
 
         AllTypesResponse result =
             jsonRpcAsync.allTypes(AllTypesRequest.builder().build()).get();
-        Assert.assertEquals("foo", result.stringMember());
+        assertEquals("foo", result.stringMember());
     }
 
     @Test
-    public void useGzipFalse_WhenCrc32IsInvalid_ThrowException() throws ExecutionException, InterruptedException {
+    public void useGzipFalse_WhenCrc32IsInvalid_ThrowException() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("x-amz-crc32", JSON_BODY_GZIP_Crc32_CHECKSUM)

@@ -17,9 +17,10 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+
 import java.util.stream.IntStream;
 import javax.net.ssl.KeyManager;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link StaticKeyManagerFactory}.

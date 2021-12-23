@@ -27,18 +27,15 @@ import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTest
 import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils.superSlowResponseHandler;
 import static utils.HttpTestUtils.testAsyncClientBuilder;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -63,7 +60,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
 
     private AmazonAsyncHttpClient httpClient;
 
-    @Before
+    @BeforeEach
     public void setup() {
         httpClient = testAsyncClientBuilder()
             .retryPolicy(RetryPolicy.none())
