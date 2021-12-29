@@ -163,6 +163,25 @@ public class VersionedRecordExtensionTest {
         assertThat(writeModification, is(WriteModification.builder().build()));
     }
 
+    @Test
+    public void beforeWrite_returnsNoOpModification_ifOperationIsBatchWrite() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setVersion(13);
+        Map<String, AttributeValue> fakeItemWithInitialVersion =
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+        fakeItemWithInitialVersion.put("version", AttributeValue.builder().n("14").build());
+
+        WriteModification result =
+            versionedRecordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                                     .builder()
+                                                     .items(FakeItem.getTableSchema().itemToMap(fakeItem, true))
+                                                     .tableMetadata(FakeItem.getTableMetadata())
+                                                     .operationName(OperationName.BATCH_WRITE_ITEM)
+                                                     .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(writeModification, is(WriteModification.builder().build()));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void beforeWrite_throwsIllegalArgumentException_ifVersionAttributeIsWrongType() {
         FakeItem fakeItem = createUniqueFakeItem();

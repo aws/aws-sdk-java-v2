@@ -97,6 +97,10 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             return WriteModification.builder().build();
         }
 
+        if (context.operationName() == OperationName.BATCH_WRITE_ITEM) {
+            return WriteModification.builder().build();
+        }
+
         Map<String, AttributeValue> itemToTransform = new HashMap<>(context.items());
         AttributeValue newVersionValue;
         Expression condition;
