@@ -22,7 +22,7 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.utils.StringInputStream;
 
 /**

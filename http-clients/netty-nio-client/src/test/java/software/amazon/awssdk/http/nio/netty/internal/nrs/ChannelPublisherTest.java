@@ -17,9 +17,9 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.nrs;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -39,9 +39,9 @@ import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -61,7 +61,7 @@ public class ChannelPublisherTest {
     private Publisher<Channel> publisher;
     private SubscriberProbe<Channel> subscriber;
 
-    @Before
+    @BeforeEach
     public void start() throws Exception {
         group = new NioEventLoopGroup();
         EventLoop eventLoop = group.next();
@@ -82,7 +82,7 @@ public class ChannelPublisherTest {
         subscriber = new SubscriberProbe<>();
     }
 
-    @After
+    @AfterEach
     public void stop() throws Exception {
         channel.unsafe().closeForcibly();
         group.shutdownGracefully();

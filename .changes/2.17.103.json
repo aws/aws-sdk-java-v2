@@ -1,0 +1,54 @@
+{
+    "version": "2.17.103",
+    "date": "2022-01-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "The release allows users to pass pipeline definitions as Amazon S3 locations and control the pipeline execution concurrency using ParallelismConfiguration. It also adds support of EMR jobs as pipeline steps."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Multiple doc-only updates for Relational Database Service (RDS)"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add null check for nonProxyHosts in Apache HTTP Client ProxyConfiguration."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Detective",
+            "contributor": "",
+            "description": "Added and updated API operations to support the Detective integration with AWS Organizations. New actions are used to manage the delegated administrator account and the integration configuration."
+        },
+        {
+            "type": "bugfix",
+            "category": "Apache HTTP Client",
+            "contributor": "",
+            "description": "Stop auto-enabling TLS protocol versions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "AWS Elemental MediaConvert SDK has added strength levels to the Sharpness Filter and now permits OGG files to be specified as sidecar audio inputs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Greengrass V2",
+            "contributor": "",
+            "description": "This release adds the API operations to manage the Greengrass role associated with your account and to manage the core device connectivity information. Greengrass V2 customers can now depend solely on Greengrass V2 SDK for all the API operations needed to manage their fleets."
+        }
+    ]
+}

@@ -32,10 +32,9 @@ import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
@@ -45,13 +44,13 @@ public class MultiplexedChannelRecordTest {
     private EventLoopGroup loopGroup;
     private MockChannel channel;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         loopGroup = new NioEventLoopGroup(4);
         channel = new MockChannel();
     }
 
-    @After
+    @AfterEach
     public void teardown() {
         loopGroup.shutdownGracefully().awaitUninterruptibly();
         channel.close();
@@ -198,7 +197,7 @@ public class MultiplexedChannelRecordTest {
     }
 
     @Test
-    public void closeChildChannels_shouldDeliverException() throws ExecutionException, InterruptedException {
+    public void closeChildChannels_shouldDeliverException() throws Exception {
         EmbeddedChannel channel = newHttp2Channel();
         loopGroup.register(channel).awaitUninterruptibly();
         Promise<Channel> channelPromise = new DefaultPromise<>(loopGroup.next());

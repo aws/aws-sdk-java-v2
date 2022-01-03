@@ -18,7 +18,7 @@ package software.amazon.awssdk.awscore.internal.defaultsmode;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.utils.AttributeMap;
 

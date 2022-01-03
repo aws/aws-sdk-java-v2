@@ -25,9 +25,9 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.net.URI;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -47,7 +47,7 @@ public class AwsJsonRetryTest {
 
     private ProtocolJsonRpcClient client;
 
-    @Before
+    @BeforeEach
     public void setupClient() {
         client = ProtocolJsonRpcClient.builder()
                                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))

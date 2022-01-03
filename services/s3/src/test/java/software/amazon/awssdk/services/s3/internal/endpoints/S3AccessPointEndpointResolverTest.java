@@ -15,25 +15,24 @@
 
 package software.amazon.awssdk.services.s3.internal.endpoints;
 
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncode;
+
+import java.net.URI;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.ConfiguredS3SdkHttpRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.utils.InterceptorTestUtils;
 
-import java.net.URI;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncode;
-
 public class S3AccessPointEndpointResolverTest {
 
     S3AccessPointEndpointResolver endpointResolver;
 
-    @Before
+    @BeforeEach
     public void setUp()  {
         endpointResolver = S3AccessPointEndpointResolver.create();
     }

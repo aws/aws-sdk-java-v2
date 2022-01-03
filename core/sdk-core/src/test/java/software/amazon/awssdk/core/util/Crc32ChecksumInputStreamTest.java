@@ -15,12 +15,12 @@
 
 package software.amazon.awssdk.core.util;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.zip.CRC32;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.internal.util.Crc32ChecksumCalculatingInputStream;
 
 /**
