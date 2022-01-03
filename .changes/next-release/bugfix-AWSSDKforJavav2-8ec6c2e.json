@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Add null check for nonProxyHosts in Apache HTTP Client ProxyConfiguration."
-}
