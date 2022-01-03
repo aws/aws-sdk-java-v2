@@ -19,8 +19,8 @@ import static software.amazon.awssdk.codegen.lite.PoetMatchers.generatesTo;
 
 import java.io.File;
 import java.nio.file.Paths;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.lite.regions.model.Partition;
 import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
 
@@ -35,7 +35,7 @@ public class RegionGenerationTest {
     private File endpoints;
     private Partitions partitions;
 
-    @Before
+    @BeforeEach
     public void before() throws Exception {
         this.endpoints = Paths.get(getClass().getResource(ENDPOINTS).toURI()).toFile();
         this.partitions = RegionMetadataLoader.build(endpoints);

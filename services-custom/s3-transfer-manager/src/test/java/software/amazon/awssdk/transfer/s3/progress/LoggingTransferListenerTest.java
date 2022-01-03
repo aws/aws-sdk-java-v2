@@ -21,8 +21,8 @@ import static org.mockito.Mockito.mock;
 import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.spi.LoggingEvent;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.transfer.s3.CompletedObjectTransfer;
 import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
@@ -38,7 +38,7 @@ public class LoggingTransferListenerTest {
     private TransferListenerContext context;
     private LoggingTransferListener listener;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
                                                                            .transferSizeInBytes(TRANSFER_SIZE_IN_BYTES)

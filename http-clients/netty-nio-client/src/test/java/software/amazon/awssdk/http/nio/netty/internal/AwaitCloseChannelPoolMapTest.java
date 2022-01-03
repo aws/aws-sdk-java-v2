@@ -38,9 +38,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.After;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
@@ -60,7 +60,7 @@ public class AwaitCloseChannelPoolMapTest {
                                                          .dynamicPort()
                                                          .networkTrafficListener(recorder));
 
-    @After
+    @AfterEach
     public void methodTeardown() {
         if (channelPoolMap != null) {
             channelPoolMap.close();

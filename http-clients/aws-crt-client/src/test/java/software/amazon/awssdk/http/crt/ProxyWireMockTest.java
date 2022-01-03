@@ -21,6 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.URI;
@@ -28,9 +29,9 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
@@ -60,7 +61,7 @@ public class ProxyWireMockTest {
             .dynamicHttpsPort());
 
 
-    @Before
+    @BeforeEach
     public void setup() {
         mockProxy.start();
         mockServer.start();
@@ -77,7 +78,7 @@ public class ProxyWireMockTest {
                 .build();
     }
 
-    @After
+    @AfterEach
     public void teardown() {
         mockServer.stop();
         mockProxy.stop();

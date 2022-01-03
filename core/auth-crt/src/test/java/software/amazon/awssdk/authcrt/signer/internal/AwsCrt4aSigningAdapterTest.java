@@ -1,7 +1,7 @@
 package software.amazon.awssdk.authcrt.signer.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static software.amazon.awssdk.auth.signer.internal.Aws4SignerUtils.calculateRequestContentLength;
 import static software.amazon.awssdk.authcrt.signer.SignerTestUtils.extractSignatureFromAuthHeader;
 import static software.amazon.awssdk.authcrt.signer.SignerTestUtils.extractSignedHeadersFromAuthHeader;
@@ -9,14 +9,14 @@ import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
 import java.util.Arrays;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.authcrt.signer.SignerTestUtils;
 import software.amazon.awssdk.authcrt.signer.SigningTestCase;
 import software.amazon.awssdk.authcrt.signer.internal.chunkedencoding.AwsS3V4aChunkSigner;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
@@ -25,7 +25,7 @@ public class AwsCrt4aSigningAdapterTest {
     AwsCrt4aSigningAdapter crtSigningAdapter;
     SigningConfigProvider configProvider;
 
-    @Before
+    @BeforeEach
     public void setup() {
         crtSigningAdapter = new AwsCrt4aSigningAdapter();
         configProvider = new SigningConfigProvider();

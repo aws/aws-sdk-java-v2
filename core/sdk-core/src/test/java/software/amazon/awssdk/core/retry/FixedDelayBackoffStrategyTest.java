@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.core.retry;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Duration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 
 public class FixedDelayBackoffStrategyTest {

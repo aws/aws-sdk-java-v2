@@ -38,9 +38,9 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLEngine;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
 
@@ -48,12 +48,12 @@ public class NettyUtilsTest {
 
     private static EventLoopGroup eventLoopGroup;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         eventLoopGroup = new NioEventLoopGroup(1);
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() throws InterruptedException {
         eventLoopGroup.shutdownGracefully().await();
     }

@@ -22,15 +22,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.services.s3.S3SystemSetting.AWS_S3_DISABLE_MULTIREGION_ACCESS_POINTS;
 
 import java.util.Optional;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class SystemSettingsDisableMultiRegionProviderTest {
     private final SystemsSettingsDisableMultiRegionProvider provider = SystemsSettingsDisableMultiRegionProvider.create();
     private final EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
 
-    @After
+    @AfterEach
     public void clearSystemProperty() {
         System.clearProperty(AWS_S3_DISABLE_MULTIREGION_ACCESS_POINTS.property());
         helper.reset();

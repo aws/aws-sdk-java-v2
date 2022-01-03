@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -31,7 +31,6 @@ import software.amazon.awssdk.services.protocolrestjsoncontenttype.model.BlobAnd
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.model.HeadersOnlyEvent;
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.model.ImplicitPayloadAndHeadersEvent;
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.model.InputEventStream;
-
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.model.ProtocolRestJsonContentTypeException;
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.transform.BlobAndHeadersEventMarshaller;
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.transform.HeadersOnlyEventMarshaller;

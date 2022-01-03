@@ -16,8 +16,9 @@
 package software.amazon.awssdk.core.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.LinkedList;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DefaultSdkAutoConstructListTest {
     private static final DefaultSdkAutoConstructList<String> INSTANCE = DefaultSdkAutoConstructList.getInstance();

@@ -23,7 +23,7 @@ import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.S3_M
 import static software.amazon.awssdk.services.s3.utils.InterceptorTestUtils.modifyHttpRequestContext;
 import static software.amazon.awssdk.services.s3.utils.InterceptorTestUtils.modifyResponseContext;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;

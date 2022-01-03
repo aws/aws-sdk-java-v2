@@ -17,6 +17,7 @@ package software.amazon.awssdk.metrics.publishers.cloudwatch.internal.transform;
 
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -26,8 +27,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.metrics.MetricCategory;
@@ -329,7 +329,7 @@ public class MetricCollectionAggregatorTest {
                             assertThat(count).isEqualTo(2.0);
                             break;
                         default:
-                            Assert.fail();
+                            fail();
                     }
                 }
             });

@@ -15,12 +15,11 @@
 
 package software.amazon.awssdk.services.protocolrestjson.model;
 
-import org.junit.Test;
-import software.amazon.awssdk.core.util.SdkAutoConstructMap;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 
 /**
  * Test for verifying map member behavior for model builders.

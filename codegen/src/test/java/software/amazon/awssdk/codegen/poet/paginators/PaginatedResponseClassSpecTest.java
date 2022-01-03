@@ -21,8 +21,8 @@ import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -42,7 +42,7 @@ public class PaginatedResponseClassSpecTest {
     private static Paginators paginators;
     private static Map<String, String> paginationCustomization;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws IOException {
         File serviceModelFile = new File(PaginatedResponseClassSpecTest.class.getResource("service-2.json").getFile());
         File customizationConfigFile = new File(PaginatedResponseClassSpecTest.class.getResource("customization.config")

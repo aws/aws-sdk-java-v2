@@ -25,7 +25,7 @@ import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationO
 
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;

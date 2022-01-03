@@ -15,17 +15,17 @@
 
 package software.amazon.awssdk.protocols.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -38,7 +38,7 @@ public class SdkJsonGeneratorTest {
 
     private StructuredJsonGenerator jsonGenerator;
 
-    @Before
+    @BeforeEach
     public void setup() {
         jsonGenerator = new SdkJsonGenerator(JsonFactory.builder().build(), "application/json");
     }
@@ -145,17 +145,17 @@ public class SdkJsonGeneratorTest {
         // (with no decimal point nor places.)
         System.out.println(s);
         final String prefix = "{\"foo\":";
-        assertTrue(s, s.startsWith(prefix));
+        assertTrue(s.startsWith(prefix), s);
         final int startPos = prefix.length();
         // verify no starting quote for the value
-        assertFalse(s, s.startsWith("{\"foo\":\""));
-        assertTrue(s, s.endsWith("}"));
+        assertFalse(s.startsWith("{\"foo\":\""), s);
+        assertTrue(s.endsWith("}"), s);
         // Not: {"foo":"1408378076.135"}.
         // verify no ending quote for the value
-        assertFalse(s, s.endsWith("\"}"));
+        assertFalse(s.endsWith("\"}"), s);
         final int endPos = s.indexOf("}");
         final int dotPos = s.length() - 5;
-        assertTrue(s, s.charAt(dotPos) == '.');
+        assertTrue(s.charAt(dotPos) == '.', s);
         // verify all numeric before '.'
         char[] a = s.toCharArray();
         for (int i = startPos; i < dotPos; i++) {
