@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -40,6 +41,10 @@ public final class CollectionUtils {
 
     public static boolean isNullOrEmpty(Map<?, ?> map) {
         return map == null || map.isEmpty();
+    }
+
+    public static boolean isNotEmpty(Map<?, ?> map) {
+        return map != null && !map.isEmpty();
     }
 
     /**
@@ -124,8 +129,34 @@ public final class CollectionUtils {
         return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue);
     }
 
+    /**
+     * Transforms the values of a map to another map with the same keys, using the supplied function.
+     *
+     * @param inputMap the input map
+     * @param mapper the function used to transform the map values
+     * @param <K> the key type
+     * @param <VInT> the value type for the input map
+     * @param <VOutT> the value type for the output map
+     * @return a map
+     */
     public static <K, VInT, VOutT> Map<K, VOutT> mapValues(Map<K, VInT> inputMap, Function<VInT, VOutT> mapper) {
         return inputMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> mapper.apply(e.getValue())));
+    }
+
+    /**
+     * Filters a map based on a condition
+     *
+     * @param map the input map
+     * @param condition the predicate to filter on
+     * @param <K> the key type
+     * @param <V> the value type
+     * @return the filtered map
+     */
+    public static <K, V> Map<K, V> filterMap(Map<K, V> map, Predicate<Map.Entry<K, V>> condition) {
+        return map.entrySet()
+                  .stream()
+                  .filter(condition)
+                  .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     /**

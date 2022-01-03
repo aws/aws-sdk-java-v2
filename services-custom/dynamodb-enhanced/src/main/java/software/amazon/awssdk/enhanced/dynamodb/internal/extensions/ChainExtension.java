@@ -27,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
+import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -85,7 +86,8 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
      * Implementation of the {@link DynamoDbEnhancedClientExtension} interface that will call all the chained extensions
      * in forward order, passing the results of each one to the next and coalescing the results into a single modification.
      * Multiple conditional statements will be separated by the string " AND ". Expression values will be coalesced
-     * unless they conflict in which case an exception will be thrown.
+     * unless they conflict in which case an exception will be thrown. UpdateExpressions will be
+     * coalesced.
      *
      * @param context A {@link DynamoDbExtensionContext.BeforeWrite} context
      * @return A single {@link WriteModification} representing the coalesced results of all the chained extensions.
@@ -94,6 +96,7 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
     public WriteModification beforeWrite(DynamoDbExtensionContext.BeforeWrite context) {
         Map<String, AttributeValue> transformedItem = null;
         Expression conditionalExpression = null;
+        UpdateExpression updateExpression = null;
 
         for (DynamoDbEnhancedClientExtension extension : this.extensionChain) {
             Map<String, AttributeValue> itemToTransform = transformedItem == null ? context.items() : transformedItem;
@@ -112,23 +115,38 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
             if (writeModification.transformedItem() != null) {
                 transformedItem = writeModification.transformedItem();
             }
-
-            if (writeModification.additionalConditionalExpression() != null) {
-                if (conditionalExpression == null) {
-                    conditionalExpression = writeModification.additionalConditionalExpression();
-                } else {
-                    conditionalExpression =
-                        Expression.join(conditionalExpression,
-                                        writeModification.additionalConditionalExpression(),
-                                        " AND ");
-                }
-            }
+            conditionalExpression = mergeConditionalExpressions(conditionalExpression,
+                                                                writeModification.additionalConditionalExpression());
+            updateExpression = mergeUpdateExpressions(updateExpression, writeModification.updateExpression());
         }
 
         return WriteModification.builder()
                                 .transformedItem(transformedItem)
                                 .additionalConditionalExpression(conditionalExpression)
+                                .updateExpression(updateExpression)
                                 .build();
+    }
+
+    private UpdateExpression mergeUpdateExpressions(UpdateExpression existingExpression, UpdateExpression newExpression) {
+        if (newExpression != null) {
+            if (existingExpression == null) {
+                existingExpression = newExpression;
+            } else {
+                existingExpression = UpdateExpression.mergeExpressions(existingExpression, newExpression);
+            }
+        }
+        return existingExpression;
+    }
+
+    private Expression mergeConditionalExpressions(Expression existingExpression, Expression newExpression) {
+        if (newExpression != null) {
+            if (existingExpression == null) {
+                existingExpression = newExpression;
+            } else {
+                existingExpression = existingExpression.and(newExpression);
+            }
+        }
+        return existingExpression;
     }
 
     /**
