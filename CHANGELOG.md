@@ -1,3 +1,16 @@
+# __2.17.104__ __2022-01-04__
+## __AWS S3 Control__
+  - ### Features
+    - Documentation updates for the renaming of Glacier to Glacier Flexible Retrieval.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release introduces a new field IndexFacesModelVersion, which is the version of the face detect and storage model that was used when indexing the face vector.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Minor doc-based updates based on feedback bugs received.
+
 # __2.17.103__ __2022-01-03__
 ## __AWS Elemental MediaConvert__
   - ### Features

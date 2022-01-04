@@ -85,6 +85,32 @@ public final class NettyClientLogger {
     }
 
     /**
+     * Log a ERROR level message with the given exception and including the channel information.
+     *
+     * @param channel The channel for this message is being logged
+     * @param msgSupplier Supplier for the log message
+     * @param t The throwable to log
+     */
+    public void error(Channel channel, Supplier<String> msgSupplier, Throwable t) {
+        if (!delegateLogger.isErrorEnabled()) {
+            return;
+        }
+
+        String finalMessage = prependChannelInfo(msgSupplier, channel);
+        delegateLogger.error(finalMessage, t);
+    }
+
+    /**
+     * Log a ERROR level message and including the channel information.
+     *
+     * @param channel The channel for this message is being logged
+     * @param msgSupplier Supplier for the log message
+     */
+    public void error(Channel channel, Supplier<String> msgSupplier) {
+        warn(channel, msgSupplier, null);
+    }
+
+    /**
      * Log a WARN level message with the given exception and including the channel information.
      *
      * @param channel The channel for this message is being logged
