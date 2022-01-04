@@ -15,9 +15,8 @@
 
 package software.amazon.awssdk.metrics;
 
-import static org.apache.log4j.Level.ALL;
-import static org.apache.log4j.Level.DEBUG;
-import static org.apache.log4j.Level.INFO;
+import static org.apache.logging.log4j.Level.DEBUG;
+import static org.apache.logging.log4j.Level.INFO;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
@@ -26,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.log4j.spi.LoggingEvent;
+import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.Test;
 import org.slf4j.event.Level;
 import software.amazon.awssdk.metrics.LoggingMetricPublisher.Format;
@@ -46,11 +45,10 @@ class LoggingMetricPublisherTest {
         MetricCollection foo = metrics("foo", bar, qux);
 
         LoggingMetricPublisher publisher = LoggingMetricPublisher.create();
-        publisher.publish(foo);
 
-        try (LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor(ALL)) {
+        try (LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor()) {
             publisher.publish(foo);
-            List<LoggingEvent> events = logCaptor.loggedEvents();
+            List<LogEvent> events = logCaptor.loggedEvents();
             assertLogged(events, INFO, "Metrics published: %s", foo);
             assertThat(events).isEmpty();
         }
@@ -65,11 +63,10 @@ class LoggingMetricPublisherTest {
         String guid = Integer.toHexString(foo.hashCode());
 
         LoggingMetricPublisher publisher = LoggingMetricPublisher.create(Level.DEBUG, Format.PRETTY);
-        publisher.publish(foo);
 
-        try (LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor(ALL)) {
+        try (LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor()) {
             publisher.publish(foo);
-            List<LoggingEvent> events = logCaptor.loggedEvents();
+            List<LogEvent> events = logCaptor.loggedEvents();
             assertLogged(events, DEBUG, "[%s] foo", guid);
             assertLogged(events, DEBUG, "[%s] ┌──────────────────────────────┐", guid);
             assertLogged(events, DEBUG, "[%s] │ LoggingMetricPublisherTest=1 │", guid);
@@ -107,9 +104,11 @@ class LoggingMetricPublisherTest {
         return new DefaultMetricCollection(name, recordMap, Arrays.asList(children));
     }
 
-    private static void assertLogged(List<LoggingEvent> events, org.apache.log4j.Level level, String message, Object... args) {
-        LoggingEvent event = events.remove(0);
+    private static void assertLogged(List<LogEvent> events, org.apache.logging.log4j.Level level, String message, Object... args) {
+        assertThat(events).withFailMessage("Expecting events to not be empty").isNotEmpty();
+        LogEvent event = events.remove(0);
+        String msg = event.getMessage().getFormattedMessage();
+        assertThat(msg).isEqualTo(String.format(message, args));
         assertThat(event.getLevel()).isEqualTo(level);
-        assertThat(event.getMessage()).isEqualTo(String.format(message, args));
     }
 }
