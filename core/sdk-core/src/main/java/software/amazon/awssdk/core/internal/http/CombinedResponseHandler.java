@@ -15,13 +15,14 @@
 
 package software.amazon.awssdk.core.internal.http;
 
+import static software.amazon.awssdk.core.SdkStandardLogger.logRequestId;
+
 import java.io.IOException;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -68,6 +69,8 @@ public class CombinedResponseHandler<OutputT> implements HttpResponseHandler<Res
                                              ExecutionAttributes executionAttributes)
             throws IOException, InterruptedException {
 
+        logRequestId(httpResponse);
+
         if (httpResponse.isSuccessful()) {
             OutputT response = handleSuccessResponse(httpResponse, executionAttributes);
             return Response.<OutputT>builder().httpResponse(httpResponse)
@@ -93,7 +96,6 @@ public class CombinedResponseHandler<OutputT> implements HttpResponseHandler<Res
     private OutputT handleSuccessResponse(SdkHttpFullResponse httpResponse, ExecutionAttributes executionAttributes)
             throws IOException, InterruptedException {
         try {
-            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received successful response: " + httpResponse.statusCode());
             return successResponseHandler.handle(httpResponse, executionAttributes);
         } catch (IOException | InterruptedException | RetryableException e) {
             throw e;
@@ -121,7 +123,6 @@ public class CombinedResponseHandler<OutputT> implements HttpResponseHandler<Res
         try {
             SdkException exception = errorResponseHandler.handle(httpResponse, executionAttributes);
             exception.fillInStackTrace();
-            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received error response: " + exception);
             return exception;
         } catch (InterruptedException | IOException e) {
             throw e;

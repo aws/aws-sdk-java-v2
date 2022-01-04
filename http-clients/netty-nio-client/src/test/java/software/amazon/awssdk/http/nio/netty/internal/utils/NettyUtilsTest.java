@@ -20,6 +20,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import io.netty.channel.Channel;
@@ -40,6 +41,7 @@ import javax.net.ssl.SSLEngine;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
 
 public class NettyUtilsTest {
@@ -55,7 +57,7 @@ public class NettyUtilsTest {
     public static void teardown() throws InterruptedException {
         eventLoopGroup.shutdownGracefully().await();
     }
-    
+
     @Test
     public void testGetOrCreateAttributeKey_calledTwiceWithSameName_returnsSameInstance() {
         String attr = "NettyUtilsTest.Foo";
@@ -192,5 +194,32 @@ public class NettyUtilsTest {
         listener.operationComplete(source);
 
         assertThat(destination.isCancelled()).isTrue();
+    }
+
+    @Test
+    public void runAndLogError_runnableDoesNotThrow_loggerNotInvoked() {
+        Logger delegateLogger = mock(Logger.class);
+        NettyClientLogger logger = new NettyClientLogger(delegateLogger);
+
+        NettyUtils.runAndLogError(logger, "Something went wrong", () -> {});
+
+        verifyZeroInteractions(delegateLogger);
+    }
+
+    @Test
+    public void runAndLogError_runnableThrows_loggerInvoked() {
+        Logger delegateLogger = mock(Logger.class);
+        when(delegateLogger.isErrorEnabled()).thenReturn(true);
+
+        NettyClientLogger logger = new NettyClientLogger(delegateLogger);
+
+        String msg = "Something went wrong";
+        RuntimeException error = new RuntimeException("Boom!");
+
+        NettyUtils.runAndLogError(logger, msg, () -> {
+            throw error;
+        });
+
+        verify(delegateLogger).error(msg, error);
     }
 }

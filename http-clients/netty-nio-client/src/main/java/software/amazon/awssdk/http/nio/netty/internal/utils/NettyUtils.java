@@ -34,6 +34,7 @@ import java.util.function.Function;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
@@ -273,5 +274,13 @@ public final class NettyUtils {
                 destination.tryFailure(f.cause());
             }
         };
+    }
+
+    public static void runAndLogError(NettyClientLogger log, String errorMsg, FunctionalUtils.UnsafeRunnable runnable) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            log.error(null, () -> errorMsg, e);
+        }
     }
 }

@@ -28,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -38,7 +38,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public class Http2PingHandler extends SimpleChannelInboundHandler<Http2PingFrame> {
-    private static final Logger log = Logger.loggerFor(Http2PingHandler.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(Http2PingHandler.class);
     private static final Http2PingFrame DEFAULT_PING_FRAME = new DefaultHttp2PingFrame(0);
 
     private final long pingTimeoutMillis;
@@ -80,7 +80,7 @@ public class Http2PingHandler extends SimpleChannelInboundHandler<Http2PingFrame
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Http2PingFrame frame) {
         if (frame.ack()) {
-            log.debug(() -> "Received PING ACK from channel " + ctx.channel());
+            log.debug(ctx.channel(), () -> "Received PING ACK from channel " + ctx.channel());
             lastPingAckTime = System.currentTimeMillis();
         } else {
             ctx.fireChannelRead(frame);
@@ -101,7 +101,7 @@ public class Http2PingHandler extends SimpleChannelInboundHandler<Http2PingFrame
     private void sendPing(Channel channel) {
         channel.writeAndFlush(DEFAULT_PING_FRAME).addListener(res -> {
             if (!res.isSuccess()) {
-                log.debug(() -> "Failed to write and flush PING frame to connection", res.cause());
+                log.debug(channel, () -> "Failed to write and flush PING frame to connection", res.cause());
                 channelIsUnhealthy(channel, new PingFailedException("Failed to send PING to the service", res.cause()));
             } else {
                 lastPingSendTime = System.currentTimeMillis();

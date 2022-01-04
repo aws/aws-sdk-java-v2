@@ -15,13 +15,14 @@
 
 package software.amazon.awssdk.core.internal.http.async;
 
+import static software.amazon.awssdk.core.SdkStandardLogger.logRequestId;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -51,11 +52,11 @@ public final class CombinedResponseAsyncHttpResponseHandler<OutputT>
     @Override
     public void onHeaders(SdkHttpResponse response) {
         headersFuture.complete(response);
+        logRequestId(response);
+
         if (response.isSuccessful()) {
-            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received successful response: " + response.statusCode());
             successResponseHandler.onHeaders(response);
         } else {
-            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received error response: " + response.statusCode());
             errorResponseHandler.onHeaders(response);
         }
         this.response.set(toFullResponse(response));
