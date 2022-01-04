@@ -275,8 +275,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                         "The httpClient and the httpClientBuilder can't both be configured.");
 
         return Either.fromNullable(config.option(SdkClientOption.SYNC_HTTP_CLIENT), httpClientBuilder)
-                     .map(e -> e.map(NonManagedSdkHttpClient::new, b -> b.buildWithDefaults(childHttpConfig())))
-                     .orElseGet(() -> defaultHttpClientBuilder.buildWithDefaults(childHttpConfig()));
+                     .map(e -> e.map(NonManagedSdkHttpClient::new, b -> b.buildWithDefaults(childHttpConfig(config))))
+                     .orElseGet(() -> defaultHttpClientBuilder.buildWithDefaults(childHttpConfig(config)));
     }
 
     /**
@@ -286,13 +286,22 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         Validate.isTrue(config.option(ASYNC_HTTP_CLIENT) == null || asyncHttpClientBuilder == null,
                         "The asyncHttpClient and the asyncHttpClientBuilder can't both be configured.");
         return Either.fromNullable(config.option(ASYNC_HTTP_CLIENT), asyncHttpClientBuilder)
-                     .map(e -> e.map(NonManagedSdkAsyncHttpClient::new, b -> b.buildWithDefaults(childHttpConfig())))
-                     .orElseGet(() -> defaultAsyncHttpClientBuilder.buildWithDefaults(childHttpConfig()));
+                     .map(e -> e.map(NonManagedSdkAsyncHttpClient::new, b -> b.buildWithDefaults(childHttpConfig(config))))
+                     .orElseGet(() -> defaultAsyncHttpClientBuilder.buildWithDefaults(childHttpConfig(config)));
     }
 
     /**
      * Optionally overridden by child implementations to provide implementation-specific default HTTP configuration.
      */
+    protected AttributeMap childHttpConfig(SdkClientConfiguration configuration) {
+        return childHttpConfig();
+    }
+
+    /**
+     * Optionally overridden by child implementations to provide implementation-specific default HTTP configuration.
+     * @deprecated use {@link #childHttpConfig(SdkClientConfiguration)} instead
+     */
+    @Deprecated
     protected AttributeMap childHttpConfig() {
         return AttributeMap.empty();
     }

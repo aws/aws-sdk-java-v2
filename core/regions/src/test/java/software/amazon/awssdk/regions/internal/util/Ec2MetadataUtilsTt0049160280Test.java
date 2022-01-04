@@ -15,9 +15,10 @@
 
 package software.amazon.awssdk.regions.internal.util;
 
-import org.junit.Assert;
-import org.junit.Test;
-import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 public class Ec2MetadataUtilsTt0049160280Test {
     private static final String JSON = "{"
@@ -40,15 +41,15 @@ public class Ec2MetadataUtilsTt0049160280Test {
     @Test
     public void getRegionIntern() throws Exception {
         String region = EC2MetadataUtils.doGetEC2InstanceRegion(JSON);
-        Assert.assertEquals("us-east-1", region);
+        assertEquals("us-east-1", region);
     }
 
     @Test
     public void tt0049160280() {
         EC2MetadataUtils.InstanceInfo info = EC2MetadataUtils.doGetInstanceInfo(JSON);
         String[] billingProducts = info.getBillingProducts();
-        Assert.assertTrue(billingProducts.length == 1);
-        Assert.assertEquals(billingProducts[0], "bp-6ba54002");
+        assertTrue(billingProducts.length == 1);
+        assertEquals(billingProducts[0], "bp-6ba54002");
     }
 
     @Test
@@ -71,8 +72,8 @@ public class Ec2MetadataUtilsTt0049160280Test {
                             + "}";
         EC2MetadataUtils.InstanceInfo info = EC2MetadataUtils.doGetInstanceInfo(JSON);
         String[] devpayProductCodes = info.getDevpayProductCodes();
-        Assert.assertTrue(devpayProductCodes.length == 2);
-        Assert.assertEquals(devpayProductCodes[0], "foo");
-        Assert.assertEquals(devpayProductCodes[1], "bar");
+        assertTrue(devpayProductCodes.length == 2);
+        assertEquals(devpayProductCodes[0], "foo");
+        assertEquals(devpayProductCodes[1], "bar");
     }
 }

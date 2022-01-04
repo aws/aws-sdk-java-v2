@@ -26,6 +26,7 @@ import io.netty.handler.ssl.SslProvider;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -41,7 +42,7 @@ import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
  * Implementation of {@link SdkChannelPoolMap} that awaits channel pools to be closed upon closing.
@@ -49,7 +50,7 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, SimpleChannelPoolAwareChannelPool> {
 
-    private static final Logger log = Logger.loggerFor(AwaitCloseChannelPoolMap.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(AwaitCloseChannelPoolMap.class);
 
     private static final ChannelPoolHandler NOOP_HANDLER = new ChannelPoolHandler() {
         @Override
@@ -152,7 +153,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
     @Override
     public void close() {
-        log.trace(() -> "Closing channel pools");
+        log.trace(null, () -> "Closing channel pools");
         // If there is a new pool being added while we are iterating the pools, there might be a
         // race condition between the close call of the newly acquired pool and eventLoopGroup.shutdown and it
         // could cause the eventLoopGroup#shutdownGracefully to hang before it times out.
@@ -236,8 +237,13 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
                                                                    configuration.maxConnections(),
                                                                    configuration);
 
-        // Wrap the channel pool such that we remove request-specific handlers with each request.
-        sdkChannelPool = new HandlerRemovingChannelPool(sdkChannelPool);
+        sdkChannelPool = new ListenerInvokingChannelPool(bootstrap.config().group(), sdkChannelPool, Arrays.asList(
+            // Add a listener that ensures acquired channels are marked IN_USE and thus not eligible for certain idle timeouts.
+            InUseTrackingChannelPoolListener.create(),
+
+            // Add a listener that removes request-specific handlers with each request.
+            HandlerRemovingChannelPoolListener.create()
+        ));
 
         // Wrap the channel pool such that an individual channel can only be released to the underlying pool once.
         sdkChannelPool = new ReleaseOnceChannelPool(sdkChannelPool);

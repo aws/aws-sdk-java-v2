@@ -23,7 +23,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.io.IOException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
  * Closes the channel if the execution future has been cancelled.
@@ -31,7 +31,7 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 @ChannelHandler.Sharable
 public final class FutureCancelHandler extends ChannelInboundHandlerAdapter {
-    private static final Logger LOG = Logger.loggerFor(FutureCancelHandler.class);
+    private static final NettyClientLogger LOG = NettyClientLogger.getLogger(FutureCancelHandler.class);
     private static final FutureCancelHandler INSTANCE = new FutureCancelHandler();
 
     private FutureCancelHandler() {
@@ -53,9 +53,9 @@ public final class FutureCancelHandler extends ChannelInboundHandlerAdapter {
             ctx.close();
             requestContext.channelPool().release(ctx.channel());
         } else {
-            LOG.debug(() -> String.format("Received a cancellation exception but it did not match the current execution ID. "
-                                          + "Exception's execution ID is %d, but the current ID on the channel is %d. Exception"
-                                          + " is being ignored.",
+            LOG.debug(ctx.channel(), () -> String.format("Received a cancellation exception but it did not match the current "
+                                                         + "execution ID. Exception's execution ID is %d, but the current ID on "
+                                                         + "the channel is %d. Exception is being ignored.",
                                           cancelledException.getExecutionId(),
                                           executionId(ctx)));
         }

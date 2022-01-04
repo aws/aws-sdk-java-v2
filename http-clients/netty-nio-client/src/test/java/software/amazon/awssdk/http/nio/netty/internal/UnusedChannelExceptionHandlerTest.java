@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.DefaultChannelId;
 import io.netty.util.Attribute;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -41,6 +42,7 @@ public class UnusedChannelExceptionHandlerTest {
     public void setUp() {
         ctx = Mockito.mock(ChannelHandlerContext.class);
         channel = Mockito.mock(Channel.class);
+        Mockito.when(channel.id()).thenReturn(DefaultChannelId.newInstance());
 
         inUseAttribute = Mockito.mock(Attribute.class);
         futureAttribute = Mockito.mock(Attribute.class);

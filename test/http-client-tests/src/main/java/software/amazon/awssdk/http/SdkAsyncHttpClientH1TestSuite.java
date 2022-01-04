@@ -48,9 +48,9 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
 /**
@@ -65,7 +65,7 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
 
     protected abstract SdkAsyncHttpClient setupClient();
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         server = new Server();
         server.init();
@@ -73,7 +73,7 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
         this.client = setupClient();
     }
 
-    @After
+    @AfterEach
     public void teardown() throws InterruptedException {
         if (server != null) {
             server.shutdown();
@@ -96,11 +96,16 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
     }
 
     @Test
-    public void connectionReceiveOkStatusShouldReuseConnection() {
+    public void connectionReceiveOkStatusShouldReuseConnection() throws Exception {
         server.return500OnFirstRequest = false;
         server.closeConnection = false;
 
         HttpTestUtils.sendGetRequest(server.port(), client).join();
+
+        // The request-complete-future does not await the channel-release-future
+        // Wait a small amount to allow the channel release to complete
+        Thread.sleep(100);
+        
         HttpTestUtils.sendGetRequest(server.port(), client).join();
 
         assertThat(server.channels.size()).isEqualTo(1);

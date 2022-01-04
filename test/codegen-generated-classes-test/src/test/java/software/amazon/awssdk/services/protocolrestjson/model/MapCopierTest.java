@@ -15,16 +15,14 @@
 
 package software.amazon.awssdk.services.protocolrestjson.model;
 
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
-import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
-import software.amazon.awssdk.core.util.SdkAutoConstructMap;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 
 /**
  * Tests for generated map member copiers.
@@ -70,7 +68,7 @@ public class MapCopierTest {
         Map<String, String> mapOfEnumToEnum = new HashMap<>();
         mapOfEnumToEnum.put("foo", "bar");
         Map<EnumType, EnumType> copy = MapOfEnumToEnumCopier.copyStringToEnum(mapOfEnumToEnum);
-        Assertions.assertThat(copy).isEmpty();
+        assertThat(copy).isEmpty();
     }
 
     @Test
@@ -78,6 +76,6 @@ public class MapCopierTest {
         Map<String, String> mapOfEnumToEnum = new HashMap<>();
         mapOfEnumToEnum.put(EnumType.ENUM_VALUE1.toString(), "bar");
         Map<EnumType, EnumType> copy = MapOfEnumToEnumCopier.copyStringToEnum(mapOfEnumToEnum);
-        Assertions.assertThat(copy).hasSize(1);
+        assertThat(copy).hasSize(1);
     }
 }

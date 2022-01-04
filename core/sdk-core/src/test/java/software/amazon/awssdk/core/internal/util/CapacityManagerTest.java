@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.core.internal.util;
 
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the behavior of the {@link CapacityManager}
@@ -30,13 +33,13 @@ public class CapacityManagerTest {
     @Test
     public void acquire() {
         CapacityManager mgr = new CapacityManager(10);
-        Assert.assertTrue(mgr.acquire());
-        Assert.assertEquals(mgr.availableCapacity(), 9);
-        Assert.assertEquals(mgr.consumedCapacity(), 1);
-        Assert.assertTrue(mgr.acquire(9));
-        Assert.assertEquals(mgr.availableCapacity(), 0);
-        Assert.assertEquals(mgr.consumedCapacity(), 10);
-        Assert.assertFalse(mgr.acquire(1));
+        assertTrue(mgr.acquire());
+        assertEquals(mgr.availableCapacity(), 9);
+        assertEquals(mgr.consumedCapacity(), 1);
+        assertTrue(mgr.acquire(9));
+        assertEquals(mgr.availableCapacity(), 0);
+        assertEquals(mgr.consumedCapacity(), 10);
+        assertFalse(mgr.acquire(1));
     }
 
     /**
@@ -48,11 +51,11 @@ public class CapacityManagerTest {
         CapacityManager mgr = new CapacityManager(10);
         mgr.acquire(10);
         mgr.release();
-        Assert.assertEquals(mgr.availableCapacity(), 1);
-        Assert.assertEquals(mgr.consumedCapacity(), 9);
+        assertEquals(mgr.availableCapacity(), 1);
+        assertEquals(mgr.consumedCapacity(), 9);
         mgr.release(50);
-        Assert.assertEquals(mgr.availableCapacity(), 10);
-        Assert.assertEquals(mgr.consumedCapacity(), 0);
+        assertEquals(mgr.availableCapacity(), 10);
+        assertEquals(mgr.consumedCapacity(), 0);
     }
 
     /**
@@ -62,11 +65,11 @@ public class CapacityManagerTest {
     @Test
     public void noOp() {
         CapacityManager mgr = new CapacityManager(-1);
-        Assert.assertTrue(mgr.acquire());
+        assertTrue(mgr.acquire());
         mgr.release();
-        Assert.assertTrue(mgr.acquire());
-        Assert.assertEquals(mgr.availableCapacity(), -1);
-        Assert.assertEquals(mgr.consumedCapacity(), 0);
+        assertTrue(mgr.acquire());
+        assertEquals(mgr.availableCapacity(), -1);
+        assertEquals(mgr.consumedCapacity(), 0);
     }
 
 }

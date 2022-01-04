@@ -1,3 +1,152 @@
+# __2.17.104__ __2022-01-04__
+## __AWS S3 Control__
+  - ### Features
+    - Documentation updates for the renaming of Glacier to Glacier Flexible Retrieval.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release introduces a new field IndexFacesModelVersion, which is the version of the face detect and storage model that was used when indexing the face vector.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Minor doc-based updates based on feedback bugs received.
+
+# __2.17.103__ __2022-01-03__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added strength levels to the Sharpness Filter and now permits OGG files to be specified as sidecar audio inputs.
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - This release adds the API operations to manage the Greengrass role associated with your account and to manage the core device connectivity information. Greengrass V2 customers can now depend solely on Greengrass V2 SDK for all the API operations needed to manage their fleets.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Add null check for nonProxyHosts in Apache HTTP Client ProxyConfiguration.
+
+## __Amazon Detective__
+  - ### Features
+    - Added and updated API operations to support the Detective integration with AWS Organizations. New actions are used to manage the delegated administrator account and the integration configuration.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Multiple doc-only updates for Relational Database Service (RDS)
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - The release allows users to pass pipeline definitions as Amazon S3 locations and control the pipeline execution concurrency using ParallelismConfiguration. It also adds support of EMR jobs as pipeline steps.
+
+## __Apache HTTP Client__
+  - ### Bugfixes
+    - Stop auto-enabling TLS protocol versions
+
+# __2.17.102__ __2021-12-21__
+## __AWS MediaConnect__
+  - ### Features
+    - You can now use the Fujitsu-QoS protocol for your MediaConnect sources and outputs to transport content to and from Fujitsu devices.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated SDK default configurations.
+    - Updated service endpoint metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Property for Transfer Family used with the FTPS protocol. TLS Session Resumption provides a mechanism to resume or share a negotiated secret key between the control and data connection for an FTPS session.
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - The Amazon Chime SDK now supports updating message attributes via channel flows
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - This release adds support for Causal Relationships. Added new ListAnomalyGroupRelatedMetrics API operation and InterMetricImpactDetails API data type
+
+## __Amazon QLDB__
+  - ### Features
+    - Amazon QLDB now supports journal exports in JSON and Ion Binary formats. This release adds an optional OutputFormat parameter to the ExportJournalToS3 API.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release allows customers to change their email monitoring configuration in Amazon WorkMail.
+
+## __AmazonNimbleStudio__
+  - ### Features
+    - Amazon Nimble Studio adds support for users to upload files during a streaming session using NICE DCV native client or browser.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Added a note to infrastructure configuration actions and data types concerning delivery of Image Builder event messages to encrypted SNS topics. The key that's used to encrypt the SNS topic must reside in the account that Image Builder runs under.
+
+# __2.17.101__ __2021-12-20__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports FSx Lustre Locations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Introduce a defaults mode configuration that determines how certain default configuration options are resolved in the SDK. See `DefaultsMode` for more information.
+    - Updated SDK default configurations.
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource details objects to ASFF, including resources for Firewall, and RuleGroup, FirewallPolicy Added additional details for AutoScalingGroup, LaunchConfiguration, and S3 buckets.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release adds an optional parameter, ObjectTypeNames to the PutIntegration API to support multiple object types per integration option. Besides, this release introduces Standard Order Objects which contain data from third party systems and each order object belongs to a specific profile.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Adds Tags support to DescribeOrganizationResourceCollectionHealth
+
+## __Amazon Forecast Service__
+  - ### Features
+    - Adds ForecastDimensions field to the DescribeAutoPredictorResponse
+
+## __Amazon Location Service__
+  - ### Features
+    - Making PricingPlan optional as part of create resource API.
+
+## __Amazon Redshift__
+  - ### Features
+    - This release adds API support for managed Redshift datashares. Customers can now interact with a Redshift datashare that is managed by a different service, such as AWS Data Exchange.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds a new ContentType field in AutoMLChannel for SageMaker CreateAutoMLJob InputDataConfig.
+
+## __Apache HTTP Client__
+  - ### Features
+    - Add "ConcurrencyAcquireDuration" metric for apache-client
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds support for importing and exporting VM Images as part of the Image Creation workflow via EC2 VM Import/Export.
+
+## __FinSpace Public API__
+  - ### Features
+    - Make dataset description optional and allow s3 export for dataviews
+
+## __Metrics__
+  - ### Features
+    - Add pretty-format support to LoggingMetricPublisher
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - If `tlsNegotiationTimeout` is not configured, it will be set to the resolved `connectionTimeout`. By default, `tlsNegotiationTimeout` is now 2s instead of 10s
+
+  - ### Bugfixes
+    - Ensure in-use channels are not incorrectly closed
+
 # __2.17.100__ __2021-12-13__
 ## __AWS SDK for Java v2__
   - ### Features

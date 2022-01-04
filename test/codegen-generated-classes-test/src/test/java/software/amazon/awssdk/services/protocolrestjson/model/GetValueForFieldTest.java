@@ -15,11 +15,11 @@
 
 package software.amazon.awssdk.services.protocolrestjson.model;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for the generated {@code getValueForField} methods on model objects.

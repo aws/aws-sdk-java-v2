@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.utils;
 
-import java.io.UnsupportedEncodingException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.UUID;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.utils.internal.Base16;
 import software.amazon.awssdk.utils.internal.Base16Lower;
 
@@ -31,26 +31,26 @@ import software.amazon.awssdk.utils.internal.Base16Lower;
 public class Base16LowerCodecTest {
     @Test
     public void testVectorsPerRfc4648()
-            throws NoSuchAlgorithmException, UnsupportedEncodingException {
+        throws Exception {
         String[] testVectors = {"", "f", "fo", "foo", "foob", "fooba", "foobar"};
         String[] expected = {"", "66", "666f", "666f6f", "666f6f62", "666f6f6261", "666f6f626172"};
         for (int i = 0; i < testVectors.length; i++) {
             String data = testVectors[i];
             byte[] source = data.getBytes("UTF-8");
             String b16encoded = Base16Lower.encodeAsString(data.getBytes("UTF-8"));
-            Assert.assertEquals(expected[i], b16encoded);
+            assertEquals(expected[i], b16encoded);
             byte[] b16 = b16encoded.getBytes("UTF-8");
 
             byte[] decoded = Base16.decode(b16);
-            Assert.assertTrue(Arrays.equals(source, decoded));
+            assertTrue(Arrays.equals(source, decoded));
             decoded = Base16Lower.decode(b16);
-            Assert.assertTrue(Arrays.equals(source, decoded));
+            assertTrue(Arrays.equals(source, decoded));
         }
     }
 
     @Test
     public void testCodecConsistency()
-            throws NoSuchAlgorithmException, UnsupportedEncodingException {
+        throws Exception {
         byte[] decoded = null;
 
         for (int h = 0; h < 1000; h++) {
@@ -60,15 +60,15 @@ public class Base16LowerCodecTest {
             String b16Encoded = Base16Lower.encodeAsString(digest);
             {
                 decoded = Base16.decode(b16Encoded);
-                Assert.assertTrue(Arrays.equals(decoded, digest));
+                assertTrue(Arrays.equals(decoded, digest));
                 decoded = Base16Lower.decode(b16Encoded);
-                Assert.assertTrue(Arrays.equals(decoded, digest));
+                assertTrue(Arrays.equals(decoded, digest));
             }
             {   // test decoding case insensitivity
                 decoded = Base16.decode(b16Encoded.toLowerCase());
-                Assert.assertTrue(Arrays.equals(decoded, digest));
+                assertTrue(Arrays.equals(decoded, digest));
                 decoded = Base16Lower.decode(b16Encoded.toLowerCase());
-                Assert.assertTrue(Arrays.equals(decoded, digest));
+                assertTrue(Arrays.equals(decoded, digest));
             }
         }
     }
