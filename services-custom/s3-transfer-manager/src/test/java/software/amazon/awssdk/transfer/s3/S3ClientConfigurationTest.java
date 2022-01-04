@@ -72,12 +72,14 @@ public class S3ClientConfigurationTest {
                                                                    .credentialsProvider(credentials)
                                                                    .maxConcurrency(100)
                                                                    .targetThroughputInGbps(10.0)
+                                                                   .endpoint("https://s3.us-west-2.amazonaws.com")
                                                                    .region(Region.US_WEST_2)
                                                                    .minimumPartSizeInBytes(5 * MB)
                                                                    .build();
 
         assertThat(configuration.credentialsProvider()).contains(credentials);
         assertThat(configuration.maxConcurrency()).contains(100);
+        assertThat(configuration.endpoint()).contains("https://s3.us-west-2.amazonaws.com");
         assertThat(configuration.region()).contains(Region.US_WEST_2);
         assertThat(configuration.targetThroughputInGbps()).contains(10.0);
         assertThat(configuration.minimumPartSizeInBytes()).contains(5 * MB);
@@ -90,6 +92,7 @@ public class S3ClientConfigurationTest {
 
         assertThat(configuration.credentialsProvider()).isEmpty();
         assertThat(configuration.maxConcurrency()).isEmpty();
+        assertThat(configuration.endpoint()).isEmpty();
         assertThat(configuration.region()).isEmpty();
         assertThat(configuration.targetThroughputInGbps()).isEmpty();
         assertThat(configuration.minimumPartSizeInBytes()).isEmpty();

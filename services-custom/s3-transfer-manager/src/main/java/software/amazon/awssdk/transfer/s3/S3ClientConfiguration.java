@@ -35,6 +35,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkPreviewApi
 public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientConfiguration.Builder, S3ClientConfiguration> {
     private final AwsCredentialsProvider credentialsProvider;
+    private final String endpoint;
     private final Region region;
     private final Long minimumPartSizeInBytes;
     private final Double targetThroughputInGbps;
@@ -42,6 +43,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
 
     private S3ClientConfiguration(DefaultBuilder builder) {
         this.credentialsProvider = builder.credentialsProvider;
+        this.endpoint = builder.endpoint;
         this.region = builder.region;
         this.minimumPartSizeInBytes = Validate.isPositiveOrNull(builder.minimumPartSizeInBytes, "minimumPartSizeInBytes");
         this.targetThroughputInGbps = Validate.isPositiveOrNull(builder.targetThroughputInGbps, "targetThroughputInGbps");
@@ -54,6 +56,13 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
      */
     public Optional<AwsCredentialsProvider> credentialsProvider() {
         return Optional.ofNullable(credentialsProvider);
+    }
+
+    /**
+     * @return the optional endpoint with which the SDK should communicate.
+     */
+    public Optional<String> endpoint() {
+        return Optional.ofNullable(endpoint);
     }
 
     /**
@@ -103,6 +112,9 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         if (!Objects.equals(credentialsProvider, that.credentialsProvider)) {
             return false;
         }
+        if (!Objects.equals(endpoint, that.endpoint)) {
+            return false;
+        }
         if (!Objects.equals(region, that.region)) {
             return false;
         }
@@ -118,6 +130,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
     @Override
     public int hashCode() {
         int result = credentialsProvider != null ? credentialsProvider.hashCode() : 0;
+        result = 31 * result + (endpoint != null ? endpoint.hashCode() : 0);
         result = 31 * result + (region != null ? region.hashCode() : 0);
         result = 31 * result + (minimumPartSizeInBytes != null ? minimumPartSizeInBytes.hashCode() : 0);
         result = 31 * result + (targetThroughputInGbps != null ? targetThroughputInGbps.hashCode() : 0);
@@ -158,6 +171,16 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
          * @return This builder for method chaining.
          */
         Builder credentialsProvider(AwsCredentialsProvider credentialsProvider);
+
+        /**
+         * Configure the endpoint with which the SDK should communicate.
+         *
+         * <p>If this is not specified, the SDK will attempt to identify the endpoint automatically using the region parameter.
+         *
+         * @param endpoint the endpoint to be used
+         * @return this builder for method chaining.
+         */
+        Builder endpoint(String endpoint);
 
         /**
          * Configure the region with which the SDK should communicate.
@@ -220,6 +243,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
 
     private static final class DefaultBuilder implements Builder {
         private AwsCredentialsProvider credentialsProvider;
+        private String endpoint;
         private Region region;
         private Long minimumPartSizeInBytes;
         private Double targetThroughputInGbps;
@@ -230,6 +254,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
 
         private DefaultBuilder(S3ClientConfiguration configuration) {
             this.credentialsProvider = configuration.credentialsProvider;
+            this.endpoint = configuration.endpoint;
             this.region = configuration.region;
             this.minimumPartSizeInBytes = configuration.minimumPartSizeInBytes;
             this.targetThroughputInGbps = configuration.targetThroughputInGbps;
@@ -239,6 +264,12 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         @Override
         public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
+            return this;
+        }
+
+        @Override
+        public Builder endpoint(String endpoint) {
+            this.endpoint = endpoint;
             return this;
         }
 

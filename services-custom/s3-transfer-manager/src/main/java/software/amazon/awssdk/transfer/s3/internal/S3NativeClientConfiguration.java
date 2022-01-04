@@ -43,6 +43,7 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * SizeConstant.MB;
     private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 5;
+    private final String endpoint;
     private final String signingRegion;
     private final ClientBootstrap clientBootstrap;
     private final CrtCredentialsProviderAdapter credentialProviderAdapter;
@@ -53,6 +54,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final Executor futureCompletionExecutor;
 
     public S3NativeClientConfiguration(Builder builder) {
+        this.endpoint = builder.endpoint;
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
                              builder.signingRegion;
         this.clientBootstrap = new ClientBootstrap(null, null);
@@ -77,6 +79,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public String endpoint() {
+        return endpoint;
     }
 
     public String signingRegion() {
@@ -150,6 +156,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     }
 
     public static final class Builder {
+        private String endpoint;
         private String signingRegion;
         private AwsCredentialsProvider credentialsProvider;
         private Long partSizeInBytes;
@@ -158,6 +165,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private ClientAsyncConfiguration asynConfiguration;
 
         private Builder() {
+        }
+
+        public Builder endpoint(String endpoint) {
+            this.endpoint = endpoint;
+            return this;
         }
 
         public Builder signingRegion(String signingRegion) {

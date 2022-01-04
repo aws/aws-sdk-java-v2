@@ -81,6 +81,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     private S3CrtAsyncClient initializeS3CrtClient(DefaultBuilder tmBuilder) {
         S3CrtAsyncClient.S3CrtAsyncClientBuilder clientBuilder = S3CrtAsyncClient.builder();
         tmBuilder.s3ClientConfiguration.credentialsProvider().ifPresent(clientBuilder::credentialsProvider);
+        tmBuilder.s3ClientConfiguration.endpoint().ifPresent(clientBuilder::endpoint);
         tmBuilder.s3ClientConfiguration.maxConcurrency().ifPresent(clientBuilder::maxConcurrency);
         tmBuilder.s3ClientConfiguration.minimumPartSizeInBytes().ifPresent(clientBuilder::minimumPartSizeInBytes);
         tmBuilder.s3ClientConfiguration.region().ifPresent(clientBuilder::region);

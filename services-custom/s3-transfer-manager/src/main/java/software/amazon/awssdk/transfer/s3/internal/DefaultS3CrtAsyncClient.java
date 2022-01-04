@@ -25,6 +25,8 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
+import software.amazon.awssdk.crt.s3.S3Client;
+import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -42,6 +44,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
     public DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         S3NativeClientConfiguration.Builder configBuilder =
             S3NativeClientConfiguration.builder()
+                                       .endpoint(builder.endpoint)
                                        .targetThroughputInGbps(builder.targetThroughputInGbps())
                                        .partSizeInBytes(builder.minimumPartSizeInBytes())
                                        .maxConcurrency(builder.maxConcurrency)
@@ -53,12 +56,16 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
 
         configuration = configBuilder.build();
 
-        this.s3NativeClient = new S3NativeClient(configuration.signingRegion(),
-                                                 configuration.clientBootstrap(),
-                                                 configuration.credentialsProvider(),
-                                                 configuration.partSizeBytes(),
-                                                 configuration.targetThroughputInGbps(),
-                                                 configuration.maxConcurrency());
+        S3ClientOptions s3ClientOptions =
+            new S3ClientOptions().withEndpoint(configuration.endpoint())
+                                 .withRegion(configuration.signingRegion())
+                                 .withClientBootstrap(configuration.clientBootstrap())
+                                 .withCredentialsProvider(configuration.credentialsProvider())
+                                 .withPartSize(configuration.partSizeBytes())
+                                 .withThroughputTargetGbps(configuration.targetThroughputInGbps())
+                                 .withMaxConnections(configuration.maxConcurrency());
+
+        this.s3NativeClient = new S3NativeClient(configuration.signingRegion(), new S3Client(s3ClientOptions));
         this.crtErrorHandler = new CrtErrorHandler();
     }
 
@@ -157,6 +164,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
         private AwsCredentialsProvider credentialsProvider;
+        private String endpoint;
         private Region region;
         private Long minimalPartSizeInBytes;
         private Double targetThroughputInGbps;
@@ -165,6 +173,10 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
 
         public AwsCredentialsProvider credentialsProvider() {
             return credentialsProvider;
+        }
+
+        public String endpoint() {
+            return endpoint;
         }
 
         public Region region() {
@@ -186,6 +198,12 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         @Override
         public S3CrtAsyncClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder endpoint(String endpoint) {
+            this.endpoint = endpoint;
             return this;
         }
 

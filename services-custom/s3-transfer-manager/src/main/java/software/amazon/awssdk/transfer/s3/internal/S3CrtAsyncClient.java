@@ -33,6 +33,8 @@ public interface S3CrtAsyncClient extends S3AsyncClient {
     interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuilder, S3CrtAsyncClient> {
         S3CrtAsyncClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider);
 
+        S3CrtAsyncClientBuilder endpoint(String endpoint);
+
         S3CrtAsyncClientBuilder region(Region region);
 
         S3CrtAsyncClientBuilder minimumPartSizeInBytes(Long uploadPartSize);
