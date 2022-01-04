@@ -26,8 +26,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -55,7 +55,7 @@ public class RetryableStageAdaptiveModeTest {
 
     private RetryableStage<Object> retryableStage;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         tokenBucket = spy(RateLimitingTokenBucket.class);
         mockChildPipeline = mock(RequestPipeline.class);

@@ -30,14 +30,12 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -59,7 +57,7 @@ public class UploadDirectoryHelperTest {
     private Function<UploadFileRequest, FileUpload> singleUploadFunction;
     private UploadDirectoryHelper uploadDirectoryHelper;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws IOException {
         jimfs = Jimfs.newFileSystem();
         directory = jimfs.getPath("test");
@@ -68,12 +66,12 @@ public class UploadDirectoryHelperTest {
         Files.createFile(jimfs.getPath("test/2"));
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() throws IOException {
         jimfs.close();
     }
 
-    @Before
+    @BeforeEach
     public void methodSetup() {
         singleUploadFunction = mock(Function.class);
         uploadDirectoryHelper = new UploadDirectoryHelper(TransferManagerConfiguration.builder().build(), singleUploadFunction);
@@ -105,8 +103,7 @@ public class UploadDirectoryHelperTest {
     }
 
     @Test
-    public void uploadDirectory_allUploadsSucceed_failedUploadsShouldBeEmpty() throws ExecutionException, InterruptedException,
-                                                                                    TimeoutException {
+    public void uploadDirectory_allUploadsSucceed_failedUploadsShouldBeEmpty() throws Exception {
         PutObjectResponse putObjectResponse = PutObjectResponse.builder().eTag("1234").build();
         CompletedFileUpload completedFileUpload = CompletedFileUpload.builder().response(putObjectResponse).build();
         CompletableFuture<CompletedFileUpload> successfulFuture = new CompletableFuture<>();
@@ -134,8 +131,7 @@ public class UploadDirectoryHelperTest {
     }
 
     @Test
-    public void uploadDirectory_partialSuccess_shouldProvideFailedUploads() throws ExecutionException, InterruptedException,
-                                                                                   TimeoutException {
+    public void uploadDirectory_partialSuccess_shouldProvideFailedUploads() throws Exception {
         PutObjectResponse putObjectResponse = PutObjectResponse.builder().eTag("1234").build();
         CompletedFileUpload completedFileUpload = CompletedFileUpload.builder().response(putObjectResponse).build();
         CompletableFuture<CompletedFileUpload> successfulFuture = new CompletableFuture<>();

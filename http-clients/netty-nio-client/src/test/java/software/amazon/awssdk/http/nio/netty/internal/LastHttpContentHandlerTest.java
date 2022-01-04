@@ -20,9 +20,9 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.LastHttpContent;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 
@@ -32,7 +32,7 @@ public class LastHttpContentHandlerTest {
     private ChannelHandlerContext handlerContext;
     private LastHttpContentHandler contentHandler = LastHttpContentHandler.create();
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         channel = new MockChannel();
         channel.attr(LAST_HTTP_CONTENT_RECEIVED_KEY).set(false);
@@ -40,7 +40,7 @@ public class LastHttpContentHandlerTest {
         Mockito.when(handlerContext.channel()).thenReturn(channel);
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         channel.close();
     }

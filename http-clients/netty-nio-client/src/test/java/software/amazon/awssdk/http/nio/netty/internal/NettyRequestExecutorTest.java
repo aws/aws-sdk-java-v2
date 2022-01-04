@@ -39,9 +39,9 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.http.Protocol;
@@ -60,7 +60,7 @@ public class NettyRequestExecutorTest {
 
     private RequestContext requestContext;
 
-    @Before
+    @BeforeEach
     public void setup() {
         mockChannelPool = mock(SdkChannelPool.class);
 
@@ -82,7 +82,7 @@ public class NettyRequestExecutorTest {
         nettyRequestExecutor = new NettyRequestExecutor(requestContext);
     }
 
-    @After
+    @AfterEach
     public void teardown() throws InterruptedException {
         eventLoopGroup.shutdownGracefully().await();
     }

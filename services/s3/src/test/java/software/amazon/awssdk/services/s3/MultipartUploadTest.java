@@ -28,9 +28,9 @@ import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -44,7 +44,7 @@ public class MultipartUploadTest {
 
     private S3AsyncClient s3AsyncClient;
 
-    @Before
+    @BeforeEach
     public void setup() {
         s3Client = S3Client.builder()
                            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
