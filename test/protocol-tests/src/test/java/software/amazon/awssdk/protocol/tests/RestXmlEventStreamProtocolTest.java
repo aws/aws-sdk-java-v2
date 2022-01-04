@@ -132,7 +132,7 @@ public class RestXmlEventStreamProtocolTest {
     }
 
     @Test
-    public void nonEventPayloadEvent_unmarshallsToEventTwo() {
+    public void nonEventPayloadEvent_unmarshallsToNonEventPayloadEvent() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         event(EventStream.EventType.NON_EVENT_PAYLOAD_EVENT.toString(),
               "<NonEventPayloadEvent><Bar>baz</Bar></NonEventPayloadEvent>".getBytes(StandardCharsets.UTF_8))
