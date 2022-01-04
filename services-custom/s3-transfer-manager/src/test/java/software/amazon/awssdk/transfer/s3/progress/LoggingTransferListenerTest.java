@@ -53,7 +53,7 @@ public class LoggingTransferListenerTest {
 
     @Test
     public void test_defaultListener_successfulTransfer() {
-        try (LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor()) {
+        try (LogCaptor logCaptor = LogCaptor.create()) {
             invokeSuccessfulLifecycle();
             List<LogEvent> events = logCaptor.loggedEvents();
             assertLogged(events, Level.INFO, "Transfer initiated...");
@@ -85,7 +85,7 @@ public class LoggingTransferListenerTest {
 
     @Test
     public void test_customTicksListener_successfulTransfer() {
-        try (LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor()) {
+        try (LogCaptor logCaptor = LogCaptor.create()) {
             listener = LoggingTransferListener.create(5);
             invokeSuccessfulLifecycle();
             List<LogEvent> events = logCaptor.loggedEvents();

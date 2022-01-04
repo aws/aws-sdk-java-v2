@@ -56,6 +56,14 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public interface LogCaptor extends SdkAutoCloseable {
 
+    static LogCaptor create() {
+        return new DefaultLogCaptor();
+    }
+
+    static LogCaptor create(Level level) {
+        return new DefaultLogCaptor(level);
+    }
+
     List<LogEvent> loggedEvents();
 
     void clear();
@@ -70,14 +78,14 @@ public interface LogCaptor extends SdkAutoCloseable {
 
         @Override
         @BeforeEach
-        public void setupLogging() {
-            super.setupLogging();
+        public void startCapturing() {
+            super.startCapturing();
         }
 
         @Override
         @AfterEach
-        public void stopLogging() {
-            super.stopLogging();
+        public void stopCapturing() {
+            super.stopCapturing();
         }
     }
 
@@ -87,18 +95,18 @@ public interface LogCaptor extends SdkAutoCloseable {
         private final Level originalLoggingLevel = rootLogger().getLevel();
         private final Level levelToCapture;
 
-        public DefaultLogCaptor() {
+        private DefaultLogCaptor() {
             this(Level.ALL);
         }
 
-        public DefaultLogCaptor(Level level) {
+        private DefaultLogCaptor(Level level) {
             super(/* name */ getCallerClassName(),
                 /* filter */ null,
                 /* layout */ null,
                 /* ignoreExceptions */ false,
                 /* properties */ Property.EMPTY_ARRAY);
             this.levelToCapture = level;
-            setupLogging();
+            startCapturing();
         }
 
         @Override
@@ -111,14 +119,14 @@ public interface LogCaptor extends SdkAutoCloseable {
             loggedEvents.clear();
         }
 
-        protected void setupLogging() {
+        protected void startCapturing() {
             loggedEvents.clear();
             rootLogger().addAppender(this);
             this.start();
             setRootLevel(levelToCapture);
         }
 
-        protected void stopLogging() {
+        protected void stopCapturing() {
             rootLogger().removeAppender(this);
             this.stop();
             setRootLevel(originalLoggingLevel);
@@ -126,12 +134,12 @@ public interface LogCaptor extends SdkAutoCloseable {
 
         @Override
         public void append(LogEvent event) {
-            loggedEvents.add(event);
+            loggedEvents.add(event.toImmutable());
         }
 
         @Override
         public void close() {
-            stopLogging();
+            stopCapturing();
         }
 
         private static org.apache.logging.log4j.core.Logger rootLogger() {

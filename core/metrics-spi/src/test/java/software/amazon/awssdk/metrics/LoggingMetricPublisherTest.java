@@ -46,7 +46,7 @@ class LoggingMetricPublisherTest {
 
         LoggingMetricPublisher publisher = LoggingMetricPublisher.create();
 
-        try (LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor()) {
+        try (LogCaptor logCaptor = LogCaptor.create()) {
             publisher.publish(foo);
             List<LogEvent> events = logCaptor.loggedEvents();
             assertLogged(events, INFO, "Metrics published: %s", foo);
@@ -64,7 +64,7 @@ class LoggingMetricPublisherTest {
 
         LoggingMetricPublisher publisher = LoggingMetricPublisher.create(Level.DEBUG, Format.PRETTY);
 
-        try (LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor()) {
+        try (LogCaptor logCaptor = LogCaptor.create()) {
             publisher.publish(foo);
             List<LogEvent> events = logCaptor.loggedEvents();
             assertLogged(events, DEBUG, "[%s] foo", guid);
