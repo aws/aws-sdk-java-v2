@@ -27,7 +27,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.CSVInput;
 import software.amazon.awssdk.services.s3.model.CSVOutput;
@@ -49,9 +48,6 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
                                                + "C,D";
     private static final String QUERY = "select s._1 from S3Object s";
 
-
-    private static S3AsyncClient s3Async;
-
     @BeforeAll
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
@@ -68,13 +64,14 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
             deleteBucketAndAllContents(BUCKET_NAME);
         } finally {
             s3Async.close();
+            s3.close();
         }
     }
 
     @Test
     public void selectObjectContent_onResponseInvokedWithResponse() {
         TestHandler handler = new TestHandler();
-        runSimpleQuery(handler).join();
+        executeTestSelectQueryWithHandler(handler).join();
 
         assertThat(handler.response).isNotNull();
     }
@@ -82,7 +79,7 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void selectObjectContent_recordsEventUnmarshalledCorrectly() {
         TestHandler handler = new TestHandler();
-        runSimpleQuery(handler).join();
+        executeTestSelectQueryWithHandler(handler).join();
 
         RecordsEvent recordsEvent = (RecordsEvent) handler.receivedEvents.stream()
                                                                          .filter(e -> e.sdkEventType() == EventType.RECORDS)
@@ -92,7 +89,7 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         assertThat(recordsEvent.payload().asUtf8String()).contains("A\nC");
     }
 
-    private static CompletableFuture<Void> runSimpleQuery(SelectObjectContentResponseHandler handler) {
+    private static CompletableFuture<Void> executeTestSelectQueryWithHandler(SelectObjectContentResponseHandler handler) {
         InputSerialization inputSerialization = InputSerialization.builder()
                                                                   .csv(CSVInput.builder().build())
                                                                   .compressionType(CompressionType.NONE)

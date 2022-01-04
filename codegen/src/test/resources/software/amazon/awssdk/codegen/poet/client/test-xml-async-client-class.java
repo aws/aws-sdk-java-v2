@@ -248,12 +248,12 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                                                   .putSdkPojoSupplier("SecondEventPayloadEvent", EventStream::secondEventPayloadEventBuilder)
                                                   .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN)).build(), XmlOperationMetadata
                     .builder().hasStreamingSuccessResponse(false).build());
-            CompletableFuture<Void> future = new CompletableFuture<>();
+            CompletableFuture<Void> eventStreamTransformFuture = new CompletableFuture<>();
             EventStreamAsyncResponseTransformer<EventStreamOperationResponse, EventStream> asyncResponseTransformer = EventStreamAsyncResponseTransformer
                 .<EventStreamOperationResponse, EventStream> builder().eventStreamResponseHandler(asyncResponseHandler)
                 .eventResponseHandler(eventResponseHandler).initialResponseHandler(responseHandler)
-                .exceptionResponseHandler(errorResponseHandler).future(future).executor(executor).serviceName(serviceName())
-                .build();
+                .exceptionResponseHandler(errorResponseHandler).future(eventStreamTransformFuture).executor(executor)
+                .serviceName(serviceName()).build();
             RestEventStreamAsyncResponseTransformer<EventStreamOperationResponse, EventStream> restAsyncResponseTransformer = RestEventStreamAsyncResponseTransformer
                 .<EventStreamOperationResponse, EventStream> builder()
                 .eventStreamAsyncResponseTransformer(asyncResponseTransformer)
@@ -270,12 +270,12 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                                    () -> asyncResponseHandler.exceptionOccurred(e));
-                    future.completeExceptionally(e);
+                    eventStreamTransformFuture.completeExceptionally(e);
                 }
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
-            return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
+            return CompletableFutureUtils.forwardExceptionTo(eventStreamTransformFuture, executeFuture);
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                            () -> asyncResponseHandler.exceptionOccurred(t));
