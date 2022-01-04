@@ -27,9 +27,9 @@ import io.netty.util.concurrent.Promise;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * A channel pool implementation that tracks the number of "idle" channels in an underlying channel pool.
@@ -39,7 +39,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public class IdleConnectionCountingChannelPool implements SdkChannelPool {
-    private static final Logger log = Logger.loggerFor(IdleConnectionCountingChannelPool.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(IdleConnectionCountingChannelPool.class);
 
     /**
      * The idle channel state for a specific channel. This should only be accessed from the {@link #executor}.
@@ -147,8 +147,8 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
                         break;
                     case NOT_IDLE:
                     default:
-                        log.warn(() -> "Failed to update idle connection count metric on acquire, because the channel (" +
-                                       channel + ") was in an unexpected state: " + channelIdleState);
+                        log.warn(channel, () -> "Failed to update idle connection count metric on acquire, because the channel "
+                                                + "(" + channel + ") was in an unexpected state: " + channelIdleState);
                 }
             }
         });
@@ -162,7 +162,8 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
             ChannelIdleState channelIdleState = getChannelIdleState(channel);
 
             if (channelIdleState == null) {
-                log.warn(() -> "Failed to update idle connection count metric on release, because the channel (" + channel +
+                log.warn(channel,
+                         () -> "Failed to update idle connection count metric on release, because the channel (" + channel +
                                ") was in an unexpected state: null");
             } else {
                 switch (channelIdleState) {
@@ -174,8 +175,8 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
                         break;
                     case IDLE:
                     default:
-                        log.warn(() -> "Failed to update idle connection count metric on release, because the channel (" +
-                                       channel + ") was in an unexpected state: " + channelIdleState);
+                        log.warn(channel, () -> "Failed to update idle connection count metric on release, because the channel "
+                                                + "(" + channel + ") was in an unexpected state: " + channelIdleState);
                 }
             }
         });
@@ -197,7 +198,8 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
                     case NOT_IDLE:
                         break;
                     default:
-                        log.warn(() -> "Failed to update idle connection count metric on close, because the channel (" + channel +
+                        log.warn(channel,
+                                 () -> "Failed to update idle connection count metric on close, because the channel (" + channel +
                                        ") was in an unexpected state: " + channelIdleState);
                 }
             }
@@ -217,7 +219,7 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
      */
     private void decrementIdleConnections() {
         --idleConnections;
-        log.trace(() -> "Idle connection count decremented, now " + idleConnections);
+        log.trace(null, () -> "Idle connection count decremented, now " + idleConnections);
     }
 
     /**
@@ -225,7 +227,7 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
      */
     private void incrementIdleConnections() {
         ++idleConnections;
-        log.trace(() -> "Idle connection count incremented, now " + idleConnections);
+        log.trace(null, () -> "Idle connection count incremented, now " + idleConnections);
     }
 
     /**

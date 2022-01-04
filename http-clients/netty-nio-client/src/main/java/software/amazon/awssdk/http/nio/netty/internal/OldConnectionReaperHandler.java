@@ -20,7 +20,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -31,7 +31,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public class OldConnectionReaperHandler extends ChannelDuplexHandler {
-    private static final Logger log = Logger.loggerFor(OldConnectionReaperHandler.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(OldConnectionReaperHandler.class);
     private final int connectionTtlMillis;
 
     private ScheduledFuture<?> channelKiller;
@@ -84,12 +84,13 @@ public class OldConnectionReaperHandler extends ChannelDuplexHandler {
 
         if (ctx.channel().isOpen()) {
             if (Boolean.FALSE.equals(ctx.channel().attr(ChannelAttributeKey.IN_USE).get())) {
-                log.debug(() -> "Closing unused connection (" + ctx.channel().id() + ") because it has reached its maximum " +
-                                "time to live of " + connectionTtlMillis + " milliseconds.");
+                log.debug(ctx.channel(), () -> "Closing unused connection (" + ctx.channel().id() + ") because it has reached "
+                                              + "its maximum time to live of " + connectionTtlMillis + " milliseconds.");
                 ctx.close();
             } else {
-                log.debug(() -> "Connection (" + ctx.channel().id() + ") will be closed during its next release, because it " +
-                                "has reached its maximum time to live of " + connectionTtlMillis + " milliseconds.");
+                log.debug(ctx.channel(), () -> "Connection (" + ctx.channel().id() + ") will be closed during its next release, "
+                                               + "because it has reached its maximum time to live of " + connectionTtlMillis
+                                               + " milliseconds.");
                 ctx.channel().attr(ChannelAttributeKey.CLOSE_ON_RELEASE).set(true);
             }
         }
