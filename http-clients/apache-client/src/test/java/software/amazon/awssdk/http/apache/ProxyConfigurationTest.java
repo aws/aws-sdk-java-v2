@@ -105,6 +105,18 @@ public class ProxyConfigurationTest {
         assertThat(config.username()).isEqualTo("user");
     }
 
+    @Test
+    public void testProxyConfigurationWithoutNonProxyHosts_toBuilder_shouldNotThrowNPE() {
+        ProxyConfiguration proxyConfiguration =
+            ProxyConfiguration.builder()
+                              .endpoint(URI.create("http://localhost:4321"))
+                              .username("username")
+                              .password("password")
+                              .build();
+
+        assertThat(proxyConfiguration.toBuilder()).isNotNull();
+    }
+
     private static void clearProxyProperties() {
         System.clearProperty("http.proxyHost");
         System.clearProperty("http.proxyPort");

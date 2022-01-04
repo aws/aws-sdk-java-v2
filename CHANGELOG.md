@@ -1,3 +1,48 @@
+# __2.17.104__ __2022-01-04__
+## __AWS S3 Control__
+  - ### Features
+    - Documentation updates for the renaming of Glacier to Glacier Flexible Retrieval.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release introduces a new field IndexFacesModelVersion, which is the version of the face detect and storage model that was used when indexing the face vector.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Minor doc-based updates based on feedback bugs received.
+
+# __2.17.103__ __2022-01-03__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added strength levels to the Sharpness Filter and now permits OGG files to be specified as sidecar audio inputs.
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - This release adds the API operations to manage the Greengrass role associated with your account and to manage the core device connectivity information. Greengrass V2 customers can now depend solely on Greengrass V2 SDK for all the API operations needed to manage their fleets.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Add null check for nonProxyHosts in Apache HTTP Client ProxyConfiguration.
+
+## __Amazon Detective__
+  - ### Features
+    - Added and updated API operations to support the Detective integration with AWS Organizations. New actions are used to manage the delegated administrator account and the integration configuration.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Multiple doc-only updates for Relational Database Service (RDS)
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - The release allows users to pass pipeline definitions as Amazon S3 locations and control the pipeline execution concurrency using ParallelismConfiguration. It also adds support of EMR jobs as pipeline steps.
+
+## __Apache HTTP Client__
+  - ### Bugfixes
+    - Stop auto-enabling TLS protocol versions
+
 # __2.17.102__ __2021-12-21__
 ## __AWS MediaConnect__
   - ### Features
