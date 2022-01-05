@@ -62,6 +62,13 @@ class LogCaptorTest {
         assertThat(getRootLevel()).isEqualTo(originalRootLevel);
     }
 
+    @Test
+    @DisplayName("Assert that appender name uses caller's class name")
+    void test_getCallerClassName() {
+        String callerClassName = LogCaptor.DefaultLogCaptor.getCallerClassName();
+        assertThat(callerClassName).isEqualTo(this.getClass().getName());
+    }
+
     private static Stream<Level> allLevels() {
         return Stream.of(
             Level.TRACE,

@@ -147,11 +147,12 @@ public interface LogCaptor extends SdkAutoCloseable {
             return (org.apache.logging.log4j.core.Logger) LogManager.getRootLogger();
         }
 
-        private static String getCallerClassName() {
+        static String getCallerClassName() {
             return Arrays.stream(Thread.currentThread().getStackTrace())
                          .map(StackTraceElement::getClassName)
                          .filter(className -> !className.equals(Thread.class.getName()))
                          .filter(className -> !className.equals(DefaultLogCaptor.class.getName()))
+                         .filter(className -> !className.equals(LogCaptor.class.getName()))
                          .findFirst()
                          .orElseThrow(NoSuchElementException::new);
         }
