@@ -163,6 +163,11 @@
             <artifactId>slf4j-log4j12</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.eventstream</groupId>
+            <artifactId>eventstream</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
