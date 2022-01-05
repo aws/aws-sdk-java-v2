@@ -15,12 +15,17 @@
 
 package software.amazon.awssdk.testutils;
 
+import static org.apache.logging.log4j.core.config.Configurator.setRootLevel;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.spi.LoggingEvent;
+import java.util.NoSuchElementException;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.appender.AbstractAppender;
+import org.apache.logging.log4j.core.config.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -52,42 +57,61 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public interface LogCaptor extends SdkAutoCloseable {
 
-    List<LoggingEvent> loggedEvents();
+    static LogCaptor create() {
+        return new DefaultLogCaptor();
+    }
+
+    static LogCaptor create(Level level) {
+        return new DefaultLogCaptor(level);
+    }
+
+    List<LogEvent> loggedEvents();
 
     void clear();
 
     class LogCaptorTestBase extends DefaultLogCaptor {
         public LogCaptorTestBase() {
-            super(Level.ALL);
+        }
+
+        public LogCaptorTestBase(Level level) {
+            super(level);
         }
 
         @Override
         @BeforeEach
-        public void setupLogging() {
-            super.setupLogging();
+        public void startCapturing() {
+            super.startCapturing();
         }
 
         @Override
         @AfterEach
-        public void stopLogging() {
-            super.stopLogging();
+        public void stopCapturing() {
+            super.stopCapturing();
         }
     }
 
-    class DefaultLogCaptor extends AppenderSkeleton implements LogCaptor {
+    class DefaultLogCaptor extends AbstractAppender implements LogCaptor {
 
-        private final List<LoggingEvent> loggedEvents = new ArrayList<>();
-        private final Level originalLoggingLevel = Logger.getRootLogger().getLevel();
+        private final List<LogEvent> loggedEvents = new ArrayList<>();
+        private final Level originalLoggingLevel = rootLogger().getLevel();
         private final Level levelToCapture;
 
-        public DefaultLogCaptor(Level levelToCapture) {
-            super();
-            this.levelToCapture = levelToCapture;
-            setupLogging();
+        private DefaultLogCaptor() {
+            this(Level.ALL);
+        }
+
+        private DefaultLogCaptor(Level level) {
+            super(/* name */ getCallerClassName(),
+                /* filter */ null,
+                /* layout */ null,
+                /* ignoreExceptions */ false,
+                /* properties */ Property.EMPTY_ARRAY);
+            this.levelToCapture = level;
+            startCapturing();
         }
 
         @Override
-        public List<LoggingEvent> loggedEvents() {
+        public List<LogEvent> loggedEvents() {
             return new ArrayList<>(loggedEvents);
         }
 
@@ -96,30 +120,41 @@ public interface LogCaptor extends SdkAutoCloseable {
             loggedEvents.clear();
         }
 
-        protected void setupLogging() {
+        protected void startCapturing() {
             loggedEvents.clear();
-            Logger.getRootLogger().addAppender(this);
-            Logger.getRootLogger().setLevel(levelToCapture);
+            rootLogger().addAppender(this);
+            this.start();
+            setRootLevel(levelToCapture);
         }
 
-        protected void stopLogging() {
-            Logger.getRootLogger().removeAppender(this);
-            Logger.getRootLogger().setLevel(originalLoggingLevel);
-        }
-
-        @Override
-        protected void append(LoggingEvent loggingEvent) {
-            loggedEvents.add(loggingEvent);
+        protected void stopCapturing() {
+            rootLogger().removeAppender(this);
+            this.stop();
+            setRootLevel(originalLoggingLevel);
         }
 
         @Override
-        public boolean requiresLayout() {
-            return false;
+        public void append(LogEvent event) {
+            loggedEvents.add(event.toImmutable());
         }
 
         @Override
         public void close() {
-            stopLogging();
+            stopCapturing();
+        }
+
+        private static org.apache.logging.log4j.core.Logger rootLogger() {
+            return (org.apache.logging.log4j.core.Logger) LogManager.getRootLogger();
+        }
+
+        static String getCallerClassName() {
+            return Arrays.stream(Thread.currentThread().getStackTrace())
+                         .map(StackTraceElement::getClassName)
+                         .filter(className -> !className.equals(Thread.class.getName()))
+                         .filter(className -> !className.equals(DefaultLogCaptor.class.getName()))
+                         .filter(className -> !className.equals(LogCaptor.class.getName()))
+                         .findFirst()
+                         .orElseThrow(NoSuchElementException::new);
         }
     }
 }
