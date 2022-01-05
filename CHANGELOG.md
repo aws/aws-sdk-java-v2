@@ -1,3 +1,59 @@
+# __2.17.105__ __2022-01-05__
+## __AWS CloudTrail__
+  - ### Features
+    - This release adds support for CloudTrail Lake, a new feature that lets you run SQL-based queries on events that you have aggregated into event data stores. New APIs have been added for creating and managing event data stores, and creating, running, and managing queries in CloudTrail Lake.
+
+## __AWS Glue__
+  - ### Features
+    - Add Delta Lake target support for Glue Crawler and 3rd Party Support for Lake Formation
+
+## __AWS IoT__
+  - ### Features
+    - This release adds an automatic retry mechanism for AWS IoT Jobs. You can now define a maximum number of retries for each Job rollout, along with the criteria to trigger the retry for FAILED/TIMED_OUT/ALL(both FAILED an TIMED_OUT) job.
+
+## __AWS Lake Formation__
+  - ### Features
+    - Add new APIs for 3rd Party Support for Lake Formation
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Log request ID and extended request ID with the request logger and requestId logger. See [#2876](https://github.com/aws/aws-sdk-java-v2/issues/2876)
+
+## __Amazon AppStream__
+  - ### Features
+    - Includes APIs for App Entitlement management regarding entitlement and entitled application association.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation update for ticket fixes.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds a new API called ModifyVpcEndpointServicePayerResponsibility which allows VPC endpoint service owners to take payer responsibility of their VPC Endpoint connections.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Amazon EKS now supports running applications using IPv6 address space
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Updating validation rules for interfaces used in the Snowball API to tighten security of service.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Multiple Doc-only updates for Amazon QuickSight.
+
+## __Amazon S3__
+  - ### Features
+    - Add support for `SelectObjectContent`.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports running training jobs on ml.g5 instance types.
+
 # __2.17.104__ __2022-01-04__
 ## __AWS S3 Control__
   - ### Features

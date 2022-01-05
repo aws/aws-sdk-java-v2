@@ -23,8 +23,10 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 
 /**
- * Unmarshalling layer on top of the {@link AsyncResponseTransformer} to decode event stream messages for Rest services
- * and deliver them to the subscriber.
+ * Adapter transformer meant for eventstream responses from REST services (REST-XML, REST-JSON). These protocols don't have an
+ * 'initial-response' event, unlike AWS-JSON. In these protocols "initial response" is treated as the HTTP response itself.
+ * When this transformer's {@link #onResponse(SdkResponse)} method is invoked, it also invokes it on the eventstream
+ * response handler, which the normal {@link EventStreamAsyncResponseTransformer} does not do.
  *
  * @param <ResponseT> Initial response type of event stream operation.
  * @param <EventT> Base type of event stream message frames.
