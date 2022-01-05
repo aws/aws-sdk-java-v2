@@ -25,6 +25,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
+import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -49,6 +50,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                                        .partSizeInBytes(builder.minimumPartSizeInBytes())
                                        .maxConcurrency(builder.maxConcurrency)
                                        .credentialsProvider(builder.credentialsProvider)
+                                       .tlsContext(builder.tlsContext)
                                        .asyncConfiguration(builder.asyncConfiguration);
         if (builder.region() != null) {
             configBuilder.signingRegion(builder.region().id());
@@ -61,6 +63,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                                  .withRegion(configuration.signingRegion())
                                  .withClientBootstrap(configuration.clientBootstrap())
                                  .withCredentialsProvider(configuration.credentialsProvider())
+                                 .withTlsContext(configuration.tlsContext())
                                  .withPartSize(configuration.partSizeBytes())
                                  .withThroughputTargetGbps(configuration.targetThroughputInGbps())
                                  .withMaxConnections(configuration.maxConcurrency());
@@ -169,6 +172,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         private Long minimalPartSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
+        private TlsContext tlsContext;
         private ClientAsyncConfiguration asyncConfiguration;
 
         public AwsCredentialsProvider credentialsProvider() {
@@ -193,6 +197,10 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
 
         public Integer maxConcurrency() {
             return maxConcurrency;
+        }
+
+        public TlsContext tlsContext() {
+            return tlsContext;
         }
 
         @Override
@@ -228,6 +236,12 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         @Override
         public S3CrtAsyncClientBuilder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder tlsContext(TlsContext tlsContext) {
+            this.tlsContext = tlsContext;
             return this;
         }
 

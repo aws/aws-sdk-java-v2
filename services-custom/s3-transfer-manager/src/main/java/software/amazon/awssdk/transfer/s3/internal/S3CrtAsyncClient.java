@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
+import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -42,6 +43,8 @@ public interface S3CrtAsyncClient extends S3AsyncClient {
         S3CrtAsyncClientBuilder targetThroughputInGbps(Double targetThroughputInGbps);
 
         S3CrtAsyncClientBuilder maxConcurrency(Integer maxConcurrency);
+
+        S3CrtAsyncClientBuilder tlsContext(TlsContext tlsContext);
 
         /**
          * Specify overrides to the default SDK async configuration that should be used for clients created by this builder.

@@ -86,6 +86,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         tmBuilder.s3ClientConfiguration.minimumPartSizeInBytes().ifPresent(clientBuilder::minimumPartSizeInBytes);
         tmBuilder.s3ClientConfiguration.region().ifPresent(clientBuilder::region);
         tmBuilder.s3ClientConfiguration.targetThroughputInGbps().ifPresent(clientBuilder::targetThroughputInGbps);
+        tmBuilder.s3ClientConfiguration.tlsContext().ifPresent(clientBuilder::tlsContext);
         ClientAsyncConfiguration clientAsyncConfiguration =
             ClientAsyncConfiguration.builder()
                                     .advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,

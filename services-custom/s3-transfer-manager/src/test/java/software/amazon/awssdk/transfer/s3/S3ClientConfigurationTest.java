@@ -23,6 +23,8 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.crt.io.TlsContext;
+import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.regions.Region;
 
 public class S3ClientConfigurationTest {
@@ -68,6 +70,7 @@ public class S3ClientConfigurationTest {
     public void build_allProperties() {
         AwsCredentialsProvider credentials = () -> AwsBasicCredentials.create("test"
             , "test");
+        TlsContext tlsContext = new TlsContext(TlsContextOptions.createDefaultClient());
         S3ClientConfiguration configuration = S3ClientConfiguration.builder()
                                                                    .credentialsProvider(credentials)
                                                                    .maxConcurrency(100)
@@ -75,6 +78,7 @@ public class S3ClientConfigurationTest {
                                                                    .endpoint("https://s3.us-west-2.amazonaws.com")
                                                                    .region(Region.US_WEST_2)
                                                                    .minimumPartSizeInBytes(5 * MB)
+                                                                   .tlsContext(tlsContext)
                                                                    .build();
 
         assertThat(configuration.credentialsProvider()).contains(credentials);
@@ -83,6 +87,7 @@ public class S3ClientConfigurationTest {
         assertThat(configuration.region()).contains(Region.US_WEST_2);
         assertThat(configuration.targetThroughputInGbps()).contains(10.0);
         assertThat(configuration.minimumPartSizeInBytes()).contains(5 * MB);
+        assertThat(configuration.tlsContext()).isNotEmpty();
     }
 
     @Test
@@ -96,6 +101,7 @@ public class S3ClientConfigurationTest {
         assertThat(configuration.region()).isEmpty();
         assertThat(configuration.targetThroughputInGbps()).isEmpty();
         assertThat(configuration.minimumPartSizeInBytes()).isEmpty();
+        assertThat(configuration.tlsContext()).isEmpty();
     }
 
     @Test

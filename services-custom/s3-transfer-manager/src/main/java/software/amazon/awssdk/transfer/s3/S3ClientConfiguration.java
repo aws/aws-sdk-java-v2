@@ -20,6 +20,7 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -40,6 +41,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
     private final Long minimumPartSizeInBytes;
     private final Double targetThroughputInGbps;
     private final Integer maxConcurrency;
+    private final TlsContext tlsContext;
 
     private S3ClientConfiguration(DefaultBuilder builder) {
         this.credentialsProvider = builder.credentialsProvider;
@@ -49,6 +51,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         this.targetThroughputInGbps = Validate.isPositiveOrNull(builder.targetThroughputInGbps, "targetThroughputInGbps");
         this.maxConcurrency = Validate.isPositiveOrNull(builder.maxConcurrency,
                                                         "maxConcurrency");
+        this.tlsContext = builder.tlsContext;
     }
 
     /**
@@ -93,6 +96,13 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         return Optional.ofNullable(maxConcurrency);
     }
 
+    /**
+     * @return the optional TLS configuration context in the AWS Common Runtime.
+     */
+    public Optional<TlsContext> tlsContext() {
+        return Optional.ofNullable(tlsContext);
+    }
+
     @Override
     public Builder toBuilder() {
         return new DefaultBuilder(this);
@@ -124,7 +134,10 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         if (!Objects.equals(targetThroughputInGbps, that.targetThroughputInGbps)) {
             return false;
         }
-        return Objects.equals(maxConcurrency, that.maxConcurrency);
+        if (!Objects.equals(maxConcurrency, that.maxConcurrency)) {
+            return false;
+        }
+        return Objects.equals(tlsContext, that.tlsContext);
     }
 
     @Override
@@ -135,6 +148,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         result = 31 * result + (minimumPartSizeInBytes != null ? minimumPartSizeInBytes.hashCode() : 0);
         result = 31 * result + (targetThroughputInGbps != null ? targetThroughputInGbps.hashCode() : 0);
         result = 31 * result + (maxConcurrency != null ? maxConcurrency.hashCode() : 0);
+        result = 31 * result + (tlsContext != null ? tlsContext.hashCode() : 0);
         return result;
     }
 
@@ -239,6 +253,16 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
          * @see #targetThroughputInGbps(Double)
          */
         Builder maxConcurrency(Integer maxConcurrency);
+
+        /**
+         * Configure the TLS configuration context in the AWS Common Runtime.
+         *
+         * <p>If this is not specified, the AWS Common Runtime will not be configured with a TLS configuration context.
+         *
+         * @param tlsContext the TLS configuration context
+         * @return this builder for method chaining.
+         */
+        Builder tlsContext(TlsContext tlsContext);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -248,6 +272,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         private Long minimumPartSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
+        private TlsContext tlsContext;
 
         private DefaultBuilder() {
         }
@@ -259,6 +284,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
             this.minimumPartSizeInBytes = configuration.minimumPartSizeInBytes;
             this.targetThroughputInGbps = configuration.targetThroughputInGbps;
             this.maxConcurrency = configuration.maxConcurrency;
+            this.tlsContext = configuration.tlsContext;
         }
 
         @Override
@@ -294,6 +320,12 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         @Override
         public Builder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        @Override
+        public Builder tlsContext(TlsContext tlsContext) {
+            this.tlsContext = tlsContext;
             return this;
         }
 

@@ -31,6 +31,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
+import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.transfer.s3.SizeConstant;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -51,6 +52,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final long partSizeInBytes;
     private final double targetThroughputInGbps;
     private final int maxConcurrency;
+    private final TlsContext tlsContext;
     private final Executor futureCompletionExecutor;
 
     public S3NativeClientConfiguration(Builder builder) {
@@ -73,6 +75,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         // Using 0 so that CRT will calculate it based on targetThroughputGbps
         this.maxConcurrency = builder.maxConcurrency == null ? 0 : builder.maxConcurrency;
+
+        this.tlsContext = builder.tlsContext;
 
         this.futureCompletionExecutor = resolveAsyncFutureCompletionExecutor(builder.asynConfiguration);
     }
@@ -107,6 +111,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
     public int maxConcurrency() {
         return maxConcurrency;
+    }
+
+    public TlsContext tlsContext() {
+        return tlsContext;
     }
 
     public Executor futureCompletionExecutor() {
@@ -162,6 +170,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private Long partSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
+        private TlsContext tlsContext;
         private ClientAsyncConfiguration asynConfiguration;
 
         private Builder() {
@@ -194,6 +203,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        public Builder tlsContext(TlsContext tlsContext) {
+            this.tlsContext = tlsContext;
             return this;
         }
 
