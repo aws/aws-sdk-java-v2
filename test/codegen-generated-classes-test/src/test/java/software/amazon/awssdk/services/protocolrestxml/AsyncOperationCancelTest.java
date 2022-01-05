@@ -25,9 +25,13 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestxml.model.AllTypesResponse;
+import software.amazon.awssdk.services.protocolrestxml.model.EventStream;
+import software.amazon.awssdk.services.protocolrestxml.model.EventStreamOperationResponse;
+import software.amazon.awssdk.services.protocolrestxml.model.EventStreamOperationResponseHandler;
 import software.amazon.awssdk.services.protocolrestxml.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.protocolrestxml.model.StreamingOutputOperationResponse;
 
@@ -89,29 +93,27 @@ public class AsyncOperationCancelTest {
     }
 
     @Test
-    // TODO: RestXml code generation does not support event streaming operations
     public void testEventStreamingOperation() {
-//        CompletableFuture<Void> responseFuture = client.eventStreamOperation(r -> {
-//                },
-//                subscriber -> {},
-//                new EventStreamOperationResponseHandler() {
-//                    @Override
-//                    public void responseReceived(EventStreamOperationResponse response) {
-//                    }
-//
-//                    @Override
-//                    public void onEventStream(SdkPublisher<EventStream> publisher) {
-//                    }
-//
-//                    @Override
-//                    public void exceptionOccurred(Throwable throwable) {
-//                    }
-//
-//                    @Override
-//                    public void complete() {
-//                    }
-//                });
-//        responseFuture.cancel(true);
-//        assertThat(executeFuture.isCompletedExceptionally()).isTrue();
+       CompletableFuture<Void> responseFuture = client.eventStreamOperation(r -> {
+               },
+               new EventStreamOperationResponseHandler() {
+                   @Override
+                   public void responseReceived(EventStreamOperationResponse response) {
+                   }
+
+                   @Override
+                   public void onEventStream(SdkPublisher<EventStream> publisher) {
+                   }
+
+                   @Override
+                   public void exceptionOccurred(Throwable throwable) {
+                   }
+
+                   @Override
+                   public void complete() {
+                   }
+               });
+       responseFuture.cancel(true);
+       assertThat(executeFuture.isCompletedExceptionally()).isTrue();
     }
 }
