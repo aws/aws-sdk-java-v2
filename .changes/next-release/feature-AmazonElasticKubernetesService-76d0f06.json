@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Kubernetes Service",
+    "contributor": "",
+    "description": "Amazon EKS now supports running applications using IPv6 address space"
+}
