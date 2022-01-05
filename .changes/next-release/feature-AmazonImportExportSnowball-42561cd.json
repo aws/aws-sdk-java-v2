@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Import/Export Snowball",
-    "contributor": "",
-    "description": "Updating validation rules for interfaces used in the Snowball API to tighten security of service."
-}
