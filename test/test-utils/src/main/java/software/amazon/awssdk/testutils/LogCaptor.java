@@ -20,6 +20,7 @@ import static org.apache.logging.log4j.core.config.Configurator.setRootLevel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LogEvent;
@@ -148,11 +149,11 @@ public interface LogCaptor extends SdkAutoCloseable {
 
         private static String getCallerClassName() {
             return Arrays.stream(Thread.currentThread().getStackTrace())
-                         .filter(ste -> !ste.getClassName().equals(Thread.class.getName()))
-                         .filter(ste -> !ste.getClassName().equals(DefaultLogCaptor.class.getName()))
-                         .findFirst()
                          .map(StackTraceElement::getClassName)
-                         .orElse(null);
+                         .filter(className -> !className.equals(Thread.class.getName()))
+                         .filter(className -> !className.equals(DefaultLogCaptor.class.getName()))
+                         .findFirst()
+                         .orElseThrow(NoSuchElementException::new);
         }
     }
 }
