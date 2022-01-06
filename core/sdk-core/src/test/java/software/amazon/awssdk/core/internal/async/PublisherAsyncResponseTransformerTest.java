@@ -22,8 +22,8 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -31,14 +31,14 @@ import software.amazon.awssdk.core.async.ResponsePublisher;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer.BaosSubscriber;
 
-public class PublisherAsyncResponseTransformerTest {
+class PublisherAsyncResponseTransformerTest {
 
     private PublisherAsyncResponseTransformer<SdkResponse> transformer;
     private SdkResponse response;
     private String publisherStr;
     private SdkPublisher<ByteBuffer> publisher;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         transformer = new PublisherAsyncResponseTransformer<>();
         response = Mockito.mock(SdkResponse.class);
@@ -47,7 +47,7 @@ public class PublisherAsyncResponseTransformerTest {
     }
 
     @Test
-    public void successfulResponseAndStream_returnsResponsePublisher() throws Exception {
+    void successfulResponseAndStream_returnsResponsePublisher() throws Exception {
         CompletableFuture<ResponsePublisher<SdkResponse>> responseFuture = transformer.prepare();
         transformer.onResponse(response);
         assertThat(responseFuture.isDone()).isFalse();
@@ -60,7 +60,7 @@ public class PublisherAsyncResponseTransformerTest {
     }
 
     @Test
-    public void failedResponse_completesExceptionally() {
+    void failedResponse_completesExceptionally() {
         CompletableFuture<ResponsePublisher<SdkResponse>> responseFuture = transformer.prepare();
         assertThat(responseFuture.isDone()).isFalse();
         transformer.exceptionOccurred(new RuntimeException("Intentional exception for testing purposes"));
@@ -71,7 +71,7 @@ public class PublisherAsyncResponseTransformerTest {
     }
 
     @Test
-    public void failedStream_completesExceptionally() {
+    void failedStream_completesExceptionally() {
         CompletableFuture<ResponsePublisher<SdkResponse>> responseFuture = transformer.prepare();
         transformer.onResponse(response);
         assertThat(responseFuture.isDone()).isFalse();
