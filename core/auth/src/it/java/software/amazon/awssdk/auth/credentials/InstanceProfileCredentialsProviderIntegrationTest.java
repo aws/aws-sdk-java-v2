@@ -24,12 +24,11 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
  * Unit tests for the InstanceProfileCredentialsProvider.
  */
-public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor.LogCaptorTestBase {
+public class InstanceProfileCredentialsProviderIntegrationTest {
 
     private EC2MetadataServiceMock mockServer;
 

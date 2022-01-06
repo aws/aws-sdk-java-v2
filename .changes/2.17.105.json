@@ -1,0 +1,90 @@
+{
+    "version": "2.17.105",
+    "date": "2022-01-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Import/Export Snowball",
+            "contributor": "",
+            "description": "Updating validation rules for interfaces used in the Snowball API to tighten security of service."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Log request ID and extended request ID with the request logger and requestId logger. See [#2876](https://github.com/aws/aws-sdk-java-v2/issues/2876)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Documentation update for ticket fixes."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Add support for `SelectObjectContent`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Add Delta Lake target support for Glue Crawler and 3rd Party Support for Lake Formation"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail",
+            "contributor": "",
+            "description": "This release adds support for CloudTrail Lake, a new feature that lets you run SQL-based queries on events that you have aggregated into event data stores. New APIs have been added for creating and managing event data stores, and creating, running, and managing queries in CloudTrail Lake."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "contributor": "",
+            "description": "Add new APIs for 3rd Party Support for Lake Formation"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Multiple Doc-only updates for Amazon QuickSight."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds a new API called ModifyVpcEndpointServicePayerResponsibility which allows VPC endpoint service owners to take payer responsibility of their VPC Endpoint connections."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "Includes APIs for App Entitlement management regarding entitlement and entitled application association."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Amazon EKS now supports running applications using IPv6 address space"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker now supports running training jobs on ml.g5 instance types."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "This release adds an automatic retry mechanism for AWS IoT Jobs. You can now define a maximum number of retries for each Job rollout, along with the criteria to trigger the retry for FAILED/TIMED_OUT/ALL(both FAILED an TIMED_OUT) job."
+        }
+    ]
+}
