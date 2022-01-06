@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS AppSync",
-    "contributor": "",
-    "description": "AppSync: AWS AppSync now supports configurable batching sizes for AWS Lambda resolvers, Direct AWS Lambda resolvers and pipeline functions"
-}
