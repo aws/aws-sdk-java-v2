@@ -37,9 +37,9 @@ import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.codec.http2.Http2StreamFrame;
 import io.netty.util.ReferenceCountUtil;
 import java.net.URI;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.EmptyPublisher;
 import software.amazon.awssdk.http.Http2Metric;
 import software.amazon.awssdk.http.HttpMetric;
@@ -59,12 +59,12 @@ public class Http2MetricsTest {
 
     private static final TestHttp2Server SERVER = new TestHttp2Server();
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws InterruptedException {
         SERVER.start();
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() throws InterruptedException {
         SERVER.stop();
     }
@@ -86,6 +86,7 @@ public class Http2MetricsTest {
             assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY).get(0)).isBetween(0, 1);
             assertThat(metrics.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES).get(0)).isBetween(0, 1);
             assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).containsExactly(0);
+            assertThat(metrics.metricValues(HttpMetric.CONCURRENCY_ACQUIRE_DURATION).get(0)).isPositive();
             // The stream window doesn't get initialized with the connection
             // initial setting and the update appears to be asynchronous so
             // this may be the default window size just based on when the
@@ -113,6 +114,7 @@ public class Http2MetricsTest {
             assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY).get(0)).isBetween(0, 1);
             assertThat(metrics.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES).get(0)).isBetween(0, 1);
             assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY).get(0)).isIn(0, 2, 3);
+            assertThat(metrics.metricValues(HttpMetric.CONCURRENCY_ACQUIRE_DURATION).get(0)).isPositive();
             // The stream window doesn't get initialized with the connection
             // initial setting and the update appears to be asynchronous so
             // this may be the default window size just based on when the

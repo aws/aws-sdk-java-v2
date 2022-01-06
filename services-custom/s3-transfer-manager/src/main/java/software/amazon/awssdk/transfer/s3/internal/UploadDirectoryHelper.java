@@ -41,6 +41,7 @@ import software.amazon.awssdk.transfer.s3.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.FailedFileUpload;
 import software.amazon.awssdk.transfer.s3.FileUpload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.UploadDirectoryOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.UploadFileRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -230,9 +231,16 @@ public class UploadDirectoryHelper {
                                                             .bucket(uploadDirectoryRequest.bucket())
                                                             .key(key)
                                                             .build();
-        return UploadFileRequest.builder()
-                                .source(path)
-                                .putObjectRequest(putObjectRequest)
-                                .build();
+
+        UploadFileRequest.Builder requestBuilder = UploadFileRequest.builder()
+                                                                    .source(path)
+                                                                    .putObjectRequest(putObjectRequest);
+
+        uploadDirectoryRequest.overrideConfiguration()
+                              .flatMap(UploadDirectoryOverrideConfiguration::uploadFileRequestTransformer)
+                              .ifPresent(c -> c.accept(requestBuilder));
+
+        return requestBuilder.build();
     }
+
 }

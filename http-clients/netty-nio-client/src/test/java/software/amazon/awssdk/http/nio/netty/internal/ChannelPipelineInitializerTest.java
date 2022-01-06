@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
 
 import io.netty.buffer.UnpooledByteBufAllocator;
@@ -33,7 +33,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.Protocol;
 
 public class ChannelPipelineInitializerTest {

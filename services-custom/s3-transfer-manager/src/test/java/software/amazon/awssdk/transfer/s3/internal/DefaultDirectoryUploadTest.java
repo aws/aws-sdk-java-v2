@@ -16,7 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.transfer.s3.UploadRequest;
 
 public class DefaultDirectoryUploadTest {

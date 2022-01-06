@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sns;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -23,13 +23,13 @@ import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class SnsSignatureCheckerTest extends AwsTestBase {
 
     @Test
-    public void validateMessageTest() throws URISyntaxException, IOException, CertificateException {
+    public void validateMessageTest() throws Exception {
         final String jsonMessage = getResourceAsString(getClass(), SnsTestResources.SAMPLE_MESSAGE);
         SignatureChecker checker = new SignatureChecker();
         assertTrue(checker.verifyMessageSignature(jsonMessage, getPublicKey()));

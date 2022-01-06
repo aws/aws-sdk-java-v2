@@ -126,6 +126,47 @@ public class NettyNioAsyncHttpClientWireMockTest {
     }
 
     @Test
+    public void noTlsTimeout_shouldResolveToConnectTimeout() {
+        Duration connectTimeout = Duration.ofSeconds(1);
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                                                               .connectionTimeout(connectTimeout)
+                                                                                               .build()) {
+            assertThat(client.configuration().tlsHandshakeTimeout()).isEqualTo(connectTimeout);
+        }
+        Duration timeoutOverride = Duration.ofSeconds(2);
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                                                               .connectionTimeout(connectTimeout)
+                                                                                               .connectionTimeout(timeoutOverride)
+                                                                                               .build()) {
+            assertThat(client.configuration().tlsHandshakeTimeout()).isEqualTo(timeoutOverride);
+        }
+
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.create()) {
+            assertThat(client.configuration().tlsHandshakeTimeout().toMillis()).
+                isEqualTo(client.configuration().connectTimeoutMillis());
+        }
+    }
+
+    @Test
+    public void tlsTimeoutConfigured_shouldHonor() {
+        Duration connectTimeout = Duration.ofSeconds(1);
+        Duration tlsTimeout = Duration.ofSeconds(3);
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                                                               .tlsNegotiationTimeout(tlsTimeout)
+                                                                                               .connectionTimeout(connectTimeout)
+                                                                                               .build()) {
+            assertThat(client.configuration().tlsHandshakeTimeout()).isEqualTo(tlsTimeout);
+        }
+
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                                                               .connectionTimeout(connectTimeout)
+                                                                                               .tlsNegotiationTimeout(tlsTimeout)
+                                                                                               .build()) {
+            assertThat(client.configuration().tlsHandshakeTimeout()).isEqualTo(tlsTimeout);
+        }
+    }
+
+    @Test
     public void overrideConnectionIdleTimeout_shouldHonor() {
         try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
                                                                                                .connectionMaxIdleTime(Duration.ofMillis(1000))

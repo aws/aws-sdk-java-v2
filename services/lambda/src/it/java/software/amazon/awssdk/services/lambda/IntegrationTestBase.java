@@ -121,11 +121,12 @@ public class IntegrationTestBase extends AwsTestBase {
                                                                         .assumeRolePolicyDocument(LAMBDA_ASSUME_ROLE_POLICY).build());
 
         lambdaServiceRoleArn = result.role().arn();
+        iam.waiter().waitUntilRoleExists(r -> r.roleName(LAMBDA_SERVICE_ROLE_NAME)).matched().response().ifPresent(o -> {});
 
         roleExecutionPolicyArn = iam
                 .createPolicy(CreatePolicyRequest.builder().policyName(LAMBDA_SERVICE_ROLE_POLICY_NAME).policyDocument(
                                 LAMBDA_ROLE_EXECUTION_POLICY).build()).policy().arn();
-
+        iam.waiter().waitUntilPolicyExists(p -> p.policyArn(roleExecutionPolicyArn)).matched().response().ifPresent(o -> {});
         iam.attachRolePolicy(AttachRolePolicyRequest.builder().roleName(LAMBDA_SERVICE_ROLE_NAME).policyArn(
                 roleExecutionPolicyArn).build());
     }

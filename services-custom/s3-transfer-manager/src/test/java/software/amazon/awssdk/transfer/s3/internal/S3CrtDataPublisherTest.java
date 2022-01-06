@@ -27,8 +27,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -36,7 +36,7 @@ public class S3CrtDataPublisherTest {
 
     private S3CrtDataPublisher dataPublisher;
 
-    @Before
+    @BeforeEach
     public void setup() {
         dataPublisher = new S3CrtDataPublisher();
     }

@@ -19,8 +19,8 @@ import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_TIMEOUT_SECONDS;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.runAndLogError;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
-import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -34,8 +34,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.Protocol;
@@ -55,6 +53,7 @@ import software.amazon.awssdk.http.nio.netty.internal.SdkChannelOptions;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.SharedSdkEventLoopGroup;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Validate;
@@ -69,7 +68,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     private static final String CLIENT_NAME = "NettyNio";
 
-    private static final Logger log = LoggerFactory.getLogger(NettyNioAsyncHttpClient.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(NettyNioAsyncHttpClient.class);
     private static final long MAX_STREAMS_ALLOWED = 4294967295L; // unsigned 32-bit, 2^32 -1
     private static final int DEFAULT_INITIAL_WINDOW_SIZE = 1_048_576; // 1MiB
 
@@ -210,7 +209,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         } catch (TimeoutException e) {
-            log.error(String.format("Shutting down Netty EventLoopGroup did not complete within %s seconds",
+            log.error(null, () -> String.format("Shutting down Netty EventLoopGroup did not complete within %s seconds",
                                     EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS));
         }
     }
@@ -720,6 +719,11 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         @Override
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
+            if (standardOptions.get(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT) == null) {
+                standardOptions.put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT,
+                                    standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT));
+            }
+
             return new NettyNioAsyncHttpClient(this, standardOptions.build()
                                                                     .merge(serviceDefaults)
                                                                     .merge(NETTY_HTTP_DEFAULTS)

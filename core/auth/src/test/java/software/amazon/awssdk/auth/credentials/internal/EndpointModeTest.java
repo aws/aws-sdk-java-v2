@@ -19,7 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider.EndpointMode.IPV4;
 import static software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider.EndpointMode.IPV6;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 public class EndpointModeTest {
     @Test

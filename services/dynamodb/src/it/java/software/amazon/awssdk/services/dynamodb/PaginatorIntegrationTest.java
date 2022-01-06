@@ -24,10 +24,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -43,6 +48,7 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 import software.amazon.awssdk.services.dynamodb.paginators.ScanIterable;
+import software.amazon.awssdk.services.dynamodb.paginators.ScanPublisher;
 import utils.resources.tables.BasicTempTable;
 import utils.test.util.DynamoDBTestBase;
 import utils.test.util.TableUtils;
@@ -210,6 +216,46 @@ public class PaginatorIntegrationTest extends DynamoDBTestBase {
             count += response.count();
         }
         assertEquals(ITEM_COUNT, count);
+    }
+    
+    @Test
+    public void sdkPublisher_subscribe_handlesExceptions() throws Exception {
+        RuntimeException innerException = new RuntimeException();
+        ScanRequest request = scanRequest(2);
+        try {
+            dynamoAsync.scanPaginator(request).subscribe(r -> {
+                throw innerException;
+            }).get(5, TimeUnit.SECONDS);
+        } catch (ExecutionException executionException) {
+            assertThat(executionException.getCause()).isSameAs(innerException);
+        }
+    }
+
+    @Test
+    public void sdkPublisher_filter_handlesExceptions()  {
+        sdkPublisherFunctionHandlesException((p, t) -> p.filter(f -> { throw t; }));
+    }
+
+    @Test
+    public void sdkPublisher_map_handlesExceptions() {
+        sdkPublisherFunctionHandlesException((p, t) -> p.map(f -> { throw t; }));
+    }
+
+    @Test
+    public void sdkPublisher_flatMapIterable_handlesExceptions() {
+        sdkPublisherFunctionHandlesException((p, t) -> p.flatMapIterable(f -> { throw t; }));
+    }
+
+    public void sdkPublisherFunctionHandlesException(BiFunction<ScanPublisher, RuntimeException, SdkPublisher<?>> function) {
+        RuntimeException innerException = new RuntimeException();
+        ScanRequest request = scanRequest(2);
+        try {
+            function.apply(dynamoAsync.scanPaginator(request), innerException).subscribe(r -> {}).get(5, TimeUnit.SECONDS);
+        } catch (ExecutionException executionException) {
+            assertThat(executionException.getCause()).isSameAs(innerException);
+        } catch (InterruptedException | TimeoutException e) {
+            throw new AssertionError("SDK Publisher function did not handle exceptions correctly.", e);
+        }
     }
 
     private static void putTestData() {

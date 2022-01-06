@@ -36,7 +36,7 @@ import java.util.Base64;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -45,7 +45,7 @@ import software.amazon.awssdk.utils.StringUtils;
 @SdkInternalApi
 public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
     
-    public static final Logger log = Logger.loggerFor(ProxyTunnelInitHandler.class);
+    public static final NettyClientLogger log = NettyClientLogger.getLogger(ProxyTunnelInitHandler.class);
     private final ChannelPool sourcePool;
     private final String username;
     private final String password;
@@ -116,7 +116,7 @@ public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
         if (!initPromise.isDone()) {
             handleConnectRequestFailure(ctx, null);
         } else {
-            log.debug(() -> "The proxy channel (" + ctx.channel().id() + ") is inactive");
+            log.debug(ctx.channel(), () -> "The proxy channel (" + ctx.channel().id() + ") is inactive");
             closeAndRelease(ctx);
         }
     }
@@ -126,8 +126,8 @@ public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
         if (!initPromise.isDone()) {
             handleConnectRequestFailure(ctx, cause);
         } else {
-            log.debug(() -> "An exception occurred on the proxy tunnel channel (" + ctx.channel().id() + "). " +
-                            "The channel has been closed to prevent any ongoing issues.", cause);
+            log.debug(ctx.channel(), () -> "An exception occurred on the proxy tunnel channel (" + ctx.channel().id() + "). " +
+                                           "The channel has been closed to prevent any ongoing issues.", cause);
             closeAndRelease(ctx);
         }
     }

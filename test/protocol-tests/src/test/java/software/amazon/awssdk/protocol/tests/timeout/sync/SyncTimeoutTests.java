@@ -25,9 +25,9 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.time.Duration;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
@@ -51,7 +51,7 @@ public class SyncTimeoutTests {
     private static final int DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT = 1100;
     private ProtocolRestJsonClient client;
 
-    @Before
+    @BeforeEach
     public void setup() {
         client = ProtocolRestJsonClient.builder()
                                        .region(Region.US_WEST_1)

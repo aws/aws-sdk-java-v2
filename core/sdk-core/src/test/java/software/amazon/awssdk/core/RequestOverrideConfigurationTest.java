@@ -15,9 +15,8 @@
 
 package software.amazon.awssdk.core;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.time.Duration;
@@ -27,15 +26,52 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class RequestOverrideConfigurationTest {
     private static final String HEADER = "header";
     private static final String QUERY_PARAM = "queryparam";
+
+    @Test
+    public void equalsHashcode() {
+        EqualsVerifier.forClass(RequestOverrideConfiguration.class)
+                      .usingGetClass()
+                      .verify();
+    }
+
+    @Test
+    public void toBuilder_minimal() {
+        RequestOverrideConfiguration configuration = SdkRequestOverrideConfiguration.builder()
+                                                                                    .build();
+
+        assertThat(configuration.toBuilder().build()).usingRecursiveComparison().isEqualTo(configuration);
+    }
+
+    @Test
+    public void toBuilder_maximal() {
+        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
+        String expectedValue = "Value1";
+
+        RequestOverrideConfiguration configuration = SdkRequestOverrideConfiguration.builder()
+                .putHeader(HEADER, "foo")
+                .putRawQueryParameter(QUERY_PARAM, "foo")
+                .addApiName(a -> a.name("test1").version("1"))
+                .apiCallTimeout(Duration.ofSeconds(1))
+                .apiCallAttemptTimeout(Duration.ofSeconds(1))
+                .signer(new NoOpSigner())
+                .executionAttributes(ExecutionAttributes.builder().put(testAttribute, expectedValue).build())
+                .addMetricPublisher(mock(MetricPublisher.class))
+                .build();
+
+        assertThat(configuration.toBuilder().build()).usingRecursiveComparison().isEqualTo(configuration);
+    }
 
     @Test
     public void addingSameItemTwice_shouldOverride() {
@@ -283,5 +319,13 @@ public class RequestOverrideConfigurationTest {
         assertThat(request1Override).isEqualTo(request1Override);
         assertThat(request1Override).isEqualTo(request2Override);
         assertThat(request1Override).isNotEqualTo(null);
+    }
+
+    private static class NoOpSigner implements Signer {
+
+        @Override
+        public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
+            return null;
+        }
     }
 }

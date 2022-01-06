@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class RateLimitingTokenBucketTest {
@@ -66,6 +66,8 @@ public class RateLimitingTokenBucketTest {
         long elapsed = System.nanoTime() - a;
 
         assertThat(acquired).isTrue();
+        assertThat(tb.getCurrentCapacity()).isNegative();
+        assertThat(tb.getCurrentCapacity()).isEqualTo(-1.0);
         assertThat(Duration.ofNanos(elapsed).getSeconds()).isEqualTo(1);
     }
 
@@ -96,6 +98,53 @@ public class RateLimitingTokenBucketTest {
         tb.setCurrentCapacity(5.0);
 
         assertThat(tb.tryAcquireCapacity(5.0)).isZero();
+        assertThat(tb.getCurrentCapacity()).isZero();
+    }
+
+    @Test
+    public void tryAcquireCapacity_amountGreaterThanCapacity_returnsNonZero() {
+        RateLimitingTokenBucket tb = new RateLimitingTokenBucket();
+        tb.setCurrentCapacity(5.0);
+
+        assertThat(tb.tryAcquireCapacity(8.0)).isEqualTo(3);
+        assertThat(tb.getCurrentCapacity()).isNegative();
+        assertThat(tb.getCurrentCapacity()).isEqualTo(-3);
+    }
+
+
+    @Test
+    public void acquire_amountGreaterThanNonZeroPositiveCapacity_setsNegativeCapacity() {
+        RateLimitingTokenBucket tb = Mockito.spy(new RateLimitingTokenBucket());
+
+        // stub out sleep , since we do not actually want to wait for sleep time
+        Mockito.doAnswer(invocationOnMock -> null).when(tb).sleep(2);
+
+        tb.setFillRate(1.0);
+        tb.setCurrentCapacity(1.0);
+        tb.enable();
+
+        boolean acquired = tb.acquire(3.0);
+        assertThat(acquired).isTrue();
+        assertThat(tb.getCurrentCapacity()).isNegative();
+        assertThat(tb.getCurrentCapacity()).isEqualTo(-2.0);
+    }
+
+    @Test
+    public void acquire_amountGreaterThanNegativeCapacity_setsNegativeCapacity() {
+        RateLimitingTokenBucket tb = Mockito.spy(new RateLimitingTokenBucket());
+
+        // stub out sleep , since we do not actually want to wait for sleep time
+        Mockito.doAnswer(invocationOnMock -> null).when(tb).sleep(3);
+
+        tb.setFillRate(1.0);
+        tb.setCurrentCapacity(-1.0);
+        tb.enable();
+
+        boolean acquired = tb.acquire(2.0);
+
+        assertThat(acquired).isTrue();
+        assertThat(tb.getCurrentCapacity()).isNegative();
+        assertThat(tb.getCurrentCapacity()).isEqualTo(-3.0);
     }
 
     @Test

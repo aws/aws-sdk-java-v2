@@ -34,9 +34,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -175,7 +175,7 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
         RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)));
     }
 
-    @Before
+    @BeforeEach
     public void createTable() {
         mappedTable.createTable(
                 r -> r.provisionedThroughput(getDefaultProvisionedThroughput())
@@ -187,7 +187,7 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
                                         .build()));
     }
 
-    @After
+    @AfterEach
     public void deleteTable() {
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName("table-name"))

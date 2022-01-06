@@ -85,6 +85,11 @@ public class UpdateItemOperation<T>
     }
 
     @Override
+    public OperationName operationName() {
+        return OperationName.UPDATE_ITEM;
+    }
+
+    @Override
     public UpdateItemRequest generateRequest(TableSchema<T> tableSchema,
                                              OperationContext operationContext,
                                              DynamoDbEnhancedClientExtension extension) {
@@ -103,11 +108,12 @@ public class UpdateItemOperation<T>
         WriteModification transformation =
             extension != null
             ? extension.beforeWrite(DefaultDynamoDbExtensionContext.builder()
-                                                                                     .items(itemMap)
-                                                                                     .operationContext(operationContext)
-                                                                                     .tableMetadata(tableMetadata)
-                                                                                     .tableSchema(tableSchema)
-                                                                                     .build())
+                                                                   .items(itemMap)
+                                                                   .operationContext(operationContext)
+                                                                   .tableMetadata(tableMetadata)
+                                                                   .tableSchema(tableSchema)
+                                                                   .operationName(operationName())
+                                                                   .build())
             : null;
 
         if (transformation != null && transformation.transformedItem() != null) {

@@ -27,10 +27,10 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 
 import java.util.Objects;
 import java.util.concurrent.CompletionException;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
@@ -219,7 +219,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
-    @Before
+    @BeforeEach
     public void createTable() {
 
         mappedTable.createTable(
@@ -233,7 +233,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                 .join();
     }
 
-    @After
+    @AfterEach
     public void deleteTable() {
         getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
                                                                .tableName(getConcreteTableName("table-name"))

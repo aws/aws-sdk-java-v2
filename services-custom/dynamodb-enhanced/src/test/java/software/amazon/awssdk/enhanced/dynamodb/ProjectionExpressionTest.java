@@ -1,18 +1,16 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.junit.Before;
-import org.junit.Test;
-import software.amazon.awssdk.enhanced.dynamodb.internal.ProjectionExpression;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.stream.Collectors;
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.enhanced.dynamodb.internal.ProjectionExpression;
 
 public class ProjectionExpressionTest {
 

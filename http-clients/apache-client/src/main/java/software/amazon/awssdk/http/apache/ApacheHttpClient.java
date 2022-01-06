@@ -23,6 +23,7 @@ import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 import static software.amazon.awssdk.http.HttpMetric.LEASED_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.MAX_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRES;
+import static software.amazon.awssdk.http.apache.internal.conn.ClientConnectionRequestFactory.THREAD_LOCAL_REQUEST_METRIC_COLLECTOR;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
@@ -51,6 +52,7 @@ import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
+import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -229,7 +231,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         return new ExecutableHttpRequest() {
             @Override
             public HttpExecuteResponse call() throws IOException {
-                HttpExecuteResponse executeResponse = execute(apacheRequest);
+                HttpExecuteResponse executeResponse = execute(apacheRequest, metricCollector);
                 collectPoolMetric(metricCollector);
                 return executeResponse;
             }
@@ -248,10 +250,15 @@ public final class ApacheHttpClient implements SdkHttpClient {
         cm.shutdown();
     }
 
-    private HttpExecuteResponse execute(HttpRequestBase apacheRequest) throws IOException {
+    private HttpExecuteResponse execute(HttpRequestBase apacheRequest, MetricCollector metricCollector) throws IOException {
         HttpClientContext localRequestContext = ApacheUtils.newClientContext(requestConfig.proxyConfiguration());
-        HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
-        return createResponse(httpResponse, apacheRequest);
+        THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.set(metricCollector);
+        try {
+            HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
+            return createResponse(httpResponse, apacheRequest);
+        } finally {
+            THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.remove();
+        }
     }
 
     private HttpRequestBase toApacheRequest(HttpExecuteRequest request) {
@@ -394,6 +401,11 @@ public final class ApacheHttpClient implements SdkHttpClient {
         Builder useIdleConnectionReaper(Boolean useConnectionReaper);
 
         /**
+         * Configuration that defines a DNS resolver. If no matches are found, the default resolver is used.
+         */
+        Builder dnsResolver(DnsResolver dnsResolver);
+
+        /**
          * Configuration that defines an HTTP route planner that computes the route an HTTP request should take.
          * May not be used in conjunction with {@link #proxyConfiguration(ProxyConfiguration)}.
          */
@@ -441,6 +453,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         private Boolean expectContinueEnabled;
         private HttpRoutePlanner httpRoutePlanner;
         private CredentialsProvider credentialsProvider;
+        private DnsResolver dnsResolver;
 
         private DefaultBuilder() {
         }
@@ -552,6 +565,16 @@ public final class ApacheHttpClient implements SdkHttpClient {
         }
 
         @Override
+        public Builder dnsResolver(DnsResolver dnsResolver) {
+            this.dnsResolver = dnsResolver;
+            return this;
+        }
+
+        public void setDnsResolver(DnsResolver dnsResolver) {
+            dnsResolver(dnsResolver);
+        }
+
+        @Override
         public Builder httpRoutePlanner(HttpRoutePlanner httpRoutePlanner) {
             this.httpRoutePlanner = httpRoutePlanner;
             return this;
@@ -620,7 +643,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
                     createSocketFactoryRegistry(sslsf),
                     null,
                     DefaultSchemePortResolver.INSTANCE,
-                    null,
+                    configuration.dnsResolver,
                     standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE).toMillis(),
                     TimeUnit.MILLISECONDS);
 

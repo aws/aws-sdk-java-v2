@@ -24,9 +24,9 @@ import static org.mockito.Mockito.when;
 
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -49,7 +49,7 @@ public class S3TransferManagerTest {
     private UploadDirectoryHelper uploadDirectoryManager;
     private TransferManagerConfiguration configuration;
 
-    @Before
+    @BeforeEach
     public void methodSetup() {
         mockS3Crt = mock(S3CrtAsyncClient.class);
         uploadDirectoryManager = mock(UploadDirectoryHelper.class);
@@ -57,7 +57,7 @@ public class S3TransferManagerTest {
         tm = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryManager, configuration);
     }
 
-    @After
+    @AfterEach
     public void methodTeardown() {
         tm.close();
     }
