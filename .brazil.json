@@ -102,7 +102,7 @@
         "io.netty:netty-handler": { "packageName": "Netty4", "packageVersion": "4.1" },
         "io.netty:netty-resolver": { "packageName": "Netty4", "packageVersion": "4.1" },
         "io.netty:netty-transport": { "packageName": "Netty4", "packageVersion": "4.1" },
-        "io.netty:netty-transport-native-epoll": { "packageName": "Netty4", "packageVersion": "4.1" },
+        "io.netty:netty-transport-classes-epoll": { "packageName": "Netty4", "packageVersion": "4.1" },
         "io.netty:netty-transport-native-unix-common": { "packageName": "Netty4", "packageVersion": "4.1" },
         "org.apache.httpcomponents:httpclient": { "packageName": "Apache-HttpComponents-HttpClient", "packageVersion": "4.5.x" },
         "org.apache.httpcomponents:httpcore": { "packageName": "Apache-HttpComponents-HttpCore", "packageVersion": "4.4.x" },
