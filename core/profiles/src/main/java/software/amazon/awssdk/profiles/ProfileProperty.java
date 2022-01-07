@@ -105,6 +105,13 @@ public final class ProfileProperty {
     public static final String RETRY_MODE = "retry_mode";
 
     /**
+     * The "defaults mode" to be used for clients created using the currently-configured profile. Defaults mode determins how SDK
+     * default configuration should be resolved. See the {@code DefaultsMode} class JavaDoc for more
+     * information.
+     */
+    public static final String DEFAULTS_MODE = "defaults_mode";
+
+    /**
      * Aws region where the SSO directory for the given 'sso_start_url' is hosted. This is independent of the general 'region'.
      */
     public static final String SSO_REGION = "sso_region";

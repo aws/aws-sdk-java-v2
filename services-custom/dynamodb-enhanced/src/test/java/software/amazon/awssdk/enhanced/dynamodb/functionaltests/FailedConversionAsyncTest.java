@@ -15,13 +15,15 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
-import java.util.Iterator;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import java.util.List;
 import java.util.concurrent.CompletionException;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
@@ -33,9 +35,6 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeEnumS
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeEnumShortenedRecord;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class FailedConversionAsyncTest extends LocalDynamoDbAsyncTestBase {
     private static final TableSchema<FakeEnumRecord> TABLE_SCHEMA = TableSchema.fromClass(FakeEnumRecord.class);
@@ -55,12 +54,12 @@ public class FailedConversionAsyncTest extends LocalDynamoDbAsyncTestBase {
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
-    @Before
+    @BeforeEach
     public void createTable() {
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())).join();
     }
 
-    @After
+    @AfterEach
     public void deleteTable() {
         getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName("table-name"))

@@ -19,10 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.List;
-import org.apache.log4j.Level;
-import org.apache.log4j.spi.LoggingEvent;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.transfer.s3.CompletedObjectTransfer;
 import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
@@ -38,7 +38,7 @@ public class LoggingTransferListenerTest {
     private TransferListenerContext context;
     private LoggingTransferListener listener;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
                                                                            .transferSizeInBytes(TRANSFER_SIZE_IN_BYTES)
@@ -53,9 +53,9 @@ public class LoggingTransferListenerTest {
 
     @Test
     public void test_defaultListener_successfulTransfer() {
-        try (LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor(Level.ALL)) {
+        try (LogCaptor logCaptor = LogCaptor.create()) {
             invokeSuccessfulLifecycle();
-            List<LoggingEvent> events = logCaptor.loggedEvents();
+            List<LogEvent> events = logCaptor.loggedEvents();
             assertLogged(events, Level.INFO, "Transfer initiated...");
             assertLogged(events, Level.INFO, "|                    | 0.0%");
             assertLogged(events, Level.INFO, "|=                   | 5.0%");
@@ -85,10 +85,10 @@ public class LoggingTransferListenerTest {
 
     @Test
     public void test_customTicksListener_successfulTransfer() {
-        try (LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor(Level.ALL)) {
+        try (LogCaptor logCaptor = LogCaptor.create()) {
             listener = LoggingTransferListener.create(5);
             invokeSuccessfulLifecycle();
-            List<LoggingEvent> events = logCaptor.loggedEvents();
+            List<LogEvent> events = logCaptor.loggedEvents();
             assertLogged(events, Level.INFO, "Transfer initiated...");
             assertLogged(events, Level.INFO, "|     | 0.0%");
             assertLogged(events, Level.INFO, "|=    | 20.0%");
@@ -114,9 +114,11 @@ public class LoggingTransferListenerTest {
                                                      .completedTransfer(mock(CompletedObjectTransfer.class))));
     }
 
-    private void assertLogged(List<LoggingEvent> events, Level level, String message) {
-        LoggingEvent event = events.remove(0);
+    private static void assertLogged(List<LogEvent> events, org.apache.logging.log4j.Level level, String message, Object... args) {
+        assertThat(events).withFailMessage("Expecting events to not be empty").isNotEmpty();
+        LogEvent event = events.remove(0);
+        String msg = event.getMessage().getFormattedMessage();
+        assertThat(msg).isEqualTo(String.format(message, args));
         assertThat(event.getLevel()).isEqualTo(level);
-        assertThat(event.getMessage()).isEqualTo(message);
     }
 }

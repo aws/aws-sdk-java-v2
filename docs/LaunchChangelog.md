@@ -420,7 +420,7 @@ The S3 client in 2.0 is drastically different from the client in 1.11, because i
 | `putObject` | `putObject` |
 | `restoreObject` | `restoreObject` |
 | `restoreObjectV2` | `restoreObject` |
-| `selectObjectContent` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/859) |
+| `selectObjectContent` | `selectObjectContent` |
 | `setBucketAccelerateConfiguration` | `putBucketAccelerateConfiguration` |
 | `setBucketAcl` | `putBucketAcl` |
 | `setBucketAnalyticsConfiguration` | `putBucketAnalyticsConfiguration` |

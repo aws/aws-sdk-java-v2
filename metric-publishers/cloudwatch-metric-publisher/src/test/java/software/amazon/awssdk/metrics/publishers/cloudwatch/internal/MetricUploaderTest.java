@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
@@ -38,7 +38,7 @@ public class MetricUploaderTest {
 
     private MetricUploader uploader;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         client = Mockito.mock(CloudWatchAsyncClient.class);
         uploader = new MetricUploader(client);

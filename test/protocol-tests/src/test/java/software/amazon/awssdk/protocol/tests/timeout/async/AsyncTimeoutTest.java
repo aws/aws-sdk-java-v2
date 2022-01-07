@@ -26,9 +26,9 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -51,7 +51,7 @@ public class AsyncTimeoutTest {
     private static final int DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT = 1100;
     private ProtocolRestJsonAsyncClient client;
 
-    @Before
+    @BeforeEach
     public void setup() {
         client = ProtocolRestJsonAsyncClient.builder()
                                             .region(Region.US_WEST_1)

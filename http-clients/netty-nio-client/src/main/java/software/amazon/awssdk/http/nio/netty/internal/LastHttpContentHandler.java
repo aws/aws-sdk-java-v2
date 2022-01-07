@@ -22,7 +22,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.LastHttpContent;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
  * Marks {@code ChannelAttributeKey.LAST_HTTP_CONTENT_RECEIVED_KEY} if {@link LastHttpContent} is received.
@@ -31,12 +31,12 @@ import software.amazon.awssdk.utils.Logger;
 @ChannelHandler.Sharable
 public final class LastHttpContentHandler extends ChannelInboundHandlerAdapter {
     private static final LastHttpContentHandler INSTANCE = new LastHttpContentHandler();
-    private static final Logger logger = Logger.loggerFor(LastHttpContent.class);
+    private static final NettyClientLogger logger = NettyClientLogger.getLogger(LastHttpContent.class);
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (msg instanceof LastHttpContent) {
-            logger.debug(() -> "Received LastHttpContent " + ctx.channel());
+            logger.debug(ctx.channel(), () -> "Received LastHttpContent " + ctx.channel());
             ctx.channel().attr(LAST_HTTP_CONTENT_RECEIVED_KEY).set(true);
         }
 

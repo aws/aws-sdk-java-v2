@@ -1,31 +1,28 @@
 package software.amazon.awssdk.protocol.tests.customservicemetadata;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.SingleRootFileSource;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.junit.Rule;
-import org.junit.Test;
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
-
-
 import java.net.URI;
-
+import org.junit.Rule;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.services.protocoljsonrpc.ProtocolJsonRpcClient;
-import software.amazon.awssdk.services.protocoljsonrpccustomized.ProtocolJsonRpcCustomizedClient;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.protocoljsonrpccustomized.model.SimpleRequest;
-import software.amazon.awssdk.services.protocoljsonrpccustomized.model.SimpleResponse;
+import software.amazon.awssdk.services.protocoljsonrpc.ProtocolJsonRpcClient;
 import software.amazon.awssdk.services.protocoljsonrpc.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocoljsonrpc.model.AllTypesResponse;
+import software.amazon.awssdk.services.protocoljsonrpccustomized.ProtocolJsonRpcCustomizedClient;
+import software.amazon.awssdk.services.protocoljsonrpccustomized.model.SimpleRequest;
 
 public class CustomServiceMetaDataServiceTest {
 

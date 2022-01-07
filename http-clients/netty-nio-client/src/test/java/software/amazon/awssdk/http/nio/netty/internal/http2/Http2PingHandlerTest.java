@@ -34,8 +34,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
@@ -46,7 +46,7 @@ public class Http2PingHandlerTest {
     private Http2PingHandler fastChecker;
     private Http2PingHandler slowChecker;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         this.fastChecker = new Http2PingHandler(FAST_CHECKER_DURATION_MILLIS);
         this.slowChecker = new Http2PingHandler(30 * 1_000);

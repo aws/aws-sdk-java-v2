@@ -15,18 +15,17 @@
 
 package software.amazon.awssdk.core.retry.backoff;
 
-import org.junit.Test;
-import org.mockito.Mock;
-import software.amazon.awssdk.core.retry.RetryPolicyContext;
-
-import java.time.Duration;
-import java.util.Random;
-
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertThrows;
+
+import java.time.Duration;
+import java.util.Random;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
 public class EqualJitterBackoffStrategyTest {
 

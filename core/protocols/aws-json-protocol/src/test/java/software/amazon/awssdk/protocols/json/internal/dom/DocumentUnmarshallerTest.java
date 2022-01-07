@@ -3,23 +3,18 @@ package software.amazon.awssdk.protocols.json.internal.dom;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-
-import org.junit.Test;
-import software.amazon.awssdk.core.SdkNumber;
-import software.amazon.awssdk.core.document.Document;
-import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.SdkNumber;
+import software.amazon.awssdk.core.document.Document;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.internal.EmbeddedObjectJsonNode;
-
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 
 public class DocumentUnmarshallerTest {

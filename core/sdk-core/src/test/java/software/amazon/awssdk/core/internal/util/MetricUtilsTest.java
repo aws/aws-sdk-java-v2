@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import java.io.IOException;
 import java.time.Duration;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.metrics.CoreMetric;

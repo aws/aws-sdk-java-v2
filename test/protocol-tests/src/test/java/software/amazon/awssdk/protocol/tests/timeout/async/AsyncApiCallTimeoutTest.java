@@ -29,9 +29,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.assertj.core.api.ThrowableAssert;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
@@ -53,7 +53,7 @@ public class AsyncApiCallTimeoutTest extends BaseApiCallTimeoutTest {
     private ProtocolRestJsonAsyncClient client;
     private ProtocolRestJsonAsyncClient clientWithRetry;
 
-    @Before
+    @BeforeEach
     public void setup() {
         client = ProtocolRestJsonAsyncClient.builder()
                                             .region(Region.US_WEST_1)

@@ -81,6 +81,19 @@
         "shape": "StructureWithStreamingMember"
       },
       "documentation": "Some operation with a streaming output"
+    },
+    "EventStreamOperation": {
+      "name": "EventStreamOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/eventStreamOperation"
+      },
+      "input": {
+        "shape": "EventStreamOperationRequest"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
     }
   },
   "shapes": {
@@ -162,6 +175,9 @@
       },
       "documentation": "<p>A shape with nested sub-members"
     },
+    "String": {
+      "type": "string"
+    },
     "subMember": {
       "type": "string",
       "max": 63,
@@ -187,6 +203,61 @@
         }
       },
       "payload": "StreamingMember"
+    },
+    "EventStreamOperationRequest": {
+      "type": "structure",
+      "members": {
+      }
+    },
+    "EventStreamOutput": {
+      "type": "structure",
+      "required": [
+        "EventStream"
+      ],
+      "members": {
+        "HeaderMember": {
+          "shape": "String",
+          "location": "header",
+          "locationName": "Header-Member"
+        },
+        "EventStream": {
+          "shape": "EventStream"
+        }
+      }
+    },
+    "EventStream": {
+      "type": "structure",
+      "members": {
+        "EventPayloadEvent": {
+          "shape": "EventPayloadEvent"
+        },
+        "NonEventPayloadEvent": {
+          "shape": "NonEventPayloadEvent"
+        },
+        "SecondEventPayloadEvent": {
+          "shape": "EventPayloadEvent"
+        }
+      },
+      "eventstream": true
+    },
+    "EventPayloadEvent": {
+      "type": "structure",
+      "members": {
+        "Foo": {
+          "shape": "String",
+          "eventpayload": true
+        }
+      },
+      "event": true
+    },
+    "NonEventPayloadEvent": {
+      "type": "structure",
+      "members": {
+        "Bar": {
+          "shape": "String"
+        }
+      },
+      "event": true
     }
   },
   "documentation": "A service that is implemented using the xml protocol"

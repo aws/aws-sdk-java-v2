@@ -51,8 +51,6 @@ import java.util.stream.Collectors;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.Protocol;
@@ -63,6 +61,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ResetSendingSubscription;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpResponse;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 import software.amazon.awssdk.utils.async.DelegatingSubscription;
 
@@ -70,7 +69,7 @@ import software.amazon.awssdk.utils.async.DelegatingSubscription;
 @SdkInternalApi
 public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
-    private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(ResponseHandler.class);
 
     private static final ResponseHandler INSTANCE = new ResponseHandler();
 
@@ -141,11 +140,12 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
-        log.debug("Exception processing request: {}", requestContext.executeRequest().request(), cause);
+        log.debug(ctx.channel(), () -> "Exception processing request: " + requestContext.executeRequest().request(), cause);
         Throwable throwable = wrapException(cause);
         executeFuture(ctx).completeExceptionally(throwable);
-        runAndLogError("Fail to execute SdkAsyncHttpResponseHandler#onError", () -> requestContext.handler().onError(throwable));
-        runAndLogError("Could not release channel back to the pool", () -> closeAndRelease(ctx));
+        runAndLogError(ctx.channel(), "Fail to execute SdkAsyncHttpResponseHandler#onError",
+                       () -> requestContext.handler().onError(throwable));
+        runAndLogError(ctx.channel(), "Could not release channel back to the pool", () -> closeAndRelease(ctx));
     }
 
     @Override
@@ -176,11 +176,11 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
      * @param errorMsg Message to log with exception thrown.
      * @param runnable Action to perform.
      */
-    private static void runAndLogError(String errorMsg, UnsafeRunnable runnable) {
+    private static void runAndLogError(Channel ch, String errorMsg, UnsafeRunnable runnable) {
         try {
             runnable.run();
         } catch (Exception e) {
-            log.error(errorMsg, e);
+            log.error(ch, () -> errorMsg, e);
         }
     }
 
@@ -241,10 +241,10 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                     try {
                         SdkCancellationException e = new SdkCancellationException(
                                 "Subscriber cancelled before all events were published");
-                        log.warn("Subscriber cancelled before all events were published");
+                        log.warn(channelContext.channel(), () -> "Subscriber cancelled before all events were published");
                         executeFuture.completeExceptionally(e);
                     } finally {
-                        runAndLogError("Could not release channel back to the pool",
+                        runAndLogError(channelContext.channel(), "Could not release channel back to the pool",
                             () -> closeAndRelease(channelContext));
                     }
                 }
@@ -278,11 +278,12 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                         return;
                     }
                     try {
-                        runAndLogError(String.format("Subscriber %s threw an exception in onError.", subscriber.toString()),
+                        runAndLogError(channelContext.channel(), String.format("Subscriber %s threw an exception in onError.",
+                                                                    subscriber.toString()),
                             () -> subscriber.onError(t));
                         notifyError(t);
                     } finally {
-                        runAndLogError("Could not release channel back to the pool",
+                        runAndLogError(channelContext.channel(), "Could not release channel back to the pool",
                             () -> closeAndRelease(channelContext));
                     }
                 }
@@ -295,8 +296,8 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                         return;
                     }
                     try {
-                        runAndLogError(String.format("Subscriber %s threw an exception in onComplete.", subscriber.toString()),
-                                       subscriber::onComplete);
+                        runAndLogError(channelContext.channel(), String.format("Subscriber %s threw an exception in onComplete.",
+                                                                               subscriber.toString()), subscriber::onComplete);
                     } finally {
                         finalizeResponse(requestContext, channelContext);
                     }
@@ -304,9 +305,9 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
                 private void notifyError(Throwable throwable) {
                     SdkAsyncHttpResponseHandler handler = requestContext.handler();
-                    runAndLogError(
-                        String.format("SdkAsyncHttpResponseHandler %s threw an exception in onError.", handler), () ->
-                            handler.onError(throwable));
+                    runAndLogError(channelContext.channel(),
+                                   String.format("SdkAsyncHttpResponseHandler %s threw an exception in onError.", handler),
+                                   () -> handler.onError(throwable));
                     executeFuture.completeExceptionally(throwable);
                 }
 
@@ -399,9 +400,10 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
         if (!Boolean.TRUE.equals(responseCompleted) && !Boolean.TRUE.equals(lastHttpContentReceived)) {
             IOException err = new IOException("Server failed to send complete response. " + CLOSED_CHANNEL_MESSAGE);
-            runAndLogError("Fail to execute SdkAsyncHttpResponseHandler#onError", () -> requestCtx.handler().onError(err));
+            runAndLogError(handlerCtx.channel(), "Fail to execute SdkAsyncHttpResponseHandler#onError",
+                           () -> requestCtx.handler().onError(err));
             executeFuture(handlerCtx).completeExceptionally(err);
-            runAndLogError("Could not release channel", () -> closeAndRelease(handlerCtx));
+            runAndLogError(handlerCtx.channel(), "Could not release channel", () -> closeAndRelease(handlerCtx));
         }
     }
 }
