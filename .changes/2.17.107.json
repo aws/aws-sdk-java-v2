@@ -1,0 +1,24 @@
+{
+    "version": "2.17.107",
+    "date": "2022-01-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Upgrade Netty version to 4.1.72"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "This release adds support for selecting the Program Date Time (PDT) Clock source algorithm for HLS outputs."
+        }
+    ]
+}

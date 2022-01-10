@@ -21,14 +21,23 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.WildcardTypeName;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
+import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
+import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.model.config.customization.S3ArnableFieldConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
+import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
+import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
+import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
@@ -60,12 +69,17 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
     @Override
     public CodeBlock responseHandler(IntermediateModel model,
                                      OperationModel opModel) {
-
         if (opModel.hasStreamingOutput()) {
             return streamingResponseHandler(opModel);
         }
 
         ClassName responseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
+
+        if (opModel.hasEventStreamOutput()) {
+            return CodeBlock.builder()
+                            .add(eventStreamResponseHandlers(opModel, responseType))
+                            .build();
+        }
 
         TypeName handlerType = ParameterizedTypeName.get(
             ClassName.get(HttpResponseHandler.class),
@@ -74,7 +88,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         return CodeBlock.builder()
                         .addStatement("\n\n$T responseHandler = protocolFactory.createCombinedResponseHandler($T::builder, "
                                       + "new $T().withHasStreamingSuccessResponse($L))",
-                                      handlerType, responseType, XmlOperationMetadata.class, opModel.hasStreamingOutput())
+                          handlerType, responseType, XmlOperationMetadata.class, opModel.hasStreamingOutput())
                         .build();
     }
 
@@ -159,35 +173,68 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         ClassName pojoResponseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
+        String eventStreamTransformFutureName = "eventStreamTransformFuture";
+
+        CodeBlock.Builder builder = CodeBlock.builder();
+
+        if (opModel.hasEventStreamOutput()) {
+            builder.add(eventStreamResponseTransformers(opModel, eventStreamTransformFutureName));
+        }
 
         TypeName executeFutureValueType = executeFutureValueType(opModel, poetExtensions);
-        CodeBlock.Builder builder =
-            CodeBlock.builder()
-                     .add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()\n",
-                          CompletableFuture.class, executeFutureValueType,
-                          ClientExecutionParams.class, requestType, pojoResponseType)
-                     .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
-                     .add(".withMarshaller($L)\n", asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"))
-                     .add(".withCombinedResponseHandler(responseHandler)\n")
-                     .add(hostPrefixExpression(opModel))
-                     .add(".withMetricCollector(apiCallMetricCollector)\n")
-                     .add(asyncRequestBody(opModel))
-                     .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
+        String executionResponseTransformerName = "asyncResponseTransformer";
+
+        if (opModel.hasEventStreamOutput()) {
+            executionResponseTransformerName = "restAsyncResponseTransformer";
+        }
+
+        builder.add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()\n",
+                    CompletableFuture.class, executeFutureValueType,
+                    ClientExecutionParams.class, requestType, pojoResponseType)
+               .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
+               .add(".withMarshaller($L)\n", asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"));
+
+        if (opModel.hasEventStreamOutput()) {
+            builder.add(".withResponseHandler(responseHandler)");
+        } else {
+            builder.add(".withCombinedResponseHandler(responseHandler)");
+        }
+
+        builder.add(hostPrefixExpression(opModel))
+               .add(".withMetricCollector(apiCallMetricCollector)\n")
+               .add(asyncRequestBody(opModel))
+               .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
 
         s3ArnableFields(opModel, model).ifPresent(builder::add);
-        builder.add(".withInput($L) $L);", opModel.getInput().getVariableName(), opModel.hasStreamingOutput() ?
-                                                                                 ", asyncResponseTransformer" : "");
+
+        builder.add(".withInput($L)", opModel.getInput().getVariableName());
+        if (opModel.hasStreamingOutput() || opModel.hasEventStreamOutput()) {
+            builder.add(", $N", executionResponseTransformerName);
+        }
+        builder.addStatement(")");
+
         String whenCompleteFutureName = "whenCompleteFuture";
         builder.addStatement("$T $N = null", ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
                 executeFutureValueType), whenCompleteFutureName);
-        if (opModel.hasStreamingOutput()) {
+
+        if (opModel.hasStreamingOutput() || opModel.hasEventStreamOutput()) {
             builder.addStatement("$N = executeFuture$L", whenCompleteFutureName,
-                    streamingOutputWhenComplete("asyncResponseTransformer"));
+                    whenCompleteBlock(opModel, "asyncResponseHandler",
+                                      eventStreamTransformFutureName));
         } else {
             builder.addStatement("$N = executeFuture$L", whenCompleteFutureName, publishMetricsWhenComplete());
         }
-        builder.addStatement("return $T.forwardExceptionTo($N, executeFuture)", CompletableFutureUtils.class,
+
+        builder.addStatement("$T.forwardExceptionTo($N, executeFuture)", CompletableFutureUtils.class,
                 whenCompleteFutureName);
+
+        if (opModel.hasEventStreamOutput()) {
+            builder.addStatement("return $T.forwardExceptionTo($N, executeFuture)", CompletableFutureUtils.class,
+                                 eventStreamTransformFutureName);
+        } else {
+            builder.addStatement("return $N", whenCompleteFutureName);
+        }
+
         return builder.build();
     }
 
@@ -197,5 +244,123 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
 
     private CodeBlock asyncStreamingExecutionHandler(IntermediateModel intermediateModel, OperationModel opModel) {
         return super.asyncExecutionHandler(intermediateModel, opModel);
+    }
+
+    private CodeBlock eventStreamResponseHandlers(OperationModel opModel, TypeName pojoResponseType) {
+        CodeBlock streamResponseOpMd = CodeBlock.builder()
+                                                .add("$T.builder()", XmlOperationMetadata.class)
+                                                .add(".hasStreamingSuccessResponse(true)")
+                                                .add(".build()")
+                                                .build();
+
+
+        CodeBlock.Builder builder = CodeBlock.builder();
+
+        // Response handler for handling the initial response from the operation. Note, this does not handle the event stream
+        // messages, that is the job of "eventResponseHandler" below
+        builder.addStatement("$T<$T> responseHandler = protocolFactory.createResponseHandler($T::builder, $L)",
+                             HttpResponseHandler.class,
+                             pojoResponseType,
+                             pojoResponseType,
+                             streamResponseOpMd);
+
+        // Response handler responsible for errors for the API call itself, as well as errors sent over the event stream
+        builder.addStatement("$T errorResponseHandler = protocolFactory"
+                             + ".createErrorResponseHandler()", ParameterizedTypeName.get(HttpResponseHandler.class,
+                                                                                          AwsServiceException.class));
+
+
+        ShapeModel eventStreamShape = EventStreamUtils.getEventStreamInResponse(opModel.getOutputShape());
+        ClassName eventStream = poetExtensions.getModelClassFromShape(eventStreamShape);
+        EventStreamSpecHelper eventStreamSpecHelper = new EventStreamSpecHelper(eventStreamShape, intermediateModel);
+
+        CodeBlock.Builder supplierBuilder = CodeBlock.builder()
+                                                     .add("$T.builder()", EventStreamTaggedUnionPojoSupplier.class);
+        EventStreamUtils.getEvents(eventStreamShape).forEach(m -> {
+            String builderName = eventStreamSpecHelper.eventBuilderMethodName(m);
+            supplierBuilder.add(".putSdkPojoSupplier($S, $T::$N)", m.getName(), eventStream, builderName);
+        });
+        supplierBuilder.add(".defaultSdkPojoSupplier(() -> new $T($T.UNKNOWN))", SdkPojoBuilder.class, eventStream);
+        CodeBlock supplierCodeBlock = supplierBuilder.add(".build()").build();
+
+        CodeBlock nonStreamingOpMd = CodeBlock.builder()
+                                              .add("$T.builder()", XmlOperationMetadata.class)
+                                              .add(".hasStreamingSuccessResponse(false)")
+                                              .add(".build()")
+                                              .build();
+
+        // The response handler responsible for unmarshalling each event
+        builder.addStatement("$T eventResponseHandler = protocolFactory.createResponseHandler($L, $L)",
+                             ParameterizedTypeName.get(ClassName.get(HttpResponseHandler.class),
+                                                       WildcardTypeName.subtypeOf(eventStream)),
+                             supplierCodeBlock,
+                             nonStreamingOpMd);
+
+
+        return builder.build();
+    }
+
+    private CodeBlock eventStreamResponseTransformers(OperationModel opModel, String eventTransformerFutureName) {
+        ShapeModel shapeModel = EventStreamUtils.getEventStreamInResponse(opModel.getOutputShape());
+        ClassName pojoResponseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
+        ClassName eventStreamBaseClass = poetExtensions.getModelClassFromShape(shapeModel);
+
+        CodeBlock.Builder builder = CodeBlock.builder();
+
+        ParameterizedTypeName transformerType = ParameterizedTypeName.get(
+            ClassName.get(EventStreamAsyncResponseTransformer.class),
+            pojoResponseType,
+            eventStreamBaseClass);
+
+        builder.addStatement("$1T<$2T> $3N = new $1T<>()", ClassName.get(CompletableFuture.class),
+                             ClassName.get(Void.class), eventTransformerFutureName)
+               .add("$T asyncResponseTransformer = $T.<$T, $T>builder()\n",
+                    transformerType, ClassName.get(EventStreamAsyncResponseTransformer.class), pojoResponseType,
+                    eventStreamBaseClass)
+               .add(".eventStreamResponseHandler(asyncResponseHandler)\n")
+               .add(".eventResponseHandler(eventResponseHandler)\n")
+               .add(".initialResponseHandler(responseHandler)\n")
+               .add(".exceptionResponseHandler(errorResponseHandler)\n")
+               .add(".future($N)\n", eventTransformerFutureName)
+               .add(".executor(executor)\n")
+               .add(".serviceName(serviceName())\n")
+               .addStatement(".build()");
+
+        ParameterizedTypeName restTransformType =
+            ParameterizedTypeName.get(ClassName.get(RestEventStreamAsyncResponseTransformer.class), pojoResponseType,
+                                      eventStreamBaseClass);
+
+        // Wrap the event transformer with this so that the caller's response handler's onResponse() method is invoked. See
+        // docs for RestEventStreamAsyncResponseTransformer for more info on why it's needed
+        builder.addStatement("$T restAsyncResponseTransformer = $T.<$T, $T>builder()\n"
+                             + ".eventStreamAsyncResponseTransformer(asyncResponseTransformer)\n"
+                             + ".eventStreamResponseHandler(asyncResponseHandler)\n"
+                             + ".build()", restTransformType, RestEventStreamAsyncResponseTransformer.class,
+                             pojoResponseType, eventStreamBaseClass);
+
+        return builder.build();
+    }
+
+    private CodeBlock whenCompleteBlock(OperationModel operationModel, String responseHandlerName,
+                                        String eventTransformerFutureName) {
+        CodeBlock.Builder whenComplete = CodeBlock.builder()
+                                                  .add(".whenComplete((r, e) -> ")
+                                                  .beginControlFlow("")
+                                                  .beginControlFlow("if (e != null)")
+                                                  .add("runAndLogError(log, $S, () -> $N.exceptionOccurred(e));",
+                                                       "Exception thrown in exceptionOccurred callback, ignoring",
+                                                       responseHandlerName);
+
+        if (operationModel.hasEventStreamOutput()) {
+            whenComplete.add("$N.completeExceptionally(e);", eventTransformerFutureName);
+        }
+
+        whenComplete.endControlFlow()
+                    .add(publishMetrics())
+                    .endControlFlow()
+                    .add(")")
+                    .build();
+
+        return whenComplete.build();
     }
 }
