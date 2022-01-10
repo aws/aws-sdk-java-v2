@@ -33,12 +33,19 @@ public class SdkIllegalImportCheck extends AbstractCheck {
     private final List<Pattern> illegalPackagesRegexps = new ArrayList<>();
     private final List<String> illegalPackages = new ArrayList<>();
 
-    private String classNameToCheck;
+    private Pattern classNameToCheck;
+    private Pattern packageToCheck;
+
     private boolean containsIllegalImport = false;
-    private boolean checkImport = false;
+    private boolean classMatched = false;
+    private boolean classPackageMatched = false;
 
     public void setClassNameToCheck(String classNameToCheck) {
-        this.classNameToCheck = classNameToCheck;
+        this.classNameToCheck = CommonUtil.createPattern(classNameToCheck);
+    }
+
+    public void setPackageToCheck(String packageToCheckRegexp) {
+        this.packageToCheck = CommonUtil.createPattern(packageToCheckRegexp);
     }
 
     public final void setIllegalPkgs(String... from) {
@@ -46,7 +53,7 @@ public class SdkIllegalImportCheck extends AbstractCheck {
         illegalPackages.addAll(Arrays.asList(from));
         illegalPackagesRegexps.clear();
         for (String illegalPkg : illegalPackages) {
-            illegalPackagesRegexps.add(CommonUtil.createPattern("^" + illegalPkg + "\\..*"));
+            illegalPackagesRegexps.add(CommonUtil.createPattern("^" + illegalPkg));
         }
     }
 
@@ -62,18 +69,24 @@ public class SdkIllegalImportCheck extends AbstractCheck {
 
     @Override
     public int[] getRequiredTokens() {
-        return new int[] {TokenTypes.CLASS_DEF, TokenTypes.IMPORT, TokenTypes.STATIC_IMPORT};
+        return new int[] {TokenTypes.PACKAGE_DEF, TokenTypes.CLASS_DEF, TokenTypes.IMPORT, TokenTypes.STATIC_IMPORT};
     }
 
     @Override
     public void beginTree(DetailAST rootAST) {
         containsIllegalImport = false;
-        checkImport = false;
+        classMatched = false;
+        classPackageMatched = false;
     }
 
     @Override
     public void finishTree(DetailAST rootAST) {
-        if (containsIllegalImport && checkImport) {
+        // Set matched to true if no class package regex provided
+        if (packageToCheck == null) {
+            classPackageMatched = true;
+        }
+
+        if (containsIllegalImport && classMatched && classPackageMatched) {
             log(rootAST, "Illegal imports found " + illegalPackagesRegexps);
         }
     }
@@ -82,12 +95,16 @@ public class SdkIllegalImportCheck extends AbstractCheck {
     public void visitToken(DetailAST ast) {
 
         FullIdent importedPackage = null;
+        FullIdent classPackage = null;
 
         switch (ast.getType()) {
+            case TokenTypes.PACKAGE_DEF:
+                classPackage = FullIdent.createFullIdent(ast.findFirstToken(TokenTypes.DOT));
+                break;
             case TokenTypes.CLASS_DEF:
                 String className = ast.findFirstToken(TokenTypes.IDENT).getText();
-                if (className.equals(classNameToCheck)) {
-                    checkImport = true;
+                if (classNameToCheck.matcher(className).matches()) {
+                    classMatched = true;
                 }
                 break;
             case TokenTypes.IMPORT:
@@ -96,6 +113,12 @@ public class SdkIllegalImportCheck extends AbstractCheck {
             case TokenTypes.STATIC_IMPORT:
                 importedPackage = FullIdent.createFullIdent(ast.getFirstChild().getNextSibling());
                 break;
+        }
+
+        if (packageToCheck != null
+            && classPackage != null
+            && packageToCheck.matcher(classPackage.getText()).matches()) {
+            classPackageMatched = true;
         }
 
         if (importedPackage!= null && isIllegalImport(importedPackage.getText())) {
