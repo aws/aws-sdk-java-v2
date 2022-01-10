@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lookout for Metrics",
+    "contributor": "",
+    "description": "This release adds FailureType in the response of DescribeAnomalyDetector."
+}
