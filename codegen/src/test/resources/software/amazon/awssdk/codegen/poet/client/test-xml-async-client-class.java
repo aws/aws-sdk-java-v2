@@ -263,8 +263,9 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 new ClientExecutionParams<EventStreamOperationRequest, EventStreamOperationResponse>()
                     .withOperationName("EventStreamOperation")
                     .withMarshaller(new EventStreamOperationRequestMarshaller(protocolFactory))
-                    .withResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
-                    .withInput(eventStreamOperationRequest), restAsyncResponseTransformer);
+                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                    .withMetricCollector(apiCallMetricCollector).withInput(eventStreamOperationRequest),
+                restAsyncResponseTransformer);
             CompletableFuture<Void> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
