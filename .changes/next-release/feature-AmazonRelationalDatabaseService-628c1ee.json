@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "This release adds the db-proxy event type to support subscribing to RDS Proxy events."
-}
