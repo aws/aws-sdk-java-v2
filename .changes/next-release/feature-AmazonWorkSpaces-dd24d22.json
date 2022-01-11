@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkSpaces",
+    "contributor": "",
+    "description": "Introducing new APIs for Workspaces audio optimization with Amazon Connect: CreateConnectClientAddIn, DescribeConnectClientAddIns, UpdateConnectClientAddIn and DeleteConnectClientAddIn."
+}
