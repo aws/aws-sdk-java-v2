@@ -41,6 +41,11 @@ public final class UrlConnectionHttpClientWireMockTest extends SdkHttpClientTest
         return builder.buildWithDefaults(attributeMap.build());
     }
 
+    @Override
+    public void connectionsAreNotReusedOn5xxErrors() {
+        // We cannot support this because the URL connection client doesn't allow us to disable connection reuse
+    }
+
     @AfterEach
     public void reset() {
         HttpsURLConnection.setDefaultSSLSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault());
