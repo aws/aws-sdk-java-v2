@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Retry on InternalError error code, which fixes an issue where 200s followed by a failure were not retried."
+}
