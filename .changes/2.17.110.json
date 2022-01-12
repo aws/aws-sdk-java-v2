@@ -1,0 +1,42 @@
+{
+    "version": "2.17.110",
+    "date": "2022-01-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Performance Insights",
+            "contributor": "",
+            "description": "This release adds three Performance Insights APIs. Use ListAvailableResourceMetrics to get available metrics, GetResourceMetadata to get feature metadata, and ListAvailableResourceDimensions to list available dimensions. The AdditionalMetrics field in DescribeDimensionKeys retrieves per-SQL metrics."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Doc only update for ElastiCache"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "This release adds support for Custom vocabulary in Amazon Lex V2 APIs for model building. Customers can give Amazon Lex V2 more information about how to process audio conversations with a bot by creating a custom vocabulary in a specific language."
+        },
+        {
+            "type": "feature",
+            "category": "Firewall Management Service",
+            "contributor": "",
+            "description": "Shield Advanced policies for Amazon CloudFront resources now support automatic application layer DDoS mitigation. The max length for SecurityServicePolicyData ManagedServiceData is now 8192 characters, instead of 4096."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Hpc6a instances are powered by a third-generation AMD EPYC processors (Milan) delivering all-core turbo frequency of 3.4 GHz"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Honeycode",
+            "contributor": "",
+            "description": "Honeycode is releasing new APIs to allow user to create, delete and list tags on resources."
+        }
+    ]
+}
