@@ -55,6 +55,12 @@ public final class UrlConnectionHttpClientWithCustomCreateWireMockTest extends S
     public void testCustomTlsTrustManagerAndTrustAllFails() {
     }
 
+    @Disabled
+    @Override
+    public void connectionsAreNotReusedOn5xxErrors() throws Exception {
+        // We cannot support this because the URL connection client doesn't allow us to disable connection reuse
+    }
+
     @Test
     public void testGetResponseCodeNpeIsWrappedAsIo() throws Exception {
         connectionInterceptor = safeFunction(connection -> {

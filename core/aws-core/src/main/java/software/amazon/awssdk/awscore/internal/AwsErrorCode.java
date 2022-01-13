@@ -64,6 +64,7 @@ public final class AwsErrorCode {
         retryableErrorCodes.add("PriorRequestNotComplete");
         retryableErrorCodes.add("RequestTimeout");
         retryableErrorCodes.add("RequestTimeoutException");
+        retryableErrorCodes.add("InternalError");
         RETRYABLE_ERROR_CODES = unmodifiableSet(retryableErrorCodes);
     }
 
