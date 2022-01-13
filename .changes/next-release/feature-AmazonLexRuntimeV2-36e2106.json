@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Runtime V2",
+    "contributor": "",
+    "description": "This release adds support for sending hints to Amazon Lex V2 runtime APIs. Bot developers can provide runtime hints to help improve the recognition of slot values."
+}
