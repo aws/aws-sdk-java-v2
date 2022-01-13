@@ -33,4 +33,20 @@ public interface Signer {
      * @return A signed version of the input request
      */
     SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes);
+
+
+    /**
+     * Method that retrieves the type of Credentials used by the Signer while authorizing a request.
+     *
+     * @return CredentialType.AWS by default , BEARER_TOKEN if the signers uses Bearer token authorization.
+     */
+    default CredentialType credentialType() {
+        return CredentialType.AWS;
+    }
+
+    enum CredentialType {
+        AWS,
+        BEARER_TOKEN
+    }
+
 }
