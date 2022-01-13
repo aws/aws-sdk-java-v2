@@ -1,6 +1,0 @@
-{
-    "category": "Apache HTTP Client", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Do not reuse connections that receive a 5xx service response."
-}
