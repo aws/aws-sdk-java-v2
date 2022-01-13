@@ -1,3 +1,40 @@
+# __2.17.111__ __2022-01-13__
+## __AWS Glue__
+  - ### Features
+    - This SDK release adds support to pass run properties when starting a workflow run
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - AWS ElastiCache for Redis has added a new Engine Log LogType in LogDelivery feature. You can now publish the Engine Log from your Amazon ElastiCache for Redis clusters to Amazon CloudWatch Logs and Amazon Kinesis Data Firehose.
+
+## __Amazon Lex Runtime V2__
+  - ### Features
+    - This release adds support for sending hints to Amazon Lex V2 runtime APIs. Bot developers can provide runtime hints to help improve the recognition of slot values.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Adds JourneyChannelSettings to WriteJourneyRequest
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Retry on InternalError error code, which fixes an issue where 200s followed by a failure were not retried.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager adds category support for DescribeDocument API
+
+## __AmazonNimbleStudio__
+  - ### Features
+    - Amazon Nimble Studio now supports validation for Launch Profiles. Launch Profiles now report static validation results after create/update to detect errors in network or active directory configuration.
+
+## __Apache HTTP Client__
+  - ### Bugfixes
+    - Do not reuse connections that receive a 5xx service response.
+
 # __2.17.110__ __2022-01-12__
 ## __AWS Performance Insights__
   - ### Features
