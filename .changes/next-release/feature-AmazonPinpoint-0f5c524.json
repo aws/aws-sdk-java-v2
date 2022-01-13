@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Pinpoint",
-    "contributor": "",
-    "description": "Adds JourneyChannelSettings to WriteJourneyRequest"
-}
