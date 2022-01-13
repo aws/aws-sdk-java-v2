@@ -130,7 +130,7 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
     @Override
     public String toString() {
         return ToString.builder("ExecutionAttributes")
-                       .add("attributes", attributes)
+                       .add("attributes", attributes.keySet())
                        .build();
     }
 
