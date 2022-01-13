@@ -4351,7 +4351,7 @@
       "members":{
         "LogType":{
           "shape":"LogType",
-          "documentation":"<p>Refers to <a href=\"https://redis.io/commands/slowlog\">slow-log</a>.</p>"
+          "documentation":"<p>Refers to <a href=\"https://redis.io/commands/slowlog\">slow-log</a> or engine-log.</p>"
         },
         "DestinationType":{
           "shape":"DestinationType",
@@ -4388,7 +4388,7 @@
       "members":{
         "LogType":{
           "shape":"LogType",
-          "documentation":"<p>Refers to <a href=\"https://redis.io/commands/slowlog\">slow-log</a>.</p>"
+          "documentation":"<p>Refers to <a href=\"https://redis.io/commands/slowlog\">slow-log</a> or engine-log..</p>"
         },
         "DestinationType":{
           "shape":"DestinationType",
@@ -4435,7 +4435,10 @@
     },
     "LogType":{
       "type":"string",
-      "enum":["slow-log"]
+      "enum":[
+        "slow-log",
+        "engine-log"
+      ]
     },
     "ModifyCacheClusterMessage":{
       "type":"structure",
@@ -5260,7 +5263,7 @@
       "members":{
         "LogType":{
           "shape":"LogType",
-          "documentation":"<p>Refers to <a href=\"https://redis.io/commands/slowlog\">slow-log</a>.</p>"
+          "documentation":"<p>Refers to <a href=\"https://redis.io/commands/slowlog\">slow-log</a> or engine-log..</p>"
         },
         "DestinationType":{
           "shape":"DestinationType",
