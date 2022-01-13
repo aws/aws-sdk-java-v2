@@ -49,7 +49,7 @@ public final class AwsExecutionAttribute extends SdkExecutionAttribute {
      * Whether fips endpoints were enabled for this request.
      */
     public static final ExecutionAttribute<Boolean> FIPS_ENDPOINT_ENABLED =
-        new ExecutionAttribute<>("DualstackEndpointsEnabled");
+        new ExecutionAttribute<>("FipsEndpointsEnabled");
 
     private AwsExecutionAttribute() {
     }

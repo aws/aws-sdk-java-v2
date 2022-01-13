@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -124,6 +125,13 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
     @Override
     public int hashCode() {
         return attributes != null ? attributes.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("ExecutionAttributes")
+                       .add("attributes", attributes)
+                       .build();
     }
 
     public static ExecutionAttributes unmodifiableExecutionAttributes(ExecutionAttributes attributes) {
