@@ -38,10 +38,10 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class ClientOverrideConfigurationTest {
-    private static final ConcurrentMap<String, ExecutionAttribute<Object>> POOL = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, ExecutionAttribute<Object>> ATTR_POOL = new ConcurrentHashMap<>();
 
     private static ExecutionAttribute<Object> attr(String name) {
-        return POOL.computeIfAbsent(name, ExecutionAttribute::new);
+        return ATTR_POOL.computeIfAbsent(name, ExecutionAttribute::new);
     }
 
     @Test
