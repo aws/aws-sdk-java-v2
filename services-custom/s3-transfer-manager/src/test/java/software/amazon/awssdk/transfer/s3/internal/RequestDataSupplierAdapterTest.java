@@ -17,46 +17,41 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 import io.reactivex.Flowable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.crt.CrtRuntimeException;
 
-public class RequestDataSupplierAdapterTest {
+class RequestDataSupplierAdapterTest {
 
     @Test
-    public void getRequestData_fillsInputBuffer_publisherBuffersAreSmaller() {
+    void getRequestData_fillsInputBuffer_publisherBuffersAreSmaller() {
         int inputBufferSize = 16;
 
         List<ByteBuffer> data = Stream.generate(() -> (byte) 42)
-                .limit(inputBufferSize)
-                .map(b -> {
-                    ByteBuffer bb = ByteBuffer.allocate(1);
-                    bb.put(b);
-                    bb.flip();
-                    return bb;
-                })
-                .collect(Collectors.toList());
+                                      .limit(inputBufferSize)
+                                      .map(b -> {
+                                          ByteBuffer bb = ByteBuffer.allocate(1);
+                                          bb.put(b);
+                                          bb.flip();
+                                          return bb;
+                                      })
+                                      .collect(Collectors.toList());
 
         AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(Flowable.fromIterable(data));
 
         RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
 
         ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
-        adapter.getRequestBytes(inputBuffer);
+        adapter.sendRequestBody(inputBuffer);
 
         assertThat(inputBuffer.remaining()).isEqualTo(0);
     }
@@ -76,7 +71,7 @@ public class RequestDataSupplierAdapterTest {
         ByteBuffer inputBuffer = ByteBuffer.allocate(1);
 
         for (int i = 0; i < bodySize; ++i) {
-            adapter.getRequestBytes(inputBuffer);
+            adapter.sendRequestBody(inputBuffer);
             assertThat(inputBuffer.remaining()).isEqualTo(0);
             inputBuffer.flip();
         }
@@ -89,9 +84,9 @@ public class RequestDataSupplierAdapterTest {
         AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(errorPublisher);
         RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
 
-        assertThatThrownBy(() -> adapter.getRequestBytes(ByteBuffer.allocate(16)))
-                  .isInstanceOf(RuntimeException.class)
-                  .hasMessageContaining("Something wrong happened");
+        assertThatThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Something wrong happened");
     }
 
     @Test
@@ -101,9 +96,9 @@ public class RequestDataSupplierAdapterTest {
         AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(errorPublisher);
         RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
 
-        assertThatThrownBy(() -> adapter.getRequestBytes(ByteBuffer.allocate(16)))
-                  .isInstanceOf(RuntimeException.class)
-                  .hasCauseInstanceOf(IOException.class);
+        assertThatThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)))
+            .isInstanceOf(RuntimeException.class)
+            .hasCauseInstanceOf(IOException.class);
     }
 
     @Test
@@ -119,12 +114,12 @@ public class RequestDataSupplierAdapterTest {
                 byte byteVal = value++;
 
                 List<ByteBuffer> dataList = Stream.generate(() -> {
-                    byte[] data = new byte[inputBufferSize];
-                    Arrays.fill(data, byteVal);
-                    return ByteBuffer.wrap(data);
-                })
-                        .limit(requestSize)
-                        .collect(Collectors.toList());
+                                                      byte[] data = new byte[inputBufferSize];
+                                                      Arrays.fill(data, byteVal);
+                                                      return ByteBuffer.wrap(data);
+                                                  })
+                                                  .limit(requestSize)
+                                                  .collect(Collectors.toList());
 
                 Flowable<ByteBuffer> realPublisher = Flowable.fromIterable(dataList);
 
@@ -139,7 +134,7 @@ public class RequestDataSupplierAdapterTest {
         ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
 
         for (long l = 0; l < resetAfter; ++l) {
-            adapter.getRequestBytes(inputBuffer);
+            adapter.sendRequestBody(inputBuffer);
             inputBuffer.flip();
         }
 
@@ -150,7 +145,7 @@ public class RequestDataSupplierAdapterTest {
 
         byte[] readBuffer = new byte[inputBufferSize];
         for (int l = 0; l < requestSize; ++l) {
-            adapter.getRequestBytes(inputBuffer);
+            adapter.sendRequestBody(inputBuffer);
             // flip for reading
             inputBuffer.flip();
             inputBuffer.get(readBuffer);
@@ -162,55 +157,4 @@ public class RequestDataSupplierAdapterTest {
         }
     }
 
-    @Test
-    public void onException_cancelsSubscription() {
-        Subscription subscription = mock(Subscription.class);
-
-        AsyncRequestBody requestBody = new AsyncRequestBody() {
-            @Override
-            public Optional<Long> contentLength() {
-                return Optional.empty();
-            }
-
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-                subscriber.onSubscribe(subscription);
-            }
-        };
-
-        RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
-
-        // getRequestBytes() triggers a subscribe() on the publisher
-        adapter.getRequestBytes(ByteBuffer.allocate(0));
-
-        adapter.onException(new CrtRuntimeException("error"));
-
-        verify(subscription).cancel();
-    }
-
-    @Test
-    public void onFinished_cancelsSubscription() {
-        Subscription subscription = mock(Subscription.class);
-
-        AsyncRequestBody requestBody = new AsyncRequestBody() {
-            @Override
-            public Optional<Long> contentLength() {
-                return Optional.empty();
-            }
-
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-                subscriber.onSubscribe(subscription);
-            }
-        };
-
-        RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
-
-        // getRequestBytes() triggers a subscribe() on the publisher
-        adapter.getRequestBytes(ByteBuffer.allocate(0));
-
-        adapter.onFinished();
-
-        verify(subscription).cancel();
-    }
 }

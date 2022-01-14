@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.resolveTimeoutInMillis;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
@@ -185,6 +186,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                                                                 .requestContentPublisher(requestProvider)
                                                                 .responseHandler(wrappedResponseHandler)
                                                                 .fullDuplex(isFullDuplex(context.executionAttributes()))
+                                                                .sdkHttpAttributes(context.executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES))
                                                                 .metricCollector(httpMetricCollector)
                                                                 .build();
 
