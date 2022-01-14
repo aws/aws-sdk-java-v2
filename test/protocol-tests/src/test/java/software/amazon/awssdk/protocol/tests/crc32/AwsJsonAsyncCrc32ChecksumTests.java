@@ -25,7 +25,6 @@ import com.github.tomakehurst.wiremock.common.SingleRootFileSource;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
-import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -79,7 +78,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
     }
 
     @Test
-    public void clientCalculatesCrc32FromCompressedData_WhenCrc32IsValid() throws ExecutionException, InterruptedException {
+    public void clientCalculatesCrc32FromCompressedData_WhenCrc32IsValid() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("Content-Encoding", "gzip")
@@ -97,8 +96,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
      * Crc32 calculated is accurate.
      */
     @Test
-    public void clientCalculatesCrc32FromCompressedData_ExtraData_WhenCrc32IsValid() throws ExecutionException,
-                                                                                            InterruptedException {
+    public void clientCalculatesCrc32FromCompressedData_ExtraData_WhenCrc32IsValid() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("Content-Encoding", "gzip")
@@ -110,8 +108,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
     }
 
     @Test
-    public void clientCalculatesCrc32FromCompressedData_WhenCrc32IsInvalid_ThrowsException() throws ExecutionException,
-                                                                                                    InterruptedException {
+    public void clientCalculatesCrc32FromCompressedData_WhenCrc32IsInvalid_ThrowsException() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("Content-Encoding", "gzip")
@@ -123,7 +120,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
     }
 
     @Test
-    public void clientCalculatesCrc32FromDecompressedData_WhenCrc32IsValid() throws ExecutionException, InterruptedException {
+    public void clientCalculatesCrc32FromDecompressedData_WhenCrc32IsValid() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("Content-Encoding", "gzip")
@@ -136,8 +133,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
     }
 
     @Test
-    public void clientCalculatesCrc32FromDecompressedData_WhenCrc32IsInvalid_ThrowsException() throws ExecutionException,
-                                                                                                      InterruptedException {
+    public void clientCalculatesCrc32FromDecompressedData_WhenCrc32IsInvalid_ThrowsException() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("Content-Encoding", "gzip")
@@ -149,7 +145,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
     }
 
     @Test
-    public void useGzipFalse_WhenCrc32IsValid() throws ExecutionException, InterruptedException {
+    public void useGzipFalse_WhenCrc32IsValid() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("x-amz-crc32", JSON_BODY_Crc32_CHECKSUM)
@@ -161,7 +157,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
     }
 
     @Test
-    public void useGzipFalse_WhenCrc32IsInvalid_ThrowException() throws ExecutionException, InterruptedException {
+    public void useGzipFalse_WhenCrc32IsInvalid_ThrowException() throws Exception {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                      .withStatus(200)
                                                      .withHeader("x-amz-crc32", JSON_BODY_GZIP_Crc32_CHECKSUM)

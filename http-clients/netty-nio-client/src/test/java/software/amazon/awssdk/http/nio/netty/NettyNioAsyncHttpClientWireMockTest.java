@@ -52,7 +52,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.util.AttributeKey;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -63,10 +62,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 import javax.net.ssl.TrustManagerFactory;
 import org.assertj.core.api.Condition;
@@ -90,8 +87,8 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
-import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
+import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -514,7 +511,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
     }
 
     @Test
-    public void requestContentOnlyEqualToContentLengthHeaderFromProvider() throws InterruptedException, ExecutionException, TimeoutException, IOException {
+    public void requestContentOnlyEqualToContentLengthHeaderFromProvider() throws Exception {
         final String content = randomAlphabetic(32);
         final String streamContent = content + reverse(content);
         stubFor(any(urlEqualTo("/echo?reversed=true"))
@@ -537,7 +534,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
     }
 
     @Test
-    public void closeMethodClosesOpenedChannels() throws InterruptedException, TimeoutException, ExecutionException {
+    public void closeMethodClosesOpenedChannels() throws Exception {
         String body = randomAlphabetic(10);
         URI uri = URI.create("https://localhost:" + mockServer.httpsPort());
         stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withHeader("Some-Header", "With Value").withBody(body)));
