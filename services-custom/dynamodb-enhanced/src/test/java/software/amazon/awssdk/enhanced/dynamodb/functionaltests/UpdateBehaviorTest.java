@@ -5,9 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Instant;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -32,12 +32,12 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     private final DynamoDbTable<RecordWithUpdateBehaviors> mappedTable =
             enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
-    @BeforeEach
+    @Before
     public void createTable() {
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
 
-    @AfterEach
+    @After
     public void deleteTable() {
         getDynamoDbClient().deleteTable(r -> r.tableName(getConcreteTableName("table-name")));
     }

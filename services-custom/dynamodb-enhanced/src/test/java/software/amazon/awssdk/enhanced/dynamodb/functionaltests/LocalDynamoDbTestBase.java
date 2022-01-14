@@ -16,8 +16,8 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import java.util.UUID;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 
 public class LocalDynamoDbTestBase {
@@ -30,12 +30,12 @@ public class LocalDynamoDbTestBase {
 
     private String uniqueTableSuffix = UUID.randomUUID().toString();
 
-    @BeforeAll
+    @BeforeClass
     public static void initializeLocalDynamoDb() {
         localDynamoDb.start();
     }
 
-    @AfterAll
+    @AfterClass
     public static void stopLocalDynamoDb() {
         localDynamoDb.stop();
     }
