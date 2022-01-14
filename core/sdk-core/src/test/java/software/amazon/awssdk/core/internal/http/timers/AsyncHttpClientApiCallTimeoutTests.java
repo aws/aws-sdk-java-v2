@@ -33,9 +33,9 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -60,7 +60,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
 
     private AmazonAsyncHttpClient httpClient;
 
-    @BeforeEach
+    @Before
     public void setup() {
         httpClient = testAsyncClientBuilder()
             .retryPolicy(RetryPolicy.none())

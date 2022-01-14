@@ -27,9 +27,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.http.Header;
@@ -46,7 +46,7 @@ public class QueryRequestTransformTest extends ProtocolTestBase {
     private ProtocolQueryClient client;
     private ProtocolQueryAsyncClient asyncClient;
 
-    @BeforeEach
+    @Before
     public void setupClient() {
         client = ProtocolQueryClient.builder()
                                     .credentialsProvider(StaticCredentialsProvider.create(

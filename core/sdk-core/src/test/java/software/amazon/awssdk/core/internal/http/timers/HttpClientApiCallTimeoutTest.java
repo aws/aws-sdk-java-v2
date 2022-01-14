@@ -30,9 +30,9 @@ import static utils.HttpTestUtils.testClientBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
@@ -56,7 +56,7 @@ public class HttpClientApiCallTimeoutTest {
 
     private AmazonSyncHttpClient httpClient;
 
-    @BeforeEach
+    @Before
     public void setup() {
         httpClient = testClientBuilder()
             .retryPolicy(RetryPolicy.none())

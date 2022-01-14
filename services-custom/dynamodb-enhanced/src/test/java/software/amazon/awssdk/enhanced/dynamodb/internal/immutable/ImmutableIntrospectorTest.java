@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.immutable;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;

@@ -31,9 +31,9 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 import org.apache.commons.lang3.ArrayUtils;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -63,7 +63,7 @@ public class ChecksumResetsOnRetryTest {
 
     private String bodyEtag;
 
-    @BeforeEach
+    @Before
     public void setup() {
         StaticCredentialsProvider credentials = StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
         s3Client = S3Client.builder()
