@@ -20,12 +20,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
 
 import com.github.tomakehurst.wiremock.common.SingleRootFileSource;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -86,7 +86,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
                                                      .withBodyFile(JSON_BODY_GZIP)));
 
         SimpleResponse result = customizedJsonRpcAsync.simple(SimpleRequest.builder().build()).get();
-        Assert.assertEquals("foo", result.stringMember());
+        assertEquals("foo", result.stringMember());
     }
 
     /**
@@ -104,7 +104,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
                                                      .withBodyFile(JSON_BODY_EXTRA_DATA_GZIP)));
 
         SimpleResponse result = customizedJsonRpcAsync.simple(SimpleRequest.builder().build()).get();
-        Assert.assertEquals("foo", result.stringMember());
+        assertEquals("foo", result.stringMember());
     }
 
     @Test
@@ -129,7 +129,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
 
         AllTypesResponse result =
             jsonRpcAsync.allTypes(AllTypesRequest.builder().build()).get();
-        Assert.assertEquals("foo", result.stringMember());
+        assertEquals("foo", result.stringMember());
     }
 
     @Test
@@ -153,7 +153,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
 
         AllTypesResponse result =
             jsonRpcAsync.allTypes(AllTypesRequest.builder().build()).get();
-        Assert.assertEquals("foo", result.stringMember());
+        assertEquals("foo", result.stringMember());
     }
 
     @Test
