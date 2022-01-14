@@ -23,9 +23,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -56,7 +56,7 @@ public class UrlEncodingTest {
                               .build();
     }
 
-    @BeforeEach
+    @Before
     public void methodSetUp() {
         s3Control = buildClient();
     }

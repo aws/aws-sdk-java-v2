@@ -25,9 +25,9 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -47,7 +47,7 @@ public class AsyncFaultTest {
 
     private ProtocolRestJsonAsyncClient client;
 
-    @BeforeEach
+    @Before
     public void setup() {
         client = ProtocolRestJsonAsyncClient.builder()
                                             .region(Region.US_WEST_1)

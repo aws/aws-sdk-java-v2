@@ -27,9 +27,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.util.Collections;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
@@ -54,7 +54,7 @@ public class EmptyAttributeTest {
     private DynamoDbStreamsClient dynamoDbStreamsClient;
     private DynamoDbStreamsAsyncClient dynamoDbStreamsAsyncClient;
 
-    @BeforeEach
+    @Before
     public void setup() {
         dynamoDbClient =
             DynamoDbClient.builder()

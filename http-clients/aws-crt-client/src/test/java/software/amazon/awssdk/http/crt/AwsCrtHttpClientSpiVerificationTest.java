@@ -33,12 +33,14 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -64,7 +66,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
 
     private SdkAsyncHttpClient client;
 
-    @BeforeEach
+    @Before
     public void setup() throws Exception {
         CrtResource.waitForNoResources();
 
@@ -74,7 +76,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
                                       .build();
     }
 
-    @AfterEach
+    @After
     public void tearDown() {
         client.close();
         EventLoopGroup.closeStaticDefault();
@@ -89,7 +91,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
     }
 
     @Test
-    public void signalsErrorViaOnErrorAndFuture() throws Exception {
+    public void signalsErrorViaOnErrorAndFuture() throws InterruptedException, ExecutionException, TimeoutException {
         stubFor(any(urlEqualTo("/")).willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
 
         CompletableFuture<Boolean> errorSignaled = new CompletableFuture<>();

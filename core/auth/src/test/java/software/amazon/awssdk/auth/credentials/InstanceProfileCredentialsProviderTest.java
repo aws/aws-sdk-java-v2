@@ -31,10 +31,10 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import java.time.Duration;
 import java.time.Instant;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -57,12 +57,12 @@ public class InstanceProfileCredentialsProviderTest {
     @Rule
     public WireMockRule mockMetadataEndpoint = new WireMockRule();
 
-    @BeforeEach
+    @Before
     public void methodSetup() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "http://localhost:" + mockMetadataEndpoint.port());
     }
 
-    @AfterAll
+    @AfterClass
     public static void teardown() {
         System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
     }

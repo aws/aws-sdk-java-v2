@@ -32,10 +32,12 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import org.junit.AfterClass;
 import org.junit.Rule;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -61,14 +63,14 @@ public class NettyNioAsyncHttpClientSpiVerificationTest {
 
     private static SdkAsyncHttpClient client = NettyNioAsyncHttpClient.builder().buildWithDefaults(mapWithTrustAllCerts());
 
-    @AfterAll
+    @AfterClass
     public static void tearDown() throws Exception {
         client.close();
     }
 
     // CONNECTION_RESET_BY_PEER does not work on JDK 11. See https://github.com/tomakehurst/wiremock/issues/1009
     @Test
-    public void signalsErrorViaOnErrorAndFuture() throws Exception {
+    public void signalsErrorViaOnErrorAndFuture() throws InterruptedException, ExecutionException, TimeoutException {
         stubFor(any(urlEqualTo("/")).willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
 
         CompletableFuture<Boolean> errorSignaled = new CompletableFuture<>();
@@ -93,7 +95,7 @@ public class NettyNioAsyncHttpClientSpiVerificationTest {
     }
 
     @Test
-    public void callsOnStreamForEmptyResponseContent() throws Exception {
+    public void callsOnStreamForEmptyResponseContent() throws InterruptedException, ExecutionException, TimeoutException {
         stubFor(any(urlEqualTo("/")).willReturn(aResponse().withStatus(204).withHeader("foo", "bar")));
 
         CompletableFuture<Boolean> streamReceived = new CompletableFuture<>();

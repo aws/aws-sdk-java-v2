@@ -40,8 +40,9 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
@@ -103,7 +104,7 @@ public class ExecutionInterceptorTest {
 
     @Test
     public void async_success_allInterceptorMethodsCalled()
-        throws Exception {
+            throws ExecutionException, InterruptedException, TimeoutException {
         // Given
         ExecutionInterceptor interceptor = mock(MessageUpdatingInterceptor.class, CALLS_REAL_METHODS);
         ProtocolRestJsonAsyncClient client = asyncClient(interceptor);
@@ -138,7 +139,7 @@ public class ExecutionInterceptorTest {
 
     @Test
     public void async_streamingInput_success_allInterceptorMethodsCalled()
-        throws Exception {
+            throws ExecutionException, InterruptedException, TimeoutException, IOException {
         // Given
         ExecutionInterceptor interceptor = mock(NoOpInterceptor.class, CALLS_REAL_METHODS);
         ProtocolRestJsonAsyncClient client = asyncClient(interceptor);
@@ -184,7 +185,7 @@ public class ExecutionInterceptorTest {
 
     @Test
     public void async_streamingOutput_success_allInterceptorMethodsCalled()
-        throws Exception {
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
         // Given
         ExecutionInterceptor interceptor = mock(NoOpInterceptor.class, CALLS_REAL_METHODS);
         ProtocolRestJsonAsyncClient client = asyncClient(interceptor);
@@ -214,7 +215,7 @@ public class ExecutionInterceptorTest {
     }
 
     @Test
-    public void async_serviceException_failureInterceptorMethodsCalled() throws Exception {
+    public void async_serviceException_failureInterceptorMethodsCalled() throws ExecutionException, InterruptedException {
         // Given
         ExecutionInterceptor interceptor = mock(MessageUpdatingInterceptor.class, CALLS_REAL_METHODS);
         ProtocolRestJsonAsyncClient client = asyncClient(interceptor);

@@ -24,10 +24,10 @@ import static software.amazon.awssdk.enhanced.dynamodb.mocktests.BatchGetTestUti
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.util.List;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
@@ -48,7 +48,7 @@ public class AsyncBatchGetItemTest {
     @Rule
     public WireMockRule wireMock = new WireMockRule(0);
 
-    @BeforeEach
+    @Before
     public void setup() {
 
         DynamoDbAsyncClient dynamoDbClient =
@@ -72,7 +72,7 @@ public class AsyncBatchGetItemTest {
         table = enhancedClient.table("table", tableSchema);
     }
 
-    @AfterEach
+    @After
     public void cleanup() {
         wireMock.resetAll();
     }
