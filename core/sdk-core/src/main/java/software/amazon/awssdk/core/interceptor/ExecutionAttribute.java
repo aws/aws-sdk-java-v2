@@ -44,7 +44,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @SdkPublicApi
 public final class ExecutionAttribute<T> {
-    private static final ConcurrentMap<String, ExecutionAttribute<?>> POOL = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, ExecutionAttribute<?>> NAME_HISTORY = new ConcurrentHashMap<>();
     
     private final String name;
 
@@ -59,7 +59,7 @@ public final class ExecutionAttribute<T> {
     }
 
     private void ensureUnique() {
-        ExecutionAttribute<?> prev = POOL.putIfAbsent(name, this);
+        ExecutionAttribute<?> prev = NAME_HISTORY.putIfAbsent(name, this);
         if (prev != null) {
             throw new IllegalArgumentException(String.format("No duplicate ExecutionAttribute names allowed but both "
                                                              + "ExecutionAttributes %s and %s have the same name: %s. " 
