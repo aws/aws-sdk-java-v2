@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Do not fail with a parsing error when receiving 0-length chunk-encoded responses for XML services."
-}
