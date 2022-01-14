@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
@@ -36,6 +38,12 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class RequestOverrideConfigurationTest {
+    private static final ConcurrentMap<String, ExecutionAttribute<Object>> POOL = new ConcurrentHashMap<>();
+
+    private static ExecutionAttribute<Object> attr(String name) {
+        return POOL.computeIfAbsent(name, s -> new ExecutionAttribute<>(name));
+    }
+    
     private static final String HEADER = "header";
     private static final String QUERY_PARAM = "queryparam";
 
@@ -56,7 +64,7 @@ public class RequestOverrideConfigurationTest {
 
     @Test
     public void toBuilder_maximal() {
-        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
+        ExecutionAttribute testAttribute = attr("TestAttribute");
         String expectedValue = "Value1";
 
         RequestOverrideConfiguration configuration = SdkRequestOverrideConfiguration.builder()
@@ -210,7 +218,7 @@ public class RequestOverrideConfigurationTest {
     public void executionAttributes_createsCopy() {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
 
-        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
+        ExecutionAttribute testAttribute = attr("TestAttribute");
         String expectedValue = "Value1";
         executionAttributes.putAttribute(testAttribute, expectedValue);
 
@@ -226,7 +234,7 @@ public class RequestOverrideConfigurationTest {
     @Test
     public void executionAttributes_isImmutable() {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
-        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
+        ExecutionAttribute testAttribute = attr("TestAttribute");
         String expectedValue = "Value1";
         executionAttributes.putAttribute(testAttribute, expectedValue);
 
@@ -252,7 +260,7 @@ public class RequestOverrideConfigurationTest {
     public void executionAttributes_maintainsAllAdded() {
         Map<ExecutionAttribute, Object> executionAttributeObjectMap = new HashMap<>();
         for (int i = 0; i < 5; i++) {
-            executionAttributeObjectMap.put(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+            executionAttributeObjectMap.put(attr("Attribute" + i), mock(Object.class));
         }
 
         SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
@@ -269,12 +277,12 @@ public class RequestOverrideConfigurationTest {
     public void executionAttributes_overwritesPreviouslyAdded() {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         for (int i = 0; i < 5; i++) {
-            executionAttributes.putAttribute(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+            executionAttributes.putAttribute(attr("Attribute" + i), mock(Object.class));
         }
 
         SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
 
-        builder.putExecutionAttribute(new ExecutionAttribute("AddedAttribute"), mock(Object.class));
+        builder.putExecutionAttribute(attr("AddedAttribute"), mock(Object.class));
         builder.executionAttributes(executionAttributes);
         SdkRequestOverrideConfiguration overrideConfig = builder.build();
         assertThat(overrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributes.getAttributes());
@@ -284,13 +292,13 @@ public class RequestOverrideConfigurationTest {
     public void executionAttributes_listPreviouslyAdded_appendedToList() {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         for (int i = 0; i < 5; i++) {
-            executionAttributes.putAttribute(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+            executionAttributes.putAttribute(attr("Attribute" + i), mock(Object.class));
         }
 
         SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
 
         builder.executionAttributes(executionAttributes);
-        ExecutionAttribute addedAttribute = new ExecutionAttribute("AddedAttribute");
+        ExecutionAttribute addedAttribute = attr("AddedAttribute");
         Object addedValue = mock(Object.class);
 
         builder.putExecutionAttribute(addedAttribute, addedValue);
@@ -303,7 +311,7 @@ public class RequestOverrideConfigurationTest {
     public void testConfigurationEquals() {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         for (int i = 0; i < 5; i++) {
-            executionAttributes.putAttribute(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+            executionAttributes.putAttribute(attr("Attribute" + i), mock(Object.class));
         }
 
         SdkRequestOverrideConfiguration request1Override  = SdkRequestOverrideConfiguration.builder()
