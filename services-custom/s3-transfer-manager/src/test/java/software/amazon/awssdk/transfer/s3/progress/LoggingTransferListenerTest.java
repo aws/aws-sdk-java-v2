@@ -114,11 +114,11 @@ public class LoggingTransferListenerTest {
                                                      .completedTransfer(mock(CompletedObjectTransfer.class))));
     }
 
-    private static void assertLogged(List<LogEvent> events, org.apache.logging.log4j.Level level, String message, Object... args) {
+    private static void assertLogged(List<LogEvent> events, org.apache.logging.log4j.Level level, String message) {
         assertThat(events).withFailMessage("Expecting events to not be empty").isNotEmpty();
         LogEvent event = events.remove(0);
         String msg = event.getMessage().getFormattedMessage();
-        assertThat(msg).isEqualTo(String.format(message, args));
+        assertThat(msg).isEqualTo(message);
         assertThat(event.getLevel()).isEqualTo(level);
     }
 }

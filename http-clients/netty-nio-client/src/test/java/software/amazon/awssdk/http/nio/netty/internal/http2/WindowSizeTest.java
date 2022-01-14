@@ -43,9 +43,9 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import org.junit.After;
 import org.junit.Rule;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.EmptyPublisher;
@@ -68,7 +68,7 @@ public class WindowSizeTest {
     @Rule
     public ExpectedException expected = ExpectedException.none();
 
-    @AfterEach
+    @After
     public void methodTeardown() throws InterruptedException {
         if (netty != null) {
             netty.close();
