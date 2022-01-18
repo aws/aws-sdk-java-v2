@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixed an issue where the clientName was not overridden if an SdkAsyncHttpClient instance was provided"
+}
