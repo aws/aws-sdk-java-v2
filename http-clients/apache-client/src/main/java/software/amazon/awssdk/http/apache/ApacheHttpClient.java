@@ -80,6 +80,7 @@ import software.amazon.awssdk.http.TlsKeyManagersProvider;
 import software.amazon.awssdk.http.TlsTrustManagersProvider;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.DefaultConfiguration;
+import software.amazon.awssdk.http.apache.internal.SdkConnectionReuseStrategy;
 import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache.internal.conn.ClientConnectionManagerFactory;
 import software.amazon.awssdk.http.apache.internal.conn.IdleConnectionReaper;
@@ -161,6 +162,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
                .disableRedirectHandling()
                .disableAutomaticRetries()
                .setUserAgent("") // SDK will set the user agent header in the pipeline. Don't let Apache waste time
+               .setConnectionReuseStrategy(new SdkConnectionReuseStrategy())
                .setConnectionManager(ClientConnectionManagerFactory.wrap(cm));
 
         addProxyConfig(builder, configuration);

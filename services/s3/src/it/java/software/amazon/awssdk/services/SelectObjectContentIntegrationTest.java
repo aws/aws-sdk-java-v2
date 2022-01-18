@@ -17,6 +17,7 @@ package software.amazon.awssdk.services;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.services.s3.model.ExpressionType;
 import software.amazon.awssdk.services.s3.model.InputSerialization;
 import software.amazon.awssdk.services.s3.model.OutputSerialization;
 import software.amazon.awssdk.services.s3.model.RecordsEvent;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.SelectObjectContentEventStream;
 import software.amazon.awssdk.services.s3.model.SelectObjectContentEventStream.EventType;
 import software.amazon.awssdk.services.s3.model.SelectObjectContentRequest;
@@ -71,7 +73,7 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void selectObjectContent_onResponseInvokedWithResponse() {
         TestHandler handler = new TestHandler();
-        executeTestSelectQueryWithHandler(handler).join();
+        executeSqlQueryWithHandler(QUERY, handler).join();
 
         assertThat(handler.response).isNotNull();
     }
@@ -79,7 +81,7 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void selectObjectContent_recordsEventUnmarshalledCorrectly() {
         TestHandler handler = new TestHandler();
-        executeTestSelectQueryWithHandler(handler).join();
+        executeSqlQueryWithHandler(QUERY, handler).join();
 
         RecordsEvent recordsEvent = (RecordsEvent) handler.receivedEvents.stream()
                                                                          .filter(e -> e.sdkEventType() == EventType.RECORDS)
@@ -89,7 +91,15 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         assertThat(recordsEvent.payload().asUtf8String()).contains("A\nC");
     }
 
-    private static CompletableFuture<Void> executeTestSelectQueryWithHandler(SelectObjectContentResponseHandler handler) {
+    @Test
+    public void selectObjectContent_invalidQuery_unmarshallsErrorResponse() {
+        TestHandler handler = new TestHandler();
+        CompletableFuture<Void> responseFuture = executeSqlQueryWithHandler("not a query", handler);
+
+        assertThatThrownBy(responseFuture::join).hasCauseInstanceOf(S3Exception.class);
+    }
+
+    private static CompletableFuture<Void> executeSqlQueryWithHandler(String query, SelectObjectContentResponseHandler handler) {
         InputSerialization inputSerialization = InputSerialization.builder()
                                                                   .csv(CSVInput.builder().build())
                                                                   .compressionType(CompressionType.NONE)
@@ -104,7 +114,7 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         SelectObjectContentRequest select = SelectObjectContentRequest.builder()
                                                                       .bucket(BUCKET_NAME)
                                                                       .key(KEY)
-                                                                      .expression(QUERY)
+                                                                      .expression(query)
                                                                       .expressionType(ExpressionType.SQL)
                                                                       .inputSerialization(inputSerialization)
                                                                       .outputSerialization(outputSerialization)

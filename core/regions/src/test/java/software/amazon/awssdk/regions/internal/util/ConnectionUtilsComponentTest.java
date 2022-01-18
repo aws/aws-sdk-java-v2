@@ -17,6 +17,7 @@ package software.amazon.awssdk.regions.internal.util;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -26,11 +27,10 @@ import java.net.HttpURLConnection;
 import java.net.Inet4Address;
 import java.net.URI;
 import java.util.Collections;
+import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Rule;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class ConnectionUtilsComponentTest {
 
@@ -42,7 +42,7 @@ public class ConnectionUtilsComponentTest {
 
     private final ConnectionUtils sut = ConnectionUtils.create();
 
-    @AfterEach
+    @After
     public void cleanup() {
         System.getProperties().remove("http.proxyHost");
         System.getProperties().remove("http.proxyPort");
@@ -50,7 +50,7 @@ public class ConnectionUtilsComponentTest {
 
     @Test
     public void proxiesAreNotUsedEvenIfPropertyIsSet() throws IOException {
-        Assumptions.assumeTrue(Inet4Address.getLocalHost().isReachable(100));
+        assumeTrue(Inet4Address.getLocalHost().isReachable(100));
         System.getProperties().put("http.proxyHost", "localhost");
         System.getProperties().put("http.proxyPort", String.valueOf(mockProxyServer.port()));
         HttpURLConnection connection = sut.connectToEndpoint(URI.create("http://" + Inet4Address.getLocalHost().getHostAddress() + ":" + mockServer.port()), emptyMap());

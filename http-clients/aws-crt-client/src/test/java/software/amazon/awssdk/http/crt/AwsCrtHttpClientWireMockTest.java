@@ -28,11 +28,11 @@ import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createReque
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
 import software.amazon.awssdk.crt.io.HostResolver;
@@ -53,17 +53,17 @@ public class AwsCrtHttpClientWireMockTest {
                                                           .dynamicHttpsPort()
                                                           .networkTrafficListener(wiremockTrafficListener));
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() {
         System.setProperty("aws.crt.debugnative", "true");
     }
 
-    @BeforeEach
+    @Before
     public void methodSetup() {
         wiremockTrafficListener.reset();
     }
 
-    @AfterEach
+    @After
     public void tearDown() {
         // Verify there is no resource leak.
         EventLoopGroup.closeStaticDefault();

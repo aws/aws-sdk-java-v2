@@ -18,10 +18,10 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Iterator;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -50,12 +50,12 @@ public class FailedConversionSyncTest extends LocalDynamoDbSyncTestBase {
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
-    @BeforeEach
+    @Before
     public void createTable() {
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
 
-    @AfterEach
+    @After
     public void deleteTable() {
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName("table-name"))

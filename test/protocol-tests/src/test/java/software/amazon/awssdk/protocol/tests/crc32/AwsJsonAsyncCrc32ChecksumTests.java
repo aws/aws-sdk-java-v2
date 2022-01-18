@@ -15,21 +15,20 @@
 
 package software.amazon.awssdk.protocol.tests.crc32;
 
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import com.github.tomakehurst.wiremock.common.SingleRootFileSource;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.exception.Crc32MismatchException;
@@ -62,7 +61,7 @@ public class AwsJsonAsyncCrc32ChecksumTests {
     private ProtocolJsonRpcCustomizedAsyncClient customizedJsonRpcAsync;
     private ProtocolJsonRpcAsyncClient jsonRpcAsync;
 
-    @BeforeEach
+    @Before
     public void setup() {
         jsonRpcAsync = ProtocolJsonRpcAsyncClient.builder()
                                                  .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)

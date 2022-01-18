@@ -26,9 +26,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
 import java.net.URI;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.util.VersionInfo;
@@ -43,7 +43,7 @@ public class PaginatorInUserAgentTest {
     private DynamoDbClient dynamoDbClient;
     private DynamoDbAsyncClient dynamoDbAsyncClient;
 
-    @BeforeEach
+    @Before
     public void setup() {
         dynamoDbClient = DynamoDbClient.builder()
                                        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
