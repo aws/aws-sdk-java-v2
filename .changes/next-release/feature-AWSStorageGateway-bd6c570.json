@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Storage Gateway",
-    "contributor": "",
-    "description": "Documentation update for adding bandwidth throttling support for S3 File Gateways."
-}
