@@ -260,32 +260,37 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             inputChannel.read(buffer, position.get(), buffer, new CompletionHandler<Integer, ByteBuffer>() {
                 @Override
                 public void completed(Integer result, ByteBuffer attachment) {
-                    if (result > 0) {
-                        attachment.flip();
+                    try {
+                        if (result > 0) {
+                            attachment.flip();
 
-                        int readBytes = attachment.remaining();
-                        position.addAndGet(readBytes);
-                        remainingBytes.addAndGet(-readBytes);
+                            int readBytes = attachment.remaining();
+                            position.addAndGet(readBytes);
+                            remainingBytes.addAndGet(-readBytes);
 
-                        signalOnNext(attachment);
+                            signalOnNext(attachment);
 
-                        if (remainingBytes.get() == 0) {
+                            if (remainingBytes.get() == 0) {
+                                closeFile();
+                                signalOnComplete();
+                            }
+
+                            synchronized (lock) {
+                                // If we have more permits, queue up another read.
+                                if (--outstandingDemand > 0) {
+                                    readData();
+                                } else {
+                                    readInProgress = false;
+                                }
+                            }
+                        } else {
+                            // Reached the end of the file, notify the subscriber and cleanup
                             closeFile();
                             signalOnComplete();
                         }
-
-                        synchronized (lock) {
-                            // If we have more permits, queue up another read.
-                            if (--outstandingDemand > 0) {
-                                readData();
-                            } else {
-                                readInProgress = false;
-                            }
-                        }
-                    } else {
-                        // Reached the end of the file, notify the subscriber and cleanup
+                    } catch (Throwable throwable) {
                         closeFile();
-                        signalOnComplete();
+                        signalOnError(throwable);
                     }
                 }
 
