@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Prevent duplicate ExecutionAttribute names and fix name for FIPS_ENDPOINT_ENABLED attribute"
+}
