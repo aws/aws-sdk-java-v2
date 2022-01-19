@@ -41,6 +41,7 @@ public class ClientOverrideConfigurationTest {
     private static final ConcurrentMap<String, ExecutionAttribute<Object>> ATTR_POOL = new ConcurrentHashMap<>();
 
     private static ExecutionAttribute<Object> attr(String name) {
+        name = ClientOverrideConfigurationTest.class.getName() + ":" + name;
         return ATTR_POOL.computeIfAbsent(name, ExecutionAttribute::new);
     }
 
