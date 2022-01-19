@@ -1,3 +1,24 @@
+# __2.17.113__ __2022-01-18__
+## __AWS CloudTrail__
+  - ### Features
+    - This release fixes a documentation bug in the description for the readOnly field selector in advanced event selectors. The description now clarifies that users omit the readOnly field selector to select both Read and Write management events.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Documentation update for adding bandwidth throttling support for S3 File Gateways.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add support for AWS Client VPN client login banner and session timeout.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - This release adds support for the new Thumbnail Configuration property for Recording Configurations. For more information see https://docs.aws.amazon.com/ivs/latest/userguide/record-to-s3.html
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds the CalculateRouteMatrix API which calculates routes for the provided departure and destination positions. The release also deprecates the use of pricing plan across all verticals.
+
 # __2.17.112__ __2022-01-14__
 ## __AWS Config__
   - ### Features
