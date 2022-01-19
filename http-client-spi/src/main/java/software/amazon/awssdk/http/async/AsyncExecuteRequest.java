@@ -21,6 +21,7 @@ import software.amazon.awssdk.http.SdkHttpExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Request object containing the parameters necessary to make an asynchronous HTTP request.
@@ -204,6 +205,7 @@ public final class AsyncExecuteRequest {
 
         @Override
         public Builder sdkHttpAttributes(SdkHttpExecutionAttributes executionAttributes) {
+            Validate.paramNotNull(executionAttributes, "executionAttributes");
             this.executionAttributesBuilder = executionAttributes.toBuilder();
             return this;
         }
