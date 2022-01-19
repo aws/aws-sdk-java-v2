@@ -30,13 +30,13 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  * <p>
  * Example using {@link DynamoDbIgnoreNulls}:
  * <pre>
- * {@code
- * @DynamoDbBean
+ * <code>
+ * &#64;DynamoDbBean
  * public class NestedBean {
  *     private AbstractBean innerBean1;
  *     private AbstractBean innerBean2;
  *
- *     @DynamoDbIgnoreNulls
+ *     &#64;DynamoDbIgnoreNulls
  *     public AbstractBean getInnerBean1() {
  *         return innerBean1;
  *     }
@@ -67,7 +67,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  *
  * // innerBean2 w/o @DynamoDbIgnoreNulls has a NULLL attribute.
  * assertThat(nestedBean.getInnerBean2(), hasEntry("attribute", nullAttributeValue()));
- * }
+ * </code>
  * </pre>
  */
 @SdkPublicApi

@@ -30,9 +30,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
@@ -70,7 +70,7 @@ public class SdkHttpResponseTest {
         put("x-amzn-RequestId", Collections.singletonList(REQUEST_ID));
     }};
 
-    @BeforeEach
+    @Before
     public void setupClient() {
         client = ProtocolRestJsonClient.builder()
                                        .region(Region.US_WEST_1)

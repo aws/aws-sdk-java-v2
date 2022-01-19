@@ -23,9 +23,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
@@ -38,7 +38,7 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
-    @BeforeEach
+    @Before
     public void methodSetUp() {
         s3 = buildClient();
     }

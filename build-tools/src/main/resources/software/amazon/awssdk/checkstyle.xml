@@ -408,12 +408,18 @@
 
         <module name="software.amazon.awssdk.buildtools.checkstyle.SdkIllegalImportCheck">
             <property name="classNameToCheck" value="StaticTableSchema"/>
-            <property name="illegalPkgs" value="java.lang.reflect"/>
+            <property name="illegalPkgs" value="java.lang.reflect.*"/>
         </module>
 
         <module name="software.amazon.awssdk.buildtools.checkstyle.SdkIllegalImportCheck">
             <property name="classNameToCheck" value="StaticImmutableTableSchema"/>
-            <property name="illegalPkgs" value="java.lang.reflect"/>
+            <property name="illegalPkgs" value="java.lang.reflect.*"/>
+        </module>
+
+        <module name="software.amazon.awssdk.buildtools.checkstyle.SdkIllegalImportCheck">
+            <property name="classNameToCheck" value=".*"/>
+            <property name="packageToCheck" value="software.amazon.awssdk.http.nio.netty" />
+            <property name="illegalPkgs" value="software.amazon.awssdk.utils.Logger,org.slf4j.Logger"/>
         </module>
     </module>
 

@@ -45,10 +45,10 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.assertj.core.api.Condition;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -70,12 +70,12 @@ public class NettyNioAsyncHttpClientDefaultWireMockTest {
 
     private static SdkAsyncHttpClient client = NettyNioAsyncHttpClient.create();
 
-    @BeforeEach
+    @Before
     public void methodSetup() {
         wiremockTrafficListener.reset();
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDown() throws Exception {
         client.close();
     }

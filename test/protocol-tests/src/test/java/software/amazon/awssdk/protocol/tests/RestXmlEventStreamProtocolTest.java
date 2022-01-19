@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayOutputStream;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,6 +44,7 @@ import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlAsyncClien
 import software.amazon.awssdk.services.protocolrestxml.model.EventStream;
 import software.amazon.awssdk.services.protocolrestxml.model.EventStreamOperationResponse;
 import software.amazon.awssdk.services.protocolrestxml.model.EventStreamOperationResponseHandler;
+import software.amazon.awssdk.services.protocolrestxml.model.ProtocolRestXmlException;
 import software.amazon.eventstream.HeaderValue;
 import software.amazon.eventstream.Message;
 
@@ -145,6 +148,17 @@ public class RestXmlEventStreamProtocolTest {
 
         assertThat(testHandler.receivedEvents).containsExactly(EventStream.nonEventPayloadEventBuilder().bar("baz").build());
         assertThat(testHandler.receivedEvents.get(0).sdkEventType()).isEqualTo(EventStream.EventType.NON_EVENT_PAYLOAD_EVENT);
+    }
+
+    @Test
+    public void errorResponse_unmarshalledCorrectly() {
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(500)));
+
+        TestHandler testHandler = new TestHandler();
+        CompletableFuture<Void> responseFuture = client.eventStreamOperation(r -> {
+        }, testHandler);
+
+        assertThatThrownBy(responseFuture::join).hasCauseInstanceOf(ProtocolRestXmlException.class);
     }
 
     private static Message event(String type, byte[] payload) {

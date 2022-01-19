@@ -23,8 +23,8 @@ import static software.amazon.awssdk.utils.FunctionalUtils.safeFunction;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.function.Function;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.Ignore;
+import org.junit.Test;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientTestSuite;
 
@@ -40,19 +40,25 @@ public final class UrlConnectionHttpClientWithCustomCreateWireMockTest extends S
         }));
     }
 
-    @Disabled // Not supported when using custom factory
+    @Ignore // Not supported when using custom factory
     @Override
     public void testCustomTlsTrustManager() {
     }
 
-    @Disabled // Not supported when using custom factory
+    @Ignore // Not supported when using custom factory
     @Override
     public void testTrustAllWorks() {
     }
 
-    @Disabled // Not supported when using custom factory
+    @Ignore // Not supported when using custom factory
     @Override
     public void testCustomTlsTrustManagerAndTrustAllFails() {
+    }
+
+    @Ignore
+    @Override
+    public void connectionsAreNotReusedOn5xxErrors() throws Exception {
+        // We cannot support this because the URL connection client doesn't allow us to disable connection reuse
     }
 
     @Test

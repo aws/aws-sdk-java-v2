@@ -25,9 +25,9 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
@@ -51,7 +51,7 @@ public class AsyncResponseTransformerTest {
     private ProtocolRestJsonAsyncClient jsonClient;
     private ProtocolQueryAsyncClient xmlClient;
 
-    @BeforeEach
+    @Before
     public void setupClient() {
         jsonClient = ProtocolRestJsonAsyncClient.builder()
                                                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))

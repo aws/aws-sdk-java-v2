@@ -1,3 +1,172 @@
+# __2.17.113__ __2022-01-18__
+## __AWS CloudTrail__
+  - ### Features
+    - This release fixes a documentation bug in the description for the readOnly field selector in advanced event selectors. The description now clarifies that users omit the readOnly field selector to select both Read and Write management events.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Documentation update for adding bandwidth throttling support for S3 File Gateways.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add support for AWS Client VPN client login banner and session timeout.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - This release adds support for the new Thumbnail Configuration property for Recording Configurations. For more information see https://docs.aws.amazon.com/ivs/latest/userguide/record-to-s3.html
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds the CalculateRouteMatrix API which calculates routes for the provided departure and destination positions. The release also deprecates the use of pricing plan across all verticals.
+
+# __2.17.112__ __2022-01-14__
+## __AWS Config__
+  - ### Features
+    - Update ResourceType enum with values for CodeDeploy, EC2 and Kinesis resources
+
+## __AWS Resource Access Manager__
+  - ### Features
+    - This release adds the ListPermissionVersions API which lists the versions for a given permission.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Do not fail with a parsing error when receiving 0-length chunk-encoded responses for XML services.
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - Application Insights support for Active Directory and SharePoint
+
+## __Amazon Honeycode__
+  - ### Features
+    - Added read and write api support for multi-select picklist. And added errorcode field to DescribeTableDataImportJob API output, when import job fails.
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - This release adds a new DeactivateAnomalyDetector API operation.
+
+# __2.17.111__ __2022-01-13__
+## __AWS Glue__
+  - ### Features
+    - This SDK release adds support to pass run properties when starting a workflow run
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - AWS ElastiCache for Redis has added a new Engine Log LogType in LogDelivery feature. You can now publish the Engine Log from your Amazon ElastiCache for Redis clusters to Amazon CloudWatch Logs and Amazon Kinesis Data Firehose.
+
+## __Amazon Lex Runtime V2__
+  - ### Features
+    - This release adds support for sending hints to Amazon Lex V2 runtime APIs. Bot developers can provide runtime hints to help improve the recognition of slot values.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Adds JourneyChannelSettings to WriteJourneyRequest
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Retry on InternalError error code, which fixes an issue where 200s followed by a failure were not retried.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager adds category support for DescribeDocument API
+
+## __AmazonNimbleStudio__
+  - ### Features
+    - Amazon Nimble Studio now supports validation for Launch Profiles. Launch Profiles now report static validation results after create/update to detect errors in network or active directory configuration.
+
+## __Apache HTTP Client__
+  - ### Bugfixes
+    - Do not reuse connections that receive a 5xx service response.
+
+# __2.17.110__ __2022-01-12__
+## __AWS Performance Insights__
+  - ### Features
+    - This release adds three Performance Insights APIs. Use ListAvailableResourceMetrics to get available metrics, GetResourceMetadata to get feature metadata, and ListAvailableResourceDimensions to list available dimensions. The AdditionalMetrics field in DescribeDimensionKeys retrieves per-SQL metrics.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Doc only update for ElastiCache
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Hpc6a instances are powered by a third-generation AMD EPYC processors (Milan) delivering all-core turbo frequency of 3.4 GHz
+
+## __Amazon Honeycode__
+  - ### Features
+    - Honeycode is releasing new APIs to allow user to create, delete and list tags on resources.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release adds support for Custom vocabulary in Amazon Lex V2 APIs for model building. Customers can give Amazon Lex V2 more information about how to process audio conversations with a bot by creating a custom vocabulary in a specific language.
+
+## __Firewall Management Service__
+  - ### Features
+    - Shield Advanced policies for Amazon CloudFront resources now support automatic application layer DDoS mitigation. The max length for SecurityServicePolicyData ManagedServiceData is now 8192 characters, instead of 4096.
+
+# __2.17.109__ __2022-01-11__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Doc only update for Cost Explorer API that fixes missing clarifications for MatchOptions definitions
+
+## __AWS IoT Events Data__
+  - ### Features
+    - This release provides documentation updates for Timer.timestamp in the IoT Events API Reference Guide.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix an issue where the error response handler is not set for eventstream operations on XML services, for example `SelectObjectContent` for Amazon S3.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports advanced query language and query-less search.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 Capacity Reservations now supports RHEL instance platforms (RHEL with SQL Server Standard, RHEL with SQL Server Enterprise, RHEL with SQL Server Web, RHEL with HA, RHEL with HA and SQL Server Standard, RHEL with HA and SQL Server Enterprise)
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds the db-proxy event type to support subscribing to RDS Proxy events.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Introducing new APIs for Workspaces audio optimization with Amazon Connect: CreateConnectClientAddIn, DescribeConnectClientAddIns, UpdateConnectClientAddIn and DeleteConnectClientAddIn.
+
+## __FinSpace Public API__
+  - ### Features
+    - Documentation updates for FinSpace.
+
+# __2.17.108__ __2022-01-10__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Adds support for new Compute Optimizer capability that makes it easier for customers to optimize their EC2 instances by leveraging multiple CPU architectures.
+
+## __AWS Glue DataBrew__
+  - ### Features
+    - This SDK release adds support for specifying a Bucket Owner for an S3 location.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Bump up jackson version `2.12.3` -> `2.13.1`
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - New feature: Updated EC2 API to support faster launching for Windows images. Optimized images are pre-provisioned, using snapshots to launch instances up to 65% faster.
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - This release adds FailureType in the response of DescribeAnomalyDetector.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Documentation updates for Amazon Transcribe.
+
 # __2.17.107__ __2022-01-07__
 ## __AWS Elemental MediaLive__
   - ### Features

@@ -29,9 +29,9 @@ import com.github.tomakehurst.wiremock.matching.ContainsPattern;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -55,7 +55,7 @@ public class AclTest {
 
     private S3Client s3Client;
 
-    @BeforeEach
+    @Before
     public void setup() {
         URI endpoint = URI.create("http://localhost:" + mockServer.port());
         s3Client = S3Client.builder()

@@ -23,8 +23,8 @@ import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import org.assertj.core.api.ThrowableAssert;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -47,7 +47,7 @@ public class SyncApiCallAttemptTimeoutTest extends BaseApiCallAttemptTimeoutTest
     private ProtocolRestJsonClient clientWithRetry;
     private static final int API_CALL_ATTEMPT_TIMEOUT = 800;
 
-    @BeforeEach
+    @Before
     public void setup() {
         client = ProtocolRestJsonClient.builder()
                                        .region(Region.US_WEST_1)

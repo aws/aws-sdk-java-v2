@@ -195,7 +195,8 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                .add(".withMarshaller($L)\n", asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"));
 
         if (opModel.hasEventStreamOutput()) {
-            builder.add(".withResponseHandler(responseHandler)");
+            builder.add(".withResponseHandler(responseHandler)")
+                   .add(".withErrorResponseHandler(errorResponseHandler)");
         } else {
             builder.add(".withCombinedResponseHandler(responseHandler)");
         }

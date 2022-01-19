@@ -23,12 +23,12 @@ import static software.amazon.awssdk.http.HttpMetric.CONCURRENCY_ACQUIRE_DURATIO
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.io.IOException;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -47,23 +47,23 @@ public class ApacheMetricsTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() throws IOException {
         wireMockServer = new WireMockServer();
         wireMockServer.start();
     }
 
-    @BeforeEach
+    @Before
     public void methodSetup() {
         wireMockServer.stubFor(any(urlMatching(".*")).willReturn(aResponse().withStatus(200).withBody("{}")));
     }
 
-    @AfterAll
+    @AfterClass
     public static void teardown() throws IOException {
         wireMockServer.stop();
     }
 
-    @AfterEach
+    @After
     public void methodTeardown() {
         if (client != null) {
             client.close();
