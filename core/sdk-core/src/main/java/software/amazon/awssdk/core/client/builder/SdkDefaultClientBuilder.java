@@ -20,6 +20,7 @@ import static software.amazon.awssdk.core.ClientType.SYNC;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.TOKEN_SIGNER;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
@@ -392,6 +393,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         clientConfiguration.option(RETRY_POLICY, overrideConfig.retryPolicy().orElse(null));
         clientConfiguration.option(ADDITIONAL_HTTP_HEADERS, overrideConfig.headers());
         clientConfiguration.option(SIGNER, overrideConfig.advancedOption(SIGNER).orElse(null));
+        clientConfiguration.option(TOKEN_SIGNER, overrideConfig.advancedOption(TOKEN_SIGNER).orElse(null));
         clientConfiguration.option(USER_AGENT_SUFFIX, overrideConfig.advancedOption(USER_AGENT_SUFFIX).orElse(null));
         clientConfiguration.option(USER_AGENT_PREFIX, overrideConfig.advancedOption(USER_AGENT_PREFIX).orElse(null));
         clientConfiguration.option(API_CALL_TIMEOUT, overrideConfig.apiCallTimeout().orElse(null));

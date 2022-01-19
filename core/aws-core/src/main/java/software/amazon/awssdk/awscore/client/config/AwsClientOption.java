@@ -17,6 +17,7 @@ package software.amazon.awssdk.awscore.client.config;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.token.AwsTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.config.ClientOption;
@@ -70,6 +71,11 @@ public final class AwsClientOption<T> extends ClientOption<T> {
      * Option to specify the {@link DefaultsMode}
      */
     public static final AwsClientOption<DefaultsMode> DEFAULTS_MODE = new AwsClientOption<>(DefaultsMode.class);
+
+    /**
+     * Option to specific the {@link AwsTokenProvider} to use for bearer token authorization.
+     */
+    public static final AwsClientOption<AwsTokenProvider> TOKEN_PROVIDER = new AwsClientOption<>(AwsTokenProvider.class);
 
     private AwsClientOption(Class<T> valueClass) {
         super(valueClass);

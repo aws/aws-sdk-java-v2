@@ -15,9 +15,26 @@
 
 package software.amazon.awssdk.auth.token;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
-@SdkProtectedApi
-public interface SsoTokenProviderFactory {
-    AwsTokenProvider create(SsoOidcTokenProviderFactoryProperties properties);
+// TODO: Implement me
+@SdkPublicApi
+public final class DefaultAwsTokenProviderChain implements AwsTokenProvider, SdkAutoCloseable {
+
+    private DefaultAwsTokenProviderChain() {
+    }
+
+    @Override
+    public AwsToken resolveToken() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void close() {
+    }
+
+    public static DefaultAwsTokenProviderChain create() {
+        return new DefaultAwsTokenProviderChain();
+    }
 }
