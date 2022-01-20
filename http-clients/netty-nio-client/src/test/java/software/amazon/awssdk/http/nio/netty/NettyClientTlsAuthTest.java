@@ -173,7 +173,7 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
     @Test
     public void nonProxy_noKeyManagerGiven_shouldThrowException() {
         thrown.expectCause(instanceOf(IOException.class));
-        thrown.expectMessage("The connection was closed");
+        thrown.expectMessage("The channel was closed");
 
         netty = NettyNioAsyncHttpClient.builder()
                                        .buildWithDefaults(DEFAULTS);

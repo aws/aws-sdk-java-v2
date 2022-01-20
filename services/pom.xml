@@ -420,12 +420,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <scope>test</scope>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
             <groupId>io.reactivex.rxjava2</groupId>
             <artifactId>rxjava</artifactId>
             <scope>test</scope>
