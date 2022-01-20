@@ -188,7 +188,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                                                                 .fullDuplex(isFullDuplex(context.executionAttributes()))
                                                                 .metricCollector(httpMetricCollector);
         if (context.executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES) != null) {
-            executeRequestBuilder.sdkHttpAttributes(
+            executeRequestBuilder.httpExecutionAttributes(
                 context.executionAttributes()
                        .getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES));
         }

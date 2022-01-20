@@ -37,7 +37,6 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.transfer.s3.S3CrtResponseHandlerAdapter;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -102,24 +101,18 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private static S3MetaRequestOptions.MetaRequestType requestType(AsyncExecuteRequest request) {
-        S3MetaRequestOptions.MetaRequestType requestType;
-
         String operationName = request.sdkHttpExecutionAttributes().attribute(OPERATION_NAME);
         if (operationName != null) {
             switch (operationName) {
                 case "GetObject":
-                    requestType = S3MetaRequestOptions.MetaRequestType.GET_OBJECT;
-                    break;
+                    return S3MetaRequestOptions.MetaRequestType.GET_OBJECT;
                 case "PutObject":
-                    requestType = S3MetaRequestOptions.MetaRequestType.PUT_OBJECT;
-                    break;
+                    return S3MetaRequestOptions.MetaRequestType.PUT_OBJECT;
                 default:
-                    requestType = S3MetaRequestOptions.MetaRequestType.DEFAULT;
+                    return S3MetaRequestOptions.MetaRequestType.DEFAULT;
             }
-        } else {
-            requestType = S3MetaRequestOptions.MetaRequestType.DEFAULT;
         }
-        return requestType;
+        return S3MetaRequestOptions.MetaRequestType.DEFAULT;
     }
 
     private static void closeResourcesWhenComplete(CompletableFuture<Void> executeFuture,

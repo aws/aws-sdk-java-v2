@@ -16,10 +16,14 @@
 package software.amazon.awssdk.http;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
- * An attribute attached to a particular HTTP request execution, stored in {@link SdkHttpExecutionAttributes}.
+ * An attribute attached to a particular HTTP request execution, stored in {@link SdkHttpExecutionAttributes}. It can be
+ * configured on an {@link AsyncExecuteRequest} via
+ * {@link AsyncExecuteRequest.Builder#putHttpExecutionAttribute(SdkHttpExecutionAttribute,
+ * Object)}
  *
  * @param <T> The type of data associated with this attribute.
  */

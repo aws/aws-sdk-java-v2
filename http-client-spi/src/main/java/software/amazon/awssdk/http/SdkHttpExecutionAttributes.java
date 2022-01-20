@@ -18,15 +18,15 @@ package software.amazon.awssdk.http;
 import java.util.Map;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * A mutable collection of {@link SdkHttpExecutionAttribute}s that can be passed to the {@link SdkAsyncHttpClient} from the SDK
- * core in order to save and retrieve information specific to the current execution.
+ * An immutable collection of {@link SdkHttpExecutionAttribute}s that can be configured on an {@link AsyncExecuteRequest} via
+ * {@link AsyncExecuteRequest.Builder#httpExecutionAttributes(SdkHttpExecutionAttributes)}
  */
 @SdkPublicApi
 public final class SdkHttpExecutionAttributes implements ToCopyableBuilder<SdkHttpExecutionAttributes.Builder,

@@ -13,20 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3;
+package software.amazon.awssdk.transfer.s3.internal;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
-import software.amazon.awssdk.transfer.s3.internal.S3CrtDataPublisher;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Adapts {@link SdkAsyncHttpResponseHandler} to {@link S3MetaRequestResponseHandler}.
@@ -39,9 +37,16 @@ public class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseHandler
     private final SdkHttpResponse.Builder respBuilder = SdkHttpResponse.builder();
 
     public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture, SdkAsyncHttpResponseHandler responseHandler) {
+        this(executeFuture, responseHandler, new S3CrtDataPublisher());
+    }
+
+    @SdkTestInternalApi
+    public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
+                                       SdkAsyncHttpResponseHandler responseHandler,
+                                       S3CrtDataPublisher crtDataPublisher) {
         this.resultFuture = executeFuture;
         this.responseHandler = responseHandler;
-        this.publisher = new S3CrtDataPublisher();
+        this.publisher = crtDataPublisher;
     }
 
     @Override
@@ -78,8 +83,8 @@ public class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseHandler
             resultFuture.complete(null);
         } else {
             SdkClientException sdkClientException =
-                SdkClientException.create(String.format("Failed to receive the response. CRT error code: %s, Error payload: %s",
-                                                        crtCode, StringUtils.fromBytes(errorPayload, StandardCharsets.UTF_8)));
+                SdkClientException.create(String.format("Failed to send the request. CRT error code: %s",
+                                                        crtCode));
             resultFuture.completeExceptionally(sdkClientException);
 
             responseHandler.onError(sdkClientException);

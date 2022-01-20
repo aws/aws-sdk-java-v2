@@ -95,7 +95,7 @@ public class S3CrtAsyncHttpClientTest {
 
     @Test
     public void getObject_shouldSetMetaRequestTypeCorrectly() {
-        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putSdkHttpExecutionAttribute(OPERATION_NAME,
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                           "GetObject").build();
 
         ArgumentCaptor<S3MetaRequestOptions> s3MetaRequestOptionsArgumentCaptor =
@@ -111,7 +111,7 @@ public class S3CrtAsyncHttpClientTest {
 
     @Test
     public void putObject_shouldSetMetaRequestTypeCorrectly() {
-        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putSdkHttpExecutionAttribute(OPERATION_NAME,
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                           "PutObject").build();
 
         ArgumentCaptor<S3MetaRequestOptions> s3MetaRequestOptionsArgumentCaptor =

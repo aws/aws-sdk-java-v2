@@ -143,18 +143,18 @@ public final class AsyncExecuteRequest {
          * @param attribute The execution attribute object
          * @param value     The value of the execution attribute.
          */
-        <T> Builder putSdkHttpExecutionAttribute(SdkHttpExecutionAttribute<T> attribute, T value);
+        <T> Builder putHttpExecutionAttribute(SdkHttpExecutionAttribute<T> attribute, T value);
 
         /**
          * Sets the additional HTTP execution attributes collection for this request.
          * <p>
          * This will override the attributes configured through
-         * {@link #putSdkHttpExecutionAttribute(SdkHttpExecutionAttribute, Object)}
+         * {@link #putHttpExecutionAttribute(SdkHttpExecutionAttribute, Object)}
          *
          * @param executionAttributes Execution attributes map for this request.
          * @return This object for method chaining.
          */
-        Builder sdkHttpAttributes(SdkHttpExecutionAttributes executionAttributes);
+        Builder httpExecutionAttributes(SdkHttpExecutionAttributes executionAttributes);
 
         AsyncExecuteRequest build();
     }
@@ -198,13 +198,13 @@ public final class AsyncExecuteRequest {
         }
 
         @Override
-        public <T> Builder putSdkHttpExecutionAttribute(SdkHttpExecutionAttribute<T> attribute, T value) {
+        public <T> Builder putHttpExecutionAttribute(SdkHttpExecutionAttribute<T> attribute, T value) {
             this.executionAttributesBuilder.put(attribute, value);
             return this;
         }
 
         @Override
-        public Builder sdkHttpAttributes(SdkHttpExecutionAttributes executionAttributes) {
+        public Builder httpExecutionAttributes(SdkHttpExecutionAttributes executionAttributes) {
             Validate.paramNotNull(executionAttributes, "executionAttributes");
             this.executionAttributesBuilder = executionAttributes.toBuilder();
             return this;
