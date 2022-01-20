@@ -558,6 +558,11 @@
                         <excludes>
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
+
+                            <!-- Modified when making HttpCredentialsProvider a public API -->
+                            <exclude>software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider</exclude>
+                            <exclude>software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider</exclude>
+                            <exclude>software.amazon.awssdk.auth.credentials.HttpCredentialsProvider</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
