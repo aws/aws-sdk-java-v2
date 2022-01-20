@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "alvinsee", 
-    "type": "bugfix", 
-    "description": "sets tableSchema field when provisioning the extension context in ChainExtension#afterRead"
-}

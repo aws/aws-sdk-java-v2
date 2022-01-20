@@ -1,6 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Verify that the content-length header matches the content returned by the service."
-}
