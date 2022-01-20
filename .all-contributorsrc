@@ -706,6 +706,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "alvinsee",
+      "name": "Alvin See",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1531158?v=4",
+      "profile": "https://alvinsee.com/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
