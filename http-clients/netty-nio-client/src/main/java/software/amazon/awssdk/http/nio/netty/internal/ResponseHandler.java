@@ -24,6 +24,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_CONTENT_LENGTH;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_DATA_READ;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_STATUS_CODE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatch;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatchFinally;
 
@@ -38,6 +39,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.util.ReferenceCountUtil;
 import java.io.IOException;
@@ -56,6 +58,7 @@ import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ResetSendingSubscription;
@@ -88,6 +91,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                                                              .statusCode(response.status().code())
                                                              .statusText(response.status().reasonPhrase())
                                                              .build();
+            channelContext.channel().attr(RESPONSE_STATUS_CODE).set(response.status().code());
             channelContext.channel().attr(RESPONSE_CONTENT_LENGTH).set(responseContentLength(response));
             channelContext.channel().attr(KEEP_ALIVE).set(shouldKeepAlive(response));
             requestContext.handler().onHeaders(sdkResponse);
@@ -136,6 +140,10 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     }
 
     private static void validateResponseContentLength(ChannelHandlerContext ctx) throws IOException {
+        if (!shouldValidateResponseContentLength(ctx)) {
+            return;
+        }
+
         Long contentLengthHeader = ctx.channel().attr(RESPONSE_CONTENT_LENGTH).get();
         Long actualContentLength = ctx.channel().attr(RESPONSE_DATA_READ).get();
 
@@ -153,6 +161,23 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
         throw new IOException("Response had content-length of " + contentLengthHeader + " bytes, but only received "
                               + actualContentLength + " bytes before the connection was closed.");
+    }
+
+    private static boolean shouldValidateResponseContentLength(ChannelHandlerContext ctx) {
+        RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
+
+        // HEAD requests may return Content-Length without a payload
+        if (requestContext.executeRequest().request().method() == SdkHttpMethod.HEAD) {
+            return false;
+        }
+
+        // 304 responses may contain Content-Length without a payload
+        Integer responseStatusCode = ctx.channel().attr(RESPONSE_STATUS_CODE).get();
+        if (responseStatusCode != null && responseStatusCode == HttpResponseStatus.NOT_MODIFIED.code()) {
+            return false;
+        }
+
+        return true;
     }
 
 

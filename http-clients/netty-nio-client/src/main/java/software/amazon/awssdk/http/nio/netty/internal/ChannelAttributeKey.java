@@ -91,6 +91,9 @@ public final class ChannelAttributeKey {
     static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = NettyUtils.getOrCreateAttributeKey(
         "aws.http.nio.netty.async.responseComplete");
 
+    static final AttributeKey<Integer> RESPONSE_STATUS_CODE = NettyUtils.getOrCreateAttributeKey(
+        "aws.http.nio.netty.async.responseStatusCode");
+
     static final AttributeKey<Long> RESPONSE_CONTENT_LENGTH = NettyUtils.getOrCreateAttributeKey(
         "aws.http.nio.netty.async.responseContentLength");
 
