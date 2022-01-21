@@ -1,3 +1,12 @@
+# __2.17.116__ __2022-01-21__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for 4K AV1 output resolutions & 10-bit AV1 color, the ability to ingest sidecar Dolby Vision XML metadata files, and the ability to flag WebVTT and IMSC tracks for accessibility in HLS.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Add support for granular PIIEntityTypes when using Batch ContentRedaction.
+
 # __2.17.115__ __2022-01-20__
 ## __AWS Fault Injection Simulator__
   - ### Features
