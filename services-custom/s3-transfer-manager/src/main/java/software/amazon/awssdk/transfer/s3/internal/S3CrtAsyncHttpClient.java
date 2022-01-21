@@ -101,7 +101,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private static S3MetaRequestOptions.MetaRequestType requestType(AsyncExecuteRequest request) {
-        String operationName = request.sdkHttpExecutionAttributes().attribute(OPERATION_NAME);
+        String operationName = request.httpExecutionAttributes().attribute(OPERATION_NAME);
         if (operationName != null) {
             switch (operationName) {
                 case "GetObject":

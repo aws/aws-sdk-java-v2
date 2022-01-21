@@ -84,7 +84,7 @@ public final class AsyncExecuteRequest {
     /**
      * @return the SDK HTTP execution attributes associated with this request
      */
-    public SdkHttpExecutionAttributes sdkHttpExecutionAttributes() {
+    public SdkHttpExecutionAttributes httpExecutionAttributes() {
         return sdkHttpExecutionAttributes;
     }
 
