@@ -152,6 +152,7 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
                 DefaultDynamoDbExtensionContext.builder().items(itemToTransform)
                                                .operationContext(context.operationContext())
                                                .tableMetadata(context.tableMetadata())
+                                               .tableSchema(context.tableSchema())
                                                .build();
 
             ReadModification readModification = iterator.next().afterRead(afterRead);

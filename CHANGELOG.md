@@ -1,3 +1,51 @@
+# __2.17.115__ __2022-01-20__
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - Added action startTime and action endTime timestamp fields to the ExperimentAction object
+
+## __AWS MediaTailor__
+  - ### Features
+    - This release adds support for multiple Segment Delivery Configurations. Users can provide a list of names and URLs when creating or editing a source location. When retrieving content, users can send a header to choose which URL should be used to serve content.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Prevent duplicate ExecutionAttribute names and fix name for FIPS_ENDPOINT_ENABLED attribute
+    - sets tableSchema field when provisioning the extension context in ChainExtension#afterRead
+        - Contributed by: [@alvinsee](https://github.com/alvinsee)
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds tagging support for UserHierarchyGroups resource.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - C6i, M6i and R6i instances are powered by a third-generation Intel Xeon Scalable processor (Ice Lake) delivering all-core turbo frequency of 3.5 GHz
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Amazon GuardDuty findings now include remoteAccountDetails under AwsApiCallAction section if instance credential is exfiltrated.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Verify that the content-length header matches the content returned by the service.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@alvinsee](https://github.com/alvinsee)
+# __2.17.114__ __2022-01-19__
+## __AWS EC2 Instance Connect__
+  - ### Features
+    - Adds support for ED25519 keys. PushSSHPublicKey Availability Zone parameter is now optional. Adds EC2InstanceStateInvalidException for instances that are not running. This was previously a service exception, so this may require updating your code to handle this new exception.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue where the clientName was not overridden if an SdkAsyncHttpClient instance was provided
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API introduces stricter validation of requests to create custom data identifiers.
+
 # __2.17.113__ __2022-01-18__
 ## __AWS CloudTrail__
   - ### Features
