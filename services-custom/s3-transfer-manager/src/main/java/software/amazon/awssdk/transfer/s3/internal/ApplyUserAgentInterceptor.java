@@ -37,10 +37,7 @@ public final class ApplyUserAgentInterceptor implements ExecutionInterceptor {
 
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
-        if (!(context.request() instanceof S3Request)) {
-            // should never happen
-            return context.request();
-        }
+        assert context.request() instanceof S3Request;
 
         S3Request request = (S3Request) context.request();
         AwsRequestOverrideConfiguration overrideConfiguration =

@@ -35,9 +35,9 @@ import software.amazon.awssdk.utils.Logger;
  * Adapts an SDK {@link software.amazon.awssdk.core.async.AsyncRequestBody} to CRT's {@link HttpRequestBodyStream}.
  */
 @SdkInternalApi
-public final class RequestDataSupplierAdapter implements HttpRequestBodyStream {
+public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStream {
     static final long DEFAULT_REQUEST_SIZE = 8;
-    private static final Logger LOG = Logger.loggerFor(RequestDataSupplierAdapter.class);
+    private static final Logger LOG = Logger.loggerFor(S3CrtRequestBodyStreamAdapter.class);
 
     private final AtomicReference<SubscriptionStatus> subscriptionStatus =
         new AtomicReference<>(SubscriptionStatus.NOT_SUBSCRIBED);
@@ -53,7 +53,7 @@ public final class RequestDataSupplierAdapter implements HttpRequestBodyStream {
     private Subscriber<? super ByteBuffer> subscriber;
     private long pending = 0;
 
-    public RequestDataSupplierAdapter(Publisher<ByteBuffer> bodyPublisher) {
+    public S3CrtRequestBodyStreamAdapter(Publisher<ByteBuffer> bodyPublisher) {
         this.bodyPublisher = bodyPublisher;
         this.subscriber = createSubscriber();
     }

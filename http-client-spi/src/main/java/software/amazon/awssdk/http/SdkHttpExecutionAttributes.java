@@ -41,7 +41,7 @@ public final class SdkHttpExecutionAttributes implements ToCopyableBuilder<SdkHt
      * Retrieve the current value of the provided attribute in this collection of attributes. This will return null if the value
      * is not set.
      */
-    public <T> T attribute(SdkHttpExecutionAttribute<T> attribute) {
+    public <T> T getAttribute(SdkHttpExecutionAttribute<T> attribute) {
         return attributes.get(attribute);
     }
 
@@ -52,10 +52,6 @@ public final class SdkHttpExecutionAttributes implements ToCopyableBuilder<SdkHt
     @Override
     public Builder toBuilder() {
         return new Builder(attributes);
-    }
-
-    public SdkHttpExecutionAttributes copy() {
-        return toBuilder().build();
     }
 
     @Override

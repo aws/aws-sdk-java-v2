@@ -30,7 +30,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 
-class RequestDataSupplierAdapterTest {
+class S3CrtRequestBodyStreamAdapterTest {
 
     @Test
     void getRequestData_fillsInputBuffer_publisherBuffersAreSmaller() {
@@ -48,7 +48,7 @@ class RequestDataSupplierAdapterTest {
 
         AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(Flowable.fromIterable(data));
 
-        RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
+        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
 
         ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
         adapter.sendRequestBody(inputBuffer);
@@ -66,7 +66,7 @@ class RequestDataSupplierAdapterTest {
 
         AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(Flowable.just(data));
 
-        RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
+        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
 
         ByteBuffer inputBuffer = ByteBuffer.allocate(1);
 
@@ -82,7 +82,7 @@ class RequestDataSupplierAdapterTest {
         Publisher<ByteBuffer> errorPublisher = Flowable.error(new RuntimeException("Something wrong happened"));
 
         AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(errorPublisher);
-        RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
+        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
 
         assertThatThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)))
             .isInstanceOf(RuntimeException.class)
@@ -94,7 +94,7 @@ class RequestDataSupplierAdapterTest {
         Publisher<ByteBuffer> errorPublisher = Flowable.error(new IOException("Some I/O error happened"));
 
         AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(errorPublisher);
-        RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
+        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
 
         assertThatThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)))
             .isInstanceOf(RuntimeException.class)
@@ -103,7 +103,7 @@ class RequestDataSupplierAdapterTest {
 
     @Test
     public void resetMidStream_discardsBufferedData() {
-        long requestSize = RequestDataSupplierAdapter.DEFAULT_REQUEST_SIZE;
+        long requestSize = S3CrtRequestBodyStreamAdapter.DEFAULT_REQUEST_SIZE;
         int inputBufferSize = 16;
 
         Publisher<ByteBuffer> requestBody = new Publisher<ByteBuffer>() {
@@ -127,7 +127,7 @@ class RequestDataSupplierAdapterTest {
             }
         };
 
-        RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
+        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
 
         long resetAfter = requestSize / 2;
 

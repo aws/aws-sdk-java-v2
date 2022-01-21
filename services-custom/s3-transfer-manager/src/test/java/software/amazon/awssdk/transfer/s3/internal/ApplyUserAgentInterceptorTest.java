@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,7 +42,7 @@ class ApplyUserAgentInterceptorTest {
     }
 
     @Test
-    void otherRequest_shouldNotModifyRequest() {
+    void otherRequest_shouldThrowAssertionError() {
         SdkRequest someOtherRequest = new SdkRequest() {
             @Override
             public List<SdkField<?>> sdkFields() {
@@ -58,8 +59,7 @@ class ApplyUserAgentInterceptorTest {
                 return null;
             }
         };
-        SdkRequest sdkRequest = interceptor.modifyRequest(() -> someOtherRequest, new ExecutionAttributes());
-
-        assertThat(sdkRequest).isEqualTo(someOtherRequest);
+        assertThatThrownBy(() -> interceptor.modifyRequest(() -> someOtherRequest, new ExecutionAttributes()))
+            .isInstanceOf(AssertionError.class);
     }
 }

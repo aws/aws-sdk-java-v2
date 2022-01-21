@@ -101,7 +101,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private static S3MetaRequestOptions.MetaRequestType requestType(AsyncExecuteRequest request) {
-        String operationName = request.httpExecutionAttributes().attribute(OPERATION_NAME);
+        String operationName = request.httpExecutionAttributes().getAttribute(OPERATION_NAME);
         if (operationName != null) {
             switch (operationName) {
                 case "GetObject":
@@ -142,8 +142,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         HttpHeader[] crtHeaderArray = createHttpHeaderList(uri, asyncRequest).toArray(new HttpHeader[0]);
 
-        RequestDataSupplierAdapter sdkToCrtRequestPublisher =
-            new RequestDataSupplierAdapter(asyncRequest.requestContentPublisher());
+        S3CrtRequestBodyStreamAdapter sdkToCrtRequestPublisher =
+            new S3CrtRequestBodyStreamAdapter(asyncRequest.requestContentPublisher());
 
         return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, sdkToCrtRequestPublisher);
     }

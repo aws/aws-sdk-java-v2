@@ -35,7 +35,7 @@ class SdkHttpExecutionAttributesTest {
         SdkHttpExecutionAttributes attributes = SdkHttpExecutionAttributes.builder()
                                                                           .put(TestExecutionAttribute.TEST_KEY_FOO, "test")
                                                                           .build();
-        assertThat(attributes.attribute(TestExecutionAttribute.TEST_KEY_FOO)).isEqualTo("test");
+        assertThat(attributes.getAttribute(TestExecutionAttribute.TEST_KEY_FOO)).isEqualTo("test");
     }
 
     private static final class TestExecutionAttribute<T> extends SdkHttpExecutionAttribute<T> {
