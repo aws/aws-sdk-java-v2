@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ProxySystemSetting;
-import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -44,7 +43,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     private final String host;
     private final int port;
     private final String scheme;
-    private final Boolean useSystemPropertyValues;
+    private final boolean useSystemPropertyValues;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -180,10 +179,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      * See http://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html.
      */
     private Set<String> parseNonProxyHostsProperty() {
-        String nonProxyHosts = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
+        String systemNonProxyHosts = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
 
-        if (!StringUtils.isEmpty(nonProxyHosts)) {
-            return Arrays.stream(nonProxyHosts.split("\\|"))
+        if (systemNonProxyHosts != null && !isEmpty(systemNonProxyHosts)) {
+            return Arrays.stream(systemNonProxyHosts.split("\\|"))
                          .map(String::toLowerCase)
                          .map(s -> s.replace("*", ".*?"))
                          .collect(Collectors.toSet());

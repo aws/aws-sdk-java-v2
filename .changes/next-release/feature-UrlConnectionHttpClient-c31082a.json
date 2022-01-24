@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "UrlConnectionHttpClient",
+    "contributor": "MikeDombo",
+    "description": "Adds HTTP proxy support to the UrlConnectionHttpClient by using largely the same `ProxyConfiguration` class as is in the Apache HTTP Client. If the user configures a proxy using the builder, and the request isn't going to a non-proxy host, then the request will go through the application proxy using Java's builtin `Proxy` class."
+}

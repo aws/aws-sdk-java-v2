@@ -23,10 +23,8 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -36,7 +34,6 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.net.ssl.HostnameVerifier;
