@@ -31,13 +31,13 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  * <p>
  * Example using {@link DynamoDbPreserveEmptyObject}:
  * <pre>
- * {@code
- * @DynamoDbBean
+ * <code>
+ * &#64;DynamoDbBean
  * public class NestedBean {
  *     private AbstractBean innerBean1;
  *     private AbstractBean innerBean2;
  *
- *     @DynamoDbPreserveEmptyObject
+ *     &#64;DynamoDbPreserveEmptyObject
  *     public AbstractBean getInnerBean1() {
  *         return innerBean1;
  *     }
@@ -69,7 +69,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  *
  * // innerBean2 w/o @DynamoDbPreserveEmptyObject is mapped to null.
  * assertThat(nestedBean.getInnerBean2(), isNull());
- * }
+ * </code>
  * </pre>
  */
 @SdkPublicApi

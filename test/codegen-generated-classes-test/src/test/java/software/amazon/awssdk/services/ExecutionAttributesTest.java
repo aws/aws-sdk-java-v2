@@ -6,8 +6,10 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -24,6 +26,13 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesRequest;
 
 public class ExecutionAttributesTest {
+    private static final ConcurrentMap<String, ExecutionAttribute<Object>> ATTR_POOL = new ConcurrentHashMap<>();
+
+    private static ExecutionAttribute<Object> attr(String name) {
+        name = ExecutionAttributesTest.class.getName() + ":" + name;
+        return ATTR_POOL.computeIfAbsent(name, ExecutionAttribute::new);
+    }
+    
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -78,7 +87,7 @@ public class ExecutionAttributesTest {
         ExecutionInterceptor interceptor = mock(ExecutionInterceptor.class);
         ArgumentCaptor<ExecutionAttributes> attributesCaptor = ArgumentCaptor.forClass(ExecutionAttributes.class);
         doThrow(new RuntimeException("BOOM")).when(interceptor).beforeExecution(any(Context.BeforeExecution.class), attributesCaptor.capture());
-        ExecutionAttribute testAttribute = new ExecutionAttribute<>("TestAttribute");
+        ExecutionAttribute testAttribute = attr("TestAttribute");
         String testValue = "TestValue";
 
         ProtocolRestJsonAsyncClient async = ProtocolRestJsonAsyncClient.builder()
@@ -103,7 +112,7 @@ public class ExecutionAttributesTest {
         ExecutionInterceptor interceptor = mock(ExecutionInterceptor.class);
         ArgumentCaptor<ExecutionAttributes> attributesCaptor = ArgumentCaptor.forClass(ExecutionAttributes.class);
         doThrow(new RuntimeException("BOOM")).when(interceptor).beforeExecution(any(Context.BeforeExecution.class), attributesCaptor.capture());
-        ExecutionAttribute testAttribute = new ExecutionAttribute<>("TestAttribute");
+        ExecutionAttribute testAttribute = attr("TestAttribute");
         String testValue = "TestValue";
 
         ProtocolRestJsonAsyncClient async = ProtocolRestJsonAsyncClient.builder()
@@ -131,7 +140,7 @@ public class ExecutionAttributesTest {
         ExecutionInterceptor interceptor = mock(ExecutionInterceptor.class);
         ArgumentCaptor<ExecutionAttributes> attributesCaptor = ArgumentCaptor.forClass(ExecutionAttributes.class);
         doThrow(new RuntimeException("BOOM")).when(interceptor).beforeExecution(any(Context.BeforeExecution.class), attributesCaptor.capture());
-        ExecutionAttribute testAttribute = new ExecutionAttribute<>("TestAttribute");
+        ExecutionAttribute testAttribute = attr("TestAttribute");
         String testValue = "TestValue";
 
         ProtocolRestJsonAsyncClient async = ProtocolRestJsonAsyncClient.builder()
@@ -160,7 +169,7 @@ public class ExecutionAttributesTest {
         ExecutionInterceptor interceptor = mock(ExecutionInterceptor.class);
         ArgumentCaptor<ExecutionAttributes> attributesCaptor = ArgumentCaptor.forClass(ExecutionAttributes.class);
         doThrow(new RuntimeException("BOOM")).when(interceptor).beforeExecution(any(Context.BeforeExecution.class), attributesCaptor.capture());
-        ExecutionAttribute testAttribute = new ExecutionAttribute<>("TestAttribute");
+        ExecutionAttribute testAttribute = attr("TestAttribute");
         String testValue = "TestValue";
 
         ProtocolRestJsonClient sync = ProtocolRestJsonClient.builder()
@@ -188,7 +197,7 @@ public class ExecutionAttributesTest {
         ExecutionInterceptor interceptor = mock(ExecutionInterceptor.class);
         ArgumentCaptor<ExecutionAttributes> attributesCaptor = ArgumentCaptor.forClass(ExecutionAttributes.class);
         doThrow(new RuntimeException("BOOM")).when(interceptor).beforeExecution(any(Context.BeforeExecution.class), attributesCaptor.capture());
-        ExecutionAttribute testAttribute = new ExecutionAttribute<>("TestAttribute");
+        ExecutionAttribute testAttribute = attr("TestAttribute");
         String testValue = "TestValue";
 
         ProtocolRestJsonClient sync = ProtocolRestJsonClient.builder()
@@ -254,6 +263,6 @@ public class ExecutionAttributesTest {
     }
 
     private ExecutionAttribute getAttribute(int i) {
-        return new ExecutionAttribute<>("TestAttribute" + i);
+        return attr("TestAttribute" + i);
     }
 }

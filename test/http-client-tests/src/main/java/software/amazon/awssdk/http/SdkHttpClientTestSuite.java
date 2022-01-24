@@ -145,6 +145,30 @@ public abstract class SdkHttpClientTestSuite {
     }
 
     @Test
+    public void connectionsAreNotReusedOn5xxErrors() throws Exception {
+        int initialOpenedConnections = CONNECTION_COUNTER.openedConnections();
+
+        SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
+        httpClientOptions.trustAll(true);
+        SdkHttpClient client = createSdkHttpClient(httpClientOptions);
+
+        stubForMockRequest(503);
+
+        for (int i = 0; i < 5; i++) {
+            SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+            HttpExecuteResponse response =
+                client.prepareRequest(HttpExecuteRequest.builder()
+                                                        .request(req)
+                                                        .contentStreamProvider(req.contentStreamProvider().orElse(null))
+                                                        .build())
+                      .call();
+            response.responseBody().ifPresent(IoUtils::drainInputStream);
+        }
+
+        assertThat(CONNECTION_COUNTER.openedConnections()).isEqualTo(initialOpenedConnections + 5);
+    }
+
+    @Test
     public void testCustomTlsTrustManager() throws Exception {
         WireMockServer selfSignedServer = HttpTestUtils.createSelfSignedServer();
 

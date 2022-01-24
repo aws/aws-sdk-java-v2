@@ -37,9 +37,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkGlobalTime;
@@ -61,7 +61,7 @@ public class ClockSkewAdjustmentTest {
     private ProtocolJsonRpcClient client;
     private ProtocolJsonRpcAsyncClient asyncClient;
 
-    @BeforeEach
+    @Before
     public void setupClient() {
         SdkGlobalTime.setGlobalTimeOffset(0);
         client = createClient(1);

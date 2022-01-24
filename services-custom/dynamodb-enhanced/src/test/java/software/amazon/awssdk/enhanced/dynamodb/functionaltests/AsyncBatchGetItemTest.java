@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
@@ -130,13 +130,13 @@ public class AsyncBatchGetItemTest extends LocalDynamoDbAsyncTestBase {
                  .mapToObj(i -> new Record2().setId(i))
                  .collect(Collectors.toList());
 
-    @BeforeEach
+    @Before
     public void createTable() {
         mappedTable1.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())).join();
         mappedTable2.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())).join();
     }
 
-    @AfterEach
+    @After
     public void deleteTable() {
         getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
                                                                .tableName(getConcreteTableName("table-name-1"))

@@ -39,7 +39,7 @@ public class UseLegacyEventGenerationSchemeProcessorTest {
     private static ServiceModel serviceModel;
 
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() {
         String c2jFilePath = UseLegacyEventGenerationSchemeProcessorTest.class.getResource(RESOURCE_ROOT + "/service-2.json").getFile();
         File c2jFile = new File(c2jFilePath);

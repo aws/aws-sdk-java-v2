@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
@@ -57,6 +58,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
      */
     @BeforeClass
     public static void setUp() throws Exception {
+        Log.initLoggingToStdout(Log.LogLevel.Warn);
         System.setProperty("aws.crt.debugnative", "true");
         s3 = s3ClientBuilder().build();
         s3Async = s3AsyncClientBuilder().build();

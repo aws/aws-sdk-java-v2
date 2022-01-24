@@ -1,0 +1,42 @@
+{
+    "version": "2.17.108",
+    "date": "2022-01-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Glue DataBrew",
+            "contributor": "",
+            "description": "This SDK release adds support for specifying a Bucket Owner for an S3 location."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Compute Optimizer",
+            "contributor": "",
+            "description": "Adds support for new Compute Optimizer capability that makes it easier for customers to optimize their EC2 instances by leveraging multiple CPU architectures."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "New feature: Updated EC2 API to support faster launching for Windows images. Optimized images are pre-provisioned, using snapshots to launch instances up to 65% faster."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "Documentation updates for Amazon Transcribe."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Bump up jackson version `2.12.3` -> `2.13.1`"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Metrics",
+            "contributor": "",
+            "description": "This release adds FailureType in the response of DescribeAnomalyDetector."
+        }
+    ]
+}

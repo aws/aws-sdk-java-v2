@@ -72,7 +72,7 @@ public class SelectObjectContentTest {
     private S3AsyncClient s3;
 
     @Rule
-    public WireMockRule wireMock = new WireMockRule();
+    public WireMockRule wireMock = new WireMockRule(0);
 
     @Before
     public void setup() {

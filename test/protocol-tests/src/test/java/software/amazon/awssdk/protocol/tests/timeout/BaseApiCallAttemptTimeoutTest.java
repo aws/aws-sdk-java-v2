@@ -23,7 +23,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.protocol.wiremock.WireMockUtils.verifyRequestCount;
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public abstract class BaseApiCallAttemptTimeoutTest extends BaseTimeoutTest {
 

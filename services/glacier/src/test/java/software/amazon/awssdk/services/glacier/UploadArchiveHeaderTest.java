@@ -29,9 +29,9 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import org.junit.Before;
 import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.internal.util.Mimetype;
@@ -49,7 +49,7 @@ public class UploadArchiveHeaderTest {
 
     private UploadArchiveRequest request;
 
-    @BeforeEach
+    @Before
     public void setup() {
         glacier = GlacierClient.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
