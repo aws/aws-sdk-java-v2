@@ -187,7 +187,7 @@
                             <value>false</value>
                         </property>
                     </properties>
-                    <threadCount>1</threadCount>
+                    <threadCountClasses>1</threadCountClasses>
                 </configuration>
                 <dependencies>
                     <dependency>
