@@ -41,6 +41,17 @@
       ],
       "documentation": "<p>Performs a post operation to the query service and has no output</p>"
     },
+    "BearerAuthOperation": {
+      "name": "BearerAuthOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "BearerAuthOperationRequest"
+      },
+      "authtype": "bearer"
+    },
     "GetWithoutRequiredMembers": {
       "name": "GetWithoutRequiredMembers",
       "http": {
@@ -492,7 +503,12 @@
       },
       "event": true
     },
-    "ImplicitPayloadMemberOne":{"type":"blob"}
+    "ImplicitPayloadMemberOne":{"type":"blob"},
+    "BearerAuthOperationRequest": {
+      "type": "structure",
+      "members": {
+      }
+    }
   },
   "documentation": "A service that is implemented using the query protocol"
 }

@@ -33,6 +33,9 @@ import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.BearerTokenSigner;
+import software.amazon.awssdk.auth.token.AwsTokenProvider;
+import software.amazon.awssdk.auth.token.DefaultAwsTokenProviderChain;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.internal.Utils;
@@ -41,6 +44,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.utils.BearerAuthUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -99,7 +103,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         mergeInternalDefaultsMethod().ifPresent(builder::addMethod);
 
         builder.addMethod(finalizeServiceConfigurationMethod());
-        builder.addMethod(defaultSignerMethod());
+        defaultAwsAuthSignerMethod().ifPresent(builder::addMethod);
         builder.addMethod(signingNameMethod());
 
         if (model.getCustomizationConfig().getServiceConfig().getClassName() != null) {
@@ -107,7 +111,13 @@ public class BaseClientBuilderClass implements ClassSpec {
                    .addMethod(beanStyleSetServiceConfigurationMethod());
         }
 
+        if (BearerAuthUtils.usesBearerAuth(model)) {
+            builder.addMethod(defaultBearerTokenProviderMethod());
+            builder.addMethod(defaultTokenAuthSignerMethod());
+        }
+
         addServiceHttpConfigIfNeeded(builder, model);
+
 
         return builder.build();
     }
@@ -127,12 +137,13 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .build();
     }
 
-    private MethodSpec defaultSignerMethod() {
-        return MethodSpec.methodBuilder("defaultSigner")
-                         .returns(Signer.class)
-                         .addModifiers(PRIVATE)
-                         .addCode(signerDefinitionMethodBody())
-                         .build();
+    private Optional<MethodSpec> defaultAwsAuthSignerMethod() {
+        return awsAuthSignerDefinitionMethodBody().map(body -> MethodSpec.methodBuilder("defaultSigner")
+                                                                         .returns(Signer.class)
+                                                                         .addModifiers(PRIVATE)
+                                                                         .addCode(body)
+                                                                         .build());
+
     }
 
     private MethodSpec serviceEndpointPrefixMethod() {
@@ -161,16 +172,23 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .addModifiers(PROTECTED, FINAL)
                                                .returns(SdkClientConfiguration.class)
                                                .addParameter(SdkClientConfiguration.class, "config")
-                                               .addCode("return config.merge(c -> c.option($T.SIGNER, defaultSigner())\n",
-                                                        SdkAdvancedClientOption.class)
-                                               .addCode("                          .option($T"
-                                                        + ".CRC32_FROM_COMPRESSED_DATA_ENABLED, $L)",
-                                                        SdkClientOption.class, crc32FromCompressedDataEnabled);
+                                               .addCode("return config.merge(c -> c");
+
+        if (defaultAwsAuthSignerMethod().isPresent()) {
+            builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
+        }
+        builder.addCode(".option($T.CRC32_FROM_COMPRESSED_DATA_ENABLED, $L)\n",
+                        SdkClientOption.class, crc32FromCompressedDataEnabled);
 
         String clientConfigClassName = model.getCustomizationConfig().getServiceConfig().getClassName();
         if (StringUtils.isNotBlank(clientConfigClassName)) {
-            builder.addCode(".option($T.SERVICE_CONFIGURATION, $T.builder().build())",
+            builder.addCode(".option($T.SERVICE_CONFIGURATION, $T.builder().build())\n",
                             SdkClientOption.class, ClassName.bestGuess(clientConfigClassName));
+        }
+
+        if (BearerAuthUtils.usesBearerAuth(model)) {
+            builder.addCode(".option($T.TOKEN_PROVIDER, defaultTokenProvider())\n", AwsClientOption.class);
+            builder.addCode(".option($T.TOKEN_SIGNER, defaultTokenSigner())", SdkAdvancedClientOption.class);
         }
 
         builder.addCode(");");
@@ -368,14 +386,16 @@ public class BaseClientBuilderClass implements ClassSpec {
         return builder.build();
     }
 
-    private CodeBlock signerDefinitionMethodBody() {
+    private Optional<CodeBlock> awsAuthSignerDefinitionMethodBody() {
         AuthType authType = model.getMetadata().getAuthType();
         switch (authType) {
             case V4:
-                return v4SignerDefinitionMethodBody();
+                return Optional.of(v4SignerDefinitionMethodBody());
             case S3:
             case S3V4:
-                return s3SignerDefinitionMethodBody();
+                return Optional.of(s3SignerDefinitionMethodBody());
+            case BEARER:
+                return Optional.empty();
             default:
                 throw new UnsupportedOperationException("Unsupported signer type: " + authType);
         }
@@ -385,9 +405,26 @@ public class BaseClientBuilderClass implements ClassSpec {
         return CodeBlock.of("return $T.create();", Aws4Signer.class);
     }
 
+
     private CodeBlock s3SignerDefinitionMethodBody() {
         return CodeBlock.of("return $T.create();\n",
                             ClassName.get("software.amazon.awssdk.auth.signer", "AwsS3V4Signer"));
+    }
+
+    private MethodSpec defaultBearerTokenProviderMethod() {
+        return MethodSpec.methodBuilder("defaultTokenProvider")
+                         .returns(AwsTokenProvider.class)
+                         .addModifiers(PRIVATE)
+                         .addStatement("return $T.create()", DefaultAwsTokenProviderChain.class)
+                         .build();
+    }
+
+    private MethodSpec defaultTokenAuthSignerMethod() {
+        return MethodSpec.methodBuilder("defaultTokenSigner")
+                         .returns(Signer.class)
+                         .addModifiers(PRIVATE)
+                         .addStatement("return $T.create()", BearerTokenSigner.class)
+                         .build();
     }
 
     @Override

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer.internal;
+package software.amazon.awssdk.auth.signer;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -49,4 +49,7 @@ public final class BearerTokenSigner implements Signer {
         return null;
     }
 
+    public static BearerTokenSigner create() {
+        return new BearerTokenSigner();
+    }
 }
