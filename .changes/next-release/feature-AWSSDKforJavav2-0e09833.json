@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Add new AsyncResponseTransformer: toPublisher(). This transformer allows users to directly consume a streaming-response payload (i.e., S3 GetObject) without having to buffer to memory or disk."
+}
