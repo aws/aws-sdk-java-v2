@@ -102,7 +102,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
         CompletedDownload<ResponsePublisher<GetObjectResponse>> completedDownload = download.completionFuture().join();
         ResponsePublisher<GetObjectResponse> responsePublisher = completedDownload.result();
         assertThat(responsePublisher.response().responseMetadata().requestId()).isNotNull();
-        ByteBuffer buf = ByteBuffer.allocate(OBJ_SIZE);
+        ByteBuffer buf = ByteBuffer.allocate(Math.toIntExact(responsePublisher.response().contentLength()));
         CompletableFuture<Void> drainPublisherFuture = responsePublisher.subscribe(buf::put);
         drainPublisherFuture.join();
         assertThat(Md5Utils.md5AsBase64(buf.array())).isEqualTo(Md5Utils.md5AsBase64(file));

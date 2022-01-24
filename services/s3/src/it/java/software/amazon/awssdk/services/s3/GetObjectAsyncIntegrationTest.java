@@ -104,7 +104,7 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
         ResponsePublisher<GetObjectResponse> responsePublisher =
             s3Async.getObject(getObjectRequest, AsyncResponseTransformer.toPublisher()).join();
         assertThat(responsePublisher.response().responseMetadata().requestId()).isNotNull();
-        ByteBuffer buf = ByteBuffer.allocate(Math.toIntExact(file.length()));
+        ByteBuffer buf = ByteBuffer.allocate(Math.toIntExact(responsePublisher.response().contentLength()));
         CompletableFuture<Void> drainPublisherFuture = responsePublisher.subscribe(buf::put);
         drainPublisherFuture.join();
         assertThat(buf.array()).isEqualTo(Files.readAllBytes(file.toPath()));
