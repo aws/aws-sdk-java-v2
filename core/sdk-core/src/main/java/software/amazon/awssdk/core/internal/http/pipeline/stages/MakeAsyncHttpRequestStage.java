@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.resolveTimeoutInMillis;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
@@ -180,15 +181,19 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         MetricCollector httpMetricCollector = MetricUtils.createHttpMetricsCollector(context);
 
-        AsyncExecuteRequest executeRequest = AsyncExecuteRequest.builder()
+        AsyncExecuteRequest.Builder executeRequestBuilder = AsyncExecuteRequest.builder()
                                                                 .request(requestWithContentLength)
                                                                 .requestContentPublisher(requestProvider)
                                                                 .responseHandler(wrappedResponseHandler)
                                                                 .fullDuplex(isFullDuplex(context.executionAttributes()))
-                                                                .metricCollector(httpMetricCollector)
-                                                                .build();
+                                                                .metricCollector(httpMetricCollector);
+        if (context.executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES) != null) {
+            executeRequestBuilder.httpExecutionAttributes(
+                context.executionAttributes()
+                       .getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES));
+        }
 
-        CompletableFuture<Void> httpClientFuture = doExecuteHttpRequest(context, executeRequest);
+        CompletableFuture<Void> httpClientFuture = doExecuteHttpRequest(context, executeRequestBuilder.build());
 
         TimeoutTracker timeoutTracker = setupAttemptTimer(responseFuture, context);
         context.apiCallAttemptTimeoutTracker(timeoutTracker);

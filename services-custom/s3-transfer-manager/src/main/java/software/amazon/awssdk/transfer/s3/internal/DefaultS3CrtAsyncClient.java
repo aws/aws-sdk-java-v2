@@ -15,144 +15,110 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-import com.amazonaws.s3.S3NativeClient;
-import com.amazonaws.s3.model.GetObjectOutput;
-import com.amazonaws.s3.model.PutObjectOutput;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
+import static software.amazon.awssdk.transfer.s3.internal.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.awscore.AwsRequest;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
-import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.signer.NoOpSigner;
+import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
-    private final S3NativeClient s3NativeClient;
-    private final S3NativeClientConfiguration configuration;
-    private final CrtErrorHandler crtErrorHandler;
+    private final SdkAsyncHttpClient s3CrtAsyncHttpClient;
+    private final S3AsyncClient s3AsyncClient;
 
-    public DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
-        S3NativeClientConfiguration.Builder configBuilder =
-            S3NativeClientConfiguration.builder()
-                                       .targetThroughputInGbps(builder.targetThroughputInGbps())
-                                       .partSizeInBytes(builder.minimumPartSizeInBytes())
-                                       .maxConcurrency(builder.maxConcurrency)
-                                       .credentialsProvider(builder.credentialsProvider)
-                                       .asyncConfiguration(builder.asyncConfiguration);
-        if (builder.region() != null) {
-            configBuilder.signingRegion(builder.region().id());
-        }
+    private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
+        this.s3CrtAsyncHttpClient = S3CrtAsyncHttpClient.builder()
+                                                        .targetThroughputInGbps(builder.targetThroughputInGbps())
+                                                        .minimumPartSizeInBytes(builder.minimumPartSizeInBytes())
+                                                        .maxConcurrency(builder.maxConcurrency)
+                                                        .region(builder.region)
+                                                        .credentialsProvider(builder.credentialsProvider)
+                                                        .build();
 
-        configuration = configBuilder.build();
-
-        this.s3NativeClient = new S3NativeClient(configuration.signingRegion(),
-                                                 configuration.clientBootstrap(),
-                                                 configuration.credentialsProvider(),
-                                                 configuration.partSizeBytes(),
-                                                 configuration.targetThroughputInGbps(),
-                                                 configuration.maxConcurrency());
-        this.crtErrorHandler = new CrtErrorHandler();
+        this.s3AsyncClient = initializeS3AsyncClient();
     }
 
     @SdkTestInternalApi
-    DefaultS3CrtAsyncClient(S3NativeClientConfiguration configuration,
-                            S3NativeClient nativeClient) {
-        this.configuration = configuration;
-        this.s3NativeClient = nativeClient;
-        this.crtErrorHandler = new CrtErrorHandler();
+    DefaultS3CrtAsyncClient(SdkAsyncHttpClient s3CrtAsyncHttpClient,
+                            S3AsyncClient s3AsyncClient) {
+        this.s3CrtAsyncHttpClient = s3CrtAsyncHttpClient;
 
+        this.s3AsyncClient = s3AsyncClient;
+    }
+
+    private S3AsyncClient initializeS3AsyncClient() {
+        return S3AsyncClient.builder()
+                            // Disable checksum, retry policy and signer because they are handled in crt
+                            .serviceConfiguration(S3Configuration.builder()
+                                                                 .checksumValidationEnabled(false)
+                                                                 .build())
+                            .overrideConfiguration(o -> o.putAdvancedOption(SdkAdvancedClientOption.SIGNER,
+                                                                            new NoOpSigner())
+                                                         .retryPolicy(RetryPolicy.none())
+                                                         .addExecutionInterceptor(new AttachHttpAttributesExecutionInterceptor()))
+                            .httpClient(s3CrtAsyncHttpClient)
+                            .build();
     }
 
     @Override
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
-
-        CompletableFuture<ReturnT> returnFuture = new CompletableFuture<>();
-        com.amazonaws.s3.model.GetObjectRequest crtGetObjectRequest = S3CrtPojoConversion.toCrtGetObjectRequest(getObjectRequest);
-        CrtResponseDataConsumerAdapter<ReturnT> adapter = new CrtResponseDataConsumerAdapter<>(asyncResponseTransformer);
-
-        CompletableFuture<ReturnT> adapterFuture = adapter.transformerFuture();
-
-        CompletableFuture<GetObjectOutput> crtFuture = s3NativeClient.getObject(crtGetObjectRequest, adapter);
-
-        // Forward the cancellation to crtFuture to cancel the request
-        CompletableFutureUtils.forwardExceptionTo(returnFuture, crtFuture);
-
-
-        // Forward the exception from the CRT future to the return future in case
-        // the adapter callback didn't get it
-        CompletableFutureUtils.forwardTransformedExceptionTo(crtFuture, returnFuture,
-                t -> t instanceof Exception ? crtErrorHandler.transformException((Exception) t) :  t);
-
-        returnFuture.whenComplete((r, t) -> {
-            if (t == null) {
-                returnFuture.complete(r);
-            } else {
-                returnFuture.completeExceptionally(t instanceof Exception
-                        ? crtErrorHandler.transformException((Exception) t) : t);
-            }
-        });
-
-        CompletableFutureUtils.forwardResultTo(adapterFuture, returnFuture, configuration.futureCompletionExecutor());
-
-        return CompletableFutureUtils.forwardExceptionTo(returnFuture, adapterFuture);
+        validateOverrideConfiguration(getObjectRequest);
+        return s3AsyncClient.getObject(getObjectRequest, asyncResponseTransformer);
     }
 
     @Override
     public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
-        CompletableFuture<PutObjectResponse> returnFuture = new CompletableFuture<>();
-
-        com.amazonaws.s3.model.PutObjectRequest adaptedRequest = S3CrtPojoConversion.toCrtPutObjectRequest(putObjectRequest);
-
-        if (adaptedRequest.contentLength() == null && requestBody.contentLength().isPresent()) {
-            adaptedRequest = adaptedRequest.toBuilder()
-                                           .contentLength(requestBody.contentLength().get())
-                                           .build();
-        }
-
-        RequestDataSupplierAdapter requestDataSupplier = new RequestDataSupplierAdapter(requestBody);
-        CompletableFuture<PutObjectOutput> crtFuture = s3NativeClient.putObject(adaptedRequest,
-                                                                                requestDataSupplier);
-        // Forward the cancellation to crtFuture to cancel the request
-        CompletableFutureUtils.forwardExceptionTo(returnFuture, crtFuture);
-
-        CompletableFuture<SdkHttpResponse> httpResponseFuture = requestDataSupplier.sdkHttpResponseFuture();
-        CompletableFuture<PutObjectResponse> executeFuture =
-            // If the header is not available, passing empty SDK HTTP response
-            crtFuture.thenApply(putObjectOutput -> S3CrtPojoConversion.fromCrtPutObjectOutput(
-                putObjectOutput, httpResponseFuture.getNow(SdkHttpResponse.builder().build())));
-
-        executeFuture.whenComplete((r, t) -> {
-            if (t == null) {
-                returnFuture.complete(r);
-            } else {
-                returnFuture.completeExceptionally(t instanceof Exception
-                        ? crtErrorHandler.transformException((Exception) t) : t);
-            }
-        });
-
-        CompletableFutureUtils.forwardResultTo(executeFuture, returnFuture, configuration.futureCompletionExecutor());
-
-        return CompletableFutureUtils.forwardExceptionTo(returnFuture, executeFuture);
+        validateOverrideConfiguration(putObjectRequest);
+        return s3AsyncClient.putObject(putObjectRequest, requestBody);
     }
 
     @Override
     public String serviceName() {
-        return "s3";
+        return SERVICE_NAME;
     }
 
     @Override
     public void close() {
-        s3NativeClient.close();
-        configuration.close();
+        s3CrtAsyncHttpClient.close();
+        s3AsyncClient.close();
+    }
+
+    private static void validateOverrideConfiguration(AwsRequest request) {
+
+        if (request.overrideConfiguration().isPresent()) {
+            AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration().get();
+            if (overrideConfiguration.signer().isPresent()) {
+                throw new UnsupportedOperationException("Request-level signer override is not supported");
+            }
+
+            // TODO: support request-level credential override
+            if (overrideConfiguration.credentialsProvider().isPresent()) {
+                throw new UnsupportedOperationException("Request-level credentials override is not supported");
+            }
+        }
     }
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
@@ -161,7 +127,6 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         private Long minimalPartSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
-        private ClientAsyncConfiguration asyncConfiguration;
 
         public AwsCredentialsProvider credentialsProvider() {
             return credentialsProvider;
@@ -214,14 +179,23 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         }
 
         @Override
-        public S3CrtAsyncClientBuilder asyncConfiguration(ClientAsyncConfiguration configuration) {
-            this.asyncConfiguration = configuration;
-            return this;
-        }
-
-        @Override
         public S3CrtAsyncClient build() {
             return new DefaultS3CrtAsyncClient(this);
+        }
+    }
+
+    private static final class AttachHttpAttributesExecutionInterceptor implements ExecutionInterceptor {
+        @Override
+        public void afterMarshalling(Context.AfterMarshalling context,
+                                     ExecutionAttributes executionAttributes) {
+            SdkHttpExecutionAttributes attributes =
+                SdkHttpExecutionAttributes.builder()
+                                          .put(OPERATION_NAME,
+                                               executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME))
+                                          .build();
+
+            executionAttributes.putAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES,
+                                             attributes);
         }
     }
 }
