@@ -16,11 +16,11 @@
 package software.amazon.awssdk.codegen.customization.processors;
 
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import java.io.File;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -36,6 +36,9 @@ public class UseLegacyEventGenerationSchemeProcessorTest {
 
     private static final UseLegacyEventGenerationSchemeProcessor processor = new UseLegacyEventGenerationSchemeProcessor();
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
     private static ServiceModel serviceModel;
 
 
@@ -49,11 +52,12 @@ public class UseLegacyEventGenerationSchemeProcessorTest {
 
     @Test
     public void testPostProcess_customizationDeclaredForMultipleMembersWithSameShape_throws() {
-        assertThatThrownBy(() -> {
-            IntermediateModel intermediateModel = intermediateModelWithConfig("multiple-event-types-same-shape.config");
-            processor.postprocess(intermediateModel);
-        }).isInstanceOf(IllegalArgumentException.class)
-          .hasMessageContaining("targets more than one member with the shape");
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("targets more than one member with the shape");
+
+        IntermediateModel intermediateModel = intermediateModelWithConfig("multiple-event-types-same-shape.config");
+
+        processor.postprocess(intermediateModel);
     }
 
     @Test
