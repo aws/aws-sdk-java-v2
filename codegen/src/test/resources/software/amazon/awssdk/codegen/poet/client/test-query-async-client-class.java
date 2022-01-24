@@ -18,6 +18,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.NotifyingAsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
@@ -53,6 +54,7 @@ import software.amazon.awssdk.services.query.transform.StreamingInputOperationRe
 import software.amazon.awssdk.services.query.transform.StreamingOutputOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.waiters.QueryAsyncWaiter;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Internal implementation of {@link QueryAsyncClient}.
@@ -352,6 +354,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
+            Pair<AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair = NotifyingAsyncResponseTransformer
+                .wrapWithEndOfStreamFuture(asyncResponseTransformer);
+            asyncResponseTransformer = pair.left();
+            CompletableFuture<Void> endOfStreamFuture = pair.right();
 
             HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory
                 .createResponseHandler(StreamingOutputOperationResponse::builder);
@@ -366,17 +372,21 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                     .withMetricCollector(apiCallMetricCollector).withInput(streamingOutputOperationRequest),
                 asyncResponseTransformer);
             CompletableFuture<ReturnT> whenCompleteFuture = null;
+            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                                   () -> asyncResponseTransformer.exceptionOccurred(e));
+                                   () -> finalAsyncResponseTransformer.exceptionOccurred(e));
                 }
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                endOfStreamFuture.whenComplete((r2, e2) -> {
+                    metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                });
             });
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
+            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                           () -> asyncResponseTransformer.exceptionOccurred(t));
+                           () -> finalAsyncResponseTransformer.exceptionOccurred(t));
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }

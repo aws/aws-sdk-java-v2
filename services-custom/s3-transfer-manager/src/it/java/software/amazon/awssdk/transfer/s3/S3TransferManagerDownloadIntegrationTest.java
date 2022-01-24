@@ -20,12 +20,15 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.ResponsePublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -86,5 +89,22 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
         ResponseBytes<GetObjectResponse> result = completedDownload.result();
         assertThat(Md5Utils.md5AsBase64(result.asByteArray())).isEqualTo(Md5Utils.md5AsBase64(file));
         assertThat(result.response().responseMetadata().requestId()).isNotNull();
+    }
+
+    @Test
+    public void download_toPublisher() throws Exception {
+        Download<ResponsePublisher<GetObjectResponse>> download =
+            tm.download(DownloadRequest.builder()
+                                       .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                       .responseTransformer(AsyncResponseTransformer.toPublisher())
+                                       .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                       .build());
+        CompletedDownload<ResponsePublisher<GetObjectResponse>> completedDownload = download.completionFuture().join();
+        ResponsePublisher<GetObjectResponse> responsePublisher = completedDownload.result();
+        assertThat(responsePublisher.response().responseMetadata().requestId()).isNotNull();
+        ByteBuffer buf = ByteBuffer.allocate(OBJ_SIZE);
+        CompletableFuture<Void> drainPublisherFuture = responsePublisher.subscribe(buf::put);
+        drainPublisherFuture.join();
+        assertThat(Md5Utils.md5AsBase64(buf.array())).isEqualTo(Md5Utils.md5AsBase64(file));
     }
 }

@@ -146,12 +146,27 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
 
     /**
      * Creates an {@link AsyncResponseTransformer} that publishes the response body content through a {@link ResponsePublisher},
-     * which is an {@link SdkPublisher} that also contains a reference to the {@link SdkResponse} returned by the service. When
-     * this transformer is used with an async client, the {@link CompletableFuture} that the client returns will be completed once
-     * the {@link SdkResponse} is available and the response body <i>begins</i> streaming. (This behavior differs from some other
-     * transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture} completed
-     * after the entire response body has finished streaming.) You are responsible for subscribing to this publisher and managing
-     * the associated back-pressure. Therefore, this transformer is only recommended for advanced use cases.
+     * which is an {@link SdkPublisher} that also contains a reference to the {@link SdkResponse} returned by the service.
+     * <p>
+     * When this transformer is used with an async client, the {@link CompletableFuture} that the client returns will be completed
+     * once the {@link SdkResponse} is available and the response body <i>begins</i> streaming. (This behavior differs from some
+     * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
+     * completed after the entire response body has finished streaming.)
+     * <p>
+     * You are responsible for subscribing to this publisher and managing the associated back-pressure. Therefore, this
+     * transformer is only recommended for advanced use cases.
+     * <p>
+     * Example usage:
+     * <pre>
+     * {@code
+     *     CompletableFuture<ResponsePublisher<GetObjectResponse>> responseFuture =
+     *         s3AsyncClient.getObject(getObjectRequest, AsyncResponseTransformer.toPublisher());
+     *     ResponsePublisher<GetObjectResponse> responsePublisher = responseFuture.join();
+     *     System.out.println(responsePublisher.response());
+     *     CompletableFuture<Void> drainPublisherFuture = responsePublisher.subscribe(System.out::println);
+     *     drainPublisherFuture.join();
+     * }
+     * </pre>
      *
      * @param <ResponseT> Pojo response type.
      * @return AsyncResponseTransformer instance.

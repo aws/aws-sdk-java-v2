@@ -23,12 +23,13 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.NotifyingAsyncResponseTransformer;
+import software.amazon.awssdk.core.async.NotifyingAsyncResponseTransformer.AsyncResponseTransformerListener;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedObjectTransfer;
 import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
 import software.amazon.awssdk.transfer.s3.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.internal.progress.NotifyingAsyncRequestBody.AsyncRequestBodyListener;
-import software.amazon.awssdk.transfer.s3.internal.progress.NotifyingAsyncResponseTransformer.AsyncResponseTransformerListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
@@ -42,6 +43,7 @@ public class TransferProgressUpdater {
     private final DefaultTransferProgress progress;
     private final TransferListenerContext context;
     private final TransferListenerInvoker listeners;
+    private volatile CompletedObjectTransfer completedTransfer;
 
     public TransferProgressUpdater(TransferObjectRequest request, AsyncRequestBody requestBody) {
         DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
@@ -86,27 +88,45 @@ public class TransferProgressUpdater {
 
     public <ResultT> AsyncResponseTransformer<GetObjectResponse, ResultT> wrapResponseTransformer(
         AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer) {
-        return new NotifyingAsyncResponseTransformer<>(
+        return NotifyingAsyncResponseTransformer.wrap(
             responseTransformer,
-            new AsyncResponseTransformerListener<GetObjectResponse, ResultT>() {
+            new AsyncResponseTransformerListener<GetObjectResponse>() {
                 @Override
-                public void beforeOnResponse(GetObjectResponse response) {
+                public void transformerOnResponse(GetObjectResponse response) {
                     if (response.contentLength() != null) {
                         progress.updateAndGet(b -> b.transferSizeInBytes(response.contentLength()));
                     }
                 }
 
                 @Override
-                public void beforeSubscribe(Subscriber<? super ByteBuffer> subscriber) {
+                public void transformerExceptionOccurred(Throwable t) {
+                    transferFailed(t);
+                }
+
+                @Override
+                public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
                     progress.updateAndGet(b -> b.bytesTransferred(0));
                 }
 
                 @Override
-                public void beforeOnNext(ByteBuffer byteBuffer) {
+                public void subscriberOnNext(ByteBuffer byteBuffer) {
                     TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
                         b.bytesTransferred(b.getBytesTransferred() + byteBuffer.limit());
                     });
                     listeners.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
+                }
+
+                @Override
+                public void subscriberOnError(Throwable t) {
+                    transferFailed(t);
+                }
+
+                @Override
+                public void subscriberOnComplete() {
+                    listeners.transferComplete(context.copy(b -> {
+                        b.progressSnapshot(progress.snapshot());
+                        b.completedTransfer(completedTransfer);
+                    }));
                 }
             });
     }
@@ -114,19 +134,20 @@ public class TransferProgressUpdater {
     public void registerCompletion(CompletableFuture<? extends CompletedObjectTransfer> future) {
         future.whenComplete((r, t) -> {
             if (t == null) {
-                listeners.transferComplete(context.copy(b -> {
-                    b.progressSnapshot(progress.snapshot());
-                    b.completedTransfer(r);
-                }));
+                completedTransfer = r;
             } else {
-                listeners.transferFailed(TransferListenerFailedContext.builder()
-                                                                      .transferContext(context.copy(b -> {
-                                                                          b.progressSnapshot(progress.snapshot());
-                                                                      }))
-                                                                      .exception(t)
-                                                                      .build());
+                transferFailed(t);
             }
         });
+    }
+
+    private void transferFailed(Throwable t) {
+        listeners.transferFailed(TransferListenerFailedContext.builder()
+                                                              .transferContext(context.copy(b -> {
+                                                                  b.progressSnapshot(progress.snapshot());
+                                                              }))
+                                                              .exception(t)
+                                                              .build());
     }
 
     private static Optional<Long> getContentLengthSafe(AsyncRequestBody requestBody) {

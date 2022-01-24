@@ -36,6 +36,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
@@ -64,6 +65,8 @@ import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.NotifyingAsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -78,6 +81,7 @@ import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
+import software.amazon.awssdk.utils.Pair;
 
 public final class AsyncClientClass extends AsyncClientInterface {
     private final IntermediateModel model;
@@ -244,7 +248,31 @@ public final class AsyncClientClass extends AsyncClientInterface {
                              CoreMetric.class, "SERVICE_ID", model.getMetadata().getServiceId());
         builder.addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
                              CoreMetric.class, "OPERATION_NAME", opModel.getOperationName());
-
+        
+        if (opModel.hasStreamingOutput()) {
+            ClassName responseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
+            
+            builder.addStatement("$T<$T<$T, ReturnT>, $T<$T>> $N = $T.wrapWithEndOfStreamFuture($N)",
+                                 Pair.class,
+                                 AsyncResponseTransformer.class,
+                                 responseType,
+                                 CompletableFuture.class,
+                                 Void.class,
+                                 "pair",
+                                 NotifyingAsyncResponseTransformer.class,
+                                 "asyncResponseTransformer");
+            
+            builder.addStatement("$N = $N.left()",
+                                 "asyncResponseTransformer",
+                                 "pair");
+            
+            builder.addStatement("$T<$T> $N = $N.right()",
+                                 CompletableFuture.class,
+                                 Void.class,
+                                 "endOfStreamFuture",
+                                 "pair");
+        }
+        
         if (shouldUseAsyncWithBodySigner(opModel)) {
             builder.addCode(applyAsyncWithBodyV4SignerOverride(opModel));
         } else {
@@ -312,8 +340,14 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .beginControlFlow("catch ($T t)", Throwable.class);
 
         // For streaming operations we also want to notify the response handler of any exception.
+        if (opModel.hasStreamingOutput()) {
+            ClassName responseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
+            builder.addStatement("$T<$T, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer",
+                                 AsyncResponseTransformer.class,
+                                 responseType);
+        }
         if (opModel.hasStreamingOutput() || opModel.hasEventStreamOutput()) {
-            String paramName = opModel.hasStreamingOutput() ? "asyncResponseTransformer" : "asyncResponseHandler";
+            String paramName = opModel.hasStreamingOutput() ? "finalAsyncResponseTransformer" : "asyncResponseHandler";
             builder.addStatement("runAndLogError(log, \"Exception thrown in exceptionOccurred callback, ignoring\",\n" +
                                  "() -> $N.exceptionOccurred(t))", paramName);
         }

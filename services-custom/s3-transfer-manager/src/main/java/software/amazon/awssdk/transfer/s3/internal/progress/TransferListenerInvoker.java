@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal.progress;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
@@ -32,7 +33,10 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class TransferListenerInvoker implements TransferListener {
     private static final Logger log = Logger.loggerFor(TransferListener.class);
+
     private final List<TransferListener> listeners;
+    private final AtomicBoolean initiated = new AtomicBoolean();
+    private final AtomicBoolean complete = new AtomicBoolean();
 
     public TransferListenerInvoker(List<TransferListener> listeners) {
         this.listeners = Validate.paramNotNull(listeners, "listeners");
@@ -40,7 +44,9 @@ public class TransferListenerInvoker implements TransferListener {
 
     @Override
     public void transferInitiated(Context.TransferInitiated context) {
-        forEach(listener -> listener.transferInitiated(context));
+        if (!initiated.getAndSet(true)) {
+            forEach(listener -> listener.transferInitiated(context));
+        }
     }
 
     @Override
@@ -50,12 +56,16 @@ public class TransferListenerInvoker implements TransferListener {
 
     @Override
     public void transferComplete(Context.TransferComplete context) {
-        forEach(listener -> listener.transferComplete(context));
+        if (!complete.getAndSet(true)) {
+            forEach(listener -> listener.transferComplete(context));
+        }
     }
 
     @Override
     public void transferFailed(Context.TransferFailed context) {
-        forEach(listener -> listener.transferFailed(context));
+        if (!complete.getAndSet(true)) {
+            forEach(listener -> listener.transferFailed(context));
+        }
     }
 
     private void forEach(Consumer<TransferListener> action) {
