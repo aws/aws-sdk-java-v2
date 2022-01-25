@@ -28,11 +28,12 @@ import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Listener interface that invokes callbacks associated with this {@link Publisher} and any resulting {@link Subscriber}.
+ * Listener interface that invokes callbacks associated with a {@link Publisher} and any resulting {@link Subscriber}.
  *
  * @see AsyncResponseTransformerListener
  * @see SubscriberListener
  */
+@SdkProtectedApi
 public interface PublisherListener<T> extends SubscriberListener<T> {
     /**
      * Invoked after {@link Publisher#subscribe(Subscriber)}
@@ -41,7 +42,7 @@ public interface PublisherListener<T> extends SubscriberListener<T> {
     }
 
     /**
-     * Wrap this {@link SdkPublisher} with a new one that will notify a {@link PublisherListener} of important events occurring.
+     * Wrap a {@link SdkPublisher} with a new one that will notify a {@link PublisherListener} of important events occurring.
      */
     static <T> SdkPublisher<T> wrap(SdkPublisher<T> delegate, PublisherListener<T> listener) {
         return new NotifyingPublisher<>(delegate, listener);

@@ -117,7 +117,7 @@ public interface SdkPublisher<T> extends Publisher<T> {
     default SdkPublisher<T> limit(int limit) {
         return subscriber -> subscribe(new LimitingSubscriber<>(subscriber, limit));
     }
-    
+
     /**
      * Add a callback that will be invoked after this publisher invokes {@link Subscriber#onComplete()}.
      *
@@ -125,7 +125,7 @@ public interface SdkPublisher<T> extends Publisher<T> {
      * @return New publisher that invokes the requested callback.
      */
     default SdkPublisher<T> doAfterOnComplete(Runnable afterOnComplete) {
-        return wrapWithListener(new PublisherListener<T>() {
+        return PublisherListener.wrap(this, new PublisherListener<T>() {
             @Override
             public void subscriberOnComplete() {
                 afterOnComplete.run();
@@ -140,7 +140,7 @@ public interface SdkPublisher<T> extends Publisher<T> {
      * @return New publisher that invokes the requested callback.
      */
     default SdkPublisher<T> doAfterOnError(Consumer<Throwable> afterOnError) {
-        return wrapWithListener(new PublisherListener<T>() {
+        return PublisherListener.wrap(this, new PublisherListener<T>() {
             @Override
             public void subscriberOnError(Throwable t) {
                 afterOnError.accept(t);
@@ -155,7 +155,7 @@ public interface SdkPublisher<T> extends Publisher<T> {
      * @return New publisher that invokes the requested callback.
      */
     default SdkPublisher<T> doAfterOnCancel(Runnable afterOnCancel) {
-        return wrapWithListener(new PublisherListener<T>() {
+        return PublisherListener.wrap(this, new PublisherListener<T>() {
             @Override
             public void subscriptionCancel() {
                 afterOnCancel.run();
@@ -177,10 +177,4 @@ public interface SdkPublisher<T> extends Publisher<T> {
         return future;
     }
 
-    /**
-     * Wrap this {@link SdkPublisher} with a new one that will notify a {@link PublisherListener} of important events occurring.
-     */
-    default SdkPublisher<T> wrapWithListener(PublisherListener<T> listener) {
-        return PublisherListener.wrap(this, listener);
-    }
 }

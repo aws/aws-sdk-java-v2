@@ -26,11 +26,12 @@ import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Listener interface that invokes callbacks associated with this {@link Subscriber}.
+ * Listener interface that invokes callbacks associated with a {@link Subscriber}.
  *
  * @see AsyncResponseTransformerListener
  * @see PublisherListener
  */
+@SdkProtectedApi
 public interface SubscriberListener<T> {
     /**
      * Invoked after {@link Subscriber#onNext(Object)}
@@ -57,7 +58,7 @@ public interface SubscriberListener<T> {
     }
 
     /**
-     * Wrap this {@link Subscriber} with a new one that will notify a {@link SubscriberListener} of important events occurring.
+     * Wrap a {@link Subscriber} with a new one that will notify a {@link SubscriberListener} of important events occurring.
      */
     static <T> Subscriber<T> wrap(Subscriber<? super T> delegate, SubscriberListener<? super T> listener) {
         return new NotifyingSubscriber<>(delegate, listener);
@@ -108,7 +109,7 @@ public interface SubscriberListener<T> {
             private final Subscription delegateSubscription;
 
             NotifyingSubscription(Subscription delegateSubscription) {
-                this.delegateSubscription = Validate.notNull(delegateSubscription, "delegate");
+                this.delegateSubscription = Validate.notNull(delegateSubscription, "delegateSubscription");
             }
 
             @Override

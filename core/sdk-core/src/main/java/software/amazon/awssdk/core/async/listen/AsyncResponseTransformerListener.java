@@ -29,12 +29,13 @@ import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Listener interface that invokes callbacks associated with this {@link AsyncResponseTransformer} and any resulting {@link
+ * Listener interface that invokes callbacks associated with a {@link AsyncResponseTransformer} and any resulting {@link
  * SdkPublisher} and {@link Subscriber}.
  *
  * @see PublisherListener
  * @see SubscriberListener
  */
+@SdkProtectedApi
 public interface AsyncResponseTransformerListener<ResponseT> extends PublisherListener<ByteBuffer> {
 
     /**

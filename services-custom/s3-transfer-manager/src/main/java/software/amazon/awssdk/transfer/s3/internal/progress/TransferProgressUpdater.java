@@ -87,45 +87,47 @@ public class TransferProgressUpdater {
 
     public <ResultT> AsyncResponseTransformer<GetObjectResponse, ResultT> wrapResponseTransformer(
         AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer) {
-        return responseTransformer.wrapWithListener(new AsyncResponseTransformerListener<GetObjectResponse>() {
-            @Override
-            public void transformerOnResponse(GetObjectResponse response) {
-                if (response.contentLength() != null) {
-                    progress.updateAndGet(b -> b.transferSizeInBytes(response.contentLength()));
+        return AsyncResponseTransformerListener.wrap(
+            responseTransformer,
+            new AsyncResponseTransformerListener<GetObjectResponse>() {
+                @Override
+                public void transformerOnResponse(GetObjectResponse response) {
+                    if (response.contentLength() != null) {
+                        progress.updateAndGet(b -> b.transferSizeInBytes(response.contentLength()));
+                    }
                 }
-            }
 
-            @Override
-            public void transformerExceptionOccurred(Throwable t) {
-                transferFailed(t);
-            }
+                @Override
+                public void transformerExceptionOccurred(Throwable t) {
+                    transferFailed(t);
+                }
 
-            @Override
-            public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
-                progress.updateAndGet(b -> b.bytesTransferred(0));
-            }
+                @Override
+                public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
+                    progress.updateAndGet(b -> b.bytesTransferred(0));
+                }
 
-            @Override
-            public void subscriberOnNext(ByteBuffer byteBuffer) {
-                TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
-                    b.bytesTransferred(b.getBytesTransferred() + byteBuffer.limit());
-                });
-                listeners.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
-            }
+                @Override
+                public void subscriberOnNext(ByteBuffer byteBuffer) {
+                    TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
+                        b.bytesTransferred(b.getBytesTransferred() + byteBuffer.limit());
+                    });
+                    listeners.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
+                }
 
-            @Override
-            public void subscriberOnError(Throwable t) {
-                transferFailed(t);
-            }
+                @Override
+                public void subscriberOnError(Throwable t) {
+                    transferFailed(t);
+                }
 
-            @Override
-            public void subscriberOnComplete() {
-                listeners.transferComplete(context.copy(b -> {
-                    b.progressSnapshot(progress.snapshot());
-                    b.completedTransfer(completedTransfer);
-                }));
-            }
-        });
+                @Override
+                public void subscriberOnComplete() {
+                    listeners.transferComplete(context.copy(b -> {
+                        b.progressSnapshot(progress.snapshot());
+                        b.completedTransfer(completedTransfer);
+                    }));
+                }
+            });
     }
 
     public void registerCompletion(CompletableFuture<? extends CompletedObjectTransfer> future) {

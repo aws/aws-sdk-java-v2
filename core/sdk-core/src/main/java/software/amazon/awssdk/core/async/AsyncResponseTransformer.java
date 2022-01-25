@@ -22,7 +22,6 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.async.listen.AsyncResponseTransformerListener;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.PublisherAsyncResponseTransformer;
@@ -109,14 +108,6 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      */
     void exceptionOccurred(Throwable error);
 
-    /**
-     * Wrap this {@link AsyncResponseTransformer} with a new one that will notify a {@link AsyncResponseTransformerListener} of
-     * important events occurring.
-     */
-    default AsyncResponseTransformer<ResponseT, ResultT> wrapWithListener(AsyncResponseTransformerListener<ResponseT> listener) {
-        return AsyncResponseTransformerListener.wrap(this, listener);
-    }
-    
     /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error,
      * the SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an

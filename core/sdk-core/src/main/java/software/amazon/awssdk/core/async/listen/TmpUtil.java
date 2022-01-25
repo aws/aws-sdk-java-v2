@@ -31,22 +31,24 @@ public class TmpUtil {
     public static <A, B> Pair<AsyncResponseTransformer<A, B>, CompletableFuture<Void>> wrapWithEndOfStreamFuture(
         AsyncResponseTransformer<A, B> responseTransformer) {
         CompletableFuture<Void> future = new CompletableFuture<>();
-        AsyncResponseTransformer<A, B> wrapped = responseTransformer.wrapWithListener(new AsyncResponseTransformerListener<A>() {
-            @Override
-            public void transformerExceptionOccurred(Throwable t) {
-                future.completeExceptionally(t);
-            }
+        AsyncResponseTransformer<A, B> wrapped = AsyncResponseTransformerListener.wrap(
+            responseTransformer,
+            new AsyncResponseTransformerListener<A>() {
+                @Override
+                public void transformerExceptionOccurred(Throwable t) {
+                    future.completeExceptionally(t);
+                }
 
-            @Override
-            public void subscriberOnError(Throwable t) {
-                future.completeExceptionally(t);
-            }
+                @Override
+                public void subscriberOnError(Throwable t) {
+                    future.completeExceptionally(t);
+                }
 
-            @Override
-            public void subscriberOnComplete() {
-                future.complete(null);
-            }
-        });
+                @Override
+                public void subscriberOnComplete() {
+                    future.complete(null);
+                }
+            });
         return Pair.of(wrapped, future);
     }
 }
