@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon FSx",
+    "contributor": "",
+    "description": "This release adds support for growing SSD storage capacity and growing/shrinking SSD IOPS for FSx for ONTAP file systems."
+}
