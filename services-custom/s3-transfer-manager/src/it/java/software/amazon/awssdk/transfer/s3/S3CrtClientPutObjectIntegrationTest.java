@@ -21,25 +21,19 @@ import io.reactivex.Flowable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -52,9 +46,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
     private static final int OBJ_SIZE = 8 * 1024 * 1024;
 
     private static RandomTempFile testFile;
-    private static ExecutorService executorService;
-    private S3CrtAsyncClient s3Crt;
-
+    private static S3CrtAsyncClient s3Crt;
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -62,32 +54,23 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
         S3IntegrationTestBase.createBucket(TEST_BUCKET);
 
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
-        executorService = Executors.newFixedThreadPool(2);
-    }
 
-    @Before
-    public void methodSetup() {
         s3Crt = S3CrtAsyncClient.builder()
                                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                 .region(S3IntegrationTestBase.DEFAULT_REGION)
                                 .build();
     }
 
-    @After
-    public void methodTeardown() {
-        s3Crt.close();
-    }
-
     @AfterClass
     public static void teardown() throws IOException {
         S3IntegrationTestBase.deleteBucketAndAllContents(TEST_BUCKET);
         Files.delete(testFile.toPath());
-        executorService.shutdown();
+        s3Crt.close();
         S3IntegrationTestBase.cleanUp();
     }
 
     @Test
-    public void putObject_fileRequestBody_objectSentCorrectly() throws IOException, NoSuchAlgorithmException {
+    public void putObject_fileRequestBody_objectSentCorrectly() throws Exception {
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
         s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
 
@@ -100,7 +83,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void putObject_byteBufferBody_objectSentCorrectly() throws IOException, NoSuchAlgorithmException {
+    public void putObject_byteBufferBody_objectSentCorrectly() {
         byte[] data = new byte[16384];
         new Random().nextBytes(data);
         ByteBuffer byteBuffer = ByteBuffer.wrap(data);
@@ -118,7 +101,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void putObject_customRequestBody_objectSentCorrectly() throws IOException, NoSuchAlgorithmException {
+    public void putObject_customRequestBody_objectSentCorrectly() throws IOException {
         Random rng = new Random();
         int bufferSize = 16384;
         int nBuffers = 15;
@@ -153,27 +136,5 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
 
 
         Assertions.assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
-    }
-
-    @Test
-    public void putObject_customExecutorService_objectSentCorrectly() throws IOException {
-        AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
-        try (S3CrtAsyncClient s3Client =
-                 S3CrtAsyncClient.builder()
-                                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                 .region(DEFAULT_REGION)
-                                 .asyncConfiguration(b -> b.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
-                                                                                     executorService))
-                                 .build()) {
-
-            s3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
-            ResponseInputStream<GetObjectResponse> objContent =
-                S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
-                                                   ResponseTransformer.toInputStream());
-
-            byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
-
-            Assertions.assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
-        }
     }
 }
