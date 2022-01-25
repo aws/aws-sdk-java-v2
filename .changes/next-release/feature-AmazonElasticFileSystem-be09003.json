@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic File System",
-    "contributor": "",
-    "description": "Use Amazon EFS Replication to replicate your Amazon EFS file system in the AWS Region of your preference."
-}
