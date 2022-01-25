@@ -44,7 +44,7 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
  */
 public class S3IntegrationTestBase extends AwsTestBase {
 
-    protected static final Region DEFAULT_REGION = Region.US_WEST_2;
+    protected static final Region DEFAULT_REGION = Region.US_WEST_1;
     /**
      * The S3 client for all tests to use.
      */
@@ -92,7 +92,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
                                    .bucket(bucketName)
                                    .createBucketConfiguration(
                                        CreateBucketConfiguration.builder()
-                                                                .locationConstraint(BucketLocationConstraint.US_WEST_2)
+                                                                .locationConstraint(BucketLocationConstraint.US_WEST_1)
                                                                 .build())
                                    .build());
         } catch (S3Exception e) {

@@ -57,7 +57,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                                                         .credentialsProvider(builder.credentialsProvider)
                                                         .build();
 
-        this.s3AsyncClient = initializeS3AsyncClient();
+        this.s3AsyncClient = initializeS3AsyncClient(builder);
     }
 
     @SdkTestInternalApi
@@ -68,12 +68,14 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         this.s3AsyncClient = s3AsyncClient;
     }
 
-    private S3AsyncClient initializeS3AsyncClient() {
+    private S3AsyncClient initializeS3AsyncClient(DefaultS3CrtClientBuilder builder) {
         return S3AsyncClient.builder()
                             // Disable checksum, retry policy and signer because they are handled in crt
                             .serviceConfiguration(S3Configuration.builder()
                                                                  .checksumValidationEnabled(false)
                                                                  .build())
+                            .region(builder.region)
+                            .credentialsProvider(builder.credentialsProvider)
                             .overrideConfiguration(o -> o.putAdvancedOption(SdkAdvancedClientOption.SIGNER,
                                                                             new NoOpSigner())
                                                          .retryPolicy(RetryPolicy.none())
