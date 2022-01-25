@@ -17,11 +17,8 @@ package software.amazon.awssdk.http.async;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.SdkHttpExecutionAttribute;
-import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * Request object containing the parameters necessary to make an asynchronous HTTP request.
@@ -35,7 +32,6 @@ public final class AsyncExecuteRequest {
     private final SdkAsyncHttpResponseHandler responseHandler;
     private final MetricCollector metricCollector;
     private final boolean isFullDuplex;
-    private final SdkHttpExecutionAttributes sdkHttpExecutionAttributes;
 
     private AsyncExecuteRequest(BuilderImpl builder) {
         this.request = builder.request;
@@ -43,7 +39,6 @@ public final class AsyncExecuteRequest {
         this.responseHandler = builder.responseHandler;
         this.metricCollector = builder.metricCollector;
         this.isFullDuplex = builder.isFullDuplex;
-        this.sdkHttpExecutionAttributes = builder.executionAttributesBuilder.build();
     }
 
     /**
@@ -79,13 +74,6 @@ public final class AsyncExecuteRequest {
      */
     public boolean fullDuplex() {
         return isFullDuplex;
-    }
-
-    /**
-     * @return the SDK HTTP execution attributes associated with this request
-     */
-    public SdkHttpExecutionAttributes httpExecutionAttributes() {
-        return sdkHttpExecutionAttributes;
     }
 
     public static Builder builder() {
@@ -137,25 +125,6 @@ public final class AsyncExecuteRequest {
          */
         Builder fullDuplex(boolean fullDuplex);
 
-        /**
-         * Put an HTTP execution attribute into to the collection of HTTP execution attributes for this request
-         *
-         * @param attribute The execution attribute object
-         * @param value     The value of the execution attribute.
-         */
-        <T> Builder putHttpExecutionAttribute(SdkHttpExecutionAttribute<T> attribute, T value);
-
-        /**
-         * Sets the additional HTTP execution attributes collection for this request.
-         * <p>
-         * This will override the attributes configured through
-         * {@link #putHttpExecutionAttribute(SdkHttpExecutionAttribute, Object)}
-         *
-         * @param executionAttributes Execution attributes map for this request.
-         * @return This object for method chaining.
-         */
-        Builder httpExecutionAttributes(SdkHttpExecutionAttributes executionAttributes);
-
         AsyncExecuteRequest build();
     }
 
@@ -165,7 +134,6 @@ public final class AsyncExecuteRequest {
         private SdkAsyncHttpResponseHandler responseHandler;
         private MetricCollector metricCollector;
         private boolean isFullDuplex;
-        private SdkHttpExecutionAttributes.Builder executionAttributesBuilder = SdkHttpExecutionAttributes.builder();
 
         @Override
         public Builder request(SdkHttpRequest request) {
@@ -196,20 +164,6 @@ public final class AsyncExecuteRequest {
             isFullDuplex = fullDuplex;
             return this;
         }
-
-        @Override
-        public <T> Builder putHttpExecutionAttribute(SdkHttpExecutionAttribute<T> attribute, T value) {
-            this.executionAttributesBuilder.put(attribute, value);
-            return this;
-        }
-
-        @Override
-        public Builder httpExecutionAttributes(SdkHttpExecutionAttributes executionAttributes) {
-            Validate.paramNotNull(executionAttributes, "executionAttributes");
-            this.executionAttributesBuilder = executionAttributes.toBuilder();
-            return this;
-        }
-
 
         @Override
         public AsyncExecuteRequest build() {
