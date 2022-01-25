@@ -31,7 +31,7 @@ public class RequestDataSupplierAdapterTckTest extends SubscriberWhiteboxVerific
 
     @Override
     public Subscriber<ByteBuffer> createSubscriber(WhiteboxSubscriberProbe<ByteBuffer> whiteboxSubscriberProbe) {
-        return new S3CrtRequestBodyStreamAdapter.SubscriberImpl((s) -> {}, new ArrayDeque<>()) {
+        return new RequestDataSupplierAdapter.SubscriberImpl((s) -> {}, new ArrayDeque<>()) {
             @Override
             public void onSubscribe(Subscription subscription) {
                 super.onSubscribe(subscription);

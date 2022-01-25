@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import com.amazonaws.s3.RequestDataSupplier;
 import java.nio.ByteBuffer;
 import java.util.Deque;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -28,16 +30,18 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
+import software.amazon.awssdk.crt.CrtRuntimeException;
+import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * Adapts an SDK {@link software.amazon.awssdk.core.async.AsyncRequestBody} to CRT's {@link HttpRequestBodyStream}.
+ * Adapts an SDK {@link software.amazon.awssdk.core.async.AsyncRequestBody} to CRT's {@link RequestDataSupplier}.
  */
 @SdkInternalApi
-public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStream {
+public final class RequestDataSupplierAdapter implements RequestDataSupplier {
     static final long DEFAULT_REQUEST_SIZE = 8;
-    private static final Logger LOG = Logger.loggerFor(S3CrtRequestBodyStreamAdapter.class);
+    private static final Logger LOG = Logger.loggerFor(RequestDataSupplierAdapter.class);
 
     private final AtomicReference<SubscriptionStatus> subscriptionStatus =
         new AtomicReference<>(SubscriptionStatus.NOT_SUBSCRIBED);
@@ -52,14 +56,25 @@ public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStrea
     // ensure that CRT actually ensures consistency across their threads...
     private Subscriber<? super ByteBuffer> subscriber;
     private long pending = 0;
+    private final ResponseHeadersHandler headersHandler;
 
-    public S3CrtRequestBodyStreamAdapter(Publisher<ByteBuffer> bodyPublisher) {
+    public RequestDataSupplierAdapter(Publisher<ByteBuffer> bodyPublisher) {
         this.bodyPublisher = bodyPublisher;
         this.subscriber = createSubscriber();
+        this.headersHandler = new ResponseHeadersHandler();
+    }
+
+    public CompletableFuture<SdkHttpResponse> sdkHttpResponseFuture() {
+        return headersHandler.sdkHttpResponseFuture();
     }
 
     @Override
-    public boolean sendRequestBody(ByteBuffer outBuffer) {
+    public void onResponseHeaders(final int statusCode, final HttpHeader[] headers) {
+        headersHandler.onResponseHeaders(statusCode, headers);
+    }
+
+    @Override
+    public boolean getRequestBytes(ByteBuffer outBuffer) {
         LOG.trace(() -> "Getting data to fill buffer of size " + outBuffer.remaining());
 
         // Per the spec, onSubscribe is always called before any other
@@ -158,6 +173,20 @@ public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStrea
         pending = 0;
 
         return true;
+    }
+
+    @Override
+    public void onException(CrtRuntimeException e) {
+        if (subscription != null) {
+            subscription.cancel();
+        }
+    }
+
+    @Override
+    public void onFinished() {
+        if (subscription != null) {
+            subscription.cancel();
+        }
     }
 
     private Event takeFirstEvent() {
