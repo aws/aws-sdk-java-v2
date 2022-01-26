@@ -48,6 +48,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.model.DeprecationUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -176,7 +177,10 @@ public final class SyncClientInterface implements ClassSpec {
         methods.addAll(streamingSimpleMethods(opModel));
         methods.addAll(paginatedMethods(opModel));
 
-        return methods;
+        return methods.stream()
+                      // Add Deprecated annotation if needed to all overloads
+                      .map(m -> DeprecationUtils.checkDeprecated(opModel, m))
+                      .collect(toList());
     }
 
     private MethodSpec simpleMethod(OperationModel opModel) {

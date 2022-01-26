@@ -32,6 +32,8 @@ public class OperationModel extends DocumentationModel {
 
     private boolean deprecated;
 
+    private String deprecatedMessage;
+
     private VariableModel input;
 
     private ReturnTypeModel returnType;
@@ -82,6 +84,14 @@ public class OperationModel extends DocumentationModel {
 
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
+    }
+
+    public String getDeprecatedMessage() {
+        return deprecatedMessage;
+    }
+
+    public void setDeprecatedMessage(String deprecatedMessage) {
+        this.deprecatedMessage = deprecatedMessage;
     }
 
     public String getDocs(IntermediateModel model,

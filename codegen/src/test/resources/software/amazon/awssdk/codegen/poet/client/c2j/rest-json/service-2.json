@@ -39,6 +39,8 @@
           "shape": "InvalidInputException"
         }
       ],
+      "deprecated": true,
+      "deprecatedMessage": "This API is deprecated, use something else",
       "documentation": "<p>Performs a post operation to the query service and has no output</p>"
     },
     "GetWithoutRequiredMembers": {
