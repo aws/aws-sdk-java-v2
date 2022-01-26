@@ -42,7 +42,7 @@ public final class CompletedDirectoryDownload implements CompletedDirectoryTrans
 
     private CompletedDirectoryDownload(DefaultBuilder builder) {
         this.failedTransfers = Collections.unmodifiableCollection(
-            Validate.paramNotNull(builder.failedTransfers, "failedTransfers"));
+            new ArrayList<>(Validate.paramNotNull(builder.failedTransfers, "failedTransfers")));
     }
 
     @Override

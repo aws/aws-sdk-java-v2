@@ -42,7 +42,7 @@ public final class CompletedDirectoryUpload implements CompletedDirectoryTransfe
 
     private CompletedDirectoryUpload(DefaultBuilder builder) {
         this.failedTransfers = Collections.unmodifiableCollection(
-            Validate.paramNotNull(builder.failedTransfers, "failedTransfers"));
+            new ArrayList<>(Validate.paramNotNull(builder.failedTransfers, "failedTransfers")));
     }
     
     @Override
@@ -136,9 +136,6 @@ public final class CompletedDirectoryUpload implements CompletedDirectoryTransfe
 
         @Override
         public Builder addFailedTransfer(FailedFileUpload failedTransfer) {
-            if (failedTransfers == null) {
-                failedTransfers = new ArrayList<>();
-            }
             failedTransfers.add(failedTransfer);
             return this;
         }
