@@ -95,7 +95,10 @@ public interface JsonAsyncClient extends SdkClient {
      * @sample JsonAsyncClient.APostOperation
      * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
+     *
+     * @deprecated This API is deprecated, use something else
      */
+    @Deprecated
     default CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
         throw new UnsupportedOperationException();
     }
@@ -128,7 +131,10 @@ public interface JsonAsyncClient extends SdkClient {
      * @sample JsonAsyncClient.APostOperation
      * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
+     *
+     * @deprecated This API is deprecated, use something else
      */
+    @Deprecated
     default CompletableFuture<APostOperationResponse> aPostOperation(Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
         return aPostOperation(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build());
     }

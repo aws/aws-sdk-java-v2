@@ -88,7 +88,10 @@ public interface JsonClient extends SdkClient {
      * @sample JsonClient.APostOperation
      * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
+     *
+     * @deprecated This API is deprecated, use something else
      */
+    @Deprecated
     default APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
                                                                                                       AwsServiceException, SdkClientException, JsonException {
         throw new UnsupportedOperationException();
@@ -119,7 +122,10 @@ public interface JsonClient extends SdkClient {
      * @sample JsonClient.APostOperation
      * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
+     *
+     * @deprecated This API is deprecated, use something else
      */
+    @Deprecated
     default APostOperationResponse aPostOperation(Consumer<APostOperationRequest.Builder> aPostOperationRequest)
         throws InvalidInputException, AwsServiceException, SdkClientException, JsonException {
         return aPostOperation(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build());
