@@ -21,6 +21,8 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
@@ -68,7 +70,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         this.uploadDirectoryManager = uploadDirectoryManager;
     }
 
-    private static TransferManagerConfiguration resolveTransferManagerConfiguration(DefaultBuilder tmBuilder) {
+    private TransferManagerConfiguration resolveTransferManagerConfiguration(DefaultBuilder tmBuilder) {
         TransferManagerConfiguration.Builder transferConfigBuilder = TransferManagerConfiguration.builder();
         tmBuilder.transferManagerConfiguration.uploadDirectoryConfiguration()
                                               .ifPresent(transferConfigBuilder::uploadDirectoryConfiguration);
@@ -76,13 +78,19 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         return transferConfigBuilder.build();
     }
 
-    private static S3CrtAsyncClient initializeS3CrtClient(DefaultBuilder tmBuilder) {
+    private S3CrtAsyncClient initializeS3CrtClient(DefaultBuilder tmBuilder) {
         S3CrtAsyncClient.S3CrtAsyncClientBuilder clientBuilder = S3CrtAsyncClient.builder();
         tmBuilder.s3ClientConfiguration.credentialsProvider().ifPresent(clientBuilder::credentialsProvider);
         tmBuilder.s3ClientConfiguration.maxConcurrency().ifPresent(clientBuilder::maxConcurrency);
         tmBuilder.s3ClientConfiguration.minimumPartSizeInBytes().ifPresent(clientBuilder::minimumPartSizeInBytes);
         tmBuilder.s3ClientConfiguration.region().ifPresent(clientBuilder::region);
         tmBuilder.s3ClientConfiguration.targetThroughputInGbps().ifPresent(clientBuilder::targetThroughputInGbps);
+        ClientAsyncConfiguration clientAsyncConfiguration =
+            ClientAsyncConfiguration.builder()
+                                    .advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
+                                                    transferConfiguration.option(TransferConfigurationOption.EXECUTOR))
+                                    .build();
+        clientBuilder.asyncConfiguration(clientAsyncConfiguration);
 
         return clientBuilder.build();
     }
@@ -277,7 +285,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         return !s3EndpointResource.region().isPresent();
     }
 
-    private static final class DefaultBuilder implements S3TransferManager.Builder {
+    private static class DefaultBuilder implements S3TransferManager.Builder {
         private S3ClientConfiguration s3ClientConfiguration = S3ClientConfiguration.builder().build();
         private S3TransferManagerOverrideConfiguration transferManagerConfiguration =
             S3TransferManagerOverrideConfiguration.builder().build();

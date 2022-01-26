@@ -1,3 +1,24 @@
+# __2.17.118__ __2022-01-25__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds support for custom vocabularies to be used with Contact Lens. Custom vocabularies improve transcription accuracy for one or more specific words.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Use Amazon EFS Replication to replicate your Amazon EFS file system in the AWS Region of your preference.
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for growing SSD storage capacity and growing/shrinking SSD IOPS for FSx for ONTAP file systems.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Amazon GuardDuty expands threat detection coverage to protect Amazon Elastic Kubernetes Service (EKS) workloads.
+
 # __2.17.117__ __2022-01-24__
 ## __AWS Route53 Recovery Readiness__
   - ### Features
