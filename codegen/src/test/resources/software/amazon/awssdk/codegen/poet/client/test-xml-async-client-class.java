@@ -23,7 +23,7 @@ import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.async.listener.TmpUtil;
+import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -440,8 +440,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
-            Pair<AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair = TmpUtil
-                .wrapWithEndOfStreamFuture(asyncResponseTransformer);
+            Pair<AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair =
+                AsyncResponseTransformerUtils.wrapWithEndOfStreamFuture(asyncResponseTransformer);
             asyncResponseTransformer = pair.left();
             CompletableFuture<Void> endOfStreamFuture = pair.right();
 
