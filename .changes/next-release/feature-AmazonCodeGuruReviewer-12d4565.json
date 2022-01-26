@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CodeGuru Reviewer",
+    "contributor": "",
+    "description": "Added failure state and adjusted timeout in waiter"
+}
