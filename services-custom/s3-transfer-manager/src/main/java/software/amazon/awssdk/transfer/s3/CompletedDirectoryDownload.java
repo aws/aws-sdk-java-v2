@@ -23,6 +23,8 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Represents a completed download directory transfer to Amazon S3. It can be used to track
@@ -32,7 +34,9 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class CompletedDirectoryDownload implements CompletedDirectoryTransfer {
+public final class CompletedDirectoryDownload implements CompletedDirectoryTransfer,
+                                                         ToCopyableBuilder<CompletedDirectoryDownload.Builder,
+                                                             CompletedDirectoryDownload> {
 
     private final Collection<FailedFileDownload> failedTransfers;
 
@@ -83,7 +87,13 @@ public final class CompletedDirectoryDownload implements CompletedDirectoryTrans
         return DefaultBuilder.class;
     }
 
-    public interface Builder {
+    @Override
+    public Builder toBuilder() {
+        return new DefaultBuilder(this);
+    }
+
+    public interface Builder extends CopyableBuilder<CompletedDirectoryDownload.Builder,
+        CompletedDirectoryDownload>  {
 
         /**
          * Sets a collection of {@link FailedFileDownload}s
@@ -109,7 +119,14 @@ public final class CompletedDirectoryDownload implements CompletedDirectoryTrans
     }
 
     private static final class DefaultBuilder implements Builder {
-        private Collection<FailedFileDownload> failedTransfers;
+        private Collection<FailedFileDownload> failedTransfers = new ArrayList<>();
+
+        private DefaultBuilder() {
+        }
+
+        private DefaultBuilder(CompletedDirectoryDownload completedDirectoryDownload) {
+            this.failedTransfers = new ArrayList<>(completedDirectoryDownload.failedTransfers);
+        }
 
         @Override
         public Builder failedTransfers(Collection<FailedFileDownload> failedTransfers) {
@@ -119,9 +136,6 @@ public final class CompletedDirectoryDownload implements CompletedDirectoryTrans
 
         @Override
         public Builder addFailedTransfer(FailedFileDownload failedTransfer) {
-            if (failedTransfers == null) {
-                failedTransfers = new ArrayList<>();
-            }
             failedTransfers.add(failedTransfer);
             return this;
         }

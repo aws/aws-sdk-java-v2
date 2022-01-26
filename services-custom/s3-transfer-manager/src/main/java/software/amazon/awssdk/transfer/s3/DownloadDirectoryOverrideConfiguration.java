@@ -40,7 +40,7 @@ public final class DownloadDirectoryOverrideConfiguration implements ToCopyableB
 
     private final Consumer<DownloadFileRequest.Builder> downloadFileRequestTransformer;
 
-    public DownloadDirectoryOverrideConfiguration(DefaultBuilder builder) {
+    private DownloadDirectoryOverrideConfiguration(DefaultBuilder builder) {
         this.downloadFileRequestTransformer = builder.downloadFileRequestTransformer;
     }
 

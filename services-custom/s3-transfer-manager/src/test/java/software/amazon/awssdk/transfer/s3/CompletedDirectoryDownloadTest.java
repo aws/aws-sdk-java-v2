@@ -15,15 +15,23 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-public class CompletedDirectoryDownloadTest {
+class CompletedDirectoryDownloadTest {
 
     @Test
-    public void equalsHashcode() {
+    void equalsHashcode() {
         EqualsVerifier.forClass(CompletedDirectoryDownload.class)
                       .withNonnullFields("failedTransfers")
                       .verify();
+    }
+
+    @Test
+    void defaultBuilder() {
+        assertThat(CompletedDirectoryDownload.builder().build().failedTransfers())
+            .isEmpty();
     }
 }

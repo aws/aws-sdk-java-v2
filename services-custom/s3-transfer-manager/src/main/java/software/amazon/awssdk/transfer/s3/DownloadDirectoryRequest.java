@@ -52,7 +52,7 @@ public final class DownloadDirectoryRequest
     }
 
     /**
-     * The destination directory to download
+     * The destination directory to which files should be downloaded.
      *
      * @return the destination directory
      * @see Builder#destinationDirectory(Path)
@@ -157,7 +157,7 @@ public final class DownloadDirectoryRequest
 
     public interface Builder extends CopyableBuilder<Builder, DownloadDirectoryRequest> {
         /**
-         * Specify the destination directory to download. The destination directory must exist.
+         * Specify the destination directory to which files should be downloaded.
          *
          * @param destinationDirectory the destination directory
          * @return This builder for method chaining.
