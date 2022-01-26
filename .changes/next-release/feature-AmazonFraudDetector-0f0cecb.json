@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Fraud Detector",
-    "contributor": "",
-    "description": "Added new APIs for viewing past predictions and obtaining prediction metadata including prediction explanations: ListEventPredictions and GetEventPredictionMetadata"
-}
