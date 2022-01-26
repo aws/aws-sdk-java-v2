@@ -64,6 +64,7 @@ final class ClientClassUtils {
         MethodSpec.Builder result = MethodSpec.methodBuilder(spec.name)
                                               .returns(spec.returnType)
                                               .addExceptions(spec.exceptions)
+                                              .addAnnotations(spec.annotations)
                                               .addJavadoc(javadoc)
                                               .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
                                               .addTypeVariables(spec.typeVariables)

@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.interceptor;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
+import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 
 /**
  * Attributes that can be applied to all sdk requests. Only generated code from the SDK clients should set these values.
@@ -46,6 +47,12 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Boolean> DISABLE_HOST_PREFIX_INJECTION =
             new ExecutionAttribute<>("DisableHostPrefixInjection");
+
+    /**
+     * The SDK HTTP attributes that can be passed to the HTTP client
+     */
+    public static final ExecutionAttribute<SdkHttpExecutionAttributes> SDK_HTTP_EXECUTION_ATTRIBUTES =
+        new ExecutionAttribute<>("SdkHttpExecutionAttributes");
 
     private SdkInternalExecutionAttribute() {
     }

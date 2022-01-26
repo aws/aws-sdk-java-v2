@@ -24,6 +24,8 @@ public class Operation {
 
     private boolean deprecated;
 
+    private String deprecatedMessage;
+
     private Http http;
 
     private Input input;
@@ -65,6 +67,14 @@ public class Operation {
 
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
+    }
+
+    public String getDeprecatedMessage() {
+        return deprecatedMessage;
+    }
+
+    public void setDeprecatedMessage(String deprecatedMessage) {
+        this.deprecatedMessage = deprecatedMessage;
     }
 
     public Http getHttp() {
