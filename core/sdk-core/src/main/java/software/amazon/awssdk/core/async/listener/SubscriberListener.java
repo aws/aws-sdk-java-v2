@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.async.listen;
+package software.amazon.awssdk.core.async.listener;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
@@ -21,6 +21,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 import software.amazon.awssdk.utils.Validate;
@@ -64,7 +65,7 @@ public interface SubscriberListener<T> {
         return new NotifyingSubscriber<>(delegate, listener);
     }
 
-    @SdkProtectedApi
+    @SdkInternalApi
     final class NotifyingSubscriber<T> implements Subscriber<T> {
         private static final Logger log = LoggerFactory.getLogger(NotifyingSubscriber.class);
 
@@ -104,7 +105,7 @@ public interface SubscriberListener<T> {
             runAndLogError(log, callbackName + " callback failed. This exception will be dropped.", runnable);
         }
 
-        @SdkProtectedApi
+        @SdkInternalApi
         final class NotifyingSubscription implements Subscription {
             private final Subscription delegateSubscription;
 

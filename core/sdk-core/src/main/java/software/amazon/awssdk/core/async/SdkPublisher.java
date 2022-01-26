@@ -24,7 +24,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.async.listen.PublisherListener;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.utils.async.BufferingSubscriber;
 import software.amazon.awssdk.utils.async.FilteringSubscriber;
 import software.amazon.awssdk.utils.async.FlatteningSubscriber;

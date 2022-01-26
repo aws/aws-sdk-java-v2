@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.async.listen;
+package software.amazon.awssdk.core.async.listener;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -28,12 +28,12 @@ public class TmpUtil {
      * Wrap a {@link AsyncResponseTransformer} and associate it with a future that is completed upon end-of-stream, regardless of
      * whether the transformer is configured to complete its future upon end-of-response or end-of-stream.
      */
-    public static <A, B> Pair<AsyncResponseTransformer<A, B>, CompletableFuture<Void>> wrapWithEndOfStreamFuture(
-        AsyncResponseTransformer<A, B> responseTransformer) {
+    public static <ResponseT, ResultT> Pair<AsyncResponseTransformer<ResponseT, ResultT>, CompletableFuture<Void>>
+    wrapWithEndOfStreamFuture(AsyncResponseTransformer<ResponseT, ResultT> responseTransformer) {
         CompletableFuture<Void> future = new CompletableFuture<>();
-        AsyncResponseTransformer<A, B> wrapped = AsyncResponseTransformerListener.wrap(
+        AsyncResponseTransformer<ResponseT, ResultT> wrapped = AsyncResponseTransformerListener.wrap(
             responseTransformer,
-            new AsyncResponseTransformerListener<A>() {
+            new AsyncResponseTransformerListener<ResponseT>() {
                 @Override
                 public void transformerExceptionOccurred(Throwable t) {
                     future.completeExceptionally(t);

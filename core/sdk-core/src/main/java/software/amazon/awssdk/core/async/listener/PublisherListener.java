@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.async.listen;
+package software.amazon.awssdk.core.async.listener;
 
 
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
@@ -22,6 +22,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
@@ -48,7 +49,7 @@ public interface PublisherListener<T> extends SubscriberListener<T> {
         return new NotifyingPublisher<>(delegate, listener);
     }
 
-    @SdkProtectedApi
+    @SdkInternalApi
     final class NotifyingPublisher<T> implements SdkPublisher<T> {
         private static final Logger log = LoggerFactory.getLogger(NotifyingPublisher.class);
 
