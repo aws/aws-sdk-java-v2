@@ -1103,7 +1103,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                             .withMetricCollector(apiCallMetricCollector).withInput(streamingOutputOperationRequest),
                     asyncResponseTransformer);
-            AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
+            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             CompletableFuture<ReturnT> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
