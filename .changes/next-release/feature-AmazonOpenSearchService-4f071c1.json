@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon OpenSearch Service",
-    "contributor": "",
-    "description": "Allows customers to get progress updates for blue/green deployments"
-}
