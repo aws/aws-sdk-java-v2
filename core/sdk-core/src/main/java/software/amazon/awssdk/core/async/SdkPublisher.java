@@ -24,8 +24,8 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.utils.async.BufferingSubscriber;
+import software.amazon.awssdk.utils.async.EventListeningSubscriber;
 import software.amazon.awssdk.utils.async.FilteringSubscriber;
 import software.amazon.awssdk.utils.async.FlatteningSubscriber;
 import software.amazon.awssdk.utils.async.LimitingSubscriber;
@@ -125,12 +125,7 @@ public interface SdkPublisher<T> extends Publisher<T> {
      * @return New publisher that invokes the requested callback.
      */
     default SdkPublisher<T> doAfterOnComplete(Runnable afterOnComplete) {
-        return PublisherListener.wrap(this, new PublisherListener<T>() {
-            @Override
-            public void subscriberOnComplete() {
-                afterOnComplete.run();
-            }
-        });
+        return subscriber -> subscribe(new EventListeningSubscriber<>(subscriber, afterOnComplete, null, null));
     }
 
     /**
@@ -140,12 +135,7 @@ public interface SdkPublisher<T> extends Publisher<T> {
      * @return New publisher that invokes the requested callback.
      */
     default SdkPublisher<T> doAfterOnError(Consumer<Throwable> afterOnError) {
-        return PublisherListener.wrap(this, new PublisherListener<T>() {
-            @Override
-            public void subscriberOnError(Throwable t) {
-                afterOnError.accept(t);
-            }
-        });
+        return subscriber -> subscribe(new EventListeningSubscriber<>(subscriber, null, afterOnError, null));
     }
 
     /**
@@ -155,12 +145,7 @@ public interface SdkPublisher<T> extends Publisher<T> {
      * @return New publisher that invokes the requested callback.
      */
     default SdkPublisher<T> doAfterOnCancel(Runnable afterOnCancel) {
-        return PublisherListener.wrap(this, new PublisherListener<T>() {
-            @Override
-            public void subscriptionCancel() {
-                afterOnCancel.run();
-            }
-        });
+        return subscriber -> subscribe(new EventListeningSubscriber<>(subscriber, null, null, afterOnCancel));
     }
 
     /**
