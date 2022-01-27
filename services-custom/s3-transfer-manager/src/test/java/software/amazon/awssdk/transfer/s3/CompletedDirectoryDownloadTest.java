@@ -20,18 +20,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-class CompletedDirectoryUploadTest {
+class CompletedDirectoryDownloadTest {
 
     @Test
     void equalsHashcode() {
-        EqualsVerifier.forClass(CompletedDirectoryUpload.class)
+        EqualsVerifier.forClass(CompletedDirectoryDownload.class)
                       .withNonnullFields("failedTransfers")
                       .verify();
     }
 
     @Test
     void defaultBuilder() {
-        assertThat(CompletedDirectoryUpload.builder().build().failedTransfers())
+        assertThat(CompletedDirectoryDownload.builder().build().failedTransfers())
             .isEmpty();
     }
 }

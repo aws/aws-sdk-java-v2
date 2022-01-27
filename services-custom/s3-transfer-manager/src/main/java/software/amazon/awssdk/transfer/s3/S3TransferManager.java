@@ -277,6 +277,54 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
+     * Download all objects under a specific prefix and bucket to the provided directory. By default, all objects in the entire
+     * bucket will be downloaded.
+     *
+     * <p>
+     * The returned {@link CompletableFuture} only completes exceptionally if the request cannot be attempted as a whole (the
+     * destination directory provided does not exist for example). The future completes successfully for partial successful
+     * requests, i.e., there might be failed downloads in a successfully completed response. As a result, you should check for
+     * errors in the response via {@link CompletedDirectoryDownload#failedTransfers()} even when the future completes
+     * successfully.
+     *
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * DirectoryDownload directoryDownload =
+     *       transferManager.downloadDirectory(DownloadDirectoryRequest.builder()
+     *                                                                 .destinationDirectory(Paths.get("."))
+     *                                                                 .bucket("bucket")
+     *                                                                 .prefix("prefix")
+     *                                                                 .build());
+     * // Wait for the transfer to complete
+     * CompletedDirectoryDownload completedDirectoryDownload = directoryDownload.completionFuture().join();
+     *
+     * // Print out the failed downloads
+     * completedDirectoryDownload.failedTransfers().forEach(System.out::println);
+     *
+     * }
+     * </pre>
+     *
+     * @param downloadDirectoryRequest the download directory request
+     * @see #downloadDirectory(Consumer)
+     */
+    default DirectoryDownload downloadDirectory(DownloadDirectoryRequest downloadDirectoryRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link DownloadDirectoryRequest} builder, avoiding the need to
+     * create one manually via {@link DownloadDirectoryRequest#builder()}.
+     *
+     * @see #downloadDirectory(DownloadDirectoryRequest)
+     */
+    default DirectoryDownload downloadDirectory(Consumer<DownloadDirectoryRequest.Builder> requestBuilder) {
+        Validate.paramNotNull(requestBuilder, "requestBuilder");
+        return downloadDirectory(DownloadDirectoryRequest.builder().applyMutation(requestBuilder).build());
+    }
+
+    /**
      * Create an {@code S3TransferManager} using the default values.
      */
     static S3TransferManager create() {
