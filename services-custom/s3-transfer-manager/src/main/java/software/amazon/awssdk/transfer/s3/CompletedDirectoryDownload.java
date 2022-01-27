@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -38,15 +39,15 @@ public final class CompletedDirectoryDownload implements CompletedDirectoryTrans
                                                          ToCopyableBuilder<CompletedDirectoryDownload.Builder,
                                                              CompletedDirectoryDownload> {
 
-    private final Collection<FailedFileDownload> failedTransfers;
+    private final List<FailedFileDownload> failedTransfers;
 
     private CompletedDirectoryDownload(DefaultBuilder builder) {
-        this.failedTransfers = Collections.unmodifiableCollection(
+        this.failedTransfers = Collections.unmodifiableList(
             new ArrayList<>(Validate.paramNotNull(builder.failedTransfers, "failedTransfers")));
     }
 
     @Override
-    public Collection<FailedFileDownload> failedTransfers() {
+    public List<FailedFileDownload> failedTransfers() {
         return failedTransfers;
     }
 
