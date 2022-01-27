@@ -15,31 +15,10 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.nio.file.Paths;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
 class DownloadDirectoryOverrideConfigurationTest {
-
-    @Test
-    void defaultBuilder() {
-        DownloadDirectoryOverrideConfiguration configuration =
-            DownloadDirectoryOverrideConfiguration.builder()
-                                                  .build();
-        assertThat(configuration.downloadFileRequestTransformer()).isEmpty();
-    }
-
-    @Test
-    void defaultBuilderWithPropertySet() {
-        DownloadDirectoryOverrideConfiguration configuration =
-            DownloadDirectoryOverrideConfiguration.builder()
-                .downloadFileRequestTransformer((request -> request.destination(Paths.get("."))))
-                                                  .build();
-        assertThat(configuration.downloadFileRequestTransformer()).isNotEmpty();
-    }
 
     @Test
     void equalsHashCode() {

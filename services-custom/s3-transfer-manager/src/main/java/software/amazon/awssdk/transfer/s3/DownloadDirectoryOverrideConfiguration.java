@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -45,11 +44,11 @@ public final class DownloadDirectoryOverrideConfiguration implements ToCopyableB
     }
 
     /**
-     * @return the optional download request transformer
+     * @return the download request transformer if not null, otherwise no-op
      * @see DownloadDirectoryOverrideConfiguration.Builder#downloadFileRequestTransformer(Consumer)
      */
-    public Optional<Consumer<DownloadFileRequest.Builder>> downloadFileRequestTransformer() {
-        return Optional.ofNullable(downloadFileRequestTransformer);
+    public Consumer<DownloadFileRequest.Builder> downloadFileRequestTransformer() {
+        return downloadFileRequestTransformer == null ? ignore -> { } : downloadFileRequestTransformer;
     }
 
     @Override

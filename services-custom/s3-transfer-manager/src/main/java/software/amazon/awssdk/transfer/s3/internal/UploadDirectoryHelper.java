@@ -237,7 +237,7 @@ public class UploadDirectoryHelper {
                                                                     .putObjectRequest(putObjectRequest);
 
         uploadDirectoryRequest.overrideConfiguration()
-                              .flatMap(UploadDirectoryOverrideConfiguration::uploadFileRequestTransformer)
+                              .map(UploadDirectoryOverrideConfiguration::uploadFileRequestTransformer)
                               .ifPresent(c -> c.accept(requestBuilder));
 
         return requestBuilder.build();
