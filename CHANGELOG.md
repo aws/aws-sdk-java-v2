@@ -1,3 +1,24 @@
+# __2.17.120__ __2022-01-27__
+## __AWS Amplify__
+  - ### Features
+    - Doc only update to the description of basicauthcredentials to describe the required encoding and format.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds support for configuring a custom chat duration when starting a new chat session via the StartChatContact API. The default value for chat duration is 25 hours, minimum configurable value is 1 hour (60 minutes) and maximum configurable value is 7 days (10,080 minutes).
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - X2ezn instances are powered by Intel Cascade Lake CPUs that deliver turbo all core frequency of up to 4.5 GHz and up to 100 Gbps of networking bandwidth
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Allows customers to get progress updates for blue/green deployments
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK has updated the CreateCluster and UpdateBrokerStorage API that allows you to specify volume throughput during cluster creation and broker volume updates.
+
 # __2.17.119__ __2022-01-26__
 ## __AWS SecurityHub__
   - ### Features

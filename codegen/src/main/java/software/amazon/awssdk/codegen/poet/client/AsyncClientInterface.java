@@ -46,6 +46,7 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
+import software.amazon.awssdk.codegen.poet.model.DeprecationUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -179,7 +180,9 @@ public class AsyncClientInterface implements ClassSpec {
         methods.addAll(traditionalMethods(operationModel));
         methods.addAll(overloadMethods(operationModel));
         methods.addAll(paginatedMethods(operationModel));
-        return methods.stream();
+        return methods.stream()
+                      // Add Deprecated annotation if needed to all overloads
+                      .map(m -> DeprecationUtils.checkDeprecated(operationModel, m));
     }
 
     private List<MethodSpec> paginatedMethods(OperationModel opModel) {
@@ -406,7 +409,7 @@ public class AsyncClientInterface implements ClassSpec {
      */
     private MethodSpec.Builder interfaceMethodSignature(OperationModel opModel) {
         return methodSignatureWithReturnType(opModel)
-                .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT);
+            .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT);
     }
 
     /**

@@ -155,6 +155,7 @@ final class AddOperations {
 
             operationModel.setOperationName(operationName);
             operationModel.setDeprecated(op.isDeprecated());
+            operationModel.setDeprecatedMessage(op.getDeprecatedMessage());
             operationModel.setDocumentation(op.getDocumentation());
             operationModel.setIsAuthenticated(isAuthenticated(op));
             operationModel.setAuthType(op.getAuthtype());
