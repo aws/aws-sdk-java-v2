@@ -23,12 +23,12 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.listener.AsyncRequestBodyListener;
 import software.amazon.awssdk.core.async.listener.AsyncResponseTransformerListener;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedObjectTransfer;
 import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
 import software.amazon.awssdk.transfer.s3.TransferRequestOverrideConfiguration;
-import software.amazon.awssdk.transfer.s3.internal.progress.NotifyingAsyncRequestBody.AsyncRequestBodyListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
@@ -42,7 +42,7 @@ public class TransferProgressUpdater {
     private final DefaultTransferProgress progress;
     private final TransferListenerContext context;
     private final TransferListenerInvoker listeners;
-    private volatile CompletedObjectTransfer completedTransfer;
+    private final CompletableFuture<Void> endOfStreamFuture;
 
     public TransferProgressUpdater(TransferObjectRequest request, AsyncRequestBody requestBody) {
         DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
@@ -56,6 +56,7 @@ public class TransferProgressUpdater {
         listeners = new TransferListenerInvoker(request.overrideConfiguration()
                                                        .map(TransferRequestOverrideConfiguration::listeners)
                                                        .orElseGet(Collections::emptyList));
+        endOfStreamFuture = new CompletableFuture<>();
     }
 
     public TransferProgress progress() {
@@ -67,20 +68,27 @@ public class TransferProgressUpdater {
     }
 
     public AsyncRequestBody wrapRequestBody(AsyncRequestBody requestBody) {
-        return new NotifyingAsyncRequestBody(
+        return AsyncRequestBodyListener.wrap(
             requestBody,
             new AsyncRequestBodyListener() {
                 @Override
-                public void beforeSubscribe(Subscriber<? super ByteBuffer> subscriber) {
-                    progress.updateAndGet(b -> b.bytesTransferred(0));
+                public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
+                    resetBytesTransferred();
                 }
 
                 @Override
-                public void beforeOnNext(ByteBuffer byteBuffer) {
-                    TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
-                        b.bytesTransferred(b.getBytesTransferred() + byteBuffer.limit());
-                    });
-                    listeners.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
+                public void subscriberOnNext(ByteBuffer byteBuffer) {
+                    incrementBytesTransferred(byteBuffer.limit());
+                }
+
+                @Override
+                public void subscriberOnError(Throwable t) {
+                    transferFailed(t);
+                }
+
+                @Override
+                public void subscriberOnComplete() {
+                    endOfStreamFuture.complete(null);
                 }
             });
     }
@@ -104,15 +112,12 @@ public class TransferProgressUpdater {
 
                 @Override
                 public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
-                    progress.updateAndGet(b -> b.bytesTransferred(0));
+                    resetBytesTransferred();
                 }
 
                 @Override
                 public void subscriberOnNext(ByteBuffer byteBuffer) {
-                    TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
-                        b.bytesTransferred(b.getBytesTransferred() + byteBuffer.limit());
-                    });
-                    listeners.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
+                    incrementBytesTransferred(byteBuffer.limit());
                 }
 
                 @Override
@@ -122,22 +127,44 @@ public class TransferProgressUpdater {
 
                 @Override
                 public void subscriberOnComplete() {
-                    listeners.transferComplete(context.copy(b -> {
-                        b.progressSnapshot(progress.snapshot());
-                        b.completedTransfer(completedTransfer);
-                    }));
+                    endOfStreamFuture.complete(null);
                 }
             });
+    }
+
+    private void resetBytesTransferred() {
+        progress.updateAndGet(b -> b.bytesTransferred(0));
+    }
+
+    private void incrementBytesTransferred(int numBytes) {
+        TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
+            b.bytesTransferred(b.getBytesTransferred() + numBytes);
+        });
+        listeners.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
     }
 
     public void registerCompletion(CompletableFuture<? extends CompletedObjectTransfer> future) {
         future.whenComplete((r, t) -> {
             if (t == null) {
-                completedTransfer = r;
+                endOfStreamFuture.whenComplete((r2, t2) -> {
+                    if (t2 == null) {
+                        transferComplete(r);
+                    } else {
+                        transferFailed(t2);
+                    }
+                });
             } else {
                 transferFailed(t);
             }
         });
+    }
+
+    private void transferComplete(CompletedObjectTransfer r) {
+        listeners.transferComplete(context.copy(b -> {
+            TransferProgressSnapshot snapshot = progress.snapshot();
+            b.progressSnapshot(snapshot);
+            b.completedTransfer(r);
+        }));
     }
 
     private void transferFailed(Throwable t) {

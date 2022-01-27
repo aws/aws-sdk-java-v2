@@ -40,19 +40,19 @@ import software.amazon.awssdk.utils.Validate;
 public interface AsyncResponseTransformerListener<ResponseT> extends PublisherListener<ByteBuffer> {
 
     /**
-     * Invoked after {@link AsyncResponseTransformer#onResponse(Object)}
+     * Invoked before {@link AsyncResponseTransformer#onResponse(Object)}
      */
     default void transformerOnResponse(ResponseT response) {
     }
 
     /**
-     * Invoked after {@link AsyncResponseTransformer#onStream(SdkPublisher)}
+     * Invoked before {@link AsyncResponseTransformer#onStream(SdkPublisher)}
      */
     default void transformerOnStream(SdkPublisher<ByteBuffer> publisher) {
     }
 
     /**
-     * Invoked after {@link AsyncResponseTransformer#exceptionOccurred(Throwable)}
+     * Invoked before {@link AsyncResponseTransformer#exceptionOccurred(Throwable)}
      */
     default void transformerExceptionOccurred(Throwable t) {
     }
@@ -87,20 +87,20 @@ public interface AsyncResponseTransformerListener<ResponseT> extends PublisherLi
 
         @Override
         public void onResponse(ResponseT response) {
-            delegate.onResponse(response);
             invoke(() -> listener.transformerOnResponse(response), "transformerOnResponse");
+            delegate.onResponse(response);
         }
 
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            delegate.onStream(PublisherListener.wrap(publisher, listener));
             invoke(() -> listener.transformerOnStream(publisher), "transformerOnStream");
+            delegate.onStream(PublisherListener.wrap(publisher, listener));
         }
 
         @Override
         public void exceptionOccurred(Throwable error) {
-            delegate.exceptionOccurred(error);
             invoke(() -> listener.transformerExceptionOccurred(error), "transformerExceptionOccurred");
+            delegate.exceptionOccurred(error);
         }
 
         static void invoke(UnsafeRunnable runnable, String callbackName) {

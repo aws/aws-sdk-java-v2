@@ -35,25 +35,25 @@ import software.amazon.awssdk.utils.Validate;
 @SdkProtectedApi
 public interface SubscriberListener<T> {
     /**
-     * Invoked after {@link Subscriber#onNext(Object)}
+     * Invoked before {@link Subscriber#onNext(Object)}
      */
     default void subscriberOnNext(T t) {
     }
 
     /**
-     * Invoked after {@link Subscriber#onComplete()}
+     * Invoked before {@link Subscriber#onComplete()}
      */
     default void subscriberOnComplete() {
     }
 
     /**
-     * Invoked after {@link Subscriber#onError(Throwable)}
+     * Invoked before {@link Subscriber#onError(Throwable)}
      */
     default void subscriberOnError(Throwable t) {
     }
 
     /**
-     * Invoked after {@link Subscription#cancel()}
+     * Invoked before {@link Subscription#cancel()}
      */
     default void subscriptionCancel() {
     }
@@ -85,20 +85,20 @@ public interface SubscriberListener<T> {
 
         @Override
         public void onNext(T t) {
-            delegate.onNext(t);
             invoke(() -> listener.subscriberOnNext(t), "subscriberOnNext");
+            delegate.onNext(t);
         }
 
         @Override
         public void onError(Throwable t) {
-            delegate.onError(t);
             invoke(() -> listener.subscriberOnError(t), "subscriberOnError");
+            delegate.onError(t);
         }
 
         @Override
         public void onComplete() {
-            delegate.onComplete();
             invoke(listener::subscriberOnComplete, "subscriberOnComplete");
+            delegate.onComplete();
         }
 
         static void invoke(UnsafeRunnable runnable, String callbackName) {
@@ -120,8 +120,8 @@ public interface SubscriberListener<T> {
 
             @Override
             public void cancel() {
-                delegateSubscription.cancel();
                 invoke(listener::subscriptionCancel, "subscriptionCancel");
+                delegateSubscription.cancel();
             }
         }
     }

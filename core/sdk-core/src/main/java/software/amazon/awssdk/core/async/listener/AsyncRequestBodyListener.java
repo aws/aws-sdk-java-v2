@@ -15,55 +15,60 @@
 
 package software.amazon.awssdk.core.async.listener;
 
-
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
-import org.reactivestreams.Publisher;
+import java.nio.ByteBuffer;
+import java.util.Optional;
 import org.reactivestreams.Subscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Listener interface that invokes callbacks associated with a {@link Publisher} and any resulting {@link Subscriber}.
+ * Listener interface that invokes callbacks associated with a {@link AsyncRequestBody} and any resulting {@link Subscriber}.
  *
- * @see AsyncResponseTransformerListener
+ * @see PublisherListener
  * @see SubscriberListener
  */
 @SdkProtectedApi
-public interface PublisherListener<T> extends SubscriberListener<T> {
-    /**
-     * Invoked before {@link Publisher#subscribe(Subscriber)}
-     */
-    default void publisherSubscribe(Subscriber<? super T> subscriber) {
-    }
+public interface AsyncRequestBodyListener extends PublisherListener<ByteBuffer> {
 
     /**
-     * Wrap a {@link SdkPublisher} with a new one that will notify a {@link PublisherListener} of important events occurring.
+     * Wrap a {@link AsyncRequestBody} with a new one that will notify a {@link AsyncRequestBodyListener} of important events
+     * occurring.
      */
-    static <T> SdkPublisher<T> wrap(SdkPublisher<T> delegate, PublisherListener<T> listener) {
-        return new NotifyingPublisher<>(delegate, listener);
+    static AsyncRequestBody wrap(AsyncRequestBody delegate, AsyncRequestBodyListener listener) {
+        return new NotifyingAsyncRequestBody(delegate, listener);
     }
 
     @SdkInternalApi
-    final class NotifyingPublisher<T> implements SdkPublisher<T> {
-        private static final Logger log = LoggerFactory.getLogger(NotifyingPublisher.class);
+    final class NotifyingAsyncRequestBody implements AsyncRequestBody {
+        private static final Logger log = LoggerFactory.getLogger(NotifyingAsyncRequestBody.class);
 
-        private final SdkPublisher<T> delegate;
-        private final PublisherListener<T> listener;
+        private final AsyncRequestBody delegate;
+        private final AsyncRequestBodyListener listener;
 
-        NotifyingPublisher(SdkPublisher<T> delegate,
-                           PublisherListener<T> listener) {
+        NotifyingAsyncRequestBody(AsyncRequestBody delegate, AsyncRequestBodyListener listener) {
             this.delegate = Validate.notNull(delegate, "delegate");
             this.listener = Validate.notNull(listener, "listener");
         }
 
         @Override
-        public void subscribe(Subscriber<? super T> s) {
+        public Optional<Long> contentLength() {
+            return delegate.contentLength();
+        }
+
+        @Override
+        public String contentType() {
+            return delegate.contentType();
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> s) {
             invoke(() -> listener.publisherSubscribe(s), "publisherSubscribe");
             delegate.subscribe(SubscriberListener.wrap(s, listener));
         }
