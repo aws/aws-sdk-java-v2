@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.apigateway;
 
+import com.google.common.util.concurrent.RateLimiter;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -79,6 +80,8 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
     }
     
     private static void deleteStaleRestApis() {
+        // Limit deletes to once every 10 seconds
+        RateLimiter rateLimiter = RateLimiter.create(1.0 / 10);
         Duration maxAge = Duration.ofDays(7);
         log.info(() -> String.format("Searching for REST APIs older than %s...", maxAge));
         apiGateway.getRestApisPaginator().items().forEach(api -> {
@@ -86,6 +89,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
             if (api.name().startsWith(NAME_PREFIX) && age.compareTo(maxAge) > 0) {
                 log.info(() -> String.format("Deleting REST API %s (%s) which is %s days old",
                                              api.name(), api.id(), age.toDays()));
+                rateLimiter.acquire();
                 try {
                     apiGateway.deleteRestApi(r -> r.restApiId(api.id()));
                 } catch (Exception e) {
