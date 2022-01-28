@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.core.async.listener;
 
-import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
-
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import org.reactivestreams.Subscriber;
@@ -25,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -73,8 +70,12 @@ public interface AsyncRequestBodyListener extends PublisherListener<ByteBuffer> 
             delegate.subscribe(SubscriberListener.wrap(s, listener));
         }
 
-        static void invoke(UnsafeRunnable runnable, String callbackName) {
-            runAndLogError(log, callbackName + " callback failed. This exception will be dropped.", runnable);
+        static void invoke(Runnable runnable, String callbackName) {
+            try {
+                runnable.run();
+            } catch (Exception e) {
+                log.error("{} callback failed. This exception will be dropped.", callbackName, e);
+            }
         }
     }
 }
