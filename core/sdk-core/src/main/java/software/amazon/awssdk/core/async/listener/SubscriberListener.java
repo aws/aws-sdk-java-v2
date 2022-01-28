@@ -17,10 +17,9 @@ package software.amazon.awssdk.core.async.listener;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -64,7 +63,7 @@ public interface SubscriberListener<T> {
 
     @SdkInternalApi
     final class NotifyingSubscriber<T> implements Subscriber<T> {
-        private static final Logger log = LoggerFactory.getLogger(NotifyingSubscriber.class);
+        private static final Logger log = Logger.loggerFor(NotifyingSubscriber.class);
 
         private final Subscriber<? super T> delegate;
         private final SubscriberListener<? super T> listener;
@@ -102,7 +101,7 @@ public interface SubscriberListener<T> {
             try {
                 runnable.run();
             } catch (Exception e) {
-                log.error("{} callback failed. This exception will be dropped.", callbackName, e);
+                log.error(() -> callbackName + " callback failed. This exception will be dropped.", e);
             }
         }
 

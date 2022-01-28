@@ -18,11 +18,10 @@ package software.amazon.awssdk.core.async.listener;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -48,7 +47,7 @@ public interface PublisherListener<T> extends SubscriberListener<T> {
 
     @SdkInternalApi
     final class NotifyingPublisher<T> implements SdkPublisher<T> {
-        private static final Logger log = LoggerFactory.getLogger(NotifyingPublisher.class);
+        private static final Logger log = Logger.loggerFor(NotifyingPublisher.class);
 
         private final SdkPublisher<T> delegate;
         private final PublisherListener<T> listener;
@@ -69,7 +68,7 @@ public interface PublisherListener<T> extends SubscriberListener<T> {
             try {
                 runnable.run();
             } catch (Exception e) {
-                log.error("{} callback failed. This exception will be dropped.", callbackName, e);
+                log.error(() -> callbackName + " callback failed. This exception will be dropped.", e);
             }
         }
     }

@@ -18,11 +18,10 @@ package software.amazon.awssdk.core.async.listener;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import org.reactivestreams.Subscriber;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -44,7 +43,7 @@ public interface AsyncRequestBodyListener extends PublisherListener<ByteBuffer> 
 
     @SdkInternalApi
     final class NotifyingAsyncRequestBody implements AsyncRequestBody {
-        private static final Logger log = LoggerFactory.getLogger(NotifyingAsyncRequestBody.class);
+        private static final Logger log = Logger.loggerFor(NotifyingAsyncRequestBody.class);
 
         private final AsyncRequestBody delegate;
         private final AsyncRequestBodyListener listener;
@@ -74,7 +73,7 @@ public interface AsyncRequestBodyListener extends PublisherListener<ByteBuffer> 
             try {
                 runnable.run();
             } catch (Exception e) {
-                log.error("{} callback failed. This exception will be dropped.", callbackName, e);
+                log.error(() -> callbackName + " callback failed. This exception will be dropped.", e);
             }
         }
     }

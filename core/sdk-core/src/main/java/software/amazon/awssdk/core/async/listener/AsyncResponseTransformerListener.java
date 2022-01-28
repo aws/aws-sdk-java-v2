@@ -18,12 +18,11 @@ package software.amazon.awssdk.core.async.listener;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -66,7 +65,7 @@ public interface AsyncResponseTransformerListener<ResponseT> extends PublisherLi
 
     @SdkInternalApi
     final class NotifyingAsyncResponseTransformer<ResponseT, ResultT> implements AsyncResponseTransformer<ResponseT, ResultT> {
-        private static final Logger log = LoggerFactory.getLogger(NotifyingAsyncResponseTransformer.class);
+        private static final Logger log = Logger.loggerFor(NotifyingAsyncResponseTransformer.class);
 
         private final AsyncResponseTransformer<ResponseT, ResultT> delegate;
         private final AsyncResponseTransformerListener<ResponseT> listener;
@@ -104,7 +103,7 @@ public interface AsyncResponseTransformerListener<ResponseT> extends PublisherLi
             try {
                 runnable.run();
             } catch (Exception e) {
-                log.error("{} callback failed. This exception will be dropped.", callbackName, e);
+                log.error(() -> callbackName + " callback failed. This exception will be dropped.", e);
             }
         }
     }
