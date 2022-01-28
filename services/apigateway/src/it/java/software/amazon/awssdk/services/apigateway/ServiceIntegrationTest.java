@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.apigateway;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import junit.framework.Assert;
 import org.junit.AfterClass;
@@ -46,17 +48,21 @@ import software.amazon.awssdk.services.apigateway.model.Resource;
 import software.amazon.awssdk.services.apigateway.model.UpdateApiKeyRequest;
 import software.amazon.awssdk.services.apigateway.model.UpdateResourceRequest;
 import software.amazon.awssdk.services.apigateway.model.UpdateRestApiRequest;
+import software.amazon.awssdk.utils.Logger;
 
 public class ServiceIntegrationTest extends IntegrationTestBase {
+    private static final Logger log = Logger.loggerFor(ServiceIntegrationTest.class);
 
-    private static final String NAME = "java-sdk-integration-"
-                                       + System.currentTimeMillis();
+    private static final String NAME_PREFIX = "java-sdk-integration-";
+    private static final String NAME = NAME_PREFIX + System.currentTimeMillis();
+
     private static final String DESCRIPTION = "fooDesc";
 
     private static String restApiId = null;
 
     @BeforeClass
     public static void createRestApi() {
+        deleteStaleRestApis();
         CreateRestApiResponse createRestApiResult = apiGateway.createRestApi(
                 CreateRestApiRequest.builder().name(NAME)
                                           .description(DESCRIPTION).build());
@@ -70,6 +76,24 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         Assert.assertEquals(createRestApiResult.description(), DESCRIPTION);
 
         restApiId = createRestApiResult.id();
+    }
+    
+    private static void deleteStaleRestApis() {
+        Duration maxAge = Duration.ofDays(7);
+        log.info(() -> String.format("Searching for REST APIs older than %s...", maxAge));
+        apiGateway.getRestApisPaginator().items().forEach(api -> {
+            Duration age = Duration.between(api.createdDate(), Instant.now());
+            if (api.name().startsWith(NAME_PREFIX) && age.compareTo(maxAge) > 0) {
+                log.info(() -> String.format("Deleting REST API %s (%s) which is %s days old",
+                                             api.name(), api.id(), age.toDays()));
+                try {
+                    apiGateway.deleteRestApi(r -> r.restApiId(api.id()));
+                } catch (Exception e) {
+                    log.error(() -> String.format("Failed to delete REST API %s (%s)",
+                                                  api.name(), api.id()), e);
+                }
+            }
+        });
     }
 
     @AfterClass
