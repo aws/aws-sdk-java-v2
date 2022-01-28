@@ -1,3 +1,32 @@
+# __2.17.121__ __2022-01-28__
+## __AWS AppConfig Data__
+  - ### Features
+    - Documentation updates for AWS AppConfig Data.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Feature are ready to release on Jan 28th
+
+## __Amazon AppConfig__
+  - ### Features
+    - Documentation updates for AWS AppConfig
+
+## __Amazon Athena__
+  - ### Features
+    - This release adds a field, AthenaError, to the GetQueryExecution response object when a query fails.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Doc updates for Cognito user pools API Reference.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release added a new NNA accelerator compilation support for Sagemaker Neo.
+
 # __2.17.120__ __2022-01-27__
 ## __AWS Amplify__
   - ### Features
