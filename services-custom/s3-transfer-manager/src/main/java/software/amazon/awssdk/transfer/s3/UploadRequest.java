@@ -31,7 +31,8 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Upload an object to S3 using {@link S3TransferManager}. For file-based uploads, you may use {@link UploadFileRequest} instead.
+ * Upload the given {@link AsyncRequestBody} to an object in S3. For file-based uploads, you may use {@link UploadFileRequest}
+ * instead.
  *
  * @see S3TransferManager#upload(UploadRequest)
  */

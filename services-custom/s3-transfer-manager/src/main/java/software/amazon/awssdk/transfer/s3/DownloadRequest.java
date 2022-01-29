@@ -33,8 +33,8 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Request object to download an object from S3 using the Transfer Manager. For downloading to a file, you may use {@link
- * DownloadFileRequest} instead.
+ * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}. For downloading
+ * to a file, you may use {@link DownloadFileRequest} instead.
  *
  * @see S3TransferManager#download(DownloadRequest)
  */

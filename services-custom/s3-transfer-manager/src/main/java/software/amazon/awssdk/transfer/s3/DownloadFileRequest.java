@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Request object to download an object from S3 using the Transfer Manager. For non-file-based downloads, you may use {@link
+ * Download an object identified by the bucket and key from S3 to a local file. For non-file-based downloads, you may use {@link
  * DownloadRequest} instead.
  *
  * @see S3TransferManager#downloadFile(DownloadFileRequest)
