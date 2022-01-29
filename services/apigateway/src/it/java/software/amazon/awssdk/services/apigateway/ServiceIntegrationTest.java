@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import junit.framework.Assert;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -79,11 +80,20 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
 
         restApiId = createRestApiResult.id();
     }
-    
+
+    @AfterClass
+    public static void deleteRestApiKey() {
+        if (restApiId != null) {
+            apiGateway.deleteRestApi(DeleteRestApiRequest.builder().restApiId(restApiId).build());
+        }
+    }
+
     private static void deleteStaleRestApis() {
         Instant startTime = Instant.now();
         Duration maxRunTime = Duration.ofMinutes(5);
         Duration maxApiAge = Duration.ofDays(7);
+        AtomicInteger success = new AtomicInteger();
+        AtomicInteger failure = new AtomicInteger();
 
         // Limit deletes to once every 31 seconds
         // https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html#api-gateway-control-service-limits-table
@@ -91,33 +101,29 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
 
         log.info(() -> String.format("Searching for stale REST APIs older than %s...", maxApiAge));
         for (RestApi api : apiGateway.getRestApisPaginator().items()) {
-            // Check max run time
             if (Instant.now().isAfter(startTime.plus(maxRunTime))) {
-                log.info(() -> String.format("More than %s has elapsed trying to delete stale REST APIs, giving up for this run",
-                                             maxRunTime));
+                log.info(() -> String.format("More than %s has elapsed trying to delete stale REST APIs, giving up for this run. "
+                                             + "Successfully deleted: %s. Failed to delete: %s.",
+                                             maxRunTime, success.get(), failure.get()));
                 return;
             }
             Duration apiAge = Duration.between(api.createdDate(), Instant.now());
             if (api.name().startsWith(NAME_PREFIX) && apiAge.compareTo(maxApiAge) > 0) {
                 rateLimiter.acquire();
-                log.info(() -> String.format("Deleting REST API %s (%s) which is %s days old",
-                                             api.name(), api.id(), apiAge.toDays()));
                 try {
                     apiGateway.deleteRestApi(r -> r.restApiId(api.id()));
+                    log.info(() -> String.format("Successfully deleted REST API %s (%s) which is %s days old",
+                                                 api.name(), api.id(), apiAge.toDays()));
+                    success.incrementAndGet();
                 } catch (Exception e) {
-                    log.error(() -> String.format("Failed to delete REST API %s (%s)",
-                                                  api.name(), api.id()), e);
+                    log.error(() -> String.format("Failed to delete REST API %s (%s) which is %s days old",
+                                                  api.name(), api.id(), apiAge.toDays()), e);
+                    failure.incrementAndGet();
                 }
             }
         }
-        log.info(() -> "Finished searching for stale REST APIs");
-    }
-
-    @AfterClass
-    public static void deleteRestApiKey() {
-        if (restApiId != null) {
-            apiGateway.deleteRestApi(DeleteRestApiRequest.builder().restApiId(restApiId).build());
-        }
+        log.info(() -> String.format("Finished searching for stale REST APIs. Successfully deleted: %s. Failed to delete: %s.",
+                                     success.get(), failure.get()));
     }
 
     @Test
