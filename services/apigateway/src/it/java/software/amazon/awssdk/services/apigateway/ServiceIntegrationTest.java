@@ -99,7 +99,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         // https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html#api-gateway-control-service-limits-table
         RateLimiter rateLimiter = RateLimiter.create(1.0 / 31);
 
-        log.info(() -> String.format("Searching for stale REST APIs older than %s...", maxApiAge));
+        log.info(() -> String.format("Searching for stale REST APIs older than %s days...", maxApiAge.toDays()));
         for (RestApi api : apiGateway.getRestApisPaginator().items()) {
             if (Instant.now().isAfter(startTime.plus(maxRunTime))) {
                 log.info(() -> String.format("More than %s has elapsed trying to delete stale REST APIs, giving up for this run. "
