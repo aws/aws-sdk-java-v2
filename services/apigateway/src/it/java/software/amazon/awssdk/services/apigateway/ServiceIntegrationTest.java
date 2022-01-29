@@ -112,11 +112,11 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
                 rateLimiter.acquire();
                 try {
                     apiGateway.deleteRestApi(r -> r.restApiId(api.id()));
-                    log.info(() -> String.format("Successfully deleted REST API %s (%s) which is %s days old",
+                    log.info(() -> String.format("Successfully deleted REST API %s (%s) which was %s days old.",
                                                  api.name(), api.id(), apiAge.toDays()));
                     success.incrementAndGet();
                 } catch (Exception e) {
-                    log.error(() -> String.format("Failed to delete REST API %s (%s) which is %s days old",
+                    log.error(() -> String.format("Failed to delete REST API %s (%s) which is %s days old.",
                                                   api.name(), api.id(), apiAge.toDays()), e);
                     failure.incrementAndGet();
                 }
