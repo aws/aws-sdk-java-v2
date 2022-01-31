@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -106,6 +107,7 @@ import software.amazon.awssdk.services.json.transform.StreamingInputOutputOperat
 import software.amazon.awssdk.services.json.transform.StreamingOutputOperationRequestMarshaller;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.HostnameValidator;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Internal implementation of {@link JsonAsyncClient}.
@@ -998,6 +1000,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOutputOperation");
+            Pair<AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair =
+                AsyncResponseTransformerUtils.wrapWithEndOfStreamFuture(asyncResponseTransformer);
+            asyncResponseTransformer = pair.left();
+            CompletableFuture<Void> endOfStreamFuture = pair.right();
             streamingInputOutputOperationRequest = applySignerOverride(streamingInputOutputOperationRequest,
                     Aws4UnsignedPayloadSigner.create());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
@@ -1021,18 +1027,22 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                             .withMetricCollector(apiCallMetricCollector).withAsyncRequestBody(requestBody)
                             .withInput(streamingInputOutputOperationRequest), asyncResponseTransformer);
+            AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             CompletableFuture<ReturnT> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                            () -> asyncResponseTransformer.exceptionOccurred(e));
+                            () -> finalAsyncResponseTransformer.exceptionOccurred(e));
                 }
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                endOfStreamFuture.whenComplete((r2, e2) -> {
+                    metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                });
             });
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
+            AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                    () -> asyncResponseTransformer.exceptionOccurred(t));
+                           () -> finalAsyncResponseTransformer.exceptionOccurred(t));
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -1073,6 +1083,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
+            Pair<AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair =
+                AsyncResponseTransformerUtils.wrapWithEndOfStreamFuture(asyncResponseTransformer);
+            asyncResponseTransformer = pair.left();
+            CompletableFuture<Void> endOfStreamFuture = pair.right();
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
                     .isPayloadJson(false).build();
 
@@ -1089,18 +1103,22 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                             .withMetricCollector(apiCallMetricCollector).withInput(streamingOutputOperationRequest),
                     asyncResponseTransformer);
+            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             CompletableFuture<ReturnT> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                            () -> asyncResponseTransformer.exceptionOccurred(e));
+                            () -> finalAsyncResponseTransformer.exceptionOccurred(e));
                 }
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                endOfStreamFuture.whenComplete((r2, e2) -> {
+                    metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                });
             });
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
+            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                    () -> asyncResponseTransformer.exceptionOccurred(t));
+                           () -> finalAsyncResponseTransformer.exceptionOccurred(t));
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
