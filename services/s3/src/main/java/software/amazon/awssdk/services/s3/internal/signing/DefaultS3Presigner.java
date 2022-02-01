@@ -30,14 +30,13 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
+import software.amazon.awssdk.awscore.internal.authcontext.AwsCredentialsAuthorizationStrategy;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.ClientType;
@@ -60,6 +59,7 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
@@ -329,18 +329,21 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         interceptorContext = AwsExecutionContextBuilder.runInitialInterceptors(interceptorContext,
                                                                                executionAttributes,
                                                                                executionInterceptorChain);
+        AwsCredentialsAuthorizationStrategy authorizationContext =
+            AwsCredentialsAuthorizationStrategy.builder()
+                                               .request(interceptorContext.request())
+                                               .defaultSigner(DEFAULT_SIGNER)
+                                               .defaultCredentialsProvider(credentialsProvider())
+                                               .metricCollector(NoOpMetricCollector.create())
+                                               .build();
 
-        AwsCredentialsProvider credentialsProvider =
-            AwsExecutionContextBuilder.resolveCredentialsProvider(sdkRequest, credentialsProvider());
-        AwsCredentials credentials = credentialsProvider.resolveCredentials();
-        Validate.validState(credentials != null, "Credential providers must never return null.");
-        executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials);
+        authorizationContext.addCredentialsToExecutionAttributes(executionAttributes);
 
         return ExecutionContext.builder()
                                .interceptorChain(executionInterceptorChain)
                                .interceptorContext(interceptorContext)
                                .executionAttributes(executionAttributes)
-                               .signer(AwsExecutionContextBuilder.resolveSigner(interceptorContext.request(), DEFAULT_SIGNER))
+                               .signer(authorizationContext.resolveSigner())
                                .build();
     }
 

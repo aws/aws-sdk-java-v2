@@ -2,8 +2,11 @@ package software.amazon.awssdk.services.query;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.signer.BearerTokenSigner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
@@ -17,6 +20,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -28,16 +32,20 @@ import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
 import software.amazon.awssdk.services.query.model.APostOperationWithOutputRequest;
 import software.amazon.awssdk.services.query.model.APostOperationWithOutputResponse;
+import software.amazon.awssdk.services.query.model.BearerAuthOperationRequest;
+import software.amazon.awssdk.services.query.model.BearerAuthOperationResponse;
 import software.amazon.awssdk.services.query.model.InvalidInputException;
 import software.amazon.awssdk.services.query.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.query.model.OperationWithChecksumRequiredResponse;
 import software.amazon.awssdk.services.query.model.QueryException;
+import software.amazon.awssdk.services.query.model.QueryRequest;
 import software.amazon.awssdk.services.query.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.services.query.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.query.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.query.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.query.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputRequestMarshaller;
+import software.amazon.awssdk.services.query.transform.BearerAuthOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingOutputOperationRequestMarshaller;
@@ -162,6 +170,49 @@ final class DefaultQueryClient implements QueryClient {
                              .withErrorResponseHandler(errorResponseHandler).withInput(aPostOperationWithOutputRequest)
                              .withMetricCollector(apiCallMetricCollector)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    /**
+     * Invokes the BearerAuthOperation operation.
+     *
+     * @param bearerAuthOperationRequest
+     * @return Result of the BearerAuthOperation operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws QueryException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample QueryClient.BearerAuthOperation
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/BearerAuthOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public BearerAuthOperationResponse bearerAuthOperation(BearerAuthOperationRequest bearerAuthOperationRequest)
+        throws AwsServiceException, SdkClientException, QueryException {
+        bearerAuthOperationRequest = applySignerOverride(bearerAuthOperationRequest, BearerTokenSigner.create());
+
+        HttpResponseHandler<BearerAuthOperationResponse> responseHandler = protocolFactory
+            .createResponseHandler(BearerAuthOperationResponse::builder);
+
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, bearerAuthOperationRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "BearerAuthOperation");
+
+            return clientHandler.execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
+                                             .withOperationName("BearerAuthOperation").withResponseHandler(responseHandler)
+                                             .withErrorResponseHandler(errorResponseHandler).credentialType(Signer.CredentialType.BEARER_TOKEN)
+                                             .withInput(bearerAuthOperationRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -353,6 +404,17 @@ final class DefaultQueryClient implements QueryClient {
     @Override
     public void close() {
         clientHandler.close();
+    }
+
+    private <T extends QueryRequest> T applySignerOverride(T request, Signer signer) {
+        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
+            return request;
+        }
+        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
+        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
+                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
+                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
+        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 
     @Override

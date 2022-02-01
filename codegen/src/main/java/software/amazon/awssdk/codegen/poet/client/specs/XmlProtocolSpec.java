@@ -129,6 +129,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                                .add(".withMetricCollector(apiCallMetricCollector)\n" +
                                                     hostPrefixExpression(opModel) +
                                                     discoveredEndpoint(opModel))
+                                               .add(credentialType(opModel, model))
                                                .add(".withInput($L)", opModel.getInput().getVariableName())
                                                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
 
@@ -202,6 +203,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         }
 
         builder.add(hostPrefixExpression(opModel))
+               .add(credentialType(opModel, model))
                .add(".withMetricCollector(apiCallMetricCollector)\n")
                .add(asyncRequestBody(opModel))
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));

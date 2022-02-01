@@ -60,6 +60,17 @@
       ],
       "documentation": "<p>Performs a post operation to the query service and has modelled output</p>"
     },
+    "BearerAuthOperation": {
+      "name": "BearerAuthOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "BearerAuthOperationRequest"
+      },
+      "authtype": "bearer"
+    },
     "StreamingInputOperation": {
       "name": "StreamingInputOperation",
       "http": {
@@ -187,6 +198,11 @@
         }
       },
       "payload": "StreamingMember"
+    },
+    "BearerAuthOperationRequest": {
+      "type": "structure",
+      "members": {
+      }
     }
   },
   "documentation": "A service that is implemented using the query protocol"

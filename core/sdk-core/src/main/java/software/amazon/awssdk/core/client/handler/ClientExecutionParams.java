@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.metrics.MetricCollector;
 
@@ -51,6 +52,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private String hostPrefixExpression;
     private String operationName;
     private URI discoveredEndpoint;
+    private Signer.CredentialType credentialType;
     private MetricCollector metricCollector;
     private final ExecutionAttributes attributes = new ExecutionAttributes();
 
@@ -182,6 +184,15 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     public ClientExecutionParams<InputT, OutputT> discoveredEndpoint(URI discoveredEndpoint) {
         this.discoveredEndpoint = discoveredEndpoint;
+        return this;
+    }
+
+    public Signer.CredentialType credentialType() {
+        return credentialType;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> credentialType(Signer.CredentialType credentialType) {
+        this.credentialType = credentialType;
         return this;
     }
 

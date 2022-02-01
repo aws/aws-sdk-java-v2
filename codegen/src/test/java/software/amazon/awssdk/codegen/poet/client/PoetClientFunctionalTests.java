@@ -27,9 +27,9 @@ import software.amazon.awssdk.codegen.poet.ClientTestModels;
 public class PoetClientFunctionalTests {
 
     @Test
-    public void asyncClientClass() throws Exception {
+    public void asyncClientClassRestJson() throws Exception {
         AsyncClientClass asyncClientClass = createAsyncClientClass(ClientTestModels.restJsonServiceModels());
-        assertThat(asyncClientClass, generatesTo("test-async-client-class.java"));
+        assertThat(asyncClientClass, generatesTo("test-json-async-client-class.java"));
     }
 
     @Test
@@ -58,15 +58,15 @@ public class PoetClientFunctionalTests {
     }
 
     @Test
-    public void asyncClientClassAwsJson() throws Exception {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(ClientTestModels.awsJsonServiceModels());
-        assertThat(asyncClientClass, generatesTo("test-aws-json-async-client-class.java"));
-    }
-
-    @Test
     public void asyncClientClassQuery() throws Exception {
         AsyncClientClass syncClientClass = createAsyncClientClass(ClientTestModels.queryServiceModels());
         assertThat(syncClientClass, generatesTo("test-query-async-client-class.java"));
+    }
+
+    @Test
+    public void asyncClientClassAwsJson() throws Exception {
+        AsyncClientClass asyncClientClass = createAsyncClientClass(ClientTestModels.awsJsonServiceModels());
+        assertThat(asyncClientClass, generatesTo("test-aws-json-async-client-class.java"));
     }
 
     @Test
