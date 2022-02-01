@@ -155,6 +155,10 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
 
         SdkHttpFullRequest marshalled = (SdkHttpFullRequest) sdkHttpFullRequestContext.httpRequest();
 
+        // Ensure that the signing configuration is still valid after the
+        // request has been potentially transformed.
+        validateSigningConfiguration(marshalled, executionContext.signer());
+
         // TODO Pass requestBody as separate arg to invoke
         Optional<RequestBody> requestBody = sdkHttpFullRequestContext.requestBody();
 
