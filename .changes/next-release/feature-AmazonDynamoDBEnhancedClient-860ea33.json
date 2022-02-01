@@ -1,0 +1,6 @@
+{
+    "category": "Amazon DynamoDB Enhanced Client", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Added logging to 'software.amazon.awssdk.enhanced.dynamodb.beans', which will assist when debugging the behavior of BeanTableSchema and ImmutableTableSchema."
+}
