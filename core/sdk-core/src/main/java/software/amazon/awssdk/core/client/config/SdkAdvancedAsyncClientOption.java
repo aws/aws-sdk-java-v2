@@ -36,18 +36,18 @@ public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
      * Configure the {@link Executor} that should be used to complete the {@link CompletableFuture} that is returned by the async
      * service client. By default, this is a dedicated, per-client {@link ThreadPoolExecutor} that is managed by the SDK.
      * <p>
-     * The configured {@link Executor} will be invoked by the async HTTP client's I/O threads (i.e., EventLoops), which must be
+     * The configured {@link Executor} will be invoked by the async HTTP client's I/O threads (e.g., EventLoops), which must be
      * reserved for non-blocking behavior. Blocking an I/O thread can cause severe performance degradation, including across
-     * multiple clients, as clients are configured, by default, to share a single I/O thread pool (i.e., EventLoopGroup).
+     * multiple clients, as clients are configured, by default, to share a single I/O thread pool (e.g., EventLoopGroup).
      * <p>
      * You should typically only want to customize the future-completion {@link Executor} for a few possible reasons:
      * <ol>
-     *     <li>You know, for certain, that all of your {@link CompletableFuture} usage is strictly non-blocking, and you wish to
-     *     remove the minor overhead incurred by using a separate {@link Executor}. In this case, you can use
-     *     {@code Runnable::run} to execute the future-completion directly from within the I/O thread.
      *     <li>You want more fine-grained control over the {@link ThreadPoolExecutor} used, such as configuring the pool size
      *     or sharing a single pool between multiple clients.
      *     <li>You want to add instrumentation (i.e., metrics) around how the {@link Executor} is used.
+     *     <li>You know, for certain, that all of your {@link CompletableFuture} usage is strictly non-blocking, and you wish to
+     *     remove the minor overhead incurred by using a separate {@link Executor}. In this case, you can use
+     *     {@code Runnable::run} to execute the future-completion directly from within the I/O thread.
      * </ol>
      */
     public static final SdkAdvancedAsyncClientOption<Executor> FUTURE_COMPLETION_EXECUTOR =
