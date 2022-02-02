@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elasticsearch Service",
+    "contributor": "",
+    "description": "Allows customers to get progress updates for blue/green deployments"
+}
