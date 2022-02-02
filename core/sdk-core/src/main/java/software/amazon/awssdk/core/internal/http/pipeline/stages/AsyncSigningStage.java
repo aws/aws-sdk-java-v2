@@ -23,7 +23,6 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
-import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -49,7 +48,6 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     @Override
     public CompletableFuture<SdkHttpFullRequest> execute(SdkHttpFullRequest request, RequestExecutionContext context)
             throws Exception {
-        InterruptMonitor.checkInterrupted();
         return signRequest(request, context);
     }
 
