@@ -166,7 +166,7 @@ public final class DownloadDirectoryRequest
         Builder destinationDirectory(Path destinationDirectory);
 
         /**
-         * The name of the bucket to download objects to.
+         * The name of the bucket to download objects from.
          *
          * @param bucket the bucket name
          * @return This builder for method chaining.

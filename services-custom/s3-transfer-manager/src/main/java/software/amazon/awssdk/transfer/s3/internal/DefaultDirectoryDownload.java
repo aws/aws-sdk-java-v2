@@ -18,22 +18,22 @@ package software.amazon.awssdk.transfer.s3.internal;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.transfer.s3.CompletedDirectoryUpload;
-import software.amazon.awssdk.transfer.s3.DirectoryUpload;
+import software.amazon.awssdk.transfer.s3.CompletedDirectoryDownload;
+import software.amazon.awssdk.transfer.s3.DirectoryDownload;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public final class DefaultDirectoryUpload implements DirectoryUpload {
-    
-    private final CompletableFuture<CompletedDirectoryUpload> completionFuture;
+public final class DefaultDirectoryDownload implements DirectoryDownload {
 
-    DefaultDirectoryUpload(CompletableFuture<CompletedDirectoryUpload> completionFuture) {
+    private final CompletableFuture<CompletedDirectoryDownload> completionFuture;
+
+    DefaultDirectoryDownload(CompletableFuture<CompletedDirectoryDownload> completionFuture) {
         this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
     }
 
     @Override
-    public CompletableFuture<CompletedDirectoryUpload> completionFuture() {
+    public CompletableFuture<CompletedDirectoryDownload> completionFuture() {
         return completionFuture;
     }
 
@@ -46,7 +46,7 @@ public final class DefaultDirectoryUpload implements DirectoryUpload {
             return false;
         }
 
-        DefaultDirectoryUpload that = (DefaultDirectoryUpload) o;
+        DefaultDirectoryDownload that = (DefaultDirectoryDownload) o;
 
         return Objects.equals(completionFuture, that.completionFuture);
     }
@@ -58,7 +58,7 @@ public final class DefaultDirectoryUpload implements DirectoryUpload {
 
     @Override
     public String toString() {
-        return ToString.builder("DefaultDirectoryUpload")
+        return ToString.builder("DefaultDirectoryDownload")
                        .add("completionFuture", completionFuture)
                        .build();
     }

@@ -18,11 +18,11 @@ package software.amazon.awssdk.transfer.s3.internal;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-class DefaultDirectoryUploadTest {
+class DefaultDirectoryDownloadTest {
 
     @Test
     void equals_hashcode() {
-        EqualsVerifier.forClass(DefaultDirectoryUpload.class)
+        EqualsVerifier.forClass(DefaultDirectoryDownload.class)
                       .withNonnullFields("completionFuture")
                       .verify();
     }

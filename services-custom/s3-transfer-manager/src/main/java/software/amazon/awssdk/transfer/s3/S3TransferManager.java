@@ -281,8 +281,11 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * bucket will be downloaded.
      *
      * <p>
+     * The SDK will create the destination directory if it does not already exist.
+     *
+     * <p>
      * The returned {@link CompletableFuture} only completes exceptionally if the request cannot be attempted as a whole (the
-     * destination directory provided does not exist for example). The future completes successfully for partial successful
+     * downloadDirectoryRequest is invalid for example). The future completes successfully for partial successful
      * requests, i.e., there might be failed downloads in a successfully completed response. As a result, you should check for
      * errors in the response via {@link CompletedDirectoryDownload#failedTransfers()} even when the future completes
      * successfully.
