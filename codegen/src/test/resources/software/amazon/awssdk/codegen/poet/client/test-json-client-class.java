@@ -241,8 +241,8 @@ final class DefaultJsonClient implements JsonClient {
 
             return clientHandler.execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
                                              .withOperationName("BearerAuthOperation").withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).withInput(bearerAuthOperationRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withErrorResponseHandler(errorResponseHandler).credentialType(Signer.CredentialType.BEARER_TOKEN)
+                                             .withInput(bearerAuthOperationRequest).withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));

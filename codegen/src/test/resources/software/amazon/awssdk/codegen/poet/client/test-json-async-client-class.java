@@ -307,7 +307,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withOperationName("BearerAuthOperation")
                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector).withInput(bearerAuthOperationRequest));
+                             .withMetricCollector(apiCallMetricCollector).credentialType(Signer.CredentialType.BEARER_TOKEN)
+                             .withInput(bearerAuthOperationRequest));
             CompletableFuture<BearerAuthOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });

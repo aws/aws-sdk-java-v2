@@ -108,6 +108,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                      .add(".withErrorResponseHandler(errorResponseHandler)\n")
                      .add(hostPrefixExpression(opModel))
                      .add(discoveredEndpoint(opModel))
+                     .add(credentialType(opModel, intermediateModel))
                      .add(".withInput($L)", opModel.getInput().getVariableName())
                      .add(".withMetricCollector(apiCallMetricCollector)")
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
@@ -140,6 +141,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                           asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"))
                      .add(".withResponseHandler(responseHandler)\n")
                      .add(".withErrorResponseHandler(errorResponseHandler)\n")
+                     .add(credentialType(opModel, intermediateModel))
                      .add(".withMetricCollector(apiCallMetricCollector)\n")
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
 

@@ -172,6 +172,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add(".withErrorResponseHandler(errorResponseHandler)\n")
                      .add(hostPrefixExpression(opModel))
                      .add(discoveredEndpoint(opModel))
+                     .add(credentialType(opModel, model))
                      .add(".withInput($L)\n", opModel.getInput().getVariableName())
                      .add(".withMetricCollector(apiCallMetricCollector)")
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
@@ -240,6 +241,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(".withMetricCollector(apiCallMetricCollector)\n")
                .add(hostPrefixExpression(opModel))
                .add(discoveredEndpoint(opModel))
+               .add(credentialType(opModel, model))
                .add(asyncRequestBody)
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                .add(".withInput($L)$L);",

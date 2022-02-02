@@ -27,12 +27,30 @@ public final class BearerAuthUtils {
      * Returns {@code true} if the service as a whole or any of its operations uses {@code bearer} auth type.
      */
     public static boolean usesBearerAuth(IntermediateModel model) {
-        if (model.getMetadata().getAuthType() == AuthType.BEARER) {
+        if (isServiceBearerAuth(model)) {
             return true;
         }
 
         return model.getOperations().values().stream()
                     .map(OperationModel::getAuthType)
                     .anyMatch(authType -> authType == AuthType.BEARER);
+    }
+
+    /**
+     * Returns {@code true} if the operation should use bearer auth.
+     */
+    public static boolean isOpBearerAuth(IntermediateModel model, OperationModel opModel) {
+        if (opModel.getAuthType() == AuthType.BEARER) {
+            return true;
+        }
+        return isServiceBearerAuth(model) && hasNoAuthType(opModel);
+    }
+
+    private static boolean isServiceBearerAuth(IntermediateModel model) {
+        return model.getMetadata().getAuthType() == AuthType.BEARER;
+    }
+
+    private static boolean hasNoAuthType(OperationModel opModel) {
+        return opModel.getAuthType() == null || opModel.getAuthType() == AuthType.NONE;
     }
 }

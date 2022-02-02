@@ -16,16 +16,25 @@
 package software.amazon.awssdk.auth.signer;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.auth.signer.internal.SignerConstant;
+import software.amazon.awssdk.auth.token.AwsToken;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.Validate;
 
 /**
- * Concrete class that implements the Signer to sign a request with Bearer token authorization.
- * TODO : Actual implementation will be done with separate PR. This is added to unbloc codegen task implementation
+ * A {@link Signer} that will sign a request with Bearer token authorization.
  */
 @SdkPublicApi
 public final class BearerTokenSigner implements Signer {
+
+    private static final String BEARER_LABEL = "Bearer";
+    private static final String SPACE = " ";
+
+    public static BearerTokenSigner create() {
+        return new BearerTokenSigner();
+    }
 
     @Override
     public CredentialType credentialType() {
@@ -33,23 +42,28 @@ public final class BearerTokenSigner implements Signer {
     }
 
     /**
-     * TODO : Separate PR will implement the logic for updating the authorization header using
+     * Signs the request by adding an 'Authorization' header containing the string value of the token
+     * in accordance with RFC 6750, section 2.1.
      *
      * @param request             The request to sign
      * @param executionAttributes Contains the attributes required for signing the request
-     * @return
+     *
+     * @return The signed request.
      */
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
         return doSign(request, executionAttributes);
     }
 
-    public SdkHttpFullRequest doSign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        //TODO: Will be implemented in separate PR
-        return null;
+    private SdkHttpFullRequest doSign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
+        AwsToken token = Validate.notNull(executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_TOKEN),
+                                               "Token must not be null");
+        return request.toBuilder()
+                      .putHeader(SignerConstant.AUTHORIZATION, buildAuthorizationHeader(token))
+                      .build();
     }
 
-    public static BearerTokenSigner create() {
-        return new BearerTokenSigner();
+    private String buildAuthorizationHeader(AwsToken token) {
+        return String.format("%s%s%s", BEARER_LABEL, SPACE, token.token());
     }
 }
