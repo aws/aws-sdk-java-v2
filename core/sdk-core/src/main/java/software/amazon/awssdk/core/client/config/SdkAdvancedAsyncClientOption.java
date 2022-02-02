@@ -46,7 +46,7 @@ public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
      *     or sharing a single pool between multiple clients.
      *     <li>You want to add instrumentation (i.e., metrics) around how the {@link Executor} is used.
      *     <li>You know, for certain, that all of your {@link CompletableFuture} usage is strictly non-blocking, and you wish to
-     *     remove the minor overhead incurred by using a separate {@link Executor}. In this case, you can use
+     *     remove the minor overhead incurred by using a separate thread. In this case, you can use
      *     {@code Runnable::run} to execute the future-completion directly from within the I/O thread.
      * </ol>
      */
