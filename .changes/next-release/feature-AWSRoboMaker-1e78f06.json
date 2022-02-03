@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS RoboMaker",
+    "contributor": "",
+    "description": "The release deprecates the use various APIs of RoboMaker Deployment Service in favor of AWS IoT GreenGrass v2.0."
+}
