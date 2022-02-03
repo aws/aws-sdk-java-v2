@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -262,6 +263,12 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                 EnhancedType<?> enhancedType = convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[0],
                                                                          metaTableSchemaCache, attributeConfiguration);
                 return EnhancedType.listOf(enhancedType);
+            }
+
+            if (Set.class.equals(rawType)) {
+                EnhancedType<?> enhancedType = convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[0],
+                                                                         metaTableSchemaCache, attributeConfiguration);
+                return EnhancedType.setOf(enhancedType);
             }
 
             if (Map.class.equals(rawType)) {

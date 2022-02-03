@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -288,6 +289,33 @@ public class BeanTableSchemaTest {
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
         assertThat(itemMap, hasEntry("abstractBeanList", expectedList));
+    }
+
+    @Test
+    public void documentBean_set_correctlyMapsBeanAttributes() {
+        BeanTableSchema<DocumentBean> beanTableSchema = BeanTableSchema.create(DocumentBean.class);
+        AbstractBean abstractBean1 = new AbstractBean();
+        abstractBean1.setAttribute2("two");
+        AbstractBean abstractBean2 = new AbstractBean();
+        abstractBean2.setAttribute2("three");
+        DocumentBean documentBean = new DocumentBean();
+        documentBean.setId("id-value");
+        documentBean.setAttribute1("one");
+        documentBean.setAbstractBeanSet(new HashSet(Arrays.asList(abstractBean1, abstractBean2)));
+
+        AttributeValue expectedDocument1 = AttributeValue.builder()
+                                                        .m(singletonMap("attribute2", stringValue("two")))
+                                                        .build();
+        AttributeValue expectedDocument2 = AttributeValue.builder()
+                                                         .m(singletonMap("attribute2", stringValue("three")))
+                                                         .build();
+        AttributeValue expectedSet = AttributeValue.builder().l(expectedDocument1, expectedDocument2).build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("abstractBeanSet", expectedSet));
     }
 
     @Test
