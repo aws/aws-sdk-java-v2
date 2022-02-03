@@ -1,3 +1,24 @@
+# __2.17.123__ __2022-02-03__
+## __AWS RoboMaker__
+  - ### Features
+    - The release deprecates the use various APIs of RoboMaker Deployment Service in favor of AWS IoT GreenGrass v2.0.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Add CustomerAWSAccountId to ResolveCustomer API response and increase UsageAllocation limit to 2500.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - adds support for AMIs in Recycle Bin
+
+## __Amazon Recycle Bin__
+  - ### Features
+    - Add EC2 Image recycle bin support.
+
 # __2.17.122__ __2022-02-02__
 ## __AWS Cost Explorer Service__
   - ### Features
