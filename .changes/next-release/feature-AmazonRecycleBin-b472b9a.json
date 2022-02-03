@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Recycle Bin",
+    "contributor": "",
+    "description": "Add EC2 Image recycle bin support."
+}
