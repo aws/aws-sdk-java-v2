@@ -32,6 +32,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.internal.token.TokenManager;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
@@ -45,7 +46,7 @@ import software.amazon.awssdk.utils.Validate;
  * from and to disk.
  */
 @SdkInternalApi
-public final class OnDiskTokenManager implements TokenManager {
+public final class OnDiskTokenManager implements TokenManager<SsoToken> {
     private static final Path DEFAULT_TOKEN_LOCATION = Paths.get(userHomeDirectory(), ".aws", "sso", "cache");
 
     private final JsonNodeParser jsonParser = JsonNodeParser.builder().removeErrorLocations(true).build();

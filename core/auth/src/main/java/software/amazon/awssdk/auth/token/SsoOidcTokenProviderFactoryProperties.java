@@ -16,17 +16,27 @@
 package software.amazon.awssdk.auth.token;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkProtectedApi
 public class SsoOidcTokenProviderFactoryProperties {
-    private String startUrl;
+    private final String startUrl;
+    private final String region;
 
     private SsoOidcTokenProviderFactoryProperties(BuilderImpl builder) {
+        Validate.paramNotNull(builder.startUrl, "startUrl");
+        Validate.paramNotNull(builder.region, "region");
+
         this.startUrl = builder.startUrl;
+        this.region = builder.region;
     }
 
     public String startUrl() {
         return startUrl;
+    }
+
+    public String region() {
+        return region;
     }
 
     public static Builder builder() {
@@ -36,15 +46,24 @@ public class SsoOidcTokenProviderFactoryProperties {
     public interface Builder {
         Builder startUrl(String startUrl);
 
+        Builder region(String region);
+
         SsoOidcTokenProviderFactoryProperties build();
     }
 
     private static class BuilderImpl implements Builder {
         private String startUrl;
+        private String region;
 
         @Override
         public Builder startUrl(String startUrl) {
             this.startUrl = startUrl;
+            return this;
+        }
+
+        @Override
+        public Builder region(String region) {
+            this.region = region;
             return this;
         }
 

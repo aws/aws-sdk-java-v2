@@ -107,15 +107,15 @@ public class OnDiskTokenManagerTest {
                                          DateTimeFormatter.ISO_INSTANT.format(registrationExpiresAt));
 
         SsoToken token = SsoToken.builder()
-            .accessToken("accesstoken")
-            .expiresAt(expiresAt)
-            .refreshToken("refreshtoken")
-            .clientId("clientid")
-            .clientSecret("clientsecret")
-            .registrationExpiresAt(registrationExpiresAt)
-            .region("region")
-            .startUrl("starturl")
-            .build();
+                                 .accessToken("accesstoken")
+                                 .expiresAt(expiresAt)
+                                 .refreshToken("refreshtoken")
+                                 .clientId("clientid")
+                                 .clientSecret("clientsecret")
+                                 .registrationExpiresAt(registrationExpiresAt)
+                                 .region("region")
+                                 .startUrl("starturl")
+                                 .build();
 
         String startUrl = "https://d-abc123.awsapps.com/start";
         String expectedFile = "40a89917e3175433e361b710a9d43528d7f1890a.json";
