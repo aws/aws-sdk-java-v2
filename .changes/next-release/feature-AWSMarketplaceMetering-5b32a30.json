@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSMarketplace Metering",
+    "contributor": "",
+    "description": "Add CustomerAWSAccountId to ResolveCustomer API response and increase UsageAllocation limit to 2500."
+}
