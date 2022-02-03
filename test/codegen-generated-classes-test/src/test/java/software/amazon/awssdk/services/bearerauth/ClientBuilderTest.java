@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.signer.BearerTokenSigner;
 import software.amazon.awssdk.auth.token.AwsTokenProvider;
-import software.amazon.awssdk.auth.token.DefaultAwsTokenProviderChain;
+import software.amazon.awssdk.auth.token.DefaultAwsTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -36,7 +36,7 @@ public class ClientBuilderTest {
         SdkClientConfiguration config = getSyncConfig(builder);
 
         assertThat(config.option(AwsClientOption.TOKEN_PROVIDER))
-            .isInstanceOf(DefaultAwsTokenProviderChain.class);
+            .isInstanceOf(DefaultAwsTokenProvider.class);
         assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER))
             .isInstanceOf(BearerTokenSigner.class);
     }
@@ -73,7 +73,7 @@ public class ClientBuilderTest {
         SdkClientConfiguration config = getAsyncConfig(builder);
 
         assertThat(config.option(AwsClientOption.TOKEN_PROVIDER))
-            .isInstanceOf(DefaultAwsTokenProviderChain.class);
+            .isInstanceOf(DefaultAwsTokenProvider.class);
         assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER))
             .isInstanceOf(BearerTokenSigner.class);
     }

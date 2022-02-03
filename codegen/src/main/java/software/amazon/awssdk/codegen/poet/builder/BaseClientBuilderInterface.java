@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.auth.signer.BearerTokenSigner;
 import software.amazon.awssdk.auth.token.AwsTokenProvider;
-import software.amazon.awssdk.auth.token.DefaultAwsTokenProviderChain;
+import software.amazon.awssdk.auth.token.DefaultAwsTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -139,7 +139,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
                                      + "<p>\n"
                                      + "This provider works in conjunction with the {@code $T.TOKEN_SIGNER} set on the client. "
                                      + "By default it is {@link $T}.",
-                                     DefaultAwsTokenProviderChain.class,
+                                     DefaultAwsTokenProvider.class,
                                      SdkAdvancedClientOption.class,
                                      BearerTokenSigner.class)
                          .build();

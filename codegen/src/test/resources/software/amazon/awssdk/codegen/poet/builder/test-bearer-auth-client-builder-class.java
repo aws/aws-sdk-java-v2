@@ -5,7 +5,7 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.BearerTokenSigner;
 import software.amazon.awssdk.auth.token.AwsTokenProvider;
-import software.amazon.awssdk.auth.token.DefaultAwsTokenProviderChain;
+import software.amazon.awssdk.auth.token.DefaultAwsTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -54,7 +54,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     }
 
     private AwsTokenProvider defaultTokenProvider() {
-        return DefaultAwsTokenProviderChain.create();
+        return DefaultAwsTokenProvider.create();
     }
 
     private Signer defaultTokenSigner() {

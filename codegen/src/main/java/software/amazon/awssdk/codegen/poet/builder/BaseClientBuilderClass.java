@@ -35,7 +35,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.BearerTokenSigner;
 import software.amazon.awssdk.auth.token.AwsTokenProvider;
-import software.amazon.awssdk.auth.token.DefaultAwsTokenProviderChain;
+import software.amazon.awssdk.auth.token.DefaultAwsTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.internal.Utils;
@@ -415,7 +415,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         return MethodSpec.methodBuilder("defaultTokenProvider")
                          .returns(AwsTokenProvider.class)
                          .addModifiers(PRIVATE)
-                         .addStatement("return $T.create()", DefaultAwsTokenProviderChain.class)
+                         .addStatement("return $T.create()", DefaultAwsTokenProvider.class)
                          .build();
     }
 
