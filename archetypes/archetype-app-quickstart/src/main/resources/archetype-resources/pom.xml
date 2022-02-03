@@ -16,7 +16,9 @@
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <aws.java.sdk.version>${javaSdkVersion}</aws.java.sdk.version>
         <slf4j.version>1.7.28</slf4j.version>
-        <graalvm.version>21.0.0</graalvm.version>
+        #if( $nativeImage == 'true')
+        <graalvm.native.maven.plugin.version>0.9.6</graalvm.native.maven.plugin.version>
+        #end
         <junit5.version>5.8.1</junit5.version>
     </properties>
 
@@ -83,15 +85,6 @@
         </dependency>
 #end
 
-#if( $nativeImage == 'true')
-        <dependency>
-            <groupId>org.graalvm.sdk</groupId>
-            <artifactId>graal-sdk</artifactId>
-            <version>${graalvm.version}</version>
-            <scope>provided</scope>
-        </dependency>
-#end
-
         <!-- Test Dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -118,13 +111,14 @@
                 <build>
                     <plugins>
                         <plugin>
-                            <groupId>org.graalvm.nativeimage</groupId>
+                            <groupId>org.graalvm.buildtools</groupId>
                             <artifactId>native-image-maven-plugin</artifactId>
-                            <version>${graalvm.version}</version>
+                            <version>${graalvm.native.maven.plugin.version}</version>
                             <executions>
                                 <execution>
+                                    <id>build-native</id>
                                     <goals>
-                                        <goal>native-image</goal>
+                                        <goal>build</goal>
                                     </goals>
                                     <phase>package</phase>
                                 </execution>
