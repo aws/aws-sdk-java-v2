@@ -17,6 +17,9 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -132,6 +135,17 @@ public final class CreateTableEnhancedRequest {
         }
 
         /**
+         * This is a convenience method for {@link #provisionedThroughput(ProvisionedThroughput)} that creates an instance of the
+         * {@link ProvisionedThroughput.Builder} for you, avoiding the need to create one manually via
+         * {@link ProvisionedThroughput#builder()}.
+         */
+        public Builder provisionedThroughput(Consumer<ProvisionedThroughput.Builder> provisionedThroughput) {
+            ProvisionedThroughput.Builder builder = ProvisionedThroughput.builder();
+            provisionedThroughput.accept(builder);
+            return provisionedThroughput(builder.build());
+        }
+
+        /**
          * Defines a local secondary index for this table.
          * <p>
          * See {@link EnhancedLocalSecondaryIndex} for more information on creating and using a local secondary index.
@@ -152,6 +166,20 @@ public final class CreateTableEnhancedRequest {
         }
 
         /**
+         * This is a convenience method for {@link #localSecondaryIndices(Collection)} that creates instances of the
+         * {@link EnhancedLocalSecondaryIndex.Builder} for you, avoiding the need to create them manually via
+         * {@link EnhancedLocalSecondaryIndex#builder()}.
+         */
+        @SafeVarargs
+        public final Builder localSecondaryIndices(Consumer<EnhancedLocalSecondaryIndex.Builder>... localSecondaryIndices) {
+            return localSecondaryIndices(Stream.of(localSecondaryIndices).map(lsi -> {
+                EnhancedLocalSecondaryIndex.Builder builder = EnhancedLocalSecondaryIndex.builder();
+                lsi.accept(builder);
+                return builder.build();
+            }).collect(Collectors.toList()));
+        }
+
+        /**
          * Defines a global secondary index for this table.
          * <p>
          * See {@link EnhancedGlobalSecondaryIndex} for more information on creating and using a global secondary index.
@@ -169,6 +197,20 @@ public final class CreateTableEnhancedRequest {
         public Builder globalSecondaryIndices(EnhancedGlobalSecondaryIndex... globalSecondaryIndices) {
             this.globalSecondaryIndices = Arrays.asList(globalSecondaryIndices);
             return this;
+        }
+
+        /**
+         * This is a convenience method for {@link #globalSecondaryIndices(Collection)} that creates instances of the
+         * {@link EnhancedGlobalSecondaryIndex.Builder} for you, avoiding the need to create them manually via
+         * {@link EnhancedGlobalSecondaryIndex#builder()}.
+         */
+        @SafeVarargs
+        public final Builder globalSecondaryIndices(Consumer<EnhancedGlobalSecondaryIndex.Builder>... globalSecondaryIndices) {
+            return globalSecondaryIndices(Stream.of(globalSecondaryIndices).map(gsi -> {
+                EnhancedGlobalSecondaryIndex.Builder builder = EnhancedGlobalSecondaryIndex.builder();
+                gsi.accept(builder);
+                return builder.build();
+            }).collect(Collectors.toList()));
         }
 
         public CreateTableEnhancedRequest build() {

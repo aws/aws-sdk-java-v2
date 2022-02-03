@@ -15,7 +15,10 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static java.util.Arrays.asList;
+import static java.util.function.Predicate.isEqual;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
@@ -23,6 +26,7 @@ import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
@@ -60,6 +64,27 @@ public class CreateTableEnhancedRequestTest {
         assertThat(builtObject.globalSecondaryIndices(), is(Collections.singletonList(globalSecondaryIndex)));
         assertThat(builtObject.localSecondaryIndices(), is(Collections.singletonList(localSecondaryIndex)));
         assertThat(builtObject.provisionedThroughput(), is(getDefaultProvisionedThroughput()));
+    }
+
+    @Test
+    public void builder_consumerBuilder() {
+        CreateTableEnhancedRequest builtObject =
+            CreateTableEnhancedRequest.builder()
+                                      .globalSecondaryIndices(gsi -> gsi.indexName("x"),
+                                                              gsi -> gsi.indexName("y"))
+                                      .localSecondaryIndices(lsi -> lsi.indexName("x"),
+                                                             lsi -> lsi.indexName("y"))
+                                      .provisionedThroughput(p -> p.readCapacityUnits(10L))
+                                      .build();
+
+        assertThat(builtObject.globalSecondaryIndices(),
+                   equalTo(asList(EnhancedGlobalSecondaryIndex.builder().indexName("x").build(),
+                                  EnhancedGlobalSecondaryIndex.builder().indexName("y").build())));
+        assertThat(builtObject.localSecondaryIndices(),
+                   equalTo(asList(EnhancedLocalSecondaryIndex.builder().indexName("x").build(),
+                                  EnhancedLocalSecondaryIndex.builder().indexName("y").build())));
+        assertThat(builtObject.provisionedThroughput(),
+                   equalTo(ProvisionedThroughput.builder().readCapacityUnits(10L).build()));
     }
 
     @Test
