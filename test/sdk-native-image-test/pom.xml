@@ -33,7 +33,7 @@
         <maven.compiler.plugin.version>3.6.1</maven.compiler.plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <slf4j.version>1.7.30</slf4j.version>
-        <graalvm.version>21.1.0</graalvm.version>
+        <graalvm.native.maven.plugin.version>0.9.6</graalvm.native.maven.plugin.version>
     </properties>
 
     <dependencies>
@@ -87,24 +87,6 @@
             <artifactId>jcl-over-slf4j</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.graalvm.sdk</groupId>
-            <artifactId>graal-sdk</artifactId>
-            <version>${graalvm.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>service-test-utils</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>test-utils</artifactId>
-            <version>${awsjavasdk.version}</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -146,13 +128,14 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.graalvm.nativeimage</groupId>
-                        <artifactId>native-image-maven-plugin</artifactId>
-                        <version>${graalvm.version}</version>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${graalvm.native.maven.plugin.version}</version>
                         <executions>
                             <execution>
+                                <id>build-native</id>
                                 <goals>
-                                    <goal>native-image</goal>
+                                    <goal>build</goal>
                                 </goals>
                                 <phase>package</phase>
                             </execution>
@@ -161,10 +144,12 @@
                             <imageName>sdk-native-image-test</imageName>
                             <mainClass>software.amazon.awssdk.nativeimagetest.App</mainClass>
                             <buildArgs combine.children="append">
+                                <!-- BouncyCastleAlpn issue tracked in https://github.com/netty/netty/issues/11369 -->
                                 <buildArgs>
                                     --verbose
                                     --no-fallback
                                     --initialize-at-build-time=org.slf4j
+                                    --initialize-at-run-time=io.netty.handler.ssl.BouncyCastleAlpnSslUtils
                                 </buildArgs>
                             </buildArgs>
                         </configuration>
