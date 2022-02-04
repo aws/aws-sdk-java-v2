@@ -104,7 +104,7 @@
                     <plugins>
                         <plugin>
                             <groupId>org.graalvm.buildtools</groupId>
-                            <artifactId>native-image-maven-plugin</artifactId>
+                            <artifactId>native-maven-plugin</artifactId>
                             <version>${graalvm.native.maven.plugin.version}</version>
                             <executions>
                                 <execution>
