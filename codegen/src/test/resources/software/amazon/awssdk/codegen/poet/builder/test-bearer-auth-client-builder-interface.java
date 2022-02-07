@@ -12,7 +12,7 @@ import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends AwsClientBuilder<B, C> {
     /**
      * Set the token provider to use for bearer token authorization. This is optional, if none is provided, the SDK will
-     * use {@link software.amazon.awssdk.auth.token.DefaultAwsTokenProviderChain}.
+     * use {@link software.amazon.awssdk.auth.token.DefaultAwsTokenProvider}.
      * <p>
      * If the service, or any of its operations require Bearer Token Authorization, then the SDK will default to this
      * token provider to retrieve the token to use for authorization.

@@ -25,7 +25,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>auth-sts-testing</artifactId>
+    <artifactId>sts-auth-testing</artifactId>
     <name>AWS Java SDK :: Test :: Auth Sts Testing</name>
     <description>Test package for testing sts and the auth package together.</description>
     <dependencyManagement>
@@ -55,6 +55,12 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>ssooidc</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>utils</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>
@@ -79,6 +85,11 @@
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

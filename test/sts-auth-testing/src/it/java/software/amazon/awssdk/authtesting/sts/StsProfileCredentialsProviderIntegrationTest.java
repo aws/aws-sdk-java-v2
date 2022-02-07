@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.authststesting;
+package software.amazon.awssdk.authtesting.sts;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -28,14 +28,14 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.sts.model.StsException;
 import software.amazon.awssdk.utils.DateUtils;
 
-public class ProfileCredentialsProviderIntegrationTest {
+public class StsProfileCredentialsProviderIntegrationTest {
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
     private static final String CREDENTIALS_RESOURCE_PATH = "/latest/meta-data/iam/security-credentials/";
     private static final String STUB_CREDENTIALS = "{\"AccessKeyId\":\"ACCESS_KEY_ID\",\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
