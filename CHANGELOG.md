@@ -1,3 +1,94 @@
+# __2.17.124__ __2022-02-04__
+## __AWS Lake Formation__
+  - ### Features
+    - Add support for calling Update Table Objects without a TransactionId.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Athena__
+  - ### Features
+    - You can now optionally specify the account ID that you expect to be the owner of your query results output location bucket in Athena. If the account ID of the query results bucket owner does not match the specified account ID, attempts to output to the bucket will fail with an S3 permissions error.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - updates for RDS Custom for Oracle 12.1 support
+
+# __2.17.123__ __2022-02-03__
+## __AWS RoboMaker__
+  - ### Features
+    - The release deprecates the use various APIs of RoboMaker Deployment Service in favor of AWS IoT GreenGrass v2.0.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Add CustomerAWSAccountId to ResolveCustomer API response and increase UsageAllocation limit to 2500.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - adds support for AMIs in Recycle Bin
+
+## __Amazon Recycle Bin__
+  - ### Features
+    - Add EC2 Image recycle bin support.
+
+# __2.17.122__ __2022-02-02__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Doc-only update for Cost Explorer API that adds INVOICING_ENTITY dimensions
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - Added GetTargetResourceType and ListTargetResourceTypesAPI actions. These actions return additional details about resource types and parameters that can be targeted by FIS actions. Added a parameters field for the targets that can be specified in experiment templates.
+
+## __AWS Glue__
+  - ### Features
+    - Launch Protobuf support for AWS Glue Schema Registry
+
+## __AWS IoT__
+  - ### Features
+    - This release adds support for configuring AWS IoT logging level per client ID, source IP, or principal ID.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add new AsyncResponseTransformer: toPublisher(). This transformer makes it more convenient for users to directly consume a streaming-response payload (i.e., S3 GetObject) with async clients. This also allows users of Reactor/RxJava to more easily consume a streaming response (e.g., via Flux#from(Publisher)).
+    - Only include non-null Extended Request IDs in exception messages
+
+  - ### Documentations
+    - Improve documentation & add warnings for FUTURE_COMPLETION_EXECUTOR
+
+## __Amazon Appflow__
+  - ### Features
+    - Launching Amazon AppFlow Custom Connector SDK.
+
+## __Amazon Comprehend__
+  - ### Features
+    - Amazon Comprehend now supports sharing and importing custom trained models from one AWS account to another within the same region.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation update for DynamoDB Java SDK.
+
+## __Amazon EMR__
+  - ### Features
+    - Documentation updates for Amazon EMR.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Documentation update for AWS ElastiCache
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Allows customers to get progress updates for blue/green deployments
+
+## __Amazon Personalize__
+  - ### Features
+    - Adding minRecommendationRequestsPerSecond attribute to recommender APIs.
+
 # __2.17.121__ __2022-01-28__
 ## __AWS AppConfig Data__
   - ### Features

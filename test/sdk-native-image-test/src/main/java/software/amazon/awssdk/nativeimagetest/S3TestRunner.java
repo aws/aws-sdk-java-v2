@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.nativeimagetest;
 
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -23,13 +24,10 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
-import software.amazon.awssdk.testutils.RandomInputStream;
-import software.amazon.awssdk.testutils.service.S3BucketUtils;
-import software.amazon.awssdk.utils.IoUtils;
 
 public class S3TestRunner implements TestRunner {
-    private static final String BUCKET_NAME = S3BucketUtils.temporaryBucketName("native-image");
-    private static final Logger logger = LoggerFactory.getLogger(DynamoDbEnhancedClientTestRunner.class);
+    private static final String BUCKET_NAME = "v2-native-image-tests-" + UUID.randomUUID();
+    private static final Logger logger = LoggerFactory.getLogger(S3TestRunner.class);
     private static final String KEY = "key";
     private final S3Client s3ApacheHttpClient;
     private final S3Client s3UrlConnectionHttpClient;
@@ -45,15 +43,12 @@ public class S3TestRunner implements TestRunner {
     public void runTests() {
         logger.info("starting to run S3 tests");
         CreateBucketResponse bucketResponse = null;
-        InputStream inputStream = null;
         try {
             bucketResponse = s3UrlConnectionHttpClient.createBucket(b -> b.bucket(BUCKET_NAME));
 
             s3UrlConnectionHttpClient.waiter().waitUntilBucketExists(b -> b.bucket(BUCKET_NAME));
 
-            inputStream = new RandomInputStream(10_000);
-
-            RequestBody requestBody = RequestBody.fromInputStream(inputStream, 10_000);
+            RequestBody requestBody = RequestBody.fromBytes("helloworld".getBytes(StandardCharsets.UTF_8));
 
             s3ApacheHttpClient.putObject(b -> b.bucket(BUCKET_NAME).key(KEY),
                                          requestBody);
@@ -67,7 +62,6 @@ public class S3TestRunner implements TestRunner {
 
                 s3NettyClient.deleteBucket(b -> b.bucket(BUCKET_NAME)).join();
             }
-            IoUtils.closeQuietly(inputStream, null);
         }
     }
 }
