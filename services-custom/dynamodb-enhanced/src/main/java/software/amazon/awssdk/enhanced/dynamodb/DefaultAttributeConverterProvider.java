@@ -139,8 +139,16 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
      */
     @SuppressWarnings("unchecked")
     private <T> Optional<AttributeConverter<T>> findConverter(EnhancedType<T> type) {
-        log.debug(() -> "Loading converter for " + type + ".");
+        Optional<AttributeConverter<T>> converter = findConverterInternal(type);
+        if (converter.isPresent()) {
+            log.debug(() -> "Converter for " + type + ": " + converter.get().getClass().getTypeName());
+        } else {
+            log.debug(() -> "No converter available for " + type);
+        }
+        return converter;
+    }
 
+    private <T> Optional<AttributeConverter<T>> findConverterInternal(EnhancedType<T> type) {
         AttributeConverter<T> converter = (AttributeConverter<T>) converterCache.get(type);
         if (converter != null) {
             return Optional.of(converter);
