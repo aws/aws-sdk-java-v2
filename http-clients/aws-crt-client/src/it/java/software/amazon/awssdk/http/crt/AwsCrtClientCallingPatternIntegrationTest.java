@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.crt;
 import static software.amazon.awssdk.testutils.service.AwsTestBase.CREDENTIALS_PROVIDER_CHAIN;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -25,12 +26,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 import org.junit.Assert;
-import org.junit.experimental.theories.DataPoints;
-import org.junit.experimental.theories.FromDataPoints;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -40,11 +41,9 @@ import software.amazon.awssdk.services.kms.model.GenerateRandomRequest;
 import software.amazon.awssdk.services.kms.model.GenerateRandomResponse;
 import software.amazon.awssdk.utils.AttributeMap;
 
-
 /**
  * Test many possible different calling patterns that users might do, and make sure everything works.
  */
-@RunWith(Theories.class)
 public class AwsCrtClientCallingPatternIntegrationTest {
     private final static String KEY_ALIAS = "alias/aws-sdk-java-v2-integ-test";
     private final static Region REGION = Region.US_EAST_1;
@@ -109,38 +108,31 @@ public class AwsCrtClientCallingPatternIntegrationTest {
         }
     }
 
-    @DataPoints("EventLoop")
-    public static int[] eventLoopValues(){
-        return new int[]{1, 4};
+    static Integer[] eventLoopValues = {1, 4};
+    /* Don't use 1 connection Pool of size 1, otherwise test takes too long */
+    static Integer[] connectionsValues = {10, 100};
+    static Integer[] requestValues = {1, 25, 250};
+    static Integer[] parallelClientValues = {1, 2, 8};
+    static Boolean[] sharedClientValue = {true, false};
+
+    private static Stream<Arguments> permutationsOfCrtCallParameters() {
+        return Arrays.stream(eventLoopValues).flatMap(
+            eventLoops -> Arrays.stream(connectionsValues).flatMap(
+                connections -> Arrays.stream(requestValues).flatMap(
+                    requests -> Arrays.stream(parallelClientValues).flatMap(
+                        parallelClients -> Arrays.stream(sharedClientValue).map(
+                            sharedClients -> Arguments.of(eventLoops, connections, requests, parallelClients, sharedClients))))));
     }
 
-    @DataPoints("ConnectionPool")
-    public static int[] connectionsValues(){
-        /* Don't use 1 connection Pool of size 1, otherwise test takes too long */
-        return new int[]{10, 100};
-    }
-
-    @DataPoints("NumRequests")
-    public static int[] requestValues(){
-        return new int[]{1, 25, 250};
-    }
-
-    @DataPoints("ParallelClients")
-    public static int[] parallelClientValues(){
-        return new int[]{1, 2, 8};
-    }
-
-    @DataPoints("SharedClient")
-    public static boolean[] sharedClientValue(){
-        return new boolean[]{true, false};
-    }
-
-    @Theory
-    public void checkAllCombinations(@FromDataPoints("EventLoop") int eventLoopSize,
-                                     @FromDataPoints("ConnectionPool") int connectionPoolSize,
-                                     @FromDataPoints("NumRequests") int numberOfRequests,
-                                     @FromDataPoints("ParallelClients") int numberOfParallelClients,
-                                     @FromDataPoints("SharedClient") boolean useSharedClient) throws Exception {
+    // Timeout set to 4 times of Avg execution of this test 4*150
+    @Timeout(600)
+    @ParameterizedTest
+    @MethodSource("permutationsOfCrtCallParameters")
+    public void checkAllCombinations(int eventLoopSize,
+                                     int connectionPoolSize,
+                                     int numberOfRequests,
+                                     int numberOfParallelClients,
+                                     boolean useSharedClient) {
 
         try {
 

@@ -1,3 +1,20 @@
+# __2.17.125__ __2022-02-07__
+## __AWS Audit Manager__
+  - ### Features
+    - This release updates 3 API parameters. UpdateAssessmentFrameworkControlSet now requires the controls attribute, and CreateAssessmentFrameworkControl requires the id attribute. Additionally, UpdateAssessmentFramework now has a minimum length constraint for the controlSets attribute.
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Update RelatedItem enum to support SSM Automation
+
+## __Amazon EventBridge__
+  - ### Features
+    - Documentation updates for EventBridge
+
+## __Synthetics__
+  - ### Features
+    - Adding names parameters to the Describe APIs.
+
 # __2.17.124__ __2022-02-04__
 ## __AWS Lake Formation__
   - ### Features
