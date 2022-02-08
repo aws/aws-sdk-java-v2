@@ -13,20 +13,21 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.ssooidc.internal;
+package software.amazon.awssdk.awscore.internal.token;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.token.AwsToken;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * An object that knows how to load and optionally, store, an SSO token.
  */
 @SdkInternalApi
-public interface TokenManager extends SdkAutoCloseable {
-    Optional<SsoToken> loadToken();
+public interface TokenManager<T extends  AwsToken> extends SdkAutoCloseable {
+    Optional<T>  loadToken();
 
-    default void storeToken(SsoToken token) {
+    default void storeToken(T token) {
         throw new UnsupportedOperationException();
     }
 }

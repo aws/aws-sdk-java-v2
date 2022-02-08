@@ -30,6 +30,7 @@ public final class SsoOidcTokenProviderFactory implements SsoTokenProviderFactor
     public AwsTokenProvider create(SsoOidcTokenProviderFactoryProperties properties) {
         return SsoTokenProvider.builder()
                                .startUrl(properties.startUrl())
+                               .region(properties.region())
                                .build();
     }
 }

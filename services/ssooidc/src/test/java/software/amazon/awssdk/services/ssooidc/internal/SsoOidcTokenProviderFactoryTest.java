@@ -24,12 +24,35 @@ public class SsoOidcTokenProviderFactoryTest {
     @Test
     public void create_usesStartUrlFromProperties() {
         String startUrl = "https://my-start-url.com";
+        String region = "test-region";
         SsoOidcTokenProviderFactoryProperties props = SsoOidcTokenProviderFactoryProperties.builder().
                                                                                            startUrl(startUrl)
+                                                                                           .region(region)
                                                                                            .build();
 
         SsoTokenProvider provider = (SsoTokenProvider) new SsoOidcTokenProviderFactory().create(props);
 
         Assertions.assertThat(provider.startUrl()).isEqualTo(startUrl);
+    }
+
+    @Test
+    public void create_throwsExceptionIfRegionNotPassed() {
+        String startUrl = "https://my-start-url.com";
+        Assertions.assertThatExceptionOfType(NullPointerException.class).isThrownBy(
+            () -> SsoOidcTokenProviderFactoryProperties.builder().
+                                                       startUrl(startUrl)
+                                                       .build()
+        ).withMessage("region must not be null.");;
+    }
+
+    @Test
+    public void create_throwsExceptionIfStartUrlNotPassed() {
+        String region = "test-region";
+
+        Assertions.assertThatExceptionOfType(NullPointerException.class).isThrownBy(
+            () -> SsoOidcTokenProviderFactoryProperties.builder().
+                                                       region(region)
+                                                       .build()
+        ).withMessage("startUrl must not be null.");
     }
 }
