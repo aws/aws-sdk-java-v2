@@ -111,7 +111,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error,
      * the SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an
-     * exception will be thrown.
+     * exception will be thrown. All nonexistent parent directories will be created.
      *
      * @param path        Path to file to write to.
      * @param <ResponseT> Pojo Response type.
@@ -124,7 +124,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error,
      * the SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an
-     * exception will be thrown.
+     * exception will be thrown. All nonexistent parent directories will be created.
      *
      * @param file        File to write to.
      * @param <ResponseT> Pojo Response type.

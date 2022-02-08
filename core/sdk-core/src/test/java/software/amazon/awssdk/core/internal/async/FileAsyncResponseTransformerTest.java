@@ -77,6 +77,19 @@ public class FileAsyncResponseTransformerTest {
     }
 
     @Test
+    public void parentDirectoryNotExists_shouldCreate() {
+        Path testPath = testFs.getPath("test/test_file.txt");
+        FileAsyncResponseTransformer xformer = new FileAsyncResponseTransformer(testPath);
+
+        CompletableFuture prepareFuture = xformer.prepare();
+
+        xformer.onResponse(new Object());
+        xformer.onStream(new TestPublisher());
+
+        assertThat(prepareFuture.isCompletedExceptionally()).isFalse();
+    }
+
+    @Test
     public void synchronousPublisher_shouldNotHang() throws Exception {
         List<CompletableFuture> futures = new ArrayList<>();
 

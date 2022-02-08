@@ -32,6 +32,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * {@link AsyncResponseTransformer} that writes the data to the specified file.
@@ -71,9 +72,26 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
-        // onStream may be called multiple times so reset the file channel every time
-        this.fileChannel = invokeSafely(() -> createChannel(path));
-        publisher.subscribe(new FileSubscriber(this.fileChannel, path, cf, this::exceptionOccurred));
+        try {
+            createParentDirectoriesIfNeeded(path);
+            // onStream may be called multiple times so reset the file channel every time
+            this.fileChannel = invokeSafely(() -> createChannel(path));
+            publisher.subscribe(new FileSubscriber(this.fileChannel, path, cf, this::exceptionOccurred));
+        } catch (Throwable exception) {
+            exceptionOccurred(exception);
+        }
+
+    }
+
+    private static void createParentDirectoriesIfNeeded(Path destinationPath) {
+        Path parentDirectory = destinationPath.getParent();
+        try {
+            if (parentDirectory != null) {
+                Files.createDirectories(parentDirectory);
+            }
+        } catch (IOException e) {
+            throw SdkClientException.create("Failed to create parent directories for " + destinationPath, e);
+        }
     }
 
     @Override

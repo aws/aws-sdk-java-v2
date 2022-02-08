@@ -93,7 +93,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
 
     /**
      * Creates a response transformer that writes all response content to the specified file. If the file already exists
-     * then a {@link java.nio.file.FileAlreadyExistsException} will be thrown.
+     * then a {@link java.nio.file.FileAlreadyExistsException} will be thrown. All nonexistent parent directories will be created.
      *
      * @param path        Path to file to write to.
      * @param <ResponseT> Type of unmarshalled response POJO.
@@ -103,6 +103,11 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
         return (resp, in) -> {
             try {
                 InterruptMonitor.checkInterrupted();
+                Path parentDirectory = path.getParent();
+                if (parentDirectory != null) {
+                    Files.createDirectories(parentDirectory);
+                }
+
                 Files.copy(in, path);
                 return resp;
             } catch (IOException copyException) {
@@ -135,7 +140,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
 
     /**
      * Creates a response transformer that writes all response content to the specified file. If the file already exists
-     * then a {@link java.nio.file.FileAlreadyExistsException} will be thrown.
+     * then a {@link java.nio.file.FileAlreadyExistsException} will be thrown. All nonexistent parent directories will be created.
      *
      * @param file        File to write to.
      * @param <ResponseT> Type of unmarshalled response POJO.

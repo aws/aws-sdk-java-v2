@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "`AsyncResponseTransformer#toFile` and `ResponseTransformer#toFile` will now create all nonexistent parent directories if they don't exist instead of throwing NoSuchFileException`"
+}

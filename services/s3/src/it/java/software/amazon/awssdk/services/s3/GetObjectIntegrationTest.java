@@ -19,11 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
+import com.google.common.jimfs.Jimfs;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.util.Properties;
+import java.util.UUID;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,7 +42,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class GetObjectIntegrationTest extends S3IntegrationTestBase {
-
+    private static FileSystem testFs;
     private static final String BUCKET = temporaryBucketName(GetObjectIntegrationTest.class);
 
     private static final String KEY = "some-key";
@@ -55,6 +58,7 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
     @BeforeClass
     public static void setupFixture() throws IOException {
         createBucket(BUCKET);
+        testFs = Jimfs.newFileSystem();
         file = new RandomTempFile(10_000);
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
@@ -63,9 +67,10 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @AfterClass
-    public static void tearDownFixture() {
+    public static void tearDownFixture() throws IOException {
         deleteBucketAndAllContents(BUCKET);
         file.delete();
+        testFs.close();
     }
 
     @Test
@@ -96,6 +101,13 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
             assertEquals(Long.valueOf(path.toFile().length()), response.contentLength());
             path.toFile().delete();
         }
+    }
+
+    @Test
+    public void toFile_parentDirectoriesDoNotExist_shouldSucceed() throws Exception {
+        Path path = testFs.getPath(UUID.randomUUID().toString(), "test1", "test2", "test.txt");
+        s3.getObject(getObjectRequest, path);
+        assertThat(path).hasSameBinaryContentAs(file.toPath());
     }
 
     @Test

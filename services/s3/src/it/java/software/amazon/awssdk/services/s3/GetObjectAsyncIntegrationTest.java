@@ -19,12 +19,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
+import com.google.common.jimfs.Jimfs;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -45,7 +48,7 @@ import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
-
+    private static FileSystem testFs;
     private static final String BUCKET = temporaryBucketName(GetObjectAsyncIntegrationTest.class);
 
     private static final String KEY = "some-key";
@@ -60,6 +63,7 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
     @BeforeClass
     public static void setupFixture() throws IOException {
         createBucket(BUCKET);
+        testFs = Jimfs.newFileSystem();
         file = new RandomTempFile(10_000);
         s3Async.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
@@ -70,9 +74,10 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
     }
 
     @AfterClass
-    public static void tearDownFixture() {
+    public static void tearDownFixture() throws IOException {
         deleteBucketAndAllContents(BUCKET);
         file.delete();
+        testFs.close();
     }
 
     @Test
@@ -85,6 +90,13 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
             assertEquals(Long.valueOf(path.toFile().length()), response.contentLength());
             path.toFile().delete();
         }
+    }
+
+    @Test
+    public void toFile_parentDirectoriesDoNotExist_shouldSucceed() throws Exception {
+        Path path = testFs.getPath(UUID.randomUUID().toString(), "test1", "test2", "test.txt");
+        s3Async.getObject(getObjectRequest, path).join();
+        assertThat(path).hasSameBinaryContentAs(file.toPath());
     }
 
     @Test
