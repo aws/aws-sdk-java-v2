@@ -25,16 +25,16 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.S3Object;
-import software.amazon.awssdk.transfer.s3.internal.ListObjectsRecursivelyHelper;
+import software.amazon.awssdk.transfer.s3.internal.ListObjectsHelper;
 
 public class S3ApiCallMockUtils {
 
     private S3ApiCallMockUtils() {
     }
 
-    public static void stubSuccessfulListObjects(ListObjectsRecursivelyHelper helper, String... keys) {
+    public static void stubSuccessfulListObjects(ListObjectsHelper helper, String... keys) {
         List<S3Object> s3Objects = Arrays.stream(keys).map(k -> S3Object.builder().key(k).build()).collect(Collectors.toList());
-        when(helper.s3Objects(any(ListObjectsV2Request.class))).thenReturn(SdkPublisher.adapt(Flowable.fromIterable(s3Objects)));
+        when(helper.listS3ObjectsRecursively(any(ListObjectsV2Request.class))).thenReturn(SdkPublisher.adapt(Flowable.fromIterable(s3Objects)));
     }
 
 }

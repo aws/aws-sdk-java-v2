@@ -40,9 +40,9 @@ import software.amazon.awssdk.utils.Logger;
 public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3IntegrationTestBase {
     private static final Logger log = Logger.loggerFor(S3TransferManagerDownloadDirectoryIntegrationTest.class);
     private static final String TEST_BUCKET = temporaryBucketName(S3TransferManagerUploadIntegrationTest.class);
-    private static final String TEST_BUCKET_SPECIAL_DELIMITER = temporaryBucketName("S3TransferManagerUploadIntegrationTest"
-                                                                                    + "-delimiter");
-    private static final String SPECIAL_DELIMITER = "-";
+    private static final String TEST_BUCKET_CUSTOM_DELIMITER = temporaryBucketName("S3TransferManagerUploadIntegrationTest"
+                                                                                   + "-delimiter");
+    private static final String CUSTOM_DELIMITER = "-";
 
     private static S3TransferManager tm;
     private static Path sourceDirectory;
@@ -52,7 +52,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(TEST_BUCKET);
-        createBucket(TEST_BUCKET_SPECIAL_DELIMITER);
+        createBucket(TEST_BUCKET_CUSTOM_DELIMITER);
         sourceDirectory = createLocalTestDirectory();
 
         tm = S3TransferManager.builder()
@@ -64,8 +64,8 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         tm.uploadDirectory(u -> u.sourceDirectory(sourceDirectory).bucket(TEST_BUCKET)).completionFuture().join();
 
         tm.uploadDirectory(u -> u.sourceDirectory(sourceDirectory)
-                                 .delimiter(SPECIAL_DELIMITER)
-                                 .bucket(TEST_BUCKET_SPECIAL_DELIMITER))
+                                 .delimiter(CUSTOM_DELIMITER)
+                                 .bucket(TEST_BUCKET_CUSTOM_DELIMITER))
           .completionFuture().join();
     }
 
@@ -94,9 +94,9 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         }
 
         try {
-            deleteBucketAndAllContents(TEST_BUCKET_SPECIAL_DELIMITER);
+            deleteBucketAndAllContents(TEST_BUCKET_CUSTOM_DELIMITER);
         } catch (Exception exception) {
-            log.warn(() -> "Failed to delete s3 bucket " + TEST_BUCKET_SPECIAL_DELIMITER, exception);
+            log.warn(() -> "Failed to delete s3 bucket " + TEST_BUCKET_CUSTOM_DELIMITER, exception);
         }
 
         closeQuietly(tm, log.logger());
@@ -128,9 +128,9 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
     public void downloadDirectory_withDelimiter() {
         String prefix = "notes";
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destinationDirectory(destinationDirectory)
-                                                                         .delimiter(SPECIAL_DELIMITER)
+                                                                         .delimiter(CUSTOM_DELIMITER)
                                                                          .prefix(prefix)
-                                                                         .bucket(TEST_BUCKET_SPECIAL_DELIMITER));
+                                                                         .bucket(TEST_BUCKET_CUSTOM_DELIMITER));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
         assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve(prefix), destinationDirectory.resolve(prefix));
@@ -147,7 +147,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
 
                     Path relativePath = path.relativize(file);
                     Path otherFile = otherPath.resolve(relativePath);
-                    log.info(() -> String.format("Comparing %s with %s", file, otherFile));
+                    log.debug(() -> String.format("Comparing %s with %s", file, otherFile));
                     assertThat(file).hasSameBinaryContentAs(otherFile);
                     return result;
                 }
@@ -163,6 +163,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      *   {@code
      *      - source
      *          - README.md
+     *          - CHANGELOG.md
      *          - notes
      *              - 2021
      *                  - 1.txt
@@ -182,6 +183,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         Files.createDirectory(Paths.get(directoryName, "notes", "2021"));
         Files.createDirectory(Paths.get(directoryName, "notes", "2022"));
         Files.write(Paths.get(directoryName, "README.md"), RandomStringUtils.random(100).getBytes(StandardCharsets.UTF_8));
+        Files.write(Paths.get(directoryName, "CHANGELOG.md"), RandomStringUtils.random(100).getBytes(StandardCharsets.UTF_8));
         Files.write(Paths.get(directoryName, "notes", "2021", "1.txt"),
                     RandomStringUtils.random(100).getBytes(StandardCharsets.UTF_8));
         Files.write(Paths.get(directoryName, "notes", "2021", "2.txt"),

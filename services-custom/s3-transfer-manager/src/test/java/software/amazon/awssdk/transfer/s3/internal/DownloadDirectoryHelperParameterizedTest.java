@@ -31,20 +31,16 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.assertj.core.util.Sets;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.transfer.s3.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.DirectoryDownload;
@@ -53,55 +49,36 @@ import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.FileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
-import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Testing {@link DownloadDirectoryHelper} with different file systems.
  */
-@RunWith(Parameterized.class)
 public class DownloadDirectoryHelperParameterizedTest {
-    private static final Set<Configuration> FILE_SYSTEMS = Sets.newHashSet(Arrays.asList(Configuration.unix(),
-                                                                                         Configuration.osX(),
-                                                                                         Configuration.windows()));
     private Function<DownloadFileRequest, FileDownload> singleDownloadFunction;
-    private ListObjectsRecursivelyHelper listObjectsHelper;
+    private ListObjectsHelper listObjectsHelper;
     private DownloadDirectoryHelper downloadDirectoryHelper;
     private Path directory;
     private static final String DIRECTORY_NAME = "test";
 
-    @Parameterized.Parameter
-    public Configuration configuration;
-
-    private FileSystem jimfs;
-
-    @Parameterized.Parameters
-    public static Collection<Configuration> fileSystems() {
-        return FILE_SYSTEMS;
+    public static Collection<FileSystem> fileSystems() {
+        return Sets.newHashSet(Arrays.asList(Jimfs.newFileSystem(Configuration.unix()),
+                                             Jimfs.newFileSystem(Configuration.osX()),
+                                             Jimfs.newFileSystem(Configuration.windows())));
     }
 
-    @Before
-    public void methodSetup() throws IOException {
+    @BeforeEach
+    public void methodSetup() {
         singleDownloadFunction = mock(Function.class);
-        listObjectsHelper = mock(ListObjectsRecursivelyHelper.class);
-        jimfs = Jimfs.newFileSystem(configuration);
+        listObjectsHelper = mock(ListObjectsHelper.class);
         downloadDirectoryHelper = new DownloadDirectoryHelper(TransferManagerConfiguration.builder().build(),
-                                                              jimfs,
                                                               singleDownloadFunction,
                                                               listObjectsHelper);
+    }
+
+    @ParameterizedTest
+    @MethodSource("fileSystems")
+    void downloadDirectory_shouldRecursivelyDownload(FileSystem jimfs) {
         directory = jimfs.getPath("test");
-    }
-
-    @After
-    public void tearDown() {
-        if (jimfs != null) {
-            IoUtils.closeQuietly(jimfs, null);
-        } else {
-            FileUtils.cleanUpTestDirectory(directory);
-        }
-    }
-
-    @Test
-    public void downloadDirectory_shouldRecursivelyDownload() {
         String[] keys = {"1.png", "2020/1.png", "2021/1.png", "2022/1.png", "2023/1/1.png"};
         stubSuccessfulListObjects(listObjectsHelper, keys);
         ArgumentCaptor<DownloadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
@@ -121,11 +98,13 @@ public class DownloadDirectoryHelperParameterizedTest {
 
         assertThat(actualRequests.size()).isEqualTo(keys.length);
 
-        verifyDestinationPathForSingleDownload("/", keys, actualRequests);
+        verifyDestinationPathForSingleDownload(jimfs, "/", keys, actualRequests);
     }
 
-    @Test
-    public void downloadDirectory_withDelimiter_shouldHonor() {
+    @ParameterizedTest
+    @MethodSource("fileSystems")
+    void downloadDirectory_withDelimiter_shouldHonor(FileSystem jimfs) {
+        directory = jimfs.getPath("test");
         String delimiter = "|";
         String[] keys = {"1.png", "2020|1.png", "2021|1.png", "2022|1.png", "2023|1|1.png"};
         stubSuccessfulListObjects(listObjectsHelper, keys);
@@ -145,11 +124,13 @@ public class DownloadDirectoryHelperParameterizedTest {
         actualRequests.forEach(r -> assertThat(r.getObjectRequest().bucket()).isEqualTo("bucket"));
         assertThat(actualRequests.size()).isEqualTo(keys.length);
 
-        verifyDestinationPathForSingleDownload(delimiter, keys, actualRequests);
+        verifyDestinationPathForSingleDownload(jimfs, delimiter, keys, actualRequests);
     }
 
-    @Test
-    public void downloadDirectory_notDirectory_shouldCompleteFutureExceptionally() throws IOException {
+    @ParameterizedTest
+    @MethodSource("fileSystems")
+    void downloadDirectory_notDirectory_shouldCompleteFutureExceptionally(FileSystem jimfs) throws IOException {
+        directory = jimfs.getPath("test");
         Path file = jimfs.getPath("afile" + UUID.randomUUID());
         Files.write(file, "hellowrold".getBytes(StandardCharsets.UTF_8));
         assertThatThrownBy(() -> downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder().destinationDirectory(file)
@@ -164,9 +145,9 @@ public class DownloadDirectoryHelperParameterizedTest {
                                        new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build()));
     }
 
-    private void verifyDestinationPathForSingleDownload(String delimiter, String[] keys,
-                                                        List<DownloadFileRequest> actualRequests) {
-        String jimfsSeparator = this.jimfs.getSeparator();
+    private static void verifyDestinationPathForSingleDownload(FileSystem jimfs, String delimiter, String[] keys,
+                                                               List<DownloadFileRequest> actualRequests) {
+        String jimfsSeparator = jimfs.getSeparator();
         List<String> destinations =
             actualRequests.stream().map(u -> u.destination().toString())
                           .collect(Collectors.toList());

@@ -53,26 +53,27 @@ import software.amazon.awssdk.utils.Validate;
 public final class DefaultS3TransferManager implements S3TransferManager {
     private final S3CrtAsyncClient s3CrtAsyncClient;
     private final TransferManagerConfiguration transferConfiguration;
-    private final UploadDirectoryHelper uploadDirectoryManager;
+    private final UploadDirectoryHelper uploadDirectoryHelper;
     private final DownloadDirectoryHelper downloadDirectoryHelper;
 
     public DefaultS3TransferManager(DefaultBuilder tmBuilder) {
         transferConfiguration = resolveTransferManagerConfiguration(tmBuilder);
         s3CrtAsyncClient = initializeS3CrtClient(tmBuilder);
-        uploadDirectoryManager = new UploadDirectoryHelper(transferConfiguration, this::uploadFile);
+        uploadDirectoryHelper = new UploadDirectoryHelper(transferConfiguration, this::uploadFile);
+        ListObjectsHelper listObjectsHelper = new ListObjectsHelper(s3CrtAsyncClient::listObjectsV2);
         downloadDirectoryHelper = new DownloadDirectoryHelper(transferConfiguration,
-                                                              s3CrtAsyncClient::listObjectsV2,
+                                                              listObjectsHelper,
                                                               this::downloadFile);
     }
 
     @SdkTestInternalApi
     DefaultS3TransferManager(S3CrtAsyncClient s3CrtAsyncClient,
-                             UploadDirectoryHelper uploadDirectoryManager,
+                             UploadDirectoryHelper uploadDirectoryHelper,
                              TransferManagerConfiguration configuration,
                              DownloadDirectoryHelper downloadDirectoryHelper) {
         this.s3CrtAsyncClient = s3CrtAsyncClient;
         this.transferConfiguration = configuration;
-        this.uploadDirectoryManager = uploadDirectoryManager;
+        this.uploadDirectoryHelper = uploadDirectoryHelper;
         this.downloadDirectoryHelper = downloadDirectoryHelper;
     }
 
@@ -168,7 +169,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         try {
             assertNotUnsupportedArn(uploadDirectoryRequest.bucket(), "uploadDirectory");
 
-            return uploadDirectoryManager.uploadDirectory(uploadDirectoryRequest);
+            return uploadDirectoryHelper.uploadDirectory(uploadDirectoryRequest);
         } catch (Throwable throwable) {
             return new DefaultDirectoryUpload(CompletableFutureUtils.failedFuture(throwable));
         }

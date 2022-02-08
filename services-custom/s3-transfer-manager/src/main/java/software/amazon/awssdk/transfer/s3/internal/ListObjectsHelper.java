@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.services.s3.model.CommonPrefix;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 
@@ -37,21 +39,29 @@ import software.amazon.awssdk.utils.Logger;
  * A helper class that returns all objects within a bucket given a {@link ListObjectsV2Request} recursively.
  */
 @SdkInternalApi
-public class ListObjectsRecursivelyHelper {
-    private static final Logger logger = Logger.loggerFor(ListObjectsRecursivelyHelper.class);
+public class ListObjectsHelper {
+    private static final Logger logger = Logger.loggerFor(S3TransferManager.class);
     private final Function<ListObjectsV2Request, CompletableFuture<ListObjectsV2Response>> listObjectsFunction;
+    private final S3ObjectsIteratorFunction objectsIteratorFunction;
 
-    public ListObjectsRecursivelyHelper(Function<ListObjectsV2Request,
-                                        CompletableFuture<ListObjectsV2Response>> listObjectsFunction) {
-
+    public ListObjectsHelper(Function<ListObjectsV2Request,
+        CompletableFuture<ListObjectsV2Response>> listObjectsFunction) {
+        this .objectsIteratorFunction = new S3ObjectsIteratorFunction();
         this.listObjectsFunction = listObjectsFunction;
     }
 
-    public SdkPublisher<S3Object> s3Objects(ListObjectsV2Request firstRequest) {
-        Function<ListObjectsV2Response, Iterator<S3Object>> getIterator = response -> {
+    public SdkPublisher<S3Object> listS3ObjectsRecursively(ListObjectsV2Request firstRequest) {
+        return PaginatedItemsPublisher.builder().nextPageFetcher(new ListObjectsV2ResponseFetcher(firstRequest))
+                                      .iteratorFunction(objectsIteratorFunction).isLastPage(false).build();
+    }
+
+    private static final class S3ObjectsIteratorFunction implements Function<ListObjectsV2Response, Iterator<S3Object>> {
+
+        @Override
+        public Iterator<S3Object> apply(ListObjectsV2Response response) {
             if (response != null && !CollectionUtils.isNullOrEmpty(response.contents())) {
                 return response.contents().stream().filter(r -> {
-                    if (response.prefix().equals(r.key())) {
+                    if (response.prefix() != null && response.prefix().equals(r.key())) {
                         logger.debug(() -> "Skipping download for object (" + r.key() + ") since it is a virtual directory");
                         return false;
                     }
@@ -61,10 +71,7 @@ public class ListObjectsRecursivelyHelper {
             }
 
             return Collections.emptyIterator();
-        };
-
-        return PaginatedItemsPublisher.builder().nextPageFetcher(new ListObjectsV2ResponseFetcher(firstRequest))
-                                      .iteratorFunction(getIterator).isLastPage(false).build();
+        }
     }
 
     private final class ListObjectsV2ResponseFetcher implements AsyncPageFetcher<ListObjectsV2Response> {
@@ -102,7 +109,10 @@ public class ListObjectsRecursivelyHelper {
             }
 
             return future.thenApply(t -> {
-                t.commonPrefixes().stream().map(CommonPrefix::prefix).forEach(commonPrefixes::push);
+                List<CommonPrefix> newCommonPrefixes = t.commonPrefixes();
+                for (int i = newCommonPrefixes.size() - 1; i >= 0; i--) {
+                    commonPrefixes.push(newCommonPrefixes.get(i).prefix());
+                }
                 return t;
             });
         }

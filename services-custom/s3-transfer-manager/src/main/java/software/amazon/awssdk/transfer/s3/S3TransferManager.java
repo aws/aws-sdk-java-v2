@@ -281,14 +281,19 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * bucket will be downloaded.
      *
      * <p>
-     * The SDK will create the destination directory if it does not already exist.
-     *
-     * <p>
      * The returned {@link CompletableFuture} only completes exceptionally if the request cannot be attempted as a whole (the
      * downloadDirectoryRequest is invalid for example). The future completes successfully for partial successful
      * requests, i.e., there might be failed downloads in a successfully completed response. As a result, you should check for
      * errors in the response via {@link CompletedDirectoryDownload#failedTransfers()} even when the future completes
      * successfully.
+     *
+     * <p>
+     * The SDK will create the destination directory if it does not already exist. If a specific file
+     * already exists, the corresponding transfer will fail, and it will be added to the
+     * {@link CompletedDirectoryDownload#failedTransfers()}.
+     *
+     * <p>
+     * The current user must have write access to all directories and files
      *
      * <p>
      * <b>Usage Example:</b>

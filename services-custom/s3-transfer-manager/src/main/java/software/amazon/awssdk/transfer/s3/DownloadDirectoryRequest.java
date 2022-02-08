@@ -19,7 +19,6 @@ package software.amazon.awssdk.transfer.s3;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
@@ -41,14 +40,12 @@ public final class DownloadDirectoryRequest
     private final String bucket;
     private final String prefix;
     private final String delimiter;
-    private final DownloadDirectoryOverrideConfiguration overrideConfiguration;
 
     public DownloadDirectoryRequest(DefaultBuilder builder) {
         this.destinationDirectory = Validate.paramNotNull(builder.destinationDirectory, "destinationDirectory");
         this.bucket = Validate.paramNotNull(builder.bucket, "bucket");
         this.prefix = builder.prefix;
         this.delimiter = builder.delimiter;
-        this.overrideConfiguration = builder.configuration;
     }
 
     /**
@@ -87,14 +84,6 @@ public final class DownloadDirectoryRequest
         return Optional.ofNullable(delimiter);
     }
 
-    /**
-     * @return the optional override configuration
-     * @see Builder#overrideConfiguration(DownloadDirectoryOverrideConfiguration)
-     */
-    public Optional<DownloadDirectoryOverrideConfiguration> overrideConfiguration() {
-        return Optional.ofNullable(overrideConfiguration);
-    }
-
     public static Builder builder() {
         return new DefaultBuilder();
     }
@@ -128,9 +117,6 @@ public final class DownloadDirectoryRequest
         if (!Objects.equals(prefix, that.prefix)) {
             return false;
         }
-        if (!Objects.equals(overrideConfiguration, that.overrideConfiguration)) {
-            return false;
-        }
         return Objects.equals(delimiter, that.delimiter);
     }
 
@@ -139,7 +125,6 @@ public final class DownloadDirectoryRequest
         int result = destinationDirectory != null ? destinationDirectory.hashCode() : 0;
         result = 31 * result + (bucket != null ? bucket.hashCode() : 0);
         result = 31 * result + (prefix != null ? prefix.hashCode() : 0);
-        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
         result = 31 * result + (delimiter != null ? delimiter.hashCode() : 0);
         return result;
     }
@@ -151,7 +136,6 @@ public final class DownloadDirectoryRequest
                        .add("bucket", bucket)
                        .add("prefix", prefix)
                        .add("delimiter", delimiter)
-                       .add("overrideConfiguration", overrideConfiguration)
                        .build();
     }
 
@@ -161,7 +145,6 @@ public final class DownloadDirectoryRequest
          *
          * @param destinationDirectory the destination directory
          * @return This builder for method chaining.
-         * @see DownloadDirectoryOverrideConfiguration
          */
         Builder destinationDirectory(Path destinationDirectory);
 
@@ -198,31 +181,6 @@ public final class DownloadDirectoryRequest
          */
         Builder delimiter(String delimiter);
 
-        /**
-         * Add an optional request override configuration.
-         *
-         * @param configuration The override configuration.
-         * @return This builder for method chaining.
-         */
-        Builder overrideConfiguration(DownloadDirectoryOverrideConfiguration configuration);
-
-        /**
-         * Similar to {@link #overrideConfiguration(DownloadDirectoryOverrideConfiguration)}, but takes a lambda to configure a
-         * new {@link DownloadDirectoryOverrideConfiguration.Builder}. This removes the need to call {@link
-         * DownloadDirectoryOverrideConfiguration#builder()} and {@link DownloadDirectoryOverrideConfiguration.Builder#build()}.
-         *
-         * @param downloadConfigurationBuilder the download configuration
-         * @return this builder for method chaining.
-         * @see #overrideConfiguration(DownloadDirectoryOverrideConfiguration)
-         */
-        default Builder overrideConfiguration(
-            Consumer<DownloadDirectoryOverrideConfiguration.Builder> downloadConfigurationBuilder) {
-            Validate.paramNotNull(downloadConfigurationBuilder, "downloadConfigurationBuilder");
-            return overrideConfiguration(DownloadDirectoryOverrideConfiguration.builder()
-                                                                               .applyMutation(downloadConfigurationBuilder)
-                                                                               .build());
-        }
-
         @Override
         DownloadDirectoryRequest build();
     }
@@ -233,7 +191,6 @@ public final class DownloadDirectoryRequest
         private String bucket;
         private String prefix;
         private String delimiter;
-        private DownloadDirectoryOverrideConfiguration configuration;
 
         private DefaultBuilder() {
         }
@@ -242,7 +199,6 @@ public final class DownloadDirectoryRequest
             this.destinationDirectory = request.destinationDirectory;
             this.bucket = request.bucket;
             this.prefix = request.prefix;
-            this.configuration = request.overrideConfiguration;
         }
 
         @Override
@@ -299,20 +255,6 @@ public final class DownloadDirectoryRequest
 
         public String getDelimiter() {
             return delimiter;
-        }
-
-        @Override
-        public Builder overrideConfiguration(DownloadDirectoryOverrideConfiguration configuration) {
-            this.configuration = configuration;
-            return this;
-        }
-
-        public void setOverrideConfiguration(DownloadDirectoryOverrideConfiguration configuration) {
-            overrideConfiguration(configuration);
-        }
-
-        public DownloadDirectoryOverrideConfiguration getOverrideConfiguration() {
-            return configuration;
         }
 
         @Override

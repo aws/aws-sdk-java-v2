@@ -15,9 +15,11 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DELIMITER;
+import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_PREFIX;
+
 import java.io.IOException;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -31,12 +33,10 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.transfer.s3.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.DirectoryDownload;
-import software.amazon.awssdk.transfer.s3.DownloadDirectoryOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.FailedFileDownload;
@@ -47,40 +47,33 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An internal helper class that first retrieves the objects to download from S3 recursively and then send a download request for
- * each object.
+ * An internal helper class that sends {@link DownloadFileRequest}s while it retrieves the objects to download from S3 recursively
  */
 @SdkInternalApi
 public class DownloadDirectoryHelper {
-    private static final String DEFAULT_DELIMITER = "/";
-    private static final String DEFAULT_PREFIX = "";
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
 
     private final TransferManagerConfiguration transferConfiguration;
-    private final FileSystem fileSystem;
     private final Function<DownloadFileRequest, FileDownload> downloadFileFunction;
-    private final ListObjectsRecursivelyHelper listObjectsRecursivelyHelper;
+    private final ListObjectsHelper listObjectsHelper;
 
     public DownloadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
-                                   Function<ListObjectsV2Request, CompletableFuture<ListObjectsV2Response>> listObjectsFunction,
+                                   ListObjectsHelper listObjectsHelper,
                                    Function<DownloadFileRequest, FileDownload> downloadFileFunction) {
 
         this.transferConfiguration = transferConfiguration;
         this.downloadFileFunction = downloadFileFunction;
-        this.fileSystem = FileSystems.getDefault();
-        this.listObjectsRecursivelyHelper = new ListObjectsRecursivelyHelper(listObjectsFunction);
+        this.listObjectsHelper = listObjectsHelper;
     }
 
     @SdkTestInternalApi
     DownloadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
-                            FileSystem fileSystem,
                             Function<DownloadFileRequest, FileDownload> downloadFileFunction,
-                            ListObjectsRecursivelyHelper listObjectsRecursivelyHelper) {
+                            ListObjectsHelper listObjectsHelper) {
 
         this.transferConfiguration = transferConfiguration;
-        this.fileSystem = fileSystem;
         this.downloadFileFunction = downloadFileFunction;
-        this.listObjectsRecursivelyHelper = listObjectsRecursivelyHelper;
+        this.listObjectsHelper = listObjectsHelper;
     }
 
     public DirectoryDownload downloadDirectory(DownloadDirectoryRequest downloadDirectoryRequest) {
@@ -92,32 +85,33 @@ public class DownloadDirectoryHelper {
                          .whenComplete((r, t) -> {
                              if (t != null) {
                                  returnFuture.completeExceptionally(t);
+                                 cleanUpDirectory(downloadDirectoryRequest.destinationDirectory());
                              }
                          });
 
         return new DefaultDirectoryDownload(returnFuture);
     }
 
-    private static void validateDirectory(DownloadDirectoryRequest downloadDirectoryRequest) {
-        Path directory = downloadDirectoryRequest.destinationDirectory();
-
-        if (!Files.exists(directory)) {
-            try {
-                Files.createDirectory(directory);
-            } catch (IOException e) {
-                throw SdkClientException.create("Failed to create the destination directory " + directory, e);
-            }
+    private static void validateDirectoryIfExists(Path directory) {
+        if (Files.exists(directory)) {
+            Validate.isTrue(Files.isDirectory(directory), "The destination directory provided (%s) is not a "
+                                                          + "directory", directory);
         }
+    }
 
-        Validate.isTrue(Files.isDirectory(directory), "The destination directory provided (%s) is not a "
-                                                      + "directory", directory);
+    private static void cleanUpDirectory(Path directory) {
+        try {
+            Files.deleteIfExists(directory);
+        } catch (IOException e) {
+            log.warn(() -> "Failed to delete the directory: " + directory);
+        }
     }
 
     private void doDownloadDirectory(CompletableFuture<CompletedDirectoryDownload> returnFuture,
                                      DownloadDirectoryRequest downloadDirectoryRequest) {
-        validateDirectory(downloadDirectoryRequest);
+        validateDirectoryIfExists(downloadDirectoryRequest.destinationDirectory());
         String bucket = downloadDirectoryRequest.bucket();
-        String delimiter = getDelimiter(downloadDirectoryRequest);
+        String delimiter = downloadDirectoryRequest.delimiter().orElse(DEFAULT_DELIMITER);
         String prefix = downloadDirectoryRequest.prefix().orElse(DEFAULT_PREFIX);
 
         ListObjectsV2Request request = ListObjectsV2Request.builder()
@@ -127,16 +121,17 @@ public class DownloadDirectoryHelper {
                                                            .build();
 
         Collection<FailedFileDownload> failedFileDownloads = new ConcurrentLinkedQueue<>();
-        List<CompletableFuture<?>> futures = new ArrayList<>();
+        List<CompletableFuture<CompletedFileDownload>> futures = new ArrayList<>();
 
-        listObjectsRecursivelyHelper.s3Objects(request).subscribe(s3Object -> {
+        listObjectsHelper.listS3ObjectsRecursively(request).subscribe(s3Object -> {
             log.debug(() -> "s3Object key: " + s3Object.key());
             futures.add(downloadSingleFile(downloadDirectoryRequest,
                                            failedFileDownloads,
                                            s3Object));
         }).whenComplete((r, t) -> {
             if (t != null) {
-                returnFuture.completeExceptionally(SdkClientException.create("Failed to call ListObjectsV2  ", t));
+                returnFuture.completeExceptionally(SdkClientException.create("Failed to call ListObjectsV2", t));
+                cleanUpDirectory(downloadDirectoryRequest.destinationDirectory());
             } else {
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                                  .whenComplete((response, throwable) -> returnFuture.complete(
@@ -147,18 +142,15 @@ public class DownloadDirectoryHelper {
         });
     }
 
-    private static String getDelimiter(DownloadDirectoryRequest downloadDirectoryRequest) {
-        return downloadDirectoryRequest.delimiter().orElse(DEFAULT_DELIMITER);
-    }
-
     private CompletableFuture<CompletedFileDownload> downloadSingleFile(DownloadDirectoryRequest downloadDirectoryRequest,
                                                                         Collection<FailedFileDownload> failedFileDownloads,
                                                                         S3Object s3Object) {
-        String directory = downloadDirectoryRequest.destinationDirectory().toString();
-        String relativePath = getRelativePath(getDelimiter(downloadDirectoryRequest),
+        FileSystem fileSystem = downloadDirectoryRequest.destinationDirectory().getFileSystem();
+        String relativePath = getRelativePath(fileSystem,
+                                              downloadDirectoryRequest.delimiter().orElse(DEFAULT_DELIMITER),
                                               s3Object.key());
 
-        Path destinationPath = fileSystem.getPath(directory, relativePath);
+        Path destinationPath = downloadDirectoryRequest.destinationDirectory().resolve(relativePath);
         DownloadFileRequest request = downloadFileRequest(downloadDirectoryRequest, s3Object, destinationPath);
 
         try {
@@ -191,31 +183,24 @@ public class DownloadDirectoryHelper {
                                                             .bucket(downloadDirectoryRequest.bucket())
                                                             .key(s3Object.key())
                                                             .build();
-        DownloadFileRequest.Builder requestBuilder = DownloadFileRequest.builder()
-                                                                        .destination(destinationPath)
-                                                                        .getObjectRequest(
-                                                                            getObjectRequest);
-
-
-        downloadDirectoryRequest.overrideConfiguration()
-                                .map(DownloadDirectoryOverrideConfiguration::downloadFileRequestTransformer)
-                                .ifPresent(c -> c.accept(requestBuilder));
-        return requestBuilder.build();
+        return DownloadFileRequest.builder()
+                                  .destination(destinationPath)
+                                  .getObjectRequest(getObjectRequest)
+                                  .build();
     }
 
     private static void createParentDirectoriesIfNeeded(Path destinationPath) {
         Path parentDirectory = destinationPath.getParent();
-        if (parentDirectory != null && !Files.exists(parentDirectory)) {
-            try {
+        try {
+            if (parentDirectory != null) {
                 Files.createDirectories(parentDirectory);
-            } catch (IOException e) {
-                throw SdkClientException.create(String.format("Failed to create directory %s and all its nonexistent parent "
-                                                              + "directories ", parentDirectory.toAbsolutePath()), e);
             }
+        } catch (IOException e) {
+            throw SdkClientException.create("Failed to create parent directories for " + destinationPath, e);
         }
     }
 
-    private String getRelativePath(String delimiter, String key) {
+    private static String getRelativePath(FileSystem fileSystem, String delimiter, String key) {
         if (fileSystem.getSeparator().equals(delimiter)) {
             return key;
         }
