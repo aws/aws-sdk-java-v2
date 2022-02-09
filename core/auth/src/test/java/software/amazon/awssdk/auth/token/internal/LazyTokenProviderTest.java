@@ -19,14 +19,14 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import software.amazon.awssdk.auth.token.AwsTokenProvider;
+import software.amazon.awssdk.auth.token.SdkTokenProvider;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public class LazyTokenProviderTest {
     @SuppressWarnings("unchecked")
-    private final Supplier<AwsTokenProvider> credentialsConstructor = Mockito.mock(Supplier.class);
+    private final Supplier<SdkTokenProvider> credentialsConstructor = Mockito.mock(Supplier.class);
 
-    private final AwsTokenProvider credentials = Mockito.mock(AwsTokenProvider.class);
+    private final SdkTokenProvider credentials = Mockito.mock(SdkTokenProvider.class);
 
     @BeforeEach
     public void reset() {
@@ -73,6 +73,6 @@ public class LazyTokenProviderTest {
         Mockito.verify(initializer).close();
     }
 
-    private interface CloseableSupplier extends Supplier<AwsTokenProvider>, SdkAutoCloseable {}
-    private interface CloseableCredentialsProvider extends SdkAutoCloseable, AwsTokenProvider {}
+    private interface CloseableSupplier extends Supplier<SdkTokenProvider>, SdkAutoCloseable {}
+    private interface CloseableCredentialsProvider extends SdkAutoCloseable, SdkTokenProvider {}
 }

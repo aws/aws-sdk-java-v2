@@ -15,33 +15,22 @@
 
 package software.amazon.awssdk.auth.token;
 
-import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Provides token which is used to securely authorize requests to AWS services.
- * A token is a string that the OAuth client uses to make requests to the resource server.
+ * Interface for loading {@link SdkToken} that are used for authentication.
  *
- * <p>For more details on tokens, see:
- * <a href="https://oauth.net/2/access-tokens">
- * https://oauth.net/2/access-tokens</a></p>
- *
- * @see AwsTokenProvider
  */
-
+@FunctionalInterface
 @SdkPublicApi
-public interface AwsToken {
-
-
+public interface SdkTokenProvider {
     /**
-     * Retrieves string field representing the literal token string.
-     * A token is a string that the OAuth client uses to make requests to the resource server.
+     * Returns an {@link SdkToken} that can be used to authorize a request. Each implementation of SdkTokenProvider
+     * can choose its own strategy for loading token. For example, an implementation might load token from an existing
+     * key management system, or load new token when token is refreshed.
+     *
+     *
+     * @return AwsToken which the caller can use to authorize an AWS request using token authorization for a request.
      */
-    String token();
-
-
-    /**
-     * Retrieves the time at which the token expires.
-     */
-    Instant expirationTime();
+    SdkToken resolveToken();
 }

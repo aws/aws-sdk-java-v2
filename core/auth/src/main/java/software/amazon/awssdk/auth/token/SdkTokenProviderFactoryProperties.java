@@ -19,11 +19,11 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkProtectedApi
-public class SsoOidcTokenProviderFactoryProperties {
+public class SdkTokenProviderFactoryProperties {
     private final String startUrl;
     private final String region;
 
-    private SsoOidcTokenProviderFactoryProperties(BuilderImpl builder) {
+    private SdkTokenProviderFactoryProperties(BuilderImpl builder) {
         Validate.paramNotNull(builder.startUrl, "startUrl");
         Validate.paramNotNull(builder.region, "region");
 
@@ -48,7 +48,7 @@ public class SsoOidcTokenProviderFactoryProperties {
 
         Builder region(String region);
 
-        SsoOidcTokenProviderFactoryProperties build();
+        SdkTokenProviderFactoryProperties build();
     }
 
     private static class BuilderImpl implements Builder {
@@ -68,8 +68,8 @@ public class SsoOidcTokenProviderFactoryProperties {
         }
 
         @Override
-        public SsoOidcTokenProviderFactoryProperties build() {
-            return new SsoOidcTokenProviderFactoryProperties(this);
+        public SdkTokenProviderFactoryProperties build() {
+            return new SdkTokenProviderFactoryProperties(this);
         }
     }
 }

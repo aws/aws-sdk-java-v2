@@ -35,24 +35,24 @@ public class AwsBearerTokenTest {
 
     @Test
     public void constructAwsBearerTokenWithoutExpirationTime(){
-        AwsBearerToken bearerToken = AwsBearerToken.create(SAMPLE_TOKEN_STRING);
+        TestBearerToken bearerToken = TestBearerToken.create(SAMPLE_TOKEN_STRING);
         assertEquals(bearerToken.token(), SAMPLE_TOKEN_STRING);
         assertNull(bearerToken.expirationTime());
     }
 
     @Test
     public void constructAwsBearerTokenWithExpirationTime(){
-        AwsBearerToken bearerToken = AwsBearerToken.create(SAMPLE_TOKEN_STRING, null);
+        TestBearerToken bearerToken = TestBearerToken.create(SAMPLE_TOKEN_STRING, null);
         assertEquals(bearerToken.token(), SAMPLE_TOKEN_STRING);
         assertNull(bearerToken.expirationTime());
-        bearerToken = AwsBearerToken.create(SAMPLE_TOKEN_STRING, SAMPLE_EXPIRATION_TIME);
+        bearerToken = TestBearerToken.create(SAMPLE_TOKEN_STRING, SAMPLE_EXPIRATION_TIME);
         assertEquals(SAMPLE_TOKEN_STRING, bearerToken.token());
         assertEquals(SAMPLE_EXPIRATION_TIME, bearerToken.expirationTime());
     }
 
     @Test
     public void equalsHashCodeTest() {
-        EqualsVerifier.forClass(AwsBearerToken.class)
+        EqualsVerifier.forClass(TestBearerToken.class)
                       .withNonnullFields("token", "expirationTime")
                       .verify();
     }
@@ -61,8 +61,8 @@ public class AwsBearerTokenTest {
     public void constructAwsBearerTokenWithInvalidTokenString(){
         thrown.expect(NullPointerException.class);
         thrown.expectMessage("Token cannot be blank.");
-        AwsBearerToken.create(null);
+        TestBearerToken.create(null);
         thrown.expectMessage("Token cannot be blank.");
-        AwsBearerToken.create("");
+        TestBearerToken.create("");
     }
 }

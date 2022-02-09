@@ -17,31 +17,31 @@ package software.amazon.awssdk.auth.token.internal;
 
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.AwsToken;
-import software.amazon.awssdk.auth.token.AwsTokenProvider;
+import software.amazon.awssdk.auth.token.SdkToken;
+import software.amazon.awssdk.auth.token.SdkTokenProvider;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 
 /**
- * A wrapper for {@link AwsTokenProvider} that defers creation of the underlying provider until the first time the
- * {@link AwsTokenProvider#resolveToken()} method is invoked.
+ * A wrapper for {@link SdkTokenProvider} that defers creation of the underlying provider until the first time the
+ * {@link SdkTokenProvider#resolveToken()} method is invoked.
  */
 @SdkInternalApi
-public class LazyTokenProvider implements AwsTokenProvider, SdkAutoCloseable {
-    private final Lazy<AwsTokenProvider> delegate;
+public class LazyTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
+    private final Lazy<SdkTokenProvider> delegate;
 
-    public LazyTokenProvider(Supplier<AwsTokenProvider> delegateConstructor) {
+    public LazyTokenProvider(Supplier<SdkTokenProvider> delegateConstructor) {
         this.delegate = new Lazy<>(delegateConstructor);
     }
 
-    public static LazyTokenProvider create(Supplier<AwsTokenProvider> delegateConstructor) {
+    public static LazyTokenProvider create(Supplier<SdkTokenProvider> delegateConstructor) {
         return new LazyTokenProvider(delegateConstructor);
     }
 
     @Override
-    public AwsToken resolveToken() {
+    public SdkToken resolveToken() {
         return delegate.getValue().resolveToken();
     }
 

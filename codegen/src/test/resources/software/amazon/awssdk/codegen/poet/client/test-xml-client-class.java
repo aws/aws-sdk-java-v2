@@ -9,6 +9,7 @@ import software.amazon.awssdk.auth.signer.BearerTokenSigner;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -206,7 +207,7 @@ final class DefaultXmlClient implements XmlClient {
             return clientHandler.execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
                                              .withOperationName("BearerAuthOperation").withCombinedResponseHandler(responseHandler)
                                              .withMetricCollector(apiCallMetricCollector)
-                                             .credentialType(Signer.CredentialType.BEARER_TOKEN)
+                                             .credentialType(CredentialType.TOKEN)
                                              .withInput(bearerAuthOperationRequest)
                                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {

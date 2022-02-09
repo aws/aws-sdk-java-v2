@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -80,7 +81,7 @@ public class ClientHandlerSignerValidationTest {
                                                             .statusCode(200)
                                                             .build())
                                .build());
-        when(signer.credentialType()).thenReturn(Signer.CredentialType.BEARER_TOKEN);
+        when(signer.credentialType()).thenReturn(CredentialType.TOKEN);
         SdkResponse mockSdkResponse = VoidSdkResponse.builder().build();
         when(responseHandler.handle(any(), any())).thenReturn(mockSdkResponse);
     }
@@ -172,7 +173,7 @@ public class ClientHandlerSignerValidationTest {
 
         when(marshaller.marshall(any(SdkRequest.class))).thenReturn(httpRequest);
         when(signer.sign(any(), any())).thenReturn(httpRequest);
-        when(signer.credentialType()).thenReturn(Signer.CredentialType.AWS);
+        when(signer.credentialType()).thenReturn(CredentialType.of("AWS"));
 
         SdkSyncClientHandler sdkSyncClientHandler = new SdkSyncClientHandler(testClientConfiguration());
 

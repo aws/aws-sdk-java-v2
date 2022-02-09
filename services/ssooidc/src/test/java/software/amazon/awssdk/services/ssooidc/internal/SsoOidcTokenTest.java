@@ -22,10 +22,10 @@ import java.time.Instant;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-public class SsoTokenTest {
+public class SsoOidcTokenTest {
     @Test
     public void equalsAndHashCode_workCorrectly() {
-        EqualsVerifier.forClass(SsoToken.class)
+        EqualsVerifier.forClass(SsoOidcToken.class)
                       .usingGetClass()
                       .verify();
     }
@@ -41,24 +41,24 @@ public class SsoTokenTest {
         String region = "region";
         String startUrl = "starturl";
 
-        SsoToken ssoToken = SsoToken.builder()
-                                    .accessToken(accessToken)
-                                    .expiresAt(expiresAt)
-                                    .refreshToken(refreshToken)
-                                    .clientId(clientId)
-                                    .clientSecret(clientSecret)
-                                    .registrationExpiresAt(registrationExpiresAt)
-                                    .region(region)
-                                    .startUrl(startUrl)
-                                    .build();
+        SsoOidcToken ssoOidcToken = SsoOidcToken.builder()
+                                                .accessToken(accessToken)
+                                                .expiresAt(expiresAt)
+                                                .refreshToken(refreshToken)
+                                                .clientId(clientId)
+                                                .clientSecret(clientSecret)
+                                                .registrationExpiresAt(registrationExpiresAt)
+                                                .region(region)
+                                                .startUrl(startUrl)
+                                                .build();
 
-        assertThat(ssoToken.token()).isEqualTo(accessToken);
-        assertThat(ssoToken.expirationTime()).isEqualTo(expiresAt);
-        assertThat(ssoToken.refreshToken()).isEqualTo(refreshToken);
-        assertThat(ssoToken.clientId()).isEqualTo(clientId);
-        assertThat(ssoToken.clientSecret()).isEqualTo(clientSecret);
-        assertThat(ssoToken.registrationExpiresAt()).isEqualTo(registrationExpiresAt);
-        assertThat(ssoToken.region()).isEqualTo(region);
-        assertThat(ssoToken.startUrl()).isEqualTo(startUrl);
+        assertThat(ssoOidcToken.token()).isEqualTo(accessToken);
+        assertThat(ssoOidcToken.expirationTime()).hasValue(expiresAt);
+        assertThat(ssoOidcToken.refreshToken()).isEqualTo(refreshToken);
+        assertThat(ssoOidcToken.clientId()).isEqualTo(clientId);
+        assertThat(ssoOidcToken.clientSecret()).isEqualTo(clientSecret);
+        assertThat(ssoOidcToken.registrationExpiresAt()).isEqualTo(registrationExpiresAt);
+        assertThat(ssoOidcToken.region()).isEqualTo(region);
+        assertThat(ssoOidcToken.startUrl()).isEqualTo(startUrl);
     }
 }

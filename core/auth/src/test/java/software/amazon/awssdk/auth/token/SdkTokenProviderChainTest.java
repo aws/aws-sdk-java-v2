@@ -22,7 +22,7 @@ import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
-public class AwsTokenProviderChainTest {
+public class SdkTokenProviderChainTest {
 
     public static final Instant SAMPLE_EXPIRATION_TIME = Instant.ofEpochMilli(1642108606L);
     public static final String SAMPLE_TOKEN_STRING = "mJ_9.B5f-4.1Jmv";
@@ -35,7 +35,7 @@ public class AwsTokenProviderChainTest {
     public void testReusingLastProvider() {
         MockTokenProvider provider1 = new MockTokenProvider("Failed!");
         MockTokenProvider provider2 = new MockTokenProvider();
-        AwsTokenProviderChain chain = AwsTokenProviderChain.builder()
+        SdkTokenProviderChain chain = SdkTokenProviderChain.builder()
                                                            .tokenProviders(provider1, provider2)
                                                            .build();
 
@@ -63,7 +63,7 @@ public class AwsTokenProviderChainTest {
     public void testDisableReusingLastProvider() {
         MockTokenProvider provider1 = new MockTokenProvider("Failed!");
         MockTokenProvider provider2 = new MockTokenProvider();
-        AwsTokenProviderChain chain = AwsTokenProviderChain.builder()
+        SdkTokenProviderChain chain = SdkTokenProviderChain.builder()
                                                            .tokenProviders(provider1, provider2)
                                                            .reuseLastProviderEnabled(false)
                                                            .build();
@@ -88,7 +88,7 @@ public class AwsTokenProviderChainTest {
     public void testGetTokenException() {
         MockTokenProvider provider1 = new MockTokenProvider("Failed!");
         MockTokenProvider provider2 = new MockTokenProvider("Bad!");
-        AwsTokenProviderChain chain = AwsTokenProviderChain.builder()
+        SdkTokenProviderChain chain = SdkTokenProviderChain.builder()
                                                            .tokenProviders(provider1, provider2)
                                                            .build();
 
@@ -96,8 +96,8 @@ public class AwsTokenProviderChainTest {
     }
 
 
-    private static final class MockTokenProvider implements AwsTokenProvider {
-        private final AwsTokenProvider awsTokenProvider;
+    private static final class MockTokenProvider implements SdkTokenProvider {
+        private final SdkTokenProvider sdkTokenProvider;
         private final String exceptionMessage;
         int getTokenCallCount = 0;
 
@@ -106,18 +106,18 @@ public class AwsTokenProviderChainTest {
         }
 
         private MockTokenProvider(String exceptionMessage) {
-            awsTokenProvider = StaticTokenProvider.create(AwsBearerToken.create(SAMPLE_TOKEN_STRING, SAMPLE_EXPIRATION_TIME));
+            sdkTokenProvider = StaticTokenProvider.create(TestBearerToken.create(SAMPLE_TOKEN_STRING, SAMPLE_EXPIRATION_TIME));
             this.exceptionMessage = exceptionMessage;
         }
 
         @Override
-        public AwsToken resolveToken() {
+        public SdkToken resolveToken() {
             getTokenCallCount++;
 
             if (exceptionMessage != null) {
                 throw new RuntimeException(exceptionMessage);
             } else {
-                return awsTokenProvider.resolveToken();
+                return sdkTokenProvider.resolveToken();
             }
         }
     }

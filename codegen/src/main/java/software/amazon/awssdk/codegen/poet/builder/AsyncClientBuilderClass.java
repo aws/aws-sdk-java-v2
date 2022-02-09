@@ -21,7 +21,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.AwsTokenProvider;
+import software.amazon.awssdk.auth.token.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -106,7 +106,7 @@ public class AsyncClientBuilderClass implements ClassSpec {
     private MethodSpec bearerTokenProviderMethod() {
         return MethodSpec.methodBuilder("tokenProvider").addModifiers(Modifier.PUBLIC)
                          .addAnnotation(Override.class)
-                         .addParameter(AwsTokenProvider.class, "tokenProvider")
+                         .addParameter(SdkTokenProvider.class, "tokenProvider")
                          .returns(builderClassName)
                          .addStatement("clientConfiguration.option($T.TOKEN_PROVIDER, tokenProvider)",
                                        AwsClientOption.class)

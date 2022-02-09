@@ -17,7 +17,9 @@ package software.amazon.awssdk.auth.signer;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
-import software.amazon.awssdk.auth.token.AwsToken;
+import software.amazon.awssdk.auth.token.SdkToken;
+import software.amazon.awssdk.auth.token.SdkTokenExecutionAttribute;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -38,7 +40,7 @@ public final class BearerTokenSigner implements Signer {
 
     @Override
     public CredentialType credentialType() {
-        return CredentialType.BEARER_TOKEN;
+        return CredentialType.TOKEN;
     }
 
     /**
@@ -56,14 +58,14 @@ public final class BearerTokenSigner implements Signer {
     }
 
     private SdkHttpFullRequest doSign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        AwsToken token = Validate.notNull(executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_TOKEN),
-                                               "Token must not be null");
+        SdkToken token = Validate.notNull(executionAttributes.getAttribute(SdkTokenExecutionAttribute.SDK_TOKEN),
+                                          "Token must not be null");
         return request.toBuilder()
                       .putHeader(SignerConstant.AUTHORIZATION, buildAuthorizationHeader(token))
                       .build();
     }
 
-    private String buildAuthorizationHeader(AwsToken token) {
+    private String buildAuthorizationHeader(SdkToken token) {
         return String.format("%s%s%s", BEARER_LABEL, SPACE, token.token());
     }
 }

@@ -13,21 +13,22 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awscore.internal.token;
+package software.amazon.awssdk.auth.token;
 
-import java.util.Optional;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.SdkToken;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 
 /**
- * An object that knows how to load and optionally, store, an SSO token.
+ * SdkToken authorizing attributes attached to the execution.
  */
-@SdkInternalApi
-public interface TokenManager<T extends SdkToken> extends SdkAutoCloseable {
-    Optional<T>  loadToken();
+@SdkProtectedApi
+public final class SdkTokenExecutionAttribute {
 
-    default void storeToken(T token) {
-        throw new UnsupportedOperationException();
+    /**
+     * The token to sign requests using token authorization instead of AWS Credentials.
+     */
+    public static final ExecutionAttribute<SdkToken> SDK_TOKEN = new ExecutionAttribute<>("SdkToken");
+
+    private SdkTokenExecutionAttribute() {
     }
 }

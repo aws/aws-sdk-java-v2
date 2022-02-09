@@ -19,6 +19,7 @@ import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransf
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkPojoBuilder;
@@ -252,7 +253,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withOperationName("BearerAuthOperation")
                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler)
-                             .credentialType(Signer.CredentialType.BEARER_TOKEN)
+                             .credentialType(CredentialType.TOKEN)
                              .withMetricCollector(apiCallMetricCollector)
                              .withInput(bearerAuthOperationRequest));
             CompletableFuture<BearerAuthOperationResponse> whenCompleteFuture = null;

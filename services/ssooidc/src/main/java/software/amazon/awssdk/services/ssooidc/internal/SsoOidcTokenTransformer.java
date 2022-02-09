@@ -22,37 +22,38 @@ import software.amazon.awssdk.services.ssooidc.model.CreateTokenResponse;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Transformer to tranform CreateTokenResponse to SsoToken.
+ * Transformer to transform CreateTokenResponse to SsoToken.
  */
 @SdkInternalApi
-public final class SsoTokenTransformer implements TokenTransformer<SsoToken, CreateTokenResponse> {
+public final class SsoOidcTokenTransformer implements TokenTransformer<SsoOidcToken, CreateTokenResponse> {
 
-    private final SsoToken baseToken;
+    private final SsoOidcToken baseToken;
 
-    private SsoTokenTransformer(SsoToken baseToken) {
+    private SsoOidcTokenTransformer(SsoOidcToken baseToken) {
         Validate.notNull(baseToken.startUrl(), "startUrl is null ");
         Validate.notNull(baseToken.clientId(), "clientId is null ");
         Validate.notNull(baseToken.clientSecret(), "clientSecret is null ");
         this.baseToken = baseToken;
     }
 
-    public static SsoTokenTransformer create(SsoToken baseToken) {
+    public static SsoOidcTokenTransformer create(SsoOidcToken baseToken) {
         Validate.paramNotNull(baseToken, "baseToken");
-        return new SsoTokenTransformer(baseToken);
+        return new SsoOidcTokenTransformer(baseToken);
     }
 
     @Override
-    public SsoToken transform(CreateTokenResponse awsResponse) {
-
-        return SsoToken.builder()
-                       .accessToken(awsResponse.accessToken())
-                       .refreshToken(awsResponse.refreshToken())
-                       .expiresAt(awsResponse.expiresIn() != null ? Instant.ofEpochSecond(awsResponse.expiresIn()) : null)
-                       .startUrl(baseToken.startUrl())
-                       .registrationExpiresAt(baseToken.registrationExpiresAt())
-                       .region(baseToken.region())
-                       .clientSecret(baseToken.clientSecret())
-                       .clientId(baseToken.clientId())
-                       .build();
+    public SsoOidcToken transform(CreateTokenResponse awsResponse) {
+        Validate.paramNotNull(awsResponse.accessToken(), "accessToken");
+        Validate.paramNotNull(awsResponse.expiresIn(), "expiresIn");
+        return SsoOidcToken.builder()
+                           .accessToken(awsResponse.accessToken())
+                           .refreshToken(awsResponse.refreshToken())
+                           .expiresAt(awsResponse.expiresIn() != null ? Instant.ofEpochSecond(awsResponse.expiresIn()) : null)
+                           .startUrl(baseToken.startUrl())
+                           .registrationExpiresAt(baseToken.registrationExpiresAt())
+                           .region(baseToken.region())
+                           .clientSecret(baseToken.clientSecret())
+                           .clientId(baseToken.clientId())
+                           .build();
     }
 }

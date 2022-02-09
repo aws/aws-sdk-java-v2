@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.ssooidc.internal;
+package software.amazon.awssdk.services.ssooidc;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -24,8 +24,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
-import software.amazon.awssdk.auth.token.AwsToken;
-import software.amazon.awssdk.auth.token.AwsTokenProvider;
+import software.amazon.awssdk.auth.token.SdkToken;
+import software.amazon.awssdk.auth.token.SdkTokenProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.token.CachedTokenRefresher;
 import software.amazon.awssdk.awscore.internal.token.TokenManager;
@@ -33,39 +33,41 @@ import software.amazon.awssdk.awscore.internal.token.TokenRefresher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.ssooidc.SsoOidcClient;
+import software.amazon.awssdk.services.ssooidc.internal.OnDiskTokenManager;
+import software.amazon.awssdk.services.ssooidc.internal.SsoOidcToken;
+import software.amazon.awssdk.services.ssooidc.internal.SsoOidcTokenTransformer;
 import software.amazon.awssdk.services.ssooidc.model.CreateTokenRequest;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Implementation of {@link AwsTokenProvider} that is capable of loading and
+ * Implementation of {@link SdkTokenProvider} that is capable of loading and
  * storing SSO tokens to {@code ~/.aws/sso/cache}. This is also capable of
  * refreshing the cached token via the SSO-OIDC service.
  */
 @SdkPublicApi
 @ThreadSafe
-public final class SsoTokenProvider implements AwsTokenProvider, SdkAutoCloseable {
+public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
 
     private static final Duration DEFAULT_STALE_DURATION = Duration.ofMinutes(5);
-    private static final Logger log = Logger.loggerFor(SsoTokenProvider.class);
+    private static final Logger log = Logger.loggerFor(SsoOidcTokenProvider.class);
 
     private final String startUrl;
     private final String region;
-    private final TokenManager<SsoToken> onDiskTokenManager;
+    private final TokenManager<SsoOidcToken> onDiskTokenManager;
     private final Clock clock;
 
-    private final TokenRefresher<SsoToken> tokenRefresher;
+    private final TokenRefresher<SsoOidcToken> tokenRefresher;
     private final SsoOidcClient ssoOidcClient;
 
     private final Duration staleDuration;
 
-    private SsoTokenProvider(BuilderImpl builder) {
+    private SsoOidcTokenProvider(BuilderImpl builder) {
         this.startUrl = builder.startUrl;
         this.region = builder.region;
-        Supplier<SsoToken> tokenRetriever = builder.tokenRetriever == null ? getDefaultSsoTokenRetriever()
-                                                                                           : builder.tokenRetriever;
+        Supplier<SsoOidcToken> tokenRetriever = builder.tokenRetriever == null ? getDefaultSsoTokenRetriever()
+                                                                               : builder.tokenRetriever;
 
         validateSupplierAndClient(builder.tokenRetriever, builder.ssoOidcClient);
         this.ssoOidcClient = builder.ssoOidcClient == null ? defaultSsoOidcClient(this.region) : builder.ssoOidcClient;
@@ -77,9 +79,9 @@ public final class SsoTokenProvider implements AwsTokenProvider, SdkAutoCloseabl
 
 
     @SdkTestInternalApi
-    public SsoTokenProvider(String startUrl, String region, TokenManager<SsoToken> onDiskTokenManager, Clock clock,
-                            TokenRefresher<SsoToken> tokenRefresher, SsoOidcClient ssoOidcClient,
-                            Duration staleDuration) {
+    public SsoOidcTokenProvider(String startUrl, String region, TokenManager<SsoOidcToken> onDiskTokenManager, Clock clock,
+                                TokenRefresher<SsoOidcToken> tokenRefresher, SsoOidcClient ssoOidcClient,
+                                Duration staleDuration) {
         this.startUrl = startUrl;
         this.region = region;
         this.onDiskTokenManager = onDiskTokenManager == null ? OnDiskTokenManager.create(this.startUrl) : onDiskTokenManager;
@@ -90,7 +92,7 @@ public final class SsoTokenProvider implements AwsTokenProvider, SdkAutoCloseabl
                                                                                 this.staleDuration) : tokenRefresher;
     }
 
-    private Function<SdkException, SsoToken> exceptionHandler() {
+    private Function<SdkException, SsoOidcToken> exceptionHandler() {
         return e -> {
             if (e instanceof AwsServiceException) {
                 log.warn(() -> "Failed to fetch token.", e);
@@ -103,17 +105,12 @@ public final class SsoTokenProvider implements AwsTokenProvider, SdkAutoCloseabl
     }
 
     @Override
-    public AwsToken resolveToken() {
-        SsoToken ssoToken = tokenRefresher.refreshIfStaleAndFetch();
-        if (isExpired(ssoToken)) {
+    public SdkToken resolveToken() {
+        SsoOidcToken ssoOidcToken = tokenRefresher.refreshIfStaleAndFetch();
+        if (isExpired(ssoOidcToken)) {
             throw SdkClientException.create("Token is expired");
         }
-        return ssoToken;
-    }
-
-    @SdkTestInternalApi
-    String startUrl() {
-        return startUrl;
+        return ssoOidcToken;
     }
 
     public static Builder builder() {
@@ -140,7 +137,7 @@ public final class SsoTokenProvider implements AwsTokenProvider, SdkAutoCloseabl
          *
          * Supplier that will implement retrieval of the token from Disc or SSO-Oidc server if onDisc token has expired.
          */
-        Builder tokenRetriever(Supplier<SsoToken> tokenRetriever);
+        Builder tokenRetriever(Supplier<SsoOidcToken> tokenRetriever);
 
         /**
          *
@@ -156,22 +153,22 @@ public final class SsoTokenProvider implements AwsTokenProvider, SdkAutoCloseabl
          */
         Builder staleDuration(Duration onDiskStaleDuration);
 
-        SsoTokenProvider build();
+        SsoOidcTokenProvider build();
     }
 
-    private boolean isExpired(SsoToken token) {
-        Instant expiration = token.expirationTime();
+    private boolean isExpired(SsoOidcToken token) {
+        Instant expiration = token.expirationTime().get();
         Instant now = clock.instant();
         return now.isAfter(expiration);
     }
 
-    private boolean isWithinRefreshWindow(SsoToken token) {
-        Instant expiration = token.expirationTime();
+    private boolean isWithinRefreshWindow(SsoOidcToken token) {
+        Instant expiration = token.expirationTime().get();
         Instant now = clock.instant();
         return expiration.isAfter(now.plus(staleDuration));
     }
 
-    private void validateToken(SsoToken token) {
+    private void validateToken(SsoOidcToken token) {
         Validate.notNull(token.token(), "token cannot be null");
         Validate.notNull(token.expirationTime(), "expirationTime cannot be null");
     }
@@ -179,7 +176,7 @@ public final class SsoTokenProvider implements AwsTokenProvider, SdkAutoCloseabl
     private static class BuilderImpl implements Builder {
         private String startUrl;
         private String region;
-        private Supplier<SsoToken> tokenRetriever;
+        private Supplier<SsoOidcToken> tokenRetriever;
         private SsoOidcClient ssoOidcClient;
         private Duration staleDuration;
 
@@ -196,7 +193,7 @@ public final class SsoTokenProvider implements AwsTokenProvider, SdkAutoCloseabl
         }
 
         @Override
-        public Builder tokenRetriever(Supplier<SsoToken> tokenRetriever) {
+        public Builder tokenRetriever(Supplier<SsoOidcToken> tokenRetriever) {
             this.tokenRetriever = tokenRetriever;
             return this;
         }
@@ -214,23 +211,23 @@ public final class SsoTokenProvider implements AwsTokenProvider, SdkAutoCloseabl
         }
 
         @Override
-        public SsoTokenProvider build() {
-            return new SsoTokenProvider(this);
+        public SsoOidcTokenProvider build() {
+            return new SsoOidcTokenProvider(this);
         }
     }
 
-    private Supplier<SsoToken> getDefaultSsoTokenRetriever() {
+    private Supplier<SsoOidcToken> getDefaultSsoTokenRetriever() {
         return () -> {
-            SsoToken baseToken = onDiskTokenManager.loadToken()
-                                               .orElseThrow(() -> SdkClientException.create("Unable to load SSO token"));
+            SsoOidcToken baseToken = onDiskTokenManager.loadToken()
+                                                       .orElseThrow(() -> SdkClientException.create("Unable to load SSO token"));
             validateToken(baseToken);
 
             if (isWithinRefreshWindow(baseToken)) {
                 return baseToken;
             }
 
-            SsoTokenTransformer ssoTokenTransformer = SsoTokenTransformer.create(baseToken);
-            SsoToken refreshToken = ssoTokenTransformer.transform(ssoOidcClient.createToken(
+            SsoOidcTokenTransformer ssoOidcTokenTransformer = SsoOidcTokenTransformer.create(baseToken);
+            SsoOidcToken refreshToken = ssoOidcTokenTransformer.transform(ssoOidcClient.createToken(
                 CreateTokenRequest.builder()
                                   .grantType("refreshToken")
                                   .clientId(baseToken.clientId())
@@ -243,7 +240,7 @@ public final class SsoTokenProvider implements AwsTokenProvider, SdkAutoCloseabl
         };
     }
 
-    private CachedTokenRefresher getDefaultTokenRefresher(Supplier<SsoToken> tokenRetriever,
+    private CachedTokenRefresher getDefaultTokenRefresher(Supplier<SsoOidcToken> tokenRetriever,
                                                           Duration staleTime) {
         return CachedTokenRefresher.builder()
                                    .tokenRetriever(tokenRetriever)
@@ -260,7 +257,7 @@ public final class SsoTokenProvider implements AwsTokenProvider, SdkAutoCloseabl
                             .build();
     }
 
-    private void validateSupplierAndClient(Supplier<SsoToken> tokenRetriever, SsoOidcClient ssoOidcClient) {
+    private void validateSupplierAndClient(Supplier<SsoOidcToken> tokenRetriever, SsoOidcClient ssoOidcClient) {
         if (tokenRetriever != null && ssoOidcClient != null) {
             throw new IllegalStateException("Cannot provide both SsoOidcClient and a tokenRetriever.");
         }

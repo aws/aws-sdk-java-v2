@@ -18,7 +18,6 @@ package software.amazon.awssdk.auth.signer;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.token.AwsToken;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -63,11 +62,6 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
      * The key to specify the expiration time when pre-signing aws requests.
      */
     public static final ExecutionAttribute<Instant> PRESIGNER_EXPIRATION = new ExecutionAttribute<>("PresignerExpiration");
-
-    /**
-     * The token to sign requests using token authorization instead of AWS Credentials.
-     */
-    public static final ExecutionAttribute<AwsToken> AWS_TOKEN = new ExecutionAttribute<>("AwsToken");
 
     private AwsSignerExecutionAttribute() {
     }

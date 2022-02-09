@@ -66,30 +66,11 @@ SDK will support representations of a token that contains additional metadata in
 the expiration field.
 ```java
 @SdkPublicApi
-public interface AwsToken {
+public interface SdkToken {
     String token();
-    Instant expirationTime();
+    Optional<Instant> expirationTime();
 }
 
-```
-
-AwsBearerToken will implement AwsToken for Bearer token.
-
-```java
-@SdkPublicApi
-public final class AwsBearerToken implements AwsToken {
-   // Implement AwsToken APIs and constructors.
-}
-```
-
-Example to create bearerToken with a given Token string
-```java
-    AwsBearerToken bearerToken = AwsBearerToken.create("sample_token_string");
-
-```
-Example to create bearerToken with a given Token string and given expiration date.
-```java
-    AwsBearerToken bearerToken = AwsBearerToken.create("sample_token_string", Instant.parse("2022-01-05T01:01:01.00Z")
 ```
 
 #### Token Provider
@@ -101,12 +82,12 @@ interfaces in the SDK, but instead return a Token object.
 ```java
 @FunctionalInterface
 @SdkPublicApi
-public interface AwsTokenProvider {
+public interface SdkTokenProvider {
 
-    AwsToken resolveToken();
+    SdkToken resolveToken();
 }
 ```
-SsoTokenProvider is an implementation of AwsTokenProvider that is capable of loading and  storing SSO tokens to 
+SsoTokenProvider is an implementation of SdkTokenProvider that is capable of loading and  storing SSO tokens to 
 `~/.aws/sso/cache`. This is also capable of refreshing the cached token via the SSO-OIDC service.
 
 
@@ -125,7 +106,7 @@ It simply returns a static token string and has an optional expiration.
 
 #### Token Provider Chains
 
-AwsTokenProviderChain is an implementation of AwsTokenProvider that chains together multiple token providers.
+SdkTokenProviderChain is an implementation of SdkTokenProvider that chains together multiple token providers.
 The public method of this class is exactly same as [AwsCredentialsProviderChain](https://github.com/aws/aws-sdk-java-v2/blob/master/core/auth/src/main/java/software/amazon/awssdk/auth/credentials/AwsCredentialsProviderChain.java)
 except it resolves the Token providers.
 
@@ -136,7 +117,7 @@ to set the tokenProvider to a client.
 
 ```java
 
-   AwsTokenProviderChain TOKEN_PROVIDER_CHAIN =  DefaultAwsTokenProvderChain.create(); 
+   SdkTokenProviderChain TOKEN_PROVIDER_CHAIN =  DefaultSdkTokenProvderChain.create(); 
    ServiceClient.builder()
                  .region(REGION)
                  .tokenProvider(TOKEN_PROVIDER_CHAIN)
@@ -155,7 +136,7 @@ public final class BearerTokenSigner implements Signer {
 
     @Override
     public CredentialType credentialType() {
-        return CredentialType.BEARER_TOKEN;
+        return CredentialType.TOKEN;
     }
     
     @Override

@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.EmptyPublisher;
@@ -78,7 +79,7 @@ public class AsyncClientHandlerSignerValidationTest {
     @Before
     public void setup() {
         when(httpClient.execute(executeRequestCaptor.capture())).thenReturn(httpClientFuture);
-        when(signer.credentialType()).thenReturn(Signer.CredentialType.BEARER_TOKEN);
+        when(signer.credentialType()).thenReturn(CredentialType.TOKEN);
     }
 
     @Test
@@ -196,7 +197,7 @@ public class AsyncClientHandlerSignerValidationTest {
         SdkHttpFullRequest httpRequest = ValidSdkObjects.sdkHttpFullRequest().protocol("http").build();
 
         when(marshaller.marshall(any(SdkRequest.class))).thenReturn(httpRequest);
-        when(signer.credentialType()).thenReturn(Signer.CredentialType.AWS);
+        when(signer.credentialType()).thenReturn(CredentialType.of("AWS"));
         when(signer.sign(any(), any())).thenReturn(httpRequest);
 
 

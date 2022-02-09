@@ -18,7 +18,6 @@ package software.amazon.awssdk.auth.token;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.token.internal.LazyTokenProvider;
-import software.amazon.awssdk.auth.token.internal.ProfileTokenProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
@@ -32,7 +31,7 @@ import software.amazon.awssdk.utils.ToString;
  * @see ProfileTokenProvider
  */
 @SdkPublicApi
-public final class DefaultAwsTokenProvider implements AwsTokenProvider, SdkAutoCloseable {
+public final class DefaultAwsTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
 
     private static final DefaultAwsTokenProvider DEFAULT_TOKEN_PROVIDER = new DefaultAwsTokenProvider(builder());
     private final LazyTokenProvider providerChain;
@@ -50,7 +49,7 @@ public final class DefaultAwsTokenProvider implements AwsTokenProvider, SdkAutoC
      */
     private static LazyTokenProvider createChain(Builder builder) {
         return LazyTokenProvider.create(
-            () -> AwsTokenProviderChain.of(ProfileTokenProvider.builder()
+            () -> SdkTokenProviderChain.of(ProfileTokenProvider.builder()
                                                                .profileFile(builder.profileFile)
                                                                .profileName(builder.profileName)
                                                                .build()));
@@ -64,7 +63,7 @@ public final class DefaultAwsTokenProvider implements AwsTokenProvider, SdkAutoC
     }
 
     @Override
-    public AwsToken resolveToken() {
+    public SdkToken resolveToken() {
         return providerChain.resolveToken();
     }
 

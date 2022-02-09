@@ -16,7 +16,7 @@
 package software.amazon.awssdk.awscore.internal.token;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.AwsToken;
+import software.amazon.awssdk.auth.token.SdkToken;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * @param <T> Class that is a AwsToken.
  */
 @SdkInternalApi
-public interface TokenRefresher<T extends AwsToken> extends SdkAutoCloseable {
+public interface TokenRefresher<T extends SdkToken> extends SdkAutoCloseable {
 
     /**
      * Gets the fresh token from the service or provided suppliers.

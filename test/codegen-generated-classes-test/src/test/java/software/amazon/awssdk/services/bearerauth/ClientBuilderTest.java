@@ -21,8 +21,8 @@ import static org.mockito.Mockito.mock;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.signer.BearerTokenSigner;
-import software.amazon.awssdk.auth.token.AwsTokenProvider;
 import software.amazon.awssdk.auth.token.DefaultAwsTokenProvider;
+import software.amazon.awssdk.auth.token.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -45,7 +45,7 @@ public class ClientBuilderTest {
     public void syncClient_customTokenProviderSet_presentInFinalConfig() {
         DefaultBearerauthClientBuilder builder = new DefaultBearerauthClientBuilder();
 
-        AwsTokenProvider mockProvider = mock(AwsTokenProvider.class);
+        SdkTokenProvider mockProvider = mock(SdkTokenProvider.class);
         builder.tokenProvider(mockProvider);
         SdkClientConfiguration config = getSyncConfig(builder);
 
@@ -82,7 +82,7 @@ public class ClientBuilderTest {
     public void asyncClient_customTokenProviderSet_presentInFinalConfig() {
         DefaultBearerauthAsyncClientBuilder builder = new DefaultBearerauthAsyncClientBuilder();
 
-        AwsTokenProvider mockProvider = mock(AwsTokenProvider.class);
+        SdkTokenProvider mockProvider = mock(SdkTokenProvider.class);
         builder.tokenProvider(mockProvider);
         SdkClientConfiguration config = getAsyncConfig(builder);
 

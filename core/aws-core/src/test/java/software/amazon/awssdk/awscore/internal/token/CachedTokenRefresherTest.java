@@ -37,7 +37,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import software.amazon.awssdk.auth.token.AwsToken;
+import software.amazon.awssdk.auth.token.SdkToken;
 import software.amazon.awssdk.awscore.util.TestWrapperSchedulerService;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -60,9 +60,9 @@ public class CachedTokenRefresherTest {
             .staleDuration(Duration.ofMillis(99))
             .tokenRetriever(supplier)
             .build();
-        AwsToken firstRefreshToken = tokenRefresher.refreshIfStaleAndFetch();
+        SdkToken firstRefreshToken = tokenRefresher.refreshIfStaleAndFetch();
         assertThat(firstRefreshToken).isEqualTo(token1);
-        AwsToken secondRefreshToken = tokenRefresher.refreshIfStaleAndFetch();
+        SdkToken secondRefreshToken = tokenRefresher.refreshIfStaleAndFetch();
         assertThat(secondRefreshToken).isEqualTo(token1);
     }
 
@@ -83,9 +83,9 @@ public class CachedTokenRefresherTest {
             .tokenRetriever(supplier)
             .build();
 
-        AwsToken firstRefreshToken = tokenRefresher.refreshIfStaleAndFetch();
+        SdkToken firstRefreshToken = tokenRefresher.refreshIfStaleAndFetch();
         assertThat(firstRefreshToken).isEqualTo(token1);
-        AwsToken secondRefreshToken = tokenRefresher.refreshIfStaleAndFetch();
+        SdkToken secondRefreshToken = tokenRefresher.refreshIfStaleAndFetch();
         assertThat(secondRefreshToken).isEqualTo(token2);
     }
 
@@ -208,6 +208,30 @@ public class CachedTokenRefresherTest {
         assertThat(delayedStartTime.get(3)).isEqualTo(300);
         // Fourth token has 1 day expiration time thus the auto refresh will be scheduled after 1 day minus stale time (200Ms)
         assertThat(delayedStartTime.get(4)).isEqualTo(86399800);
+    }
+
+
+    @Test
+    public void refreshEveryTime_when_ExpirationDateDoesNotExist(){
+
+        Supplier<TestToken> supplier = mock(Supplier.class);
+
+        TestToken token1 =
+            TestToken.builder().token("token1").build();
+        TestToken token2 =
+            TestToken.builder().token("token2").build();
+        when(supplier.get()).thenReturn(token1)
+                            .thenReturn(token2);
+
+        CachedTokenRefresher tokenRefresher = tokenRefresherBuilder()
+            .tokenRetriever(supplier)
+            .build();
+
+        SdkToken firstRefreshToken = tokenRefresher.refreshIfStaleAndFetch();
+        assertThat(firstRefreshToken).isEqualTo(token1);
+        SdkToken secondRefreshToken = tokenRefresher.refreshIfStaleAndFetch();
+        assertThat(secondRefreshToken).isEqualTo(token2);
+
     }
 
     private TestAwsResponse.Builder getDefaultTestAwsResponseBuilder() {

@@ -33,16 +33,17 @@ import java.time.ZoneId;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.token.AwsToken;
+import software.amazon.awssdk.auth.token.SdkToken;
 import software.amazon.awssdk.awscore.internal.token.TokenManager;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ssooidc.SsoOidcClient;
+import software.amazon.awssdk.services.ssooidc.SsoOidcTokenProvider;
 import software.amazon.awssdk.services.ssooidc.model.CreateTokenRequest;
 import software.amazon.awssdk.services.ssooidc.model.CreateTokenResponse;
 import software.amazon.awssdk.services.ssooidc.model.UnauthorizedClientException;
 
-public class SsoTokenProviderTest {
-    private TokenManager<SsoToken> mockTokenManager;
+public class SsoOidcTokenProviderTest {
+    private TokenManager<SsoOidcToken> mockTokenManager;
     private SsoOidcClient ssoOidcClient;
 
     @BeforeEach
@@ -53,33 +54,33 @@ public class SsoTokenProviderTest {
 
     @Test
     public void resolveToken_usesTokenManager() {
-        SsoToken ssoToken = SsoToken.builder()
-                                    .accessToken("accesstoken")
-                                    .expiresAt(Instant.now().plus(Duration.ofDays(1)))
-                                    .build();
-        Optional<SsoToken> returnVal = Optional.of(ssoToken);
+        SsoOidcToken ssoOidcToken = SsoOidcToken.builder()
+                                                .accessToken("accesstoken")
+                                                .expiresAt(Instant.now().plus(Duration.ofDays(1)))
+                                                .build();
+        Optional<SsoOidcToken> returnVal = Optional.of(ssoOidcToken);
         when(mockTokenManager.loadToken()).thenReturn(returnVal);
 
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start",
-                                                              "region",
-                                                              mockTokenManager, null,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              null);
-        assertThat(tokenProvider.resolveToken()).isSameAs(ssoToken);
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start",
+                                                                      "region",
+                                                                      mockTokenManager, null,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      null);
+        assertThat(tokenProvider.resolveToken()).isSameAs(ssoOidcToken);
     }
 
     @Test
     public void resolveToken_cachedValueNotPresent_throws() {
-        Optional<SsoToken> returnVal = Optional.empty();
+        Optional<SsoOidcToken> returnVal = Optional.empty();
         when(mockTokenManager.loadToken()).thenReturn(returnVal);
 
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start",
-                                                              "region",
-                                                              mockTokenManager, null,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              null);
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start",
+                                                                      "region",
+                                                                      mockTokenManager, null,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      null);
 
         assertThatThrownBy(tokenProvider::resolveToken)
             .isInstanceOf(SdkClientException.class)
@@ -106,7 +107,7 @@ public class SsoTokenProviderTest {
     //         },
     @Test
     public void standardTest_Valid_token_with_all_fields() {
-        SsoToken token = getDefaultTokenBuilder()
+        SsoOidcToken token = getDefaultTokenBuilder()
             .expiresAt(Instant.parse("2021-12-25T21:30:00Z")).registrationExpiresAt(Instant.parse("2022-12-25T13:30:00Z"))
             .build();
 
@@ -114,14 +115,14 @@ public class SsoTokenProviderTest {
 
         Clock clock = Clock.fixed(Instant.parse("2021-12-25T13:30:00Z"), ZoneId.of("UTC"));
 
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start",
-                                                              "region",
-                                                              mockTokenManager, clock,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              null);
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start",
+                                                                      "region",
+                                                                      mockTokenManager, clock,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      null);
 
-        AwsToken resolvedToken = tokenProvider.resolveToken();
+        SdkToken resolvedToken = tokenProvider.resolveToken();
         assertThat(resolvedToken.token()).isEqualTo(token.token());
         assertThat(resolvedToken.expirationTime()).isEqualTo(token.expirationTime());
 
@@ -129,7 +130,7 @@ public class SsoTokenProviderTest {
 
     @Test
     public void refresh_returns_cached_token_when_service_calls_fails() {
-        SsoToken nearToExpiryToken = getDefaultTokenBuilder()
+        SsoOidcToken nearToExpiryToken = getDefaultTokenBuilder()
             .expiresAt(Instant.parse("2021-12-25T13:07:00Z")).registrationExpiresAt(Instant.parse("2022-12-25T11:30:00Z"))
             .build();
 
@@ -140,32 +141,32 @@ public class SsoTokenProviderTest {
         // https://d-123.awsapps.com/start
 
 
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start",
-                                                              "region",
-                                                              mockTokenManager, clock,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              null);
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start",
+                                                                      "region",
+                                                                      mockTokenManager, clock,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      null);
 
-        AwsToken resolvedToken = tokenProvider.resolveToken();
+        SdkToken resolvedToken = tokenProvider.resolveToken();
         assertThat(resolvedToken.token()).isEqualTo(nearToExpiryToken.token());
         assertThat(resolvedToken.expirationTime()).isEqualTo(nearToExpiryToken.expirationTime());
     }
 
     @Test
     public void refresh_fails_when_supplier_fails_due_to_Non_service_issues() {
-        SsoToken nearToExpiryToken = getDefaultTokenBuilder()
+        SsoOidcToken nearToExpiryToken = getDefaultTokenBuilder()
             .expiresAt(Instant.parse("2021-12-25T13:07:00Z")).registrationExpiresAt(Instant.parse("2022-12-25T11:30:00Z"))
             .build();
         when(mockTokenManager.loadToken()).thenReturn(Optional.of(nearToExpiryToken));
         when(ssoOidcClient.createToken(any(CreateTokenRequest.class))).thenThrow(SdkClientException.class);
         Clock clock = Clock.fixed(Instant.parse("2021-12-25T13:05:00Z"), ZoneId.of("UTC"));
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start",
-                                                              "region",
-                                                              mockTokenManager, clock,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              null);
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start",
+                                                                      "region",
+                                                                      mockTokenManager, clock,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      null);
 
         assertThatExceptionOfType(SdkClientException.class).isThrownBy(() -> tokenProvider.resolveToken());
     }
@@ -185,21 +186,21 @@ public class SsoTokenProviderTest {
     @Test
     public void standardTest_Minimal_valid_cached_token() {
         Instant expiresAt = Instant.parse("2021-12-25T21:30:00Z");
-        SsoToken ssoToken = SsoToken.builder().accessToken("cachedtoken").expiresAt(expiresAt).build();
-        when(mockTokenManager.loadToken()).thenReturn(Optional.of(ssoToken));
+        SsoOidcToken ssoOidcToken = SsoOidcToken.builder().accessToken("cachedtoken").expiresAt(expiresAt).build();
+        when(mockTokenManager.loadToken()).thenReturn(Optional.of(ssoOidcToken));
 
         Clock testClock = Clock.fixed(Instant.parse("2021-12-25T13:30:00Z"), ZoneId.of("UTC"));
 
 
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start", "region" ,
-                                                              mockTokenManager, testClock,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              null);
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start", "region" ,
+                                                                      mockTokenManager, testClock,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      null);
 
 
 
-        assertThat(tokenProvider.resolveToken()).isEqualTo(ssoToken);
+        assertThat(tokenProvider.resolveToken()).isEqualTo(ssoOidcToken);
     }
 
     //         {
@@ -215,10 +216,10 @@ public class SsoTokenProviderTest {
     public void standardTest_Minimal_expired_cached_token() {
         String startUrl = "https://d-123.awsapps.com/start";
         Instant expiresAt = Instant.parse("2021-12-25T13:00:00Z");
-        SsoToken ssoToken =
-            SsoToken.builder().startUrl(startUrl).clientId("clientId").clientSecret("clientSecret")
-                    .accessToken("cachedtoken").expiresAt(expiresAt).build();
-        when(mockTokenManager.loadToken()).thenReturn(Optional.of(ssoToken));
+        SsoOidcToken ssoOidcToken =
+            SsoOidcToken.builder().startUrl(startUrl).clientId("clientId").clientSecret("clientSecret")
+                        .accessToken("cachedtoken").expiresAt(expiresAt).build();
+        when(mockTokenManager.loadToken()).thenReturn(Optional.of(ssoOidcToken));
         when(ssoOidcClient.createToken(any(CreateTokenRequest.class)))
             .thenReturn(CreateTokenResponse.builder().accessToken("cachedtoken")
                                            .expiresIn(1640437200)
@@ -227,11 +228,11 @@ public class SsoTokenProviderTest {
         Clock testClock = Clock.fixed(Instant.parse("2021-12-25T13:30:00Z"), ZoneId.of("UTC"));
 
 
-        SsoTokenProvider tokenProvider = new SsoTokenProvider(startUrl, "region",
-                                                              mockTokenManager, testClock,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              null);
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider(startUrl, "region",
+                                                                      mockTokenManager, testClock,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      null);
 
 
         assertThatThrownBy(tokenProvider::resolveToken).isInstanceOf(SdkClientException.class).hasMessageContaining("expired");
@@ -247,19 +248,26 @@ public class SsoTokenProviderTest {
     //         },
     @Test
     public void standardTest_Token_missing_the_expiresAt_field() {
-        SsoToken ssoToken = SsoToken.builder().startUrl("https://d-123.awsapps.com/start").accessToken("cachedtoken").build();
-        when(mockTokenManager.loadToken()).thenReturn(Optional.of(ssoToken));
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start",
-                                                              "region",
-                                                              mockTokenManager, null,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              null);
+        SsoOidcToken ssoOidcToken = SsoOidcToken.builder()
+                                                .startUrl("https://d-123.awsapps.com/start")
+                                                .accessToken("cachedtoken").clientId("client").clientSecret("secret")
+                                                .expiresAt(Instant.parse("2021-12-25T13:00:00Z"))
+                                                .build();
+        when(mockTokenManager.loadToken()).thenReturn(Optional.of(ssoOidcToken));
+        when(ssoOidcClient.createToken(any(CreateTokenRequest.class)))
+            .thenReturn(CreateTokenResponse.builder().accessToken("cachedtoken")
+                                           .build());
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start",
+                                                                      "region",
+                                                                      mockTokenManager, null,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      null);
 
 
         assertThatThrownBy(tokenProvider::resolveToken)
             .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("expirationTime cannot be null");
+            .hasMessageContaining("expiresIn must not be null.");
     }
 
     //        {
@@ -272,24 +280,30 @@ public class SsoTokenProviderTest {
     //         },
     @Test
     public void standardTest_Token_missing_the_accessToken_field() {
-        SsoToken ssoToken = SsoToken.builder().expiresAt(Instant.now()).build();
-        when(mockTokenManager.loadToken()).thenReturn(Optional.of(ssoToken));
+        SsoOidcToken ssoOidcToken = SsoOidcToken.builder()
+                                                .startUrl("https://d-123.awsapps.com/start")
+                                                .accessToken("cachedtoken").clientId("client").clientSecret("secret")
+                                                .expiresAt(Instant.parse("2021-12-25T13:00:00Z"))
+                                                .build();
 
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start",
-                                                              "region",
-                                                              mockTokenManager, null,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              null);
+        when(mockTokenManager.loadToken()).thenReturn(Optional.of(ssoOidcToken));
+        when(ssoOidcClient.createToken(any(CreateTokenRequest.class)))
+            .thenReturn(CreateTokenResponse.builder().expiresIn(3600).build());
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start",
+                                                                      "region",
+                                                                      mockTokenManager, null,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      null);
 
         assertThatThrownBy(tokenProvider::resolveToken)
             .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("token cannot be null");
+            .hasMessageContaining("accessToken must not be null.");
     }
 
     @Test
     public void refresh_token_from_service_when_token_outside_expiry_window() {
-        SsoToken nearToExpiryToken = getDefaultTokenBuilder()
+        SsoOidcToken nearToExpiryToken = getDefaultTokenBuilder()
             .expiresAt(Instant.parse("2021-12-25T13:07:00Z"))
             .registrationExpiresAt(Instant.parse("2022-12-25T11:30:00Z")).build();
 
@@ -298,19 +312,19 @@ public class SsoTokenProviderTest {
 
         Clock clock = Clock.fixed(Instant.parse("2021-12-25T13:05:00Z"), ZoneId.of("UTC"));
 
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start",
-                                                              "region",
-                                                              mockTokenManager, clock,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              null);
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start",
+                                                                      "region",
+                                                                      mockTokenManager, clock,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      null);
 
 
-        SsoToken resolvedToken = (SsoToken) tokenProvider.resolveToken();
+        SsoOidcToken resolvedToken = (SsoOidcToken) tokenProvider.resolveToken();
 
         assertThat(resolvedToken.token()).isEqualTo("serviceToken");
         assertThat(resolvedToken.refreshToken()).isEqualTo("refreshedToken");
-        assertThat(resolvedToken.expirationTime()).isEqualTo(Instant.parse("2021-12-25T13:27:00Z"));
+        assertThat(resolvedToken.expirationTime()).hasValue(Instant.parse("2021-12-25T13:27:00Z"));
 
         // Base properties of tokens are retained.
         assertThat(resolvedToken.clientId()).isEqualTo(nearToExpiryToken.clientId());
@@ -322,7 +336,7 @@ public class SsoTokenProviderTest {
 
     @Test
     public void refresh_token_does_not_fetch_from_service_when_token_inside_expiry_window() {
-        SsoToken cachedDiskToken = getDefaultTokenBuilder()
+        SsoOidcToken cachedDiskToken = getDefaultTokenBuilder()
             .expiresAt(Instant.parse("2021-12-25T13:11:00Z")).registrationExpiresAt(Instant.parse("2022-12-25T11:30:00Z"))
             .build();
 
@@ -331,16 +345,16 @@ public class SsoTokenProviderTest {
 
         Clock clock = Clock.fixed(Instant.parse("2021-12-25T13:05:00Z"), ZoneId.of("UTC"));
 
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start",
-                                                              "region",
-                                                              mockTokenManager, clock,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              null);
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start",
+                                                                      "region",
+                                                                      mockTokenManager, clock,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      null);
 
 
 
-        AwsToken resolvedToken = tokenProvider.resolveToken();
+        SdkToken resolvedToken = tokenProvider.resolveToken();
 
         assertThat(resolvedToken).isEqualTo(cachedDiskToken);
         verify(ssoOidcClient, never()).createToken(any(CreateTokenRequest.class));
@@ -349,27 +363,27 @@ public class SsoTokenProviderTest {
     @Test
     public void token_is_obtained_from_inmemory_when_token_is_within_inmemory_stale_time() {
         Instant futureExpiryDate = Instant.now().plus(Duration.ofDays(1));
-        SsoToken cachedDiskToken = getDefaultTokenBuilder()
+        SsoOidcToken cachedDiskToken = getDefaultTokenBuilder()
             .expiresAt(futureExpiryDate).registrationExpiresAt(Instant.parse("2022-12-25T11:30:00Z")).build();
 
         when(mockTokenManager.loadToken()).thenReturn(Optional.of(cachedDiskToken));
         when(ssoOidcClient.createToken(any(CreateTokenRequest.class))).thenReturn(getDefaultServiceResponse().build());
 
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start",
-                                                              "region",
-                                                              mockTokenManager, null,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              null);
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start",
+                                                                      "region",
+                                                                      mockTokenManager, null,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      null);
 
-        AwsToken resolvedToken = tokenProvider.resolveToken();
+        SdkToken resolvedToken = tokenProvider.resolveToken();
 
         assertThat(resolvedToken).isEqualTo(cachedDiskToken);
         verify(ssoOidcClient, never()).createToken(any(CreateTokenRequest.class));
-        AwsToken consecutiveToken = tokenProvider.resolveToken();
+        SdkToken consecutiveToken = tokenProvider.resolveToken();
         assertThat(consecutiveToken).isEqualTo(resolvedToken);
         verify(ssoOidcClient, never()).createToken(any(CreateTokenRequest.class));
-        verify(mockTokenManager, never()).storeToken(any(SsoToken.class));
+        verify(mockTokenManager, never()).storeToken(any(SsoOidcToken.class));
         verify(mockTokenManager, times(1)).loadToken();
     }
 
@@ -378,70 +392,70 @@ public class SsoTokenProviderTest {
     @Test
     public void token_is_obtained_from_refresher_and_then_refresher_cache_if_its_within_stale_time() {
         Instant closeToExpireTime = Instant.now().plus(Duration.ofMinutes(4));
-        SsoToken cachedDiskToken = getDefaultTokenBuilder().accessToken("fourMinutesToExpire")
-                                                           .expiresAt(closeToExpireTime)
-                                                           .registrationExpiresAt(Instant.parse("2022-12-25T11:30:00Z")).build();
+        SsoOidcToken cachedDiskToken = getDefaultTokenBuilder().accessToken("fourMinutesToExpire")
+                                                               .expiresAt(closeToExpireTime)
+                                                               .registrationExpiresAt(Instant.parse("2022-12-25T11:30:00Z")).build();
 
         when(mockTokenManager.loadToken()).thenReturn(Optional.of(cachedDiskToken));
         Instant eightMinutesFromNow = Instant.now().plus(Duration.ofMinutes(8));
         when(ssoOidcClient.createToken(any(CreateTokenRequest.class))).thenReturn(getDefaultServiceResponse().accessToken(
             "eightMinutesExpiry").expiresIn((int) eightMinutesFromNow.getEpochSecond()).build());
 
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start",
-                                                              "region",
-                                                              mockTokenManager, null,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              Duration.ofMinutes(7));
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start",
+                                                                      "region",
+                                                                      mockTokenManager, null,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      Duration.ofMinutes(7));
 
 
-        AwsToken resolvedToken = tokenProvider.resolveToken();
+        SdkToken resolvedToken = tokenProvider.resolveToken();
 
         // Resolves to fresh token
         assertThat(resolvedToken.token()).isEqualTo("eightMinutesExpiry");
         verify(ssoOidcClient, times(1)).createToken(any(CreateTokenRequest.class));
-        AwsToken consecutiveToken = tokenProvider.resolveToken();
+        SdkToken consecutiveToken = tokenProvider.resolveToken();
         assertThat(consecutiveToken).isEqualTo(resolvedToken);
         verify(ssoOidcClient, times(1)).createToken(any(CreateTokenRequest.class));
-        verify(mockTokenManager, times(1)).storeToken(any(SsoToken.class));
+        verify(mockTokenManager, times(1)).storeToken(any(SsoOidcToken.class));
         verify(mockTokenManager, times(1)).loadToken();
 
-        AwsToken thirdTokenAccess = tokenProvider.resolveToken();
+        SdkToken thirdTokenAccess = tokenProvider.resolveToken();
         assertThat(thirdTokenAccess).isEqualTo(resolvedToken);
         verify(ssoOidcClient, times(1)).createToken(any(CreateTokenRequest.class));
-        verify(mockTokenManager, times(1)).storeToken(any(SsoToken.class));
+        verify(mockTokenManager, times(1)).storeToken(any(SsoOidcToken.class));
         verify(mockTokenManager, times(1)).loadToken();
     }
 
     @Test
     public void token_is_retrieved_from_service_when_service_returns_tokens_with_short_expiration() {
         Instant closeToExpireTime = Instant.now().plus(Duration.ofMinutes(4));
-        SsoToken cachedDiskToken = getDefaultTokenBuilder().accessToken("fourMinutesToExpire")
-                                                           .expiresAt(closeToExpireTime)
-                                                           .registrationExpiresAt(Instant.parse("2022-12-25T11:30:00Z"))
-                                                           .build();
+        SsoOidcToken cachedDiskToken = getDefaultTokenBuilder().accessToken("fourMinutesToExpire")
+                                                               .expiresAt(closeToExpireTime)
+                                                               .registrationExpiresAt(Instant.parse("2022-12-25T11:30:00Z"))
+                                                               .build();
         when(mockTokenManager.loadToken()).thenReturn(Optional.of(cachedDiskToken));
         Instant eightMinutesFromNow = Instant.now().plus(Duration.ofMinutes(8));
         when(ssoOidcClient.createToken(any(CreateTokenRequest.class))).thenReturn(getDefaultServiceResponse().accessToken(
             "eightMinutesExpiry").expiresIn((int) eightMinutesFromNow.getEpochSecond()).build());
 
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start",
-                                                              "region",
-                                                              mockTokenManager, null,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              Duration.ofMinutes(10));
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start",
+                                                                      "region",
+                                                                      mockTokenManager, null,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      Duration.ofMinutes(10));
 
 
-        AwsToken resolvedToken = tokenProvider.resolveToken();
+        SdkToken resolvedToken = tokenProvider.resolveToken();
         assertThat(resolvedToken.token()).isEqualTo("eightMinutesExpiry");
         verify(ssoOidcClient, times(1)).createToken(any(CreateTokenRequest.class));
-        verify(mockTokenManager, times(1)).storeToken(any(SsoToken.class));
+        verify(mockTokenManager, times(1)).storeToken(any(SsoOidcToken.class));
 
-        AwsToken consecutiveToken = tokenProvider.resolveToken();
+        SdkToken consecutiveToken = tokenProvider.resolveToken();
         assertThat(consecutiveToken).isEqualTo(resolvedToken);
         verify(ssoOidcClient, times(2)).createToken(any(CreateTokenRequest.class));
-        verify(mockTokenManager, times(2)).storeToken(any(SsoToken.class));
+        verify(mockTokenManager, times(2)).storeToken(any(SsoOidcToken.class));
         // Loaded only ones , the second time it picks from cache
         verify(mockTokenManager, times(2)).loadToken();
     }
@@ -449,10 +463,10 @@ public class SsoTokenProviderTest {
     @Test
     public void token_is_retrieved_automatically_when_auto_refresh_is_enabled() throws InterruptedException {
         Instant closeToExpireTime = Instant.now().plus(Duration.ofMillis(3));
-        SsoToken cachedDiskToken = getDefaultTokenBuilder().accessToken("fourMinutesToExpire")
-                                                           .expiresAt(closeToExpireTime)
-                                                           .registrationExpiresAt(Instant.parse("2022-12-25T11:30:00Z"))
-                                                           .build();
+        SsoOidcToken cachedDiskToken = getDefaultTokenBuilder().accessToken("fourMinutesToExpire")
+                                                               .expiresAt(closeToExpireTime)
+                                                               .registrationExpiresAt(Instant.parse("2022-12-25T11:30:00Z"))
+                                                               .build();
 
         when(mockTokenManager.loadToken()).thenReturn(Optional.of(cachedDiskToken));
         Instant eightMinutesFromNow = Instant.now().plus(Duration.ofMillis(200));
@@ -462,16 +476,16 @@ public class SsoTokenProviderTest {
             .thenReturn(getDefaultServiceResponse().accessToken("twelveMinutesExpiry").expiresIn((int) twelveMinutesFromNow.getEpochSecond()).build());
 
 
-        SsoTokenProvider tokenProvider = new SsoTokenProvider("https://d-123.awsapps.com/start",
-                                                              "region",
-                                                              mockTokenManager, null,
-                                                              null,
-                                                              ssoOidcClient,
-                                                              Duration.ofMillis(100));
+        SsoOidcTokenProvider tokenProvider = new SsoOidcTokenProvider("https://d-123.awsapps.com/start",
+                                                                      "region",
+                                                                      mockTokenManager, null,
+                                                                      null,
+                                                                      ssoOidcClient,
+                                                                      Duration.ofMillis(100));
 
 
         verify(ssoOidcClient, never()).createToken(any(CreateTokenRequest.class));
-        verify(mockTokenManager, never()).storeToken(any(SsoToken.class));
+        verify(mockTokenManager, never()).storeToken(any(SsoOidcToken.class));
         verify(mockTokenManager, never()).loadToken();
 
         // Giving some time for daemon thread to run some refreshes.
@@ -479,17 +493,17 @@ public class SsoTokenProviderTest {
 
         // 2 calls made , the first call gives 8 minutes expiry time , 2nd call gives 12 minutes expiry token
         verify(ssoOidcClient, atMost(2)).createToken(any(CreateTokenRequest.class));
-        verify(mockTokenManager, atMost(2)).storeToken(any(SsoToken.class));
+        verify(mockTokenManager, atMost(2)).storeToken(any(SsoOidcToken.class));
 
         // 2 calls made , the first call gives 4 minutes expiry time , 2nd call gives 8 minutes expiry token then onwards cached
         verify(mockTokenManager, atMost(2)).loadToken();
 
-        AwsToken awsToken = tokenProvider.resolveToken();
-        assertThat(awsToken.token()).isEqualTo("twelveMinutesExpiry");
+        SdkToken sdkToken = tokenProvider.resolveToken();
+        assertThat(sdkToken.token()).isEqualTo("twelveMinutesExpiry");
 
         // No disc access or service access since all values accessed from caches , this number is same as above.
         verify(ssoOidcClient, atMost(2)).createToken(any(CreateTokenRequest.class));
-        verify(mockTokenManager, atMost(2)).storeToken(any(SsoToken.class));
+        verify(mockTokenManager, atMost(2)).storeToken(any(SsoOidcToken.class));
         verify(mockTokenManager, atMost(2)).loadToken();
         tokenProvider.close();
     }
@@ -497,10 +511,10 @@ public class SsoTokenProviderTest {
     @Test
     public void exception_when_client_and_supplier_passed_together(){
         assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
-            () -> SsoTokenProvider.builder()
-                            .tokenRetriever(
-                                () -> getDefaultTokenBuilder().build()).ssoOidcClient(SsoOidcClient.create()).build()).withMessage(
-                                    "Cannot provide both SsoOidcClient and a tokenRetriever.");
+            () -> SsoOidcTokenProvider.builder()
+                                      .tokenRetriever(
+                                () -> getDefaultTokenBuilder().build()).ssoOidcClient(SsoOidcClient.create()).build())
+                                                              .withMessage("Cannot provide both SsoOidcClient and a tokenRetriever.");
     }
 
     private CreateTokenResponse.Builder getDefaultServiceResponse() {
@@ -509,15 +523,15 @@ public class SsoTokenProviderTest {
             "refreshedToken");
     }
 
-    private SsoToken.Builder getDefaultTokenBuilder() {
-        return SsoToken.builder()
-                       .startUrl("https://d-123.awsapps.com/start")
-                       .region("us-west-2")
-                       .accessToken("cachedtoken")
-                       .expiresAt(Instant.parse("2022-12-25T13:30:00Z"))
-                       .clientId("clientid")
-                       .clientSecret("YSBzZWNyZXQ=")
-                       .registrationExpiresAt(Instant.parse("2022-12-25T13:40:00Z"))
-                       .refreshToken("cachedrefreshtoken");
+    private SsoOidcToken.Builder getDefaultTokenBuilder() {
+        return SsoOidcToken.builder()
+                           .startUrl("https://d-123.awsapps.com/start")
+                           .region("us-west-2")
+                           .accessToken("cachedtoken")
+                           .expiresAt(Instant.parse("2022-12-25T13:30:00Z"))
+                           .clientId("clientid")
+                           .clientSecret("YSBzZWNyZXQ=")
+                           .registrationExpiresAt(Instant.parse("2022-12-25T13:40:00Z"))
+                           .refreshToken("cachedrefreshtoken");
     }
 }
