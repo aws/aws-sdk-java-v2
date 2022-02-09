@@ -40,6 +40,8 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
@@ -95,6 +97,11 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
     public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
         validateOverrideConfiguration(putObjectRequest);
         return s3AsyncClient.putObject(putObjectRequest, requestBody);
+    }
+
+    @Override
+    public CompletableFuture<ListObjectsV2Response> listObjectsV2(ListObjectsV2Request listObjectsV2Request) {
+        return s3AsyncClient.listObjectsV2(listObjectsV2Request);
     }
 
     @Override

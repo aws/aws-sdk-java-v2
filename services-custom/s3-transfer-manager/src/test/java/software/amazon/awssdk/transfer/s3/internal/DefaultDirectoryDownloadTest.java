@@ -13,15 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3;
+package software.amazon.awssdk.transfer.s3.internal;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-class DownloadDirectoryOverrideConfigurationTest {
+class DefaultDirectoryDownloadTest {
 
     @Test
-    void equalsHashCode() {
-        EqualsVerifier.forClass(DownloadDirectoryOverrideConfiguration.class).verify();
+    void equals_hashcode() {
+        EqualsVerifier.forClass(DefaultDirectoryDownload.class)
+                      .withNonnullFields("completionFuture")
+                      .verify();
     }
+
 }
