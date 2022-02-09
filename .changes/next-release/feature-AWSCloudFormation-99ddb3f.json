@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudFormation",
+    "contributor": "",
+    "description": "This SDK release is for the feature launch of AWS CloudFormation Hooks."
+}
