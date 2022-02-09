@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -118,10 +119,10 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      * </pre>
      */
     @Test
-    public void downloadDirectory() {
+    public void downloadDirectory() throws Exception {
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destinationDirectory(destinationDirectory)
                                                                          .bucket(TEST_BUCKET));
-        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
         assertTwoDirectoriesHaveSameStructure(sourceDirectory, destinationDirectory);
     }
@@ -144,12 +145,12 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      * </pre>
      */
     @Test
-    public void downloadDirectory_withPrefix() {
+    public void downloadDirectory_withPrefix() throws Exception {
         String prefix = "notes";
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destinationDirectory(destinationDirectory)
                                                                          .prefix(prefix)
                                                                          .bucket(TEST_BUCKET));
-        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
 
         assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve(prefix), destinationDirectory);
@@ -166,13 +167,13 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      * </pre>
      */
     @Test
-    public void downloadDirectory_withPrefixAndDelimiter() {
+    public void downloadDirectory_withPrefixAndDelimiter() throws Exception {
         String prefix = "notes-2021";
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destinationDirectory(destinationDirectory)
                                                                          .delimiter(CUSTOM_DELIMITER)
                                                                          .prefix(prefix)
                                                                          .bucket(TEST_BUCKET_CUSTOM_DELIMITER));
-        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
         assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve("notes").resolve("2021"), destinationDirectory);
     }

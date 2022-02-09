@@ -103,7 +103,7 @@ public class DownloadDirectoryHelper {
                                      DownloadDirectoryRequest downloadDirectoryRequest) {
         validateDirectoryIfExists(downloadDirectoryRequest.destinationDirectory());
         String bucket = downloadDirectoryRequest.bucket();
-        String delimiter = downloadDirectoryRequest.delimiter().orElse(DEFAULT_DELIMITER);
+        String delimiter = downloadDirectoryRequest.delimiter().orElse(null);
         String prefix = downloadDirectoryRequest.prefix().orElse(DEFAULT_PREFIX);
 
         ListObjectsV2Request request = ListObjectsV2Request.builder()
@@ -194,7 +194,7 @@ public class DownloadDirectoryHelper {
                                                                             Collection<FailedFileDownload> failedFileDownloads,
                                                                             S3Object s3Object) {
             FileSystem fileSystem = downloadDirectoryRequest.destinationDirectory().getFileSystem();
-            String delimiter = downloadDirectoryRequest.delimiter().orElse(DEFAULT_DELIMITER);
+            String delimiter = downloadDirectoryRequest.delimiter().orElse(null);
 
             String key = normalizeKey(downloadDirectoryRequest, s3Object, delimiter);
 
@@ -207,6 +207,7 @@ public class DownloadDirectoryHelper {
 
             try {
                 log.debug(() -> "Sending download request " + downloadFileRequest);
+                createParentDirectoriesIfNeeded(destinationPath);
 
                 CompletableFuture<CompletedFileDownload> future =
                     downloadFileFunction.apply(downloadFileRequest).completionFuture();
@@ -231,17 +232,23 @@ public class DownloadDirectoryHelper {
         /**
          * Normalizing the key by stripping the prefix from the s3 object key if the prefix is not empty. For example: given a
          * request with prefix = "notes/2021", delimiter = "/" and key = "notes/2021/1.txt", the returned string should be
-         * "1.txt"
+         * "1.txt".
+         * If a delimiter is null (not provided by user), use "/" by default.
          */
-        private static String normalizeKey(DownloadDirectoryRequest downloadDirectoryRequest, S3Object s3Object,
+        private static String normalizeKey(DownloadDirectoryRequest downloadDirectoryRequest,
+                                           S3Object s3Object,
                                            String delimiter) {
+            int delimiterLength = delimiter == null ? DEFAULT_DELIMITER.length() : delimiter.length();
             return downloadDirectoryRequest.prefix()
                                            .filter(prefix -> !prefix.isEmpty())
-                                           .map(prefix -> s3Object.key().substring(prefix.length() + delimiter.length()))
+                                           .map(prefix -> s3Object.key().substring(prefix.length() + delimiterLength))
                                            .orElseGet(s3Object::key);
         }
 
         private static String getRelativePath(FileSystem fileSystem, String delimiter, String key) {
+            if (delimiter == null) {
+                return key;
+            }
             if (fileSystem.getSeparator().equals(delimiter)) {
                 return key;
             }
@@ -253,7 +260,6 @@ public class DownloadDirectoryHelper {
                                                                S3Object s3Object,
                                                                Path destinationPath) {
 
-            createParentDirectoriesIfNeeded(destinationPath);
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                                                                 .bucket(downloadDirectoryRequest.bucket())
                                                                 .key(s3Object.key())

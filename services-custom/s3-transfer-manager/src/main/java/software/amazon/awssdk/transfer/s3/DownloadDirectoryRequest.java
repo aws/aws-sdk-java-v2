@@ -196,8 +196,7 @@ public final class DownloadDirectoryRequest
 
         /**
          * Specify the delimiter that will be used to retrieve the objects within the provided bucket. A delimiter causes a list
-         * operation to roll up all the keys that share a common prefix into a single summary list result. If not provided, {@code
-         * "/"} will be used.
+         * operation to roll up all the keys that share a common prefix into a single summary list result. It's null by default.
          *
          * For example, assume that you have the following keys in your bucket:
          *
