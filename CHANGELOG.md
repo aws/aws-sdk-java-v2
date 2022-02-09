@@ -1,3 +1,8 @@
+# __2.17.127__ __2022-02-09__
+## __AWS CloudFormation__
+  - ### Features
+    - This SDK release is for the feature launch of AWS CloudFormation Hooks.
+
 # __2.17.126__ __2022-02-08__
 ## __AWS App Runner__
   - ### Features
