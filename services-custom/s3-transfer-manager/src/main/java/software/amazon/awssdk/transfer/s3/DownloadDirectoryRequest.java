@@ -162,6 +162,33 @@ public final class DownloadDirectoryRequest
          * See <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-prefixes.html">Organizing objects using
          * prefixes</a>
          *
+         * <p>
+         * When a non-empty prefix is provided, the prefix is stripped from the directory structure of the files.
+         * <p>
+         * For example, assume that you have the following keys in your bucket:
+         * <ul>
+         *     <li>sample.jpg</li>
+         *     <li>photos/2022/January/sample.jpg</li>
+         *     <li>photos/2022/February/sample1.jpg</li>
+         *     <li>photos/2022/February/sample2.jpg</li>
+         *     <li>photos/2022/February/sample3.jpg</li>
+         * </ul>
+         *
+         * Give a request to download the bucket to a destination with a prefix of "/photos" and destination path of "test", the
+         * downloaded directory would like this
+         *
+         * <pre>
+         *   {@code
+         *      |- test
+         *         |- 2022
+         *              |- January
+         *                 |- sample.jpg
+         *              |- February
+         *                 |- sample1.jpg
+         *                 |- sample2.jpg
+         *                 |- sample3.jpg
+         *   }
+         * </pre>
          * @param prefix the key prefix
          * @return This builder for method chaining.
          */
@@ -171,6 +198,35 @@ public final class DownloadDirectoryRequest
          * Specify the delimiter that will be used to retrieve the objects within the provided bucket. A delimiter causes a list
          * operation to roll up all the keys that share a common prefix into a single summary list result. If not provided, {@code
          * "/"} will be used.
+         *
+         * For example, assume that you have the following keys in your bucket:
+         *
+         * <ul>
+         *     <li>sample.jpg</li>
+         *     <li>photos-2022-January-sample.jpg</li>
+         *     <li>photos-2022-February-sample1.jpg</li>
+         *     <li>photos-2022-February-sample2.jpg</li>
+         *     <li>photos-2022-February-sample3.jpg</li>
+         * </ul>
+         *
+         * Give a request to download the bucket to a destination with delimiter of "-", the downloaded directory would look
+         * like this
+         *
+         * <pre>
+         *   {@code
+         *      |- test
+         *         |- sample.jpg
+         *         |- photos
+         *             |- 2022
+         *                 |- January
+         *                     |- sample.jpg
+         *                 |- February
+         *                     |- sample1.jpg
+         *                     |- sample2.jpg
+         *                     |- sample3.jpg
+         *   }
+         * </pre>
+         *
          * <p>
          * See <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-prefixes.html">Organizing objects using
          * prefixes</a>

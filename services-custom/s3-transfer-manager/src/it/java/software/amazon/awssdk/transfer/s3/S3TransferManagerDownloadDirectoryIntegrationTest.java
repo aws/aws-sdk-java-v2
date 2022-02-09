@@ -103,6 +103,20 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         S3IntegrationTestBase.cleanUp();
     }
 
+    /**
+     * The destination directory structure should match with the directory uploaded
+     * <pre>
+     *   {@code
+     *      - destination
+     *           - 2021
+     *              - 1.txt
+     *              - 2.txt
+     *           - 2022
+     *               - 1.txt
+     *           - important.txt
+     *   }
+     * </pre>
+     */
     @Test
     public void downloadDirectory() {
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destinationDirectory(destinationDirectory)
@@ -112,6 +126,23 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         assertTwoDirectoriesHaveSameStructure(sourceDirectory, destinationDirectory);
     }
 
+    /**
+     * The destination directory structure should be the following with prefix "notes"
+     * <pre>
+     *   {@code
+     *      - source
+     *          - README.md
+     *          - CHANGELOG.md
+     *          - notes
+     *              - 2021
+     *                  - 1.txt
+     *                  - 2.txt
+     *              - 2022
+     *                  - 1.txt
+     *              - important.txt
+     *   }
+     * </pre>
+     */
     @Test
     public void downloadDirectory_withPrefix() {
         String prefix = "notes";
@@ -121,19 +152,29 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
 
-        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve(prefix), destinationDirectory.resolve(prefix));
+        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve(prefix), destinationDirectory);
     }
 
+    /**
+     * The destination directory structure should be the following with prefix "notes"
+     * <pre>
+     *   {@code
+     *      - destination
+     *           - 1.txt
+     *           - 2.txt
+     *   }
+     * </pre>
+     */
     @Test
-    public void downloadDirectory_withDelimiter() {
-        String prefix = "notes";
+    public void downloadDirectory_withPrefixAndDelimiter() {
+        String prefix = "notes-2021";
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destinationDirectory(destinationDirectory)
                                                                          .delimiter(CUSTOM_DELIMITER)
                                                                          .prefix(prefix)
                                                                          .bucket(TEST_BUCKET_CUSTOM_DELIMITER));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
-        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve(prefix), destinationDirectory.resolve(prefix));
+        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve("notes").resolve("2021"), destinationDirectory);
     }
 
     private static void assertTwoDirectoriesHaveSameStructure(Path path, Path otherPath) {

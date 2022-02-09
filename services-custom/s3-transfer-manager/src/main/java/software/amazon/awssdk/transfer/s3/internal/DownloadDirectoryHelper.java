@@ -16,8 +16,10 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DELIMITER;
+import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_PREFIX;
 
+import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +29,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -50,8 +54,6 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public class DownloadDirectoryHelper {
-    private static final Logger log = Logger.loggerFor(S3TransferManager.class);
-
     private final TransferManagerConfiguration transferConfiguration;
     private final Function<DownloadFileRequest, FileDownload> downloadFileFunction;
     private final ListObjectsHelper listObjectsHelper;
@@ -110,78 +112,167 @@ public class DownloadDirectoryHelper {
                                                            .delimiter(delimiter)
                                                            .build();
 
-        Collection<FailedFileDownload> failedFileDownloads = new ConcurrentLinkedQueue<>();
-        List<CompletableFuture<CompletedFileDownload>> futures = new ArrayList<>();
+        listObjectsHelper.listS3ObjectsRecursively(request)
+                         .subscribe(new S3ObjectSubscriber(downloadDirectoryRequest,
+                                                           returnFuture,
+                                                           downloadFileFunction,
+                                                           DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY));
+    }
 
-        listObjectsHelper.listS3ObjectsRecursively(request).subscribe(s3Object -> {
-            log.debug(() -> "s3Object key: " + s3Object.key());
-            futures.add(downloadSingleFile(downloadDirectoryRequest,
-                                           failedFileDownloads,
-                                           s3Object));
-        }).whenComplete((r, t) -> {
-            if (t != null) {
-                returnFuture.completeExceptionally(SdkClientException.create("Failed to call ListObjectsV2", t));
-            } else {
-                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                                 .whenComplete((response, throwable) -> returnFuture.complete(
-                                     CompletedDirectoryDownload.builder()
-                                                               .failedTransfers(failedFileDownloads)
-                                                               .build()));
+    @SdkInternalApi
+    static class S3ObjectSubscriber implements Subscriber<S3Object> {
+        private static final Logger log = Logger.loggerFor(S3TransferManager.class);
+        private final List<CompletableFuture<CompletedFileDownload>> currentBuffer;
+        private final Collection<FailedFileDownload> failedFileDownloads;
+        private final DownloadDirectoryRequest request;
+        private Subscription subscription;
+        private final CompletableFuture<CompletedDirectoryDownload> returnFuture;
+        private final Function<DownloadFileRequest, FileDownload> downloadFileFunction;
+        private final int bufferSize;
+
+        S3ObjectSubscriber(DownloadDirectoryRequest request,
+                           CompletableFuture<CompletedDirectoryDownload> returnFuture,
+                           Function<DownloadFileRequest, FileDownload> downloadFileFunction,
+                           int concurrentDownload) {
+            this.failedFileDownloads = new ConcurrentLinkedQueue<>();
+            this.currentBuffer = new ArrayList<>();
+            this.request = request;
+            this.returnFuture = returnFuture;
+            this.downloadFileFunction = downloadFileFunction;
+            this.bufferSize = concurrentDownload;
+        }
+
+        @Override
+        public void onSubscribe(Subscription subscription) {
+            if (subscription == null) {
+                throw new NullPointerException("Subscription must not be null");
             }
-        });
-    }
 
-    private CompletableFuture<CompletedFileDownload> downloadSingleFile(DownloadDirectoryRequest downloadDirectoryRequest,
-                                                                        Collection<FailedFileDownload> failedFileDownloads,
-                                                                        S3Object s3Object) {
-        FileSystem fileSystem = downloadDirectoryRequest.destinationDirectory().getFileSystem();
-        String relativePath = getRelativePath(fileSystem,
-                                              downloadDirectoryRequest.delimiter().orElse(DEFAULT_DELIMITER),
-                                              s3Object.key());
+            if (this.subscription != null) {
+                subscription.cancel();
+                return;
+            }
 
-        Path destinationPath = downloadDirectoryRequest.destinationDirectory().resolve(relativePath);
-        DownloadFileRequest request = downloadFileRequest(downloadDirectoryRequest, s3Object, destinationPath);
+            this.subscription = subscription;
+            subscription.request(1);
+        }
 
-        try {
-            log.debug(() -> "Sending download request " + request);
+        @Override
+        public void onNext(S3Object s3Object) {
+            log.debug(() -> "Processing s3Object key: " + s3Object.key());
+            CompletableFuture<CompletedFileDownload> singleFileFuture = downloadSingleFile(request,
+                                                                                           failedFileDownloads,
+                                                                                           s3Object);
+            currentBuffer.add(singleFileFuture);
 
-            CompletableFuture<CompletedFileDownload> future = downloadFileFunction.apply(request).completionFuture();
-            future.whenComplete((r, t) -> {
-                if (t != null) {
-                    failedFileDownloads.add(FailedFileDownload.builder()
-                                                              .exception(t)
-                                                              .request(request)
-                                                              .build());
-                }
+            if (currentBuffer.size() == bufferSize) {
+                CompletableFuture.allOf(currentBuffer.toArray(new CompletableFuture[0]))
+                                 .whenComplete((response, throwable) -> {
+                                     subscription.request(1);
+                                     currentBuffer.clear();
+                                 });
+            } else {
+                subscription.request(1);
+            }
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            returnFuture.completeExceptionally(t);
+        }
+
+        @Override
+        public void onComplete() {
+            CompletableFuture.allOf(currentBuffer.toArray(new CompletableFuture[0])).whenComplete((r, t) -> {
+                returnFuture.complete(CompletedDirectoryDownload.builder()
+                                                                .failedTransfers(failedFileDownloads)
+                                                                .build());
             });
-            return future;
-        } catch (Throwable throwable) {
-            failedFileDownloads.add(FailedFileDownload.builder()
-                                                      .exception(throwable)
-                                                      .request(request)
-                                                      .build());
-            return CompletableFutureUtils.failedFuture(throwable);
-        }
-    }
-
-    private static DownloadFileRequest downloadFileRequest(DownloadDirectoryRequest downloadDirectoryRequest,
-                                                           S3Object s3Object,
-                                                           Path destinationPath) {
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                                                            .bucket(downloadDirectoryRequest.bucket())
-                                                            .key(s3Object.key())
-                                                            .build();
-        return DownloadFileRequest.builder()
-                                  .destination(destinationPath)
-                                  .getObjectRequest(getObjectRequest)
-                                  .build();
-    }
-
-    private static String getRelativePath(FileSystem fileSystem, String delimiter, String key) {
-        if (fileSystem.getSeparator().equals(delimiter)) {
-            return key;
         }
 
-        return key.replace(delimiter, fileSystem.getSeparator());
+        private CompletableFuture<CompletedFileDownload> downloadSingleFile(DownloadDirectoryRequest downloadDirectoryRequest,
+                                                                            Collection<FailedFileDownload> failedFileDownloads,
+                                                                            S3Object s3Object) {
+            FileSystem fileSystem = downloadDirectoryRequest.destinationDirectory().getFileSystem();
+            String delimiter = downloadDirectoryRequest.delimiter().orElse(DEFAULT_DELIMITER);
+
+            String key = normalizeKey(downloadDirectoryRequest, s3Object, delimiter);
+
+            String relativePath = getRelativePath(fileSystem,
+                                                  delimiter,
+                                                  key);
+
+            Path destinationPath = downloadDirectoryRequest.destinationDirectory().resolve(relativePath);
+            DownloadFileRequest downloadFileRequest = downloadFileRequest(downloadDirectoryRequest, s3Object, destinationPath);
+
+            try {
+                log.debug(() -> "Sending download request " + downloadFileRequest);
+
+                CompletableFuture<CompletedFileDownload> future =
+                    downloadFileFunction.apply(downloadFileRequest).completionFuture();
+                future.whenComplete((r, t) -> {
+                    if (t != null) {
+                        failedFileDownloads.add(FailedFileDownload.builder()
+                                                                  .exception(t)
+                                                                  .request(downloadFileRequest)
+                                                                  .build());
+                    }
+                });
+                return future;
+            } catch (Throwable throwable) {
+                failedFileDownloads.add(FailedFileDownload.builder()
+                                                          .exception(throwable)
+                                                          .request(downloadFileRequest)
+                                                          .build());
+                return CompletableFutureUtils.failedFuture(throwable);
+            }
+        }
+
+        /**
+         * Normalizing the key by stripping the prefix from the s3 object key if the prefix is not empty. For example: given a
+         * request with prefix = "notes/2021", delimiter = "/" and key = "notes/2021/1.txt", the returned string should be
+         * "1.txt"
+         */
+        private static String normalizeKey(DownloadDirectoryRequest downloadDirectoryRequest, S3Object s3Object,
+                                           String delimiter) {
+            return downloadDirectoryRequest.prefix()
+                                           .filter(prefix -> !prefix.isEmpty())
+                                           .map(prefix -> s3Object.key().substring(prefix.length() + delimiter.length()))
+                                           .orElseGet(s3Object::key);
+        }
+
+        private static String getRelativePath(FileSystem fileSystem, String delimiter, String key) {
+            if (fileSystem.getSeparator().equals(delimiter)) {
+                return key;
+            }
+
+            return key.replace(delimiter, fileSystem.getSeparator());
+        }
+
+        private static DownloadFileRequest downloadFileRequest(DownloadDirectoryRequest downloadDirectoryRequest,
+                                                               S3Object s3Object,
+                                                               Path destinationPath) {
+
+            createParentDirectoriesIfNeeded(destinationPath);
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                                .bucket(downloadDirectoryRequest.bucket())
+                                                                .key(s3Object.key())
+                                                                .build();
+            return DownloadFileRequest.builder()
+                                      .destination(destinationPath)
+                                      .getObjectRequest(getObjectRequest)
+                                      .build();
+        }
+
+        private static void createParentDirectoriesIfNeeded(Path destinationPath) {
+            Path parentDirectory = destinationPath.getParent();
+            try {
+                if (parentDirectory != null) {
+                    Files.createDirectories(parentDirectory);
+                }
+            } catch (IOException e) {
+                throw SdkClientException.create("Failed to create parent directories for " + destinationPath, e);
+            }
+        }
     }
 }

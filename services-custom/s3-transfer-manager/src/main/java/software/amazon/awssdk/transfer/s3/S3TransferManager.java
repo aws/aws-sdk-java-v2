@@ -281,6 +281,32 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * bucket will be downloaded.
      *
      * <p>
+     * The downloaded directory structure will match with the provided S3 virtual bucket.
+     * For example, assume that you have the following keys in your bucket:
+     * <ul>
+     *     <li>sample.jpg</li>
+     *     <li>photos/2022/January/sample.jpg</li>
+     *     <li>photos/2022/February/sample1.jpg</li>
+     *     <li>photos/2022/February/sample2.jpg</li>
+     *     <li>photos/2022/February/sample3.jpg</li>
+     * </ul>
+     * Give a request to download the bucket to a destination with path of "/test", the downloaded directory would look like this
+     *
+     * <pre>
+     *   {@code
+     *      |- test
+     *         |- sample.jpg
+     *         |- photos
+     *             |- 2022
+     *                 |- January
+     *                     |- sample.jpg
+     *                 |- February
+     *                     |- sample1.jpg
+     *                     |- sample2.jpg
+     *                     |- sample3.jpg
+     *   }
+     * </pre>
+     * <p>
      * The returned {@link CompletableFuture} only completes exceptionally if the request cannot be attempted as a whole (the
      * downloadDirectoryRequest is invalid for example). The future completes successfully for partial successful
      * requests, i.e., there might be failed downloads in a successfully completed response. As a result, you should check for
