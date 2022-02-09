@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -30,18 +29,14 @@ import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
-import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.transfer.s3.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.DirectoryDownload;
@@ -50,7 +45,6 @@ import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.FileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
-import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class DownloadDirectoryHelperTest {
     private static FileSystem jimfs;
@@ -147,26 +141,6 @@ public class DownloadDirectoryHelperTest {
 
         assertThat(completedDirectoryDownload.failedTransfers()).hasSize(1)
                                                                 .element(0).satisfies(failedFileDownload -> assertThat(failedFileDownload.exception()).isEqualTo(exception));
-    }
-
-    @Test
-    void downloadDirectory_listObjectsFails_shouldFailAndCleanUpDirectory() {
-        SdkClientException sdkClientException = SdkClientException.create("failed");
-
-        SdkPublisher<S3Object> publisher = mock(SdkPublisher.class);
-
-        when(listObjectsHelper.listS3ObjectsRecursively(any(ListObjectsV2Request.class))).thenReturn(publisher);
-        when(publisher.subscribe(any(Consumer.class))).thenReturn(CompletableFutureUtils.failedFuture(sdkClientException));
-
-        DirectoryDownload DownloadDirectory =
-            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
-                                                                              .destinationDirectory(directory)
-                                                                              .bucket("bucket")
-                                                                              .build());
-
-        assertThatThrownBy(() -> DownloadDirectory.completionFuture().get(5, TimeUnit.SECONDS))
-            .hasRootCause(sdkClientException);
-        assertThat(directory).doesNotExist();
     }
 
     private FileDownload newDownload(CompletableFuture<CompletedFileDownload> future) {

@@ -18,7 +18,6 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DELIMITER;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_PREFIX;
 
-import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -85,7 +84,6 @@ public class DownloadDirectoryHelper {
                          .whenComplete((r, t) -> {
                              if (t != null) {
                                  returnFuture.completeExceptionally(t);
-                                 cleanUpDirectory(downloadDirectoryRequest.destinationDirectory());
                              }
                          });
 
@@ -96,14 +94,6 @@ public class DownloadDirectoryHelper {
         if (Files.exists(directory)) {
             Validate.isTrue(Files.isDirectory(directory), "The destination directory provided (%s) is not a "
                                                           + "directory", directory);
-        }
-    }
-
-    private static void cleanUpDirectory(Path directory) {
-        try {
-            Files.deleteIfExists(directory);
-        } catch (IOException e) {
-            log.warn(() -> "Failed to delete the directory: " + directory);
         }
     }
 
@@ -131,7 +121,6 @@ public class DownloadDirectoryHelper {
         }).whenComplete((r, t) -> {
             if (t != null) {
                 returnFuture.completeExceptionally(SdkClientException.create("Failed to call ListObjectsV2", t));
-                cleanUpDirectory(downloadDirectoryRequest.destinationDirectory());
             } else {
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                                  .whenComplete((response, throwable) -> returnFuture.complete(
@@ -155,7 +144,6 @@ public class DownloadDirectoryHelper {
 
         try {
             log.debug(() -> "Sending download request " + request);
-            createParentDirectoriesIfNeeded(destinationPath);
 
             CompletableFuture<CompletedFileDownload> future = downloadFileFunction.apply(request).completionFuture();
             future.whenComplete((r, t) -> {
@@ -187,17 +175,6 @@ public class DownloadDirectoryHelper {
                                   .destination(destinationPath)
                                   .getObjectRequest(getObjectRequest)
                                   .build();
-    }
-
-    private static void createParentDirectoriesIfNeeded(Path destinationPath) {
-        Path parentDirectory = destinationPath.getParent();
-        try {
-            if (parentDirectory != null) {
-                Files.createDirectories(parentDirectory);
-            }
-        } catch (IOException e) {
-            throw SdkClientException.create("Failed to create parent directories for " + destinationPath, e);
-        }
     }
 
     private static String getRelativePath(FileSystem fileSystem, String delimiter, String key) {
