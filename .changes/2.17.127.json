@@ -1,0 +1,12 @@
+{
+    "version": "2.17.127",
+    "date": "2022-02-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "This SDK release is for the feature launch of AWS CloudFormation Hooks."
+        }
+    ]
+}
