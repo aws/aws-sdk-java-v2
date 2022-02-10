@@ -85,7 +85,13 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
             if (root != null && field.location() == MarshallLocation.PAYLOAD) {
                 if (!context.response().content().isPresent()) {
-                    // This is a payload field, but the service sent no content. Do not populate this field (leave it null).
+                    // This is a payload field, but the service sent no content. Do not populate this field (leave it null or
+                    // empty).
+                    if (field.marshallingType() == MarshallingType.SDK_BYTES && field.containsTrait(PayloadTrait.class)) {
+                        // SDK bytes bound directly to the payload field should never be left empty
+                        field.set(sdkPojo, SdkBytes.fromByteArrayUnsafe(new byte[0]));
+                    }
+
                     continue;
                 }
 
@@ -98,9 +104,8 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
                                                root.getElementsByName(field.unmarshallLocationName());
 
                     if (!CollectionUtils.isNullOrEmpty(element)) {
-                        boolean isFieldBlobTypePayload = payloadMemberAsBlobType.isPresent()
-                                && payloadMemberAsBlobType.get().equals(field);
-
+                        boolean isFieldBlobTypePayload = payloadMemberAsBlobType.isPresent() &&
+                                                         payloadMemberAsBlobType.get().equals(field);
                         if (isFieldBlobTypePayload) {
                             field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().get()));
                         } else {

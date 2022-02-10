@@ -447,7 +447,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <artifactId>wiremock</artifactId>
+            <artifactId>wiremock-jre8</artifactId>
             <groupId>com.github.tomakehurst</groupId>
             <scope>test</scope>
         </dependency>
