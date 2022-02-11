@@ -1879,7 +1879,6 @@
       "input":{"shape":"TerminateSessionRequest"},
       "output":{"shape":"TerminateSessionResponse"},
       "errors":[
-        {"shape":"DoesNotExistException"},
         {"shape":"InternalServerError"}
       ],
       "documentation":"<p>Permanently ends a session and closes the data connection between the Session Manager client and SSM Agent on the managed node. A terminated session isn't be resumed.</p>"
