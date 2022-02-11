@@ -26,7 +26,7 @@ import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
-import software.amazon.awssdk.regions.internal.util.RegionScope;
+import software.amazon.awssdk.regions.RegionScope;
 
 @SdkInternalApi
 public class SigningConfigProvider {

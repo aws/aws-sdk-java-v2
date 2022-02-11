@@ -25,7 +25,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.regions.internal.util.RegionScope;
+import software.amazon.awssdk.regions.RegionScope;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.ConfiguredS3SdkHttpRequest;
 import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverContext;

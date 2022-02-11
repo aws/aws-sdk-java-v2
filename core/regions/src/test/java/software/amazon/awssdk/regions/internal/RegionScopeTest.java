@@ -22,7 +22,7 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import software.amazon.awssdk.regions.internal.util.RegionScope;
+import software.amazon.awssdk.regions.RegionScope;
 
 @RunWith(Parameterized.class)
 public class RegionScopeTest {

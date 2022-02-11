@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.internal.util;
+package software.amazon.awssdk.regions;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -45,7 +45,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *     <li>'eu-we*' - The wildcard must be its own segment</li>
  * </ul>
  */
-@SdkInternalApi
+@SdkPublicApi
 public final class RegionScope implements ToCopyableBuilder<RegionScope.Builder, RegionScope> {
 
     public static final RegionScope GLOBAL;
