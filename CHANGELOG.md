@@ -1,3 +1,12 @@
+# __2.17.129__ __2022-02-11__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Always return an empty SDK bytes when services model their response payload as a blob. Previously, it would either return null, empty bytes or throw an exception depending on the protocol, HTTP client and whether the service was using chunked encoding for their responses.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Documentation updates for AWS Systems Manager.
+
 # __2.17.128__ __2022-02-10__
 ## __AWS CloudFormation__
   - ### Features
