@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.utils.async;
+package software.amazon.awssdk.transfer.s3.internal;
 
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;

@@ -24,7 +24,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.async.AsyncBufferingSubscriber;
 import software.amazon.awssdk.utils.async.BufferingSubscriber;
 import software.amazon.awssdk.utils.async.EventListeningSubscriber;
 import software.amazon.awssdk.utils.async.FilteringSubscriber;
@@ -162,20 +161,4 @@ public interface SdkPublisher<T> extends Publisher<T> {
         subscribe(new SequentialSubscriber<>(consumer, future));
         return future;
     }
-
-    /**
-     * Subscribes to the publisher with the given async function. This function will be executed for each event
-     * published. It limits the number of concurrent requests by
-     * only requesting data if the number of inflight request is less than the provided {@code maxConcurrentRequests}.
-     *
-     * @param consumer consumer to process event.
-     * @param maxConcurrentRequests The max number of concurrent requests.
-     * @return CompletableFuture that will be notified when all events have been consumed or if an error occurs.
-     */
-    default CompletableFuture<Void> subscribe(Function<T, CompletableFuture<?>> consumer, int maxConcurrentRequests) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        subscribe(new AsyncBufferingSubscriber<>(consumer, future, maxConcurrentRequests));
-        return future;
-    }
-
 }

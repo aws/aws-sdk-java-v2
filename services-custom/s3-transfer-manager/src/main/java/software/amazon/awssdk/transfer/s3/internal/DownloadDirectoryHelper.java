@@ -113,18 +113,25 @@ public class DownloadDirectoryHelper {
 
         Queue<FailedFileDownload> failedFileDownloads = new ConcurrentLinkedQueue<>();
 
+        CompletableFuture<Void> allOfFutures = new CompletableFuture<>();
+        AsyncBufferingSubscriber<S3Object> asyncBufferingSubscriber =
+            new AsyncBufferingSubscriber<>(s3Object -> downloadSingleFile(downloadDirectoryRequest,
+                                                                          failedFileDownloads,
+                                                                          s3Object),
+                                           allOfFutures,
+                                           DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY);
         listObjectsHelper.listS3ObjectsRecursively(request)
-                         .subscribe(s3Object -> downloadSingleFile(downloadDirectoryRequest, failedFileDownloads, s3Object),
-                                    DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY)
-                         .whenComplete((r, t) -> {
-                             if (t != null) {
-                                 returnFuture.completeExceptionally(SdkClientException.create("Failed to call ListObjectsV2", t));
-                             } else {
-                                 returnFuture.complete(CompletedDirectoryDownload.builder()
-                                                                                 .failedTransfers(failedFileDownloads)
-                                                                                 .build());
-                             }
-                         });
+                         .subscribe(asyncBufferingSubscriber);
+
+        allOfFutures.whenComplete((r, t) -> {
+            if (t != null) {
+                returnFuture.completeExceptionally(SdkClientException.create("Failed to call ListObjectsV2", t));
+            } else {
+                returnFuture.complete(CompletedDirectoryDownload.builder()
+                                                                .failedTransfers(failedFileDownloads)
+                                                                .build());
+            }
+        });
     }
 
     private CompletableFuture<CompletedFileDownload> downloadSingleFile(DownloadDirectoryRequest downloadDirectoryRequest,
