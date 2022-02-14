@@ -15,9 +15,7 @@
 
 package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -30,6 +28,7 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlDomParser;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
+import software.amazon.awssdk.utils.LookaheadInputStream;
 
 /**
  * Static methods to assist with parsing the response of AWS XML requests.
@@ -57,12 +56,10 @@ public final class XmlResponseParserUtils {
             }
 
             // Make sure there is content in the stream before passing it to the parser.
-            InputStream content = ensureMarkSupported(responseContent.get());
-            content.mark(2);
-            if (content.read() == -1) {
+            LookaheadInputStream content = new LookaheadInputStream(responseContent.get());
+            if (content.peek() == -1) {
                 return XmlElement.empty();
             }
-            content.reset();
 
             return XmlDomParser.parse(content);
         } catch (IOException e) {
@@ -73,14 +70,6 @@ public final class XmlResponseParserUtils {
             }
             return XmlElement.empty();
         }
-    }
-
-    private static InputStream ensureMarkSupported(AbortableInputStream content) {
-        if (content.markSupported()) {
-            return content;
-        }
-
-        return new BufferedInputStream(content);
     }
 
     /**

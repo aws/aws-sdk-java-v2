@@ -86,7 +86,8 @@ import software.amazon.awssdk.utils.Validate;
 public interface S3TransferManager extends SdkAutoCloseable {
 
     /**
-     * Download an object identified by the bucket and key from S3 to the given file.
+     * Download an object identified by the bucket and key from S3 to a local file. For non-file-based downloads, you may use
+     * {@link #download(DownloadRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
      * <pre>
@@ -118,7 +119,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}.
+     * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}. For 
+     * downloading to a file, you may use {@link #downloadFile(DownloadFileRequest)} instead.
      * <p>
      * <b>Usage Example (this example buffers the entire object in memory and is not suitable for large objects):</b>
      * <pre>
@@ -155,7 +157,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Upload a file to S3.
+     * Upload a local file to an object in S3. For non-file-based uploads, you may use {@link #upload(UploadRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
      * <pre>
@@ -186,7 +188,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Upload an {@link AsyncRequestBody} to S3.
+     * Upload the given {@link AsyncRequestBody} to an object in S3. For file-based uploads, you may use
+     * {@link #uploadFile(UploadFileRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
      * <pre>

@@ -31,6 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.ResponsePublisher;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -96,6 +97,16 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
     public void toByteArray() throws IOException {
         byte[] returned = s3Async.getObject(getObjectRequest, AsyncResponseTransformer.toBytes()).join().asByteArray();
         assertThat(returned).isEqualTo(Files.readAllBytes(file.toPath()));
+    }
+    
+    @Test
+    public void toPublisher() throws IOException {
+        ResponsePublisher<GetObjectResponse> responsePublisher =
+            s3Async.getObject(getObjectRequest, AsyncResponseTransformer.toPublisher()).join();
+        ByteBuffer buf = ByteBuffer.allocate(Math.toIntExact(responsePublisher.response().contentLength()));
+        CompletableFuture<Void> drainPublisherFuture = responsePublisher.subscribe(buf::put);
+        drainPublisherFuture.join();
+        assertThat(buf.array()).isEqualTo(Files.readAllBytes(file.toPath()));
     }
 
     @Test

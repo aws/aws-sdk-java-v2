@@ -17,7 +17,6 @@ package software.amazon.awssdk.transfer.s3;
 
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
-import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -32,7 +31,9 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Upload an object to S3 using {@link S3TransferManager}.
+ * Upload the given {@link AsyncRequestBody} to an object in S3. For file-based uploads, you may use {@link UploadFileRequest}
+ * instead.
+ *
  * @see S3TransferManager#upload(UploadRequest)
  */
 @SdkPublicApi
@@ -140,13 +141,11 @@ public final class UploadRequest
 
         /**
          * The {@link AsyncRequestBody} containing the data to send to the service. Request bodies may be declared using one of
-         * the static factory methods in the {@link AsyncRequestBody} class, or in the case of file-based requests, with the
-         * builder method: {@link #source(Path)}.
+         * the static factory methods in the {@link AsyncRequestBody} class.
          *
          * @param requestBody the request body
          * @return Returns a reference to this object so that method calls can be chained together.
          * @see AsyncRequestBody
-         * @see #source(Path)
          */
         Builder requestBody(AsyncRequestBody requestBody);
 

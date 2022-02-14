@@ -209,7 +209,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         s3ArnableFields(opModel, model).ifPresent(builder::add);
 
         builder.add(".withInput($L)", opModel.getInput().getVariableName());
-        if (opModel.hasStreamingOutput() || opModel.hasEventStreamOutput()) {
+        if (opModel.hasEventStreamOutput()) {
             builder.add(", $N", executionResponseTransformerName);
         }
         builder.addStatement(")");
@@ -218,7 +218,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         builder.addStatement("$T $N = null", ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
                 executeFutureValueType), whenCompleteFutureName);
 
-        if (opModel.hasStreamingOutput() || opModel.hasEventStreamOutput()) {
+        if (opModel.hasEventStreamOutput()) {
             builder.addStatement("$N = executeFuture$L", whenCompleteFutureName,
                     whenCompleteBlock(opModel, "asyncResponseHandler",
                                       eventStreamTransformFutureName));

@@ -108,6 +108,9 @@ public interface TableSchema<T> {
      * This is a moderately expensive operation, and should be performed sparingly. This is usually done once at
      * application startup.
      *
+     * If this table schema is not behaving as you expect, enable debug logging for
+     * 'software.amazon.awssdk.enhanced.dynamodb.beans'.
+     *
      * @param annotatedClass A class that has been annotated with DynamoDb enhanced client annotations.
      * @param <T> The type of the item this {@link TableSchema} will map records to.
      * @return An initialized {@link TableSchema}

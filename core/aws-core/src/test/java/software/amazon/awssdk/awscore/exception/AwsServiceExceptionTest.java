@@ -52,6 +52,36 @@ public class AwsServiceExceptionTest {
         assertSkewed(SKEWED_SECONDS, "", 403, unskewedDate);
     }
 
+    @Test
+    public void exceptionMessage_withExtendedRequestId() {
+        AwsServiceException e = AwsServiceException.builder()
+                                                   .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                   .errorMessage("errorMessage")
+                                                                                   .serviceName("serviceName")
+                                                                                   .errorCode("errorCode")
+                                                                                   .build())
+                                                   .statusCode(500)
+                                                   .requestId("requestId")
+                                                   .extendedRequestId("extendedRequestId")
+                                                   .build();
+        assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId, " 
+                                             + "Extended Request ID: extendedRequestId)");
+    }
+
+    @Test
+    public void exceptionMessage_withoutExtendedRequestId() {
+        AwsServiceException e = AwsServiceException.builder()
+                                                   .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                   .errorMessage("errorMessage")
+                                                                                   .serviceName("serviceName")
+                                                                                   .errorCode("errorCode")
+                                                                                   .build())
+                                                   .statusCode(500)
+                                                   .requestId("requestId")
+                                                   .build();
+        assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId)");
+    }
+
     public void assertSkewed(int clientSideTimeOffset,
                              String errorCode,
                              int statusCode,
