@@ -16,14 +16,15 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DELIMITER;
+import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_PREFIX;
 
+import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
@@ -46,12 +47,12 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An internal helper class that sends {@link DownloadFileRequest}s while it retrieves the objects to download from S3 recursively
+ * An internal helper class that sends {@link DownloadFileRequest}s while it retrieves the objects to download from S3
+ * recursively
  */
 @SdkInternalApi
 public class DownloadDirectoryHelper {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
-
     private final TransferManagerConfiguration transferConfiguration;
     private final Function<DownloadFileRequest, FileDownload> downloadFileFunction;
     private final ListObjectsHelper listObjectsHelper;
@@ -101,7 +102,7 @@ public class DownloadDirectoryHelper {
                                      DownloadDirectoryRequest downloadDirectoryRequest) {
         validateDirectoryIfExists(downloadDirectoryRequest.destinationDirectory());
         String bucket = downloadDirectoryRequest.bucket();
-        String delimiter = downloadDirectoryRequest.delimiter().orElse(DEFAULT_DELIMITER);
+        String delimiter = downloadDirectoryRequest.delimiter().orElse(null);
         String prefix = downloadDirectoryRequest.prefix().orElse(DEFAULT_PREFIX);
 
         ListObjectsV2Request request = ListObjectsV2Request.builder()
@@ -110,23 +111,25 @@ public class DownloadDirectoryHelper {
                                                            .delimiter(delimiter)
                                                            .build();
 
-        Collection<FailedFileDownload> failedFileDownloads = new ConcurrentLinkedQueue<>();
-        List<CompletableFuture<CompletedFileDownload>> futures = new ArrayList<>();
+        Queue<FailedFileDownload> failedFileDownloads = new ConcurrentLinkedQueue<>();
 
-        listObjectsHelper.listS3ObjectsRecursively(request).subscribe(s3Object -> {
-            log.debug(() -> "s3Object key: " + s3Object.key());
-            futures.add(downloadSingleFile(downloadDirectoryRequest,
-                                           failedFileDownloads,
-                                           s3Object));
-        }).whenComplete((r, t) -> {
+        CompletableFuture<Void> allOfFutures = new CompletableFuture<>();
+        AsyncBufferingSubscriber<S3Object> asyncBufferingSubscriber =
+            new AsyncBufferingSubscriber<>(s3Object -> downloadSingleFile(downloadDirectoryRequest,
+                                                                          failedFileDownloads,
+                                                                          s3Object),
+                                           allOfFutures,
+                                           DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY);
+        listObjectsHelper.listS3ObjectsRecursively(request)
+                         .subscribe(asyncBufferingSubscriber);
+
+        allOfFutures.whenComplete((r, t) -> {
             if (t != null) {
                 returnFuture.completeExceptionally(SdkClientException.create("Failed to call ListObjectsV2", t));
             } else {
-                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                                 .whenComplete((response, throwable) -> returnFuture.complete(
-                                     CompletedDirectoryDownload.builder()
-                                                               .failedTransfers(failedFileDownloads)
-                                                               .build()));
+                returnFuture.complete(CompletedDirectoryDownload.builder()
+                                                                .failedTransfers(failedFileDownloads)
+                                                                .build());
             }
         });
     }
@@ -135,22 +138,28 @@ public class DownloadDirectoryHelper {
                                                                         Collection<FailedFileDownload> failedFileDownloads,
                                                                         S3Object s3Object) {
         FileSystem fileSystem = downloadDirectoryRequest.destinationDirectory().getFileSystem();
+        String delimiter = downloadDirectoryRequest.delimiter().orElse(null);
+
+        String key = normalizeKey(downloadDirectoryRequest, s3Object, delimiter);
+
         String relativePath = getRelativePath(fileSystem,
-                                              downloadDirectoryRequest.delimiter().orElse(DEFAULT_DELIMITER),
-                                              s3Object.key());
+                                              delimiter,
+                                              key);
 
         Path destinationPath = downloadDirectoryRequest.destinationDirectory().resolve(relativePath);
-        DownloadFileRequest request = downloadFileRequest(downloadDirectoryRequest, s3Object, destinationPath);
+        DownloadFileRequest downloadFileRequest = downloadFileRequest(downloadDirectoryRequest, s3Object, destinationPath);
 
         try {
-            log.debug(() -> "Sending download request " + request);
+            log.debug(() -> "Sending download request " + downloadFileRequest);
+            createParentDirectoriesIfNeeded(destinationPath);
 
-            CompletableFuture<CompletedFileDownload> future = downloadFileFunction.apply(request).completionFuture();
+            CompletableFuture<CompletedFileDownload> future =
+                downloadFileFunction.apply(downloadFileRequest).completionFuture();
             future.whenComplete((r, t) -> {
                 if (t != null) {
                     failedFileDownloads.add(FailedFileDownload.builder()
                                                               .exception(t)
-                                                              .request(request)
+                                                              .request(downloadFileRequest)
                                                               .build());
                 }
             });
@@ -158,15 +167,42 @@ public class DownloadDirectoryHelper {
         } catch (Throwable throwable) {
             failedFileDownloads.add(FailedFileDownload.builder()
                                                       .exception(throwable)
-                                                      .request(request)
+                                                      .request(downloadFileRequest)
                                                       .build());
             return CompletableFutureUtils.failedFuture(throwable);
         }
     }
 
+    /**
+     * Normalizing the key by stripping the prefix from the s3 object key if the prefix is not empty. For example: given a request
+     * with prefix = "notes/2021", delimiter = "/" and key = "notes/2021/1.txt", the returned string should be "1.txt". If a
+     * delimiter is null (not provided by user), use "/" by default.
+     */
+    private static String normalizeKey(DownloadDirectoryRequest downloadDirectoryRequest,
+                                       S3Object s3Object,
+                                       String delimiter) {
+        int delimiterLength = delimiter == null ? DEFAULT_DELIMITER.length() : delimiter.length();
+        return downloadDirectoryRequest.prefix()
+                                       .filter(prefix -> !prefix.isEmpty())
+                                       .map(prefix -> s3Object.key().substring(prefix.length() + delimiterLength))
+                                       .orElseGet(s3Object::key);
+    }
+
+    private static String getRelativePath(FileSystem fileSystem, String delimiter, String key) {
+        if (delimiter == null) {
+            return key;
+        }
+        if (fileSystem.getSeparator().equals(delimiter)) {
+            return key;
+        }
+
+        return key.replace(delimiter, fileSystem.getSeparator());
+    }
+
     private static DownloadFileRequest downloadFileRequest(DownloadDirectoryRequest downloadDirectoryRequest,
                                                            S3Object s3Object,
                                                            Path destinationPath) {
+
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                                                             .bucket(downloadDirectoryRequest.bucket())
                                                             .key(s3Object.key())
@@ -177,11 +213,14 @@ public class DownloadDirectoryHelper {
                                   .build();
     }
 
-    private static String getRelativePath(FileSystem fileSystem, String delimiter, String key) {
-        if (fileSystem.getSeparator().equals(delimiter)) {
-            return key;
+    private static void createParentDirectoriesIfNeeded(Path destinationPath) {
+        Path parentDirectory = destinationPath.getParent();
+        try {
+            if (parentDirectory != null) {
+                Files.createDirectories(parentDirectory);
+            }
+        } catch (IOException e) {
+            throw SdkClientException.create("Failed to create parent directories for " + destinationPath, e);
         }
-
-        return key.replace(delimiter, fileSystem.getSeparator());
     }
 }

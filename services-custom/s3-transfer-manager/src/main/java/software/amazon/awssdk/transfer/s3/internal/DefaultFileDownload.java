@@ -30,7 +30,7 @@ public final class DefaultFileDownload implements FileDownload {
     private final TransferProgress progress;
 
     DefaultFileDownload(CompletableFuture<CompletedFileDownload> completionFuture,
-                               TransferProgress progress) {
+                        TransferProgress progress) {
         this.completionFuture = completionFuture;
         this.progress = progress;
     }

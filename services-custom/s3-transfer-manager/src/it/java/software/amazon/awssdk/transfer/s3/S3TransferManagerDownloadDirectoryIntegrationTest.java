@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -103,37 +104,78 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         S3IntegrationTestBase.cleanUp();
     }
 
+    /**
+     * The destination directory structure should match with the directory uploaded
+     * <pre>
+     *   {@code
+     *      - destination
+     *           - 2021
+     *              - 1.txt
+     *              - 2.txt
+     *           - 2022
+     *               - 1.txt
+     *           - important.txt
+     *   }
+     * </pre>
+     */
     @Test
-    public void downloadDirectory() {
+    public void downloadDirectory() throws Exception {
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destinationDirectory(destinationDirectory)
                                                                          .bucket(TEST_BUCKET));
-        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
         assertTwoDirectoriesHaveSameStructure(sourceDirectory, destinationDirectory);
     }
 
+    /**
+     * The destination directory structure should be the following with prefix "notes"
+     * <pre>
+     *   {@code
+     *      - source
+     *          - README.md
+     *          - CHANGELOG.md
+     *          - notes
+     *              - 2021
+     *                  - 1.txt
+     *                  - 2.txt
+     *              - 2022
+     *                  - 1.txt
+     *              - important.txt
+     *   }
+     * </pre>
+     */
     @Test
-    public void downloadDirectory_withPrefix() {
+    public void downloadDirectory_withPrefix() throws Exception {
         String prefix = "notes";
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destinationDirectory(destinationDirectory)
                                                                          .prefix(prefix)
                                                                          .bucket(TEST_BUCKET));
-        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
 
-        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve(prefix), destinationDirectory.resolve(prefix));
+        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve(prefix), destinationDirectory);
     }
 
+    /**
+     * The destination directory structure should be the following with prefix "notes"
+     * <pre>
+     *   {@code
+     *      - destination
+     *           - 1.txt
+     *           - 2.txt
+     *   }
+     * </pre>
+     */
     @Test
-    public void downloadDirectory_withDelimiter() {
-        String prefix = "notes";
+    public void downloadDirectory_withPrefixAndDelimiter() throws Exception {
+        String prefix = "notes-2021";
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destinationDirectory(destinationDirectory)
                                                                          .delimiter(CUSTOM_DELIMITER)
                                                                          .prefix(prefix)
                                                                          .bucket(TEST_BUCKET_CUSTOM_DELIMITER));
-        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
-        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve(prefix), destinationDirectory.resolve(prefix));
+        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve("notes").resolve("2021"), destinationDirectory);
     }
 
     private static void assertTwoDirectoriesHaveSameStructure(Path path, Path otherPath) {
