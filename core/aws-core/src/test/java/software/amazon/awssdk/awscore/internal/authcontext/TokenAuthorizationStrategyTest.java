@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.auth.signer.TokenSignerExecutionAttribute;
 import software.amazon.awssdk.auth.token.AwsBearerToken;
 import software.amazon.awssdk.auth.token.AwsToken;
 import software.amazon.awssdk.auth.token.AwsTokenProvider;
@@ -102,7 +102,7 @@ public class TokenAuthorizationStrategyTest {
                                                                                     .build();
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         authorizationContext.addCredentialsToExecutionAttributes(executionAttributes);
-        assertThat(executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_TOKEN)).isEqualTo(token);
+        assertThat(executionAttributes.getAttribute(TokenSignerExecutionAttribute.AWS_TOKEN)).isEqualTo(token);
     }
 
     @Test
