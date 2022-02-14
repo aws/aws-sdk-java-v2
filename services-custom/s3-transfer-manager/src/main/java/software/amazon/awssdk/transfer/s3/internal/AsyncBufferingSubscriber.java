@@ -103,7 +103,6 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
                 if (isCompleteEvent(firstEvent)) {
                     Object event = buffer.poll();
                     handleCompleteEvent(event);
-                    isDelivering.set(false);
                     return;
                 }
 
@@ -115,7 +114,6 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
 
                     if (isCompleteEvent(item)) {
                         handleCompleteEvent(item);
-                        isDelivering.set(false);
                         return;
                     }
 
