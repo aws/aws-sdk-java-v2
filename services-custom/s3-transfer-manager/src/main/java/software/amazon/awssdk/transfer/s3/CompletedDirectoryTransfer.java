@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-import java.util.Collection;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
@@ -34,5 +34,5 @@ public interface CompletedDirectoryTransfer extends CompletedTransfer {
      *
      * @return an immutable list of failed transfers
      */
-    Collection<? extends FailedObjectTransfer> failedTransfers();
+    List<? extends FailedObjectTransfer> failedTransfers();
 }
