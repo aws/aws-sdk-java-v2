@@ -51,8 +51,8 @@ public final class FutureCancelHandler extends ChannelInboundHandlerAdapter {
 
         if (channelExecutionId == null) {
             RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
-            LOG.debug(ctx.channel(), () -> String.format("Received a cancellation exception on a channel that doesn't have an "
-                                                         + "execution Id attached yet. Exception's execution ID is %d. "
+            LOG.warn(ctx.channel(), () -> String.format("Received a cancellation exception on a channel that doesn't have an "
+                                                         + "execution Id attached. Exception's execution ID is %d. "
                                                          + "Exception is being ignored. Closing the channel",
                                                          executionId(ctx)));
             ctx.close();

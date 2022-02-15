@@ -25,6 +25,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.DefaultChannelId;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.DefaultAttributeMap;
 import java.io.IOException;
@@ -77,6 +78,7 @@ public class FutureCancelHandlerTest {
         when(ctx.channel()).thenReturn(channel);
         when(channel.attr(EXECUTION_ID_KEY)).thenReturn(attrMap.attr(EXECUTION_ID_KEY));
         when(channel.attr(REQUEST_CONTEXT_KEY)).thenReturn(attrMap.attr(REQUEST_CONTEXT_KEY));
+        when(channel.id()).thenReturn(DefaultChannelId.newInstance());
     }
 
     @Test
