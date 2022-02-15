@@ -16,6 +16,8 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTION_ID_KEY;
@@ -97,5 +99,16 @@ public class FutureCancelHandlerTest {
 
         verify(ctx).fireExceptionCaught(exceptionCaptor.capture());
         assertThat(exceptionCaptor.getValue()).isEqualTo(err);
+    }
+
+    @Test
+    public void cancelledException_executionIdNull_shouldIgnoreExceptionAndCloseChannel() {
+        when(channel.attr(EXECUTION_ID_KEY)).thenReturn(null);
+
+        FutureCancelledException cancelledException = new FutureCancelledException(1L, new CancellationException());
+        handler.exceptionCaught(ctx, cancelledException);
+
+        verify(ctx, never()).fireExceptionCaught(any(Throwable.class));
+        verify(ctx).close();
     }
 }

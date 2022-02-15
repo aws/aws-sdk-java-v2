@@ -21,6 +21,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.Attribute;
 import java.io.IOException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
@@ -46,7 +47,17 @@ public final class FutureCancelHandler extends ChannelInboundHandlerAdapter {
 
         FutureCancelledException cancelledException = (FutureCancelledException) e;
 
-        if (currentRequestCancelled(ctx, cancelledException)) {
+        Long channelExecutionId = executionId(ctx);
+
+        if (channelExecutionId == null) {
+            RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
+            LOG.debug(ctx.channel(), () -> String.format("Received a cancellation exception on a channel that doesn't have an "
+                                                         + "execution Id attached yet. Exception's execution ID is %d. "
+                                                         + "Exception is being ignored. Closing the channel",
+                                                         executionId(ctx)));
+            ctx.close();
+            requestContext.channelPool().release(ctx.channel());
+        } else if (currentRequestCancelled(channelExecutionId, cancelledException)) {
             RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
             requestContext.handler().onError(e);
             ctx.fireExceptionCaught(new IOException("Request cancelled"));
@@ -65,11 +76,16 @@ public final class FutureCancelHandler extends ChannelInboundHandlerAdapter {
         return INSTANCE;
     }
 
-    private boolean currentRequestCancelled(ChannelHandlerContext ctx, FutureCancelledException e) {
-        return e.getExecutionId() == executionId(ctx);
+    private static boolean currentRequestCancelled(long executionId, FutureCancelledException e) {
+        return e.getExecutionId() == executionId;
     }
 
-    private Long executionId(ChannelHandlerContext ctx) {
-        return ctx.channel().attr(EXECUTION_ID_KEY).get();
+    private static Long executionId(ChannelHandlerContext ctx) {
+        Attribute<Long> attr = ctx.channel().attr(EXECUTION_ID_KEY);
+        if (attr == null) {
+            return null;
+        }
+
+        return attr.get();
     }
 }
