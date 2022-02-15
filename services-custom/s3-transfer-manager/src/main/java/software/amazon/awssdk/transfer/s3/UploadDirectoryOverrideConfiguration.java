@@ -75,11 +75,11 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
     }
 
     /**
-     * @return the optional upload request transformer
+     * @return the upload request transformer if not null, otherwise no-op
      * @see UploadDirectoryOverrideConfiguration.Builder#uploadFileRequestTransformer(Consumer)
      */
-    public Optional<Consumer<UploadFileRequest.Builder>> uploadFileRequestTransformer() {
-        return Optional.ofNullable(uploadFileRequestTransformer);
+    public Consumer<UploadFileRequest.Builder> uploadFileRequestTransformer() {
+        return uploadFileRequestTransformer == null ? ignore -> { } : uploadFileRequestTransformer;
     }
 
     @Override

@@ -38,15 +38,17 @@ import software.amazon.awssdk.transfer.s3.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.UploadFileRequest;
 
-public class S3TransferManagerTest {
+class S3TransferManagerTest {
     private S3CrtAsyncClient mockS3Crt;
     private S3TransferManager tm;
     private UploadDirectoryHelper uploadDirectoryManager;
+    private DownloadDirectoryHelper downloadDirectoryHelper;
     private TransferManagerConfiguration configuration;
 
     @BeforeEach
@@ -54,7 +56,8 @@ public class S3TransferManagerTest {
         mockS3Crt = mock(S3CrtAsyncClient.class);
         uploadDirectoryManager = mock(UploadDirectoryHelper.class);
         configuration = mock(TransferManagerConfiguration.class);
-        tm = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryManager, configuration);
+        downloadDirectoryHelper = mock(DownloadDirectoryHelper.class);
+        tm = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryManager, configuration, downloadDirectoryHelper);
     }
 
     @AfterEach
@@ -63,13 +66,13 @@ public class S3TransferManagerTest {
     }
 
     @Test
-    public void defaultTransferManager_shouldNotThrowException() {
+    void defaultTransferManager_shouldNotThrowException() {
         S3TransferManager transferManager = S3TransferManager.create();
         transferManager.close();
     }
 
     @Test
-    public void uploadFile_returnsResponse() {
+    void uploadFile_returnsResponse() {
         PutObjectResponse response = PutObjectResponse.builder().build();
         when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
             .thenReturn(CompletableFuture.completedFuture(response));
@@ -99,7 +102,7 @@ public class S3TransferManagerTest {
     }
 
     @Test
-    public void uploadFile_cancel_shouldForwardCancellation() {
+    void uploadFile_cancel_shouldForwardCancellation() {
         CompletableFuture<PutObjectResponse> s3CrtFuture = new CompletableFuture<>();
         when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
             .thenReturn(s3CrtFuture);
@@ -114,7 +117,7 @@ public class S3TransferManagerTest {
     }
 
     @Test
-    public void upload_cancel_shouldForwardCancellation() {
+    void upload_cancel_shouldForwardCancellation() {
         CompletableFuture<PutObjectResponse> s3CrtFuture = new CompletableFuture<>();
         when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
             .thenReturn(s3CrtFuture);
@@ -129,7 +132,7 @@ public class S3TransferManagerTest {
     }
 
     @Test
-    public void downloadFile_returnsResponse() {
+    void downloadFile_returnsResponse() {
         GetObjectResponse response = GetObjectResponse.builder().build();
         when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
             .thenReturn(CompletableFuture.completedFuture(response));
@@ -143,7 +146,7 @@ public class S3TransferManagerTest {
     }
 
     @Test
-    public void downloadFile_cancel_shouldForwardCancellation() {
+    void downloadFile_cancel_shouldForwardCancellation() {
         CompletableFuture<GetObjectResponse> s3CrtFuture = new CompletableFuture<>();
         when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
             .thenReturn(s3CrtFuture);
@@ -159,7 +162,7 @@ public class S3TransferManagerTest {
     }
 
     @Test
-    public void download_cancel_shouldForwardCancellation() {
+    void download_cancel_shouldForwardCancellation() {
         CompletableFuture<GetObjectResponse> s3CrtFuture = new CompletableFuture<>();
         when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
             .thenReturn(s3CrtFuture);
@@ -175,7 +178,7 @@ public class S3TransferManagerTest {
     }
 
     @Test
-    public void objectLambdaArnBucketProvided_shouldThrowException() {
+    void objectLambdaArnBucketProvided_shouldThrowException() {
         String objectLambdaArn = "arn:xxx:s3-object-lambda";
 
         assertThatThrownBy(() -> tm.uploadFile(b -> b.putObjectRequest(p -> p.bucket(objectLambdaArn).key("key"))
@@ -205,7 +208,7 @@ public class S3TransferManagerTest {
     }
 
     @Test
-    public void mrapArnProvided_shouldThrowException() {
+    void mrapArnProvided_shouldThrowException() {
         String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
 
         assertThatThrownBy(() -> tm.uploadFile(b -> b.putObjectRequest(p -> p.bucket(mrapArn).key("key"))
@@ -232,10 +235,15 @@ public class S3TransferManagerTest {
                                                           .sourceDirectory(Paths.get(".")))
                                    .completionFuture().join())
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> tm.downloadDirectory(b -> b.bucket(mrapArn)
+                                                            .destinationDirectory(Paths.get(".")))
+                                   .completionFuture().join())
+            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    public void uploadDirectory_throwException_shouldCompleteFutureExceptionally() {
+    void uploadDirectory_throwException_shouldCompleteFutureExceptionally() {
         RuntimeException exception = new RuntimeException("test");
         when(uploadDirectoryManager.uploadDirectory(any(UploadDirectoryRequest.class))).thenThrow(exception);
 
@@ -245,15 +253,25 @@ public class S3TransferManagerTest {
     }
 
     @Test
-    public void close_shouldCloseUnderlyingResources() {
-        S3TransferManager transferManager = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryManager, configuration);
+    void downloadDirectory_throwException_shouldCompleteFutureExceptionally() {
+        RuntimeException exception = new RuntimeException("test");
+        when(downloadDirectoryHelper.downloadDirectory(any(DownloadDirectoryRequest.class))).thenThrow(exception);
+
+        assertThatThrownBy(() -> tm.downloadDirectory(u -> u.destinationDirectory(Paths.get("/"))
+                                                          .bucket("bucketName")).completionFuture().join())
+            .hasCause(exception);
+    }
+
+    @Test
+    void close_shouldCloseUnderlyingResources() {
+        S3TransferManager transferManager = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryManager, configuration, downloadDirectoryHelper);
         transferManager.close();
         verify(mockS3Crt).close();
         verify(configuration).close();
     }
 
     @Test
-    public void uploadDirectory_requestNull_shouldThrowException() {
+    void uploadDirectory_requestNull_shouldThrowException() {
         UploadDirectoryRequest request = null;
         assertThatThrownBy(() -> tm.uploadDirectory(request).completionFuture().join())
             .isInstanceOf(NullPointerException.class)
@@ -261,16 +279,26 @@ public class S3TransferManagerTest {
     }
 
     @Test
-    public void upload_requestNull_shouldThrowException() {
+    void upload_requestNull_shouldThrowException() {
         UploadFileRequest request = null;
         assertThatThrownBy(() -> tm.uploadFile(request).completionFuture().join()).isInstanceOf(NullPointerException.class)
                                                                                   .hasMessageContaining("must not be null");
     }
 
     @Test
-    public void download_requestNull_shouldThrowException() {
+    void download_requestNull_shouldThrowException() {
         DownloadFileRequest request = null;
         assertThatThrownBy(() -> tm.downloadFile(request).completionFuture().join()).isInstanceOf(NullPointerException.class)
                                                                                     .hasMessageContaining("must not be null");
     }
+
+
+    @Test
+    void downloadDirectory_requestNull_shouldThrowException() {
+        DownloadDirectoryRequest request = null;
+        assertThatThrownBy(() -> tm.downloadDirectory(request).completionFuture().join())
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("must not be null");
+    }
+
 }

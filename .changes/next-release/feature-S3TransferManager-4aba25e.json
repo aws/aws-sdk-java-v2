@@ -1,0 +1,6 @@
+{
+    "category": "S3 Transfer Manager", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Implement downloadDirectory API in the S3TransferManager"
+}
