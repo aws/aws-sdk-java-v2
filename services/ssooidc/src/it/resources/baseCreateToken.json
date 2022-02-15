@@ -1,0 +1,12 @@
+{
+  "accessToken": "getByFollowingStepsInQuip",
+  "aws_sso_app_session_id": null,
+  "expiresAt": "2022-02-09T22:38:45Z",
+  "idToken": null,
+  "refreshToken": "getByFollowingStepsInQuip",
+  "tokenType": "Bearer",
+  "clientId": "mentionedInQuip",
+  "clientSecret": "mentionedInQuip",
+  "region": "us-east-1",
+  "startUrl": "http://caws-sono-testing.awsapps.com/start-beta"
+}
