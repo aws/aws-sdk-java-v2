@@ -379,8 +379,8 @@ public class UploadDirectoryHelperParameterizedTest {
         Files.createDirectory(jimfs.getPath(directoryName + "/foo"));
 
         Files.write(jimfs.getPath(directoryName, "bar.txt"), "bar".getBytes(StandardCharsets.UTF_8));
-        Files.write(jimfs.getPath(directoryName, "foo/1.txt"), "1".getBytes(StandardCharsets.UTF_8));
-        Files.write(jimfs.getPath(directoryName, "foo/2.txt"), "2".getBytes(StandardCharsets.UTF_8));
+        Files.write(jimfs.getPath(directoryName, "foo", "1.txt"), "1".getBytes(StandardCharsets.UTF_8));
+        Files.write(jimfs.getPath(directoryName, "foo", "2.txt"), "2".getBytes(StandardCharsets.UTF_8));
         return directory;
     }
 }

@@ -39,7 +39,7 @@ import software.amazon.awssdk.core.async.SdkPublisher;
  * <pre>
  * {@code
  *
- * PagePublisher<<MyItem> publisher = mappedTable.scan();
+ * PagePublisher<MyItem> publisher = mappedTable.scan();
  * publisher.items().subscribe(item -> System.out.println(item));
  * }
  * </pre>

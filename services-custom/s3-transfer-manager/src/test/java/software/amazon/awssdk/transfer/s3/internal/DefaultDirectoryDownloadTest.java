@@ -13,25 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3;
-
-import static org.assertj.core.api.Assertions.assertThat;
+package software.amazon.awssdk.transfer.s3.internal;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-class CompletedDirectoryUploadTest {
+class DefaultDirectoryDownloadTest {
 
     @Test
-    void equalsHashcode() {
-        EqualsVerifier.forClass(CompletedDirectoryUpload.class)
-                      .withNonnullFields("failedTransfers")
+    void equals_hashcode() {
+        EqualsVerifier.forClass(DefaultDirectoryDownload.class)
+                      .withNonnullFields("completionFuture")
                       .verify();
     }
 
-    @Test
-    void defaultBuilder() {
-        assertThat(CompletedDirectoryUpload.builder().build().failedTransfers())
-            .isEmpty();
-    }
 }

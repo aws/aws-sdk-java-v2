@@ -28,31 +28,31 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Represents a completed upload directory transfer to Amazon S3. It can be used to track
- * failed single file uploads.
+ * Represents a completed download directory transfer to Amazon S3. It can be used to track
+ * failed single file downloads.
  *
- * @see S3TransferManager#uploadDirectory(UploadDirectoryRequest)
+ * @see S3TransferManager#downloadDirectory(DownloadDirectoryRequest) 
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class CompletedDirectoryUpload implements CompletedDirectoryTransfer,
-                                                       ToCopyableBuilder<CompletedDirectoryUpload.Builder,
-                                                           CompletedDirectoryUpload> {
-    
-    private final List<FailedFileUpload> failedTransfers;
+public final class CompletedDirectoryDownload implements CompletedDirectoryTransfer,
+                                                         ToCopyableBuilder<CompletedDirectoryDownload.Builder,
+                                                             CompletedDirectoryDownload> {
 
-    private CompletedDirectoryUpload(DefaultBuilder builder) {
+    private final List<FailedFileDownload> failedTransfers;
+
+    private CompletedDirectoryDownload(DefaultBuilder builder) {
         this.failedTransfers = Collections.unmodifiableList(
             new ArrayList<>(Validate.paramNotNull(builder.failedTransfers, "failedTransfers")));
     }
-    
+
     @Override
-    public List<FailedFileUpload> failedTransfers() {
+    public List<FailedFileDownload> failedTransfers() {
         return failedTransfers;
     }
 
     /**
-     * Creates a default builder for {@link CompletedDirectoryUpload}.
+     * Creates a default builder for {@link CompletedDirectoryDownload}.
      */
     public static Builder builder() {
         return new DefaultBuilder();
@@ -67,7 +67,7 @@ public final class CompletedDirectoryUpload implements CompletedDirectoryTransfe
             return false;
         }
 
-        CompletedDirectoryUpload that = (CompletedDirectoryUpload) o;
+        CompletedDirectoryDownload that = (CompletedDirectoryDownload) o;
 
         return Objects.equals(failedTransfers, that.failedTransfers);
     }
@@ -79,7 +79,7 @@ public final class CompletedDirectoryUpload implements CompletedDirectoryTransfe
 
     @Override
     public String toString() {
-        return ToString.builder("CompletedDirectoryUpload")
+        return ToString.builder("CompletedDirectoryDownload")
                        .add("failedTransfers", failedTransfers)
                        .build();
     }
@@ -93,65 +93,65 @@ public final class CompletedDirectoryUpload implements CompletedDirectoryTransfe
         return new DefaultBuilder(this);
     }
 
-    public interface Builder extends CopyableBuilder<CompletedDirectoryUpload.Builder,
-        CompletedDirectoryUpload> {
+    public interface Builder extends CopyableBuilder<CompletedDirectoryDownload.Builder,
+        CompletedDirectoryDownload>  {
 
         /**
-         * Sets a collection of {@link FailedFileUpload}s
+         * Sets a collection of {@link FailedFileDownload}s
          *
-         * @param failedTransfers failed uploads
+         * @param failedTransfers failed download
          * @return This builder for method chaining.
          */
-        Builder failedTransfers(Collection<FailedFileUpload> failedTransfers);
+        Builder failedTransfers(Collection<FailedFileDownload> failedTransfers);
 
         /**
-         * Add a {@link FailedFileUpload}
+         * Add a {@link FailedFileDownload}
          *
-         * @param failedTransfer failed upload
+         * @param failedTransfer failed download
          * @return This builder for method chaining.
          */
-        Builder addFailedTransfer(FailedFileUpload failedTransfer);
+        Builder addFailedTransfer(FailedFileDownload failedTransfer);
 
         /**
-         * Builds a {@link CompletedDirectoryUpload} based on the properties supplied to this builder
-         * @return An initialized {@link CompletedDirectoryUpload}
+         * Builds a {@link CompletedDirectoryDownload} based on the properties supplied to this builder
+         * @return An initialized {@link CompletedDirectoryDownload}
          */
-        CompletedDirectoryUpload build();
+        CompletedDirectoryDownload build();
     }
 
     private static final class DefaultBuilder implements Builder {
-        private Collection<FailedFileUpload> failedTransfers = new ArrayList<>();
+        private Collection<FailedFileDownload> failedTransfers = new ArrayList<>();
 
         private DefaultBuilder() {
         }
 
-        private DefaultBuilder(CompletedDirectoryUpload completedDirectoryUpload) {
-            this.failedTransfers = new ArrayList<>(completedDirectoryUpload.failedTransfers);
+        private DefaultBuilder(CompletedDirectoryDownload completedDirectoryDownload) {
+            this.failedTransfers = new ArrayList<>(completedDirectoryDownload.failedTransfers);
         }
 
         @Override
-        public Builder failedTransfers(Collection<FailedFileUpload> failedTransfers) {
+        public Builder failedTransfers(Collection<FailedFileDownload> failedTransfers) {
             this.failedTransfers = new ArrayList<>(failedTransfers);
             return this;
         }
 
         @Override
-        public Builder addFailedTransfer(FailedFileUpload failedTransfer) {
+        public Builder addFailedTransfer(FailedFileDownload failedTransfer) {
             failedTransfers.add(failedTransfer);
             return this;
         }
 
-        public Collection<FailedFileUpload> getFailedTransfers() {
+        public Collection<FailedFileDownload> getFailedTransfers() {
             return Collections.unmodifiableCollection(failedTransfers);
         }
 
-        public void setFailedTransfers(Collection<FailedFileUpload> failedTransfers) {
+        public void setFailedTransfers(Collection<FailedFileDownload> failedTransfers) {
             failedTransfers(failedTransfers);
         }
 
         @Override
-        public CompletedDirectoryUpload build() {
-            return new CompletedDirectoryUpload(this);
+        public CompletedDirectoryDownload build() {
+            return new CompletedDirectoryDownload(this);
         }
     }
 }

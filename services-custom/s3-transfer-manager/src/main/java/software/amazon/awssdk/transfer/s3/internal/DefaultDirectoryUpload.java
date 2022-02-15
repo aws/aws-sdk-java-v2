@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.CompletedDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.DirectoryUpload;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultDirectoryUpload implements DirectoryUpload {
@@ -28,7 +29,7 @@ public final class DefaultDirectoryUpload implements DirectoryUpload {
     private final CompletableFuture<CompletedDirectoryUpload> completionFuture;
 
     DefaultDirectoryUpload(CompletableFuture<CompletedDirectoryUpload> completionFuture) {
-        this.completionFuture = completionFuture;
+        this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
     }
 
     @Override

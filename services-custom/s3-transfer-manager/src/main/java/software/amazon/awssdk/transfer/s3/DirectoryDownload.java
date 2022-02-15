@@ -15,23 +15,16 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
-import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.jupiter.api.Test;
-
-class CompletedDirectoryUploadTest {
-
-    @Test
-    void equalsHashcode() {
-        EqualsVerifier.forClass(CompletedDirectoryUpload.class)
-                      .withNonnullFields("failedTransfers")
-                      .verify();
-    }
-
-    @Test
-    void defaultBuilder() {
-        assertThat(CompletedDirectoryUpload.builder().build().failedTransfers())
-            .isEmpty();
-    }
+/**
+ * A download transfer of a directory of objects from S3
+ */
+@SdkPublicApi
+@SdkPreviewApi
+public interface DirectoryDownload extends DirectoryTransfer {
+    @Override
+    CompletableFuture<CompletedDirectoryDownload> completionFuture();
 }
