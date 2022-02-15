@@ -25,9 +25,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>auth-sts-testing</artifactId>
-    <name>AWS Java SDK :: Test :: Auth Sts Testing</name>
-    <description>Test package for testing sts and the auth package together.</description>
+    <artifactId>auth-tests</artifactId>
+    <name>AWS Java SDK :: Test :: Auth Testing</name>
+    <description>Test package for testing authorization related packages.</description>
     <dependencyManagement>
         <dependencies>
             <dependency>

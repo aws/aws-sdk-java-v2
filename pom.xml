@@ -81,7 +81,7 @@
         <module>test/stability-tests</module>
         <module>test/sdk-native-image-test</module>
         <module>test/s3-benchmarks</module>
-        <module>test/auth-sts-testing</module>
+        <module>test/auth-tests</module>
         <module>test/region-testing</module>
     </modules>
     <scm>
