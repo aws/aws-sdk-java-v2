@@ -50,7 +50,7 @@ public abstract class BaseSigningScopeTest {
         SigningTestCase testCase = SignerTestUtils.createBasicHeaderSigningTestCase();
 
         String expectdScope = "us-west-2";
-        SdkHttpFullRequest signedRequest = signRequestWithScope(testCase, RegionScope.GLOBAL, RegionScope.of(expectdScope));
+        SdkHttpFullRequest signedRequest = signRequestWithScope(testCase, RegionScope.GLOBAL, RegionScope.create(expectdScope));
 
         String regionHeader = signedRequest.firstMatchingHeader("X-Amz-Region-Set").get();
         assertThat(regionHeader).isEqualTo(expectdScope);
@@ -61,7 +61,8 @@ public abstract class BaseSigningScopeTest {
         SigningTestCase testCase = SignerTestUtils.createBasicHeaderSigningTestCase();
 
         String expectdScope = "us-west-2";
-        SdkHttpFullRequest signedRequest = presignRequestWithScope(testCase, RegionScope.GLOBAL, RegionScope.of(expectdScope));
+        SdkHttpFullRequest signedRequest = presignRequestWithScope(testCase, RegionScope.GLOBAL,
+                                                                   RegionScope.create(expectdScope));
 
         assertThat(signedRequest.rawQueryParameters().get("X-Amz-Region-Set")).containsExactly(expectdScope);
     }

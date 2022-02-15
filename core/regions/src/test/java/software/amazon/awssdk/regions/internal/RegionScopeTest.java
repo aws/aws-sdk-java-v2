@@ -36,7 +36,7 @@ public class RegionScopeTest {
     @Test
     public void validateRegionScope() {
         try {
-            RegionScope regionScope = RegionScope.of(testCase.regionScope);
+            RegionScope regionScope = RegionScope.create(testCase.regionScope);
             assertThat(regionScope.id()).isEqualTo(testCase.regionScope);
         } catch (RuntimeException e) {
             if (testCase.expectedException == null) {

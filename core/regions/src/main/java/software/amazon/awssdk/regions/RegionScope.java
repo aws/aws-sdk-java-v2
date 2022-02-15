@@ -53,7 +53,7 @@ public final class RegionScope {
     //Pattern must be compiled when static scope is created
     static {
         REGION_SCOPE_PATTERN = Pattern.compile("^([a-z0-9-])*([*]?)$");
-        GLOBAL = RegionScope.of("*");
+        GLOBAL = RegionScope.create("*");
     }
 
     private final String regionScope;
@@ -75,7 +75,7 @@ public final class RegionScope {
      *
      * @param value See class documentation {@link RegionScope} for allowed values.
      */
-    public static RegionScope of(String value) {
+    public static RegionScope create(String value) {
         return new RegionScope(value);
     }
 
