@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.kinesis;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
@@ -36,7 +36,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -213,7 +213,7 @@ public class SubscribeToShardUnmarshallingTest {
     private void stubResponse(SdkHttpFullResponse response) {
         when(sdkHttpClient.execute(any(AsyncExecuteRequest.class))).thenAnswer((Answer<CompletableFuture<Void>>) invocationOnMock -> {
             CompletableFuture<Void> cf = new CompletableFuture<>();
-            AsyncExecuteRequest req = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class);
+            AsyncExecuteRequest req = invocationOnMock.getArgument(0, AsyncExecuteRequest.class);
             SdkAsyncHttpResponseHandler value = req.responseHandler();
             value.onHeaders(response);
             value.onStream(subscriber -> subscriber.onSubscribe(new Subscription() {

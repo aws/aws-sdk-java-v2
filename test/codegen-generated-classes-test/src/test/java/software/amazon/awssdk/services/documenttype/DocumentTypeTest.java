@@ -1,7 +1,7 @@
 package software.amazon.awssdk.services.documenttype;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.BufferedReader;

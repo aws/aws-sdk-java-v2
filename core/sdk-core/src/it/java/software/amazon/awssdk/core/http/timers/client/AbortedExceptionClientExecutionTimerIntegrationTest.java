@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.http.timers.client;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.createMockGetRequest;
 import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.execute;
@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;

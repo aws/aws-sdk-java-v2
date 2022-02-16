@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 import java.io.FilterInputStream;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 
 /**
  * Input stream that can be aborted. Abort typically means to destroy underlying HTTP connection
@@ -63,6 +64,14 @@ public final class AbortableInputStream extends FilterInputStream implements Abo
     @Override
     public void abort() {
         abortable.abort();
+    }
+
+    /**
+     * Access the underlying delegate stream, for testing purposes.
+     */
+    @SdkTestInternalApi
+    public InputStream delegate() {
+        return in;
     }
 
 }

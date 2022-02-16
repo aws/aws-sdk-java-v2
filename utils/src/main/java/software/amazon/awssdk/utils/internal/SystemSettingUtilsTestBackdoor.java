@@ -19,7 +19,12 @@ import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.utils.SystemSetting;
 
+/**
+ * This is a backdoor to add overrides to the results of querying {@link SystemSetting}s. This is used for testing environment
+ * variables within the SDK
+ */
 @SdkTestInternalApi
 @SdkInternalApi
 public final class SystemSettingUtilsTestBackdoor {

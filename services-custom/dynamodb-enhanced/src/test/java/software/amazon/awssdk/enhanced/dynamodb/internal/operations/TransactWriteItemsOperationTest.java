@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
@@ -93,7 +93,7 @@ public class TransactWriteItemsOperationTest {
                                                                              .build();
 
         assertThat(actualRequest, is(expectedRequest));
-        verifyZeroInteractions(mockDynamoDbEnhancedClientExtension);
+        verifyNoMoreInteractions(mockDynamoDbEnhancedClientExtension);
     }
 
     @Test
@@ -112,7 +112,7 @@ public class TransactWriteItemsOperationTest {
                                      .build();
 
         assertThat(actualRequest, is(expectedRequest));
-        verifyZeroInteractions(mockDynamoDbEnhancedClientExtension);
+        verifyNoMoreInteractions(mockDynamoDbEnhancedClientExtension);
     }
 
     @Test
@@ -123,7 +123,7 @@ public class TransactWriteItemsOperationTest {
 
         TransactWriteItemsRequest expectedRequest = TransactWriteItemsRequest.builder().build();
         assertThat(actualRequest, is(expectedRequest));
-        verifyZeroInteractions(mockDynamoDbEnhancedClientExtension);
+        verifyNoMoreInteractions(mockDynamoDbEnhancedClientExtension);
     }
 
     @Test
@@ -141,7 +141,7 @@ public class TransactWriteItemsOperationTest {
 
         assertThat(actualResponse, is(sameInstance(expectedResponse)));
         verify(mockDynamoDbClient).transactWriteItems(request);
-        verifyZeroInteractions(mockDynamoDbEnhancedClientExtension);
+        verifyNoMoreInteractions(mockDynamoDbEnhancedClientExtension);
     }
 
     @Test
@@ -151,7 +151,7 @@ public class TransactWriteItemsOperationTest {
 
         operation.transformResponse(response, mockDynamoDbEnhancedClientExtension);
 
-        verifyZeroInteractions(mockDynamoDbEnhancedClientExtension);
+        verifyNoMoreInteractions(mockDynamoDbEnhancedClientExtension);
     }
 
     private TransactWriteItemsEnhancedRequest emptyRequest() {

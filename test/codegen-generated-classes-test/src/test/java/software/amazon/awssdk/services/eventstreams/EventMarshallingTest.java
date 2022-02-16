@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.eventstreams;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -126,7 +126,7 @@ public class EventMarshallingTest {
     }
 
     private CompletableFuture<Void> mockExecute(InvocationOnMock invocation) {
-        AsyncExecuteRequest request = invocation.getArgumentAt(0, AsyncExecuteRequest.class);
+        AsyncExecuteRequest request = invocation.getArgument(0, AsyncExecuteRequest.class);
         SdkHttpContentPublisher content = request.requestContentPublisher();
         List<ByteBuffer> chunks = Flowable.fromPublisher(content).toList().blockingGet();
 
