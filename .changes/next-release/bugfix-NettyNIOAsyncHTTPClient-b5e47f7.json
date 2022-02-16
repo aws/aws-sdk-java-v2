@@ -1,6 +1,0 @@
-{
-    "category": "Netty NIO Async HTTP Client", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fixed an issue in Netty async http client where NPE was thrown when the execution got cancelled before executionId was attached to the channel."
-}
