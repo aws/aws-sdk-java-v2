@@ -108,7 +108,7 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
      * Retrieve an unmodifiable view of all of the properties currently in this profile.
      */
     public Map<String, String> properties() {
-        return properties;
+        return Collections.unmodifiableMap(properties);
     }
 
     @Override

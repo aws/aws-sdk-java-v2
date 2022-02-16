@@ -62,7 +62,7 @@ public class InterruptFlagAlwaysClearsTest {
     @Mock
     private HttpResponseHandler<SdkResponse> responseHandler;
 
-    @Mock
+    @Mock(lenient = true)
     private HttpResponseHandler<SdkServiceException> errorResponseHandler;
 
     @BeforeClass
