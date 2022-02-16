@@ -51,7 +51,7 @@ public class AsyncAwsJsonRetryTest {
     public void setupClient() {
         client = ProtocolJsonRpcAsyncClient.builder()
                                            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create
-                                               ("akid", "skid")))
+                                                                                                                        ("akid", "skid")))
                                            .region(Region.US_EAST_1)
                                            .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                            .build();
