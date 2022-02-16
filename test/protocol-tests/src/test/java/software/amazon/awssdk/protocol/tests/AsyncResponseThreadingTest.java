@@ -23,7 +23,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 
@@ -69,8 +68,7 @@ public class AsyncResponseThreadingTest {
                 client.streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
                                                 AsyncResponseTransformer.toBytes()).join();
 
-        // #1 reporting metrics, #2 completing response
-        verify(mockExecutor, times(2)).execute(any());
+        verify(mockExecutor).execute(any());
 
         byte[] arrayCopy = response.asByteArray();
         assertThat(arrayCopy).containsExactly('t', 'e', 's', 't');
@@ -96,8 +94,7 @@ public class AsyncResponseThreadingTest {
                                             AsyncResponseTransformer.toBytes()).join())
             .hasCauseInstanceOf(SdkClientException.class);
 
-        // #1 reporting metrics, #2 completing response
-        verify(mockExecutor, times(2)).execute(any());
+        verify(mockExecutor).execute(any());
     }
 
     @Test
@@ -118,8 +115,7 @@ public class AsyncResponseThreadingTest {
         assertThatThrownBy(() ->
             client.streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
                                             AsyncResponseTransformer.toBytes()).join()).hasCauseInstanceOf(ProtocolRestJsonException.class);
-        // #1 reporting metrics, #2 completing response
-        verify(mockExecutor, times(2)).execute(any());
+        verify(mockExecutor).execute(any());
     }
 
     private static class SpyableExecutor implements Executor {

@@ -174,11 +174,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         long callStart = System.nanoTime();
         CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
 
-        // Offload the metrics reporting from this stage onto the future completion executor
-        CompletableFuture<Void> result = httpClientFuture.whenCompleteAsync((r, t) -> {
+        CompletableFuture<Void> result = httpClientFuture.whenComplete((r, t) -> {
             long duration = System.nanoTime() - callStart;
             metricCollector.reportMetric(CoreMetric.SERVICE_CALL_DURATION, Duration.ofNanos(duration));
-        }, futureCompletionExecutor);
+        });
 
         // Make sure failures on the result future are forwarded to the http client future.
         CompletableFutureUtils.forwardExceptionTo(result, httpClientFuture);
