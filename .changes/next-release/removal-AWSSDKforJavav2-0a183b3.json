@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "removal", 
+    "description": "Removed codegen-resources from service jars, which reduces SDK artifact size."
+}

@@ -178,6 +178,15 @@
 
     <build>
         <finalName>aws-sdk-java-${project.artifactId}-${awsjavasdk.version}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>codegen-resources/**</exclude>
+                </excludes>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
         <pluginManagement>
             <plugins>
                 <plugin>
