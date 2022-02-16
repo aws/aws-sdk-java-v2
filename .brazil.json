@@ -47,7 +47,7 @@
         "archetype-lambda": { "skipImport": true },
         "archetype-tools": { "skipImport": true },
         "archetypes": { "skipImport": true },
-        "auth-sts-testing": { "skipImport": true },
+        "auth-tests": { "skipImport": true },
         "aws-sdk-java": { "skipImport": true },
         "aws-sdk-java-pom": { "skipImport": true },
         "bom": { "skipImport": true },
