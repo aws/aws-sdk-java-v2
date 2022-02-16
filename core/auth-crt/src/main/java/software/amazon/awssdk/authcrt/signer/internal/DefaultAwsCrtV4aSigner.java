@@ -21,20 +21,32 @@ import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.authcrt.signer.AwsCrtV4aSigner;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.regions.RegionScope;
 
 @SdkInternalApi
 public final class DefaultAwsCrtV4aSigner implements AwsCrtV4aSigner {
 
     private final AwsCrt4aSigningAdapter signer;
     private final SigningConfigProvider configProvider;
+    private final RegionScope defaultRegionScope;
 
-    private DefaultAwsCrtV4aSigner() {
-        signer = new AwsCrt4aSigningAdapter();
-        configProvider = new SigningConfigProvider();
+    private DefaultAwsCrtV4aSigner(BuilderImpl builder) {
+        this(new AwsCrt4aSigningAdapter(), new SigningConfigProvider(), builder.defaultRegionScope);
+    }
+
+    DefaultAwsCrtV4aSigner(AwsCrt4aSigningAdapter signer, SigningConfigProvider configProvider,
+                           RegionScope defaultRegionScope) {
+        this.signer = signer;
+        this.configProvider = configProvider;
+        this.defaultRegionScope = defaultRegionScope;
     }
 
     public static AwsCrtV4aSigner create() {
-        return new DefaultAwsCrtV4aSigner();
+        return builder().build();
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
     }
 
     @Override
@@ -42,11 +54,48 @@ public final class DefaultAwsCrtV4aSigner implements AwsCrtV4aSigner {
         if (CredentialUtils.isAnonymous(executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS))) {
             return request;
         }
-        return signer.signRequest(request, configProvider.createCrtSigningConfig(executionAttributes));
+        ExecutionAttributes defaultsApplied = applyDefaults(executionAttributes);
+        return signer.signRequest(request, configProvider.createCrtSigningConfig(defaultsApplied));
     }
 
     @Override
     public SdkHttpFullRequest presign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        return signer.signRequest(request, configProvider.createCrtPresigningConfig(executionAttributes));
+        ExecutionAttributes defaultsApplied = applyDefaults(executionAttributes);
+        return signer.signRequest(request, configProvider.createCrtPresigningConfig(defaultsApplied));
+    }
+
+    /**
+     * Applies preconfigured defaults for values that are not present in {@code executionAttributes}.
+     */
+    private ExecutionAttributes applyDefaults(ExecutionAttributes executionAttributes) {
+        return applyDefaultRegionScope(executionAttributes);
+    }
+
+    private ExecutionAttributes applyDefaultRegionScope(ExecutionAttributes executionAttributes) {
+        if (executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE) != null) {
+            return executionAttributes;
+        }
+
+        if (defaultRegionScope == null) {
+            return executionAttributes;
+        }
+
+        return executionAttributes.copy()
+                                  .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE, defaultRegionScope);
+    }
+
+    private static class BuilderImpl implements Builder {
+        private RegionScope defaultRegionScope;
+
+        @Override
+        public Builder defaultRegionScope(RegionScope defaultRegionScope) {
+            this.defaultRegionScope = defaultRegionScope;
+            return this;
+        }
+
+        @Override
+        public AwsCrtV4aSigner build() {
+            return new DefaultAwsCrtV4aSigner(this);
+        }
     }
 }

@@ -22,7 +22,7 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import software.amazon.awssdk.regions.internal.util.RegionScope;
+import software.amazon.awssdk.regions.RegionScope;
 
 @RunWith(Parameterized.class)
 public class RegionScopeTest {
@@ -36,7 +36,7 @@ public class RegionScopeTest {
     @Test
     public void validateRegionScope() {
         try {
-            RegionScope regionScope = RegionScope.of(testCase.regionScope);
+            RegionScope regionScope = RegionScope.create(testCase.regionScope);
             assertThat(regionScope.id()).isEqualTo(testCase.regionScope);
         } catch (RuntimeException e) {
             if (testCase.expectedException == null) {
