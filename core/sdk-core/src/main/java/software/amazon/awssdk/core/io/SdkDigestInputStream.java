@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.internal.io.Releasable;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -30,8 +31,15 @@ import software.amazon.awssdk.utils.IoUtils;
 public class SdkDigestInputStream extends DigestInputStream implements Releasable {
     private static final int SKIP_BUF_SIZE = 2 * 1024;
 
-    public SdkDigestInputStream(InputStream stream, MessageDigest digest) {
+    private final SdkChecksum sdkChecksum;
+
+    public SdkDigestInputStream(InputStream stream, MessageDigest digest, SdkChecksum sdkChecksum) {
         super(stream, digest);
+        this.sdkChecksum = sdkChecksum;
+    }
+
+    public SdkDigestInputStream(InputStream stream, MessageDigest digest) {
+        this(stream, digest,  null) ;
     }
 
     // https://github.com/aws/aws-sdk-java/issues/232
@@ -88,5 +96,36 @@ public class SdkDigestInputStream extends DigestInputStream implements Releasabl
             Releasable r = (Releasable) in;
             r.release();
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    @Override
+    public int read() throws IOException {
+        int ch = in.read();
+        if (ch != -1) {
+            digest.update((byte) ch);
+            if (sdkChecksum != null) {
+                sdkChecksum.update((byte) ch);
+            }
+
+        }
+        return ch;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        int result = in.read(b, off, len);
+        if (result != -1) {
+            digest.update(b, off, result);
+            if (sdkChecksum != null) {
+                sdkChecksum.update(b, off, result);
+            }
+        }
+        return result;
     }
 }

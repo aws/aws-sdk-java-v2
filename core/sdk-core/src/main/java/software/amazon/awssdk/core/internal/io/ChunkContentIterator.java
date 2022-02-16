@@ -20,15 +20,15 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 class ChunkContentIterator {
 
-    private final byte[] signedChunk;
+    private final byte[] bytes;
     private int pos;
 
-    ChunkContentIterator(byte[] signedChunk) {
-        this.signedChunk = signedChunk;
+    ChunkContentIterator(byte[] bytes) {
+        this.bytes = bytes;
     }
 
     public boolean hasNext() {
-        return pos < signedChunk.length;
+        return pos < bytes.length;
     }
 
     public int read(byte[] output, int offset, int length) {
@@ -38,10 +38,9 @@ class ChunkContentIterator {
         if (!hasNext()) {
             return -1;
         }
-
-        int remaingBytesNum = signedChunk.length - pos;
+        int remaingBytesNum = bytes.length - pos;
         int bytesToRead = Math.min(remaingBytesNum, length);
-        System.arraycopy(signedChunk, pos, output, offset, bytesToRead);
+        System.arraycopy(bytes, pos, output, offset, bytesToRead);
         pos += bytesToRead;
         return bytesToRead;
     }

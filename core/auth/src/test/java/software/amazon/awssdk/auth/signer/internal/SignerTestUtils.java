@@ -20,6 +20,7 @@ import java.time.Instant;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
+import software.amazon.awssdk.auth.signer.params.SignerChecksumParams;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.regions.Region;
@@ -41,6 +42,25 @@ public class SignerTestUtils {
 
         return signer.sign(request, signerParams);
     }
+
+    public static SdkHttpFullRequest signRequest(BaseAws4Signer signer,
+                                                 SdkHttpFullRequest request,
+                                                 AwsCredentials credentials,
+                                                 String signingName,
+                                                 Clock signingDateOverride,
+                                                 String region, SignerChecksumParams signerChecksumParams) {
+
+        Aws4SignerParams signerParams = Aws4SignerParams.builder()
+                .awsCredentials(credentials)
+                .signingName(signingName)
+                .signingClockOverride(signingDateOverride)
+                .signingRegion(Region.of(region))
+                .checksumParams(signerChecksumParams)
+                .build();
+
+        return signer.sign(request, signerParams);
+    }
+
 
     public static AsyncRequestBody signAsyncRequest(BaseAsyncAws4Signer signer,
                                                     SdkHttpFullRequest request,

@@ -15,12 +15,16 @@
 
 package software.amazon.awssdk.authcrt.signer.internal;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.auth.signing.AwsSigner;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
+import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -68,6 +72,27 @@ public class AwsCrt4aSigningAdapter {
     public byte[] signChunk(byte[] chunkBody, byte[] previousSignature, AwsSigningConfig signingConfig) {
         HttpRequestBodyStream crtBody = requestConverter.toCrtStream(chunkBody);
         CompletableFuture<byte[]> future = AwsSigner.signChunk(crtBody, previousSignature, signingConfig);
+        try {
+            return future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw SdkClientException.create("The thread got interrupted while attempting to sign request: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw SdkClientException.create("Unable to sign request: " + e.getMessage(), e);
+        }
+    }
+
+    public AwsSigningResult signTrailerHeaders(Map<String, List<String>> headerMap, byte[] previousSignature,
+                                               AwsSigningConfig signingConfig) {
+
+        List<HttpHeader> httpHeaderList =
+            headerMap.entrySet().stream().map(entry -> new HttpHeader(
+                entry.getKey(), String.join(",", entry.getValue()))).collect(Collectors.toList());
+
+        // All the config remains the same as signing config except the Signature Type.
+        AwsSigningConfig configCopy = signingConfig.clone();
+        configCopy.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_TRAILING_HEADERS);
+        CompletableFuture<AwsSigningResult> future = AwsSigner.sign(httpHeaderList, previousSignature, configCopy);
         try {
             return future.get();
         } catch (InterruptedException e) {

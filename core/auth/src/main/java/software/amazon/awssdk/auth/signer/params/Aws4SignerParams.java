@@ -36,6 +36,7 @@ public class Aws4SignerParams {
     private final Region signingRegion;
     private final Integer timeOffset;
     private final Clock signingClockOverride;
+    private final SignerChecksumParams checksumParams;
 
     Aws4SignerParams(BuilderImpl<?> builder) {
         this.doubleUrlEncode = Validate.paramNotNull(builder.doubleUrlEncode, "Double Url encode");
@@ -44,6 +45,7 @@ public class Aws4SignerParams {
         this.signingRegion = Validate.paramNotNull(builder.signingRegion, "signing region");
         this.timeOffset = builder.timeOffset;
         this.signingClockOverride = builder.signingClockOverride;
+        this.checksumParams = builder.checksumParams;
     }
 
     public static Builder builder() {
@@ -72,6 +74,10 @@ public class Aws4SignerParams {
 
     public Optional<Clock> signingClockOverride() {
         return Optional.ofNullable(signingClockOverride);
+    }
+
+    public SignerChecksumParams checksumParams() {
+        return checksumParams;
     }
 
     public interface Builder<B extends Builder> {
@@ -124,6 +130,14 @@ public class Aws4SignerParams {
          */
         B signingClockOverride(Clock signingClockOverride);
 
+        /**
+         * Checksum params required to compute the Checksum while data is read for signing the Checksum.
+         *
+         * @param checksumParams SignerChecksumParams that defines the Algorithm and headers to pass Checksum.
+         * @return
+         */
+        B checksumParams(SignerChecksumParams checksumParams);
+
         Aws4SignerParams build();
     }
 
@@ -136,6 +150,7 @@ public class Aws4SignerParams {
         private Region signingRegion;
         private Integer timeOffset;
         private Clock signingClockOverride;
+        private SignerChecksumParams checksumParams;
 
         protected BuilderImpl() {
 
@@ -194,6 +209,12 @@ public class Aws4SignerParams {
         @Override
         public B signingClockOverride(Clock signingClockOverride) {
             this.signingClockOverride = signingClockOverride;
+            return (B) this;
+        }
+
+        @Override
+        public B checksumParams(SignerChecksumParams checksumParams) {
+            this.checksumParams = checksumParams;
             return (B) this;
         }
 

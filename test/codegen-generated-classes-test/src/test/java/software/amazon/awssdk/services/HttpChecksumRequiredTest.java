@@ -44,6 +44,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlAsyncClient;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 
@@ -146,6 +147,18 @@ public class HttpChecksumRequiredTest {
     @Test(expected = CompletionException.class)
     public void asyncStreamingInputXmlFailsWithChecksumRequiredTrait() {
         xmlAsyncClient.streamingInputOperationWithRequiredChecksum(r -> {}, AsyncRequestBody.fromString("foo")).join();
+    }
+
+    @Test
+    public void syncJsonSupportsOperationWithRequestChecksumRequired() {
+        jsonClient.operationWithRequestChecksumRequired(r -> r.stringMember("foo"));
+        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).hasValue("g8VCvPTPCMoU01rBlBVt9w==");
+    }
+
+    @Test
+    public void syncJsonSupportsOperationWithCustomRequestChecksum() {
+        jsonClient.operationWithCustomRequestChecksum(r -> r.stringMember("foo").checksumAlgorithm(ChecksumAlgorithm.CRC32));
+        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
     }
 
     private SdkHttpRequest getSyncRequest() {

@@ -40,6 +40,7 @@ import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
+import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.core.SdkPojoBuilder;
@@ -175,7 +176,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add(discoveredEndpoint(opModel))
                      .add(".withInput($L)\n", opModel.getInput().getVariableName())
                      .add(".withMetricCollector(apiCallMetricCollector)")
-                     .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
+                     .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
+                     .add(HttpChecksumTrait.create(opModel));
 
         if (opModel.hasStreamingInput()) {
             codeBlock.add(".withRequestBody(requestBody)")
@@ -242,6 +244,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(discoveredEndpoint(opModel))
                .add(asyncRequestBody)
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
+               .add(HttpChecksumTrait.create(opModel))
                .add(".withInput($L)$L);",
                     opModel.getInput().getVariableName(), asyncResponseTransformerVariable(isStreaming, isRestJson, opModel));
 

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.interceptor;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 
@@ -47,6 +48,12 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Boolean> DISABLE_HOST_PREFIX_INJECTION =
             new ExecutionAttribute<>("DisableHostPrefixInjection");
+
+    /**
+     * Key to indicate if the Http Checksums that are valid for an operation.
+     */
+    public static final ExecutionAttribute<HttpChecksum> HTTP_CHECKSUM =
+        new ExecutionAttribute<>("HttpChecksum");
 
     /**
      * The SDK HTTP attributes that can be passed to the HTTP client
