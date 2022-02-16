@@ -13,16 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.internal.util;
+package software.amazon.awssdk.regions;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * This class represents the concept of a regional scope, in form of a string with possible wildcards.
@@ -45,8 +43,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *     <li>'eu-we*' - The wildcard must be its own segment</li>
  * </ul>
  */
-@SdkInternalApi
-public final class RegionScope implements ToCopyableBuilder<RegionScope.Builder, RegionScope> {
+@SdkPublicApi
+public final class RegionScope {
 
     public static final RegionScope GLOBAL;
 
@@ -55,25 +53,15 @@ public final class RegionScope implements ToCopyableBuilder<RegionScope.Builder,
     //Pattern must be compiled when static scope is created
     static {
         REGION_SCOPE_PATTERN = Pattern.compile("^([a-z0-9-])*([*]?)$");
-        GLOBAL = RegionScope.of("*");
+        GLOBAL = RegionScope.create("*");
     }
 
     private final String regionScope;
 
-    private RegionScope(Builder b) {
-        this.regionScope = Validate.paramNotBlank(b.regionScope, "regionScope");
+    private RegionScope(String regionScope) {
+        this.regionScope = Validate.paramNotBlank(regionScope, "regionScope");
         validateFormat(regionScope);
     }
-
-    /**
-     * Get a new builder for this class.
-     *
-     * @return A newly initialized instance of a builder.
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
-
 
     /**
      * Gets the string representation of this region scope.
@@ -87,8 +75,8 @@ public final class RegionScope implements ToCopyableBuilder<RegionScope.Builder,
      *
      * @param value See class documentation {@link RegionScope} for allowed values.
      */
-    public static RegionScope of(String value) {
-        return builder().regionScope(value).build();
+    public static RegionScope create(String value) {
+        return new RegionScope(value);
     }
 
     @Override
@@ -110,11 +98,6 @@ public final class RegionScope implements ToCopyableBuilder<RegionScope.Builder,
         return 31 * (1 + (regionScope != null ? regionScope.hashCode() : 0));
     }
 
-    @Override
-    public Builder toBuilder() {
-        return builder().regionScope(regionScope);
-    }
-
     private void validateFormat(String regionScope) {
         Matcher matcher = REGION_SCOPE_PATTERN.matcher(regionScope);
         if (!matcher.matches()) {
@@ -130,27 +113,6 @@ public final class RegionScope implements ToCopyableBuilder<RegionScope.Builder,
             throw new IllegalArgumentException("Incorrect region scope '" + regionScope
                                                + "'. A wildcard must only appear on its own at the end of the expression "
                                                + "after a '-' dash. A global scope of '*' is allowed.");
-        }
-    }
-
-    public static final class Builder implements CopyableBuilder<Builder, RegionScope> {
-        private String regionScope;
-
-        private Builder() {
-        }
-
-        public void setRegionScope(String regionScope) {
-            regionScope(regionScope);
-        }
-
-        public Builder regionScope(String regionScope) {
-            this.regionScope = regionScope;
-            return this;
-        }
-
-        @Override
-        public RegionScope build() {
-            return new RegionScope(this);
         }
     }
 }

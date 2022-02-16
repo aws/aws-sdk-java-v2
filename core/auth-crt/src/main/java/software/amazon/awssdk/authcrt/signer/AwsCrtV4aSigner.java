@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsCrtV4aSigner;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.regions.RegionScope;
 
 /**
  * Enables signing and presigning using Sigv4a (Asymmetric Sigv4) through an external API call to the AWS CRT
@@ -38,5 +39,21 @@ public interface AwsCrtV4aSigner extends Signer, Presigner {
      */
     static AwsCrtV4aSigner create() {
         return DefaultAwsCrtV4aSigner.create();
+    }
+
+    static Builder builder() {
+        return DefaultAwsCrtV4aSigner.builder();
+    }
+
+    interface Builder {
+        /**
+         * The region scope that this signer will default to if not provided explicitly when the signer is invoked.
+         *
+         * @param defaultRegionScope The default region scope.
+         * @return This builder for method chaining.
+         */
+        Builder defaultRegionScope(RegionScope defaultRegionScope);
+
+        AwsCrtV4aSigner build();
     }
 }
