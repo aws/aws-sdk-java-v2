@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DELIMITER;
+import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_PREFIX;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -222,7 +223,7 @@ public class UploadDirectoryHelper {
 
         String prefix = uploadDirectoryRequest.prefix()
                                               .map(s -> normalizePrefix(s, delimiter))
-                                              .orElse("");
+                                              .orElse(DEFAULT_PREFIX);
 
         String relativePathName = getRelativePathName(directoryNameCount, path, delimiter);
         String key = prefix + relativePathName;
@@ -237,7 +238,7 @@ public class UploadDirectoryHelper {
                                                                     .putObjectRequest(putObjectRequest);
 
         uploadDirectoryRequest.overrideConfiguration()
-                              .flatMap(UploadDirectoryOverrideConfiguration::uploadFileRequestTransformer)
+                              .map(UploadDirectoryOverrideConfiguration::uploadFileRequestTransformer)
                               .ifPresent(c -> c.accept(requestBuilder));
 
         return requestBuilder.build();

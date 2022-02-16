@@ -1,3 +1,42 @@
+# __2.17.131__ __2022-02-16__
+## __AWS Budgets__
+  - ### Features
+    - Adds support for auto-adjusting budgets, a new budget method alongside fixed and planned. Auto-adjusting budgets introduces new metadata to configure a budget limit baseline using a historical lookback average or current period forecast.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - AWS Cost Anomaly Detection now supports SNS FIFO topic subscribers.
+
+## __AWS Glue__
+  - ### Features
+    - Support for optimistic locking in UpdateTable
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for setting the default `RegionScope` used by the Sigv4a signer implementations. If the region scope to use is not supplied to the signing methods, the signers will default to this scope first and then the normal signing region.
+
+  - ### Removals
+    - Removed codegen-resources from service jars, which reduces SDK artifact size.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Assorted ticket fixes and updates for AWS Systems Manager.
+
+## __Netty NIO Async HTTP Client__
+  - ### Bugfixes
+    - Fixed an issue in Netty async http client where NPE was thrown when the execution got cancelled before executionId was attached to the channel.
+
+## __S3 Transfer Manager__
+  - ### Features
+    - Implement downloadDirectory API in the S3TransferManager
+
+  - ### Bugfixes
+    - A couple of minor refactoring on the S3TransferManager. 1. `CompletedDirectoryUpload#failedTransfers` now returns `List<FailedFileUpload>` instead of `Collection<FailedFileUpload>`. 2. `UploadDirectoryOverrideConfiguration#uploadFileRequestTransformer` now returns `Consumer<UploadFileRequest.Builder>` instead of `Optional<Consumer<UploadFileRequest.Builder>>` it will be no-op if no uploadFileRequestTransformer is provided
+
 # __2.17.130__ __2022-02-14__
 ## __Amazon Appflow__
   - ### Features

@@ -71,7 +71,8 @@ public class S3TransferManagerListenerTest {
     @BeforeEach
     public void methodSetup() {
         s3Crt = mock(S3CrtAsyncClient.class);
-        tm = new DefaultS3TransferManager(s3Crt, mock(UploadDirectoryHelper.class), mock(TransferManagerConfiguration.class));
+        tm = new DefaultS3TransferManager(s3Crt, mock(UploadDirectoryHelper.class), mock(TransferManagerConfiguration.class),
+                                          mock(DownloadDirectoryHelper.class));
         contentLength = 1024L;
         when(s3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
             .thenAnswer(drainPutRequestBody());

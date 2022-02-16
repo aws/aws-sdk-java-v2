@@ -31,20 +31,36 @@ import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.regions.RegionScope;
 
 @SdkInternalApi
 public final class DefaultAwsCrtS3V4aSigner implements AwsCrtS3V4aSigner {
 
     private final AwsCrt4aSigningAdapter signerAdapter;
     private final SigningConfigProvider configProvider;
+    private final RegionScope defaultRegionScope;
 
     DefaultAwsCrtS3V4aSigner(AwsCrt4aSigningAdapter signerAdapter, SigningConfigProvider signingConfigProvider) {
+        this(signerAdapter, signingConfigProvider, null);
+    }
+
+    DefaultAwsCrtS3V4aSigner(AwsCrt4aSigningAdapter signerAdapter, SigningConfigProvider signingConfigProvider,
+                             RegionScope defaultRegionScope) {
         this.signerAdapter = signerAdapter;
         this.configProvider = signingConfigProvider;
+        this.defaultRegionScope = defaultRegionScope;
+    }
+
+    private DefaultAwsCrtS3V4aSigner(BuilderImpl builder) {
+        this(new AwsCrt4aSigningAdapter(), new SigningConfigProvider(), builder.defaultRegionScope);
     }
 
     public static AwsCrtS3V4aSigner create() {
-        return new DefaultAwsCrtS3V4aSigner(new AwsCrt4aSigningAdapter(), new SigningConfigProvider());
+        return builder().build();
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
     }
 
     @Override
@@ -52,13 +68,14 @@ public final class DefaultAwsCrtS3V4aSigner implements AwsCrtS3V4aSigner {
         if (credentialsAreAnonymous(executionAttributes)) {
             return request;
         }
-        AwsSigningConfig requestSigningConfig = configProvider.createS3CrtSigningConfig(executionAttributes);
-        if (shouldSignPayload(request, executionAttributes)) {
+        ExecutionAttributes defaultsApplied = applyDefaults(executionAttributes);
+        AwsSigningConfig requestSigningConfig = configProvider.createS3CrtSigningConfig(defaultsApplied);
+        if (shouldSignPayload(request, defaultsApplied)) {
             requestSigningConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD);
             SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
             setHeaderContentLength(mutableRequest);
             SdkSigningResult signingResult = signerAdapter.sign(mutableRequest.build(), requestSigningConfig);
-            AwsSigningConfig chunkConfig = configProvider.createChunkedSigningConfig(executionAttributes);
+            AwsSigningConfig chunkConfig = configProvider.createChunkedSigningConfig(defaultsApplied);
             return enablePayloadSigning(signingResult, chunkConfig);
         } else {
             requestSigningConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
@@ -71,7 +88,8 @@ public final class DefaultAwsCrtS3V4aSigner implements AwsCrtS3V4aSigner {
         if (credentialsAreAnonymous(executionAttributes)) {
             return request;
         }
-        return signerAdapter.signRequest(request, configProvider.createS3CrtPresigningConfig(executionAttributes));
+        ExecutionAttributes defaultsApplied = applyDefaults(executionAttributes);
+        return signerAdapter.signRequest(request, configProvider.createS3CrtPresigningConfig(defaultsApplied));
     }
 
     private boolean credentialsAreAnonymous(ExecutionAttributes executionAttributes) {
@@ -121,4 +139,38 @@ public final class DefaultAwsCrtS3V4aSigner implements AwsCrtS3V4aSigner {
         return Boolean.TRUE.equals(attribute);
     }
 
+    /**
+     * Applies preconfigured defaults for values that are not present in {@code executionAttributes}.
+     */
+    private ExecutionAttributes applyDefaults(ExecutionAttributes executionAttributes) {
+        return applyDefaultRegionScope(executionAttributes);
+    }
+
+    private ExecutionAttributes applyDefaultRegionScope(ExecutionAttributes executionAttributes) {
+        if (executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE) != null) {
+            return executionAttributes;
+        }
+
+        if (defaultRegionScope == null) {
+            return executionAttributes;
+        }
+
+        return executionAttributes.copy()
+                                  .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE, defaultRegionScope);
+    }
+
+    private static class BuilderImpl implements Builder {
+        private RegionScope defaultRegionScope;
+
+        @Override
+        public Builder defaultRegionScope(RegionScope defaultRegionScope) {
+            this.defaultRegionScope = defaultRegionScope;
+            return this;
+        }
+
+        @Override
+        public AwsCrtS3V4aSigner build() {
+            return new DefaultAwsCrtS3V4aSigner(this);
+        }
+    }
 }

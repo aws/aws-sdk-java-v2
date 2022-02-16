@@ -30,8 +30,10 @@ import software.amazon.awssdk.transfer.s3.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.DirectoryDownload;
 import software.amazon.awssdk.transfer.s3.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.Download;
+import software.amazon.awssdk.transfer.s3.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.FileDownload;
@@ -51,21 +53,28 @@ import software.amazon.awssdk.utils.Validate;
 public final class DefaultS3TransferManager implements S3TransferManager {
     private final S3CrtAsyncClient s3CrtAsyncClient;
     private final TransferManagerConfiguration transferConfiguration;
-    private final UploadDirectoryHelper uploadDirectoryManager;
+    private final UploadDirectoryHelper uploadDirectoryHelper;
+    private final DownloadDirectoryHelper downloadDirectoryHelper;
 
     public DefaultS3TransferManager(DefaultBuilder tmBuilder) {
         transferConfiguration = resolveTransferManagerConfiguration(tmBuilder);
         s3CrtAsyncClient = initializeS3CrtClient(tmBuilder);
-        uploadDirectoryManager = new UploadDirectoryHelper(transferConfiguration, this::uploadFile);
+        uploadDirectoryHelper = new UploadDirectoryHelper(transferConfiguration, this::uploadFile);
+        ListObjectsHelper listObjectsHelper = new ListObjectsHelper(s3CrtAsyncClient::listObjectsV2);
+        downloadDirectoryHelper = new DownloadDirectoryHelper(transferConfiguration,
+                                                              listObjectsHelper,
+                                                              this::downloadFile);
     }
 
     @SdkTestInternalApi
     DefaultS3TransferManager(S3CrtAsyncClient s3CrtAsyncClient,
-                             UploadDirectoryHelper uploadDirectoryManager,
-                             TransferManagerConfiguration configuration) {
+                             UploadDirectoryHelper uploadDirectoryHelper,
+                             TransferManagerConfiguration configuration,
+                             DownloadDirectoryHelper downloadDirectoryHelper) {
         this.s3CrtAsyncClient = s3CrtAsyncClient;
         this.transferConfiguration = configuration;
-        this.uploadDirectoryManager = uploadDirectoryManager;
+        this.uploadDirectoryHelper = uploadDirectoryHelper;
+        this.downloadDirectoryHelper = downloadDirectoryHelper;
     }
 
     private static TransferManagerConfiguration resolveTransferManagerConfiguration(DefaultBuilder tmBuilder) {
@@ -160,7 +169,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         try {
             assertNotUnsupportedArn(uploadDirectoryRequest.bucket(), "uploadDirectory");
 
-            return uploadDirectoryManager.uploadDirectory(uploadDirectoryRequest);
+            return uploadDirectoryHelper.uploadDirectory(uploadDirectoryRequest);
         } catch (Throwable throwable) {
             return new DefaultDirectoryUpload(CompletableFutureUtils.failedFuture(throwable));
         }
@@ -232,6 +241,19 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         }
 
         return new DefaultFileDownload(downloadFuture, progressUpdater.progress());
+    }
+
+    @Override
+    public DirectoryDownload downloadDirectory(DownloadDirectoryRequest downloadDirectoryRequest) {
+        Validate.paramNotNull(downloadDirectoryRequest, "downloadDirectoryRequest");
+
+        try {
+            assertNotUnsupportedArn(downloadDirectoryRequest.bucket(), "downloadDirectoryRequest");
+
+            return downloadDirectoryHelper.downloadDirectory(downloadDirectoryRequest);
+        } catch (Throwable throwable) {
+            return new DefaultDirectoryDownload(CompletableFutureUtils.failedFuture(throwable));
+        }
     }
 
     @Override
