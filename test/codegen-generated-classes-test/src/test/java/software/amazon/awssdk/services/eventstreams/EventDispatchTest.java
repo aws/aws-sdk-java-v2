@@ -26,7 +26,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.services.eventstreamrestjson.model.EventOne;
 import software.amazon.awssdk.services.eventstreamrestjson.model.EventStream;
 import software.amazon.awssdk.services.eventstreamrestjson.model.EventStreamOperationResponseHandler;

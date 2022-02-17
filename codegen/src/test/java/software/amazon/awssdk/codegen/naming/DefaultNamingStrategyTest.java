@@ -18,8 +18,8 @@ package software.amazon.awssdk.codegen.naming;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,7 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.UnderscoresInNameBehavior;
 import software.amazon.awssdk.codegen.model.config.customization.ShareModelConfig;
@@ -139,7 +139,6 @@ public class DefaultNamingStrategyTest {
     @Test
     public void test_GetFluentSetterMethodName_NoEnum_WithList() {
         when(serviceModel.getShapes()).thenReturn(mockShapeMap);
-        when(mockShapeMap.get(eq("MockShape"))).thenReturn(mockShape);
         when(mockShapeMap.get(eq("MockStringShape"))).thenReturn(mockStringShape);
 
         when(mockShape.getEnumValues()).thenReturn(null);
@@ -157,7 +156,6 @@ public class DefaultNamingStrategyTest {
     @Test
     public void test_GetFluentSetterMethodName_WithEnumShape_NoListOrMap() {
         when(serviceModel.getShapes()).thenReturn(mockShapeMap);
-        when(mockShapeMap.get(any())).thenReturn(mockShape);
         when(mockShape.getEnumValues()).thenReturn(new ArrayList<>());
         when(mockShape.getType()).thenReturn("foo");
 
@@ -167,7 +165,6 @@ public class DefaultNamingStrategyTest {
     @Test
     public void test_GetFluentSetterMethodName_WithEnumShape_WithList() {
         when(serviceModel.getShapes()).thenReturn(mockShapeMap);
-        when(mockShapeMap.get(eq("MockShape"))).thenReturn(mockShape);
         when(mockShapeMap.get(eq("MockStringShape"))).thenReturn(mockStringShape);
 
         when(mockShape.getEnumValues()).thenReturn(null);
@@ -180,13 +177,6 @@ public class DefaultNamingStrategyTest {
         when(member.getShape()).thenReturn("MockStringShape");
 
         assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockParentShape, mockShape)).isEqualTo("awesomeMethodWithStrings");
-    }
-
-    @Test
-    public void test_GetFluentSetterMethodName_NoEum_WithMap() {
-        when(serviceModel.getShapes()).thenReturn(mockShapeMap);
-        when(mockShape.getEnumValues()).thenReturn(new ArrayList<>());
-
     }
 
     @Test
@@ -259,8 +249,6 @@ public class DefaultNamingStrategyTest {
     public void getServiceName_Uses_ServiceId() {
         when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
         when(serviceMetadata.getServiceId()).thenReturn("Foo");
-        when(serviceMetadata.getServiceAbbreviation()).thenReturn("Abbr");
-        when(serviceMetadata.getServiceFullName()).thenReturn("Foo Service");
 
         assertThat(strat.getServiceName()).isEqualTo("Foo");
     }
@@ -269,8 +257,6 @@ public class DefaultNamingStrategyTest {
     public void getServiceName_ThrowsException_WhenServiceIdIsNull() {
         when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
         when(serviceMetadata.getServiceId()).thenReturn(null);
-        when(serviceMetadata.getServiceAbbreviation()).thenReturn("Abbr");
-        when(serviceMetadata.getServiceFullName()).thenReturn("Foo Service");
 
         strat.getServiceName();
     }
@@ -279,8 +265,6 @@ public class DefaultNamingStrategyTest {
     public void getServiceName_ThrowsException_WhenServiceIdIsEmpty() {
         when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
         when(serviceMetadata.getServiceId()).thenReturn("");
-        when(serviceMetadata.getServiceAbbreviation()).thenReturn("Abbr");
-        when(serviceMetadata.getServiceFullName()).thenReturn("Foo Service");
 
         strat.getServiceName();
     }
@@ -289,8 +273,6 @@ public class DefaultNamingStrategyTest {
     public void getServiceName_ThrowsException_WhenServiceIdHasWhiteSpace() {
         when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
         when(serviceMetadata.getServiceId()).thenReturn("  ");
-        when(serviceMetadata.getServiceAbbreviation()).thenReturn("Abbr");
-        when(serviceMetadata.getServiceFullName()).thenReturn("Foo Service");
 
         strat.getServiceName();
     }

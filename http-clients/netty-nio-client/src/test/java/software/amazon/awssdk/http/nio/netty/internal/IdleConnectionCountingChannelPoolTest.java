@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
@@ -205,7 +205,7 @@ public class IdleConnectionCountingChannelPoolTest {
 
     private void stubDelegatePoolReleasesForSuccess() {
         Mockito.when(delegatePool.release(any(Channel.class), any(Promise.class))).thenAnswer((Answer<Future<Void>>) invocation -> {
-            Promise<Void> promise = invocation.getArgumentAt(1, Promise.class);
+            Promise<Void> promise = invocation.getArgument(1, Promise.class);
             promise.setSuccess(null);
             return promise;
         });

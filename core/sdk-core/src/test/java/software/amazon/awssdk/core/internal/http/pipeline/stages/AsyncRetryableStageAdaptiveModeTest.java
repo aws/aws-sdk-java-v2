@@ -16,14 +16,14 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyDouble;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
@@ -37,7 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -76,7 +76,7 @@ public class AsyncRetryableStageAdaptiveModeTest {
     public void setup() throws Exception {
         when(scheduledExecutorService.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class)))
             .thenAnswer((Answer<ScheduledFuture<?>>) invocationOnMock -> {
-                Runnable runnable = invocationOnMock.getArgumentAt(0, Runnable.class);
+                Runnable runnable = invocationOnMock.getArgument(0, Runnable.class);
                 runnable.run();
                 return null;
             });
@@ -120,7 +120,7 @@ public class AsyncRetryableStageAdaptiveModeTest {
         retryableStage = createStage(retryPolicy);
         retryableStage.execute(createHttpRequest(), createExecutionContext()).join();
 
-        verifyZeroInteractions(tokenBucket);
+        verifyNoMoreInteractions(tokenBucket);
     }
 
     @Test
@@ -130,7 +130,7 @@ public class AsyncRetryableStageAdaptiveModeTest {
         retryableStage = createStage(retryPolicy);
         retryableStage.execute(createHttpRequest(), createExecutionContext()).join();
 
-        verifyZeroInteractions(tokenBucket);
+        verifyNoMoreInteractions(tokenBucket);
     }
 
     @Test

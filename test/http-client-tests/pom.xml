@@ -119,6 +119,12 @@
             <artifactId>netty-tcnative-boringssl-static</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>1.70</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <!-- Disable spotbugs for this test module to speed up the build. -->

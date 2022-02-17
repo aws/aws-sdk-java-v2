@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
 import java.util.Map;
@@ -80,7 +80,7 @@ public class ConditionCheckTest {
                                      .build())
                              .build();
         assertThat(result, is(expectedResult));
-        verifyZeroInteractions(mockDynamoDbEnhancedClientExtension);
+        verifyNoMoreInteractions(mockDynamoDbEnhancedClientExtension);
     }
 
     @Test
