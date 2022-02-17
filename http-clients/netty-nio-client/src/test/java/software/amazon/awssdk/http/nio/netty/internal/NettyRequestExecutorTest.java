@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -91,7 +91,7 @@ public class NettyRequestExecutorTest {
     public void cancelExecuteFuture_channelNotAcquired_failsAcquirePromise() {
         ArgumentCaptor<Promise> acquireCaptor = ArgumentCaptor.forClass(Promise.class);
         when(mockChannelPool.acquire(acquireCaptor.capture())).thenAnswer((Answer<Promise>) invocationOnMock -> {
-            return invocationOnMock.getArgumentAt(0, Promise.class);
+            return invocationOnMock.getArgument(0, Promise.class);
         });
 
         CompletableFuture<Void> executeFuture = nettyRequestExecutor.execute();
@@ -120,7 +120,7 @@ public class NettyRequestExecutorTest {
         when(mockProtocolFutureAttr.get()).thenReturn(protocolFuture);
 
         when(mockChannel.attr(any(AttributeKey.class))).thenAnswer(i -> {
-            AttributeKey argumentAt = i.getArgumentAt(0, AttributeKey.class);
+            AttributeKey argumentAt = i.getArgument(0, AttributeKey.class);
             if (argumentAt == IN_USE) {
                 return mockInUseAttr;
             }
@@ -138,14 +138,14 @@ public class NettyRequestExecutorTest {
 
         CountDownLatch submitLatch = new CountDownLatch(1);
         when(mockEventLoop.submit(any(Runnable.class))).thenAnswer(i -> {
-            i.getArgumentAt(0, Runnable.class).run();
+            i.getArgument(0, Runnable.class).run();
             // Need to wait until the first submit() happens which sets up the channel before cancelling the future.
             submitLatch.countDown();
             return null;
         });
 
         when(mockChannelPool.acquire(any(Promise.class))).thenAnswer((Answer<Promise>) invocationOnMock -> {
-            Promise p = invocationOnMock.getArgumentAt(0, Promise.class);
+            Promise p = invocationOnMock.getArgument(0, Promise.class);
             p.setSuccess(mockChannel);
             return p;
         });

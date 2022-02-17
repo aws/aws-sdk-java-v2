@@ -345,8 +345,18 @@
         <module name="Regexp">
           <property name="format" value="System\s*(\.|::)\s*(getenv|getProperty)"/>
           <property name="illegalPattern" value="true"/>
-          <property name="message" value="Use SystemSetting instead of System.getenv and System.getProperty"/>
+          <property name="message" value="NEVER use System.getenv or System.getProperty. Create and use a
+          SystemSetting, instead."/>
           <property name="ignoreComments" value="true"/>
+        </module>
+
+        <module name="Regexp">
+            <property name="format" value="SystemSetting\s*(\.|::)\s*getStringValueFromEnvironmentVariable"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="Are you being naughty and not creating a SystemSetting? Don't you know that
+            your customers want both system properties AND environment variables? Are you REALLY sure you want to use
+            this and not support a system property?"/>
+            <property name="ignoreComments" value="true"/>
         </module>
 
         <!-- Checks that we don't implement AutoCloseable/Closeable -->

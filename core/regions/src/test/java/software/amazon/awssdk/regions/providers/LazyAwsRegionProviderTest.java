@@ -35,7 +35,7 @@ public class LazyAwsRegionProviderTest {
     @Test
     public void creationDoesntInvokeSupplier() {
         new LazyAwsRegionProvider(regionProviderConstructor);
-        Mockito.verifyZeroInteractions(regionProviderConstructor);
+        Mockito.verifyNoMoreInteractions(regionProviderConstructor);
     }
 
     @Test

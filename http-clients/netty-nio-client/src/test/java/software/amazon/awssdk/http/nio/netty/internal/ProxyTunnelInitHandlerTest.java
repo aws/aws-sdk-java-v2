@@ -16,9 +16,8 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -53,7 +52,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * Unit tests for {@link ProxyTunnelInitHandler}.
@@ -82,8 +81,7 @@ public class ProxyTunnelInitHandlerTest {
     public void methodSetup() {
         when(mockCtx.channel()).thenReturn(mockChannel);
         when(mockCtx.pipeline()).thenReturn(mockPipeline);
-        when(mockChannel.pipeline()).thenReturn(mockPipeline);
-        when(mockChannel.writeAndFlush(anyObject())).thenReturn(new DefaultChannelPromise(mockChannel, GROUP.next()));
+        when(mockChannel.writeAndFlush(any())).thenReturn(new DefaultChannelPromise(mockChannel, GROUP.next()));
     }
 
     @AfterClass
@@ -114,23 +112,25 @@ public class ProxyTunnelInitHandlerTest {
 
     @Test
     public void successfulProxyResponse_removesSelfAndCodec() {
+        when(mockPipeline.get(HttpClientCodec.class)).thenReturn(new HttpClientCodec());
+
         Promise<Channel> promise = GROUP.next().newPromise();
         ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, REMOTE_HOST, promise);
         successResponse(handler);
 
+        handler.handlerRemoved(mockCtx);
+
         verify(mockPipeline).remove(eq(handler));
-        verify(mockPipeline).remove(any(HttpClientCodec.class));
+        verify(mockPipeline).remove(eq(HttpClientCodec.class));
     }
 
     @Test
     public void successfulProxyResponse_doesNotRemoveSslHandler() {
-        SslHandler sslHandler = mock(SslHandler.class);
-        when(mockPipeline.get(eq(SslHandler.class))).thenReturn(sslHandler);
-
         Promise<Channel> promise = GROUP.next().newPromise();
         ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, REMOTE_HOST, promise);
         successResponse(handler);
 
+        verify(mockPipeline, never()).get(eq(SslHandler.class));
         verify(mockPipeline, never()).remove(eq(SslHandler.class));
     }
 
@@ -158,7 +158,7 @@ public class ProxyTunnelInitHandlerTest {
     public void requestWriteFails_failsPromise() {
         DefaultChannelPromise writePromise = new DefaultChannelPromise(mockChannel, GROUP.next());
         writePromise.setFailure(new IOException("boom"));
-        when(mockChannel.writeAndFlush(anyObject())).thenReturn(writePromise);
+        when(mockChannel.writeAndFlush(any())).thenReturn(writePromise);
 
         Promise<Channel> promise = GROUP.next().newPromise();
         ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, REMOTE_HOST, promise);

@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
@@ -191,7 +191,7 @@ public class TransactGetItemsOperationTest {
 
         operation.transformResponse(response, mockExtension);
 
-        verifyZeroInteractions(mockExtension);
+        verifyNoMoreInteractions(mockExtension);
     }
 
     @Test

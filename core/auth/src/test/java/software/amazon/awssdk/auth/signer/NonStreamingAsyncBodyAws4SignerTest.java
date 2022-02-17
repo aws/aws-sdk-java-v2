@@ -17,7 +17,7 @@ package software.amazon.awssdk.auth.signer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -138,7 +138,7 @@ public class NonStreamingAsyncBodyAws4SignerTest {
         AsyncRequestBody mockRequestBody = mock(AsyncRequestBody.class);
         Subscription mockSubscription = mock(Subscription.class);
         doAnswer((Answer<Void>) invocationOnMock -> {
-            Subscriber subscriber = invocationOnMock.getArgumentAt(0, Subscriber.class);
+            Subscriber subscriber = invocationOnMock.getArgument(0, Subscriber.class);
             subscriber.onSubscribe(mockSubscription);
             return null;
         }).when(mockRequestBody).subscribe(any(Subscriber.class));
