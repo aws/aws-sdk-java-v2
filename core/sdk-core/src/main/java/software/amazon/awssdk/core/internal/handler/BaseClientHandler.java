@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -219,7 +220,7 @@ public abstract class BaseClientHandler {
             return;
         }
 
-        if (signer.credentialType() != Signer.CredentialType.BEARER_TOKEN) {
+        if (signer.credentialType() != CredentialType.TOKEN) {
             return;
         }
 

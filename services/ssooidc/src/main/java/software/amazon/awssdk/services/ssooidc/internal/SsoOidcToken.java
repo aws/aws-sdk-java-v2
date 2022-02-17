@@ -17,8 +17,10 @@ package software.amazon.awssdk.services.ssooidc.internal;
 
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.AwsToken;
+import software.amazon.awssdk.auth.token.SdkToken;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Represents a cached SSO token.
@@ -37,7 +39,7 @@ import software.amazon.awssdk.auth.token.AwsToken;
  * </code>
  */
 @SdkInternalApi
-public final class SsoToken implements AwsToken {
+public final class SsoOidcToken implements SdkToken {
     private final String accessToken;
     private final Instant expiresAt;
     private final String refreshToken;
@@ -47,7 +49,9 @@ public final class SsoToken implements AwsToken {
     private final String region;
     private final String startUrl;
 
-    private SsoToken(BuilderImpl builder) {
+    private SsoOidcToken(BuilderImpl builder) {
+        Validate.paramNotNull(builder.accessToken, "accessToken");
+        Validate.paramNotNull(builder.expiresAt, "expiresAt");
         this.accessToken = builder.accessToken;
         this.expiresAt = builder.expiresAt;
         this.refreshToken = builder.refreshToken;
@@ -64,8 +68,8 @@ public final class SsoToken implements AwsToken {
     }
 
     @Override
-    public Instant expirationTime() {
-        return expiresAt;
+    public Optional<Instant> expirationTime() {
+        return Optional.of(expiresAt);
     }
 
     public String refreshToken() {
@@ -101,16 +105,16 @@ public final class SsoToken implements AwsToken {
             return false;
         }
 
-        SsoToken ssoToken = (SsoToken) o;
+        SsoOidcToken ssoOidcToken = (SsoOidcToken) o;
 
-        return Objects.equals(accessToken, ssoToken.accessToken)
-            && Objects.equals(expiresAt, ssoToken.expiresAt)
-            && Objects.equals(refreshToken, ssoToken.refreshToken)
-            && Objects.equals(clientId, ssoToken.clientId)
-            && Objects.equals(clientSecret, ssoToken.clientSecret)
-            && Objects.equals(registrationExpiresAt, ssoToken.registrationExpiresAt)
-            && Objects.equals(region, ssoToken.region)
-            && Objects.equals(startUrl, ssoToken.startUrl);
+        return Objects.equals(accessToken, ssoOidcToken.accessToken)
+            && Objects.equals(expiresAt, ssoOidcToken.expiresAt)
+            && Objects.equals(refreshToken, ssoOidcToken.refreshToken)
+            && Objects.equals(clientId, ssoOidcToken.clientId)
+            && Objects.equals(clientSecret, ssoOidcToken.clientSecret)
+            && Objects.equals(registrationExpiresAt, ssoOidcToken.registrationExpiresAt)
+            && Objects.equals(region, ssoOidcToken.region)
+            && Objects.equals(startUrl, ssoOidcToken.startUrl);
     }
 
     @Override
@@ -161,7 +165,7 @@ public final class SsoToken implements AwsToken {
 
         Builder startUrl(String startUrl);
 
-        SsoToken build();
+        SsoOidcToken build();
     }
 
     private static class BuilderImpl implements Builder {
@@ -223,8 +227,8 @@ public final class SsoToken implements AwsToken {
         }
 
         @Override
-        public SsoToken build() {
-            return new SsoToken(this);
+        public SsoOidcToken build() {
+            return new SsoOidcToken(this);
         }
     }
 }

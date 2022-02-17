@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An {@link AwsTokenProvider} implementation that chains together multiple token providers.
+ * An {@link SdkTokenProvider} implementation that chains together multiple token providers.
  *
  * <p>When a caller first requests token from this provider, it calls all the providers in the chain, in the original order
  * specified, until one can provide a token, and then returns that token. If all of the token providers in the
@@ -44,26 +44,26 @@ import software.amazon.awssdk.utils.Validate;
  * providers in the chain that need to be closed.</p>
  */
 @SdkPublicApi
-public final class AwsTokenProviderChain implements AwsTokenProvider, SdkAutoCloseable {
-    private static final Logger log = Logger.loggerFor(AwsTokenProviderChain.class);
+public final class SdkTokenProviderChain implements SdkTokenProvider, SdkAutoCloseable {
+    private static final Logger log = Logger.loggerFor(SdkTokenProviderChain.class);
 
-    private final List<AwsTokenProvider> awsTokenProviders;
+    private final List<SdkTokenProvider> sdkTokenProviders;
 
     private final boolean reuseLastProviderEnabled;
 
-    private volatile AwsTokenProvider lastUsedProvider;
+    private volatile SdkTokenProvider lastUsedProvider;
 
     /**
      * @see #builder()
      */
-    private AwsTokenProviderChain(BuilderImpl builder) {
+    private SdkTokenProviderChain(BuilderImpl builder) {
         Validate.notEmpty(builder.tokenProviders, "No token providers were specified.");
         this.reuseLastProviderEnabled = builder.reuseLastProviderEnabled;
-        this.awsTokenProviders = Collections.unmodifiableList(builder.tokenProviders);
+        this.sdkTokenProviders = Collections.unmodifiableList(builder.tokenProviders);
     }
 
     /**
-     * Get a new builder for creating a {@link AwsTokenProviderChain}.
+     * Get a new builder for creating a {@link SdkTokenProviderChain}.
      */
     public static Builder builder() {
         return new BuilderImpl();
@@ -71,24 +71,24 @@ public final class AwsTokenProviderChain implements AwsTokenProvider, SdkAutoClo
 
     /**
      * Create an AWS token provider chain with default configuration that checks the given token providers.
-     * @param awsTokenProviders The token providers that should be checked for token, in the order they should
+     * @param sdkTokenProviders The token providers that should be checked for token, in the order they should
      *                                be checked.
      * @return A token provider chain that checks the provided token providers in order.
      */
-    public static AwsTokenProviderChain of(AwsTokenProvider... awsTokenProviders) {
-        return builder().tokenProviders(awsTokenProviders).build();
+    public static SdkTokenProviderChain of(SdkTokenProvider... sdkTokenProviders) {
+        return builder().tokenProviders(sdkTokenProviders).build();
     }
 
     @Override
-    public AwsToken resolveToken() {
+    public SdkToken resolveToken() {
         if (reuseLastProviderEnabled && lastUsedProvider != null) {
             return lastUsedProvider.resolveToken();
         }
 
         List<String> exceptionMessages = null;
-        for (AwsTokenProvider provider : awsTokenProviders) {
+        for (SdkTokenProvider provider : sdkTokenProviders) {
             try {
-                AwsToken token = provider.resolveToken();
+                SdkToken token = provider.resolveToken();
 
                 log.debug(() -> "Loading token from " + provider);
 
@@ -114,18 +114,18 @@ public final class AwsTokenProviderChain implements AwsTokenProvider, SdkAutoClo
 
     @Override
     public void close() {
-        awsTokenProviders.forEach(c -> IoUtils.closeIfCloseable(c, null));
+        sdkTokenProviders.forEach(c -> IoUtils.closeIfCloseable(c, null));
     }
 
     @Override
     public String toString() {
         return ToString.builder("AwsTokenProviderChain")
-                       .add("tokenProviders", awsTokenProviders)
+                       .add("tokenProviders", sdkTokenProviders)
                        .build();
     }
 
     /**
-     * A builder for a {@link AwsTokenProviderChain} that allows controlling its behavior.
+     * A builder for a {@link SdkTokenProviderChain} that allows controlling its behavior.
      */
     public interface Builder {
 
@@ -141,24 +141,24 @@ public final class AwsTokenProviderChain implements AwsTokenProvider, SdkAutoClo
         /**
          * Configure the token providers that should be checked for token, in the order they should be checked.
          */
-        Builder tokenProviders(Collection<? extends AwsTokenProvider> tokenProviders);
+        Builder tokenProviders(Collection<? extends SdkTokenProvider> tokenProviders);
 
         /**
          * Configure the token providers that should be checked for token, in the order they should be checked.
          */
-        Builder tokenProviders(AwsTokenProvider... tokenProviders);
+        Builder tokenProviders(SdkTokenProvider... tokenProviders);
 
         /**
          * Add a token provider to the chain, after the token providers that have already been configured.
          */
-        Builder addTokenProvider(AwsTokenProvider tokenProviders);
+        Builder addTokenProvider(SdkTokenProvider tokenProviders);
 
-        AwsTokenProviderChain build();
+        SdkTokenProviderChain build();
     }
 
     private static final class BuilderImpl implements Builder {
         private Boolean reuseLastProviderEnabled = true;
-        private List<AwsTokenProvider> tokenProviders = new ArrayList<>();
+        private List<SdkTokenProvider> tokenProviders = new ArrayList<>();
 
         private BuilderImpl() {
         }
@@ -174,28 +174,28 @@ public final class AwsTokenProviderChain implements AwsTokenProvider, SdkAutoClo
         }
 
         @Override
-        public Builder tokenProviders(Collection<? extends AwsTokenProvider> tokenProviders) {
+        public Builder tokenProviders(Collection<? extends SdkTokenProvider> tokenProviders) {
             this.tokenProviders = new ArrayList<>(tokenProviders);
             return this;
         }
 
-        public void setTokenProviders(Collection<? extends AwsTokenProvider> tokenProviders) {
+        public void setTokenProviders(Collection<? extends SdkTokenProvider> tokenProviders) {
             tokenProviders(tokenProviders);
         }
 
-        public Builder tokenProviders(AwsTokenProvider... tokenProviders) {
+        public Builder tokenProviders(SdkTokenProvider... tokenProviders) {
             return tokenProviders(Arrays.asList(tokenProviders));
         }
 
         @Override
-        public Builder addTokenProvider(AwsTokenProvider tokenProviders) {
+        public Builder addTokenProvider(SdkTokenProvider tokenProviders) {
             this.tokenProviders.add(tokenProviders);
             return this;
         }
 
         @Override
-        public AwsTokenProviderChain build() {
-            return new AwsTokenProviderChain(this);
+        public SdkTokenProviderChain build() {
+            return new SdkTokenProviderChain(this);
         }
     }
 }

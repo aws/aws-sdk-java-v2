@@ -1,7 +1,7 @@
 package software.amazon.awssdk.services.json;
 
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.auth.token.AwsTokenProvider;
+import software.amazon.awssdk.auth.token.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 
 /**
@@ -21,5 +21,5 @@ public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C>
      * {@code software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.TOKEN_SIGNER} set on the client. By
      * default it is {@link software.amazon.awssdk.auth.signer.BearerTokenSigner}.
      */
-    B tokenProvider(AwsTokenProvider tokenProvider);
+    B tokenProvider(SdkTokenProvider tokenProvider);
 }

@@ -16,6 +16,7 @@ import software.amazon.awssdk.auth.signer.BearerTokenSigner;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -243,7 +244,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withOperationName("BearerAuthOperation")
                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .credentialType(Signer.CredentialType.BEARER_TOKEN).withMetricCollector(apiCallMetricCollector)
+                             .credentialType(CredentialType.TOKEN).withMetricCollector(apiCallMetricCollector)
                              .withInput(bearerAuthOperationRequest));
             CompletableFuture<BearerAuthOperationResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {

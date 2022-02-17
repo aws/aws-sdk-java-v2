@@ -19,9 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 public class AuthorizationStrategyFactoryTest {
@@ -33,7 +33,7 @@ public class AuthorizationStrategyFactoryTest {
     public void credentialTypeBearerToken_returnsTokenStrategy() {
         AuthorizationStrategyFactory factory = new AuthorizationStrategyFactory(sdkRequest, metricCollector,
                                                                                 SdkClientConfiguration.builder().build());
-        AuthorizationStrategy authorizationStrategy = factory.strategyFor(Signer.CredentialType.BEARER_TOKEN);
+        AuthorizationStrategy authorizationStrategy = factory.strategyFor(CredentialType.TOKEN);
         assertThat(authorizationStrategy).isExactlyInstanceOf(TokenAuthorizationStrategy.class);
     }
 
@@ -41,7 +41,7 @@ public class AuthorizationStrategyFactoryTest {
     public void credentialTypeAwsCredentials_returnsCredentialsStrategy() {
         AuthorizationStrategyFactory factory = new AuthorizationStrategyFactory(sdkRequest, metricCollector,
                                                                                 SdkClientConfiguration.builder().build());
-        AuthorizationStrategy authorizationStrategy = factory.strategyFor(Signer.CredentialType.AWS);
+        AuthorizationStrategy authorizationStrategy = factory.strategyFor(CredentialType.of("AWS"));
         assertThat(authorizationStrategy).isExactlyInstanceOf(AwsCredentialsAuthorizationStrategy.class);
     }
 

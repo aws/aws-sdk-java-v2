@@ -24,12 +24,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.auth.token.AwsTokenProvider;
+import software.amazon.awssdk.auth.token.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.internal.ProfileTokenProviderLoader;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.services.ssooidc.internal.SsoTokenProvider;
+import software.amazon.awssdk.services.ssooidc.SsoOidcTokenProvider;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class ProfileTokenProviderLoaderTest {
@@ -59,9 +59,9 @@ public class ProfileTokenProviderLoaderTest {
 
         Optional<Profile> ssoProfile = configFile(profileContent).profile("sso");
         ProfileTokenProviderLoader providerLoader = new ProfileTokenProviderLoader(ssoProfile.get());
-        Optional<AwsTokenProvider> tokenProvider = providerLoader.tokenProvider();
+        Optional<SdkTokenProvider> tokenProvider = providerLoader.tokenProvider();
         assertThat(tokenProvider).isPresent()
-                                 .containsInstanceOf(SsoTokenProvider.class);
+                                 .containsInstanceOf(SsoOidcTokenProvider.class);
         assertThatThrownBy(() -> tokenProvider.get().resolveToken())
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("Unable to load SSO token");

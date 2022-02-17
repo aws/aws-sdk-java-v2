@@ -20,25 +20,25 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An implementation of {@link AwsTokenProvider} that returns a set implementation of {@link AwsToken}.
+ * An implementation of {@link SdkTokenProvider} that returns a set implementation of {@link SdkToken}.
  */
 @SdkPublicApi
-public final class StaticTokenProvider implements AwsTokenProvider {
-    private final AwsToken token;
+public final class StaticTokenProvider implements SdkTokenProvider {
+    private final SdkToken token;
 
-    private StaticTokenProvider(AwsToken token) {
+    private StaticTokenProvider(SdkToken token) {
         this.token = Validate.notNull(token, "Token must not be null.");
     }
 
     /**
      * Create a token provider that always returns the provided static token.
      */
-    public static StaticTokenProvider create(AwsToken token) {
+    public static StaticTokenProvider create(SdkToken token) {
         return new StaticTokenProvider(token);
     }
 
     @Override
-    public AwsToken resolveToken() {
+    public SdkToken resolveToken() {
         return token;
     }
 

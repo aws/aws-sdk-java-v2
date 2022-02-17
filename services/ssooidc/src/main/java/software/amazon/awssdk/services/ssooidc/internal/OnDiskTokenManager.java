@@ -46,7 +46,7 @@ import software.amazon.awssdk.utils.Validate;
  * from and to disk.
  */
 @SdkInternalApi
-public final class OnDiskTokenManager implements TokenManager<SsoToken> {
+public final class OnDiskTokenManager implements TokenManager<SsoOidcToken> {
     private static final Path DEFAULT_TOKEN_LOCATION = Paths.get(userHomeDirectory(), ".aws", "sso", "cache");
 
     private final JsonNodeParser jsonParser = JsonNodeParser.builder().removeErrorLocations(true).build();
@@ -62,7 +62,7 @@ public final class OnDiskTokenManager implements TokenManager<SsoToken> {
     }
 
     @Override
-    public Optional<SsoToken> loadToken() {
+    public Optional<SsoOidcToken> loadToken() {
         if (!Files.exists(tokenLocation)) {
             return Optional.empty();
         }
@@ -76,7 +76,7 @@ public final class OnDiskTokenManager implements TokenManager<SsoToken> {
     }
 
     @Override
-    public void storeToken(SsoToken token) {
+    public void storeToken(SsoOidcToken token) {
         if (token.startUrl() != null && !token.startUrl().equals(startUrl)) {
             throw SdkClientException.create("Cannot store token with different startUrl into " + tokenLocation);
         }
@@ -100,9 +100,9 @@ public final class OnDiskTokenManager implements TokenManager<SsoToken> {
         return create(DEFAULT_TOKEN_LOCATION, startUrl);
     }
 
-    private SsoToken unmarshalToken(String contents) {
+    private SsoOidcToken unmarshalToken(String contents) {
         JsonNode node = jsonParser.parse(contents);
-        SsoToken.Builder tokenBuilder = SsoToken.builder();
+        SsoOidcToken.Builder tokenBuilder = SsoOidcToken.builder();
 
         JsonNode accessToken = node.field("accessToken")
                                    .orElseThrow(() -> SdkClientException.create("required member 'accessToken' not found"));
@@ -125,7 +125,7 @@ public final class OnDiskTokenManager implements TokenManager<SsoToken> {
         return tokenBuilder.build();
     }
 
-    private byte[] marshalToken(SsoToken token) {
+    private byte[] marshalToken(SsoOidcToken token) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         JsonGenerator generator = null;
         try {
@@ -133,7 +133,8 @@ public final class OnDiskTokenManager implements TokenManager<SsoToken> {
             generator.writeStartObject();
 
             generator.writeStringField("accessToken", token.token());
-            generator.writeStringField("expiresAt", DateTimeFormatter.ISO_INSTANT.format(token.expirationTime()));
+
+            generator.writeStringField("expiresAt", DateTimeFormatter.ISO_INSTANT.format(token.expirationTime().get()));
             if (token.refreshToken() != null) {
                 generator.writeStringField("refreshToken", token.refreshToken());
 

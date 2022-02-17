@@ -13,14 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.token.internal;
+package software.amazon.awssdk.auth.token;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.auth.token.AwsToken;
-import software.amazon.awssdk.auth.token.AwsTokenProvider;
+import software.amazon.awssdk.auth.token.internal.ProfileTokenProviderLoader;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -37,8 +36,8 @@ import software.amazon.awssdk.utils.ToString;
  * @see ProfileFile
  */
 @SdkPublicApi
-public final class ProfileTokenProvider implements AwsTokenProvider, SdkAutoCloseable {
-    private final AwsTokenProvider tokenProvider;
+public final class ProfileTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
+    private final SdkTokenProvider tokenProvider;
     private final RuntimeException loadException;
 
     private final ProfileFile profileFile;
@@ -48,7 +47,7 @@ public final class ProfileTokenProvider implements AwsTokenProvider, SdkAutoClos
      * @see #builder()
      */
     private ProfileTokenProvider(BuilderImpl builder) {
-        AwsTokenProvider tokenProvider = null;
+        SdkTokenProvider tokenProvider = null;
         RuntimeException loadException = null;
         ProfileFile profileFile = null;
         String profileName = null;
@@ -117,7 +116,7 @@ public final class ProfileTokenProvider implements AwsTokenProvider, SdkAutoClos
     }
 
     @Override
-    public AwsToken resolveToken() {
+    public SdkToken resolveToken() {
         if (loadException != null) {
             throw loadException;
         }

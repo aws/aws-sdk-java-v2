@@ -17,9 +17,9 @@ package software.amazon.awssdk.awscore.internal.authcontext;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.TokenSignerExecutionAttribute;
-import software.amazon.awssdk.auth.token.AwsToken;
-import software.amazon.awssdk.auth.token.AwsTokenProvider;
+import software.amazon.awssdk.auth.token.SdkToken;
+import software.amazon.awssdk.auth.token.SdkTokenExecutionAttribute;
+import software.amazon.awssdk.auth.token.SdkTokenProvider;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -39,7 +39,7 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
 
     private final SdkRequest request;
     private final Signer defaultSigner;
-    private final AwsTokenProvider defaultTokenProvider;
+    private final SdkTokenProvider defaultTokenProvider;
     private final MetricCollector metricCollector;
 
     public TokenAuthorizationStrategy(Builder builder) {
@@ -71,16 +71,16 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
      */
     @Override
     public void addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes) {
-        AwsToken credentials = resolveToken(defaultTokenProvider, metricCollector);
-        executionAttributes.putAttribute(TokenSignerExecutionAttribute.AWS_TOKEN, credentials);
+        SdkToken credentials = resolveToken(defaultTokenProvider, metricCollector);
+        executionAttributes.putAttribute(SdkTokenExecutionAttribute.SDK_TOKEN, credentials);
     }
 
-    private static AwsToken resolveToken(AwsTokenProvider tokenProvider, MetricCollector metricCollector) {
+    private static SdkToken resolveToken(SdkTokenProvider tokenProvider, MetricCollector metricCollector) {
         Validate.notNull(tokenProvider, "No token provider exists to resolve a token from.");
 
-        Pair<AwsToken, Duration> measured = MetricUtils.measureDuration(tokenProvider::resolveToken);
+        Pair<SdkToken, Duration> measured = MetricUtils.measureDuration(tokenProvider::resolveToken);
         metricCollector.reportMetric(CoreMetric.TOKEN_FETCH_DURATION, measured.right());
-        AwsToken credentials = measured.left();
+        SdkToken credentials = measured.left();
 
         Validate.validState(credentials != null, "Token providers must never return null.");
         return credentials;
@@ -89,7 +89,7 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
     public static final class Builder {
         private SdkRequest request;
         private Signer defaultSigner;
-        private AwsTokenProvider defaultTokenProvider;
+        private SdkTokenProvider defaultTokenProvider;
         private MetricCollector metricCollector;
 
         private Builder() {
@@ -113,11 +113,11 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
             return this;
         }
 
-        public AwsTokenProvider defaultTokenProvider() {
+        public SdkTokenProvider defaultTokenProvider() {
             return this.defaultTokenProvider;
         }
 
-        public Builder defaultTokenProvider(AwsTokenProvider defaultTokenProvider) {
+        public Builder defaultTokenProvider(SdkTokenProvider defaultTokenProvider) {
             this.defaultTokenProvider = defaultTokenProvider;
             return this;
         }

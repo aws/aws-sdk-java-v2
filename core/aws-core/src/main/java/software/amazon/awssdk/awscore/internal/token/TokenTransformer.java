@@ -16,7 +16,7 @@
 package software.amazon.awssdk.awscore.internal.token;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.AwsToken;
+import software.amazon.awssdk.auth.token.SdkToken;
 import software.amazon.awssdk.awscore.AwsResponse;
 
 /**
@@ -26,7 +26,7 @@ import software.amazon.awssdk.awscore.AwsResponse;
  */
 
 @SdkInternalApi
-public interface TokenTransformer<T extends AwsToken, R extends  AwsResponse> {
+public interface TokenTransformer<T extends SdkToken, R extends  AwsResponse> {
 
     /**
      * API to convert the response received from the service to Token.

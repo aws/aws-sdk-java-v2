@@ -25,8 +25,8 @@ import com.squareup.javapoet.TypeVariableName;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.auth.signer.BearerTokenSigner;
-import software.amazon.awssdk.auth.token.AwsTokenProvider;
 import software.amazon.awssdk.auth.token.DefaultAwsTokenProvider;
+import software.amazon.awssdk.auth.token.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -130,7 +130,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
         return MethodSpec.methodBuilder("tokenProvider")
                          .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                          .returns(TypeVariableName.get("B"))
-                         .addParameter(AwsTokenProvider.class, "tokenProvider")
+                         .addParameter(SdkTokenProvider.class, "tokenProvider")
                          .addJavadoc("Set the token provider to use for bearer token authorization. This is optional, if none "
                                      + "is provided, the SDK will use {@link $T}.\n"
                                      + "<p>\n"

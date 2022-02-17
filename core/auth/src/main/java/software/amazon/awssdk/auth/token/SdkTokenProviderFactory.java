@@ -18,6 +18,6 @@ package software.amazon.awssdk.auth.token;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
-public interface SsoTokenProviderFactory {
-    AwsTokenProvider create(SsoOidcTokenProviderFactoryProperties properties);
+public interface SdkTokenProviderFactory {
+    SdkTokenProvider create(SdkTokenProviderFactoryProperties properties);
 }

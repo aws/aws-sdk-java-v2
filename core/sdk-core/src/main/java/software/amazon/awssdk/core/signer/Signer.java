@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.signer;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
@@ -36,17 +37,12 @@ public interface Signer {
 
 
     /**
-     * Method that retrieves the type of Credentials used by the Signer while authorizing a request.
+     * Method that retrieves {@link CredentialType} i.e. the type of Credentials used by the Signer while authorizing a request.
      *
-     * @return CredentialType.AWS by default , BEARER_TOKEN if the signers uses Bearer token authorization.
+     * @return null by default else return {@link CredentialType} as defined by the signer implementation.
      */
     default CredentialType credentialType() {
-        return CredentialType.AWS;
-    }
-
-    enum CredentialType {
-        AWS,
-        BEARER_TOKEN
+        return null;
     }
 
 }

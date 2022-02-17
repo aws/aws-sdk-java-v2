@@ -26,6 +26,7 @@ import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupp
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ApiName;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.SdkResponse;
@@ -307,7 +308,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withOperationName("BearerAuthOperation")
                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector).credentialType(Signer.CredentialType.BEARER_TOKEN)
+                             .withMetricCollector(apiCallMetricCollector).credentialType(CredentialType.TOKEN)
                              .withInput(bearerAuthOperationRequest));
             CompletableFuture<BearerAuthOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));

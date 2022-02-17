@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.auth.token.AwsToken;
+import software.amazon.awssdk.auth.token.SdkToken;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
@@ -40,7 +40,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  */
 @ThreadSafe
 @SdkInternalApi
-public final class CachedTokenRefresher<TokenT extends AwsToken> implements TokenRefresher<TokenT> {
+public final class CachedTokenRefresher<TokenT extends SdkToken> implements TokenRefresher<TokenT> {
 
     public static final Duration FIVE_MINUTES_DURATION = Duration.ofMinutes(5);
     private static final Logger log = Logger.loggerFor(CachedTokenRefresher.class);
@@ -134,7 +134,12 @@ public final class CachedTokenRefresher<TokenT extends AwsToken> implements Toke
 
     private RefreshResult<TokenT> refreshResult() {
         TokenT tokenT = refreshAndGetTokenFromSupplier();
-        return RefreshResult.builder(tokenT).staleTime(tokenT.expirationTime().minus(staleDuration)).build();
+
+        Instant staleTime = tokenT.expirationTime().isPresent()
+                            ? tokenT.expirationTime().get().minus(staleDuration)
+                            : clock.instant();
+
+        return RefreshResult.builder(tokenT).staleTime(staleTime).build();
     }
 
     private void scheduleRefresh() {
@@ -155,7 +160,7 @@ public final class CachedTokenRefresher<TokenT extends AwsToken> implements Toke
     }
 
     private long getLookAheadRefreshTime(TokenT token) {
-        Instant actualExpirationDate = token.expirationTime();
+        Instant actualExpirationDate = token.expirationTime().get();
         Instant currentTimeNow = clock.instant();
         //Look-ahead refresh time
         if (actualExpirationDate.isAfter(currentTimeNow)) {
@@ -167,7 +172,7 @@ public final class CachedTokenRefresher<TokenT extends AwsToken> implements Toke
         return staleDuration.toMillis();
     }
 
-    public static class Builder<TokenT extends AwsToken> {
+    public static class Builder<TokenT extends SdkToken> {
 
         private Function<SdkException, TokenT> exceptionHandler;
         private Duration staleDuration;

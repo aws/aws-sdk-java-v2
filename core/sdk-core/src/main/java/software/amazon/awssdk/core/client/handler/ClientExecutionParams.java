@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.client.handler;
 import java.net.URI;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -26,7 +27,6 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
-import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.metrics.MetricCollector;
 
@@ -52,7 +52,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private String hostPrefixExpression;
     private String operationName;
     private URI discoveredEndpoint;
-    private Signer.CredentialType credentialType;
+    private CredentialType credentialType;
     private MetricCollector metricCollector;
     private final ExecutionAttributes attributes = new ExecutionAttributes();
 
@@ -187,11 +187,11 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
         return this;
     }
 
-    public Signer.CredentialType credentialType() {
+    public CredentialType credentialType() {
         return credentialType;
     }
 
-    public ClientExecutionParams<InputT, OutputT> credentialType(Signer.CredentialType credentialType) {
+    public ClientExecutionParams<InputT, OutputT> credentialType(CredentialType credentialType) {
         this.credentialType = credentialType;
         return this;
     }

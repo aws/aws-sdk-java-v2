@@ -25,11 +25,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.auth.signer.TokenSignerExecutionAttribute;
-import software.amazon.awssdk.auth.token.AwsBearerToken;
-import software.amazon.awssdk.auth.token.AwsToken;
-import software.amazon.awssdk.auth.token.AwsTokenProvider;
+import software.amazon.awssdk.auth.token.SdkToken;
+import software.amazon.awssdk.auth.token.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.SdkTokenExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.awscore.internal.token.TestToken;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
@@ -39,17 +39,17 @@ import software.amazon.awssdk.metrics.MetricCollector;
 public class TokenAuthorizationStrategyTest {
 
     private static final String TOKEN_VALUE = "token_value";
-    private AwsToken token;
+    private SdkToken token;
 
     @Mock SdkRequest sdkRequest;
     @Mock Signer defaultSigner;
     @Mock Signer requestOverrideSigner;
-    @Mock AwsTokenProvider tokenProvider;
+    @Mock SdkTokenProvider tokenProvider;
     @Mock MetricCollector metricCollector;
 
     @Before
     public void setUp() throws Exception {
-        token = AwsBearerToken.create(TOKEN_VALUE);
+        token = TestToken.builder().token(TOKEN_VALUE).build();
         when(sdkRequest.overrideConfiguration()).thenReturn(Optional.empty());
         when(tokenProvider.resolveToken()).thenReturn(token);
     }
@@ -102,7 +102,7 @@ public class TokenAuthorizationStrategyTest {
                                                                                     .build();
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         authorizationContext.addCredentialsToExecutionAttributes(executionAttributes);
-        assertThat(executionAttributes.getAttribute(TokenSignerExecutionAttribute.AWS_TOKEN)).isEqualTo(token);
+        assertThat(executionAttributes.getAttribute(SdkTokenExecutionAttribute.SDK_TOKEN)).isEqualTo(token);
     }
 
     @Test

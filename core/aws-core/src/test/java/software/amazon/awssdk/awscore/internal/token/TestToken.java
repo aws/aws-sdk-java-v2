@@ -16,9 +16,10 @@
 package software.amazon.awssdk.awscore.internal.token;
 
 import java.time.Instant;
-import software.amazon.awssdk.auth.token.AwsToken;
+import java.util.Optional;
+import software.amazon.awssdk.auth.token.SdkToken;
 
-public class TestToken implements AwsToken {
+public class TestToken implements SdkToken {
 
     private final String token;
     private final Instant expirationDate;
@@ -41,8 +42,8 @@ public class TestToken implements AwsToken {
     }
 
     @Override
-    public Instant expirationTime() {
-        return expirationDate;
+    public Optional<Instant> expirationTime() {
+        return Optional.ofNullable(expirationDate);
     }
 
     public static class Builder {

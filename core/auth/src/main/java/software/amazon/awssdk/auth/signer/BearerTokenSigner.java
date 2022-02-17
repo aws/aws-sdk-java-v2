@@ -18,7 +18,10 @@ package software.amazon.awssdk.auth.signer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.TokenSignerParams;
-import software.amazon.awssdk.auth.token.AwsToken;
+import software.amazon.awssdk.auth.token.SdkToken;
+import software.amazon.awssdk.auth.token.SdkTokenExecutionAttribute;
+import software.amazon.awssdk.core.CredentialType;
+import software.amazon.awssdk.auth.signer.params.TokenSignerParams;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -29,7 +32,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 @SdkPublicApi
 public final class BearerTokenSigner implements Signer {
 
-    private static final String BEARER_LABEL = "Bearer ";
+    private static final String BEARER_LABEL = "Bearer";
 
     public static BearerTokenSigner create() {
         return new BearerTokenSigner();
@@ -37,7 +40,7 @@ public final class BearerTokenSigner implements Signer {
 
     @Override
     public CredentialType credentialType() {
-        return CredentialType.BEARER_TOKEN;
+        return CredentialType.TOKEN;
     }
 
     /**
@@ -64,7 +67,7 @@ public final class BearerTokenSigner implements Signer {
      */
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        AwsToken token = executionAttributes.getAttribute(TokenSignerExecutionAttribute.AWS_TOKEN);
+        SdkToken token = executionAttributes.getAttribute(TokenSignerExecutionAttribute.AWS_TOKEN);
         return doSign(request, TokenSignerParams.builder().token(token).build());
     }
 
@@ -74,7 +77,7 @@ public final class BearerTokenSigner implements Signer {
                       .build();
     }
 
-    private String buildAuthorizationHeader(AwsToken token) {
+    private String buildAuthorizationHeader(SdkToken token) {
         return String.format("%s%s", BEARER_LABEL, token.token());
     }
 }
