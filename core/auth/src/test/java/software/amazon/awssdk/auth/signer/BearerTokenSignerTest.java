@@ -23,6 +23,7 @@ import java.net.URI;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.token.SdkTokenExecutionAttribute;
 import software.amazon.awssdk.auth.token.TestBearerToken;
+import software.amazon.awssdk.auth.signer.params.TokenSignerParams;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -32,7 +33,7 @@ class BearerTokenSignerTest {
     private static final String BEARER_AUTH_MARKER = "Bearer ";
 
     @Test
-    public void whenTokenExistsRequestIsSignedCorrectly() {
+    public void whenTokenExists_requestIsSignedCorrectly() {
         String tokenValue = "mF_9.B5f-4.1JqM";
 
         BearerTokenSigner tokenSigner = BearerTokenSigner.create();
@@ -45,11 +46,25 @@ class BearerTokenSignerTest {
     }
 
     @Test
-    public void whenTokenIsMissingExceptionIsThrown() {
+    public void whenTokenIsMissing_exceptionIsThrown() {
         BearerTokenSigner tokenSigner = BearerTokenSigner.create();
         assertThatThrownBy(() -> tokenSigner.sign(generateBasicRequest(), executionAttributes(null)))
             .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("Token");
+            .hasMessageContaining("token");
+    }
+
+    @Test
+    public void usingParamMethod_worksCorrectly() {
+        String tokenValue = "mF_9.B5f-4.1JqM";
+
+        BearerTokenSigner tokenSigner = BearerTokenSigner.create();
+        SdkHttpFullRequest signedRequest = tokenSigner.sign(generateBasicRequest(),
+                                                            TokenSignerParams.builder()
+                                                                             .token(AwsBearerToken.create(tokenValue))
+                                                                             .build());
+
+        String expectedHeader = createExpectedHeader(tokenValue);
+        assertThat(signedRequest.firstMatchingHeader("Authorization")).hasValue(expectedHeader);
     }
 
     private static String createExpectedHeader(String token) {
