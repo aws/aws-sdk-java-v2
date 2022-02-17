@@ -31,7 +31,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkPublicApi
 @SdkPreviewApi
-public class LoggingTransferListener implements TransferListener {
+public final class LoggingTransferListener implements TransferListener {
     private static final Logger log = Logger.loggerFor(LoggingTransferListener.class);
     private static final int DEFAULT_MAX_TICKS = 20;
     private final ProgressBar progressBar;
@@ -58,7 +58,7 @@ public class LoggingTransferListener implements TransferListener {
 
     @Override
     public void transferInitiated(Context.TransferInitiated context) {
-        log.info(() -> "Transfer initiated...");
+        log.info(() -> requestType(context) + " initiated...");
         context.progressSnapshot().ratioTransferred().ifPresent(progressBar::update);
     }
 
@@ -70,12 +70,16 @@ public class LoggingTransferListener implements TransferListener {
     @Override
     public void transferComplete(Context.TransferComplete context) {
         context.progressSnapshot().ratioTransferred().ifPresent(progressBar::update);
-        log.info(() -> "Transfer complete!");
+        log.info(() -> requestType(context) + " complete!");
     }
 
     @Override
     public void transferFailed(Context.TransferFailed context) {
-        log.warn(() -> "Transfer failed.", context.exception());
+        log.warn(() -> requestType(context) + " failed.", context.exception());
+    }
+
+    private static String requestType(Context.TransferInitiated context) {
+        return context.request().getClass().getSimpleName();
     }
 
     private static class ProgressBar {

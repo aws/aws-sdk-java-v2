@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Add Copy support to S3 Transfer Manager"
+}
