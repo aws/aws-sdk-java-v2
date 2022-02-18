@@ -30,14 +30,18 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.transfer.s3.CompletedCopy;
 import software.amazon.awssdk.transfer.s3.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.CopyRequest;
 import software.amazon.awssdk.transfer.s3.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -102,6 +106,22 @@ class S3TransferManagerTest {
     }
 
     @Test
+    public void copy_returnsResponse() {
+        CopyObjectResponse response = CopyObjectResponse.builder().build();
+        when(mockS3Crt.copyObject(any(CopyObjectRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        CompletedCopy completedCopy = tm.copy(u -> u.copyObjectRequest(p -> p.sourceBucket("bucket")
+                                                                             .sourceKey("sourceKey")
+                                                                             .destinationBucket("bucket")
+                                                                             .destinationKey("destKey")))
+                                        .completionFuture()
+                                        .join();
+
+        assertThat(completedCopy.response()).isEqualTo(response);
+    }
+
+    @Test
     void uploadFile_cancel_shouldForwardCancellation() {
         CompletableFuture<PutObjectResponse> s3CrtFuture = new CompletableFuture<>();
         when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
@@ -126,6 +146,23 @@ class S3TransferManagerTest {
                                                                                             .key("key"))
                                                                     .requestBody(AsyncRequestBody.fromString("foo")))
                                                       .completionFuture();
+
+        future.cancel(true);
+        assertThat(s3CrtFuture).isCancelled();
+    }
+
+    @Test
+    void copy_cancel_shouldForwardCancellation() {
+        CompletableFuture<CopyObjectResponse> s3CrtFuture = new CompletableFuture<>();
+        when(mockS3Crt.copyObject(any(CopyObjectRequest.class)))
+            .thenReturn(s3CrtFuture);
+        
+
+        CompletableFuture<CompletedCopy> future = tm.copy(u -> u.copyObjectRequest(p -> p.sourceBucket("bucket")
+                                                                                         .sourceKey("sourceKey")
+                                                                                         .destinationBucket("bucket")
+                                                                                         .destinationKey("destKey")))
+                                                    .completionFuture();
 
         future.cancel(true);
         assertThat(s3CrtFuture).isCancelled();
@@ -205,6 +242,20 @@ class S3TransferManagerTest {
                                                           .sourceDirectory(Paths.get(".")))
                                    .completionFuture().join())
             .hasMessageContaining("support S3 Object Lambda resources").hasCauseInstanceOf(IllegalArgumentException.class);
+        
+        assertThatThrownBy(() -> tm.copy(b -> b.copyObjectRequest(p -> p.sourceBucket(objectLambdaArn)
+                                                                        .sourceKey("sourceKey")
+                                                                        .destinationBucket("bucket")
+                                                                        .destinationKey("destKey")))
+                                   .completionFuture().join())
+            .hasMessageContaining("support S3 Object Lambda resources").hasCauseInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> tm.copy(b -> b.copyObjectRequest(p -> p.sourceBucket("bucket")
+                                                                        .sourceKey("sourceKey")
+                                                                        .destinationBucket(objectLambdaArn)
+                                                                        .destinationKey("destKey")))
+                                   .completionFuture().join())
+            .hasMessageContaining("support S3 Object Lambda resources").hasCauseInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -238,6 +289,20 @@ class S3TransferManagerTest {
 
         assertThatThrownBy(() -> tm.downloadDirectory(b -> b.bucket(mrapArn)
                                                             .destinationDirectory(Paths.get(".")))
+                                   .completionFuture().join())
+            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> tm.copy(b -> b.copyObjectRequest(p -> p.sourceBucket(mrapArn)
+                                                                        .sourceKey("sourceKey")
+                                                                        .destinationBucket("bucket")
+                                                                        .destinationKey("destKey")))
+                                   .completionFuture().join())
+            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> tm.copy(b -> b.copyObjectRequest(p -> p.sourceBucket("bucket")
+                                                                        .sourceKey("sourceKey")
+                                                                        .destinationBucket(mrapArn)
+                                                                        .destinationKey("destKey")))
                                    .completionFuture().join())
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
     }
@@ -292,6 +357,12 @@ class S3TransferManagerTest {
                                                                                     .hasMessageContaining("must not be null");
     }
 
+    @Test
+    void copy_requestNull_shouldThrowException() {
+        CopyRequest request = null;
+        assertThatThrownBy(() -> tm.copy(request).completionFuture().join()).isInstanceOf(NullPointerException.class)
+                                                                                  .hasMessageContaining("must not be null");
+    }
 
     @Test
     void downloadDirectory_requestNull_shouldThrowException() {
