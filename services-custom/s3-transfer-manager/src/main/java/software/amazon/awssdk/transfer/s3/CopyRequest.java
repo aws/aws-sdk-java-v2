@@ -23,7 +23,6 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -31,7 +30,7 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Copy the given {@link AsyncRequestBody} to an object in S3. For file-based copys, you may use {@link CopyFileRequest} instead.
+ * Creates a copy of an object that is already stored in S3.
  *
  * @see S3TransferManager#copy(CopyRequest)
  */
@@ -45,7 +44,7 @@ public final class CopyRequest
     private final TransferRequestOverrideConfiguration configuration;
 
     private CopyRequest(DefaultBuilder builder) {
-        this.copyObjectRequest = paramNotNull(builder.copyObjectRequest, "copyRequest");
+        this.copyObjectRequest = paramNotNull(builder.copyObjectRequest, "copyObjectRequest");
         this.configuration = builder.configuration;
     }
 
