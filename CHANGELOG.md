@@ -1,3 +1,16 @@
+# __2.17.133__ __2022-02-18__
+## __AWS Budgets__
+  - ### Features
+    - This change introduces DescribeBudgetNotificationsForAccount API which returns budget notifications for the specified account
+
+## __AWS Transfer Family__
+  - ### Features
+    - Properties for Transfer Family used with SFTP, FTP, and FTPS protocols. Display Banners are bodies of text that can be displayed before and/or after a user authenticates onto a server using one of the previously mentioned protocols.
+
+## __Amazon GameLift__
+  - ### Features
+    - Increase string list limit from 10 to 100.
+
 # __2.17.132__ __2022-02-17__
 ## __AWS Backup__
   - ### Features
