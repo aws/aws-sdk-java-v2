@@ -40,12 +40,14 @@ public final class DownloadDirectoryRequest
     private final String bucket;
     private final String prefix;
     private final String delimiter;
+    private final DownloadFilter filter;
 
     public DownloadDirectoryRequest(DefaultBuilder builder) {
         this.destinationDirectory = Validate.paramNotNull(builder.destinationDirectory, "destinationDirectory");
         this.bucket = Validate.paramNotNull(builder.bucket, "bucket");
         this.prefix = builder.prefix;
         this.delimiter = builder.delimiter;
+        this.filter = builder.filter;
     }
 
     /**
@@ -84,6 +86,14 @@ public final class DownloadDirectoryRequest
         return Optional.ofNullable(delimiter);
     }
 
+    /**
+     * @return the optional filter
+     * @see Builder#filter(DownloadFilter) 
+     */
+    public Optional<DownloadFilter> filter() {
+        return Optional.ofNullable(filter);
+    }
+
     public static Builder builder() {
         return new DefaultBuilder();
     }
@@ -117,7 +127,10 @@ public final class DownloadDirectoryRequest
         if (!Objects.equals(prefix, that.prefix)) {
             return false;
         }
-        return Objects.equals(delimiter, that.delimiter);
+        if (!Objects.equals(delimiter, that.delimiter)) {
+            return false;
+        }
+        return Objects.equals(filter, that.filter);
     }
 
     @Override
@@ -126,6 +139,7 @@ public final class DownloadDirectoryRequest
         result = 31 * result + (bucket != null ? bucket.hashCode() : 0);
         result = 31 * result + (prefix != null ? prefix.hashCode() : 0);
         result = 31 * result + (delimiter != null ? delimiter.hashCode() : 0);
+        result = 31 * result + (filter != null ? filter.hashCode() : 0);
         return result;
     }
 
@@ -136,6 +150,7 @@ public final class DownloadDirectoryRequest
                        .add("bucket", bucket)
                        .add("prefix", prefix)
                        .add("delimiter", delimiter)
+                       .add("filter", filter)
                        .build();
     }
 
@@ -236,8 +251,20 @@ public final class DownloadDirectoryRequest
          */
         Builder delimiter(String delimiter);
 
-        @Override
-        DownloadDirectoryRequest build();
+        /**
+         * Specify a filter that will be used to evaluate which objects should be downloaded from the target directory.
+         * <p>
+         * You can use a filter, for example, to only download objects of a given size, of a given file extension, of a given
+         * last-modified date, etc. See {@link DownloadFilter} for some ready-made implementations. Multiple {@link
+         * DownloadFilter}s can be composed together via the {@code and} and {@code or} methods.
+         * <p>
+         * By default, if no filter is specified, all objects will be downloaded.
+         *
+         * @param filter the filter
+         * @return This builder for method chaining.
+         * @see DownloadFilter
+         */
+        Builder filter(DownloadFilter filter);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -246,6 +273,7 @@ public final class DownloadDirectoryRequest
         private String bucket;
         private String prefix;
         private String delimiter;
+        private DownloadFilter filter;
 
         private DefaultBuilder() {
         }
@@ -254,6 +282,7 @@ public final class DownloadDirectoryRequest
             this.destinationDirectory = request.destinationDirectory;
             this.bucket = request.bucket;
             this.prefix = request.prefix;
+            this.filter = request.filter;
         }
 
         @Override
@@ -310,6 +339,20 @@ public final class DownloadDirectoryRequest
 
         public String getDelimiter() {
             return delimiter;
+        }
+
+        @Override
+        public Builder filter(DownloadFilter filter) {
+            this.filter = filter;
+            return this;
+        }
+
+        public void setFilter(DownloadFilter filter) {
+            filter(filter);
+        }
+
+        public DownloadFilter getFilter() {
+            return filter;
         }
 
         @Override

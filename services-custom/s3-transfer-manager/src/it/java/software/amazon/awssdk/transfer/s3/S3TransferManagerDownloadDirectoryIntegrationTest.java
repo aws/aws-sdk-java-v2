@@ -16,24 +16,24 @@
 package software.amazon.awssdk.transfer.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.testutils.FileUtils.toFileTreeString;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 import static software.amazon.awssdk.utils.IoUtils.closeQuietly;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ComparisonFailure;
 import org.junit.Test;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -109,12 +109,15 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      * <pre>
      *   {@code
      *      - destination
-     *           - 2021
-     *              - 1.txt
-     *              - 2.txt
-     *           - 2022
-     *               - 1.txt
-     *           - important.txt
+     *          - README.md
+     *          - CHANGELOG.md
+     *          - notes
+     *              - 2021
+     *                  - 1.txt
+     *                  - 2.txt
+     *              - 2022
+     *                  - 1.txt
+     *              - important.txt
      *   }
      * </pre>
      */
@@ -131,16 +134,13 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      * The destination directory structure should be the following with prefix "notes"
      * <pre>
      *   {@code
-     *      - source
-     *          - README.md
-     *          - CHANGELOG.md
-     *          - notes
-     *              - 2021
-     *                  - 1.txt
-     *                  - 2.txt
-     *              - 2022
-     *                  - 1.txt
-     *              - important.txt
+     *      - destination
+     *          - 2021
+     *              - 1.txt
+     *              - 2.txt
+     *          - 2022
+     *              - 1.txt
+     *          - important.txt
      *   }
      * </pre>
      */
@@ -178,24 +178,64 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve("notes").resolve("2021"), destinationDirectory);
     }
 
-    private static void assertTwoDirectoriesHaveSameStructure(Path path, Path otherPath) {
-        try {
-            Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file,
-                                                 BasicFileAttributes attrs)
-                    throws IOException {
-                    FileVisitResult result = super.visitFile(file, attrs);
+    /**
+     * The destination directory structure should only contain file names starting with "2":
+     * <pre>
+     *   {@code
+     *      - destination
+     *          - notes
+     *              - 2021
+     *                  - 2.txt
+     *   }
+     * </pre>
+     */
+    @Test
+    public void downloadDirectory_withFilter() throws Exception {
+        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u
+            .destinationDirectory(destinationDirectory)
+            .bucket(TEST_BUCKET)
+            .filter((o, p) -> p.getFileName().toString().startsWith("2")));
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+        assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
 
-                    Path relativePath = path.relativize(file);
-                    Path otherFile = otherPath.resolve(relativePath);
-                    log.debug(() -> String.format("Comparing %s with %s", file, otherFile));
-                    assertThat(file).hasSameBinaryContentAs(otherFile);
-                    return result;
+        Path expectedDirectory = Files.createTempDirectory("expectedDirectory");
+        try {
+            FileUtils.copyDirectory(sourceDirectory, expectedDirectory);
+            Files.delete(expectedDirectory.resolve("README.md"));
+            Files.delete(expectedDirectory.resolve("CHANGELOG.md"));
+            Files.delete(expectedDirectory.resolve("notes/2022/1.txt"));
+            Files.delete(expectedDirectory.resolve("notes/2022"));
+            Files.delete(expectedDirectory.resolve("notes/important.txt"));
+            Files.delete(expectedDirectory.resolve("notes/2021/1.txt"));
+            
+            assertTwoDirectoriesHaveSameStructure(expectedDirectory, destinationDirectory);
+        } finally {
+            FileUtils.cleanUpTestDirectory(expectedDirectory);
+        }
+    }
+
+    private static void assertTwoDirectoriesHaveSameStructure(Path a, Path b) {
+        assertLeftHasRight(a, b);
+        assertLeftHasRight(b, a);
+    }
+
+    private static void assertLeftHasRight(Path left, Path right) {
+        try (Stream<Path> paths = Files.walk(left)) {
+            paths.forEach(leftPath -> {
+                Path leftRelative = left.relativize(leftPath);
+                Path rightPath = right.resolve(leftRelative);
+                log.debug(() -> String.format("Comparing %s with %s", leftPath, rightPath));
+                try {
+                    assertThat(rightPath).exists();
+                } catch (AssertionError e) {
+                    throw new ComparisonFailure(e.getMessage(), toFileTreeString(left), toFileTreeString(right));
+                }
+                if (Files.isRegularFile(leftPath)) {
+                    assertThat(leftPath).hasSameBinaryContentAs(rightPath);
                 }
             });
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Failed to compare %s with %s", path, otherPath), e);
+            throw new UncheckedIOException(String.format("Failed to compare %s with %s", left, right), e);
         }
     }
 
