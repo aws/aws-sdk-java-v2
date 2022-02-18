@@ -224,7 +224,7 @@ public class IntermediateModelBuilder {
                 shape.setRequestSignerClassFqcn("software.amazon.awssdk.auth.signer.Aws4UnsignedPayloadSigner");
                 break;
             case BEARER:
-                shape.setRequestSignerClassFqcn("software.amazon.awssdk.auth.signer.BearerTokenSigner");
+                shape.setRequestSignerClassFqcn("software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner");
                 break;
             case NONE:
                 break;

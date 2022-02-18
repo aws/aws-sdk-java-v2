@@ -15,42 +15,7 @@
 
 package software.amazon.awssdk.services.ssooidc.internal;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Optional;
-import java.util.function.Supplier;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
-import software.amazon.awssdk.auth.token.AwsToken;
-import software.amazon.awssdk.auth.token.AwsTokenProvider;
-import software.amazon.awssdk.auth.token.SsoOidcTokenProviderFactoryProperties;
-import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.profiles.Profile;
-import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.profiles.ProfileProperty;
-import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.ssooidc.SsoOidcClient;
-import software.amazon.awssdk.services.ssooidc.SsoOidcTokenProvider;
-import software.amazon.awssdk.services.ssooidc.SsoOidcTokenProviderFactory;
 import software.amazon.awssdk.services.ssooidc.internal.common.SsoOidcTokenRefreshTestBase;
-import software.amazon.awssdk.services.ssooidc.model.CreateTokenRequest;
-import software.amazon.awssdk.services.ssooidc.model.CreateTokenResponse;
-import software.amazon.awssdk.services.ssooidc.model.InvalidRequestException;
-import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
-import software.amazon.awssdk.utils.StringInputStream;
 
 public final class SsoOidcTokenRefreshTest extends SsoOidcTokenRefreshTestBase {
 

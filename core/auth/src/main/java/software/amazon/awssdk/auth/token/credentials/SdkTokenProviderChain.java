@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.token;
+package software.amazon.awssdk.auth.token.credentials;
 
 import java.util.ArrayList;
 import java.util.Arrays;

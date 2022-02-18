@@ -19,7 +19,8 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.SdkToken;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -132,16 +133,16 @@ public final class SsoOidcToken implements SdkToken {
 
     @Override
     public String toString() {
-        return "SsoToken{" +
-               "accessToken='" + accessToken + '\'' +
-               ", expiresAt=" + expiresAt +
-               ", refreshToken='" + refreshToken + '\'' +
-               ", clientId='" + clientId + '\'' +
-               ", clientSecret='" + clientSecret + '\'' +
-               ", registrationExpiresAt=" + registrationExpiresAt +
-               ", region='" + region + '\'' +
-               ", startUrl='" + startUrl + '\'' +
-               '}';
+        return ToString.builder("SsoOidcToken")
+                       .add("accessToken", accessToken)
+                       .add("expiresAt", expiresAt)
+                       .add("refreshToken", refreshToken)
+                       .add("clientId", clientId)
+                       .add("clientSecret", clientSecret)
+                       .add("registrationExpiresAt", registrationExpiresAt)
+                       .add("region", region)
+                       .add("startUrl", startUrl)
+                       .build();
     }
 
     public static Builder builder() {

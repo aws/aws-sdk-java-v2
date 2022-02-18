@@ -17,7 +17,7 @@ package software.amazon.awssdk.awscore.internal.token;
 
 import java.time.Instant;
 import java.util.Optional;
-import software.amazon.awssdk.auth.token.SdkToken;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
 
 public class TestToken implements SdkToken {
 

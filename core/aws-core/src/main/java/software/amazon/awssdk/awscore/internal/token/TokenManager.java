@@ -17,7 +17,7 @@ package software.amazon.awssdk.awscore.internal.token;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.SdkToken;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**

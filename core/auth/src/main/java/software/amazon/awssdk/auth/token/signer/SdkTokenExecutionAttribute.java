@@ -13,11 +13,23 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.token;
+package software.amazon.awssdk.auth.token.signer;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 
+/**
+ * SdkToken authorizing attributes attached to the execution.
+ */
 @SdkProtectedApi
-public interface SdkTokenProviderFactory {
-    SdkTokenProvider create(SdkTokenProviderFactoryProperties properties);
+public final class SdkTokenExecutionAttribute {
+
+    /**
+     * The token to sign requests using token authorization instead of AWS Credentials.
+     */
+    public static final ExecutionAttribute<SdkToken> SDK_TOKEN = new ExecutionAttribute<>("SdkToken");
+
+    private SdkTokenExecutionAttribute() {
+    }
 }

@@ -19,9 +19,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.SdkTokenProvider;
-import software.amazon.awssdk.auth.token.SdkTokenProviderFactory;
-import software.amazon.awssdk.auth.token.SdkTokenProviderFactoryProperties;
+import software.amazon.awssdk.auth.token.credentials.ChildProfileTokenProviderFactory;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileProperty;
@@ -33,7 +32,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class ProfileTokenProviderLoader {
     private static final String SSO_OIDC_TOKEN_PROVIDER_FACTORY =
-        "software.amazon.awssdk.services.ssooidc.SsoOidcTokenProviderFactory";
+        "software.amazon.awssdk.services.ssooidc.SsoOidcProfileTokenProviderFactory";
 
     private final Profile profile;
 
@@ -54,13 +53,7 @@ public final class ProfileTokenProviderLoader {
     private SdkTokenProvider ssoProfileCredentialsProvider() {
         requireProperties(ProfileProperty.SSO_REGION,
                           ProfileProperty.SSO_START_URL);
-
-        SdkTokenProviderFactoryProperties factoryProperties =
-            SdkTokenProviderFactoryProperties.builder()
-                                             .startUrl(profile.properties().get(ProfileProperty.SSO_START_URL))
-                                             .build();
-
-        return ssoTokenProviderFactory().create(factoryProperties);
+        return ssoTokenProviderFactory().create(profile);
     }
 
     /**
@@ -75,11 +68,11 @@ public final class ProfileTokenProviderLoader {
     /**
      * Load the factory that can be used to create the SSO token provider, assuming it is on the classpath.
      */
-    private SdkTokenProviderFactory ssoTokenProviderFactory() {
+    private ChildProfileTokenProviderFactory ssoTokenProviderFactory() {
         try {
             Class<?> ssoOidcTokenProviderFactory = ClassLoaderHelper.loadClass(SSO_OIDC_TOKEN_PROVIDER_FACTORY,
                                                                                getClass());
-            return (SdkTokenProviderFactory) ssoOidcTokenProviderFactory.getConstructor().newInstance();
+            return (ChildProfileTokenProviderFactory) ssoOidcTokenProviderFactory.getConstructor().newInstance();
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("To use SSO OIDC related properties in the '" + profile.name() + "' profile, "
                                             + "the 'ssooidc' service module must be on the class path.", e);

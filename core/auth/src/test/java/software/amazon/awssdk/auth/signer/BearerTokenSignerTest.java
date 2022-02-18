@@ -21,9 +21,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.token.SdkTokenExecutionAttribute;
+import software.amazon.awssdk.auth.token.signer.SdkTokenExecutionAttribute;
 import software.amazon.awssdk.auth.token.TestBearerToken;
 import software.amazon.awssdk.auth.signer.params.TokenSignerParams;
+import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -60,7 +61,7 @@ class BearerTokenSignerTest {
         BearerTokenSigner tokenSigner = BearerTokenSigner.create();
         SdkHttpFullRequest signedRequest = tokenSigner.sign(generateBasicRequest(),
                                                             TokenSignerParams.builder()
-                                                                             .token(AwsBearerToken.create(tokenValue))
+                                                                             .token(TestBearerToken.create(tokenValue))
                                                                              .build());
 
         String expectedHeader = createExpectedHeader(tokenValue);
