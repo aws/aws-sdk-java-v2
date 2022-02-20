@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import io.reactivex.Flowable;
 import java.io.IOException;
@@ -83,7 +83,7 @@ public class HttpChecksumRequiredTest {
         Mockito.when(httpClient.prepareRequest(any())).thenReturn(request);
 
         Mockito.when(httpAsyncClient.execute(any())).thenAnswer(invocation -> {
-            AsyncExecuteRequest asyncExecuteRequest = invocation.getArgumentAt(0, AsyncExecuteRequest.class);
+            AsyncExecuteRequest asyncExecuteRequest = invocation.getArgument(0, AsyncExecuteRequest.class);
             asyncExecuteRequest.responseHandler().onHeaders(successfulHttpResponse);
             asyncExecuteRequest.responseHandler().onStream(Flowable.empty());
             return CompletableFuture.completedFuture(null);

@@ -1,3 +1,38 @@
+# __2.17.133__ __2022-02-18__
+## __AWS Budgets__
+  - ### Features
+    - This change introduces DescribeBudgetNotificationsForAccount API which returns budget notifications for the specified account
+
+## __AWS Transfer Family__
+  - ### Features
+    - Properties for Transfer Family used with SFTP, FTP, and FTPS protocols. Display Banners are bodies of text that can be displayed before and/or after a user authenticates onto a server using one of the previously mentioned protocols.
+
+## __Amazon GameLift__
+  - ### Features
+    - Increase string list limit from 10 to 100.
+
+# __2.17.132__ __2022-02-17__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup add new S3_BACKUP_OBJECT_FAILED and S3_RESTORE_OBJECT_FAILED event types in BackupVaultNotifications events list.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update SDK to be able to successfully build using JDK 17.
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - Add support for filtering list of experiments and launches by status
+
+## __Amazon Redshift__
+  - ### Features
+    - SDK release for Cross region datasharing and cost-control for cross region datasharing
+
 # __2.17.131__ __2022-02-16__
 ## __AWS Budgets__
   - ### Features

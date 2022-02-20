@@ -25,7 +25,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.utils.AttributeMap;
 

@@ -45,7 +45,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -175,7 +175,6 @@ public class PublisherAdapterTest {
         HttpContent[] contentToIgnore = new HttpContent[8];
         for (int i = 0; i < contentToIgnore.length; ++i) {
             contentToIgnore[i] = mock(HttpContent.class);
-            when(contentToIgnore[i].content()).thenReturn(Unpooled.EMPTY_BUFFER);
         }
 
         Publisher<HttpContent> publisher = subscriber -> subscriber.onSubscribe(new Subscription() {

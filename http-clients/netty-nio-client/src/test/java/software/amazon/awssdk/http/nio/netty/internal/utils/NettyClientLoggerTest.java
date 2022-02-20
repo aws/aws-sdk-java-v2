@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import io.netty.channel.Channel;
@@ -35,7 +35,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -85,8 +85,8 @@ public class NettyClientLoggerTest {
         logger.debug(channel, msgSupplier, null);
 
         verify(delegateLogger, never()).debug(anyString(), any(Throwable.class));
-        verifyZeroInteractions(msgSupplier);
-        verifyZeroInteractions(channel);
+        verifyNoMoreInteractions(msgSupplier);
+        verifyNoMoreInteractions(channel);
     }
 
     @Test
@@ -106,7 +106,7 @@ public class NettyClientLoggerTest {
         logger.debug(null, msgSupplier, null);
 
         verify(delegateLogger, never()).debug(anyString(), any(Throwable.class));
-        verifyZeroInteractions(msgSupplier);
+        verifyNoMoreInteractions(msgSupplier);
     }
 
     @Test
@@ -127,8 +127,8 @@ public class NettyClientLoggerTest {
         logger.warn(channel, msgSupplier, null);
 
         verify(delegateLogger, never()).warn(anyString(), any(Throwable.class));
-        verifyZeroInteractions(msgSupplier);
-        verifyZeroInteractions(channel);
+        verifyNoMoreInteractions(msgSupplier);
+        verifyNoMoreInteractions(channel);
     }
 
     @Test
@@ -160,7 +160,7 @@ public class NettyClientLoggerTest {
         logger.error(null, msgSupplier, null);
 
         verify(delegateLogger, never()).error(anyString(), any(Throwable.class));
-        verifyZeroInteractions(msgSupplier);
+        verifyNoMoreInteractions(msgSupplier);
     }
 
     @Test
@@ -181,8 +181,8 @@ public class NettyClientLoggerTest {
         logger.error(channel, msgSupplier, null);
 
         verify(delegateLogger, never()).error(anyString(), any(Throwable.class));
-        verifyZeroInteractions(msgSupplier);
-        verifyZeroInteractions(channel);
+        verifyNoMoreInteractions(msgSupplier);
+        verifyNoMoreInteractions(channel);
     }
 
     @Test
@@ -214,7 +214,7 @@ public class NettyClientLoggerTest {
         logger.warn(null, msgSupplier, null);
 
         verify(delegateLogger, never()).warn(anyString(), any(Throwable.class));
-        verifyZeroInteractions(msgSupplier);
+        verifyNoMoreInteractions(msgSupplier);
     }
 
     @Test
@@ -235,8 +235,8 @@ public class NettyClientLoggerTest {
         logger.trace(channel, msgSupplier);
 
         verify(delegateLogger, never()).trace(anyString());
-        verifyZeroInteractions(msgSupplier);
-        verifyZeroInteractions(channel);
+        verifyNoMoreInteractions(msgSupplier);
+        verifyNoMoreInteractions(channel);
     }
 
     @Test
@@ -256,7 +256,7 @@ public class NettyClientLoggerTest {
         logger.trace(null, msgSupplier);
 
         verify(delegateLogger, never()).trace(anyString());
-        verifyZeroInteractions(msgSupplier);
+        verifyNoMoreInteractions(msgSupplier);
     }
 
     @Test
