@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -72,7 +73,8 @@ public class HttpChecksumRequiredInterceptor implements ExecutionInterceptor {
     }
 
     private boolean isHttpChecksumRequired(ExecutionAttributes executionAttributes) {
-        return executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED) != null;
+        return executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED) != null
+               || HttpChecksumUtils.isMd5ChecksumRequired(executionAttributes);
     }
 
     /**

@@ -185,6 +185,33 @@
       "output":{"shape":"AllTypesStructure"},
       "httpChecksumRequired": true
     },
+    "OperationWithRequestChecksumRequired":{
+      "name":"OperationWithRequestChecksumRequired",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/allTypes"
+      },
+      "input":{"shape":"AllTypesStructure"},
+      "output":{"shape":"AllTypesStructure"},
+      "httpChecksum" : {
+        "requestChecksumRequired" : true
+      }
+    },
+    "OperationWithCustomRequestChecksum":{
+      "name":"OperationWithRequestChecksumRequired",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/allTypes"
+      },
+      "input":{"shape":"ChecksumStructure"},
+      "output":{"shape":"ChecksumStructure"},
+      "httpChecksum" : {
+        "requestChecksumRequired" : true,
+        "requestAlgorithmMember": "ChecksumAlgorithm",
+        "requestValidationModeMember" : "ChecksumMode",
+        "responseAlgorithms": ["crc32", "crc32c", "sha256", "sha1"]
+      }
+    },
     "StreamingInputOperation":{
       "name":"StreamingInputOperation",
       "http":{
@@ -225,6 +252,47 @@
       },
       "input": {
         "shape": "AllTypesStructure"
+      }
+    },
+    "PutOperationWithChecksum":{
+      "name":"PutOperationWithChecksum",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ChecksumStructureWithStreaming"},
+      "output":{"shape":"ChecksumStructureWithStreaming"},
+      "httpChecksum" : {
+        "requestChecksumRequired": true,
+        "requestAlgorithmMember": "ChecksumAlgorithm"
+      }
+    },
+    "GetOperationWithChecksum":{
+      "name":"GetOperationWithChecksum",
+      "http":{
+        "method":"GET",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ChecksumStructure"},
+      "output":{"shape":"ChecksumStructureWithStreaming"},
+      "httpChecksum" : {
+        "requestValidationModeMember": "ChecksumMode",
+        "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
+      }
+    },
+    "OperationWithChecksumNonStreaming":{
+      "name":"OperationWithChecksumNonStreaming",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ChecksumStructure"},
+      "output":{"shape":"ChecksumStructure"},
+      "httpChecksum" : {
+        "requestChecksumRequired": true,
+        "requestAlgorithmMember": "ChecksumAlgorithm",
+        "requestValidationModeMember": "ChecksumMode",
+        "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
       }
     }
   },
@@ -758,6 +826,57 @@
         }
       },
       "event": true
+    },
+    "ChecksumAlgorithm":{
+      "type":"string",
+      "enum":[
+        "CRC32",
+        "CRC32C",
+        "SHA1",
+        "SHA256"
+      ]
+    },
+    "ChecksumMode":{
+      "type":"string",
+      "enum":["ENABLED"]
+    },
+    "ChecksumStructureWithStreaming":{
+      "type":"structure",
+      "members":{
+        "Body":{
+          "shape":"Body",
+          "documentation":"<p>Object data.</p>",
+          "streaming":true
+        },
+        "ChecksumMode":{
+          "shape":"ChecksumMode",
+          "location":"header",
+          "locationName":"x-amz-checksum-mode"
+        },
+        "ChecksumAlgorithm":{
+          "shape":"ChecksumAlgorithm",
+          "location":"header",
+          "locationName":"x-amz-checksum-algorithm"
+        }
+      },
+      "payload":"Body"
+    },
+    "Body":{"type":"blob"},
+    "ChecksumStructure":{
+      "type":"structure",
+      "members":{
+        "stringMember":{"shape":"String"},
+        "ChecksumMode":{
+          "shape":"ChecksumMode",
+          "location":"header",
+          "locationName":"x-amz-checksum-mode"
+        },
+        "ChecksumAlgorithm":{
+          "shape":"ChecksumAlgorithm",
+          "location":"header",
+          "locationName":"x-amz-checksum-algorithm"
+        }
+      }
     }
   }
 }

@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.auth.signer.internal;
 
+import static software.amazon.awssdk.auth.signer.Aws4UnsignedPayloadSigner.UNSIGNED_PAYLOAD;
+import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.InputStream;
@@ -31,14 +33,20 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.auth.signer.internal.util.HeaderTransformsHelper;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
+import software.amazon.awssdk.auth.signer.params.SignerChecksumParams;
+import software.amazon.awssdk.core.checksums.ChecksumSpecs;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -63,14 +71,16 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                                                 Aws4SignerRequestParams requestParams,
                                                 T signingParams) {
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
-        String contentHash = calculateContentHash(mutableRequest, signingParams);
-        return doSign(mutableRequest.build(), requestParams, signingParams, contentHash);
+        SdkChecksum sdkChecksum = createSdkChecksumFromParams(signingParams, request);
+        String contentHash = calculateContentHash(mutableRequest, signingParams, sdkChecksum);
+        return doSign(mutableRequest.build(), requestParams, signingParams,
+                new ContentChecksum(contentHash, sdkChecksum));
     }
 
     protected SdkHttpFullRequest.Builder doSign(SdkHttpFullRequest request,
                                                 Aws4SignerRequestParams requestParams,
                                                 T signingParams,
-                                                String contentSha256) {
+                                                ContentChecksum contentChecksum) {
 
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
         AwsCredentials sanitizedCredentials = sanitizeCredentials(signingParams.awsCredentials());
@@ -83,7 +93,11 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         mutableRequest.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)
                       .filter(h -> h.equals("required"))
-                      .ifPresent(h -> mutableRequest.putHeader(SignerConstant.X_AMZ_CONTENT_SHA256, contentSha256));
+                      .ifPresent(h -> mutableRequest.putHeader(
+                              SignerConstant.X_AMZ_CONTENT_SHA256, contentChecksum.contentHash()));
+
+        putChecksumHeader(signingParams.checksumParams(), contentChecksum.contentFlexibleChecksum(),
+                mutableRequest, contentChecksum.contentHash());
 
         Map<String, List<String>> canonicalHeaders = canonicalizeSigningHeaders(mutableRequest.headers());
         String signedHeadersString = getSignedHeadersString(canonicalHeaders);
@@ -91,7 +105,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         String canonicalRequest = createCanonicalRequest(mutableRequest,
                                                          canonicalHeaders,
                                                          signedHeadersString,
-                                                         contentSha256,
+                                                         contentChecksum.contentHash(),
                                                          signingParams.doubleUrlEncode());
 
         String stringToSign = createStringToSign(canonicalRequest, requestParams);
@@ -103,7 +117,8 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         mutableRequest.putHeader(SignerConstant.AUTHORIZATION,
                                  buildAuthorizationHeader(signature, sanitizedCredentials, requestParams, signedHeadersString));
 
-        processRequestPayload(mutableRequest, signature, signingKey, requestParams, signingParams);
+        processRequestPayload(mutableRequest, signature, signingKey, requestParams, signingParams,
+                contentChecksum.contentFlexibleChecksum());
 
         return mutableRequest;
     }
@@ -163,8 +178,18 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
      * relating to content-encoding and content-length.)
      */
     protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest, T signerParams) {
+        return calculateContentHash(mutableRequest, signerParams, null);
+    }
+
+
+    /**
+     * This method overloads calculateContentHash with contentFlexibleChecksum.
+     * The contentFlexibleChecksum is computed at the same time while hash is calculated for Content.
+     */
+    protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest, T signerParams,
+                                          SdkChecksum contentFlexibleChecksum) {
         InputStream payloadStream = getBinaryRequestPayloadStream(mutableRequest.contentStreamProvider());
-        return BinaryUtils.toHex(hash(payloadStream));
+        return BinaryUtils.toHex(hash(payloadStream, contentFlexibleChecksum));
     }
 
     protected abstract void processRequestPayload(SdkHttpFullRequest.Builder mutableRequest,
@@ -172,6 +197,14 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                                                   byte[] signingKey,
                                                   Aws4SignerRequestParams signerRequestParams,
                                                   T signerParams);
+
+
+    protected abstract void processRequestPayload(SdkHttpFullRequest.Builder mutableRequest,
+                                                  byte[] signature,
+                                                  byte[] signingKey,
+                                                  Aws4SignerRequestParams signerRequestParams,
+                                                  T signerParams,
+                                                  SdkChecksum sdkChecksum);
 
     protected abstract String calculateContentHashPresign(SdkHttpFullRequest.Builder mutableRequest, U signerParams);
 
@@ -333,54 +366,8 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         return buffer.toString();
     }
 
-    /**
-     * "The Trimall function removes excess white space before and after values,
-     * and converts sequential spaces to a single space."
-     * <p>
-     * https://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
-     * <p>
-     * The collapse-whitespace logic is equivalent to:
-     * <pre>
-     *     value.replaceAll("\\s+", " ")
-     * </pre>
-     * but does not create a Pattern object that needs to compile the match
-     * string; it also prevents us from having to make a Matcher object as well.
-     */
-    private String trimAll(String value) {
-        boolean previousIsWhiteSpace = false;
-        StringBuilder sb = new StringBuilder(value.length());
-
-        for (int i = 0; i < value.length(); i++) {
-            char ch = value.charAt(i);
-            if (isWhiteSpace(ch)) {
-                if (previousIsWhiteSpace) {
-                    continue;
-                }
-                sb.append(' ');
-                previousIsWhiteSpace = true;
-            } else {
-                sb.append(ch);
-                previousIsWhiteSpace = false;
-            }
-        }
-
-        return sb.toString().trim();
-    }
-
     private List<String> trimAll(List<String> values) {
-        return values.stream().map(this::trimAll).collect(Collectors.toList());
-    }
-
-    /**
-     * Tests a char to see if is it whitespace.
-     * This method considers the same characters to be white
-     * space as the Pattern class does when matching \s
-     *
-     * @param ch the character to be tested
-     * @return true if the character is white  space, false otherwise.
-     */
-    private boolean isWhiteSpace(final char ch) {
-        return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\u000b' || ch == '\r' || ch == '\f';
+        return values.stream().map(HeaderTransformsHelper::trimAll).collect(Collectors.toList());
     }
 
     private String getSignedHeadersString(Map<String, List<String>> canonicalizedHeaders) {
@@ -465,7 +452,51 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         if (executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE) != null) {
             paramsBuilder.doubleUrlEncode(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE));
         }
-
+        ChecksumSpecs checksumSpecs = executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS);
+        if (checksumSpecs != null && checksumSpecs.algorithm() != null) {
+            paramsBuilder.checksumParams(buildSignerChecksumParams(checksumSpecs));
+        }
         return paramsBuilder;
+    }
+
+    private void putChecksumHeader(SignerChecksumParams checksumSigner, SdkChecksum sdkChecksum,
+                                   SdkHttpFullRequest.Builder mutableRequest, String contentHashString) {
+
+        if (checksumSigner != null && sdkChecksum != null && !UNSIGNED_PAYLOAD.equals(contentHashString)
+            && !"STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(contentHashString)) {
+
+            if (HttpChecksumUtils.isHttpChecksumPresent(mutableRequest.build(),
+                                                        ChecksumSpecs.builder()
+                                                                     .headerName(checksumSigner.checksumHeaderName()).build())) {
+                LOG.debug(() -> "Checksum already added in header ");
+                return;
+            }
+            String headerChecksum = checksumSigner.checksumHeaderName();
+            if (StringUtils.isNotBlank(headerChecksum)) {
+                mutableRequest.putHeader(headerChecksum,
+                                         BinaryUtils.toBase64(sdkChecksum.getChecksumBytes()));
+            }
+        }
+    }
+
+    private SignerChecksumParams buildSignerChecksumParams(ChecksumSpecs checksumSpecs) {
+        return SignerChecksumParams.builder().algorithm(checksumSpecs.algorithm())
+                                   .isStreamingRequest(checksumSpecs.isRequestStreaming())
+                                   .checksumHeaderName(checksumSpecs.headerName())
+                                   .build();
+    }
+
+    private SdkChecksum createSdkChecksumFromParams(T signingParams, SdkHttpFullRequest request) {
+        SignerChecksumParams signerChecksumParams = signingParams.checksumParams();
+        boolean isValidChecksumHeader =
+            signerChecksumParams != null && StringUtils.isNotBlank(signerChecksumParams.checksumHeaderName());
+
+        if (isValidChecksumHeader
+            && !HttpChecksumUtils.isHttpChecksumPresent(
+            request,
+            ChecksumSpecs.builder().headerName(signerChecksumParams.checksumHeaderName()).build())) {
+            return SdkChecksum.forAlgorithm(signerChecksumParams.algorithm());
+        }
+        return null;
     }
 }

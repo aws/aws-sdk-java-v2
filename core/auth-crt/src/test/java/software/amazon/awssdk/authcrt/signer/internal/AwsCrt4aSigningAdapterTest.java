@@ -8,6 +8,7 @@ import static software.amazon.awssdk.authcrt.signer.SignerTestUtils.extractSigne
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import software.amazon.awssdk.authcrt.signer.internal.chunkedencoding.AwsS3V4aCh
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
+import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 public class AwsCrt4aSigningAdapterTest {
@@ -46,7 +48,7 @@ public class AwsCrt4aSigningAdapterTest {
     }
 
     @Test
-    public void sign_forHeader_works() {
+    void sign_forHeader_works() {
         SigningTestCase testCase = SignerTestUtils.createBasicHeaderSigningTestCase();
         ExecutionAttributes executionAttributes = SignerTestUtils.buildBasicExecutionAttributes(testCase);
         SdkHttpFullRequest request = testCase.requestBuilder.build();
@@ -86,6 +88,30 @@ public class AwsCrt4aSigningAdapterTest {
         byte[] chunkSignature = crtSigningAdapter.signChunk(data, signingResult.getSignature(), chunkConfig);
 
         assertThat(chunkSignature.length).isEqualTo(144);
+    }
+
+    @Test
+    void sign_forTrailerHeader_works() {
+
+        SigningTestCase testCase = SignerTestUtils.createBasicChunkedSigningTestCase();
+        ExecutionAttributes executionAttributes = SignerTestUtils.buildBasicExecutionAttributes(testCase);
+        SdkHttpFullRequest.Builder requestBuilder = testCase.requestBuilder;
+        long originalContentLength = calculateRequestContentLength(requestBuilder);
+        requestBuilder.putHeader("x-amz-decoded-content-length", Long.toString(originalContentLength));
+        requestBuilder.putHeader(CONTENT_LENGTH, Long.toString(AwsSignedChunkedEncodingInputStream.calculateStreamContentLength(
+            originalContentLength, AwsS3V4aChunkSigner.getSignatureLength(), AwsChunkedEncodingConfig.create())));
+        SdkHttpFullRequest request = requestBuilder.build();
+        AwsSigningConfig signingConfig = configProvider.createS3CrtSigningConfig(executionAttributes);
+        SdkSigningResult signingResult = crtSigningAdapter.sign(request, signingConfig);
+        byte[] data = new byte[10];
+        Arrays.fill(data, (byte) 0x61);
+        AwsSigningConfig chunkConfig = configProvider.createChunkedSigningConfig(executionAttributes);
+        byte[] previousSignature = crtSigningAdapter.signChunk(data, signingResult.getSignature(), chunkConfig);
+
+        AwsSigningResult trailerHeadersSignature = crtSigningAdapter
+            .signTrailerHeaders(Collections.singletonMap("x-amz-checksum-crc32", Collections.singletonList("check4c==")),
+                                previousSignature, chunkConfig);
+        assertThat(trailerHeadersSignature.getSignature()).hasSize(144);
     }
 
 }

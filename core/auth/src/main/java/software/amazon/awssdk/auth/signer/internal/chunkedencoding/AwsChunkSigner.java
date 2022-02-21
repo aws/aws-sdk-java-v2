@@ -26,4 +26,5 @@ public interface AwsChunkSigner {
 
     String signChunk(byte[] chunkData, String previousSignature);
 
+    String signChecksumChunk(byte[] calculatedChecksum, String previousSignature, String checksumHeaderForTrailer);
 }

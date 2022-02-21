@@ -33,4 +33,5 @@ public interface Signer {
      * @return A signed version of the input request
      */
     SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes);
+
 }
