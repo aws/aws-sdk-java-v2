@@ -122,7 +122,7 @@ public class DownloadDirectoryHelper {
                                                                                objectAndPath),
                                            allOfFutures,
                                            DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY);
-        DownloadFilter downloadFilter = downloadDirectoryRequest.filter().orElseGet(DownloadFilter::allObjects);
+        DownloadFilter downloadFilter = downloadDirectoryRequest.filter();
         listObjectsHelper.listS3ObjectsRecursively(request)
                          .map(s3Object -> determineDestinationPath(downloadDirectoryRequest, s3Object))
                          .filter(objectAndPath -> downloadFilter.test(objectAndPath.left(), objectAndPath.right()))

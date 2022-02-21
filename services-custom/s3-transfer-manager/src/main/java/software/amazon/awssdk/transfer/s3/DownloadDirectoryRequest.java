@@ -87,11 +87,11 @@ public final class DownloadDirectoryRequest
     }
 
     /**
-     * @return the optional filter
-     * @see Builder#filter(DownloadFilter) 
+     * @return the optional filter, or {@link DownloadFilter#allObjects()} if no filter was provided
+     * @see Builder#filter(DownloadFilter)
      */
-    public Optional<DownloadFilter> filter() {
-        return Optional.ofNullable(filter);
+    public DownloadFilter filter() {
+        return filter == null ? DownloadFilter.allObjects() : filter;
     }
 
     public static Builder builder() {

@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.BiPredicate;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
@@ -44,37 +42,10 @@ public interface DownloadFilter extends BiPredicate<S3Object, Path> {
     boolean test(S3Object s3Object, Path destinationPath);
 
     /**
-     * A {@link DownloadFilter} that only downloads objects that are newer (i.e., modified more recently) than local files. This
-     * relies on comparing the remote object's last modified time to the local file's last modified time. It does not compare
-     * content checksums.
-     * <p>
-     * This filter is considered preview/experimental and may be modified or removed before release.
-     */
-    @SdkPreviewApi
-    static DownloadFilter newerObjects() {
-        return (remote, local) -> {
-            try {
-                if (Files.notExists(local)) {
-                    return true;
-                }
-                if (Files.size(local) != remote.size()) {
-                    return true;
-                }
-                if (Files.getLastModifiedTime(local).toInstant().isBefore(remote.lastModified())) {
-                    return true;
-                }
-                return false;
-            } catch (IOException e) {
-                return true;
-            }
-        };
-    }
-
-    /**
      * A {@link DownloadFilter} that downloads all objects. This is the default behavior if no filter is provided.
      */
     @SdkPreviewApi
     static DownloadFilter allObjects() {
-        return (remote, local) -> true;
+        return (o, p) -> true;
     }
 }
