@@ -47,17 +47,17 @@ import software.amazon.awssdk.transfer.s3.UploadFileRequest;
 class S3TransferManagerTest {
     private S3CrtAsyncClient mockS3Crt;
     private S3TransferManager tm;
-    private UploadDirectoryHelper uploadDirectoryManager;
+    private UploadDirectoryHelper uploadDirectoryHelper;
     private DownloadDirectoryHelper downloadDirectoryHelper;
     private TransferManagerConfiguration configuration;
 
     @BeforeEach
     public void methodSetup() {
         mockS3Crt = mock(S3CrtAsyncClient.class);
-        uploadDirectoryManager = mock(UploadDirectoryHelper.class);
+        uploadDirectoryHelper = mock(UploadDirectoryHelper.class);
         configuration = mock(TransferManagerConfiguration.class);
         downloadDirectoryHelper = mock(DownloadDirectoryHelper.class);
-        tm = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryManager, configuration, downloadDirectoryHelper);
+        tm = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryHelper, configuration, downloadDirectoryHelper);
     }
 
     @AfterEach
@@ -245,7 +245,7 @@ class S3TransferManagerTest {
     @Test
     void uploadDirectory_throwException_shouldCompleteFutureExceptionally() {
         RuntimeException exception = new RuntimeException("test");
-        when(uploadDirectoryManager.uploadDirectory(any(UploadDirectoryRequest.class))).thenThrow(exception);
+        when(uploadDirectoryHelper.uploadDirectory(any(UploadDirectoryRequest.class))).thenThrow(exception);
 
         assertThatThrownBy(() -> tm.uploadDirectory(u -> u.sourceDirectory(Paths.get("/"))
                                                           .bucket("bucketName")).completionFuture().join())
@@ -264,7 +264,7 @@ class S3TransferManagerTest {
 
     @Test
     void close_shouldCloseUnderlyingResources() {
-        S3TransferManager transferManager = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryManager, configuration, downloadDirectoryHelper);
+        S3TransferManager transferManager = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryHelper, configuration, downloadDirectoryHelper);
         transferManager.close();
         verify(mockS3Crt).close();
         verify(configuration).close();

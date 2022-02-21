@@ -74,7 +74,7 @@ public final class FileUtils {
     }
 
     /**
-     * Covert a given directory into a visual file tree. E.g., given an input structure of:
+     * Convert a given directory into a visual file tree. E.g., given an input structure of:
      * <pre>
      *     /tmp/testdir
      *     /tmp/testdir/CHANGELOG.md
@@ -102,11 +102,12 @@ public final class FileUtils {
      * </pre>
      */
     public static String toFileTreeString(Path root) {
+        int rootDepth = root.getNameCount();
+        String tab = StringUtils.repeat(" ", 4);
         StringBuilder sb = new StringBuilder();
         try (Stream<Path> files = Files.walk(root)) {
             files.forEach(p -> {
-                String tab = StringUtils.repeat(" ", 4);
-                int indentLevel = p.getNameCount() - root.getNameCount();
+                int indentLevel = p.getNameCount() - rootDepth;
                 String line = String.format("%s- %s", StringUtils.repeat(tab, indentLevel), p.getFileName());
                 sb.append(line);
                 sb.append(System.lineSeparator());
