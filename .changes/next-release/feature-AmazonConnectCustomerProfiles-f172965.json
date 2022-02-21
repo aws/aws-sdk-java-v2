@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Customer Profiles",
-    "contributor": "",
-    "description": "This release introduces apis CreateIntegrationWorkflow, DeleteWorkflow, ListWorkflows, GetWorkflow and GetWorkflowSteps. These apis are used to manage and view integration workflows."
-}

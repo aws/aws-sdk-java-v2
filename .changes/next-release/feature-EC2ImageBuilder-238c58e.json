@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EC2 Image Builder",
-    "contributor": "",
-    "description": "This release adds support to enable faster launching for Windows AMIs created by EC2 Image Builder."
-}
