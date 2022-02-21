@@ -143,7 +143,7 @@ public class DownloadDirectoryHelperTest {
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
                                                                               .destinationDirectory(directory)
                                                                               .bucket("bucket")
-                                                                              .filter((o, p) -> "key2".equals(o.key()))
+                                                                              .filter(ctx -> "key2".equals(ctx.source().key()))
                                                                               .build());
 
         CompletedDirectoryDownload completedDirectoryDownload = DownloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);

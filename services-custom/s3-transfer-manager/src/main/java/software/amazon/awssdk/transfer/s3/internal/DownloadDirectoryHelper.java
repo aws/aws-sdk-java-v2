@@ -38,14 +38,13 @@ import software.amazon.awssdk.transfer.s3.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.DirectoryDownload;
 import software.amazon.awssdk.transfer.s3.DownloadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.DownloadFileContext;
 import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
-import software.amazon.awssdk.transfer.s3.DownloadFilter;
 import software.amazon.awssdk.transfer.s3.FailedFileDownload;
 import software.amazon.awssdk.transfer.s3.FileDownload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -116,16 +115,15 @@ public class DownloadDirectoryHelper {
         Queue<FailedFileDownload> failedFileDownloads = new ConcurrentLinkedQueue<>();
 
         CompletableFuture<Void> allOfFutures = new CompletableFuture<>();
-        AsyncBufferingSubscriber<Pair<S3Object, Path>> asyncBufferingSubscriber =
-            new AsyncBufferingSubscriber<>(objectAndPath -> downloadSingleFile(downloadDirectoryRequest,
-                                                                               failedFileDownloads,
-                                                                               objectAndPath),
+        AsyncBufferingSubscriber<DownloadFileContext> asyncBufferingSubscriber =
+            new AsyncBufferingSubscriber<>(downloadContext -> downloadSingleFile(downloadDirectoryRequest,
+                                                                                 failedFileDownloads,
+                                                                                 downloadContext),
                                            allOfFutures,
                                            DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY);
-        DownloadFilter downloadFilter = downloadDirectoryRequest.filter();
         listObjectsHelper.listS3ObjectsRecursively(request)
                          .map(s3Object -> determineDestinationPath(downloadDirectoryRequest, s3Object))
-                         .filter(objectAndPath -> downloadFilter.test(objectAndPath.left(), objectAndPath.right()))
+                         .filter(downloadDirectoryRequest.filter())
                          .subscribe(asyncBufferingSubscriber);
 
         allOfFutures.whenComplete((r, t) -> {
@@ -139,23 +137,23 @@ public class DownloadDirectoryHelper {
         });
     }
 
-    private Pair<S3Object, Path> determineDestinationPath(DownloadDirectoryRequest downloadDirectoryRequest, S3Object s3Object) {
+    private DownloadFileContext determineDestinationPath(DownloadDirectoryRequest downloadDirectoryRequest, S3Object s3Object) {
         FileSystem fileSystem = downloadDirectoryRequest.destinationDirectory().getFileSystem();
         String delimiter = downloadDirectoryRequest.delimiter().orElse(null);
         String key = normalizeKey(downloadDirectoryRequest, s3Object, delimiter);
         String relativePath = getRelativePath(fileSystem, delimiter, key);
         Path destinationPath = downloadDirectoryRequest.destinationDirectory().resolve(relativePath);
-        return Pair.of(s3Object, destinationPath);
+        return new DefaultDownloadFileContext(s3Object, destinationPath);
     }
 
     private CompletableFuture<CompletedFileDownload> downloadSingleFile(DownloadDirectoryRequest downloadDirectoryRequest,
                                                                         Collection<FailedFileDownload> failedFileDownloads,
-                                                                        Pair<S3Object, Path> objectAndPath) {
-        DownloadFileRequest downloadFileRequest = downloadFileRequest(downloadDirectoryRequest, objectAndPath);
+                                                                        DownloadFileContext downloadContext) {
+        DownloadFileRequest downloadFileRequest = downloadFileRequest(downloadDirectoryRequest, downloadContext);
 
         try {
             log.debug(() -> "Sending download request " + downloadFileRequest);
-            createParentDirectoriesIfNeeded(objectAndPath.right());
+            createParentDirectoriesIfNeeded(downloadContext.destination());
 
             CompletableFuture<CompletedFileDownload> future =
                 downloadFileFunction.apply(downloadFileRequest).completionFuture();
@@ -204,14 +202,14 @@ public class DownloadDirectoryHelper {
     }
 
     private static DownloadFileRequest downloadFileRequest(DownloadDirectoryRequest downloadDirectoryRequest,
-                                                           Pair<S3Object, Path> objectAndPath) {
+                                                           DownloadFileContext downloadContext) {
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                                                             .bucket(downloadDirectoryRequest.bucket())
-                                                            .key(objectAndPath.left().key())
+                                                            .key(downloadContext.source().key())
                                                             .build();
         return DownloadFileRequest.builder()
-                                  .destination(objectAndPath.right())
+                                  .destination(downloadContext.destination())
                                   .getObjectRequest(getObjectRequest)
                                   .build();
     }

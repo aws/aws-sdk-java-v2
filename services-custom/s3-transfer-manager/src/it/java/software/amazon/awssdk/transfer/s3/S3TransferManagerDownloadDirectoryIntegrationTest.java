@@ -194,7 +194,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u
             .destinationDirectory(destinationDirectory)
             .bucket(TEST_BUCKET)
-            .filter((o, p) -> p.getFileName().toString().startsWith("2")));
+            .filter(ctx -> ctx.destination().getFileName().toString().startsWith("2")));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
 
