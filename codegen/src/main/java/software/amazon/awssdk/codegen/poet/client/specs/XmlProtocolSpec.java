@@ -35,6 +35,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
+import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.core.SdkPojoBuilder;
@@ -130,7 +131,8 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                                     hostPrefixExpression(opModel) +
                                                     discoveredEndpoint(opModel))
                                                .add(".withInput($L)", opModel.getInput().getVariableName())
-                                               .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
+                                               .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
+                                               .add(HttpChecksumTrait.create(opModel));
 
         s3ArnableFields(opModel, model).ifPresent(codeBlock::add);
 
@@ -204,7 +206,8 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         builder.add(hostPrefixExpression(opModel))
                .add(".withMetricCollector(apiCallMetricCollector)\n")
                .add(asyncRequestBody(opModel))
-               .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
+               .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
+               .add(HttpChecksumTrait.create(opModel));
 
         s3ArnableFields(opModel, model).ifPresent(builder::add);
 

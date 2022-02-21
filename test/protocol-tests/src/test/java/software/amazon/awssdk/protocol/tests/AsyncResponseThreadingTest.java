@@ -20,11 +20,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.util.concurrent.Executor;
@@ -34,8 +35,11 @@ import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
+import software.amazon.awssdk.services.protocolrestjson.model.ProtocolRestJsonException;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
 
@@ -63,11 +67,54 @@ public class AsyncResponseThreadingTest {
                 client.streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
                                                 AsyncResponseTransformer.toBytes()).join();
 
-        // #1 reporting metrics, #2 completing response
-        verify(mockExecutor, atLeast(1)).execute(any());
+        verify(mockExecutor).execute(any());
 
         byte[] arrayCopy = response.asByteArray();
         assertThat(arrayCopy).containsExactly('t', 'e', 's', 't');
+    }
+
+    @Test
+    public void connectionError_completionWithNioThreadWorksCorrectly() {
+        stubFor(post(urlPathEqualTo(STREAMING_OUTPUT_PATH)).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER).withBody("test")));
+
+        Executor mockExecutor = Mockito.spy(new SpyableExecutor());
+
+        ProtocolRestJsonAsyncClient client =
+            ProtocolRestJsonAsyncClient.builder()
+                                       .region(Region.US_WEST_1)
+                                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                       .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
+                                       .asyncConfiguration(c -> c.advancedOption(FUTURE_COMPLETION_EXECUTOR, mockExecutor))
+                                       .overrideConfiguration(o -> o.retryPolicy(RetryPolicy.none()))
+                                       .build();
+
+        assertThatThrownBy(() ->
+            client.streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
+                                            AsyncResponseTransformer.toBytes()).join())
+            .hasCauseInstanceOf(SdkClientException.class);
+
+        verify(mockExecutor).execute(any());
+    }
+
+    @Test
+    public void serverError_completionWithNioThreadWorksCorrectly() {
+        stubFor(post(urlPathEqualTo(STREAMING_OUTPUT_PATH)).willReturn(aResponse().withStatus(500).withBody("test")));
+
+        Executor mockExecutor = Mockito.spy(new SpyableExecutor());
+
+        ProtocolRestJsonAsyncClient client =
+            ProtocolRestJsonAsyncClient.builder()
+                                       .region(Region.US_WEST_1)
+                                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                       .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
+                                       .overrideConfiguration(o -> o.retryPolicy(RetryPolicy.none()))
+                                       .asyncConfiguration(c -> c.advancedOption(FUTURE_COMPLETION_EXECUTOR, mockExecutor))
+                                       .build();
+
+        assertThatThrownBy(() ->
+            client.streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
+                                            AsyncResponseTransformer.toBytes()).join()).hasCauseInstanceOf(ProtocolRestJsonException.class);
+        verify(mockExecutor).execute(any());
     }
 
     private static class SpyableExecutor implements Executor {

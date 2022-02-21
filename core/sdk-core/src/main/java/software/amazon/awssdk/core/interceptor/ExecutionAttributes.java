@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.interceptor;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
@@ -58,6 +59,14 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
      */
     public Map<ExecutionAttribute<?>, Object> getAttributes() {
         return Collections.unmodifiableMap(attributes);
+    }
+
+    /**
+     * Retrieve the Optional current value of the provided attribute in this collection of attributes.
+     * This will return Optional Value.
+     */
+    public <U> Optional<U> getOptionalAttribute(ExecutionAttribute<U> attribute) {
+        return Optional.ofNullable((U) attributes.get(attribute));
     }
 
     /**

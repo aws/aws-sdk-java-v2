@@ -1,3 +1,21 @@
+# __2.17.134__ __2022-02-21__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Support adding http checksum for requests and validation of http checksum for responses based on HttpChecksum traits defined in the model.
+    - Updated service endpoint metadata.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces apis CreateIntegrationWorkflow, DeleteWorkflow, ListWorkflows, GetWorkflow and GetWorkflowSteps. These apis are used to manage and view integration workflows.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - DynamoDB ExecuteStatement API now supports Limit as a request parameter to specify the maximum number of items to evaluate. If specified, the service will process up to the Limit and the results will include a LastEvaluatedKey value to continue the read in a subsequent operation.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds support to enable faster launching for Windows AMIs created by EC2 Image Builder.
+
 # __2.17.133__ __2022-02-18__
 ## __AWS Budgets__
   - ### Features
