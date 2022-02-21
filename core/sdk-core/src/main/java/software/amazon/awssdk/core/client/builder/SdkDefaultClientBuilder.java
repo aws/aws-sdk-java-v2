@@ -42,6 +42,7 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -64,7 +65,11 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
+import software.amazon.awssdk.core.internal.interceptor.AsyncRequestBodyHttpChecksumTrailerInterceptor;
+import software.amazon.awssdk.core.internal.interceptor.HttpChecksumInHeaderInterceptor;
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumRequiredInterceptor;
+import software.amazon.awssdk.core.internal.interceptor.HttpChecksumValidationInterceptor;
+import software.amazon.awssdk.core.internal.interceptor.SyncHttpChecksumInTrailerInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.util.SdkUserAgent;
@@ -357,7 +362,13 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * The set of interceptors that should be included with all services.
      */
     private List<ExecutionInterceptor> sdkInterceptors() {
-        return Collections.singletonList(new HttpChecksumRequiredInterceptor());
+        return Collections.unmodifiableList(Arrays.asList(
+            new HttpChecksumRequiredInterceptor(),
+            new SyncHttpChecksumInTrailerInterceptor(),
+            new HttpChecksumValidationInterceptor(),
+            new AsyncRequestBodyHttpChecksumTrailerInterceptor(),
+            new HttpChecksumInHeaderInterceptor()
+        ));
     }
 
     @Override

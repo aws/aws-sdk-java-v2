@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.awscore.internal;
 
+import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResolver.resolveSigningMethodUsed;
+import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
+
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -22,8 +25,8 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -38,6 +41,7 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
+import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -91,7 +95,8 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
             .putAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION,
                           clientConfig.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION))
-            .putAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN, clientConfig.option(SdkClientOption.SIGNER_OVERRIDDEN));
+            .putAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN, clientConfig.option(SdkClientOption.SIGNER_OVERRIDDEN))
+            .putAttribute(RESOLVED_CHECKSUM_SPECS, HttpChecksumResolver.getResolvedChecksumSpecs(executionAttributes));
 
         ExecutionInterceptorChain executionInterceptorChain =
                 new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
@@ -102,6 +107,7 @@ public final class AwsExecutionContextBuilder {
                                                      .requestBody(executionParams.getRequestBody())
                                                      .build();
         interceptorContext = runInitialInterceptors(interceptorContext, executionAttributes, executionInterceptorChain);
+        Signer signer = resolveSigner(interceptorContext.request(), clientConfig.option(SdkAdvancedClientOption.SIGNER));
 
         // beforeExecution and modifyRequest interceptors should avoid dependency on credentials,
         // since they should be resolved after the interceptors run
@@ -109,13 +115,14 @@ public final class AwsExecutionContextBuilder {
                                                         originalRequest,
                                                         metricCollector);
         executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials);
+        executionAttributes.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
+                                         resolveSigningMethodUsed(signer, executionAttributes, credentials));
 
         return ExecutionContext.builder()
                                .interceptorChain(executionInterceptorChain)
                                .interceptorContext(interceptorContext)
                                .executionAttributes(executionAttributes)
-                               .signer(resolveSigner(interceptorContext.request(),
-                                                     clientConfig.option(AwsAdvancedClientOption.SIGNER)))
+                               .signer(signer)
                                .metricCollector(metricCollector)
                                .build();
     }

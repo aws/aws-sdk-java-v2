@@ -38,8 +38,10 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.signer.params.SignerChecksumParams;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -47,7 +49,7 @@ import software.amazon.awssdk.regions.Region;
 
 public class NonStreamingAsyncBodyAws4SignerTest {
     @Test
-    public void test_sign_computesCorrectSignature() {
+    void test_sign_computesCorrectSignature() {
         Aws4Signer aws4Signer = Aws4Signer.create();
         AsyncAws4Signer asyncAws4Signer = AsyncAws4Signer.create();
 
@@ -80,7 +82,7 @@ public class NonStreamingAsyncBodyAws4SignerTest {
     }
 
     @Test
-    public void test_sign_publisherThrows_exceptionPropagated() {
+    void test_sign_publisherThrows_exceptionPropagated() {
         AsyncAws4Signer asyncAws4Signer = AsyncAws4Signer.create();
 
         RuntimeException error = new RuntimeException("error");
@@ -118,7 +120,7 @@ public class NonStreamingAsyncBodyAws4SignerTest {
     }
 
     @Test
-    public void test_sign_futureCancelled_propagatedToPublisher() {
+    void test_sign_futureCancelled_propagatedToPublisher() {
         SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
                 .protocol("https")
                 .host("my-cool-aws-service.us-west-2.amazonaws.com")
@@ -151,5 +153,46 @@ public class NonStreamingAsyncBodyAws4SignerTest {
         signedRequestFuture.cancel(true);
 
         verify(mockSubscription).cancel();
+    }
+
+    @Test
+    void test_sign_computesCorrectSignatureWithChecksum() {
+        Aws4Signer aws4Signer = Aws4Signer.create();
+        AsyncAws4Signer asyncAws4Signer = AsyncAws4Signer.create();
+
+        byte[] content = "abc".getBytes(StandardCharsets.UTF_8);
+        ContentStreamProvider syncBody = () -> new ByteArrayInputStream(content);
+        AsyncRequestBody asyncBody = AsyncRequestBody.fromBytes(content);
+
+        SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
+                .protocol("https")
+                .host("my-cool-aws-service.us-west-2.amazonaws.com")
+                .method(SdkHttpMethod.GET)
+                .putHeader("header1", "headerval1")
+                .contentStreamProvider(syncBody)
+                .build();
+
+        AwsCredentials credentials = AwsBasicCredentials.create("akid", "skid");
+
+        Aws4SignerParams signerParams =
+            Aws4SignerParams.builder()
+                            .awsCredentials(credentials)
+                            .signingClockOverride(Clock.fixed(Instant.EPOCH, ZoneId.of("UTC")))
+                            .signingName("my-cool-aws-service")
+                            .signingRegion(Region.US_WEST_2)
+                            .checksumParams(SignerChecksumParams.builder().algorithm(Algorithm.SHA256)
+                                                                .checksumHeaderName("x-amzn-header")
+                                                                .isStreamingRequest(true)
+                                                                .build())
+                            .build();
+
+        List<String> syncSignature = aws4Signer.sign(httpRequest, signerParams).headers().get("Authorization");
+        final SdkHttpFullRequest sdkHttpFullRequest = asyncAws4Signer.signWithBody(httpRequest, asyncBody, signerParams).join();
+        List<String> asyncSignature = sdkHttpFullRequest.headers().get("Authorization");
+        assertThat(asyncSignature).isEqualTo(syncSignature);
+        final List<String> stringList = sdkHttpFullRequest.headers().get("x-amzn-header");
+        assertThat(stringList.stream().findFirst()).hasValue("ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0=");
+        assertThat(sdkHttpFullRequest.firstMatchingHeader(("x-amzn-trailer"))).isNotPresent();
+
     }
 }

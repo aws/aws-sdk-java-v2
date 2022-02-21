@@ -17,17 +17,21 @@ package software.amazon.awssdk.core.internal.io;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.core.io.SdkInputStream;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
- * A wrapper of InputStream that implements chunked encoding.
- * <p/>
- * Each chunk will be buffered.
- * <p/>
+ * A wrapper of InputStream that implements pseudo-chunked-encoding.
+ * Each chunk will be buffered for the calculation of the chunk signature
+ * which is added at the head of each chunk.<br>
+ * The default chunk size cannot be customized, since we need to calculate
+ * the expected encoded stream length before reading the wrapped stream.<br>
  * This class will use the mark() & reset() of the wrapped InputStream if they
  * are supported, otherwise it will create a buffer for bytes read from
  * the wrapped stream.
@@ -35,14 +39,20 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
 
-    private static final int SKIP_BUFFER_SIZE = 256 * 1024;
-    private static final byte[] FINAL_CHUNK = new byte[0];
+    protected static final int DEFAULT_CHUNK_SIZE = 128 * 1024;
+    protected static final int SKIP_BUFFER_SIZE = 256 * 1024;
+    protected static final String CRLF = "\r\n";
+    protected static final byte[] FINAL_CHUNK = new byte[0];
+    protected static final String HEADER_COLON_SEPARATOR = ":";
     private static final Logger log = Logger.loggerFor(AwsChunkedEncodingInputStream.class);
-
+    protected byte[] calculatedChecksum = null;
+    protected final String checksumHeaderForTrailer;
+    protected boolean isTrailingTerminated = true;
     private InputStream is = null;
     private final int chunkSize;
     private final int maxBufferSize;
-
+    private final SdkChecksum sdkChecksum;
+    private boolean isLastTrailingCrlf;
     /**
      * Iterator on the current chunk.
      */
@@ -58,6 +68,7 @@ public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
     private boolean isAtStart = true;
     private boolean isTerminating = false;
 
+
     /**
      * Creates a chunked encoding input stream initialized with the originating stream. The configuration allows
      * specification of the size of each chunk, as well as the buffer size. Use the same values as when
@@ -68,8 +79,8 @@ public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
      *                        See {@link AwsChunkedEncodingConfig} for default values.
      */
     protected AwsChunkedEncodingInputStream(InputStream in,
-                                         AwsChunkedEncodingConfig config) {
-
+                                            SdkChecksum sdkChecksum, String checksumHeaderForTrailer,
+                                            AwsChunkedEncodingConfig config) {
         AwsChunkedEncodingConfig awsChunkedEncodingConfig = config == null ? AwsChunkedEncodingConfig.create() : config;
 
         int providedMaxBufferSize = awsChunkedEncodingConfig.bufferSize();
@@ -88,23 +99,18 @@ public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
         if (maxBufferSize < chunkSize) {
             throw new IllegalArgumentException("Max buffer size should not be less than chunk size");
         }
+        this.sdkChecksum = sdkChecksum;
+        this.checksumHeaderForTrailer = checksumHeaderForTrailer;
     }
 
     protected abstract static class Builder<T extends Builder> {
 
-
-        private InputStream inputStream;
-        private AwsChunkedEncodingConfig awsChunkedEncodingConfig;
+        protected InputStream inputStream;
+        protected SdkChecksum sdkChecksum;
+        protected String checksumHeaderForTrailer;
+        protected AwsChunkedEncodingConfig awsChunkedEncodingConfig;
 
         protected Builder() {
-        }
-
-        protected InputStream inputStream() {
-            return inputStream;
-        }
-
-        protected AwsChunkedEncodingConfig chunkedEncodingConfig() {
-            return awsChunkedEncodingConfig;
         }
 
         /**
@@ -125,13 +131,33 @@ public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
             return (T) this;
         }
 
+        /**
+         *
+         * @param sdkChecksum  Instance of SdkChecksum, this can be null if we do not want to calculate Checksum
+         * @return
+         */
+        public T sdkChecksum(SdkChecksum sdkChecksum) {
+            this.sdkChecksum = sdkChecksum;
+            return (T) this;
+        }
+
+        /**
+         *
+         * @param checksumHeaderForTrailer String value of Trailer header where checksum will be updated.
+         * @return
+         */
+        public T checksumHeaderForTrailer(String checksumHeaderForTrailer) {
+            this.checksumHeaderForTrailer = checksumHeaderForTrailer;
+            return (T) this;
+        }
+
     }
 
     @Override
     public int read() throws IOException {
         byte[] tmp = new byte[1];
         int count = read(tmp, 0, 1);
-        if (count != -1) {
+        if (count > 0) {
             log.debug(() -> "One byte read from the stream.");
             int unsignedByte = (int) tmp[0] & 0xFF;
             return unsignedByte;
@@ -143,19 +169,20 @@ public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         abortIfNeeded();
-        if (b == null) {
-            throw new NullPointerException();
-        } else if (off < 0 || len < 0 || len > b.length - off) {
+        Validate.notNull(b, "buff");
+        if (off < 0 || len < 0 || len > b.length - off) {
             throw new IndexOutOfBoundsException();
         } else if (len == 0) {
             return 0;
         }
 
         if (null == currentChunkIterator || !currentChunkIterator.hasNext()) {
-            if (isTerminating) {
+            if (isTerminating && isTrailingTerminated) {
                 return -1;
-            } else {
+            } else if (!isTerminating) {
                 isTerminating = setUpNextChunk();
+            } else {
+                isTrailingTerminated = setUpTrailingChunks();
             }
         }
 
@@ -165,6 +192,23 @@ public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
             log.trace(() -> count + " byte read from the stream.");
         }
         return count;
+    }
+
+    private boolean setUpTrailingChunks() {
+
+        if (sdkChecksum == null) {
+            return true;
+        }
+        if (calculatedChecksum == null) {
+            calculatedChecksum = sdkChecksum.getChecksumBytes();
+            currentChunkIterator = new ChunkContentIterator(createChecksumChunkHeader());
+            return false;
+        } else if (!isLastTrailingCrlf) {
+            // Signed Payload needs Checksums to be signed at the end.
+            currentChunkIterator = new ChunkContentIterator(CRLF.getBytes(StandardCharsets.UTF_8));
+            isLastTrailingCrlf = true;
+        }
+        return true;
     }
 
     @Override
@@ -202,6 +246,9 @@ public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
         if (!isAtStart) {
             throw new UnsupportedOperationException("Chunk-encoded stream only supports mark() at the start of the stream.");
         }
+        if (sdkChecksum != null) {
+            sdkChecksum.mark(readlimit);
+        }
         if (is.markSupported()) {
             log.debug(() -> "AwsChunkedEncodingInputStream marked at the start of the stream "
                             + "(will directly mark the wrapped stream since it's mark-supported).");
@@ -222,6 +269,9 @@ public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
         abortIfNeeded();
         // Clear up any encoded data
         currentChunkIterator = null;
+        if (sdkChecksum != null) {
+            sdkChecksum.reset();
+        }
         // Reset the wrapped stream if it is mark-supported,
         // otherwise use our buffered data.
         if (is.markSupported()) {
@@ -230,12 +280,9 @@ public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
             is.reset();
         } else {
             log.debug(() -> "AwsChunkedEncodingInputStream reset (will use the buffer of the decoded stream).");
-            if (null == decodedStreamBuffer) {
-                throw new IOException("Cannot reset the stream because the mark is not set.");
-            }
+            Validate.notNull(decodedStreamBuffer, "Cannot reset the stream because the mark is not set.");
             decodedStreamBuffer.startReadBuffer();
         }
-
         isAtStart = true;
         isTerminating = false;
     }
@@ -267,15 +314,21 @@ public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
             }
         }
         if (chunkSizeInBytes == 0) {
-            byte[] signedFinalChunk = createFinalChunk(FINAL_CHUNK);
-            currentChunkIterator = new ChunkContentIterator(signedFinalChunk);
+            if (sdkChecksum != null) {
+                isTrailingTerminated = false;
+            }
+            byte[] finalChunk = createFinalChunk(FINAL_CHUNK);
+            currentChunkIterator = new ChunkContentIterator(finalChunk);
             return true;
         } else {
             if (chunkSizeInBytes < chunkData.length) {
                 chunkData = Arrays.copyOf(chunkData, chunkSizeInBytes);
             }
-            byte[] signedChunkContent = createChunk(chunkData);
-            currentChunkIterator = new ChunkContentIterator(signedChunkContent);
+            byte[] chunkContent = createChunk(chunkData);
+            currentChunkIterator = new ChunkContentIterator(chunkContent);
+            if (sdkChecksum != null) {
+                sdkChecksum.update(chunkData);
+            }
             return false;
         }
     }
@@ -303,5 +356,10 @@ public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
      * @return Chunked data which will have signature if signed or just data if unsigned.
      */
     protected abstract byte[] createChunk(byte[] chunkData);
+
+    /**
+     * @return ChecksumChunkHeader in bytes based on the Header name field.
+     */
+    protected abstract byte[] createChecksumChunkHeader();
 
 }

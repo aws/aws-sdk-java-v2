@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.model.intermediate;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.codegen.checksum.HttpChecksum;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.OperationDocs;
@@ -65,6 +66,8 @@ public class OperationModel extends DocumentationModel {
     private EndpointTrait endpointTrait;
 
     private boolean httpChecksumRequired;
+
+    private HttpChecksum httpChecksum;
 
     public String getOperationName() {
         return operationName;
@@ -291,5 +294,13 @@ public class OperationModel extends DocumentationModel {
 
     public void setHttpChecksumRequired(boolean httpChecksumRequired) {
         this.httpChecksumRequired = httpChecksumRequired;
+    }
+
+    public HttpChecksum getHttpChecksum() {
+        return httpChecksum;
+    }
+
+    public void setHttpChecksum(HttpChecksum httpChecksum) {
+        this.httpChecksum = httpChecksum;
     }
 }
