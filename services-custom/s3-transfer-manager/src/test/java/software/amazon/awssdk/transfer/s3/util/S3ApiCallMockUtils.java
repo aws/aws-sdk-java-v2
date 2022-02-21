@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.util;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.reactivex.Flowable;

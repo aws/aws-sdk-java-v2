@@ -15,14 +15,23 @@
 
 package software.amazon.awssdk.protocol.asserts.unmarshalling;
 
+import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.apache.commons.io.IOUtils;
+import org.unitils.reflectionassert.ReflectionComparator;
+import org.unitils.reflectionassert.ReflectionComparatorFactory;
+import org.unitils.reflectionassert.comparator.Comparator;
+import org.unitils.reflectionassert.difference.Difference;
+import org.unitils.reflectionassert.report.impl.DefaultDifferenceReport;
 import software.amazon.awssdk.protocol.reflect.ShapeModelReflector;
 
 /**
@@ -62,7 +71,11 @@ public class UnmarshalledResultAssertion extends UnmarshallingAssertion {
             assertTrue(IOUtils.contentEquals((InputStream) field.get(expectedResult),
                                              (InputStream) field.get(actual)));
         } else {
-            assertReflectionEquals(field.get(expectedResult), field.get(actual));
+            Difference difference = CustomComparatorFactory.getComparator()
+                                                           .getDifference(field.get(expectedResult), field.get(actual));
+            if (difference != null) {
+                fail(new DefaultDifferenceReport().createReport(difference));
+            }
         }
     }
 
@@ -76,5 +89,37 @@ public class UnmarshalledResultAssertion extends UnmarshallingAssertion {
     private String getOutputClassName(UnmarshallingTestContext context) {
         return context.getModel().getOperations().get(context.getOperationName()).getReturnType()
                       .getReturnType();
+    }
+
+    private static class CustomComparatorFactory extends ReflectionComparatorFactory {
+        private static ReflectionComparator getComparator() {
+            List<Comparator> comparators = new ArrayList<>();
+            comparators.add(new InstantComparator());
+            comparators.addAll(ReflectionComparatorFactory.getComparatorChain(Collections.emptySet()));
+            return new ReflectionComparator(comparators);
+        }
+    }
+
+    private static class InstantComparator implements Comparator {
+        @Override
+        public boolean canCompare(Object left, Object right) {
+            return left instanceof Instant || right instanceof Instant;
+        }
+
+        @Override
+        public Difference compare(Object left,
+                                  Object right,
+                                  boolean onlyFirstDifference,
+                                  ReflectionComparator reflectionComparator) {
+            if (right == null) {
+                return new Difference("Right value null.", left, null);
+            }
+
+            if (!left.equals(right)) {
+                return new Difference("Different values.", left, right);
+            }
+
+            return null;
+        }
     }
 }

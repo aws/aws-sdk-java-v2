@@ -25,7 +25,7 @@ import java.lang.reflect.Field;
 import java.util.zip.GZIPInputStream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.unitils.util.ReflectionUtils;
 import software.amazon.awssdk.core.internal.util.Crc32ChecksumValidatingInputStream;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -45,7 +45,7 @@ public class Crc32ValidationTest {
 
         SdkHttpFullResponse adapted = adapt(httpResponse);
 
-        InputStream in = getField(adapted.content().get(), "in");
+        InputStream in = adapted.content().get().delegate();
         assertThat(in).isEqualTo(content);
     }
 
@@ -60,7 +60,7 @@ public class Crc32ValidationTest {
 
         SdkHttpFullResponse adapted = adapt(httpResponse);
 
-        InputStream in = getField(adapted.content().get(), "in");
+        InputStream in = adapted.content().get().delegate();
         assertThat(in).isInstanceOf((Crc32ChecksumValidatingInputStream.class));
     }
 
@@ -73,7 +73,7 @@ public class Crc32ValidationTest {
                                                                   .content(AbortableInputStream.create(content))
                                                                   .build();
             SdkHttpFullResponse adapted = adapt(httpResponse);
-            InputStream in = getField(adapted.content().get(), "in");
+            InputStream in = adapted.content().get().delegate();
             assertThat(in).isInstanceOf((GZIPInputStream.class));
         }
     }
@@ -89,7 +89,7 @@ public class Crc32ValidationTest {
                                                                   .build();
 
             SdkHttpFullResponse adapted = Crc32Validation.validate(true, httpResponse);
-            InputStream in = getField(adapted.content().get(), "in");
+            InputStream in = adapted.content().get().delegate();
             assertThat(in).isInstanceOf((GZIPInputStream.class));
         }
     }
@@ -104,7 +104,7 @@ public class Crc32ValidationTest {
                                                               .build();
 
         SdkHttpFullResponse adapted = adapt(httpResponse);
-        InputStream in = getField(adapted.content().get(), "in");
+        InputStream in = adapted.content().get().delegate();
         assertThat(in).isInstanceOf((GZIPInputStream.class));
     }
 

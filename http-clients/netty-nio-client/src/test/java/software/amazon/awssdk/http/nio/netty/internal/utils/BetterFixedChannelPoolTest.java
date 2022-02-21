@@ -16,8 +16,8 @@
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 
 import io.netty.channel.Channel;
@@ -102,7 +102,7 @@ public class BetterFixedChannelPoolTest {
 
         List<Promise<Channel>> releasePromises = Collections.synchronizedList(new ArrayList<>());
         Mockito.when(delegatePool.release(isA(Channel.class), isA(Promise.class))).thenAnswer(i -> {
-            Promise promise = i.getArgumentAt(1, Promise.class);
+            Promise promise = i.getArgument(1, Promise.class);
             releasePromises.add(promise);
             return promise;
         });

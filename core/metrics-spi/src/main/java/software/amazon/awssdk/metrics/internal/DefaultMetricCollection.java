@@ -41,7 +41,7 @@ public final class DefaultMetricCollection implements MetricCollection {
         List<MetricRecord<?>>> metrics, List<MetricCollection> children) {
         this.name = name;
         this.metrics = new HashMap<>(metrics);
-        this.children = children != null ? Collections.unmodifiableList(new ArrayList<>(children)) : Collections.emptyList();
+        this.children = children != null ? new ArrayList<>(children) : Collections.emptyList();
         this.creationTime = Instant.now();
     }
 
@@ -65,7 +65,7 @@ public final class DefaultMetricCollection implements MetricCollection {
 
     @Override
     public List<MetricCollection> children() {
-        return children;
+        return Collections.unmodifiableList(children);
     }
 
     @Override

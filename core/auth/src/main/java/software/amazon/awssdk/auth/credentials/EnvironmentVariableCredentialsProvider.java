@@ -39,7 +39,7 @@ public final class EnvironmentVariableCredentialsProvider extends SystemSettings
     protected Optional<String> loadSetting(SystemSetting setting) {
         // CHECKSTYLE:OFF - Customers should be able to specify a credentials provider that only looks at the environment
         // variables, but not the system properties. For that reason, we're only checking the environment variable here.
-        return Optional.ofNullable(System.getenv(setting.environmentVariable()));
+        return SystemSetting.getStringValueFromEnvironmentVariable(setting.environmentVariable());
         // CHECKSTYLE:ON
     }
 

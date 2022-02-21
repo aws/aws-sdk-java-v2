@@ -18,7 +18,7 @@ package utils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.utils.internal.async.EmptySubscription;
 

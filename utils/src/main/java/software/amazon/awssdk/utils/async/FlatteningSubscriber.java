@@ -107,7 +107,7 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
                 Validate.notNull(nextItems, "Collections flattened by the flattening subscriber must not contain null.");
                 allItems.add(item);
             });
-        } catch (NullPointerException e) {
+        } catch (RuntimeException e) {
             upstreamSubscription.cancel();
             onError(e);
             throw e;
