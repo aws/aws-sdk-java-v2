@@ -22,11 +22,11 @@ import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Detects whether the response succeeded or failed by just checking the HTTP status and delegates to appropriate
@@ -50,6 +50,7 @@ public final class CombinedResponseAsyncHttpResponseHandler<OutputT>
 
     @Override
     public void onHeaders(SdkHttpResponse response) {
+        Validate.isTrue(headersFuture != null, "onHeaders() invoked without prepare().");
         headersFuture.complete(response);
         logRequestId(response);
 
@@ -71,12 +72,9 @@ public final class CombinedResponseAsyncHttpResponseHandler<OutputT>
 
     @Override
     public void onStream(Publisher<ByteBuffer> publisher) {
-        if (!headersFuture.isDone()) {
-            headersFuture.completeExceptionally(SdkClientException.create("headersFuture is not completed before onStream is "
-                                                                          + "invoked."));
-            return;
-        }
-
+        Validate.isTrue(headersFuture != null, "onStream() invoked without prepare().");
+        Validate.isTrue(headersFuture.isDone(), "headersFuture is still not completed when onStream() is "
+                                                + "invoked.");
         SdkHttpResponse sdkHttpResponse = headersFuture.join();
         if (sdkHttpResponse.isSuccessful()) {
             successResponseHandler.onStream(publisher);
