@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.ssooidc.internal;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.token.SdkTokenProvider;
-import software.amazon.awssdk.auth.token.SdkTokenProviderFactoryProperties;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProviderFactoryProperties;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.ssooidc.SsoOidcProfileTokenProviderFactory;
 import software.amazon.awssdk.utils.StringInputStream;

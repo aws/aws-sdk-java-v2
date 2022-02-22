@@ -13,13 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.token;
+package software.amazon.awssdk.auth.token.credentials;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.auth.token.TestBearerToken;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProviderChain;
+import software.amazon.awssdk.auth.token.credentials.StaticTokenProvider;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
 public class SdkTokenProviderChainTest {

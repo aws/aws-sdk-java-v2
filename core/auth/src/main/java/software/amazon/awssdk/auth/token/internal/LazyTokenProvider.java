@@ -17,8 +17,8 @@ package software.amazon.awssdk.auth.token.internal;
 
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.SdkToken;
-import software.amazon.awssdk.auth.token.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.SdkAutoCloseable;

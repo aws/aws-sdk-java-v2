@@ -16,7 +16,7 @@
 package software.amazon.awssdk.auth.signer.params;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.auth.token.AwsToken;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -27,7 +27,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public class TokenSignerParams {
-    private final AwsToken token;
+    private final SdkToken token;
 
     TokenSignerParams(BuilderImpl<?> builder) {
         this.token = Validate.paramNotNull(builder.token, "Signing token");
@@ -37,7 +37,7 @@ public class TokenSignerParams {
         return new BuilderImpl<>();
     }
 
-    public AwsToken token() {
+    public SdkToken token() {
         return token;
     }
 
@@ -48,26 +48,26 @@ public class TokenSignerParams {
          *
          * This is required for token signing.
          *
-         * @param token A token implementing {@link AwsToken}
+         * @param token A token implementing {@link SdkToken}
          */
-        B token(AwsToken token);
+        B token(SdkToken token);
 
         TokenSignerParams build();
     }
 
     protected static class BuilderImpl<B extends Builder> implements Builder<B> {
-        private AwsToken token;
+        private SdkToken token;
 
         protected BuilderImpl() {
         }
 
         @Override
-        public B token(AwsToken token) {
+        public B token(SdkToken token) {
             this.token = token;
             return (B) this;
         }
 
-        public void setToken(AwsToken token) {
+        public void setToken(SdkToken token) {
             token(token);
         }
 

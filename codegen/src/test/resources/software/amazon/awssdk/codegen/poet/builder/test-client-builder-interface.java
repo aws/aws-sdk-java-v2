@@ -2,7 +2,7 @@ package software.amazon.awssdk.services.json;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.auth.token.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 
 /**
@@ -19,14 +19,14 @@ public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C>
 
     /**
      * Set the token provider to use for bearer token authorization. This is optional, if none is provided, the SDK will
-     * use {@link software.amazon.awssdk.auth.token.DefaultAwsTokenProvider}.
+     * use {@link software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider}.
      * <p>
      * If the service, or any of its operations require Bearer Token Authorization, then the SDK will default to this
      * token provider to retrieve the token to use for authorization.
      * <p>
      * This provider works in conjunction with the
      * {@code software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.TOKEN_SIGNER} set on the client. By
-     * default it is {@link software.amazon.awssdk.auth.signer.BearerTokenSigner}.
+     * default it is {@link software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner}.
      */
     B tokenProvider(SdkTokenProvider tokenProvider);
 }

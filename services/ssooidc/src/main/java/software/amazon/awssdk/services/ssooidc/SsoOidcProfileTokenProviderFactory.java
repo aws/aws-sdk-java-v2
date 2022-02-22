@@ -16,11 +16,13 @@
 package software.amazon.awssdk.services.ssooidc;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.auth.token.ChildProfileTokenProviderFactory;
-import software.amazon.awssdk.auth.token.SdkToken;
-import software.amazon.awssdk.auth.token.SdkTokenProvider;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.auth.token.credentials.ChildProfileTokenProviderFactory;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileProperty;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
@@ -60,7 +62,11 @@ public final class SsoOidcProfileTokenProviderFactory implements ChildProfileTok
 
             this.sdkTokenProvider = SsoOidcTokenProvider.builder()
                                                         .startUrl(startUrl)
-                                                        .region(region)
+                                                        .ssoOidcClient(SsoOidcClient.builder()
+                                                                                    .region(Region.of(region))
+                                                                                    .credentialsProvider(
+                                                                                        AnonymousCredentialsProvider.create())
+                                                                                    .build())
                                                         .build();
 
         }

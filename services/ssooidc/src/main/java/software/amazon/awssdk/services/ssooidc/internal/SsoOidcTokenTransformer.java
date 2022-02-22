@@ -48,7 +48,7 @@ public final class SsoOidcTokenTransformer implements TokenTransformer<SsoOidcTo
         return SsoOidcToken.builder()
                            .accessToken(awsResponse.accessToken())
                            .refreshToken(awsResponse.refreshToken())
-                           .expiresAt(awsResponse.expiresIn() != null ? Instant.ofEpochSecond(awsResponse.expiresIn()) : null)
+                           .expiresAt(awsResponse.expiresIn() != null ? Instant.now().plusSeconds(awsResponse.expiresIn()) : null)
                            .startUrl(baseToken.startUrl())
                            .registrationExpiresAt(baseToken.registrationExpiresAt())
                            .region(baseToken.region())

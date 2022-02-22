@@ -13,15 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer;
+package software.amazon.awssdk.auth.token.signer.aws;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.TokenSignerParams;
-import software.amazon.awssdk.auth.token.SdkToken;
-import software.amazon.awssdk.auth.token.SdkTokenExecutionAttribute;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
+import software.amazon.awssdk.auth.token.signer.SdkTokenExecutionAttribute;
 import software.amazon.awssdk.core.CredentialType;
-import software.amazon.awssdk.auth.signer.params.TokenSignerParams;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -67,7 +66,7 @@ public final class BearerTokenSigner implements Signer {
      */
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        SdkToken token = executionAttributes.getAttribute(TokenSignerExecutionAttribute.AWS_TOKEN);
+        SdkToken token = executionAttributes.getAttribute(SdkTokenExecutionAttribute.SDK_TOKEN);
         return doSign(request, TokenSignerParams.builder().token(token).build());
     }
 
@@ -78,6 +77,6 @@ public final class BearerTokenSigner implements Signer {
     }
 
     private String buildAuthorizationHeader(SdkToken token) {
-        return String.format("%s%s", BEARER_LABEL, token.token());
+        return String.format("%s %s", BEARER_LABEL, token.token());
     }
 }

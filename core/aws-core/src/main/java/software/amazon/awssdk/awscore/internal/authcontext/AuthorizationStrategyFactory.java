@@ -17,7 +17,7 @@ package software.amazon.awssdk.awscore.internal.authcontext;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.token.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.SdkRequest;

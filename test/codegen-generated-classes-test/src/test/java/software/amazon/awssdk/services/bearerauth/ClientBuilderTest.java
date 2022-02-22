@@ -20,9 +20,9 @@ import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.signer.BearerTokenSigner;
-import software.amazon.awssdk.auth.token.DefaultAwsTokenProvider;
-import software.amazon.awssdk.auth.token.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
+import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;

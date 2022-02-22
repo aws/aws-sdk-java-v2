@@ -15,24 +15,20 @@
 
 package software.amazon.awssdk.services.ssooidc;
 
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
-import software.amazon.awssdk.auth.token.SdkToken;
-import software.amazon.awssdk.auth.token.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.token.CachedTokenRefresher;
 import software.amazon.awssdk.awscore.internal.token.TokenManager;
 import software.amazon.awssdk.awscore.internal.token.TokenRefresher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssooidc.internal.OnDiskTokenManager;
 import software.amazon.awssdk.services.ssooidc.internal.SsoOidcToken;
 import software.amazon.awssdk.services.ssooidc.internal.SsoOidcTokenTransformer;
@@ -50,47 +46,38 @@ import software.amazon.awssdk.utils.Validate;
 @ThreadSafe
 public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
 
-    private static final Duration DEFAULT_STALE_DURATION = Duration.ofMinutes(5);
+    private static final Duration DEFAULT_STALE_DURATION = Duration.ofMinutes(1);
+    private static final Duration DEFAULT_PREFETCH_DURATION = Duration.ofMinutes(5);
     private static final Logger log = Logger.loggerFor(SsoOidcTokenProvider.class);
-
-    private final String startUrl;
-    private final String region;
     private final TokenManager<SsoOidcToken> onDiskTokenManager;
-    private final Clock clock;
 
     private final TokenRefresher<SsoOidcToken> tokenRefresher;
     private final SsoOidcClient ssoOidcClient;
 
-    private final Duration staleDuration;
+    private final Duration staleTime;
+    private final Duration prefetchTime;
 
     private SsoOidcTokenProvider(BuilderImpl builder) {
-        this.startUrl = builder.startUrl;
-        this.region = builder.region;
-        Supplier<SsoOidcToken> tokenRetriever = builder.tokenRetriever == null ? getDefaultSsoTokenRetriever()
-                                                                               : builder.tokenRetriever;
+        Validate.paramNotNull(builder.startUrl, "startUrl");
+        Validate.paramNotNull(builder.ssoOidcClient, "ssoOidcClient");
 
-        validateSupplierAndClient(builder.tokenRetriever, builder.ssoOidcClient);
-        this.ssoOidcClient = builder.ssoOidcClient == null ? defaultSsoOidcClient(this.region) : builder.ssoOidcClient;
-        this.staleDuration = builder.staleDuration == null ? DEFAULT_STALE_DURATION : builder.staleDuration;
-        this.onDiskTokenManager = OnDiskTokenManager.create(startUrl);
-        this.clock = Clock.systemUTC();
-        this.tokenRefresher = getDefaultTokenRefresher(tokenRetriever, this.staleDuration);
+        this.ssoOidcClient = builder.ssoOidcClient;
+        this.staleTime = builder.staleTime == null ? DEFAULT_STALE_DURATION : builder.staleTime;
+        this.prefetchTime = builder.prefetchTime == null ? DEFAULT_PREFETCH_DURATION : builder.prefetchTime;
+
+        this.onDiskTokenManager = OnDiskTokenManager.create(builder.startUrl);
+
+        this.tokenRefresher = CachedTokenRefresher.builder()
+                                                  .tokenRetriever(getDefaultSsoTokenRetriever(this.ssoOidcClient,
+                                                                                              this.onDiskTokenManager,
+                                                                                              this.staleTime, this.prefetchTime))
+                                                  .exceptionHandler(exceptionHandler())
+                                                  .prefetchTime(this.prefetchTime)
+                                                  .staleDuration(this.staleTime)
+                                                  .asyncRefreshEnabled(builder.asyncTokenUpdateEnabled)
+                                                  .build();
     }
 
-
-    @SdkTestInternalApi
-    public SsoOidcTokenProvider(String startUrl, String region, TokenManager<SsoOidcToken> onDiskTokenManager, Clock clock,
-                                TokenRefresher<SsoOidcToken> tokenRefresher, SsoOidcClient ssoOidcClient,
-                                Duration staleDuration) {
-        this.startUrl = startUrl;
-        this.region = region;
-        this.onDiskTokenManager = onDiskTokenManager == null ? OnDiskTokenManager.create(this.startUrl) : onDiskTokenManager;
-        this.clock = clock == null ? Clock.systemUTC() : clock;
-        this.ssoOidcClient = ssoOidcClient == null ? defaultSsoOidcClient(this.region) : ssoOidcClient;
-        this.staleDuration = staleDuration == null ? DEFAULT_STALE_DURATION : staleDuration;
-        this.tokenRefresher = tokenRefresher == null ? getDefaultTokenRefresher(getDefaultSsoTokenRetriever(),
-                                                                                this.staleDuration) : tokenRefresher;
-    }
 
     private Function<SdkException, SsoOidcToken> exceptionHandler() {
         return e -> {
@@ -129,17 +116,6 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
         Builder startUrl(String startUrl);
 
         /**
-         * The region used to retrieve the SSO token.
-         */
-        Builder region(String region);
-
-        /**
-         *
-         * Supplier that will implement retrieval of the token from Disc or SSO-Oidc server if onDisc token has expired.
-         */
-        Builder tokenRetriever(Supplier<SsoOidcToken> tokenRetriever);
-
-        /**
          *
          * Client to fetch token from SSO OIDC service.
          */
@@ -151,50 +127,58 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
          *
          * <p>By default, this is 5 minute.</p>
          */
-        Builder staleDuration(Duration onDiskStaleDuration);
+        Builder staleTime(Duration onDiskStaleDuration);
+
+        /**
+         *
+         * Configure the amount of time, relative to Sso-Oidc token , that the cached tokens in refresher are considered
+         * prefetched from service..
+         */
+        Builder prefetchTime(Duration prefetchTime);
+
+        /**
+         * Configure whether the provider should fetch tokens asynchronously in the background. If this is true,
+         * threads are less likely to block when token are loaded, but additional resources are used to maintain
+         * the provider.
+         *
+         * <p>By default, this is disabled.</p>
+         */
+        Builder asyncTokenUpdateEnabled(Boolean asyncTokenUpdateEnabled);
 
         SsoOidcTokenProvider build();
     }
 
     private boolean isExpired(SsoOidcToken token) {
         Instant expiration = token.expirationTime().get();
-        Instant now = clock.instant();
+        Instant now = Instant.now();
         return now.isAfter(expiration);
     }
 
-    private boolean isWithinRefreshWindow(SsoOidcToken token) {
+    private static boolean isWithinRefreshWindow(SsoOidcToken token, Duration staleTime) {
         Instant expiration = token.expirationTime().get();
-        Instant now = clock.instant();
-        return expiration.isAfter(now.plus(staleDuration));
+        Instant now = Instant.now();
+        return expiration.isAfter(now.plus(staleTime));
     }
 
-    private void validateToken(SsoOidcToken token) {
+    private static void validateToken(SsoOidcToken token) {
         Validate.notNull(token.token(), "token cannot be null");
         Validate.notNull(token.expirationTime(), "expirationTime cannot be null");
     }
 
     private static class BuilderImpl implements Builder {
         private String startUrl;
-        private String region;
-        private Supplier<SsoOidcToken> tokenRetriever;
         private SsoOidcClient ssoOidcClient;
-        private Duration staleDuration;
+        private Duration staleTime;
+        private Duration prefetchTime;
+        private Boolean asyncTokenUpdateEnabled = false;
+
+
+        private BuilderImpl() {
+        }
 
         @Override
         public Builder startUrl(String startUrl) {
             this.startUrl = startUrl;
-            return this;
-        }
-
-        @Override
-        public Builder region(String region) {
-            this.region = region;
-            return this;
-        }
-
-        @Override
-        public Builder tokenRetriever(Supplier<SsoOidcToken> tokenRetriever) {
-            this.tokenRetriever = tokenRetriever;
             return this;
         }
 
@@ -205,8 +189,20 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
         }
 
         @Override
-        public Builder staleDuration(Duration staleDuration) {
-            this.staleDuration = staleDuration;
+        public Builder staleTime(Duration staleTime) {
+            this.staleTime = staleTime;
+            return this;
+        }
+
+        @Override
+        public Builder prefetchTime(Duration prefetchTime) {
+            this.prefetchTime = prefetchTime;
+            return this;
+        }
+
+        @Override
+        public Builder asyncTokenUpdateEnabled(Boolean asyncTokenUpdateEnabled) {
+            this.asyncTokenUpdateEnabled = asyncTokenUpdateEnabled;
             return this;
         }
 
@@ -216,50 +212,32 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
         }
     }
 
-    private Supplier<SsoOidcToken> getDefaultSsoTokenRetriever() {
+    private static Supplier<SsoOidcToken> getDefaultSsoTokenRetriever(SsoOidcClient ssoOidcClient,
+                                                                      TokenManager<SsoOidcToken> tokenManager,
+                                                                      Duration staleTime,
+                                                                      Duration prefetchTime) {
         return () -> {
-            SsoOidcToken baseToken = onDiskTokenManager.loadToken()
-                                                       .orElseThrow(() -> SdkClientException.create("Unable to load SSO token"));
+            SsoOidcToken baseToken = tokenManager.loadToken()
+                                                 .orElseThrow(() -> SdkClientException.create("Unable to load SSO token"));
             validateToken(baseToken);
 
-            if (isWithinRefreshWindow(baseToken)) {
+            if (isWithinRefreshWindow(baseToken, staleTime)
+                && isWithinRefreshWindow(baseToken, prefetchTime)) {
                 return baseToken;
             }
 
             SsoOidcTokenTransformer ssoOidcTokenTransformer = SsoOidcTokenTransformer.create(baseToken);
             SsoOidcToken refreshToken = ssoOidcTokenTransformer.transform(ssoOidcClient.createToken(
                 CreateTokenRequest.builder()
-                                  .grantType("refreshToken")
+                                  .grantType("refresh_token")
                                   .clientId(baseToken.clientId())
                                   .clientSecret(baseToken.clientSecret())
                                   .refreshToken(baseToken.refreshToken())
                                   .build()));
-            onDiskTokenManager.storeToken(refreshToken);
-
+            tokenManager.storeToken(refreshToken);
             return refreshToken;
         };
     }
 
-    private CachedTokenRefresher getDefaultTokenRefresher(Supplier<SsoOidcToken> tokenRetriever,
-                                                          Duration staleTime) {
-        return CachedTokenRefresher.builder()
-                                   .tokenRetriever(tokenRetriever)
-                                   .exceptionHandler(exceptionHandler())
-                                   .enableAutoFetch(true)
-                                   .staleDuration(staleTime)
-                                   .build();
-    }
 
-    private SsoOidcClient defaultSsoOidcClient(String region) {
-        return SsoOidcClient.builder()
-                            .region(Region.of(region))
-                            .credentialsProvider(AnonymousCredentialsProvider.create())
-                            .build();
-    }
-
-    private void validateSupplierAndClient(Supplier<SsoOidcToken> tokenRetriever, SsoOidcClient ssoOidcClient) {
-        if (tokenRetriever != null && ssoOidcClient != null) {
-            throw new IllegalStateException("Cannot provide both SsoOidcClient and a tokenRetriever.");
-        }
-    }
 }

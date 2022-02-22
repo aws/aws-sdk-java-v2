@@ -17,8 +17,9 @@ package software.amazon.awssdk.auth.token;
 
 import java.time.Instant;
 import java.util.Optional;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
 
-public class TestBearerToken implements SdkToken{
+public class TestBearerToken implements SdkToken {
 
     private String token;
     private Instant expirationTime;
