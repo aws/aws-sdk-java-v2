@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
@@ -31,6 +32,7 @@ public class AwsXmlUnmarshallingContext {
     private final ExecutionAttributes executionAttributes;
     private final Boolean isResponseSuccess;
     private final XmlElement parsedErrorXml;
+    private final SdkBytes rawBytes;
 
     private AwsXmlUnmarshallingContext(Builder builder) {
         this.sdkHttpFullResponse = builder.sdkHttpFullResponse;
@@ -38,6 +40,7 @@ public class AwsXmlUnmarshallingContext {
         this.executionAttributes = builder.executionAttributes;
         this.isResponseSuccess = builder.isResponseSuccess;
         this.parsedErrorXml = builder.parsedErrorXml;
+        this.rawBytes = builder.rawBytes;
     }
 
     public static Builder builder() {
@@ -77,6 +80,13 @@ public class AwsXmlUnmarshallingContext {
      */
     public XmlElement parsedErrorXml() {
         return parsedErrorXml;
+    }
+
+    /**
+     * The raw bytes associated with the XML response
+     */
+    public SdkBytes rawBytes() {
+        return rawBytes;
     }
 
     public Builder toBuilder() {
@@ -132,8 +142,14 @@ public class AwsXmlUnmarshallingContext {
         private ExecutionAttributes executionAttributes;
         private Boolean isResponseSuccess;
         private XmlElement parsedErrorXml;
+        private SdkBytes rawBytes;
 
         private Builder() {
+        }
+
+        public Builder rawBytes(SdkBytes rawBytes) {
+            this.rawBytes = rawBytes;
+            return this;
         }
 
         public Builder sdkHttpFullResponse(SdkHttpFullResponse sdkHttpFullResponse) {

@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlDomParser;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 import software.amazon.awssdk.utils.LookaheadInputStream;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Static methods to assist with parsing the response of AWS XML requests.
@@ -69,6 +71,48 @@ public final class XmlResponseParserUtils {
                 throw e;
             }
             return XmlElement.empty();
+        }
+    }
+
+    private static SdkBytes emptyXmlBytes() {
+        return SdkBytes.fromUtf8String("<eof/>");
+    }
+
+    private static SdkBytes getResponseBytes(SdkHttpFullResponse response) {
+        try {
+            return response.content()
+                           .map(SdkBytes::fromInputStream)
+                           .orElseGet(XmlResponseParserUtils::emptyXmlBytes);
+        } catch (Exception e) {
+            return emptyXmlBytes();
+        }
+    }
+
+    public static Pair<XmlElement, SdkBytes> parseWithBytes(SdkPojo sdkPojo, SdkHttpFullResponse response) {
+        try {
+            SdkBytes sdkBytes = getResponseBytes(response);
+            Optional<AbortableInputStream> responseContent = response.content();
+
+            if (!responseContent.isPresent() ||
+                (response.isSuccessful() && !hasPayloadMembers(sdkPojo)) ||
+                getBlobTypePayloadMemberToUnmarshal(sdkPojo).isPresent()) {
+                return Pair.of(XmlElement.empty(), sdkBytes);
+            }
+
+            // Make sure there is content in the stream before passing it to the parser.
+            LookaheadInputStream content = new LookaheadInputStream(sdkBytes.asInputStream());
+            if (content.peek() == -1) {
+                return Pair.of(XmlElement.empty(), sdkBytes);
+            }
+
+            return Pair.of(XmlDomParser.parse(content), sdkBytes);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } catch (RuntimeException e) {
+            if (response.isSuccessful()) {
+                throw e;
+            }
+            return Pair.of(XmlElement.empty(), emptyXmlBytes());
         }
     }
 

@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Unmarshalls an HTTP response into either a successful response POJO, or into a (possibly modeled) exception based
@@ -113,12 +115,14 @@ public class AwsXmlPredicatedResponseHandler<OutputT> implements HttpResponseHan
 
     private AwsXmlUnmarshallingContext parseResponse(SdkHttpFullResponse httpFullResponse,
                                                      ExecutionAttributes executionAttributes) {
-        XmlElement document = XmlResponseParserUtils.parse(pojoSupplier.apply(httpFullResponse), httpFullResponse);
+        Pair<XmlElement, SdkBytes> documentAndBytes = XmlResponseParserUtils.parseWithBytes(pojoSupplier.apply(httpFullResponse),
+                                                                                            httpFullResponse);
 
         return AwsXmlUnmarshallingContext.builder()
-                                         .parsedXml(document)
+                                         .parsedXml(documentAndBytes.left())
                                          .executionAttributes(executionAttributes)
                                          .sdkHttpFullResponse(httpFullResponse)
+                                         .rawBytes(documentAndBytes.right())
                                          .build();
     }
 

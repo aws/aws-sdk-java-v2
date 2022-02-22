@@ -48,7 +48,7 @@ public final class AwsXmlErrorTransformer
     public AwsServiceException apply(AwsXmlUnmarshallingContext context) {
         return awsXmlErrorUnmarshaller.unmarshall(context.parsedRootXml(),
                                                   Optional.ofNullable(context.parsedErrorXml()),
-                                                  Optional.empty(),
+                                                  Optional.of(context.rawBytes()),
                                                   context.sdkHttpFullResponse(),
                                                   context.executionAttributes());
     }
