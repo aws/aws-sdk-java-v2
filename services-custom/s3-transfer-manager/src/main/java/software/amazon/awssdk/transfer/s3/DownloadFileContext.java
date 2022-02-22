@@ -16,6 +16,8 @@
 package software.amazon.awssdk.transfer.s3;
 
 import java.nio.file.Path;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 /**
@@ -23,6 +25,8 @@ import software.amazon.awssdk.services.s3.model.S3Object;
  *
  * @see DownloadFilter
  */
+@SdkPublicApi
+@SdkPreviewApi
 public interface DownloadFileContext {
     /**
      * @return A description of the remote S3 object
