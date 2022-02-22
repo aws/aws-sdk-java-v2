@@ -1,0 +1,36 @@
+{
+    "version": "2.17.135",
+    "date": "2022-02-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "Updated descriptions for logging configuration."
+        },
+        {
+            "type": "feature",
+            "category": "AWS App Runner",
+            "contributor": "",
+            "description": "AWS App Runner adds a Java platform (Corretto 8, Corretto 11 runtimes) and a Node.js 14 runtime."
+        },
+        {
+            "type": "feature",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Add support for filtering objects as part of S3 Transfer Manager's DownloadDirectory API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Translate",
+            "contributor": "",
+            "description": "This release enables customers to use translation settings for formality customization in their synchronous translation output."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
