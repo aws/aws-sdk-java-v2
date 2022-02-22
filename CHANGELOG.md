@@ -1,3 +1,24 @@
+# __2.17.135__ __2022-02-22__
+## __AWS App Runner__
+  - ### Features
+    - AWS App Runner adds a Java platform (Corretto 8, Corretto 11 runtimes) and a Node.js 14 runtime.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Updated descriptions for logging configuration.
+
+## __Amazon Translate__
+  - ### Features
+    - This release enables customers to use translation settings for formality customization in their synchronous translation output.
+
+## __S3 Transfer Manager__
+  - ### Features
+    - Add support for filtering objects as part of S3 Transfer Manager's DownloadDirectory API
+
 # __2.17.134__ __2022-02-21__
 ## __AWS SDK for Java v2__
   - ### Features
