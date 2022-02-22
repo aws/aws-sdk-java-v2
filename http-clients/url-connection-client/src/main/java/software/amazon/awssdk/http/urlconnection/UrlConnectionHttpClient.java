@@ -210,6 +210,11 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
          */
         private boolean expect100BugEncountered = false;
 
+        /**
+         * Result cache for {@link #responseHasNoContent()}.
+         */
+        private Boolean responseHasNoContent;
+
         private RequestCallable(HttpURLConnection connection, HttpExecuteRequest request) {
             this.connection = connection;
             this.request = request;
@@ -285,13 +290,13 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                     throw e;
                 }
 
-                expect100BugEncountered = true;
-
-                if (!failOn100Bug) {
+                if (responseHasNoContent()) {
                     return Optional.empty();
                 }
 
-                if (responseHasNoContent()) {
+                expect100BugEncountered = true;
+
+                if (!failOn100Bug) {
                     return Optional.empty();
                 }
 
@@ -319,9 +324,12 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         private boolean responseHasNoContent() {
             // We cannot account for chunked encoded responses, because we only have access to headers and response code here,
             // so we assume chunked encoded responses DO have content.
-            return responseNeverHasPayload(invokeSafely(connection::getResponseCode)) ||
-                   Objects.equals(connection.getHeaderField("Content-Length"), "0") ||
-                   Objects.equals(connection.getRequestMethod(), "HEAD");
+            if (responseHasNoContent == null) {
+                responseHasNoContent = responseNeverHasPayload(invokeSafely(connection::getResponseCode)) ||
+                                       Objects.equals(connection.getHeaderField("Content-Length"), "0") ||
+                                       Objects.equals(connection.getRequestMethod(), "HEAD");
+            }
+            return responseHasNoContent;
         }
 
         private boolean responseNeverHasPayload(int responseCode) {
