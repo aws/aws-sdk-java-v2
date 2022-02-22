@@ -17,9 +17,10 @@ package software.amazon.awssdk.core.retry.backoff;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -84,7 +85,7 @@ public class FullJitterBackoffStrategyTest {
     public TestCase testCase;
 
     @Mock
-    private Random mockRandom = mock(Random.class);
+    private Random mockRandom = mock(Random.class, withSettings().withoutAnnotations());
 
     @Before
     public void setUp() throws Exception {

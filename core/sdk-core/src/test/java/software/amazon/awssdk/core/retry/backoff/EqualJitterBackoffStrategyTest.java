@@ -19,12 +19,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 import static org.testng.Assert.assertThrows;
 
 import java.time.Duration;
 import java.util.Random;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockSettings;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
 public class EqualJitterBackoffStrategyTest {
@@ -38,7 +40,7 @@ public class EqualJitterBackoffStrategyTest {
     private static final Duration NEGATIVE_ONE_SECOND = Duration.ofSeconds(-1);
 
     @Mock
-    private Random mockRandom = mock(Random.class);
+    private Random mockRandom = mock(Random.class, withSettings().withoutAnnotations());
 
     @Test
     public void exponentialDelayOverflowWithMaxBackoffTest() {

@@ -22,6 +22,7 @@ import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
 import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -45,6 +46,7 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -132,6 +134,19 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
         assertThat(responseData).isNull();
     }
 
+    @Test
+    public void naughtyHeaderCharactersDoNotGetToServer() {
+        String naughtyHeader = "foo\r\nbar";
+        assertThatThrownBy(() -> HttpTestUtils.sendRequest(client,
+                                                           SdkHttpFullRequest.builder()
+                                                                             .uri(URI.create("https://localhost:" + server.port()))
+                                                                             .method(SdkHttpMethod.POST)
+                                                                             .appendHeader("h", naughtyHeader)
+                                                                             .build())
+                                              .join())
+            .hasCauseInstanceOf(Exception.class);
+    }
+
     private static class Server extends ChannelInitializer<Channel> {
         private static final byte[] CONTENT = "helloworld".getBytes(StandardCharsets.UTF_8);
         private ServerBootstrap bootstrap;
@@ -141,6 +156,7 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
         private SslContext sslCtx;
         private boolean return500OnFirstRequest;
         private boolean closeConnection;
+        private volatile HttpRequest lastRequestReceived;
 
         public void init() throws Exception {
             SelfSignedCertificate ssc = new SelfSignedCertificate();
@@ -178,6 +194,8 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object msg) {
                 if (msg instanceof HttpRequest) {
+                    lastRequestReceived = (HttpRequest) msg;
+
                     HttpResponseStatus status;
                     if (ctx.channel().equals(channels.get(0)) && return500OnFirstRequest) {
                         status = INTERNAL_SERVER_ERROR;

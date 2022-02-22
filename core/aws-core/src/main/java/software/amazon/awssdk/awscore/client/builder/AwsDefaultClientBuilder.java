@@ -33,6 +33,7 @@ import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
 import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.eventstream.EventStreamInitialRequestInterceptor;
 import software.amazon.awssdk.awscore.interceptor.HelpfulUnknownHostExceptionInterceptor;
+import software.amazon.awssdk.awscore.interceptor.TraceIdExecutionInterceptor;
 import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDiscovery;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeResolver;
@@ -419,7 +420,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     private List<ExecutionInterceptor> awsInterceptors() {
         return Arrays.asList(new HelpfulUnknownHostExceptionInterceptor(),
-                             new EventStreamInitialRequestInterceptor());
+                             new EventStreamInitialRequestInterceptor(),
+                             new TraceIdExecutionInterceptor());
     }
 
     @Override

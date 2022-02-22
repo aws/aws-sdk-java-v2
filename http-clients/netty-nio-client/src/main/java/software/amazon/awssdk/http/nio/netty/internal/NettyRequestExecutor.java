@@ -42,6 +42,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import io.netty.util.Attribute;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
@@ -130,8 +131,9 @@ public final class NettyRequestExecutor {
                 Channel ch = channelPromise.getNow();
                 try {
                     ch.eventLoop().submit(() -> {
-                        if (ch.attr(IN_USE).get()) {
-                            ch.pipeline().fireExceptionCaught(new FutureCancelledException(executionId, t));
+                        Attribute<Long> executionIdKey = ch.attr(EXECUTION_ID_KEY);
+                        if (ch.attr(IN_USE) != null && ch.attr(IN_USE).get() && executionIdKey != null) {
+                            ch.pipeline().fireExceptionCaught(new FutureCancelledException(this.executionId, t));
                         } else {
                             ch.close().addListener(closeFuture -> context.channelPool().release(ch));
                         }

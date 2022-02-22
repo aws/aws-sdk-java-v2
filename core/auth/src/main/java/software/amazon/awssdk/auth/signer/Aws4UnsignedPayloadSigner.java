@@ -20,6 +20,7 @@ import static software.amazon.awssdk.auth.signer.internal.SignerConstant.X_AMZ_C
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.internal.BaseAws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
@@ -34,6 +35,8 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  */
 @SdkPublicApi
 public final class Aws4UnsignedPayloadSigner extends BaseAws4Signer {
+
+    public static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
 
     private Aws4UnsignedPayloadSigner() {
     }
@@ -55,11 +58,12 @@ public final class Aws4UnsignedPayloadSigner extends BaseAws4Signer {
     }
 
     @Override
-    protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest, Aws4SignerParams signerParams) {
+    protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest, Aws4SignerParams signerParams,
+                                          SdkChecksum contentFlexibleChecksum) {
         if ("https".equals(mutableRequest.protocol())) {
-            return "UNSIGNED-PAYLOAD";
+            return UNSIGNED_PAYLOAD;
         }
-        return super.calculateContentHash(mutableRequest, signerParams);
+        return super.calculateContentHash(mutableRequest, signerParams, contentFlexibleChecksum);
     }
 
     private SdkHttpFullRequest addContentSha256Header(SdkHttpFullRequest request) {

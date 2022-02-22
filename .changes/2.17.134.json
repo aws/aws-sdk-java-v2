@@ -1,0 +1,36 @@
+{
+    "version": "2.17.134",
+    "date": "2022-02-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "DynamoDB ExecuteStatement API now supports Limit as a request parameter to specify the maximum number of items to evaluate. If specified, the service will process up to the Limit and the results will include a LastEvaluatedKey value to continue the read in a subsequent operation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Support adding http checksum for requests and validation of http checksum for responses based on HttpChecksum traits defined in the model."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "This release introduces apis CreateIntegrationWorkflow, DeleteWorkflow, ListWorkflows, GetWorkflow and GetWorkflowSteps. These apis are used to manage and view integration workflows."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "This release adds support to enable faster launching for Windows AMIs created by EC2 Image Builder."
+        }
+    ]
+}

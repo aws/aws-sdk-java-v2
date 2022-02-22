@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.17.131-SNAPSHOT</version>
+    <version>2.17.136-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -81,7 +81,7 @@
         <module>test/stability-tests</module>
         <module>test/sdk-native-image-test</module>
         <module>test/s3-benchmarks</module>
-        <module>test/auth-sts-testing</module>
+        <module>test/auth-tests</module>
         <module>test/region-testing</module>
     </modules>
     <scm>
@@ -89,7 +89,7 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.17.130</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.17.135</awsjavasdk.previous.version>
         <jackson.version>2.13.1</jackson.version>
         <jackson.databind.version>2.13.1</jackson.databind.version>
         <jacksonjr.version>2.13.1</jacksonjr.version>
@@ -106,7 +106,7 @@
         <unitils.version>3.4.6</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spotbugs.version>4.1.4</spotbugs.version>
+        <spotbugs.version>4.2.3</spotbugs.version>
         <netty-reactive-streams-http.version>2.0.5</netty-reactive-streams-http.version>
         <javapoet.verion>1.13.0</javapoet.verion>
         <org.eclipse.jdt.version>3.10.0</org.eclipse.jdt.version>
@@ -120,8 +120,7 @@
         <junit5.version>5.8.1</junit5.version>
         <junit4.version>4.13.2</junit4.version> <!-- Used to resolve conflicts in transitive dependencies -->
         <hamcrest.version>1.3</hamcrest.version>
-        <mockito.version>1.10.19</mockito.version>
-        <mockito2.version>2.28.2</mockito2.version>
+        <mockito.version>4.3.1</mockito.version>
         <assertj.version>3.20.2</assertj.version>
         <guava.version>29.0-jre</guava.version>
         <jimfs.version>1.1</jimfs.version>
@@ -143,12 +142,12 @@
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <checkstyle.version>8.42</checkstyle.version>
-        <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
         <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
-        <japicmp-maven-plugin.version>0.14.4</japicmp-maven-plugin.version>
+        <japicmp-maven-plugin.version>0.15.6</japicmp-maven-plugin.version>
 
         <!-- These properties are used by Step functions for its dependencies -->
         <json-path.version>2.4.0</json-path.version>
@@ -178,6 +177,15 @@
 
     <build>
         <finalName>aws-sdk-java-${project.artifactId}-${awsjavasdk.version}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>codegen-resources/**</exclude>
+                </excludes>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -565,6 +573,11 @@
                         <breakBuildOnSourceIncompatibleModifications>true</breakBuildOnSourceIncompatibleModifications>
                         <overrideCompatibilityChangeParameters>
                             <overrideCompatibilityChangeParameter>
+                                <compatibilityChange>METHOD_ABSTRACT_ADDED_IN_IMPLEMENTED_INTERFACE</compatibilityChange>
+                                <binaryCompatible>true</binaryCompatible>
+                                <sourceCompatible>true</sourceCompatible>
+                            </overrideCompatibilityChangeParameter>
+                            <overrideCompatibilityChangeParameter>
                                 <compatibilityChange>METHOD_NEW_DEFAULT</compatibilityChange>
                                 <binaryCompatible>true</binaryCompatible>
                                 <sourceCompatible>true</sourceCompatible>
@@ -645,6 +658,17 @@
             </activation>
             <properties>
                 <additionalparam>-Xdoclint:none</additionalparam>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>jdk-13-plus</id>
+            <activation>
+                <jdk>[13,)</jdk>
+            </activation>
+            <properties>
+                <!-- Blockhound doesn't support Java 13+ without flags: https://github.com/reactor/BlockHound/issues/33 -->
+                <argLine>-XX:+AllowRedefinitionToAddDeleteMethods</argLine>
             </properties>
         </profile>
 

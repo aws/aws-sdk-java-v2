@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3control;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -78,8 +78,8 @@ public class EndpointOverrideEndpointResolutionTest {
                                .build();
         mockHttpClient.stubNextResponse(response);
 
-        Mockito.when(mockSigner.sign(any(), any())).thenAnswer(r -> r.getArgumentAt(0, SdkHttpFullRequest.class));
-        Mockito.when(mockSigner.presign(any(), any())).thenAnswer(r -> r.getArgumentAt(0, SdkHttpFullRequest.class)
+        Mockito.when(mockSigner.sign(any(), any())).thenAnswer(r -> r.getArgument(0, SdkHttpFullRequest.class));
+        Mockito.when(mockSigner.presign(any(), any())).thenAnswer(r -> r.getArgument(0, SdkHttpFullRequest.class)
                                                                         .copy(h -> h.putRawQueryParameter("X-Amz-SignedHeaders", "host")));
     }
 

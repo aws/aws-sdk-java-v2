@@ -31,7 +31,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -84,7 +84,7 @@ public class WaitersUserAgentTest {
         assertThatThrownBy(() -> waiter.waitUntilTableExists(DescribeTableRequest.builder().tableName("table").build())).isNotNull();
 
         ArgumentCaptor<Context.BeforeTransmission> context = ArgumentCaptor.forClass(Context.BeforeTransmission.class);
-        Mockito.verify(interceptor).beforeTransmission(context.capture(), Matchers.any());
+        Mockito.verify(interceptor).beforeTransmission(context.capture(), ArgumentMatchers.any());
 
         assertTrue(context.getValue().httpRequest().headers().get("User-Agent").toString().contains("waiter"));
     }
@@ -95,7 +95,7 @@ public class WaitersUserAgentTest {
         CompletableFuture<WaiterResponse<DescribeTableResponse>> responseFuture = waiter.waitUntilTableExists(DescribeTableRequest.builder().tableName("table").build());
 
         ArgumentCaptor<Context.BeforeTransmission> context = ArgumentCaptor.forClass(Context.BeforeTransmission.class);
-        Mockito.verify(interceptor).beforeTransmission(context.capture(), Matchers.any());
+        Mockito.verify(interceptor).beforeTransmission(context.capture(), ArgumentMatchers.any());
 
         assertTrue(context.getValue().httpRequest().headers().get("User-Agent").toString().contains("waiter"));
 

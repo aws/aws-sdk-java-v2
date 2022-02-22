@@ -16,14 +16,14 @@
 package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
@@ -31,7 +31,7 @@ import java.util.stream.IntStream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Subscriber;
 
 import utils.FakePublisher;
@@ -50,7 +50,7 @@ public class EnvelopeWrappedSdkPublisherTest {
         EnvelopeWrappedSdkPublisher<String> contentWrappingPublisher =
             EnvelopeWrappedSdkPublisher.of(fakePublisher, null, null, CONCAT_STRINGS);
 
-        verifyZeroInteractions(mockSubscriber);
+        verifyNoMoreInteractions(mockSubscriber);
 
         contentWrappingPublisher.subscribe(mockSubscriber);
         verify(mockSubscriber, never()).onNext(anyString());
@@ -68,7 +68,7 @@ public class EnvelopeWrappedSdkPublisherTest {
         EnvelopeWrappedSdkPublisher<String> contentWrappingPublisher =
             EnvelopeWrappedSdkPublisher.of(fakePublisher, null, null, CONCAT_STRINGS);
 
-        verifyZeroInteractions(mockSubscriber);
+        verifyNoMoreInteractions(mockSubscriber);
 
         contentWrappingPublisher.subscribe(mockSubscriber);
         verify(mockSubscriber, never()).onNext(anyString());
@@ -91,7 +91,7 @@ public class EnvelopeWrappedSdkPublisherTest {
         EnvelopeWrappedSdkPublisher<String> contentWrappingPublisher =
             EnvelopeWrappedSdkPublisher.of(fakePublisher, null, null, CONCAT_STRINGS);
 
-        verifyZeroInteractions(mockSubscriber);
+        verifyNoMoreInteractions(mockSubscriber);
 
         contentWrappingPublisher.subscribe(mockSubscriber);
         verify(mockSubscriber, never()).onNext(anyString());
@@ -119,7 +119,7 @@ public class EnvelopeWrappedSdkPublisherTest {
         EnvelopeWrappedSdkPublisher<String> contentWrappingPublisher =
             EnvelopeWrappedSdkPublisher.of(fakePublisher, "test-prefix:", null, CONCAT_STRINGS);
 
-        verifyZeroInteractions(mockSubscriber);
+        verifyNoMoreInteractions(mockSubscriber);
 
         contentWrappingPublisher.subscribe(mockSubscriber);
         verify(mockSubscriber, never()).onNext(anyString());
@@ -138,7 +138,7 @@ public class EnvelopeWrappedSdkPublisherTest {
         EnvelopeWrappedSdkPublisher<String> contentWrappingPublisher =
             EnvelopeWrappedSdkPublisher.of(fakePublisher, "test-prefix:", null, CONCAT_STRINGS);
 
-        verifyZeroInteractions(mockSubscriber);
+        verifyNoMoreInteractions(mockSubscriber);
 
         contentWrappingPublisher.subscribe(mockSubscriber);
         verify(mockSubscriber, never()).onNext(anyString());
@@ -161,7 +161,7 @@ public class EnvelopeWrappedSdkPublisherTest {
         EnvelopeWrappedSdkPublisher<String> contentWrappingPublisher =
             EnvelopeWrappedSdkPublisher.of(fakePublisher, "test-prefix:", null, CONCAT_STRINGS);
 
-        verifyZeroInteractions(mockSubscriber);
+        verifyNoMoreInteractions(mockSubscriber);
 
         contentWrappingPublisher.subscribe(mockSubscriber);
         verify(mockSubscriber, never()).onNext(anyString());
@@ -189,7 +189,7 @@ public class EnvelopeWrappedSdkPublisherTest {
         EnvelopeWrappedSdkPublisher<String> contentWrappingPublisher =
             EnvelopeWrappedSdkPublisher.of(fakePublisher, null, ":test-suffix", CONCAT_STRINGS);
 
-        verifyZeroInteractions(mockSubscriber);
+        verifyNoMoreInteractions(mockSubscriber);
 
         contentWrappingPublisher.subscribe(mockSubscriber);
         verify(mockSubscriber, never()).onNext(anyString());
@@ -207,7 +207,7 @@ public class EnvelopeWrappedSdkPublisherTest {
         EnvelopeWrappedSdkPublisher<String> contentWrappingPublisher =
             EnvelopeWrappedSdkPublisher.of(fakePublisher, null, ":test-suffix", CONCAT_STRINGS);
 
-        verifyZeroInteractions(mockSubscriber);
+        verifyNoMoreInteractions(mockSubscriber);
 
         contentWrappingPublisher.subscribe(mockSubscriber);
         verify(mockSubscriber, never()).onNext(anyString());
@@ -231,7 +231,7 @@ public class EnvelopeWrappedSdkPublisherTest {
         EnvelopeWrappedSdkPublisher<String> contentWrappingPublisher =
             EnvelopeWrappedSdkPublisher.of(fakePublisher, null, ":test-suffix", CONCAT_STRINGS);
 
-        verifyZeroInteractions(mockSubscriber);
+        verifyNoMoreInteractions(mockSubscriber);
 
         contentWrappingPublisher.subscribe(mockSubscriber);
         verify(mockSubscriber, never()).onNext(anyString());
@@ -260,7 +260,7 @@ public class EnvelopeWrappedSdkPublisherTest {
         EnvelopeWrappedSdkPublisher<String> contentWrappingPublisher =
             EnvelopeWrappedSdkPublisher.of(fakePublisher, "test-prefix:", ":test-suffix", CONCAT_STRINGS);
 
-        verifyZeroInteractions(mockSubscriber);
+        verifyNoMoreInteractions(mockSubscriber);
 
         contentWrappingPublisher.subscribe(mockSubscriber);
         verify(mockSubscriber, never()).onNext(anyString());
@@ -278,7 +278,7 @@ public class EnvelopeWrappedSdkPublisherTest {
         EnvelopeWrappedSdkPublisher<String> contentWrappingPublisher =
             EnvelopeWrappedSdkPublisher.of(fakePublisher, "test-prefix:", ":test-suffix", CONCAT_STRINGS);
 
-        verifyZeroInteractions(mockSubscriber);
+        verifyNoMoreInteractions(mockSubscriber);
 
         contentWrappingPublisher.subscribe(mockSubscriber);
         verify(mockSubscriber, never()).onNext(anyString());
@@ -302,7 +302,7 @@ public class EnvelopeWrappedSdkPublisherTest {
         EnvelopeWrappedSdkPublisher<String> contentWrappingPublisher =
             EnvelopeWrappedSdkPublisher.of(fakePublisher, "test-prefix:", ":test-suffix", CONCAT_STRINGS);
 
-        verifyZeroInteractions(mockSubscriber);
+        verifyNoMoreInteractions(mockSubscriber);
 
         contentWrappingPublisher.subscribe(mockSubscriber);
         verify(mockSubscriber, never()).onNext(anyString());
@@ -331,7 +331,7 @@ public class EnvelopeWrappedSdkPublisherTest {
         EnvelopeWrappedSdkPublisher<String> contentWrappingPublisher =
             EnvelopeWrappedSdkPublisher.of(fakePublisher, "test-prefix:", ":test-suffix", CONCAT_STRINGS);
 
-        verifyZeroInteractions(mockSubscriber);
+        verifyNoMoreInteractions(mockSubscriber);
 
         contentWrappingPublisher.subscribe(mockSubscriber);
         verify(mockSubscriber, never()).onNext(anyString());

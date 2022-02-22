@@ -117,7 +117,7 @@ public class ReflectionMethodInvoker<T, R> {
         try {
             targetMethod = clazz.getMethod(methodName, parameterTypes);
             return targetMethod;
-        } catch (NullPointerException e) {
+        } catch (RuntimeException e) {
             throw new RuntimeException(createInvocationErrorMessage(), e);
         }
     }

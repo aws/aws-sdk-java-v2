@@ -16,7 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,6 +27,7 @@ import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -81,18 +82,9 @@ public class DownloadDirectoryHelperTest {
     void downloadDirectory_allDownloadsSucceed_failedDownloadsShouldBeEmpty() throws Exception {
         stubSuccessfulListObjects(listObjectsHelper, "key1", "key2");
 
-        GetObjectResponse getObjectResponse = GetObjectResponse.builder().eTag("1234").build();
-        CompletedFileDownload completedFileDownload = CompletedFileDownload.builder().response(getObjectResponse).build();
-        CompletableFuture<CompletedFileDownload> successfulFuture = new CompletableFuture<>();
+        FileDownload fileDownload = newSuccessfulDownload();
 
-        FileDownload fileDownload = newDownload(successfulFuture);
-        successfulFuture.complete(completedFileDownload);
-
-        GetObjectResponse getObjectResponse2 = GetObjectResponse.builder().eTag("5678").build();
-        CompletedFileDownload completedFileDownload2 = CompletedFileDownload.builder().response(getObjectResponse2).build();
-        CompletableFuture<CompletedFileDownload> successfulFuture2 = new CompletableFuture<>();
-        FileDownload fileDownload2 = newDownload(successfulFuture2);
-        successfulFuture2.complete(completedFileDownload2);
+        FileDownload fileDownload2 = newSuccessfulDownload();
 
         when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
 
@@ -118,16 +110,10 @@ public class DownloadDirectoryHelperTest {
     void downloadDirectory_partialSuccess_shouldProvideFailedDownload() throws Exception {
         stubSuccessfulListObjects(listObjectsHelper, "key1", "key2");
 
-        GetObjectResponse getObjectResponse = GetObjectResponse.builder().eTag("1234").build();
-        CompletedFileDownload completedFileDownload = CompletedFileDownload.builder().response(getObjectResponse).build();
-        CompletableFuture<CompletedFileDownload> successfulFuture = new CompletableFuture<>();
-        FileDownload fileDownload = newDownload(successfulFuture);
-        successfulFuture.complete(completedFileDownload);
+        FileDownload fileDownload = newSuccessfulDownload();
 
         SdkClientException exception = SdkClientException.create("failed");
-        CompletableFuture<CompletedFileDownload> failedFuture = new CompletableFuture<>();
-        FileDownload fileDownload2 = newDownload(failedFuture);
-        failedFuture.completeExceptionally(exception);
+        FileDownload fileDownload2 = newFailedDownload(exception);
 
         when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
 
@@ -141,6 +127,49 @@ public class DownloadDirectoryHelperTest {
 
         assertThat(completedDirectoryDownload.failedTransfers()).hasSize(1)
                                                                 .element(0).satisfies(failedFileDownload -> assertThat(failedFileDownload.exception()).isEqualTo(exception));
+    }
+
+    @Test
+    void downloadDirectory_withFilter_shouldHonorFilter() throws Exception {
+        stubSuccessfulListObjects(listObjectsHelper, "key1", "key2");
+
+        FileDownload fileDownload = newSuccessfulDownload();
+
+        FileDownload fileDownload2 = newSuccessfulDownload();
+
+        when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
+
+        DirectoryDownload DownloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destinationDirectory(directory)
+                                                                              .bucket("bucket")
+                                                                              .filter(ctx -> "key2".equals(ctx.source().key()))
+                                                                              .build());
+
+        CompletedDirectoryDownload completedDirectoryDownload = DownloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+
+        ArgumentCaptor<DownloadFileRequest> argumentCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
+        verify(singleDownloadFunction, times(1)).apply(argumentCaptor.capture());
+
+        assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
+        assertThat(argumentCaptor.getAllValues()).element(0).satisfies(d -> assertThat(d.getObjectRequest().key()).isEqualTo(
+            "key2"));
+    }
+
+    private FileDownload newSuccessfulDownload() {
+        GetObjectResponse getObjectResponse = GetObjectResponse.builder().eTag(UUID.randomUUID().toString()).build();
+        CompletedFileDownload completedFileDownload = CompletedFileDownload.builder().response(getObjectResponse).build();
+        CompletableFuture<CompletedFileDownload> successfulFuture = new CompletableFuture<>();
+        FileDownload fileDownload = newDownload(successfulFuture);
+        successfulFuture.complete(completedFileDownload);
+        return fileDownload;
+    }
+
+    private FileDownload newFailedDownload(SdkClientException exception) {
+        CompletableFuture<CompletedFileDownload> failedFuture = new CompletableFuture<>();
+        FileDownload fileDownload2 = newDownload(failedFuture);
+        failedFuture.completeExceptionally(exception);
+        return fileDownload2;
     }
 
     private FileDownload newDownload(CompletableFuture<CompletedFileDownload> future) {

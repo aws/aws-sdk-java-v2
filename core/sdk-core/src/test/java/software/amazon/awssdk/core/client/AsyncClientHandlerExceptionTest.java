@@ -16,8 +16,8 @@
 package software.amazon.awssdk.core.client;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -100,7 +100,7 @@ public class AsyncClientHandlerExceptionTest {
                 .thenReturn(VoidSdkResponse.builder().build());
 
         when(asyncHttpClient.execute(any(AsyncExecuteRequest.class))).thenAnswer((Answer<CompletableFuture<Void>>) invocationOnMock -> {
-            SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class).responseHandler();
+            SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgument(0, AsyncExecuteRequest.class).responseHandler();
             handler.onHeaders(SdkHttpFullResponse.builder()
                     .statusCode(200)
                     .build());

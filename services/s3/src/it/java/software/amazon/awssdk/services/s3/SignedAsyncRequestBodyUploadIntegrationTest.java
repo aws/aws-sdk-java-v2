@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -66,9 +66,9 @@ public class SignedAsyncRequestBodyUploadIntegrationTest extends S3IntegrationTe
 
         when(mockSigner.sign(any(SdkHttpFullRequest.class), any(AsyncRequestBody.class), any(ExecutionAttributes.class)))
                 .thenAnswer(i -> {
-                    SdkHttpFullRequest request = i.getArgumentAt(0, SdkHttpFullRequest.class);
-                    AsyncRequestBody body = i.getArgumentAt(1, AsyncRequestBody.class);
-                    ExecutionAttributes executionAttributes = i.getArgumentAt(2, ExecutionAttributes.class);
+                    SdkHttpFullRequest request = i.getArgument(0, SdkHttpFullRequest.class);
+                    AsyncRequestBody body = i.getArgument(1, AsyncRequestBody.class);
+                    ExecutionAttributes executionAttributes = i.getArgument(2, ExecutionAttributes.class);
                     return realSigner.sign(request, body, executionAttributes);
                 });
 

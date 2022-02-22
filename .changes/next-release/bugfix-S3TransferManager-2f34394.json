@@ -1,6 +1,0 @@
-{
-    "category": "S3 Transfer Manager", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "A couple of minor refactoring on the S3TransferManager. 1. `CompletedDirectoryUpload#failedTransfers` now returns `List<FailedFileUpload>` instead of `Collection<FailedFileUpload>`. 2. `UploadDirectoryOverrideConfiguration#uploadFileRequestTransformer` now returns `Consumer<UploadFileRequest.Builder>` instead of `Optional<Consumer<UploadFileRequest.Builder>>` it will be no-op if no uploadFileRequestTransformer is provided"
-}
