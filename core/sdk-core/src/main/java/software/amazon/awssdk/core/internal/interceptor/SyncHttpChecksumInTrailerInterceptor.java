@@ -58,14 +58,7 @@ public final class SyncHttpChecksumInTrailerInterceptor implements ExecutionInte
         ChecksumSpecs checksumSpecs =
             HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).orElse(null);
 
-        if (checksumSpecs == null
-            || ! context.requestBody().isPresent()
-            || !HttpChecksumUtils
-            .isTrailerBasedChecksumForClientType(
-                executionAttributes, context.httpRequest(),
-                ClientType.SYNC, checksumSpecs,
-                context.requestBody().isPresent(),
-                context.requestBody().map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false))) {
+        if (!shouldAddTrailerBasedChecksumInRequest(context, executionAttributes, checksumSpecs)) {
             return context.requestBody();
         }
 
@@ -85,19 +78,26 @@ public final class SyncHttpChecksumInTrailerInterceptor implements ExecutionInte
                 requestBody.contentType()));
     }
 
+    private static boolean shouldAddTrailerBasedChecksumInRequest(Context.ModifyHttpRequest context,
+                                                                  ExecutionAttributes executionAttributes,
+                                                                  ChecksumSpecs checksumSpecs) {
+        return checksumSpecs != null
+               && context.requestBody().isPresent()
+               && HttpChecksumUtils.isTrailerBasedChecksumForClientType(
+                   executionAttributes,
+                   context.httpRequest(),
+                   ClientType.SYNC, checksumSpecs,
+                   context.requestBody().isPresent(),
+                   context.requestBody().map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false));
+    }
+
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
 
         ChecksumSpecs checksumSpecs =
             HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).orElse(null);
-        if (checksumSpecs == null ||
-            !HttpChecksumUtils
-                .isTrailerBasedChecksumForClientType(
-                    executionAttributes,
-                    context.httpRequest(),
-                    ClientType.SYNC, checksumSpecs,
-                    context.requestBody().isPresent(),
-                    context.requestBody().map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false))) {
+
+        if (!shouldAddTrailerBasedChecksumInRequest(context, executionAttributes, checksumSpecs)) {
             return context.httpRequest();
         }
 
