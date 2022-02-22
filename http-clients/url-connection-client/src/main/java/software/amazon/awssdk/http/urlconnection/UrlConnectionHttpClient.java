@@ -23,6 +23,8 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.security.KeyManagementException;
@@ -31,6 +33,9 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -42,6 +47,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -195,9 +201,14 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     }
 
     private static class RequestCallable implements ExecutableHttpRequest {
-
         private final HttpURLConnection connection;
         private final HttpExecuteRequest request;
+
+        /**
+         * Whether we encountered the 'bug' in the way the HttpURLConnection handles 'Expect: 100-continue' cases. See
+         * {@link #getAndHandle100Bug} for more information.
+         */
+        private boolean expect100BugEncountered = false;
 
         private RequestCallable(HttpURLConnection connection, HttpExecuteRequest request) {
             this.connection = connection;
@@ -208,14 +219,19 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         public HttpExecuteResponse call() throws IOException {
             connection.connect();
 
-            request.contentStreamProvider().ifPresent(provider ->
-                    invokeSafely(() -> IoUtils.copy(provider.newStream(), connection.getOutputStream())));
+            Optional<ContentStreamProvider> requestContent = request.contentStreamProvider();
+
+            if (requestContent.isPresent()) {
+                Optional<OutputStream> outputStream = tryGetOutputStream();
+                if (outputStream.isPresent()) {
+                    IoUtils.copy(requestContent.get().newStream(), outputStream.get());
+                }
+            }
 
             int responseCode = getResponseCodeSafely(connection);
             boolean isErrorResponse = HttpStatusFamily.of(responseCode).isOneOf(CLIENT_ERROR, SERVER_ERROR);
-            InputStream content = !isErrorResponse ? connection.getInputStream() : connection.getErrorStream();
-            AbortableInputStream responseBody = content != null ?
-                                                AbortableInputStream.create(content) : null;
+            Optional<InputStream> responseContent = isErrorResponse ? tryGetErrorStream() : tryGetInputStream();
+            AbortableInputStream responseBody = responseContent.map(AbortableInputStream::create).orElse(null);
 
             return HttpExecuteResponse.builder()
                                       .response(SdkHttpResponse.builder()
@@ -226,6 +242,90 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                                                            .build())
                                       .responseBody(responseBody)
                                       .build();
+        }
+
+        private Optional<OutputStream> tryGetOutputStream() {
+            return getAndHandle100Bug(() -> invokeSafely(connection::getOutputStream), false);
+        }
+
+        private Optional<InputStream> tryGetInputStream() {
+            return getAndHandle100Bug(() -> invokeSafely(connection::getInputStream), true);
+        }
+
+        private Optional<InputStream> tryGetErrorStream() {
+            InputStream result = invokeSafely(connection::getErrorStream);
+            if (result == null && expect100BugEncountered) {
+                log.debug(() -> "The response payload has been dropped because of a limitation of the JDK's URL Connection "
+                                + "HTTP client, resulting in a less descriptive SDK exception error message. Using "
+                                + "the Apache HTTP client removes this limitation.");
+            }
+            return Optional.ofNullable(result);
+        }
+
+        /**
+         * This handles a bug in {@link HttpURLConnection#getOutputStream()} and {@link HttpURLConnection#getInputStream()}
+         * where these methods will throw a ProtocolException if we sent an "Expect: 100-continue" header, and the
+         * service responds with something other than a 100.
+         *
+         * HttpUrlConnection still gives us access to the response code and headers when this bug is encountered, so our
+         * handling of the bug is:
+         * <ol>
+         *     <li>If the service returned a response status or content length that indicates there was no response payload,
+         *     we ignore that we couldn't read the response payload, and just return the response with what we have.</li>
+         *     <li>If the service returned a payload and we can't read it because of the bug, we throw an exception for
+         *     non-failure cases (2xx, 3xx) or log and return the response without the payload for failure cases (4xx or 5xx)
+         *     .</li>
+         * </ol>
+         */
+        private <T> Optional<T> getAndHandle100Bug(Supplier<T> supplier, boolean failOn100Bug) {
+            try {
+                return Optional.ofNullable(supplier.get());
+            } catch (RuntimeException e) {
+                if (!exceptionCausedBy100HandlingBug(e)) {
+                    throw e;
+                }
+
+                expect100BugEncountered = true;
+
+                if (!failOn100Bug) {
+                    return Optional.empty();
+                }
+
+                if (responseHasNoContent()) {
+                    return Optional.empty();
+                }
+
+                int responseCode = invokeSafely(connection::getResponseCode);
+                String message = "Unable to read response payload, because service returned response code "
+                                 + responseCode + " to an Expect: 100-continue request. Using another HTTP client "
+                                 + "implementation (e.g. Apache) removes this limitation.";
+                throw new UncheckedIOException(new IOException(message, e));
+            }
+        }
+
+        private boolean exceptionCausedBy100HandlingBug(RuntimeException e) {
+            return requestWasExpect100Continue() &&
+                   e.getMessage() != null &&
+                   e.getMessage().startsWith("java.net.ProtocolException: Server rejected operation");
+        }
+
+        private Boolean requestWasExpect100Continue() {
+            return request.httpRequest()
+                          .firstMatchingHeader("Expect")
+                          .map(expect -> expect.equalsIgnoreCase("100-continue"))
+                          .orElse(false);
+        }
+
+        private boolean responseHasNoContent() {
+            // We cannot account for chunked encoded responses, because we only have access to headers and response code here,
+            // so we assume chunked encoded responses DO have content.
+            return responseNeverHasPayload(invokeSafely(connection::getResponseCode)) ||
+                   Objects.equals(connection.getHeaderField("Content-Length"), "0") ||
+                   Objects.equals(connection.getRequestMethod(), "HEAD");
+        }
+
+        private boolean responseNeverHasPayload(int responseCode) {
+            return responseCode == 204 || responseCode == 304 || (responseCode >= 100 && responseCode < 200);
         }
 
         /**
