@@ -187,6 +187,45 @@
       },
       "output":{"shape":"StructureWithStreamingMember"}
     },
+    "PutOperationWithChecksum":{
+      "name":"PutOperationWithChecksum",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ChecksumStructureWithStreaming"},
+      "output":{"shape":"ChecksumStructure"},
+      "httpChecksum" : {
+        "requestChecksumRequired": true,
+        "requestAlgorithmMember": "ChecksumAlgorithm"
+      }
+    },
+    "GetOperationWithChecksum":{
+      "name":"GetOperationWithChecksum",
+      "http":{
+        "method":"GET",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ChecksumStructure"},
+      "output":{"shape":"ChecksumStructureWithStreaming"},
+      "httpChecksum" : {
+        "requestValidationModeMember": "ChecksumMode",
+        "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
+      }
+    },
+    "OperationWithChecksumNonStreaming":{
+      "name":"OperationWithChecksumNonStreaming",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ChecksumStructure"},
+      "output":{"shape":"ChecksumStructure"},
+      "httpChecksum" : {
+        "requestChecksumRequired": true,
+        "requestAlgorithmMember": "ChecksumAlgorithm"
+      }
+    },
     "EventStreamOperation": {
       "name": "EventStreamOperation",
       "http": {
@@ -686,6 +725,57 @@
         }
       },
       "event": true
+    },
+    "ChecksumAlgorithm":{
+      "type":"string",
+      "enum":[
+        "CRC32",
+        "CRC32C",
+        "SHA1",
+        "SHA256"
+      ]
+    },
+    "ChecksumMode":{
+      "type":"string",
+      "enum":["ENABLED"]
+    },
+    "ChecksumStructureWithStreaming":{
+      "type":"structure",
+      "members":{
+        "Body":{
+          "shape":"Body",
+          "documentation":"<p>Object data.</p>",
+          "streaming":true
+        },
+        "ChecksumMode":{
+          "shape":"ChecksumMode",
+          "location":"header",
+          "locationName":"x-amz-checksum-mode"
+        },
+        "ChecksumAlgorithm":{
+          "shape":"ChecksumAlgorithm",
+          "location":"header",
+          "locationName":"x-amz-checksum-algorithm"
+        }
+      },
+      "payload":"Body"
+    },
+    "Body":{"type":"blob"},
+    "ChecksumStructure":{
+      "type":"structure",
+      "members":{
+        "stringMember":{"shape":"String"},
+        "ChecksumMode":{
+          "shape":"ChecksumMode",
+          "location":"header",
+          "locationName":"x-amz-checksum-mode"
+        },
+        "ChecksumAlgorithm":{
+          "shape":"ChecksumAlgorithm",
+          "location":"header",
+          "locationName":"x-amz-checksum-algorithm"
+        }
+      }
     }
   }
 }

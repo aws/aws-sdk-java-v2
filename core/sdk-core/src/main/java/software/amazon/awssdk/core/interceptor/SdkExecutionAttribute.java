@@ -19,6 +19,9 @@ import java.net.URI;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ServiceConfiguration;
+import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.checksums.ChecksumSpecs;
+import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -76,6 +79,26 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<ProfileFile> PROFILE_FILE = new ExecutionAttribute<>("ProfileFile");
 
     public static final ExecutionAttribute<String> PROFILE_NAME = new ExecutionAttribute<>("ProfileName");
+
+    /**
+     * The checksum algorithm is resolved based on the Request member.
+     * The RESOLVED_CHECKSUM_SPECS holds the final checksum which will be used for checksum computation.
+     */
+    public static final ExecutionAttribute<ChecksumSpecs> RESOLVED_CHECKSUM_SPECS =
+        new ExecutionAttribute<>("ResolvedChecksumSpecs");
+
+    /**
+     * The Algorithm used for checksum validation of a response.
+     */
+    public static final ExecutionAttribute<Algorithm> HTTP_CHECKSUM_VALIDATION_ALGORITHM = new ExecutionAttribute<>(
+        "HttpChecksumValidationAlgorithm");
+
+    /**
+     * Provides the status of {@link ChecksumValidation} performed on the  response.
+     */
+    public static final ExecutionAttribute<ChecksumValidation> HTTP_RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
+        "HttpResponseChecksumValidation");
+
 
     protected SdkExecutionAttribute() {
     }

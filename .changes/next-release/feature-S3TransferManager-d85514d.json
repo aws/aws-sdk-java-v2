@@ -1,0 +1,6 @@
+{
+    "category": "S3 Transfer Manager", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Add support for filtering objects as part of S3 Transfer Manager's DownloadDirectory API"
+}

@@ -33,6 +33,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.io.SdkDigestInputStream;
 import software.amazon.awssdk.core.signer.Signer;
@@ -164,12 +165,12 @@ public abstract class AbstractAwsSigner implements Signer {
         return AbstractAwsSigner.doHash(text);
     }
 
-    byte[] hash(InputStream input) throws SdkClientException {
+    byte[] hash(InputStream input, SdkChecksum sdkChecksum) throws SdkClientException {
         try {
             MessageDigest md = getMessageDigestInstance();
             @SuppressWarnings("resource")
             DigestInputStream digestInputStream = new SdkDigestInputStream(
-                    input, md);
+                    input, md, sdkChecksum);
             byte[] buffer = new byte[1024];
             while (digestInputStream.read(buffer) > -1) {
                 ;
@@ -187,13 +188,17 @@ public abstract class AbstractAwsSigner implements Signer {
      * Hashes the binary data using the SHA-256 algorithm.
      *
      * @param data The binary data to hash.
+     * @param sdkChecksum Checksum Instance which gets updated as data is read while hashing.
      * @return The hashed bytes from the specified data.
      * @throws SdkClientException If the hash cannot be computed.
      */
-    byte[] hash(byte[] data) throws SdkClientException {
+    byte[] hash(byte[] data, SdkChecksum sdkChecksum) throws SdkClientException {
         try {
             MessageDigest md = getMessageDigestInstance();
             md.update(data);
+            if (sdkChecksum != null) {
+                sdkChecksum.update(data);
+            }
             return md.digest();
         } catch (Exception e) {
             throw SdkClientException.builder()
@@ -201,6 +206,17 @@ public abstract class AbstractAwsSigner implements Signer {
                                     .cause(e)
                                     .build();
         }
+    }
+
+    /**
+     * Hashes the binary data using the SHA-256 algorithm.
+     *
+     * @param data The binary data to hash.
+     * @return The hashed bytes from the specified data.
+     * @throws SdkClientException If the hash cannot be computed.
+     */
+    byte[] hash(byte[] data) throws SdkClientException {
+        return hash(data, null);
     }
 
     /**

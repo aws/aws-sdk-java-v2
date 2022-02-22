@@ -27,11 +27,15 @@ import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsS3V4ChunkS
 import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.AwsS3V4SignerParams;
+import software.amazon.awssdk.core.checksums.ChecksumSpecs;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
+import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * AWS4 signer implementation for AWS S3
@@ -39,13 +43,16 @@ import software.amazon.awssdk.utils.BinaryUtils;
 @SdkInternalApi
 public abstract class AbstractAwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams, Aws4PresignerParams> {
 
-    private static final String CONTENT_SHA_256 = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
+    public static final String CONTENT_SHA_256_WITH_CHECKSUM = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
+    public static final String STREAMING_UNSIGNED_PAYLOAD_TRAILER = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
 
+    private static final String CONTENT_SHA_256 = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
     /**
      * Sent to S3 in lieu of a payload hash when unsigned payloads are enabled
      */
     private static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
     private static final String CONTENT_LENGTH = "Content-Length";
+
 
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
@@ -75,7 +82,7 @@ public abstract class AbstractAwsS3V4Signer extends AbstractAws4Signer<AwsS3V4Si
 
     private AwsS3V4SignerParams constructAwsS3SignerParams(ExecutionAttributes executionAttributes) {
         AwsS3V4SignerParams.Builder signerParams = extractSignerParams(AwsS3V4SignerParams.builder(),
-                                                                             executionAttributes);
+                                                                       executionAttributes);
 
         Optional.ofNullable(executionAttributes.getAttribute(S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING))
                 .ifPresent(signerParams::enableChunkedEncoding);
@@ -122,16 +129,36 @@ public abstract class AbstractAwsS3V4Signer extends AbstractAws4Signer<AwsS3V4Si
                                          byte[] signingKey,
                                          Aws4SignerRequestParams signerRequestParams,
                                          AwsS3V4SignerParams signerParams) {
+        processRequestPayload(mutableRequest, signature, signingKey,
+                              signerRequestParams, signerParams, null);
+    }
+
+    /**
+     * Overloads processRequestPayload with sdkChecksum.
+     * Flexible Checksum for Payload is calculated if sdkChecksum is passed.
+     */
+    @Override
+    protected void processRequestPayload(SdkHttpFullRequest.Builder mutableRequest,
+                                         byte[] signature,
+                                         byte[] signingKey,
+                                         Aws4SignerRequestParams signerRequestParams,
+                                         AwsS3V4SignerParams signerParams,
+                                         SdkChecksum sdkChecksum) {
 
         if (useChunkEncoding(mutableRequest, signerParams)) {
             if (mutableRequest.contentStreamProvider() != null) {
                 ContentStreamProvider streamProvider = mutableRequest.contentStreamProvider();
+
+                String headerForTrailerChecksumLocation = signerParams.checksumParams() != null
+                                                          ? signerParams.checksumParams().checksumHeaderName() : null;
                 mutableRequest.contentStreamProvider(() -> AbstractAwsS3V4Signer.this.asChunkEncodedStream(
                         streamProvider.newStream(),
                         signature,
                         signingKey,
-                        signerRequestParams
-                ));
+                        signerRequestParams,
+                        sdkChecksum,
+                        headerForTrailerChecksumLocation)
+                );
             }
         }
     }
@@ -144,16 +171,19 @@ public abstract class AbstractAwsS3V4Signer extends AbstractAws4Signer<AwsS3V4Si
     private AwsSignedChunkedEncodingInputStream asChunkEncodedStream(InputStream inputStream,
                                                                      byte[] signature,
                                                                      byte[] signingKey,
-                                                                     Aws4SignerRequestParams signerRequestParams) {
+                                                                     Aws4SignerRequestParams signerRequestParams,
+                                                                     SdkChecksum sdkChecksum,
+                                                                     String checksumHeaderForTrailer) {
         AwsS3V4ChunkSigner chunkSigner = new AwsS3V4ChunkSigner(signingKey,
                                                                 signerRequestParams.getFormattedRequestSigningDateTime(),
                                                                 signerRequestParams.getScope());
-        String signatureHex = BinaryUtils.toHex(signature);
 
         return AwsSignedChunkedEncodingInputStream.builder()
                                                   .inputStream(inputStream)
+                                                  .sdkChecksum(sdkChecksum)
+                                                  .checksumHeaderForTrailer(checksumHeaderForTrailer)
                                                   .awsChunkSigner(chunkSigner)
-                                                  .headerSignature(signatureHex)
+                                                  .headerSignature(BinaryUtils.toHex(signature))
                                                   .awsChunkedEncodingConfig(AwsChunkedEncodingConfig.create())
                                                   .build();
     }
@@ -165,26 +195,64 @@ public abstract class AbstractAwsS3V4Signer extends AbstractAws4Signer<AwsS3V4Si
      */
     @Override
     protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest, AwsS3V4SignerParams signerParams) {
-        // To be consistent with other service clients using sig-v4,
-        // we just set the header as "required", and AWS4Signer.sign() will be
-        // notified to pick up the header value returned by this method.
-        mutableRequest.putHeader(X_AMZ_CONTENT_SHA256, "required");
+        return calculateContentHash(mutableRequest, signerParams, null);
+    }
+
+    /**
+     * This method overloads calculateContentHash with contentFlexibleChecksum.
+     * The contentFlexibleChecksum is computed at the same time while hash is calculated for Content.
+     */
+    @Override
+    protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest, AwsS3V4SignerParams signerParams,
+                                          SdkChecksum contentFlexibleChecksum) {
+
+        // x-amz-content-sha256 marked as STREAMING_UNSIGNED_PAYLOAD_TRAILER in interceptors if Flexible checksum is set.
+        boolean isUnsignedStreamingTrailer = mutableRequest.firstMatchingHeader("x-amz-content-sha256")
+                                                    .map(STREAMING_UNSIGNED_PAYLOAD_TRAILER::equals)
+                                                    .orElse(false);
+
+        if (!isUnsignedStreamingTrailer) {
+            // To be consistent with other service clients using sig-v4,
+            // we just set the header as "required", and AWS4Signer.sign() will be
+            // notified to pick up the header value returned by this method.
+            mutableRequest.putHeader(X_AMZ_CONTENT_SHA256, "required");
+        }
 
         if (isPayloadSigningEnabled(mutableRequest, signerParams)) {
             if (useChunkEncoding(mutableRequest, signerParams)) {
                 long originalContentLength = calculateRequestContentLength(mutableRequest);
                 mutableRequest.putHeader("x-amz-decoded-content-length", Long.toString(originalContentLength));
+
+                boolean isTrailingChecksum = false;
+                if (signerParams.checksumParams() != null) {
+                    String headerForTrailerChecksumLocation =
+                        signerParams.checksumParams().checksumHeaderName();
+
+                    if (StringUtils.isNotBlank(headerForTrailerChecksumLocation) &&
+                        !HttpChecksumUtils.isHttpChecksumPresent(
+                            mutableRequest.build(),
+                            ChecksumSpecs.builder().headerName(signerParams.checksumParams().checksumHeaderName()).build())) {
+                        isTrailingChecksum = true;
+                        mutableRequest.putHeader("x-amz-trailer", headerForTrailerChecksumLocation);
+                        mutableRequest.putHeader("Content-Encoding", "aws-chunked");
+                    }
+                }
+                // Make sure "Content-Length" header is not empty so that HttpClient
+                // won't cache the stream again to recover Content-Length
+                long calculateStreamContentLength = AwsSignedChunkedEncodingInputStream
+                    .calculateStreamContentLength(
+                        originalContentLength, AwsS3V4ChunkSigner.getSignatureLength(),
+                        AwsChunkedEncodingConfig.create(), isTrailingChecksum);
+                long checksumTrailerLength = isTrailingChecksum ? getChecksumTrailerLength(signerParams) : 0;
                 mutableRequest.putHeader(CONTENT_LENGTH, Long.toString(
-                    AwsSignedChunkedEncodingInputStream.calculateStreamContentLength(originalContentLength,
-                                                                                     AwsS3V4ChunkSigner.getSignatureLength(),
-                                                                                     AwsChunkedEncodingConfig.create())));
-                return CONTENT_SHA_256;
+                    calculateStreamContentLength + checksumTrailerLength));
+                return isTrailingChecksum  ? CONTENT_SHA_256_WITH_CHECKSUM : CONTENT_SHA_256;
             } else {
-                return super.calculateContentHash(mutableRequest, signerParams);
+                return super.calculateContentHash(mutableRequest, signerParams, contentFlexibleChecksum);
             }
         }
 
-        return UNSIGNED_PAYLOAD;
+        return isUnsignedStreamingTrailer ? STREAMING_UNSIGNED_PAYLOAD_TRAILER : UNSIGNED_PAYLOAD;
     }
 
     /**
@@ -218,4 +286,11 @@ public abstract class AbstractAwsS3V4Signer extends AbstractAws4Signer<AwsS3V4Si
         return isPayloadSigningEnabled != null && isPayloadSigningEnabled;
     }
 
+    public static long getChecksumTrailerLength(AwsS3V4SignerParams signerParams) {
+        return signerParams.checksumParams() == null ? 0
+                                                     : AwsSignedChunkedEncodingInputStream.calculateChecksumContentLength(
+                                                         signerParams.checksumParams().algorithm(),
+                                                         signerParams.checksumParams().checksumHeaderName(),
+                                                         AwsS3V4ChunkSigner.SIGNATURE_LENGTH);
+    }
 }
