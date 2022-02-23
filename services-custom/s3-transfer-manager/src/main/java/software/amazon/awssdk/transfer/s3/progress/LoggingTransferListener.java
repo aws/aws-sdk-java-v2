@@ -58,7 +58,7 @@ public final class LoggingTransferListener implements TransferListener {
 
     @Override
     public void transferInitiated(Context.TransferInitiated context) {
-        log.info(() -> requestType(context) + " initiated...");
+        log.info(() -> "Transfer initiated...");
         context.progressSnapshot().ratioTransferred().ifPresent(progressBar::update);
     }
 
@@ -70,16 +70,12 @@ public final class LoggingTransferListener implements TransferListener {
     @Override
     public void transferComplete(Context.TransferComplete context) {
         context.progressSnapshot().ratioTransferred().ifPresent(progressBar::update);
-        log.info(() -> requestType(context) + " complete!");
+        log.info(() -> "Transfer complete!");
     }
 
     @Override
     public void transferFailed(Context.TransferFailed context) {
-        log.warn(() -> requestType(context) + " failed.", context.exception());
-    }
-
-    private static String requestType(Context.TransferInitiated context) {
-        return context.request().getClass().getSimpleName();
+        log.warn(() -> "Transfer failed.", context.exception());
     }
 
     private static class ProgressBar {
