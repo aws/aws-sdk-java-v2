@@ -130,6 +130,7 @@
         <dynamodb-local.version>1.16.0</dynamodb-local.version>
         <sqllite.version>1.0.392</sqllite.version>
         <blockhound.version>1.0.6.RELEASE</blockhound.version>
+        <jetty.version>9.4.45.v20220203</jetty.version>
 
         <!-- build plugin dependencies-->
         <maven.surefire.version>3.0.0-M5</maven.surefire.version>

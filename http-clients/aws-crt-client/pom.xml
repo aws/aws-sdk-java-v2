@@ -73,10 +73,9 @@
         </dependency>
 
         <!--Test Dependencies-->
-        <!-- Use wiremock instead of wiremock-jre8 because HEAD request handling doesn't work in the newer versions. -->
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock</artifactId>
+            <artifactId>wiremock-jre8</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
