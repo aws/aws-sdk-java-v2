@@ -1,0 +1,6 @@
+{
+    "category": "Netty NIO HTTP Client", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "This commit correctly factors in the TLS negotiation into the channel pooling acquire logic; this ensures that when the Netty client successfully acquires a connection from the channel pool, TLS negotiation is guaranteed to have completed successfully. In the past, it was possible for the client to get a connection that would later fail TLS negotiation, resulting in confusing behavior and error states. Note that because this change includes the TLS setup as part of connection acquisition, you may see an increase in your [`CONCURRENCY_ACQUIRE_DURATION`](https://github.com/aws/aws-sdk-java-v2/blob/5370febb01568f3888250b02f6b9531dca15ed41/http-client-spi/src/main/java/software/amazon/awssdk/http/HttpMetric.java#L120) metric."
+}

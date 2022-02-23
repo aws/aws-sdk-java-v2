@@ -68,7 +68,9 @@ public final class NettyUtils {
         } else if (originalCause instanceof WriteTimeoutException) {
             return new IOException("Write timed out", originalCause);
         } else if (originalCause instanceof ClosedChannelException || isConnectionResetException(originalCause)) {
-            return new IOException(NettyUtils.closedChannelMessage(channel), originalCause);
+            // Depending on when the error happens, a channel may not actually be available (e.g. during TLS setup while leasing)
+            String msg = channel != null ? closedChannelMessage(channel) : originalCause.getMessage();
+            return new IOException(msg, originalCause);
         }
 
         return originalCause;

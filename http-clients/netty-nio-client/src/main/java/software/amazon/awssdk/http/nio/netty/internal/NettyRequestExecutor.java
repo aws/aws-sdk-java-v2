@@ -186,7 +186,7 @@ public final class NettyRequestExecutor {
                 }
             });
         } else {
-            handleFailure(channel, () -> "Failed to create connection to " + endpoint(), channelFuture.cause());
+            handleFailure(null, () -> "Failed to create connection to " + endpoint(), channelFuture.cause());
         }
     }
 

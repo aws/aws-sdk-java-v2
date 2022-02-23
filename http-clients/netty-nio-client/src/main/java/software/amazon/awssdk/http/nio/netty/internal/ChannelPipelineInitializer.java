@@ -57,6 +57,7 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.Http2SettingsFrameHa
  */
 @SdkInternalApi
 public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
+    public static final String CHANNEL_SSL_HANDLER_NAME = "ChannelSslHandler";
     private final Protocol protocol;
     private final SslContext sslCtx;
     private final SslProvider sslProvider;
@@ -97,7 +98,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
             SslHandler sslHandler = newSslHandler(sslCtx, ch.alloc(), poolKey.getHost(), poolKey.getPort(),
                                                   configuration.tlsHandshakeTimeout());
 
-            pipeline.addLast(sslHandler);
+            pipeline.addLast(CHANNEL_SSL_HANDLER_NAME, sslHandler);
             pipeline.addLast(SslCloseCompletionEventHandler.getInstance());
 
             // Use unpooled allocator to avoid increased heap memory usage from Netty 4.1.43.

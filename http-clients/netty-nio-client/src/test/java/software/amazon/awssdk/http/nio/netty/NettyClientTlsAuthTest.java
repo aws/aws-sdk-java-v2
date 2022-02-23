@@ -77,6 +77,7 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
         mockProxy = new WireMockServer(new WireMockConfiguration()
                 .dynamicHttpsPort()
                 .needClientAuth(true)
+
                 .keystorePath(serverKeyStore.toAbsolutePath().toString())
                 .keystorePassword(STORE_PASSWORD));
 
@@ -179,10 +180,19 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
         netty = NettyNioAsyncHttpClient.builder()
                                        .buildWithDefaults(DEFAULTS);
 
+        // Jetty (client used by WireMock) will use the JDK default TLS version, which will affect what the error message
+        // contains.
+        String expectedMessage;
+        if (jdkVersion() >= 11) {
+            expectedMessage = "The connection was closed during the request.";
+        } else {
+            expectedMessage = "Failed TLS connection setup.";
+        }
+
         assertThatThrownBy(() -> HttpTestUtils.sendGetRequest(mockProxy.httpsPort(), netty).join())
             .isInstanceOf(CompletionException.class)
-            .hasMessageContaining("SSL")
-            .hasRootCauseInstanceOf(SSLException.class);
+            .hasRootCauseInstanceOf(IOException.class)
+            .hasMessageContaining(expectedMessage);
     }
 
     private void sendRequest(SdkAsyncHttpClient client, SdkAsyncHttpResponseHandler responseHandler) {
@@ -203,6 +213,18 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
                 .port(443)
                 .putHeader("host", "some-awesome-service.amazonaws.com")
                 .build();
+    }
+
+    private static int jdkVersion() {
+        String jdkVersion = System.getProperty("java.version");
+
+        if (jdkVersion.startsWith("1.")) {
+            jdkVersion = jdkVersion.substring(jdkVersion.indexOf('.') + 1);
+            jdkVersion = jdkVersion.substring(0, jdkVersion.indexOf('.'));
+        } else if (jdkVersion.contains(".")) {
+            jdkVersion = jdkVersion.substring(0, jdkVersion.indexOf('.'));
+        }
+        return Integer.parseInt(jdkVersion);
     }
 
 }

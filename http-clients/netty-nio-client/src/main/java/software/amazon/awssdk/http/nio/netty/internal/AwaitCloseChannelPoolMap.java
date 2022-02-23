@@ -41,6 +41,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
+import software.amazon.awssdk.http.nio.netty.TlsHandshakeEnsuringChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
@@ -227,6 +228,10 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     }
 
     private SdkChannelPool wrapBaseChannelPool(Bootstrap bootstrap, ChannelPool channelPool) {
+        // Wrap the channel pool such that channel acquisition includes TLS negotiation
+        channelPool = new TlsHandshakeEnsuringChannelPool(bootstrap.config().group(),
+                                                          ChannelPipelineInitializer.CHANNEL_SSL_HANDLER_NAME,
+                                                          channelPool);
 
         // Wrap the channel pool such that the ChannelAttributeKey.CLOSE_ON_RELEASE flag is honored.
         channelPool = new HonorCloseOnReleaseChannelPool(channelPool);

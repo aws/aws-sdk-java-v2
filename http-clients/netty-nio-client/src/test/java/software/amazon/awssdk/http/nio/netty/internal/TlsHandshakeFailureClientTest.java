@@ -13,13 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.nio.netty.fault;
+package software.amazon.awssdk.http.nio.netty.internal;
 
 import static javax.net.ssl.SSLEngineResult.HandshakeStatus.NEED_TASK;
 import static javax.net.ssl.SSLEngineResult.HandshakeStatus.NEED_UNWRAP;
 import static javax.net.ssl.SSLEngineResult.HandshakeStatus.NEED_WRAP;
 import static javax.net.ssl.SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -36,10 +37,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.DefaultLastHttpContent;
-import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpVersion;
@@ -47,16 +45,16 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.reactivex.Flowable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
@@ -74,23 +72,49 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
+import software.amazon.awssdk.http.nio.netty.fault.DelegatingSslEngine;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
 
-public class ServerConnectivityErrorMessageTest {
-    private static final Logger LOGGER = Logger.loggerFor(ServerConnectivityErrorMessageTest.class);
-    private SdkAsyncHttpClient netty;
+/**
+ * Test client behavior when TLS setup fails at different points in the handshake process.
+ */
+public class TlsHandshakeFailureClientTest {
+    private static final Logger LOGGER = Logger.loggerFor(TlsHandshakeFailureClientTest.class);
     private Server server;
+    private SdkAsyncHttpClient netty;
 
-    public static Collection<TestCase> testCases() {
-        return Arrays.asList(new TestCase(CloseTime.DURING_INIT, "Failed TLS connection setup."),
-                             new TestCase(CloseTime.BEFORE_SSL_HANDSHAKE, "Failed TLS connection setup."),
-                             new TestCase(CloseTime.DURING_SSL_HANDSHAKE, "Failed TLS connection setup."),
-                             new TestCase(CloseTime.BEFORE_REQUEST_PAYLOAD, "The connection was closed during the request."),
-                             new TestCase(CloseTime.DURING_REQUEST_PAYLOAD, "The connection was closed during the request."),
-                             new TestCase(CloseTime.BEFORE_RESPONSE_HEADERS, "The connection was closed during the request."),
-                             new TestCase(CloseTime.BEFORE_RESPONSE_PAYLOAD, "Response had content-length"),
-                             new TestCase(CloseTime.DURING_RESPONSE_PAYLOAD, "Response had content-length"));
+    private enum TlsSetupFailTime {
+        BEFORE_HANDSHAKE,
+        DURING_HANDSHAKE,
+        NEVER
+    }
+
+    private static List<TestCase> testCases() {
+        List<TestCase> testCases = new ArrayList<>();
+
+        for (String tlsVersion : versionsToTest()) {
+            testCases.add(new TestCase(tlsVersion,
+                                       TlsSetupFailTime.BEFORE_HANDSHAKE, IOException.class,
+                                       "Failed TLS connection setup."));
+            testCases.add(new TestCase(tlsVersion,
+                                       TlsSetupFailTime.DURING_HANDSHAKE, IOException.class,
+                                       "Failed TLS connection setup."));
+            testCases.add(new TestCase(tlsVersion, TlsSetupFailTime.NEVER, null, null));
+        }
+
+        return testCases;
+    }
+
+    private static List<String> versionsToTest() {
+        List<String> versions = new ArrayList<>();
+        versions.add("TLSv1.2");
+
+        if (SslProvider.isTlsv13Supported(SslProvider.JDK)) {
+            versions.add("TLSv1.3");
+        }
+
+        return versions;
     }
 
     @AfterEach
@@ -108,36 +132,52 @@ public class ServerConnectivityErrorMessageTest {
 
     @ParameterizedTest
     @MethodSource("testCases")
-    public void closeTimeHasCorrectMessage(TestCase testCase) throws Exception {
-        setupTestCase(testCase);
-        server.closeTime = testCase.closeTime;
-        assertThat(captureException()).hasMessageContaining(testCase.errorMessageSubstring);
-    }
-
-    public void setupTestCase(TestCase testCase) throws Exception {
-        server = new Server();
-        server.init(testCase.closeTime);
+    public void testTlsHandshake(TestCase testCase) throws Exception {
+        server = new Server(testCase.tlsVersion);
+        server.init(testCase.tlsSetupFailTime);
 
         netty = NettyNioAsyncHttpClient.builder()
                                        .readTimeout(Duration.ofMillis(500))
                                        .eventLoopGroup(SdkEventLoopGroup.builder().numberOfThreads(3).build())
                                        .protocol(Protocol.HTTP1_1)
                                        .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
+
+        CompletableFuture<Void> requestFuture = sendGetRequest();
+        if (server.tlsSetupFailTime == TlsSetupFailTime.NEVER) {
+            assertThatNoException().isThrownBy(requestFuture::join);
+        } else {
+            assertThatThrownBy(requestFuture::join)
+                .hasCauseInstanceOf(testCase.errorClass)
+                .hasMessageContaining(testCase.errorMessage);
+        }
     }
 
-    private Throwable captureException() {
-        try {
-            sendGetRequest().get(10, TimeUnit.SECONDS);
-        } catch (InterruptedException | TimeoutException e) {
-            throw new Error(e);
-        } catch (ExecutionException e) {
-            return e.getCause();
+    private static class TestCase {
+        private final String tlsVersion;
+        private final TlsSetupFailTime tlsSetupFailTime;
+        private final Class<? extends Throwable> errorClass;
+        private final String errorMessage;
+
+        private TestCase(String tlsVersion, TlsSetupFailTime tlsSetupFailTime, Class<? extends Throwable> errorClass,
+                        String errorMessage) {
+            this.tlsVersion = tlsVersion;
+            this.tlsSetupFailTime = tlsSetupFailTime;
+            this.errorClass = errorClass;
+            this.errorMessage = errorMessage;
         }
 
-        throw new AssertionError("Call did not fail as expected.");
+        @Override
+        public String toString() {
+            return "TestCase{" +
+                   "tlsVersion='" + tlsVersion + '\'' +
+                   ", tlsSetupFailTime=" + tlsSetupFailTime +
+                   ", errorClass=" + errorClass +
+                   ", errorMessage='" + errorMessage + '\'' +
+                   '}';
+        }
     }
 
-    private CompletableFuture<Void> sendGetRequest() {
+    public CompletableFuture<Void> sendGetRequest() {
         AsyncExecuteRequest req = AsyncExecuteRequest.builder()
                                                      .responseHandler(new SdkAsyncHttpResponseHandler() {
                                                          private SdkHttpResponse headers;
@@ -169,43 +209,19 @@ public class ServerConnectivityErrorMessageTest {
         return netty.execute(req);
     }
 
-    private static class TestCase {
-        private CloseTime closeTime;
-        private String errorMessageSubstring;
-
-        private TestCase(CloseTime closeTime, String errorMessageSubstring) {
-            this.closeTime = closeTime;
-            this.errorMessageSubstring = errorMessageSubstring;
-        }
-
-        @Override
-        public String toString() {
-            return "Closure " + closeTime;
-        }
-    }
-
-    private enum CloseTime {
-        DURING_INIT,
-
-        BEFORE_SSL_HANDSHAKE,
-        DURING_SSL_HANDSHAKE,
-
-        BEFORE_REQUEST_PAYLOAD,
-        DURING_REQUEST_PAYLOAD,
-
-        BEFORE_RESPONSE_HEADERS,
-        BEFORE_RESPONSE_PAYLOAD,
-        DURING_RESPONSE_PAYLOAD
-    }
-
     private static class Server extends ChannelInitializer<Channel> {
         private final NioEventLoopGroup group = new NioEventLoopGroup();
-        private CloseTime closeTime;
+        private final String tlsVersion;
+        private TlsSetupFailTime tlsSetupFailTime;
         private ServerBootstrap bootstrap;
         private ServerSocketChannel serverSock;
         private SslContext sslCtx;
 
-        private void init(CloseTime closeTime) throws Exception {
+        private Server(String tlsVersion) {
+            this.tlsVersion = tlsVersion;
+        }
+
+        private void init(TlsSetupFailTime tlsSetupFailTime) throws Exception {
             SelfSignedCertificate ssc = new SelfSignedCertificate();
             sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
 
@@ -215,7 +231,7 @@ public class ServerConnectivityErrorMessageTest {
                 .childHandler(this);
 
             serverSock = (ServerSocketChannel) bootstrap.bind(0).sync().channel();
-            this.closeTime = closeTime;
+            this.tlsSetupFailTime = tlsSetupFailTime;
         }
 
         public int port() {
@@ -231,14 +247,11 @@ public class ServerConnectivityErrorMessageTest {
         protected void initChannel(Channel ch) {
             LOGGER.info(() -> "Initializing channel " + ch);
 
-            if (closeTime == CloseTime.DURING_INIT) {
-                LOGGER.info(() -> "Closing channel during initialization " + ch);
-                ch.close();
-                return;
-            }
 
             ChannelPipeline pipeline = ch.pipeline();
-            pipeline.addLast(new SslHandler(new FaultInjectionSslEngine(sslCtx.newEngine(ch.alloc()), ch), false));
+            SSLEngine sslEngine = sslCtx.newEngine(ch.alloc());
+            sslEngine.setEnabledProtocols(new String[]{ tlsVersion });
+            pipeline.addLast(new SslHandler(new FaultInjectionSslEngine(sslEngine, ch), false));
             pipeline.addLast(new HttpServerCodec());
             pipeline.addLast(new FaultInjectionHttpHandler());
 
@@ -267,12 +280,12 @@ public class ServerConnectivityErrorMessageTest {
             }
 
             private void handleBeforeFailures() {
-                if (getHandshakeStatus() == NOT_HANDSHAKING && closeTime == CloseTime.BEFORE_SSL_HANDSHAKE) {
+                if (getHandshakeStatus() == NOT_HANDSHAKING && tlsSetupFailTime == TlsSetupFailTime.BEFORE_HANDSHAKE) {
                     closeChannel("Closing channel before handshake " + channel);
                 }
 
                 if ((getHandshakeStatus() == NEED_WRAP || getHandshakeStatus() == NEED_TASK || getHandshakeStatus() == NEED_UNWRAP)
-                    && closeTime == CloseTime.DURING_SSL_HANDSHAKE) {
+                    && tlsSetupFailTime == TlsSetupFailTime.DURING_HANDSHAKE) {
                     closeChannel("Closing channel during handshake " + channel);
                 }
             }
@@ -290,58 +303,18 @@ public class ServerConnectivityErrorMessageTest {
             @Override
             protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
                 LOGGER.info(() -> "Reading " + msg);
-
-                if (msg instanceof HttpRequest) {
-                    if (closeTime == CloseTime.BEFORE_REQUEST_PAYLOAD) {
-                        LOGGER.info(() -> "Closing channel before request payload " + ctx.channel());
-                        ctx.channel().disconnect();
-                        return;
-                    }
-                }
-
-                if (msg instanceof HttpContent) {
-                    if (closeTime == CloseTime.DURING_REQUEST_PAYLOAD) {
-                        LOGGER.info(() -> "Closing channel during request payload handling " + ctx.channel());
-                        ctx.close();
-                        return;
-                    }
-
-                    if (msg instanceof LastHttpContent) {
-                        if (closeTime == CloseTime.BEFORE_RESPONSE_HEADERS) {
-                            LOGGER.info(() -> "Closing channel before response headers " + ctx.channel());
-                            ctx.close();
-                            return;
-                        }
-
-                        writeResponse(ctx);
-                    }
+                if (msg instanceof LastHttpContent) {
+                    writeResponse(ctx);
                 }
             }
 
             private void writeResponse(ChannelHandlerContext ctx) {
-                int responseLength = 10 * 1024 * 1024; // 10 MB
+                int responseLength = 1;
                 HttpHeaders headers = new DefaultHttpHeaders().add("Content-Length", responseLength);
                 ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, headers)).addListener(x -> {
-                    if (closeTime == CloseTime.BEFORE_RESPONSE_PAYLOAD) {
-                        LOGGER.info(() -> "Closing channel before response payload " + ctx.channel());
-                        ctx.close();
-                        return;
-                    }
-
-                    ByteBuf firstPartOfResponsePayload = ctx.alloc().buffer(1);
-                    firstPartOfResponsePayload.writeByte(0);
-                    ctx.writeAndFlush(new DefaultHttpContent(firstPartOfResponsePayload)).addListener(x2 -> {
-                        if (closeTime == CloseTime.DURING_RESPONSE_PAYLOAD) {
-                            LOGGER.info(() -> "Closing channel during response payload handling " + ctx.channel());
-                            ctx.close();
-                            return;
-                        }
-
-                        ByteBuf lastPartOfResponsePayload = ctx.alloc().buffer(responseLength - 1);
-                        lastPartOfResponsePayload.writeBytes(new byte[responseLength - 1]);
-                        ctx.writeAndFlush(new DefaultLastHttpContent(lastPartOfResponsePayload))
-                           .addListener(ChannelFutureListener.CLOSE);
-                    });
+                    ByteBuf payload = ctx.alloc().buffer(responseLength);
+                    payload.writeBytes(new byte[responseLength]);
+                    ctx.writeAndFlush(new DefaultHttpContent(payload)).addListener(ChannelFutureListener.CLOSE);
                 });
             }
         }
