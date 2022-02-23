@@ -1,6 +1,0 @@
-{
-    "category": "URL Connection HTTP Client", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fix \"java.net.ProtocolException: Server rejected operation\" when the HTTP response has no response content. If the response includes content, update the exception message to say that the Apache HTTP client may fix the problem."
-}

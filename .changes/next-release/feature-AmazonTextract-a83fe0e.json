@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Textract",
-    "contributor": "",
-    "description": "Added support for merged cells and column header for table response."
-}

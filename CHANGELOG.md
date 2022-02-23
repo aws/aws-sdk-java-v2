@@ -1,3 +1,30 @@
+# __2.17.136__ __2022-02-23__
+## __AWS Lambda__
+  - ### Features
+    - Lambda releases .NET 6 managed runtime to be available in all commercial regions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add `ClientOverrideConfiguration` getter to `SdkClientBuilder`. Allows for changing multiple overrides on a client through the client builder alone.
+        - Contributed by: [@smswz](https://github.com/smswz)
+    - Updated service endpoint metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - The file input selection feature provides the ability to use either the originally uploaded file or the output file from the previous workflow step, enabling customers to make multiple copies of the original file while keeping the source file intact for file archival.
+
+## __Amazon Textract__
+  - ### Features
+    - Added support for merged cells and column header for table response.
+
+## __URL Connection HTTP Client__
+  - ### Bugfixes
+    - Fix "java.net.ProtocolException: Server rejected operation" when the HTTP response has no response content. If the response includes content, update the exception message to say that the Apache HTTP client may fix the problem.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@smswz](https://github.com/smswz)
 # __2.17.135__ __2022-02-22__
 ## __AWS App Runner__
   - ### Features
