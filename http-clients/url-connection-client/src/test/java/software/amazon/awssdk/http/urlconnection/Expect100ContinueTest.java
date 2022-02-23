@@ -207,7 +207,7 @@ public class Expect100ContinueTest {
 
         try (SdkHttpClient client = UrlConnectionHttpClient.create();
              EmbeddedServer server = new EmbeddedServer(handler)) {
-            assertThatThrownBy(() -> sendRequest(client, server)).isInstanceOf(UncheckedIOException.class);
+            assertThatThrownBy(() -> sendRequest(client, server)).isInstanceOf(IOException.class);
         }
     }
 
@@ -225,7 +225,7 @@ public class Expect100ContinueTest {
 
         try (SdkHttpClient client = UrlConnectionHttpClient.create();
              EmbeddedServer server = new EmbeddedServer(handler)) {
-            assertThatThrownBy(() -> sendRequest(client, server)).isInstanceOf(UncheckedIOException.class);
+            assertThatThrownBy(() -> sendRequest(client, server)).isInstanceOf(IOException.class);
         }
     }
 

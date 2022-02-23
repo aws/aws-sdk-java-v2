@@ -21,6 +21,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.safeFunction;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
@@ -77,8 +78,8 @@ public final class UrlConnectionHttpClientWithCustomCreateWireMockTest extends S
 
         assertThatThrownBy(() -> testForResponseCode(HttpURLConnection.HTTP_OK))
             .isInstanceOf(IOException.class)
-            .hasMessage("Unexpected NullPointerException when trying to read response from HttpURLConnection")
-            .hasCauseInstanceOf(NullPointerException.class);
+            .hasMessageContaining("Unexpected NullPointerException when trying to read response from HttpURLConnection")
+            .hasRootCauseInstanceOf(NullPointerException.class);
     }
 
     private class DelegateHttpURLConnection extends HttpURLConnection {
