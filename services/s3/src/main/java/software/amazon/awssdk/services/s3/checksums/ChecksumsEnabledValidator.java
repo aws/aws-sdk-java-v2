@@ -107,6 +107,11 @@ public final class ChecksumsEnabledValidator {
             return false;
         }
 
+        //Checksum validation will already be done as a part of HttpChecksum validations if RESOLVED_CHECKSUM_SPECS is present.
+        if (executionAttributes.getOptionalAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS).isPresent()) {
+            return false;
+        }
+
         return checksumEnabledPerConfig(executionAttributes);
     }
 

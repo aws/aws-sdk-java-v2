@@ -1,3 +1,36 @@
+# __2.17.137__ __2022-02-24__
+## __AWS Glue DataBrew__
+  - ### Features
+    - This AWS Glue Databrew release adds feature to merge job outputs into a max number of files for S3 File output type.
+
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 Batch Operations adds support for new integrity checking capabilities in Amazon S3.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Support automatic pagination when listing AWS Transfer Family resources.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support to delete and create Lightsail default key pairs that you can use with Lightsail instances.
+
+## __Amazon Route 53__
+  - ### Features
+    - SDK doc update for Route 53 to update some parameters with new information.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release adds support for new integrity checking capabilities in Amazon S3. You can choose from four supported checksum algorithms for data integrity checking on your upload and download requests. In addition, AWS SDK can automatically calculate a checksum as it streams data into S3
+
+## __Auto Scaling__
+  - ### Features
+    - You can now hibernate instances in a warm pool to stop instances without deleting their RAM contents. You can now also return instances to the warm pool on scale in, instead of always terminating capacity that you will need later.
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now supports the configuration of AWS Network Firewall policies with either centralized or distributed deployment models. This release also adds support for custom endpoint configuration, where you can choose which Availability Zones to create firewall endpoints in.
+
 # __2.17.136__ __2022-02-23__
 ## __AWS Lambda__
   - ### Features

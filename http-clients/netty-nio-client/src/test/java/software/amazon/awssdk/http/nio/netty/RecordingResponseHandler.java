@@ -71,7 +71,7 @@ public final class RecordingResponseHandler implements SdkAsyncHttpResponseHandl
 
     }
 
-    String fullResponseAsString() {
+    public String fullResponseAsString() {
         return bodyParts.toString();
     }
 }

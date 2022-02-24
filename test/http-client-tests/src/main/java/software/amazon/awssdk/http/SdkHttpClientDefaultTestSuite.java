@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -158,7 +159,7 @@ public abstract class SdkHttpClientDefaultTestSuite {
                                                                     .withHeader("User-Agent", equalTo("hello-world!"));
 
         if (method == SdkHttpMethod.HEAD) {
-            patternBuilder.withRequestBody(equalTo(""));
+            patternBuilder.withRequestBody(absent());
         } else {
             patternBuilder.withRequestBody(equalTo("Body"));
         }
