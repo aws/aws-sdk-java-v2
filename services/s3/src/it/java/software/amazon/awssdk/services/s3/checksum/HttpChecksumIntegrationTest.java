@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.checksum;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -44,11 +45,12 @@ import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.utils.CaptureChecksumValidationInterceptor;
-import software.amazon.awssdk.services.s3.utils.S3TestUtils;
+import software.amazon.awssdk.testutils.Waiter;
 
 public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
@@ -57,18 +59,29 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
     public static CaptureChecksumValidationInterceptor interceptor = new CaptureChecksumValidationInterceptor();
     protected static S3Client s3Https;
     protected static S3AsyncClient s3HttpAsync;
-    private static String BUCKET;
+    private static String BUCKET = temporaryBucketName(HttpChecksumIntegrationTest.class);
 
     @BeforeAll
     public static void setUp() throws Exception {
+
+        // Http Client to generate Signed request
         s3 = s3ClientBuilder().overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
-                              .build();
+                              .endpointOverride(URI.create("http://s3." + DEFAULT_REGION + ".amazonaws.com")).build();
+
         s3Async = s3AsyncClientBuilder().overrideConfiguration(o -> o.addExecutionInterceptor(interceptor)).build();
-        s3Https = s3ClientBuilder().overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
-                                   .endpointOverride(URI.create("https://s3.us-west-2.amazonaws.com")).build();
+
+        s3Https = s3ClientBuilder().overrideConfiguration(o -> o.addExecutionInterceptor(interceptor)).build();
+
+        // Http Client to generate Signed request
         s3HttpAsync = s3AsyncClientBuilder().overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
-                                            .endpointOverride(URI.create("http://s3.us-west-2.amazonaws.com")).build();
-        BUCKET = S3TestUtils.getTestBucket(s3);
+                                            .endpointOverride(URI.create("http://s3." + DEFAULT_REGION + ".amazonaws.com")).build();
+
+
+        createBucket(BUCKET);
+
+        Waiter.run(() -> s3.headBucket(r -> r.bucket(BUCKET)))
+              .ignoringException(NoSuchBucketException.class)
+              .orFail();
         interceptor.reset();
     }
 
