@@ -44,6 +44,7 @@ import software.amazon.awssdk.services.query.model.OperationWithChecksumRequired
 import software.amazon.awssdk.services.query.model.PutOperationWithChecksumRequest;
 import software.amazon.awssdk.services.query.model.PutOperationWithChecksumResponse;
 import software.amazon.awssdk.services.query.model.QueryException;
+import software.amazon.awssdk.services.query.model.QueryRequest;
 import software.amazon.awssdk.services.query.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.services.query.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.query.model.StreamingOutputOperationRequest;

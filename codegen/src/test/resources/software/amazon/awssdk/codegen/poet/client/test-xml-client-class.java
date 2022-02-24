@@ -50,6 +50,7 @@ import software.amazon.awssdk.services.xml.model.StreamingInputOperationResponse
 import software.amazon.awssdk.services.xml.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.xml.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.xml.model.XmlException;
+import software.amazon.awssdk.services.xml.model.XmlRequest;
 import software.amazon.awssdk.services.xml.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.BearerAuthOperationRequestMarshaller;
