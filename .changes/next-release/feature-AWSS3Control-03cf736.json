@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS S3 Control",
-    "contributor": "",
-    "description": "Amazon S3 Batch Operations adds support for new integrity checking capabilities in Amazon S3."
-}

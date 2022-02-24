@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Transfer Family",
-    "contributor": "",
-    "description": "Support automatic pagination when listing AWS Transfer Family resources."
-}
