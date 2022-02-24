@@ -1,0 +1,12 @@
+{
+    "version": "2.17.117",
+    "date": "2022-01-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Route53 Recovery Readiness",
+            "contributor": "",
+            "description": "Updated documentation for Route53 Recovery Readiness APIs."
+        }
+    ]
+}

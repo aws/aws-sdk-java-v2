@@ -16,7 +16,7 @@
 package software.amazon.awssdk.awscore.client.builder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -39,7 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
@@ -84,7 +84,6 @@ public class DefaultAwsClientBuilderTest {
     public void setup() {
         when(defaultHttpClientBuilder.buildWithDefaults(any())).thenReturn(mock(SdkHttpClient.class));
         when(defaultAsyncHttpClientFactory.buildWithDefaults(any())).thenReturn(mock(SdkAsyncHttpClient.class));
-        when(autoModeDiscovery.discover(any())).thenReturn(DefaultsMode.IN_REGION);
     }
 
     @Test
@@ -160,23 +159,39 @@ public class DefaultAwsClientBuilderTest {
 
     @Test
     public void explicitClientProvided_ClientIsNotManagedBySdk() {
+        String clientName = "foobarsync";
+        SdkHttpClient sdkHttpClient = mock(SdkHttpClient.class);
         TestClient client = testClientBuilder()
             .region(Region.US_WEST_2)
-            .httpClient(mock(SdkHttpClient.class))
+            .httpClient(sdkHttpClient)
             .build();
+        when(sdkHttpClient.clientName()).thenReturn(clientName);
         assertThat(client.clientConfiguration.option(SdkClientOption.SYNC_HTTP_CLIENT))
             .isInstanceOf(AwsDefaultClientBuilder.NonManagedSdkHttpClient.class);
+
+        assertThat(client.clientConfiguration.option(SdkClientOption.SYNC_HTTP_CLIENT).clientName())
+            .isEqualTo(clientName);
         verify(defaultHttpClientBuilder, never()).buildWithDefaults(any());
     }
 
     @Test
     public void explicitAsyncHttpClientProvided_ClientIsNotManagedBySdk() {
+        String clientName = "foobarasync";
+        SdkAsyncHttpClient sdkAsyncHttpClient = mock(SdkAsyncHttpClient.class);
         TestAsyncClient client = testAsyncClientBuilder()
             .region(Region.US_WEST_2)
-            .httpClient(mock(SdkAsyncHttpClient.class))
+            .httpClient(sdkAsyncHttpClient)
             .build();
         assertThat(client.clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT))
             .isInstanceOf(AwsDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);
+
+        when(sdkAsyncHttpClient.clientName()).thenReturn(clientName);
+
+        assertThat(client.clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT))
+            .isInstanceOf(AwsDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);
+
+        assertThat(client.clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT).clientName())
+            .isEqualTo(clientName);
         verify(defaultAsyncHttpClientFactory, never()).buildWithDefaults(any());
     }
 

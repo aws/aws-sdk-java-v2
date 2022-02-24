@@ -17,16 +17,17 @@ package software.amazon.awssdk.auth.signer.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 public class DigestComputingSubscriberTest {
@@ -71,5 +72,24 @@ public class DigestComputingSubscriberTest {
         subscriber.onError(error);
 
         assertThatThrownBy(subscriber.digestBytes()::join).hasCause(error);
+    }
+
+    @Test
+    void test_computesCorrectSdkChecksum() {
+        String testString = "Hello world";
+        String expectedDigest = "64ec88ca00b268e5ba1a35678a1b5316d212f4f366b2477232534a8aeca37f3c";
+        String expectedChecksum = "e1AsOh9IyGCa4hLN+2Od7jlnP14=";
+
+        final SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(Algorithm.SHA1);
+        DigestComputingSubscriber subscriber = DigestComputingSubscriber.forSha256(sdkChecksum);
+
+        Flowable<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(testString.getBytes(StandardCharsets.UTF_8)));
+
+        publisher.subscribe(subscriber);
+
+        String computedDigest = BinaryUtils.toHex(subscriber.digestBytes().join());
+
+        assertThat(computedDigest).isEqualTo(expectedDigest);
+        assertThat(BinaryUtils.toBase64(sdkChecksum.getChecksumBytes())).isEqualTo(expectedChecksum);
     }
 }

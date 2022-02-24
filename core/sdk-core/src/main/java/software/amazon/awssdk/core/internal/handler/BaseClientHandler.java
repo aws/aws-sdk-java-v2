@@ -171,8 +171,7 @@ public abstract class BaseClientHandler {
     private static <OutputT extends SdkResponse> BiFunction<OutputT, SdkHttpFullResponse, OutputT>
         attachHttpResponseToResult() {
 
-        return ((response, httpFullResponse) ->
-                    (OutputT) response.toBuilder().sdkHttpResponse(httpFullResponse).build());
+        return ((response, httpFullResponse) -> (OutputT) response.toBuilder().sdkHttpResponse(httpFullResponse).build());
     }
 
     // This method is only called from tests, since the subclasses in aws-core override it.

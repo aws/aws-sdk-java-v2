@@ -37,7 +37,7 @@ public class LazyAwsCredentialsProviderTest {
     @Test
     public void creationDoesntInvokeSupplier() {
         LazyAwsCredentialsProvider.create(credentialsConstructor);
-        Mockito.verifyZeroInteractions(credentialsConstructor);
+        Mockito.verifyNoMoreInteractions(credentialsConstructor);
     }
 
     @Test

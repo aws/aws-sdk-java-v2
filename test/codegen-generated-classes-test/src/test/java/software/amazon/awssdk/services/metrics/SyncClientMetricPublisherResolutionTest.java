@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.services.metrics;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -27,7 +27,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -121,8 +121,8 @@ public class SyncClientMetricPublisherResolutionTest {
         } finally {
             verify(requestPublisher1).publish(any(MetricCollection.class));
             verify(requestPublisher2).publish(any(MetricCollection.class));
-            verifyZeroInteractions(clientPublisher1);
-            verifyZeroInteractions(clientPublisher2);
+            verifyNoMoreInteractions(clientPublisher1);
+            verifyNoMoreInteractions(clientPublisher2);
         }
     }
 

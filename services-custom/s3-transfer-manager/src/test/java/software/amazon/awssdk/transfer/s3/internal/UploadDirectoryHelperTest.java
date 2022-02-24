@@ -17,7 +17,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -113,9 +113,9 @@ public class UploadDirectoryHelperTest {
 
         PutObjectResponse putObjectResponse2 = PutObjectResponse.builder().eTag("5678").build();
         CompletedFileUpload completedFileUpload2 = CompletedFileUpload.builder().response(putObjectResponse2).build();
-        CompletableFuture<CompletedFileUpload> failedFuture = new CompletableFuture<>();
-        FileUpload fileUpload2 = newUpload(failedFuture);
-        failedFuture.complete(completedFileUpload2);
+        CompletableFuture<CompletedFileUpload> successfulFuture2 = new CompletableFuture<>();
+        FileUpload fileUpload2 = newUpload(successfulFuture2);
+        successfulFuture2.complete(completedFileUpload2);
 
         when(singleUploadFunction.apply(any(UploadFileRequest.class))).thenReturn(fileUpload, fileUpload2);
 
@@ -169,9 +169,9 @@ public class UploadDirectoryHelperTest {
 
         PutObjectResponse putObjectResponse2 = PutObjectResponse.builder().eTag("5678").build();
         CompletedFileUpload completedFileUpload2 = CompletedFileUpload.builder().response(putObjectResponse2).build();
-        CompletableFuture<CompletedFileUpload> failedFuture = new CompletableFuture<>();
-        FileUpload upload2 = newUpload(failedFuture);
-        failedFuture.complete(completedFileUpload2);
+        CompletableFuture<CompletedFileUpload> successfulFuture2 = new CompletableFuture<>();
+        FileUpload upload2 = newUpload(successfulFuture2);
+        successfulFuture2.complete(completedFileUpload2);
 
         ArgumentCaptor<UploadFileRequest> uploadRequestCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
 

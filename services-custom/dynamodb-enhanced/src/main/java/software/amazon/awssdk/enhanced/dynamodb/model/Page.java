@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * An immutable object that holds a page of queried or scanned results from DynamoDb.
@@ -97,5 +98,13 @@ public final class Page<T> {
         int result = items != null ? items.hashCode() : 0;
         result = 31 * result + (lastEvaluatedKey != null ? lastEvaluatedKey.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("Page")
+                       .add("lastEvaluatedKey", lastEvaluatedKey)
+                       .add("items", items)
+                       .build();
     }
 }

@@ -35,6 +35,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
+import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.core.SdkPojoBuilder;
@@ -131,7 +132,8 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                                     discoveredEndpoint(opModel))
                                                .add(credentialType(opModel, model))
                                                .add(".withInput($L)", opModel.getInput().getVariableName())
-                                               .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
+                                               .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
+                                               .add(HttpChecksumTrait.create(opModel));
 
         s3ArnableFields(opModel, model).ifPresent(codeBlock::add);
 
@@ -206,12 +208,13 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                .add(credentialType(opModel, model))
                .add(".withMetricCollector(apiCallMetricCollector)\n")
                .add(asyncRequestBody(opModel))
-               .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
+               .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
+               .add(HttpChecksumTrait.create(opModel));
 
         s3ArnableFields(opModel, model).ifPresent(builder::add);
 
         builder.add(".withInput($L)", opModel.getInput().getVariableName());
-        if (opModel.hasStreamingOutput() || opModel.hasEventStreamOutput()) {
+        if (opModel.hasEventStreamOutput()) {
             builder.add(", $N", executionResponseTransformerName);
         }
         builder.addStatement(")");
@@ -220,7 +223,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         builder.addStatement("$T $N = null", ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
                 executeFutureValueType), whenCompleteFutureName);
 
-        if (opModel.hasStreamingOutput() || opModel.hasEventStreamOutput()) {
+        if (opModel.hasEventStreamOutput()) {
             builder.addStatement("$N = executeFuture$L", whenCompleteFutureName,
                     whenCompleteBlock(opModel, "asyncResponseHandler",
                                       eventStreamTransformFutureName));

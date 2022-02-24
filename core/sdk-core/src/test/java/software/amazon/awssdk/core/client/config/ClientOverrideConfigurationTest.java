@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -36,6 +38,12 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class ClientOverrideConfigurationTest {
+    private static final ConcurrentMap<String, ExecutionAttribute<Object>> ATTR_POOL = new ConcurrentHashMap<>();
+
+    private static ExecutionAttribute<Object> attr(String name) {
+        name = ClientOverrideConfigurationTest.class.getName() + ":" + name;
+        return ATTR_POOL.computeIfAbsent(name, ExecutionAttribute::new);
+    }
 
     @Test
     public void addingSameItemTwice_shouldOverride() {
@@ -188,7 +196,7 @@ public class ClientOverrideConfigurationTest {
     public void executionAttributes_createsCopy() {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
 
-        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
+        ExecutionAttribute testAttribute = attr("TestAttribute");
         String expectedValue = "Value1";
         executionAttributes.putAttribute(testAttribute, expectedValue);
 
@@ -204,7 +212,7 @@ public class ClientOverrideConfigurationTest {
     public void executionAttributes_isImmutable() {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
 
-        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
+        ExecutionAttribute testAttribute = attr("TestAttribute");
         String expectedValue = "Value1";
         executionAttributes.putAttribute(testAttribute, expectedValue);
 
@@ -224,7 +232,7 @@ public class ClientOverrideConfigurationTest {
     public void executionAttributes_maintainsAllAdded() {
         Map<ExecutionAttribute, Object> executionAttributeObjectMap = new HashMap<>();
         for (int i = 0; i < 5; i++) {
-            executionAttributeObjectMap.put(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+            executionAttributeObjectMap.put(attr("Attribute" + i), mock(Object.class));
         }
 
         ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
@@ -241,12 +249,12 @@ public class ClientOverrideConfigurationTest {
     public void executionAttributes_overwritesPreviouslyAdded() {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         for (int i = 0; i < 5; i++) {
-            executionAttributes.putAttribute(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+            executionAttributes.putAttribute(attr("Attribute" + i), mock(Object.class));
         }
 
         ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
 
-        builder.putExecutionAttribute(new ExecutionAttribute("AddedAttribute"), mock(Object.class));
+        builder.putExecutionAttribute(attr("AddedAttribute"), mock(Object.class));
         builder.executionAttributes(executionAttributes);
         ClientOverrideConfiguration overrideConfig = builder.build();
         assertThat(overrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributes.getAttributes());
@@ -256,13 +264,13 @@ public class ClientOverrideConfigurationTest {
     public void executionAttributes_listPreviouslyAdded_appendedToList() {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         for (int i = 0; i < 5; i++) {
-            executionAttributes.putAttribute(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+            executionAttributes.putAttribute(attr("Attribute" + i), mock(Object.class));
         }
 
         ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
 
         builder.executionAttributes(executionAttributes);
-        ExecutionAttribute addedAttribute = new ExecutionAttribute("AddedAttribute");
+        ExecutionAttribute addedAttribute = attr("AddedAttribute");
         Object addedValue = mock(Object.class);
 
         builder.putExecutionAttribute(addedAttribute, addedValue);

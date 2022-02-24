@@ -1,0 +1,30 @@
+{
+    "version": "2.17.125",
+    "date": "2022-02-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager Incident Manager",
+            "contributor": "",
+            "description": "Update RelatedItem enum to support SSM Automation"
+        },
+        {
+            "type": "feature",
+            "category": "Synthetics",
+            "contributor": "",
+            "description": "Adding names parameters to the Describe APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "contributor": "",
+            "description": "Documentation updates for EventBridge"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Audit Manager",
+            "contributor": "",
+            "description": "This release updates 3 API parameters. UpdateAssessmentFrameworkControlSet now requires the controls attribute, and CreateAssessmentFrameworkControl requires the id attribute. Additionally, UpdateAssessmentFramework now has a minimum length constraint for the controlSets attribute."
+        }
+    ]
+}

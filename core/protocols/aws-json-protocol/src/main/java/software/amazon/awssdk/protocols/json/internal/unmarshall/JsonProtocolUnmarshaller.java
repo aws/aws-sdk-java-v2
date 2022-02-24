@@ -23,6 +23,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
@@ -225,9 +227,13 @@ public final class JsonProtocolUnmarshaller {
                                                                       JsonNode jsonContent,
                                                                       JsonUnmarshallerContext context) {
         for (SdkField<?> field : sdkPojo.sdkFields()) {
-            if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES &&
-                context.response().content().isPresent()) {
-                field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().get()));
+            if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES) {
+                Optional<AbortableInputStream> responseContent = context.response().content();
+                if (responseContent.isPresent()) {
+                    field.set(sdkPojo, SdkBytes.fromInputStream(responseContent.get()));
+                } else {
+                    field.set(sdkPojo, SdkBytes.fromByteArrayUnsafe(new byte[0]));
+                }
             } else {
                 JsonNode jsonFieldContent = getJsonNode(jsonContent, field);
                 JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(field.location(), field.marshallingType());

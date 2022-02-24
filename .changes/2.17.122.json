@@ -1,0 +1,90 @@
+{
+    "version": "2.17.122",
+    "date": "2022-02-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "This release adds support for configuring AWS IoT logging level per client ID, source IP, or principal ID."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "Doc-only update for Cost Explorer API that adds INVOICING_ENTITY dimensions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Launch Protobuf support for AWS Glue Schema Registry"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "contributor": "",
+            "description": "Allows customers to get progress updates for blue/green deployments"
+        },
+        {
+            "type": "documentation",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Improve documentation & add warnings for FUTURE_COMPLETION_EXECUTOR"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Fault Injection Simulator",
+            "contributor": "",
+            "description": "Added GetTargetResourceType and ListTargetResourceTypesAPI actions. These actions return additional details about resource types and parameters that can be targeted by FIS actions. Added a parameters field for the targets that can be specified in experiment templates."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "Documentation updates for Amazon EMR."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Documentation update for AWS ElastiCache"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Documentation update for DynamoDB Java SDK."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Only include non-null Extended Request IDs in exception messages"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add new AsyncResponseTransformer: toPublisher(). This transformer makes it more convenient for users to directly consume a streaming-response payload (i.e., S3 GetObject) with async clients. This also allows users of Reactor/RxJava to more easily consume a streaming response (e.g., via Flux#from(Publisher))."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Appflow",
+            "contributor": "",
+            "description": "Launching Amazon AppFlow Custom Connector SDK."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize",
+            "contributor": "",
+            "description": "Adding minRecommendationRequestsPerSecond attribute to recommender APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Comprehend",
+            "contributor": "",
+            "description": "Amazon Comprehend now supports sharing and importing custom trained models from one AWS account to another within the same region."
+        }
+    ]
+}

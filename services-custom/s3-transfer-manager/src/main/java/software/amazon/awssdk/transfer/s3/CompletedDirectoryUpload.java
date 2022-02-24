@@ -18,11 +18,14 @@ package software.amazon.awssdk.transfer.s3;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Represents a completed upload directory transfer to Amazon S3. It can be used to track
@@ -32,17 +35,19 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 @SdkPreviewApi
-public final class CompletedDirectoryUpload implements CompletedDirectoryTransfer {
+public final class CompletedDirectoryUpload implements CompletedDirectoryTransfer,
+                                                       ToCopyableBuilder<CompletedDirectoryUpload.Builder,
+                                                           CompletedDirectoryUpload> {
     
-    private final Collection<FailedFileUpload> failedTransfers;
+    private final List<FailedFileUpload> failedTransfers;
 
     private CompletedDirectoryUpload(DefaultBuilder builder) {
-        this.failedTransfers = Collections.unmodifiableCollection(
-            Validate.paramNotNull(builder.failedTransfers, "failedTransfers"));
+        this.failedTransfers = Collections.unmodifiableList(
+            new ArrayList<>(Validate.paramNotNull(builder.failedTransfers, "failedTransfers")));
     }
     
     @Override
-    public Collection<FailedFileUpload> failedTransfers() {
+    public List<FailedFileUpload> failedTransfers() {
         return failedTransfers;
     }
 
@@ -83,7 +88,13 @@ public final class CompletedDirectoryUpload implements CompletedDirectoryTransfe
         return DefaultBuilder.class;
     }
 
-    public interface Builder {
+    @Override
+    public Builder toBuilder() {
+        return new DefaultBuilder(this);
+    }
+
+    public interface Builder extends CopyableBuilder<CompletedDirectoryUpload.Builder,
+        CompletedDirectoryUpload> {
 
         /**
          * Sets a collection of {@link FailedFileUpload}s
@@ -109,9 +120,13 @@ public final class CompletedDirectoryUpload implements CompletedDirectoryTransfe
     }
 
     private static final class DefaultBuilder implements Builder {
-        private Collection<FailedFileUpload> failedTransfers;
+        private Collection<FailedFileUpload> failedTransfers = new ArrayList<>();
 
         private DefaultBuilder() {
+        }
+
+        private DefaultBuilder(CompletedDirectoryUpload completedDirectoryUpload) {
+            this.failedTransfers = new ArrayList<>(completedDirectoryUpload.failedTransfers);
         }
 
         @Override
@@ -122,9 +137,6 @@ public final class CompletedDirectoryUpload implements CompletedDirectoryTransfe
 
         @Override
         public Builder addFailedTransfer(FailedFileUpload failedTransfer) {
-            if (failedTransfers == null) {
-                failedTransfers = new ArrayList<>();
-            }
             failedTransfers.add(failedTransfer);
             return this;
         }

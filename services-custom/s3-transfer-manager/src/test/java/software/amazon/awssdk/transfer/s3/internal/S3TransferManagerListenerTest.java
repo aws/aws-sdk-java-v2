@@ -17,7 +17,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
@@ -71,7 +71,8 @@ public class S3TransferManagerListenerTest {
     @BeforeEach
     public void methodSetup() {
         s3Crt = mock(S3CrtAsyncClient.class);
-        tm = new DefaultS3TransferManager(s3Crt, mock(UploadDirectoryHelper.class), mock(TransferManagerConfiguration.class));
+        tm = new DefaultS3TransferManager(s3Crt, mock(UploadDirectoryHelper.class), mock(TransferManagerConfiguration.class),
+                                          mock(DownloadDirectoryHelper.class));
         contentLength = 1024L;
         when(s3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
             .thenAnswer(drainPutRequestBody());
@@ -333,7 +334,7 @@ public class S3TransferManagerListenerTest {
 
     private static Answer<CompletableFuture<PutObjectResponse>> drainPutRequestBody() {
         return invocationOnMock -> {
-            AsyncRequestBody requestBody = invocationOnMock.getArgumentAt(1, AsyncRequestBody.class);
+            AsyncRequestBody requestBody = invocationOnMock.getArgument(1, AsyncRequestBody.class);
             CompletableFuture<PutObjectResponse> cf = new CompletableFuture<>();
             requestBody.subscribe(new DrainingSubscriber<ByteBuffer>() {
                 @Override
@@ -353,7 +354,7 @@ public class S3TransferManagerListenerTest {
     private static Answer<CompletableFuture<GetObjectResponse>> randomGetResponseBody(long contentLength) {
         return invocationOnMock -> {
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
-                invocationOnMock.getArgumentAt(1, AsyncResponseTransformer.class);
+                invocationOnMock.getArgument(1, AsyncResponseTransformer.class);
             CompletableFuture<GetObjectResponse> cf = responseTransformer.prepare();
             responseTransformer.onResponse(GetObjectResponse.builder()
                                                             .contentLength(contentLength)

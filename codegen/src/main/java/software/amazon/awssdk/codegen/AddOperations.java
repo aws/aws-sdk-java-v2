@@ -155,6 +155,7 @@ final class AddOperations {
 
             operationModel.setOperationName(operationName);
             operationModel.setDeprecated(op.isDeprecated());
+            operationModel.setDeprecatedMessage(op.getDeprecatedMessage());
             operationModel.setDocumentation(op.getDocumentation());
             operationModel.setIsAuthenticated(isAuthenticated(op));
             operationModel.setAuthType(op.getAuthtype());
@@ -163,6 +164,7 @@ final class AddOperations {
             operationModel.setEndpointDiscovery(op.getEndpointdiscovery());
             operationModel.setEndpointTrait(op.getEndpoint());
             operationModel.setHttpChecksumRequired(op.isHttpChecksumRequired());
+            operationModel.setHttpChecksum(op.getHttpChecksum());
 
             Input input = op.getInput();
             if (input != null) {

@@ -38,7 +38,7 @@ public class LazyTest {
 
     @Test
     public void delegateNotCalledOnCreation() {
-        Mockito.verifyZeroInteractions(mockDelegate);
+        Mockito.verifyNoMoreInteractions(mockDelegate);
     }
 
     @Test

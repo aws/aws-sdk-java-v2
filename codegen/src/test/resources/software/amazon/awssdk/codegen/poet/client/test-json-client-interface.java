@@ -17,8 +17,8 @@ import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputResponse;
-import software.amazon.awssdk.services.json.model.BearerAuthOperationRequest;
-import software.amazon.awssdk.services.json.model.BearerAuthOperationResponse;
+import software.amazon.awssdk.services.json.model.GetOperationWithChecksumRequest;
+import software.amazon.awssdk.services.json.model.GetOperationWithChecksumResponse;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
 import software.amazon.awssdk.services.json.model.InvalidInputException;
@@ -29,6 +29,8 @@ import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKe
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse;
+import software.amazon.awssdk.services.json.model.PutOperationWithChecksumRequest;
+import software.amazon.awssdk.services.json.model.PutOperationWithChecksumResponse;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingInputOutputOperationRequest;
@@ -90,7 +92,10 @@ public interface JsonClient extends SdkClient {
      * @sample JsonClient.APostOperation
      * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
+     *
+     * @deprecated This API is deprecated, use something else
      */
+    @Deprecated
     default APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
                                                                                                       AwsServiceException, SdkClientException, JsonException {
         throw new UnsupportedOperationException();
@@ -121,7 +126,10 @@ public interface JsonClient extends SdkClient {
      * @sample JsonClient.APostOperation
      * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
+     *
+     * @deprecated This API is deprecated, use something else
      */
+    @Deprecated
     default APostOperationResponse aPostOperation(Consumer<APostOperationRequest.Builder> aPostOperationRequest)
         throws InvalidInputException, AwsServiceException, SdkClientException, JsonException {
         return aPostOperation(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build());
@@ -188,10 +196,10 @@ public interface JsonClient extends SdkClient {
     }
 
     /**
-     * Invokes the BearerAuthOperation operation.
+     * Invokes the GetOperationWithChecksum operation.
      *
-     * @param bearerAuthOperationRequest
-     * @return Result of the BearerAuthOperation operation returned by the service.
+     * @param getOperationWithChecksumRequest
+     * @return Result of the GetOperationWithChecksum operation returned by the service.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
@@ -199,26 +207,26 @@ public interface JsonClient extends SdkClient {
      *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
-     * @sample JsonClient.BearerAuthOperation
-     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/BearerAuthOperation"
+     * @sample JsonClient.GetOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetOperationWithChecksum"
      *      target="_top">AWS API Documentation</a>
      */
-    default BearerAuthOperationResponse bearerAuthOperation(BearerAuthOperationRequest bearerAuthOperationRequest)
-        throws AwsServiceException, SdkClientException, JsonException {
+    default GetOperationWithChecksumResponse getOperationWithChecksum(
+        GetOperationWithChecksumRequest getOperationWithChecksumRequest) throws AwsServiceException, SdkClientException,
+                                                                                JsonException {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Invokes the BearerAuthOperation operation.<br/>
+     * Invokes the GetOperationWithChecksum operation.<br/>
      * <p>
-     * This is a convenience which creates an instance of the {@link BearerAuthOperationRequest.Builder} avoiding the
-     * need to create one manually via {@link BearerAuthOperationRequest#builder()}
+     * This is a convenience which creates an instance of the {@link GetOperationWithChecksumRequest.Builder} avoiding
+     * the need to create one manually via {@link GetOperationWithChecksumRequest#builder()}
      * </p>
      *
-     * @param bearerAuthOperationRequest
-     *        A {@link Consumer} that will call methods on {@link BearerAuthOperationRequest.Builder} to create a
-     *        request.
-     * @return Result of the BearerAuthOperation operation returned by the service.
+     * @param getOperationWithChecksumRequest
+     *        A {@link Consumer} that will call methods on {@link ChecksumStructure.Builder} to create a request.
+     * @return Result of the GetOperationWithChecksum operation returned by the service.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
@@ -226,14 +234,15 @@ public interface JsonClient extends SdkClient {
      *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
-     * @sample JsonClient.BearerAuthOperation
-     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/BearerAuthOperation"
+     * @sample JsonClient.GetOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetOperationWithChecksum"
      *      target="_top">AWS API Documentation</a>
      */
-    default BearerAuthOperationResponse bearerAuthOperation(
-        Consumer<BearerAuthOperationRequest.Builder> bearerAuthOperationRequest) throws AwsServiceException,
-                                                                                        SdkClientException, JsonException {
-        return bearerAuthOperation(BearerAuthOperationRequest.builder().applyMutation(bearerAuthOperationRequest).build());
+    default GetOperationWithChecksumResponse getOperationWithChecksum(
+        Consumer<GetOperationWithChecksumRequest.Builder> getOperationWithChecksumRequest) throws AwsServiceException,
+                                                                                                  SdkClientException, JsonException {
+        return getOperationWithChecksum(GetOperationWithChecksumRequest.builder().applyMutation(getOperationWithChecksumRequest)
+                                                                       .build());
     }
 
     /**
@@ -866,6 +875,200 @@ public interface JsonClient extends SdkClient {
         throws AwsServiceException, SdkClientException, JsonException {
         return paginatedOperationWithoutResultKeyPaginator(PaginatedOperationWithoutResultKeyRequest.builder()
                                                                                                     .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
+    }
+
+    /**
+     * Invokes the PutOperationWithChecksum operation.
+     *
+     * @param putOperationWithChecksumRequest
+     * @param requestBody
+     *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
+     *        methods for various sources of data. For example, to create a request body from a file you can do the
+     *        following.
+     *
+     *        <pre>
+     * {@code RequestBody.fromFile(new File("myfile.txt"))}
+     * </pre>
+     *
+     *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
+     *        The service documentation for the request content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '
+     * @param responseTransformer
+     *        Functional interface for processing the streamed response content. The unmarshalled
+     *        PutOperationWithChecksumResponse and an InputStream to the response content are provided as parameters to
+     *        the callback. The callback may return a transformed type which will be the return value of this method.
+     *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
+     *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
+     *        service documentation for the response content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '.
+     * @return The transformed result of the ResponseTransformer.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.PutOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PutOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default <ReturnT> ReturnT putOperationWithChecksum(PutOperationWithChecksumRequest putOperationWithChecksumRequest,
+                                                       RequestBody requestBody, ResponseTransformer<PutOperationWithChecksumResponse, ReturnT> responseTransformer)
+        throws AwsServiceException, SdkClientException, JsonException {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Invokes the PutOperationWithChecksum operation.<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link PutOperationWithChecksumRequest.Builder} avoiding
+     * the need to create one manually via {@link PutOperationWithChecksumRequest#builder()}
+     * </p>
+     *
+     * @param putOperationWithChecksumRequest
+     *        A {@link Consumer} that will call methods on {@link ChecksumStructureWithStreaming.Builder} to create a
+     *        request.
+     * @param requestBody
+     *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
+     *        methods for various sources of data. For example, to create a request body from a file you can do the
+     *        following.
+     *
+     *        <pre>
+     * {@code RequestBody.fromFile(new File("myfile.txt"))}
+     * </pre>
+     *
+     *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
+     *        The service documentation for the request content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '
+     * @param responseTransformer
+     *        Functional interface for processing the streamed response content. The unmarshalled
+     *        PutOperationWithChecksumResponse and an InputStream to the response content are provided as parameters to
+     *        the callback. The callback may return a transformed type which will be the return value of this method.
+     *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
+     *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
+     *        service documentation for the response content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '.
+     * @return The transformed result of the ResponseTransformer.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.PutOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PutOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default <ReturnT> ReturnT putOperationWithChecksum(
+        Consumer<PutOperationWithChecksumRequest.Builder> putOperationWithChecksumRequest, RequestBody requestBody,
+        ResponseTransformer<PutOperationWithChecksumResponse, ReturnT> responseTransformer) throws AwsServiceException,
+                                                                                                   SdkClientException, JsonException {
+        return putOperationWithChecksum(PutOperationWithChecksumRequest.builder().applyMutation(putOperationWithChecksumRequest)
+                                                                       .build(), requestBody, responseTransformer);
+    }
+
+    /**
+     * Invokes the PutOperationWithChecksum operation.
+     *
+     * @param putOperationWithChecksumRequest
+     * @param sourcePath
+     *        {@link Path} to file containing data to send to the service. File will be read entirely and may be read
+     *        multiple times in the event of a retry. If the file does not exist or the current user does not have
+     *        access to read it then an exception will be thrown. The service documentation for the request content is
+     *        as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '
+     * @param destinationPath
+     *        {@link Path} to file that response contents will be written to. The file must not exist or this method
+     *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
+     *        The service documentation for the response content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '.
+     * @return The transformed result of the ResponseTransformer.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.PutOperationWithChecksum
+     * @see #putOperationWithChecksum(PutOperationWithChecksumRequest, RequestBody)
+     * @see #putOperationWithChecksum(PutOperationWithChecksumRequest, ResponseTransformer)
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PutOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default PutOperationWithChecksumResponse putOperationWithChecksum(
+        PutOperationWithChecksumRequest putOperationWithChecksumRequest, Path sourcePath, Path destinationPath)
+        throws AwsServiceException, SdkClientException, JsonException {
+        return putOperationWithChecksum(putOperationWithChecksumRequest, RequestBody.fromFile(sourcePath),
+                                        ResponseTransformer.toFile(destinationPath));
+    }
+
+    /**
+     * Invokes the PutOperationWithChecksum operation.<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link PutOperationWithChecksumRequest.Builder} avoiding
+     * the need to create one manually via {@link PutOperationWithChecksumRequest#builder()}
+     * </p>
+     *
+     * @param putOperationWithChecksumRequest
+     *        A {@link Consumer} that will call methods on {@link ChecksumStructureWithStreaming.Builder} to create a
+     *        request.
+     * @param sourcePath
+     *        {@link Path} to file containing data to send to the service. File will be read entirely and may be read
+     *        multiple times in the event of a retry. If the file does not exist or the current user does not have
+     *        access to read it then an exception will be thrown. The service documentation for the request content is
+     *        as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '
+     * @param destinationPath
+     *        {@link Path} to file that response contents will be written to. The file must not exist or this method
+     *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
+     *        The service documentation for the response content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '.
+     * @return The transformed result of the ResponseTransformer.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.PutOperationWithChecksum
+     * @see #putOperationWithChecksum(PutOperationWithChecksumRequest, RequestBody)
+     * @see #putOperationWithChecksum(PutOperationWithChecksumRequest, ResponseTransformer)
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PutOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default PutOperationWithChecksumResponse putOperationWithChecksum(
+        Consumer<PutOperationWithChecksumRequest.Builder> putOperationWithChecksumRequest, Path sourcePath,
+        Path destinationPath) throws AwsServiceException, SdkClientException, JsonException {
+        return putOperationWithChecksum(PutOperationWithChecksumRequest.builder().applyMutation(putOperationWithChecksumRequest)
+                                                                       .build(), sourcePath, destinationPath);
     }
 
     /**

@@ -165,7 +165,9 @@ public interface ProtocolSpec {
                              + "         runAndLogError(log, \"Exception thrown in exceptionOccurred callback, ignoring\", () "
                              + "-> %s.exceptionOccurred(e));%n"
                              + "     }%n"
-                             + "%s"
+                             + "     endOfStreamFuture.whenComplete((r2, e2) -> {%n"
+                             + "         %s%n"
+                             + "     });"
                              + "})", responseHandlerName, publishMetrics());
 
     }

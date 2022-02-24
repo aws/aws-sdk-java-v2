@@ -86,7 +86,8 @@ import software.amazon.awssdk.utils.Validate;
 public interface S3TransferManager extends SdkAutoCloseable {
 
     /**
-     * Download an object identified by the bucket and key from S3 to the given file.
+     * Download an object identified by the bucket and key from S3 to a local file. For non-file-based downloads, you may use
+     * {@link #download(DownloadRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
      * <pre>
@@ -118,7 +119,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}.
+     * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}. For 
+     * downloading to a file, you may use {@link #downloadFile(DownloadFileRequest)} instead.
      * <p>
      * <b>Usage Example (this example buffers the entire object in memory and is not suitable for large objects):</b>
      * <pre>
@@ -155,7 +157,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Upload a file to S3.
+     * Upload a local file to an object in S3. For non-file-based uploads, you may use {@link #upload(UploadRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
      * <pre>
@@ -186,7 +188,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Upload an {@link AsyncRequestBody} to S3.
+     * Upload the given {@link AsyncRequestBody} to an object in S3. For file-based uploads, you may use
+     * {@link #uploadFile(UploadFileRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
      * <pre>
@@ -274,6 +277,88 @@ public interface S3TransferManager extends SdkAutoCloseable {
     default DirectoryUpload uploadDirectory(Consumer<UploadDirectoryRequest.Builder> requestBuilder) {
         Validate.paramNotNull(requestBuilder, "requestBuilder");
         return uploadDirectory(UploadDirectoryRequest.builder().applyMutation(requestBuilder).build());
+    }
+
+    /**
+     * Download all objects under a specific prefix and bucket to the provided directory. By default, all objects in the entire
+     * bucket will be downloaded.
+     *
+     * <p>
+     * The downloaded directory structure will match with the provided S3 virtual bucket.
+     * For example, assume that you have the following keys in your bucket:
+     * <ul>
+     *     <li>sample.jpg</li>
+     *     <li>photos/2022/January/sample.jpg</li>
+     *     <li>photos/2022/February/sample1.jpg</li>
+     *     <li>photos/2022/February/sample2.jpg</li>
+     *     <li>photos/2022/February/sample3.jpg</li>
+     * </ul>
+     * Give a request to download the bucket to a destination with path of "/test", the downloaded directory would look like this
+     *
+     * <pre>
+     *   {@code
+     *      |- test
+     *         |- sample.jpg
+     *         |- photos
+     *             |- 2022
+     *                 |- January
+     *                     |- sample.jpg
+     *                 |- February
+     *                     |- sample1.jpg
+     *                     |- sample2.jpg
+     *                     |- sample3.jpg
+     *   }
+     * </pre>
+     * <p>
+     * The returned {@link CompletableFuture} only completes exceptionally if the request cannot be attempted as a whole (the
+     * downloadDirectoryRequest is invalid for example). The future completes successfully for partial successful
+     * requests, i.e., there might be failed downloads in a successfully completed response. As a result, you should check for
+     * errors in the response via {@link CompletedDirectoryDownload#failedTransfers()} even when the future completes
+     * successfully.
+     *
+     * <p>
+     * The SDK will create the destination directory if it does not already exist. If a specific file
+     * already exists, the corresponding transfer will fail, and it will be added to the
+     * {@link CompletedDirectoryDownload#failedTransfers()}.
+     *
+     * <p>
+     * The current user must have write access to all directories and files
+     *
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * DirectoryDownload directoryDownload =
+     *       transferManager.downloadDirectory(DownloadDirectoryRequest.builder()
+     *                                                                 .destinationDirectory(Paths.get("."))
+     *                                                                 .bucket("bucket")
+     *                                                                 .prefix("prefix")
+     *                                                                 .build());
+     * // Wait for the transfer to complete
+     * CompletedDirectoryDownload completedDirectoryDownload = directoryDownload.completionFuture().join();
+     *
+     * // Print out the failed downloads
+     * completedDirectoryDownload.failedTransfers().forEach(System.out::println);
+     *
+     * }
+     * </pre>
+     *
+     * @param downloadDirectoryRequest the download directory request
+     * @see #downloadDirectory(Consumer)
+     */
+    default DirectoryDownload downloadDirectory(DownloadDirectoryRequest downloadDirectoryRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link DownloadDirectoryRequest} builder, avoiding the need to
+     * create one manually via {@link DownloadDirectoryRequest#builder()}.
+     *
+     * @see #downloadDirectory(DownloadDirectoryRequest)
+     */
+    default DirectoryDownload downloadDirectory(Consumer<DownloadDirectoryRequest.Builder> requestBuilder) {
+        Validate.paramNotNull(requestBuilder, "requestBuilder");
+        return downloadDirectory(DownloadDirectoryRequest.builder().applyMutation(requestBuilder).build());
     }
 
     /**
