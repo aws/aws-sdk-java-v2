@@ -37,7 +37,7 @@ public class LazyTokenProviderTest {
     @Test
     public void creationDoesntInvokeSupplier() {
         LazyTokenProvider.create(credentialsConstructor);
-        Mockito.verifyZeroInteractions(credentialsConstructor);
+        Mockito.verifyNoMoreInteractions(credentialsConstructor);
     }
 
     @Test

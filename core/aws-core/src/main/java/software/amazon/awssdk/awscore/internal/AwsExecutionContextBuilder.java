@@ -18,14 +18,14 @@ package software.amazon.awssdk.awscore.internal;
 import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResolver.resolveSigningMethodUsed;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 
-import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy;
+import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategyFactory;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -42,10 +42,8 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
-import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class AwsExecutionContextBuilder {
@@ -109,20 +107,21 @@ public final class AwsExecutionContextBuilder {
         interceptorContext = runInitialInterceptors(interceptorContext, executionAttributes, executionInterceptorChain);
         Signer signer = resolveSigner(interceptorContext.request(), clientConfig.option(SdkAdvancedClientOption.SIGNER));
 
-        // beforeExecution and modifyRequest interceptors should avoid dependency on credentials,
-        // since they should be resolved after the interceptors run
-        AwsCredentials credentials = resolveCredentials(clientConfig.option(AwsClientOption.CREDENTIALS_PROVIDER),
-                                                        originalRequest,
-                                                        metricCollector);
-        executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials);
+        AuthorizationStrategyFactory authorizationStrategyFactory =
+            new AuthorizationStrategyFactory(interceptorContext.request(), metricCollector, clientConfig);
+        AuthorizationStrategy authorizationStrategy = authorizationStrategyFactory.strategyFor(executionParams.credentialType());
+        authorizationStrategy.addCredentialsToExecutionAttributes(executionAttributes);
+
         executionAttributes.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
-                                         resolveSigningMethodUsed(signer, executionAttributes, credentials));
+                                         resolveSigningMethodUsed(
+                                             signer, executionAttributes, executionAttributes.getOptionalAttribute(
+                                                 AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null)));
 
         return ExecutionContext.builder()
                                .interceptorChain(executionInterceptorChain)
                                .interceptorContext(interceptorContext)
                                .executionAttributes(executionAttributes)
-                               .signer(signer)
+                               .signer(authorizationStrategy.resolveSigner())
                                .metricCollector(metricCollector)
                                .build();
     }
@@ -168,21 +167,6 @@ public final class AwsExecutionContextBuilder {
         return executionInterceptorChain.modifyRequest(interceptorContext, executionAttributes);
     }
 
-    private static AwsCredentials resolveCredentials(AwsCredentialsProvider clientCredentials,
-                                                     SdkRequest originalRequest,
-                                                     MetricCollector metricCollector) {
-
-        AwsCredentialsProvider credentialsProvider = resolveCredentialsProvider(originalRequest, clientCredentials);
-        long credentialsResolveStart = System.nanoTime();
-
-        AwsCredentials credentials = credentialsProvider.resolveCredentials();
-
-        Duration fetchDuration = Duration.ofNanos(System.nanoTime() - credentialsResolveStart);
-        metricCollector.reportMetric(CoreMetric.CREDENTIALS_FETCH_DURATION, fetchDuration);
-
-        Validate.validState(credentials != null, "Credential providers must never return null.");
-        return credentials;
-    }
 
     private static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionAttributes mergeExecutionAttributeOverrides(
         ExecutionAttributes executionAttributes,

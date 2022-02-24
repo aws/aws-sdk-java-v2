@@ -2,10 +2,14 @@ package software.amazon.awssdk.services.xml;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -19,6 +23,7 @@ import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -31,6 +36,8 @@ import software.amazon.awssdk.services.xml.model.APostOperationRequest;
 import software.amazon.awssdk.services.xml.model.APostOperationResponse;
 import software.amazon.awssdk.services.xml.model.APostOperationWithOutputRequest;
 import software.amazon.awssdk.services.xml.model.APostOperationWithOutputResponse;
+import software.amazon.awssdk.services.xml.model.BearerAuthOperationRequest;
+import software.amazon.awssdk.services.xml.model.BearerAuthOperationResponse;
 import software.amazon.awssdk.services.xml.model.GetOperationWithChecksumRequest;
 import software.amazon.awssdk.services.xml.model.GetOperationWithChecksumResponse;
 import software.amazon.awssdk.services.xml.model.InvalidInputException;
@@ -45,6 +52,7 @@ import software.amazon.awssdk.services.xml.model.StreamingOutputOperationRespons
 import software.amazon.awssdk.services.xml.model.XmlException;
 import software.amazon.awssdk.services.xml.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.APostOperationWithOutputRequestMarshaller;
+import software.amazon.awssdk.services.xml.transform.BearerAuthOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.GetOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.PutOperationWithChecksumRequestMarshaller;
@@ -165,6 +173,49 @@ final class DefaultXmlClient implements XmlClient {
                              .withOperationName("APostOperationWithOutput").withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector).withInput(aPostOperationWithOutputRequest)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    /**
+     * Invokes the BearerAuthOperation operation.
+     *
+     * @param bearerAuthOperationRequest
+     * @return Result of the BearerAuthOperation operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws XmlException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample XmlClient.BearerAuthOperation
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/xml-service-2010-05-08/BearerAuthOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public BearerAuthOperationResponse bearerAuthOperation(BearerAuthOperationRequest bearerAuthOperationRequest)
+        throws AwsServiceException, SdkClientException, XmlException {
+        bearerAuthOperationRequest = applySignerOverride(bearerAuthOperationRequest, BearerTokenSigner.create());
+
+        HttpResponseHandler<Response<BearerAuthOperationResponse>> responseHandler = protocolFactory
+            .createCombinedResponseHandler(BearerAuthOperationResponse::builder,
+                                           new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, bearerAuthOperationRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "BearerAuthOperation");
+
+            return clientHandler.execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
+                                             .withOperationName("BearerAuthOperation").withCombinedResponseHandler(responseHandler)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .credentialType(CredentialType.TOKEN)
+                                             .withInput(bearerAuthOperationRequest)
+                                             .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -483,5 +534,16 @@ final class DefaultXmlClient implements XmlClient {
     @Override
     public void close() {
         clientHandler.close();
+    }
+
+    private <T extends XmlRequest> T applySignerOverride(T request, Signer signer) {
+        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
+            return request;
+        }
+        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
+        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
+                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
+                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
+        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 }

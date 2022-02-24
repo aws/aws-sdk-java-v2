@@ -43,6 +43,17 @@
       "deprecatedMessage": "This API is deprecated, use something else",
       "documentation": "<p>Performs a post operation to the query service and has no output</p>"
     },
+    "BearerAuthOperation": {
+      "name": "BearerAuthOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "BearerAuthOperationRequest"
+      },
+      "authtype": "bearer"
+    },
     "GetWithoutRequiredMembers": {
       "name": "GetWithoutRequiredMembers",
       "http": {
@@ -572,6 +583,11 @@
         }
       },
       "payload":"stringMember"
+    },
+    "BearerAuthOperationRequest": {
+      "type": "structure",
+      "members": {
+      }
     }
   },
   "documentation": "A service that is implemented using the query protocol"
