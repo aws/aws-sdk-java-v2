@@ -20,9 +20,11 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.utils.UserHomeDirectoryUtils.userHomeDirectory;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
@@ -56,10 +58,22 @@ public abstract class SsoOidcTokenRefreshTestBase {
     protected String baseTokenResourceFile;
     protected ProfileTokenProviderLoader profileTokenProviderLoader;
 
+    private static final Path DEFAULT_TOKEN_LOCATION = Paths.get(userHomeDirectory(), ".aws", "sso", "cache");
+
+
+
     @BeforeEach
     public void setUp() throws IOException {
         initializeClient();
         initializeProfileProperties();
+        Path file = DEFAULT_TOKEN_LOCATION.resolve("2a98d44240ff87dab31d336d288f9aadcbac7fa3.json").getFileName();
+        try {
+            Files.createDirectories(file.getParent());
+            Files.createFile(file);
+        }catch (Exception e){
+
+        }
+
     }
 
     protected abstract void initializeClient();
