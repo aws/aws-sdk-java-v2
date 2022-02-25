@@ -95,10 +95,10 @@ public class TlsHandshakeFailureClientTest {
         for (String tlsVersion : versionsToTest()) {
             testCases.add(new TestCase(tlsVersion,
                                        TlsSetupFailTime.BEFORE_HANDSHAKE, IOException.class,
-                                       "Failed TLS connection setup."));
+                                       "Failed TLS connection setup"));
             testCases.add(new TestCase(tlsVersion,
                                        TlsSetupFailTime.DURING_HANDSHAKE, IOException.class,
-                                       "Failed TLS connection setup."));
+                                       "Failed TLS connection setup"));
             testCases.add(new TestCase(tlsVersion, TlsSetupFailTime.NEVER, null, null));
         }
 

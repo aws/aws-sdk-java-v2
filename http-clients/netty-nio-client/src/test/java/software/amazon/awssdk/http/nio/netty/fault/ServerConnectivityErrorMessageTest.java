@@ -83,9 +83,9 @@ public class ServerConnectivityErrorMessageTest {
     private Server server;
 
     public static Collection<TestCase> testCases() {
-        return Arrays.asList(new TestCase(CloseTime.DURING_INIT, "Failed TLS connection setup."),
-                             new TestCase(CloseTime.BEFORE_SSL_HANDSHAKE, "Failed TLS connection setup."),
-                             new TestCase(CloseTime.DURING_SSL_HANDSHAKE, "Failed TLS connection setup."),
+        return Arrays.asList(new TestCase(CloseTime.DURING_INIT, "Failed TLS connection setup"),
+                             new TestCase(CloseTime.BEFORE_SSL_HANDSHAKE, "Failed TLS connection setup"),
+                             new TestCase(CloseTime.DURING_SSL_HANDSHAKE, "Failed TLS connection setup"),
                              new TestCase(CloseTime.BEFORE_REQUEST_PAYLOAD, "The connection was closed during the request."),
                              new TestCase(CloseTime.DURING_REQUEST_PAYLOAD, "The connection was closed during the request."),
                              new TestCase(CloseTime.BEFORE_RESPONSE_HEADERS, "The connection was closed during the request."),

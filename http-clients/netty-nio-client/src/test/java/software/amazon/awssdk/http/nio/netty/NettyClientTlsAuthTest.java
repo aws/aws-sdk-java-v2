@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.nio.netty;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static org.assertj.core.api.Assertions.anyOf;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.mockito.Mockito.mock;
@@ -28,6 +29,9 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.io.IOException;
 import java.util.concurrent.CompletionException;
+import javax.net.ssl.SSLException;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Condition;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -179,6 +183,9 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
 
         // Jetty (client used by WireMock) will use the JDK default TLS version, which will affect what the error message
         // contains.
+        // This test is racy with TLSv1.3 because the handshake gets completed before the client certs are actually checked:
+        // https://github.com/netty/netty/issues/10502#issuecomment-696114067. So depending on when the future gets completed,
+        // we may see different errors.
         String expectedMessage;
         if (jdkVersion() >= 11) {
             expectedMessage = "The connection was closed during the request.";
@@ -188,8 +195,15 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
 
         assertThatThrownBy(() -> HttpTestUtils.sendGetRequest(mockProxy.httpsPort(), netty).join())
             .isInstanceOf(CompletionException.class)
-            .hasRootCauseInstanceOf(IOException.class)
-            .hasMessageContaining(expectedMessage);
+            .has(anyOf(
+                new Condition<Throwable>(t -> t.getCause() instanceof SSLException && t.getCause()
+                                                                                       .getMessage()
+                                                                                       .contains("BAD_CERT"),
+                                         "Expected SSL Bad Cert"),
+                new Condition<Throwable>(t -> t.getCause() instanceof IOException && t.getCause()
+                                                                                      .getMessage()
+                                                                                      .contains(expectedMessage),
+                                         "Expected correct exception")));
     }
 
     private void sendRequest(SdkAsyncHttpClient client, SdkAsyncHttpResponseHandler responseHandler) {
