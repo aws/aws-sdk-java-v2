@@ -190,7 +190,7 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
         if (jdkVersion() >= 11) {
             expectedMessage = "The connection was closed during the request.";
         } else {
-            expectedMessage = "Failed TLS connection setup.";
+            expectedMessage = "Failed TLS connection setup";
         }
 
         assertThatThrownBy(() -> HttpTestUtils.sendGetRequest(mockProxy.httpsPort(), netty).join())
@@ -203,7 +203,7 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
                 new Condition<Throwable>(t -> t.getCause() instanceof IOException && t.getCause()
                                                                                       .getMessage()
                                                                                       .contains(expectedMessage),
-                                         "Expected correct exception")));
+                                         "Expected correct exception: " + expectedMessage)));
     }
 
     private void sendRequest(SdkAsyncHttpClient client, SdkAsyncHttpResponseHandler responseHandler) {
