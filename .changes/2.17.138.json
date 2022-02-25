@@ -1,0 +1,24 @@
+{
+    "version": "2.17.138",
+    "date": "2022-02-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Panorama",
+            "contributor": "",
+            "description": "Added NTP server configuration parameter to ProvisionDevice operation. Added alternate software fields to DescribeDevice response"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Doc only update for ElastiCache"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

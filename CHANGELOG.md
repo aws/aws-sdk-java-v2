@@ -1,3 +1,16 @@
+# __2.17.138__ __2022-02-25__
+## __AWS Panorama__
+  - ### Features
+    - Added NTP server configuration parameter to ProvisionDevice operation. Added alternate software fields to DescribeDevice response
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Doc only update for ElastiCache
+
 # __2.17.137__ __2022-02-24__
 ## __AWS Glue DataBrew__
   - ### Features
