@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Panorama",
-    "contributor": "",
-    "description": "Added NTP server configuration parameter to ProvisionDevice operation. Added alternate software fields to DescribeDevice response"
-}
