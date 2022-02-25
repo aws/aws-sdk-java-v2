@@ -53,6 +53,7 @@ public class HttpTestUtils {
                                       .dynamicHttpsPort()
                                       .keystorePath(selfSignedJks.toString())
                                       .keystorePassword("changeit")
+                                      .keyManagerPassword("changeit")
                                       .keystoreType("jks")
         );
     }
