@@ -103,7 +103,7 @@ public class TlsHandshakeEnsuringChannelPool implements ChannelPool {
                 LOGGER.debug(channel, () -> "Failed TLS connection setup. Channel will be closed.", handshake.cause());
                 channel.close();
                 delegate.release(channel);
-                IOException error = new IOException("Failed TLS connection setup.", handshake.cause());
+                IOException error = new IOException("Failed TLS connection setup: " + channel, handshake.cause());
                 promise.tryFailure(error);
             }
         });

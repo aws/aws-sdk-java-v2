@@ -28,8 +28,6 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.io.IOException;
 import java.util.concurrent.CompletionException;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -77,7 +75,6 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
         mockProxy = new WireMockServer(new WireMockConfiguration()
                 .dynamicHttpsPort()
                 .needClientAuth(true)
-
                 .keystorePath(serverKeyStore.toAbsolutePath().toString())
                 .keystorePassword(STORE_PASSWORD));
 
