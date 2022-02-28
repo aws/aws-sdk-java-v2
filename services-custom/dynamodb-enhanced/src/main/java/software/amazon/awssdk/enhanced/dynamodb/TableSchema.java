@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.internal.JsonItemTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPreserveEmptyObject;
+import software.amazon.awssdk.enhanced.dynamodb.model.JsonItem;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -79,6 +81,16 @@ public interface TableSchema<T> {
      */
     static <T> BeanTableSchema<T> fromBean(Class<T> beanClass) {
         return BeanTableSchema.create(beanClass);
+    }
+
+    /**
+     * Returns implementation of {@link JsonItemTableSchema} which supports DDB operation with Json string inputs and Outputs
+     * @param tableMetadata Implementation {@link TableMetadata} which specifies the partition key value and sort key of the
+     *                      table.
+     * @return An initialized {@link JsonItemTableSchema}.
+     */
+    static TableSchema<JsonItem> withDocumentSchema(TableMetadata tableMetadata) {
+        return JsonItemTableSchema.builder().tableMetadata(tableMetadata).build();
     }
 
     /**
