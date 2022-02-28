@@ -1,3 +1,44 @@
+# __2.17.139__ __2022-02-28__
+## __AWS Amplify__
+  - ### Features
+    - Add repositoryCloneMethod field for hosting an Amplify app. This field shows what authorization method is used to clone the repo: SSH, TOKEN, or SIGV4.
+
+## __AWS Amplify UI Builder__
+  - ### Features
+    - We are adding the ability to configure workflows and actions for components.
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - This release adds logging support for AWS Fault Injection Simulator experiments. Experiment templates can now be configured to send experiment activity logs to Amazon CloudWatch Logs or to an S3 bucket.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - AppRegistry is deprecating Application and Attribute-Group Name update feature. In this release, we are marking the name attributes for Update APIs as deprecated to give a heads up to our customers.
+
+## __Amazon Athena__
+  - ### Features
+    - This release adds support for updating an existing named query.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for new AMI property 'lastLaunchedTime'
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for the following FSx for OpenZFS features: snapshot lifecycle transition messages, force flag for deleting file systems with child resources, LZ4 data compression, custom record sizes, and unsetting volume quotas and reservations.
+
+## __FinSpace Public API__
+  - ### Features
+    - Add new APIs for managing Users and Permission Groups.
+
+## __Route53 Recovery Cluster__
+  - ### Features
+    - This release adds a new API option to enable overriding safety rules to allow routing control state updates.
+
 # __2.17.138__ __2022-02-25__
 ## __AWS Panorama__
   - ### Features
