@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Athena",
+    "contributor": "",
+    "description": "This release adds support for updating an existing named query."
+}
