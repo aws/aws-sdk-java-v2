@@ -120,4 +120,10 @@ public class PoetClientFunctionalTests {
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-sync.java"));
     }
 
+    @Test
+    public void syncClientInterfaceClientExtensions() throws Exception {
+        ClassSpec syncClientInterface = new SyncClientInterface(ClientTestModels.clientExtensionModels());
+        assertThat(syncClientInterface, generatesTo("test-clientextensions-sync-interface.java"));
+    }
+
 }

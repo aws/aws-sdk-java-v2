@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -92,6 +93,9 @@ public final class SyncClientInterface implements ClassSpec {
                                   .addJavadoc("Value for looking up the service's metadata from the {@link $T}.",
                                               ServiceMetadataProvider.class)
                                   .build());
+
+        Optional<Class<?>> extensionClass = PoetUtils.findExtensionInterface(className, getClass());
+        extensionClass.ifPresent(result::addSuperinterface);
 
         PoetUtils.addJavadoc(result::addJavadoc, getJavadoc());
 
