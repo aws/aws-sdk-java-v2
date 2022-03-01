@@ -58,7 +58,7 @@ None
   client configuration objects. 
 * [Optional Usage](UseOfOptional.md) - Conventions governing the use of
   [java.util.Optional](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html).
-* [Completable Future Usage](UseOfCompletableFuture.java) - Conventions
+* [Completable Future Usage](UseOfCompletableFuture.md) - Conventions
   governing the use of
   [java.util.concurrent.CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html).
 
