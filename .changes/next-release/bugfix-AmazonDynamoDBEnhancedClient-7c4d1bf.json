@@ -1,0 +1,6 @@
+{
+    "category": "Amazon DynamoDB Enhanced Client", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Bugfix for handling attribute names with `+` character"
+}
