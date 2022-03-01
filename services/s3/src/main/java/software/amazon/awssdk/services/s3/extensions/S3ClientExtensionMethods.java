@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.extensions;
 
+import software.amazon.awssdk.annotations.SdkExtensionMethod;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
@@ -36,6 +37,7 @@ public interface S3ClientExtensionMethods {
      * @return true if the bucket exists and you have permission to access it; false if the bucket does not exist
      * @throws S3Exception if the bucket exists but is not accessible
      */
+    @SdkExtensionMethod
     default boolean doesBucketExist(String bucketName) {
         Validate.notNull(bucketName, "bucketName");
         S3Client s3Client = (S3Client) this;
