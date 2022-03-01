@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Managed Streaming for Kafka Connect",
+    "contributor": "",
+    "description": "Adds operation for custom plugin deletion (DeleteCustomPlugin) and adds new StateDescription field to DescribeCustomPlugin and DescribeConnector responses to return errors from asynchronous resource creation."
+}
