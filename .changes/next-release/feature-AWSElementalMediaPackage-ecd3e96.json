@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaPackage",
-    "contributor": "",
-    "description": "This release adds Hybridcast as an available profile option for Dash Origin Endpoints."
-}
