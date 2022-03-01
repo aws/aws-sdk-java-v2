@@ -26,13 +26,16 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.codegen.model.intermediate.DocumentationModel;
 import software.amazon.awssdk.codegen.model.intermediate.HasDeprecation;
+import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 
 public final class PoetUtils {
+
     private static final AnnotationSpec GENERATED = AnnotationSpec.builder(Generated.class)
                                                                   .addMember("value", "$S", "software.amazon.awssdk:codegen")
                                                                   .build();
@@ -109,4 +112,18 @@ public final class PoetUtils {
         return builder.build();
     }
 
+    public static Optional<Class<?>> findExtensionInterface(ClassName clientInterfaceName, Class<?> classLoaderClass) {
+        String extensionClassName = String.format("%sExtensionMethods", clientInterfaceName.canonicalName());
+        try {
+            Class<?> extensionClass = ClassLoaderHelper.loadClass(extensionClassName, classLoaderClass);
+            if (extensionClass.isInterface()) {
+                return Optional.of(extensionClass);
+            }
+            throw new IllegalStateException("Loaded class, but it is not an interface: " + extensionClassName + ".");
+        } catch (ClassNotFoundException e) {
+            return Optional.empty();
+        } catch (NoClassDefFoundError e) {
+            throw new IllegalStateException("Failed to load extension " + extensionClassName + ".", e);
+        }
+    }
 }
