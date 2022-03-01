@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.poet;
 
+import static software.amazon.awssdk.utils.StringUtils.isEmpty;
 import static software.amazon.awssdk.utils.StringUtils.isNotBlank;
 
 import com.squareup.javapoet.AnnotationSpec;
@@ -29,12 +30,16 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.DocumentationModel;
 import software.amazon.awssdk.codegen.model.intermediate.HasDeprecation;
-import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 
 public final class PoetUtils {
+
+    private static final Logger log = LoggerFactory.getLogger(PoetUtils.class);
 
     private static final AnnotationSpec GENERATED = AnnotationSpec.builder(Generated.class)
                                                                   .addMember("value", "$S", "software.amazon.awssdk:codegen")
@@ -112,18 +117,21 @@ public final class PoetUtils {
         return builder.build();
     }
 
-    public static Optional<Class<?>> findExtensionInterface(ClassName clientInterfaceName, Class<?> classLoaderClass) {
-        String extensionClassName = String.format("%sExtensionMethods", clientInterfaceName.canonicalName());
-        try {
-            Class<?> extensionClass = ClassLoaderHelper.loadClass(extensionClassName, classLoaderClass);
-            if (extensionClass.isInterface()) {
-                return Optional.of(extensionClass);
+    public static Optional<ClassName> findExtensionInterface(ClassName clientInterfaceName,
+                                                             CustomizationConfig customizationConfig) {
+        String extensionInterfaceFqcn = customizationConfig.getExtensionInterface();
+
+        if (!isEmpty(extensionInterfaceFqcn)) {
+            ClassName interfaceName = classNameFromFqcn(extensionInterfaceFqcn);
+            log.info(String.format("Found client extension interface %s.", interfaceName));
+            if (!interfaceName.packageName().contains(clientInterfaceName.packageName())) {
+                throw new IllegalArgumentException(
+                    String.format("Extension interface package is not part of service client package. "
+                                  + "Client package: %s. Extension interface package: %s",
+                                  clientInterfaceName.packageName(), interfaceName.packageName()));
             }
-            throw new IllegalStateException("Loaded class, but it is not an interface: " + extensionClassName + ".");
-        } catch (ClassNotFoundException e) {
-            return Optional.empty();
-        } catch (NoClassDefFoundError e) {
-            throw new IllegalStateException("Failed to load extension " + extensionClassName + ".", e);
+            return Optional.of(interfaceName);
         }
+        return Optional.empty();
     }
 }

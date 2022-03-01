@@ -196,6 +196,10 @@ public class CustomizationConfig {
     
     private RetryMode defaultRetryMode;
 
+    /**
+     * The name of the interface that the client interface should extend.
+     */
+    private String extensionInterface;
 
 
     private CustomizationConfig() {
@@ -501,5 +505,13 @@ public class CustomizationConfig {
 
     public void setServiceConfig(ServiceConfig serviceConfig) {
         this.serviceConfig = serviceConfig;
+    }
+
+    public String getExtensionInterface() {
+        return extensionInterface;
+    }
+
+    public void setExtensionInterface(String extensionInterface) {
+        this.extensionInterface = extensionInterface;
     }
 }

@@ -8,6 +8,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.services.sdkextensions.extensions.SdkExtensionsClientExtensionMethods;
 import software.amazon.awssdk.services.sdkextensions.model.OneOperationRequest;
 import software.amazon.awssdk.services.sdkextensions.model.OneOperationResponse;
 import software.amazon.awssdk.services.sdkextensions.model.SdkExtensionsException;
