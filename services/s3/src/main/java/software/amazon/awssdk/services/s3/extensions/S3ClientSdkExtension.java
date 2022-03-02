@@ -17,8 +17,14 @@ package software.amazon.awssdk.services.s3.extensions;
 
 import software.amazon.awssdk.annotations.SdkExtensionMethod;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.internal.extensions.DefaultS3ClientSdkExtension;
+import software.amazon.awssdk.services.s3.internal.extensions.DeleteBucketAndAllContents;
+import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 /**
@@ -32,12 +38,36 @@ public interface S3ClientSdkExtension {
      * not accessible (e.g., due to access being denied or the bucket existing in another region), an {@link S3Exception} will be
      * thrown.
      *
-     * @param bucketName the bucket to check
+     * @param bucket the bucket to check
      * @return true if the bucket exists and you have permission to access it; false if the bucket does not exist
      * @throws S3Exception if the bucket exists but is not accessible
      */
     @SdkExtensionMethod
-    default boolean doesBucketExist(String bucketName) {
-        return new DefaultS3ClientSdkExtension((S3Client) this).doesBucketExist(bucketName);
+    default boolean doesBucketExist(String bucket) {
+        return new DefaultS3ClientSdkExtension((S3Client) this).doesBucketExist(bucket);
+    }
+
+    /**
+     * Permanently delete a bucket and all of its content, including any versioned objects and delete markers.
+     * <p>
+     * Internally this method will use the {@link S3Client#listObjectsV2(ListObjectsV2Request)} and {@link
+     * S3Client#listObjectVersions(ListObjectVersionsRequest)} APIs to list a bucket's content, buffer keys that are eligible for
+     * deletion into batches of 1000, and delete them in bulk with the {@link S3Client#deleteObjects(DeleteObjectsRequest)} API.
+     * <p>
+     * While this method is optimized to use batch APIs for both listing and deleting, it may not be suitable for buckets
+     * containing a very large number of objects (i.e., hundreds of thousands). For such use cases, it is usually preferable to
+     * either create an <i>S3 Lifecycle configuration</i> to delete the objects, or to leverage <i>S3 Batch Operations</i> to
+     * perform large-scale deletes.
+     * <p>
+     * Note that this method does not attempt to protect against concurrent writes or modifications to a bucket. It will iterate
+     * and delete the entire contents of the bucket once. If a new key is created during or after the iteration, then the final
+     * call to {@link S3Client#deleteBucket(DeleteBucketRequest)} may fail.
+     *
+     * @param bucket the bucket to delete
+     * @throws SdkException if an error occurs
+     */
+    @SdkExtensionMethod
+    default void deleteBucketAndAllContents(String bucket) {
+        new DeleteBucketAndAllContents((S3Client) this).deleteBucketAndAllContents(bucket);
     }
 }

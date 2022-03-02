@@ -20,9 +20,9 @@ import java.lang.annotation.Target;
 
 /**
  * {@link SdkExtensionMethod} indicates a method that has been explicitly added to a service client interface on behalf of the
- * SDK. While most service clients are automatically and fully generated based upon the corresponding service's API model, the SDK
- * may sometimes choose to extend a service's logical API in order to provide improved abstractions or convenience functions. As
- * such, {@link SdkExtensionMethod} implementations may invoke one or more service requests to fulfil their behavior.
+ * SDK. While most service clients are automatically and fully generated from the corresponding service's API model, the SDK may
+ * sometimes choose to extend a service's logical API in order to provide improved abstractions or convenience functions. {@link
+ * SdkExtensionMethod} implementations may invoke one or more service requests to fulfil their behavior.
  */
 @Target(ElementType.METHOD)
 @SdkProtectedApi

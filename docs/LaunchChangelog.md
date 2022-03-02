@@ -374,8 +374,8 @@ The S3 client in 2.0 is drastically different from the client in 1.11, because i
 | `deleteObjects` | `deleteObjects` |
 | `deleteVersion` | `deleteObject` |
 | `disableRequesterPays` | `putBucketRequestPayment` |
-| `doesBucketExist` | `headBucket` |
-| `doesBucketExistV2` | `headBucket` |
+| `doesBucketExist` | `doesBucketExist` or `headBucket` |
+| `doesBucketExistV2` | `doesBucketExist` or `headBucket` |
 | `doesObjectExist` | `headObject` |
 | `enableRequesterPays` | `putBucketRequestPayment` |
 | `generatePresignedUrl` | ~~Not Supported~~ [S3Presigner](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/examples-s3-presign.html) |

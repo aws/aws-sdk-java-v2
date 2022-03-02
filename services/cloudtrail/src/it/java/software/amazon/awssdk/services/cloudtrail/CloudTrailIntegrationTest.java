@@ -22,7 +22,6 @@ import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.IOException;
-import java.util.Iterator;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -39,15 +38,7 @@ import software.amazon.awssdk.services.cloudtrail.model.UpdateTrailRequest;
 import software.amazon.awssdk.services.cloudtrail.model.UpdateTrailResponse;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
-import software.amazon.awssdk.services.s3.model.ObjectVersion;
 import software.amazon.awssdk.services.s3.model.PutBucketPolicyRequest;
-import software.amazon.awssdk.services.s3.model.S3Object;
 
 public class CloudTrailIntegrationTest extends IntegrationTestBase {
     private static final String BUCKET_NAME = temporaryBucketName("aws-java-cloudtrail-integ");
@@ -84,38 +75,7 @@ public class CloudTrailIntegrationTest extends IntegrationTestBase {
 
     public static void deleteBucketAndAllContents(String bucketName) {
         System.out.println("Deleting S3 bucket: " + bucketName);
-        ListObjectsResponse response = s3.listObjects(ListObjectsRequest.builder().bucket(bucketName).build());
-
-        while (true) {
-            if (response.contents() == null) {
-                break;
-            }
-            for (Iterator<?> iterator = response.contents().iterator(); iterator
-                    .hasNext(); ) {
-                S3Object objectSummary = (S3Object) iterator.next();
-                s3.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(objectSummary.key()).build());
-            }
-
-            if (response.isTruncated()) {
-                response = s3.listObjects(ListObjectsRequest.builder().marker(response.nextMarker()).build());
-            } else {
-                break;
-            }
-        }
-
-        ListObjectVersionsResponse versionsResponse = s3
-                .listObjectVersions(ListObjectVersionsRequest.builder().bucket(bucketName).build());
-        if (versionsResponse.versions() != null) {
-            for (ObjectVersion s : versionsResponse.versions()) {
-                s3.deleteObject(DeleteObjectRequest.builder()
-                                                   .bucket(bucketName)
-                                                   .key(s.key())
-                                                   .versionId(s.versionId())
-                                                   .build());
-            }
-        }
-
-        s3.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build());
+        s3.deleteBucketAndAllContents(bucketName);
     }
 
     @Test
