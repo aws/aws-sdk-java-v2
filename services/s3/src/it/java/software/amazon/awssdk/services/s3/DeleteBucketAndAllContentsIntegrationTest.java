@@ -53,21 +53,23 @@ public class DeleteBucketAndAllContentsIntegrationTest extends S3IntegrationTest
         }
     }
 
-    /**
-     * Populate the bucket with >1000 objects in order to exercise pagination behavior.
-     */
     @Test
     public void deleteBucketAndAllContents_WithVersioning_DeletesBucket() {
+        // Populate the bucket with >1000 objects in order to exercise pagination behavior.
         int maxDeleteObjectsSize = 1_000;
         int numObjectsToCreate = maxDeleteObjectsSize + 50;
         IntStream.range(0, numObjectsToCreate).parallel().forEach(this::putObject);
+        // Overwrite some keys to create multiple versions of objects
+        int numKeysToOverwrite = 50;
+        IntStream.range(0, numKeysToOverwrite).parallel().forEach(this::putObject);
+        // Test deleting the bucket
         s3.deleteBucketAndAllContents(BUCKET);
         assertThat(s3.doesBucketExist(BUCKET), is(false));
     }
 
-    private void putObject(int value) {
+    private void putObject(int i) {
         s3.putObject(r -> r.bucket(BUCKET)
-                           .key(String.valueOf(value)),
+                           .key(String.valueOf(i)),
                      RequestBody.fromString(UUID.randomUUID().toString(), StandardCharsets.UTF_8));
     }
 }

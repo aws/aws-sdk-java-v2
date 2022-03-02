@@ -31,12 +31,10 @@ import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.ObjectVersion;
 import software.amazon.awssdk.services.s3.model.S3Object;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public class DeleteBucketAndAllContents implements S3ClientSdkExtension {
-    private static final Logger log = Logger.loggerFor(DeleteBucketAndAllContents.class);
     private static final int MAX_DELETE_OBJECTS_SIZE = 1_000;
 
     private final S3Client s3;
@@ -48,10 +46,8 @@ public class DeleteBucketAndAllContents implements S3ClientSdkExtension {
     @Override
     public void deleteBucketAndAllContents(String bucket) {
         Validate.notEmpty(bucket, "bucket");
-        log.debug(() -> "Emptying bucket: " + bucket);
         deleteAllObjects(bucket);
         deleteAllVersions(bucket);
-        log.debug(() -> "Deleting bucket: " + bucket);
         s3.deleteBucket(r -> r.bucket(bucket));
     }
 
@@ -73,17 +69,18 @@ public class DeleteBucketAndAllContents implements S3ClientSdkExtension {
 
     private void deleteObjectStream(String bucket, Stream<ObjectIdentifier> stream) {
         Iterator<List<ObjectIdentifier>> batchIterator = batch(stream.iterator(), MAX_DELETE_OBJECTS_SIZE);
-        batchIterator.forEachRemaining(objects -> {
-            log.debug(() -> String.format("Deleting %s objects: %s", objects.size(), objects));
-            DeleteObjectsResponse response = s3.deleteObjects(r -> r
-                .bucket(bucket)
-                .delete(d -> d
-                    .objects(objects)
-                    .quiet(true)));
-            if (!response.errors().isEmpty()) {
-                throw SdkClientException.create("Failed to delete objects: " + response);
-            }
-        });
+        batchIterator.forEachRemaining(objects -> deleteObjects(bucket, objects));
+    }
+
+    private void deleteObjects(String bucket, List<ObjectIdentifier> objects) {
+        DeleteObjectsResponse response = s3.deleteObjects(r -> r
+            .bucket(bucket)
+            .delete(d -> d
+                .objects(objects)
+                .quiet(true)));
+        if (!response.errors().isEmpty()) {
+            throw SdkClientException.create("Failed to delete objects: " + response);
+        }
     }
 
     private ObjectIdentifier toDeletePojo(S3Object object) {
