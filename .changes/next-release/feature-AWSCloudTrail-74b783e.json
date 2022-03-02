@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CloudTrail",
-    "contributor": "",
-    "description": "Add bytesScanned field into responses of DescribeQuery and GetQueryResults."
-}
