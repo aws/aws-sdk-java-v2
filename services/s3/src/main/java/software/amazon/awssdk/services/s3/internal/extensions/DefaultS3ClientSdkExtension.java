@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.extensions.S3ClientSdkExtension;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -37,6 +38,18 @@ public class DefaultS3ClientSdkExtension implements S3ClientSdkExtension {
             s3.headBucket(r -> r.bucket(bucket));
             return true;
         } catch (NoSuchBucketException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean doesObjectExist(String bucket, String key) {
+        Validate.notNull(bucket, "bucket");
+        Validate.notNull(bucket, "key");
+        try {
+            s3.headObject(r -> r.bucket(bucket).key(key));
+            return true;
+        } catch (NoSuchKeyException e) {
             return false;
         }
     }
