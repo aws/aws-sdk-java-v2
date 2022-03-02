@@ -15,17 +15,22 @@
 
 package software.amazon.awssdk.services.s3.extensions;
 
+import java.net.URL;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkExtensionMethod;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.internal.extensions.DefaultS3ClientSdkExtension;
 import software.amazon.awssdk.services.s3.internal.extensions.DeleteBucketAndAllContents;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 /**
  * Extension methods for the {@link S3Client} interface.
@@ -86,4 +91,35 @@ public interface S3ClientSdkExtension {
         new DeleteBucketAndAllContents((S3Client) this).deleteBucketAndAllContents(bucket);
     }
 
+    /**
+     * Shortcut to the {@link S3Utilities#getUrl(GetUrlRequest)} method.
+     * 
+     * @param getUrlRequest The get URL request
+     * @return the URL for the object
+     */
+    @SdkExtensionMethod
+    default URL getUrl(GetUrlRequest getUrlRequest) {
+        return ((S3Client) this).utilities().getUrl(getUrlRequest);
+    }
+
+    /**
+     * Shortcut to the {@link S3Utilities#getUrl(Consumer)} method.
+     *
+     * @param getUrlRequest The get URL request
+     * @return the URL for the object
+     */
+    @SdkExtensionMethod
+    default URL getUrl(Consumer<GetUrlRequest.Builder> getUrlRequest) {
+        return ((S3Client) this).utilities().getUrl(getUrlRequest);
+    }
+
+    /**
+     * Convenience method to retrieve the {@link S3Presigner} in order to generate presigned methods.
+     *
+     * @return The presigner
+     */
+    @SdkExtensionMethod
+    default S3Presigner presigner() {
+        return S3Presigner.create();
+    }
 }
