@@ -23,7 +23,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.codegen.poet.client.SyncClientInterface;
 
 /**
  * Validate functionality of {@link PoetUtils} methods.
@@ -32,29 +31,11 @@ public class PoetUtilsTest {
 
     @Test
     public void findExtensionInterface_whenNotExists_returnEmpty() {
-        ClassName cl = ClassName.get("software.amazon.awssdk.sdkservice", "SdkServiceClient");
-        CustomizationConfig customizationConfig = CustomizationConfig.create();
-        Optional<ClassName> extensionClass = PoetUtils.findExtensionInterface(cl, customizationConfig);
-        assertThat(extensionClass).isEmpty();
+        ClassName clientName = ClassName.get("software.amazon.awssdk.sdkservice", "SdkServiceClient");
+        ClassName extensionClass = PoetUtils.extensionInterfaceClassName(clientName);
+        assertThat(extensionClass).isNotNull();
+        assertThat(extensionClass.canonicalName())
+            .isEqualTo("software.amazon.awssdk.sdkservice.extensions.SdkServiceClientSdkExtension");
     }
 
-    @Test
-    public void findExtensionInterface_whenExists_returnClass() {
-        ClassName cl = ClassName.get("software.amazon.awssdk.sdkservice","SdkServiceClient");
-        CustomizationConfig customizationConfig = CustomizationConfig.create();
-        customizationConfig.setExtensionInterface("software.amazon.awssdk.sdkservice.SdkServiceClientExtensionMethods");
-        Optional<ClassName> extensionClass = PoetUtils.findExtensionInterface(cl, customizationConfig);
-        assertThat(extensionClass).isPresent();
-        assertThat(extensionClass.get().canonicalName()).isEqualTo("software.amazon.awssdk.sdkservice.SdkServiceClientExtensionMethods");
-    }
-
-    @Test
-    public void findExtensionInterface_differentPackages_throwsException() {
-        ClassName cl = ClassName.get("software.amazon.awssdk.sdkservice","SdkServiceClient");
-        CustomizationConfig customizationConfig = CustomizationConfig.create();
-        customizationConfig.setExtensionInterface("software.amazon.awssdk.someotherpackage.SdkServiceClientExtensionMethods");
-        assertThatThrownBy(() -> PoetUtils.findExtensionInterface(cl, customizationConfig))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("package");
-    }
 }

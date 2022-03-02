@@ -197,10 +197,9 @@ public class CustomizationConfig {
     private RetryMode defaultRetryMode;
 
     /**
-     * The name of the interface that the client interface should extend.
+     * If the client has API extensions to include.
      */
-    private String extensionInterface;
-
+    private ClientExtensions clientExtensions;
 
     private CustomizationConfig() {
     }
@@ -507,11 +506,11 @@ public class CustomizationConfig {
         this.serviceConfig = serviceConfig;
     }
 
-    public String getExtensionInterface() {
-        return extensionInterface;
+    public ClientExtensions getClientExtensions() {
+        return clientExtensions;
     }
 
-    public void setExtensionInterface(String extensionInterface) {
-        this.extensionInterface = extensionInterface;
+    public void setClientExtensions(ClientExtensions clientExtensions) {
+        this.clientExtensions = clientExtensions;
     }
 }

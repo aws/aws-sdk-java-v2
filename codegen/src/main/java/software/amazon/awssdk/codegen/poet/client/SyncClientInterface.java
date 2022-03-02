@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_DESTINATION_PATH_PARAM_NAME;
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_SOURCE_PATH_PARAM_NAME;
+import static software.amazon.awssdk.codegen.poet.PoetUtils.extensionInterfaceClassName;
 import static software.amazon.awssdk.codegen.poet.client.AsyncClientInterface.STREAMING_TYPE_VARIABLE;
 
 import com.squareup.javapoet.ClassName;
@@ -43,6 +44,8 @@ import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.docs.WaiterDocs;
+import software.amazon.awssdk.codegen.model.config.customization.ClientExtensions;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -94,7 +97,7 @@ public final class SyncClientInterface implements ClassSpec {
                                               ServiceMetadataProvider.class)
                                   .build());
 
-        Optional<ClassName> extensionClass = PoetUtils.findExtensionInterface(className, model.getCustomizationConfig());
+        Optional<ClassName> extensionClass = findExtensionInterface(className, model.getCustomizationConfig());
         extensionClass.ifPresent(result::addSuperinterface);
 
         PoetUtils.addJavadoc(result::addJavadoc, getJavadoc());
@@ -505,5 +508,15 @@ public final class SyncClientInterface implements ClassSpec {
                          .returns(poetExtensions.getSyncWaiterInterface())
                          .addJavadoc(WaiterDocs.waiterMethodInClient(poetExtensions.getSyncWaiterInterface()))
                          .build();
+    }
+
+    private static Optional<ClassName> findExtensionInterface(ClassName clientInterfaceName,
+                                                              CustomizationConfig customizationConfig) {
+        ClientExtensions clientExtensions = customizationConfig.getClientExtensions();
+
+        if (clientExtensions != null && clientExtensions.getSync()) {
+            return Optional.of(extensionInterfaceClassName(clientInterfaceName));
+        }
+        return Optional.empty();
     }
 }
