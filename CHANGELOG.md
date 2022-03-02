@@ -1,3 +1,24 @@
+# __2.17.141__ __2022-03-02__
+## __AWS CloudTrail__
+  - ### Features
+    - Add bytesScanned field into responses of DescribeQuery and GetQueryResults.
+
+## __Amazon Athena__
+  - ### Features
+    - This release adds support for S3 Object Ownership by allowing the S3 bucket owner full control canned ACL to be set when Athena writes query results to S3 buckets.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds support for tracking images lastRecordedPullTime.
+
+## __Amazon GameLift__
+  - ### Features
+    - Minor updates to address errors.
+
+## __Amazon Keyspaces__
+  - ### Features
+    - This release adds support for data definition language (DDL) operations
+
 # __2.17.140__ __2022-03-01__
 ## __AWS Elemental MediaPackage__
   - ### Features
