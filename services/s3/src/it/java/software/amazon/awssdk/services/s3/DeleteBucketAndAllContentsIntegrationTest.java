@@ -28,7 +28,6 @@ import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.internal.extensions.DeleteBucketAndAllContents;
 import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
  * Tests the {@link S3Client#deleteBucketAndAllContents(String)} extension method.
@@ -67,10 +66,8 @@ public class DeleteBucketAndAllContentsIntegrationTest extends S3IntegrationTest
     }
 
     private void putObject(int value) {
-        s3.putObject(PutObjectRequest.builder()
-                                     .bucket(BUCKET)
-                                     .key(String.valueOf(value))
-                                     .build(),
+        s3.putObject(r -> r.bucket(BUCKET)
+                           .key(String.valueOf(value)),
                      RequestBody.fromString(UUID.randomUUID().toString(), StandardCharsets.UTF_8));
     }
 }

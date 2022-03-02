@@ -93,9 +93,9 @@ public class DeleteBucketAndAllContents implements S3ClientSdkExtension {
     }
 
     private List<ObjectIdentifier> toDeletePojos(ListObjectVersionsResponse responsePage) {
-        List<ObjectIdentifier> pojos = new ArrayList<>();
-        responsePage.versions().forEach(version -> pojos.add(toDeletePojo(version)));
-        responsePage.deleteMarkers().forEach(deleteMarker -> pojos.add(toDeletePojo(deleteMarker)));
+        List<ObjectIdentifier> pojos = new ArrayList<>(responsePage.versions().size() + responsePage.deleteMarkers().size());
+        responsePage.versions().stream().map(this::toDeletePojo).forEach(pojos::add);
+        responsePage.deleteMarkers().stream().map(this::toDeletePojo).forEach(pojos::add);
         return pojos;
     }
 
