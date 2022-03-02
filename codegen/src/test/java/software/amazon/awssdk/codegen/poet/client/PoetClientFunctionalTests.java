@@ -126,4 +126,9 @@ public class PoetClientFunctionalTests {
         assertThat(syncClientInterface, generatesTo("test-clientextensions-sync-interface.java"));
     }
 
+    @Test
+    public void asyncClientInterfaceClientExtensions() throws Exception {
+        ClassSpec asyncClientInterface = new AsyncClientInterface(ClientTestModels.clientExtensionModels());
+        assertThat(asyncClientInterface, generatesTo("test-clientextensions-async-interface.java"));
+    }
 }
