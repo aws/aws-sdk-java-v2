@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.poet;
 
-import static software.amazon.awssdk.utils.StringUtils.isEmpty;
 import static software.amazon.awssdk.utils.StringUtils.isNotBlank;
 
 import com.squareup.javapoet.AnnotationSpec;
@@ -27,23 +26,20 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.DocumentationModel;
 import software.amazon.awssdk.codegen.model.intermediate.HasDeprecation;
 
 public final class PoetUtils {
 
-    private static final Logger log = LoggerFactory.getLogger(PoetUtils.class);
-
     private static final AnnotationSpec GENERATED = AnnotationSpec.builder(Generated.class)
                                                                   .addMember("value", "$S", "software.amazon.awssdk:codegen")
                                                                   .build();
+
+    private static final String EXTENSION_PACKAGE = ".extensions";
+    private static final String EXTENSION_INTERFACE_SUFFIX = "SdkExtension";
 
     private PoetUtils() {
     }
@@ -117,21 +113,9 @@ public final class PoetUtils {
         return builder.build();
     }
 
-    public static Optional<ClassName> findExtensionInterface(ClassName clientInterfaceName,
-                                                             CustomizationConfig customizationConfig) {
-        String extensionInterfaceFqcn = customizationConfig.getExtensionInterface();
-
-        if (!isEmpty(extensionInterfaceFqcn)) {
-            ClassName interfaceName = classNameFromFqcn(extensionInterfaceFqcn);
-            log.info(String.format("Found client extension interface %s.", interfaceName));
-            if (!interfaceName.packageName().contains(clientInterfaceName.packageName())) {
-                throw new IllegalArgumentException(
-                    String.format("Extension interface package is not part of service client package. "
-                                  + "Client package: %s. Extension interface package: %s",
-                                  clientInterfaceName.packageName(), interfaceName.packageName()));
-            }
-            return Optional.of(interfaceName);
-        }
-        return Optional.empty();
+    public static ClassName extensionInterfaceClassName(ClassName clientInterfaceName) {
+        String packageName = clientInterfaceName.packageName() + EXTENSION_PACKAGE;
+        String className = clientInterfaceName.simpleName() + EXTENSION_INTERFACE_SUFFIX;
+        return ClassName.get(packageName, className);
     }
 }
