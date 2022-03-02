@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static java.util.stream.Collectors.toList;
+import static software.amazon.awssdk.codegen.poet.PoetUtils.extensionInterfaceClassName;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -28,6 +29,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
@@ -39,6 +41,8 @@ import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.docs.WaiterDocs;
+import software.amazon.awssdk.codegen.model.config.customization.ClientExtensions;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -91,6 +95,9 @@ public class AsyncClientInterface implements ClassSpec {
                                  .addJavadoc("Value for looking up the service's metadata from the {@link $T}.",
                                              ServiceMetadataProvider.class)
                                  .build());
+
+        Optional<ClassName> extensionInterface = findExtensionInterface(className, model.getCustomizationConfig());
+        extensionInterface.ifPresent(result::addSuperinterface);
 
         PoetUtils.addJavadoc(result::addJavadoc, getJavadoc());
 
@@ -469,5 +476,14 @@ public class AsyncClientInterface implements ClassSpec {
                          .addStatement("throw new $T()", UnsupportedOperationException.class)
                          .addJavadoc(WaiterDocs.waiterMethodInClient(poetExtensions.getAsyncWaiterInterface()))
                          .build();
+    }
+
+    private static Optional<ClassName> findExtensionInterface(ClassName clientInterfaceName,
+                                                              CustomizationConfig customizationConfig) {
+        ClientExtensions clientExtensions = customizationConfig.getClientExtensions();
+        if (clientExtensions != null && clientExtensions.getAsync()) {
+            return Optional.of(extensionInterfaceClassName(clientInterfaceName));
+        }
+        return Optional.empty();
     }
 }

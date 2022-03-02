@@ -29,6 +29,8 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 
 /**
  * Extension methods for the {@link S3Client} interface.
+ * 
+ * @see SdkExtensionMethod
  */
 @SdkPublicApi
 public interface S3ClientSdkExtension {

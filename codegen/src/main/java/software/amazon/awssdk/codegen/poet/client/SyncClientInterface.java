@@ -97,8 +97,8 @@ public final class SyncClientInterface implements ClassSpec {
                                               ServiceMetadataProvider.class)
                                   .build());
 
-        Optional<ClassName> extensionClass = findExtensionInterface(className, model.getCustomizationConfig());
-        extensionClass.ifPresent(result::addSuperinterface);
+        Optional<ClassName> extensionInterface = findExtensionInterface(className, model.getCustomizationConfig());
+        extensionInterface.ifPresent(result::addSuperinterface);
 
         PoetUtils.addJavadoc(result::addJavadoc, getJavadoc());
 
@@ -513,7 +513,6 @@ public final class SyncClientInterface implements ClassSpec {
     private static Optional<ClassName> findExtensionInterface(ClassName clientInterfaceName,
                                                               CustomizationConfig customizationConfig) {
         ClientExtensions clientExtensions = customizationConfig.getClientExtensions();
-
         if (clientExtensions != null && clientExtensions.getSync()) {
             return Optional.of(extensionInterfaceClassName(clientInterfaceName));
         }
