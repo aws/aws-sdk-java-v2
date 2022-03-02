@@ -27,15 +27,7 @@ import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
-import software.amazon.awssdk.services.s3.model.ObjectVersion;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
@@ -116,36 +108,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
 
     protected static void deleteBucketAndAllContents(String bucketName) {
         System.out.println("Deleting S3 bucket: " + bucketName);
-        ListObjectsResponse response = s3.listObjects(ListObjectsRequest.builder().bucket(bucketName).build());
-
-        while (true) {
-            if (response.contents() == null) {
-                break;
-            }
-            for (S3Object objectSummary : response.contents()) {
-                s3.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(objectSummary.key()).build());
-            }
-
-            if (response.isTruncated()) {
-                response = s3.listObjects(ListObjectsRequest.builder().marker(response.nextMarker()).build());
-            } else {
-                break;
-            }
-        }
-
-        ListObjectVersionsResponse versionsResponse = s3
-            .listObjectVersions(ListObjectVersionsRequest.builder().bucket(bucketName).build());
-        if (versionsResponse.versions() != null) {
-            for (ObjectVersion s : versionsResponse.versions()) {
-                s3.deleteObject(DeleteObjectRequest.builder()
-                                                   .bucket(bucketName)
-                                                   .key(s.key())
-                                                   .versionId(s.versionId())
-                                                   .build());
-            }
-        }
-
-        s3.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build());
+        s3.deleteBucketAndAllContents(bucketName);
     }
 
 }

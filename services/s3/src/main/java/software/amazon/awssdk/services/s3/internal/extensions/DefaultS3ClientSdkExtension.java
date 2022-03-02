@@ -32,7 +32,7 @@ public class DefaultS3ClientSdkExtension implements S3ClientSdkExtension {
 
     @Override
     public boolean doesBucketExist(String bucket) {
-        Validate.notNull(bucket, "bucket");
+        Validate.notEmpty(bucket, "bucket");
         try {
             s3.headBucket(r -> r.bucket(bucket));
             return true;

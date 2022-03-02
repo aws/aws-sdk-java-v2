@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3.utils;
 
 import java.rmi.NoSuchObjectException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,15 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Bucket;
-import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ExpirationStatus;
-import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
-import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.utils.Logger;
 
@@ -117,51 +109,7 @@ public class S3TestUtils {
     public static void deleteBucketAndAllContents(S3Client s3, String bucketName) {
         try {
             System.out.println("Deleting S3 bucket: " + bucketName);
-            ListObjectsResponse response = Waiter.run(() -> s3.listObjects(r -> r.bucket(bucketName)))
-                                                 .ignoringException(NoSuchBucketException.class)
-                                                 .orFail();
-            List<S3Object> objectListing = response.contents();
-
-            if (objectListing != null) {
-                while (true) {
-                    for (Iterator<?> iterator = objectListing.iterator(); iterator.hasNext(); ) {
-                        S3Object objectSummary = (S3Object) iterator.next();
-                        s3.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(objectSummary.key()).build());
-                    }
-
-                    if (response.isTruncated()) {
-                        objectListing = s3.listObjects(ListObjectsRequest.builder()
-                                                                         .bucket(bucketName)
-                                                                         .marker(response.marker())
-                                                                         .build())
-                                          .contents();
-                    } else {
-                        break;
-                    }
-                }
-            }
-
-
-            ListObjectVersionsResponse versions = s3
-                    .listObjectVersions(ListObjectVersionsRequest.builder().bucket(bucketName).build());
-
-            if (versions.deleteMarkers() != null) {
-                versions.deleteMarkers().forEach(v -> s3.deleteObject(DeleteObjectRequest.builder()
-                                                                                         .versionId(v.versionId())
-                                                                                         .bucket(bucketName)
-                                                                                         .key(v.key())
-                                                                                         .build()));
-            }
-
-            if (versions.versions() != null) {
-                versions.versions().forEach(v -> s3.deleteObject(DeleteObjectRequest.builder()
-                                                                                    .versionId(v.versionId())
-                                                                                    .bucket(bucketName)
-                                                                                    .key(v.key())
-                                                                                    .build()));
-            }
-
-            s3.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build());
+            s3.deleteBucketAndAllContents(bucketName);
         } catch (Exception e) {
             System.err.println("Failed to delete bucket: " + bucketName);
             e.printStackTrace();
