@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.extensions;
+package software.amazon.awssdk.services.s3.internal.extensions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -30,56 +30,40 @@ import software.amazon.awssdk.services.s3.model.HeadBucketResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-class S3ClientExtensionMethodsTest {
+class DefaultS3ClientSdkExtensionTest {
 
-    TestS3Client s3Client;
+    S3Client s3;
 
     @BeforeEach
     void setUp() {
-        s3Client = spy(TestS3Client.class);
+        s3 = spy(S3Client.class);
     }
 
     @Test
-    void doesBucketExist_200() {
+    void doesBucketExist_200_returnsTrue() {
         stubHeadBucket(() -> {
             return HeadBucketResponse.builder().build();
         });
-        assertThat(s3Client.doesBucketExist("foo")).isEqualTo(true);
+        assertThat(s3.doesBucketExist("foo")).isEqualTo(true);
     }
 
     @Test
-    void doesBucketExist_404() {
+    void doesBucketExist_404_returnsFalse() {
         stubHeadBucket(() -> {
             throw NoSuchBucketException.builder().build();
         });
-        assertThat(s3Client.doesBucketExist("foo")).isEqualTo(false);
+        assertThat(s3.doesBucketExist("foo")).isEqualTo(false);
     }
 
     @Test
-    void doesBucketExist_403() {
+    void doesBucketExist_403_propagatesException() {
         stubHeadBucket(() -> {
             throw S3Exception.builder().build();
         });
-        assertThatThrownBy(() -> s3Client.doesBucketExist("foo")).isInstanceOf(S3Exception.class);
+        assertThatThrownBy(() -> s3.doesBucketExist("foo")).isInstanceOf(S3Exception.class);
     }
 
     private void stubHeadBucket(Supplier<HeadBucketResponse> behavior) {
-        doAnswer(i -> behavior.get()).when(s3Client).headBucket(any(HeadBucketRequest.class));
-    }
-
-    static class TestS3Client implements S3Client, S3ClientExtensionMethods {
-
-        @Override
-        public String serviceName() {
-            return null;
-        }
-
-        @Override
-        public void close() {
-
-        }
-
-        TestS3Client() {
-        }
+        doAnswer(i -> behavior.get()).when(s3).headBucket(any(HeadBucketRequest.class));
     }
 }

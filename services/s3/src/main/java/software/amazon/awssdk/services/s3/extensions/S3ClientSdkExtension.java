@@ -18,15 +18,14 @@ package software.amazon.awssdk.services.s3.extensions;
 import software.amazon.awssdk.annotations.SdkExtensionMethod;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.internal.extensions.DefaultS3ClientSdkExtension;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * Extension methods for the {@link S3Client} interface.
  */
 @SdkPublicApi
-public interface S3ClientExtensionMethods {
+public interface S3ClientSdkExtension {
 
     /**
      * Check whether the specified bucket exists in Amazon S3 (and you have permission to access it). If the bucket exists but is
@@ -39,13 +38,6 @@ public interface S3ClientExtensionMethods {
      */
     @SdkExtensionMethod
     default boolean doesBucketExist(String bucketName) {
-        Validate.notNull(bucketName, "bucketName");
-        S3Client s3Client = (S3Client) this;
-        try {
-            s3Client.headBucket(r -> r.bucket(bucketName));
-            return true;
-        } catch (NoSuchBucketException e) {
-            return false;
-        }
+        return new DefaultS3ClientSdkExtension((S3Client) this).doesBucketExist(bucketName);
     }
 }
