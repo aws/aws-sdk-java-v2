@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Keyspaces",
+    "contributor": "",
+    "description": "This release adds support for data definition language (DDL) operations"
+}
