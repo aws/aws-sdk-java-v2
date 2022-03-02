@@ -48,6 +48,21 @@ public interface S3ClientSdkExtension {
     }
 
     /**
+     * Check whether the specified object exists in Amazon S3 (and you have permission to access it). If the object exists but is
+     * not accessible (e.g., due to access being denied or the bucket existing in another region), an {@link S3Exception} will be
+     * thrown.
+     *
+     * @param bucketName the bucket that contains the object
+     * @param key the name of the object
+     * @return true if the bucket object exists and you have permission to access it; false if it does not exist
+     * @throws S3Exception if the bucket exists but is not accessible
+     */
+    @SdkExtensionMethod
+    default boolean doesObjectExist(String bucketName, String key) {
+        return new DefaultS3ClientSdkExtension((S3Client) this).doesObjectExist(bucketName, key);
+    }
+
+    /**
      * Permanently delete a bucket and all of its content, including any versioned objects and delete markers.
      * <p>
      * Internally this method will use the {@link S3Client#listObjectsV2(ListObjectsV2Request)} and {@link
@@ -70,4 +85,5 @@ public interface S3ClientSdkExtension {
     default void deleteBucketAndAllContents(String bucket) {
         new DeleteBucketAndAllContents((S3Client) this).deleteBucketAndAllContents(bucket);
     }
+
 }

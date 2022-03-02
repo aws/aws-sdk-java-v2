@@ -27,7 +27,10 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 class DefaultS3ClientSdkExtensionTest {
@@ -41,9 +44,7 @@ class DefaultS3ClientSdkExtensionTest {
 
     @Test
     void doesBucketExist_200_returnsTrue() {
-        stubHeadBucket(() -> {
-            return HeadBucketResponse.builder().build();
-        });
+        stubHeadBucket(() -> HeadBucketResponse.builder().build());
         assertThat(s3.doesBucketExist("foo")).isEqualTo(true);
     }
 
@@ -63,7 +64,33 @@ class DefaultS3ClientSdkExtensionTest {
         assertThatThrownBy(() -> s3.doesBucketExist("foo")).isInstanceOf(S3Exception.class);
     }
 
+    @Test
+    void doesObjectExist_200_returnsTrue() {
+        stubHeadObject(() -> HeadObjectResponse.builder().build());
+        assertThat(s3.doesObjectExist("foo", "bar")).isEqualTo(true);
+    }
+
+    @Test
+    void doesObjectExist_404_returnsFalse() {
+        stubHeadObject(() -> {
+            throw NoSuchKeyException.builder().build();
+        });
+        assertThat(s3.doesObjectExist("foo", "bar")).isEqualTo(false);
+    }
+
+    @Test
+    void doesObjectExist_403_propagatesException() {
+        stubHeadObject(() -> {
+            throw S3Exception.builder().build();
+        });
+        assertThatThrownBy(() -> s3.doesObjectExist("foo", "bar")).isInstanceOf(S3Exception.class);
+    }
+
     private void stubHeadBucket(Supplier<HeadBucketResponse> behavior) {
         doAnswer(i -> behavior.get()).when(s3).headBucket(any(HeadBucketRequest.class));
+    }
+
+    private void stubHeadObject(Supplier<HeadObjectResponse> behavior) {
+        doAnswer(i -> behavior.get()).when(s3).headObject(any(HeadObjectRequest.class));
     }
 }
