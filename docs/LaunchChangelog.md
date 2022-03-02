@@ -376,9 +376,9 @@ The S3 client in 2.0 is drastically different from the client in 1.11, because i
 | `disableRequesterPays` | `putBucketRequestPayment` |
 | `doesBucketExist` | `doesBucketExist` or `headBucket` |
 | `doesBucketExistV2` | `doesBucketExist` or `headBucket` |
-| `doesObjectExist` | `headObject` |
+| `doesObjectExist` | `doesObjectExist` or `headObject` |
 | `enableRequesterPays` | `putBucketRequestPayment` |
-| `generatePresignedUrl` | ~~Not Supported~~ [S3Presigner](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/examples-s3-presign.html) |
+| `generatePresignedUrl` |  `presigner` or direct [S3Presigner](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/examples-s3-presign.html) |
 | `getBucketAccelerateConfiguration` | `getBucketAccelerateConfiguration` |
 | `getBucketAcl` | `getBucketAcl` |
 | `getBucketAnalyticsConfiguration` | `getBucketAnalyticsConfiguration` |
@@ -400,9 +400,9 @@ The S3 client in 2.0 is drastically different from the client in 1.11, because i
 | `getObjectAsString` | `getObjectAsBytes().asUtf8String` |
 | `getObjectMetadata` | `headObject` |
 | `getObjectTagging` | `getObjectTagging` |
-| `getResourceUrl` | [S3Utilities#getUrl](https://github.com/aws/aws-sdk-java-v2/blob/7428f629753c603f96dd700ca686a7b169fc4cd4/services/s3/src/main/java/software/amazon/awssdk/services/s3/S3Utilities.java#L140) |
+| `getResourceUrl` | `getUrl` ([S3Utilities#getUrl](https://github.com/aws/aws-sdk-java-v2/blob/7428f629753c603f96dd700ca686a7b169fc4cd4/services/s3/src/main/java/software/amazon/awssdk/services/s3/S3Utilities.java#L140)) |
 | `getS3AccountOwner` | `listBuckets` |
-| `getUrl` | [S3Utilities#getUrl](https://github.com/aws/aws-sdk-java-v2/blob/7428f629753c603f96dd700ca686a7b169fc4cd4/services/s3/src/main/java/software/amazon/awssdk/services/s3/S3Utilities.java#L140) |
+| `getUrl` | `getUrl` ([S3Utilities#getUrl](https://github.com/aws/aws-sdk-java-v2/blob/7428f629753c603f96dd700ca686a7b169fc4cd4/services/s3/src/main/java/software/amazon/awssdk/services/s3/S3Utilities.java#L140)) |
 | `headBucket` | `headBucket` |
 | `initiateMultipartUpload` | `createMultipartUpload` |
 | `isRequesterPaysEnabled` | `getBucketRequestPayment` |
