@@ -51,23 +51,43 @@ public class DefaultS3ExtensionIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void bucketExists() {
+    public void bucketExistsSync() {
         assertThat(s3.doesBucketExist(BUCKET)).isTrue();
     }
 
     @Test
-    public void bucketDoesNotExist() {
+    public void bucketExistsAsync() {
+        assertThat(s3Async.doesBucketExist(BUCKET).join()).isTrue();
+    }
+
+    @Test
+    public void bucketDoesNotExistSync() {
         assertThat(s3.doesBucketExist(temporaryBucketName("noexist"))).isFalse();
     }
 
     @Test
-    public void objectExists() {
+    public void bucketDoesNotExistAsync() {
+        assertThat(s3Async.doesBucketExist(temporaryBucketName("noexist")).join()).isFalse();
+    }
+
+    @Test
+    public void objectExistsSync() {
         assertThat(s3.doesObjectExist(BUCKET, KEY)).isTrue();
     }
 
     @Test
-    public void objectDoesNotExist() {
+    public void objectExistsAsync() {
+        assertThat(s3Async.doesObjectExist(BUCKET, KEY).join()).isTrue();
+    }
+
+    @Test
+    public void objectDoesNotExistSync() {
         assertThat(s3.doesObjectExist(BUCKET, "noexist")).isFalse();
+    }
+  
+    @Test
+    public void objectDoesNotExistAsync() {
+        assertThat(s3Async.doesObjectExist(BUCKET, "noexist").join()).isFalse();
     }
 
     @Test
@@ -81,4 +101,5 @@ public class DefaultS3ExtensionIntegrationTest extends S3IntegrationTestBase {
             .isInstanceOf(SdkClientException.class)
             .hasMessage("Bucket ownership verification failed.");
     }
+
 }

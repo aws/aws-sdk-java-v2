@@ -46,8 +46,8 @@ public class DefaultS3ClientSdkExtension implements S3ClientSdkExtension {
 
     @Override
     public boolean doesObjectExist(String bucket, String key) {
-        Validate.notNull(bucket, "bucket");
-        Validate.notNull(bucket, "key");
+        Validate.notEmpty(bucket, "bucket");
+        Validate.notEmpty(bucket, "key");
         try {
             s3.headObject(r -> r.bucket(bucket).key(key));
             return true;

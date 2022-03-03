@@ -59,14 +59,14 @@ public interface S3ClientSdkExtension {
      * not accessible (e.g., due to access being denied or the bucket existing in another region), an {@link S3Exception} will be
      * thrown.
      *
-     * @param bucketName the bucket that contains the object
+     * @param bucket the bucket that contains the object
      * @param key the name of the object
      * @return true if the bucket object exists and you have permission to access it; false if it does not exist
      * @throws S3Exception if the bucket exists but is not accessible
      */
     @SdkExtensionMethod
-    default boolean doesObjectExist(String bucketName, String key) {
-        return new DefaultS3ClientSdkExtension((S3Client) this).doesObjectExist(bucketName, key);
+    default boolean doesObjectExist(String bucket, String key) {
+        return new DefaultS3ClientSdkExtension((S3Client) this).doesObjectExist(bucket, key);
     }
 
     /**

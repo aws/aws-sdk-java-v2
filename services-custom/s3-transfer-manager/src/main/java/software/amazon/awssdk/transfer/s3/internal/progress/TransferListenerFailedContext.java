@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.transfer.s3.internal.progress;
 
-import java.util.concurrent.CompletionException;
+import static software.amazon.awssdk.utils.CompletableFutureUtils.unwrap;
+
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
@@ -43,13 +44,6 @@ public class TransferListenerFailedContext
     private TransferListenerFailedContext(Builder builder) {
         this.exception = unwrap(Validate.paramNotNull(builder.exception, "exception"));
         this.transferContext = Validate.paramNotNull(builder.transferContext, "transferContext");
-    }
-
-    private Throwable unwrap(Throwable exception) {
-        while (exception instanceof CompletionException) {
-            exception = exception.getCause();
-        }
-        return exception;
     }
 
     public static Builder builder() {
