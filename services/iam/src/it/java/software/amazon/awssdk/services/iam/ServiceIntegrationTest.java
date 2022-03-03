@@ -21,6 +21,13 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.iam.auth.policy.SdkIamPolicy;
+import software.amazon.awssdk.services.iam.auth.policy.SdkIamPrincipal;
+import software.amazon.awssdk.services.iam.auth.policy.SdkIamStatement;
+import software.amazon.awssdk.services.iam.auth.policy.SdkIamStatement.Effect;
+import software.amazon.awssdk.services.iam.model.CreatePolicyRequest;
+import software.amazon.awssdk.services.iam.model.CreatePolicyResponse;
+import software.amazon.awssdk.services.iam.model.Policy;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class ServiceIntegrationTest extends AwsTestBase {
@@ -39,4 +46,20 @@ public class ServiceIntegrationTest extends AwsTestBase {
     public void smokeTest() {
         assertThat(iam.listUsers().users()).isNotNull();
     }
+
+
+    @Test
+    public void createPolicyUsingPojo() {
+        String policyName = "test-policy";
+        SdkIamPolicy policy = SdkIamPolicy.builder()
+                                          .id("policy-id")
+                                          .statements(new SdkIamStatement(Effect.Allow).withPrincipals(SdkIamPrincipal.ALL_USERS))
+                                          .build();
+        CreatePolicyResponse createPolicyResponse = iam.createPolicy(policy, CreatePolicyRequest.builder()
+                                                                                                .policyName(policyName)
+                                                                                                .build());
+        Policy createdPolicy = createPolicyResponse.policy();
+        assertThat(createdPolicy.policyName()).isEqualTo(policyName);
+    }
+
 }
