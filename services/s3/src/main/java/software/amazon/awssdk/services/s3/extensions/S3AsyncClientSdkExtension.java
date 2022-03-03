@@ -23,9 +23,7 @@ import software.amazon.awssdk.services.s3.internal.extensions.DefaultS3AsyncClie
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 /**
- * Extension methods for the {@link S3AsyncClient} interface.
- *
- * @see SdkExtensionMethod
+ * {@link SdkExtensionMethod}s for the {@link S3AsyncClient} interface.
  */
 @SdkPublicApi
 public interface S3AsyncClientSdkExtension {
