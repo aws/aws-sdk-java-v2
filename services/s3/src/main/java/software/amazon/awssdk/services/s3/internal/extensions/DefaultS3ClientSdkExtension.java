@@ -58,6 +58,7 @@ public class DefaultS3ClientSdkExtension implements S3ClientSdkExtension {
 
     @Override
     public void verifyBucketOwnership(String bucket) {
+        Validate.notEmpty(bucket, "bucket");
         boolean isBucketOwner = s3.listBuckets()
                                   .buckets()
                                   .stream()

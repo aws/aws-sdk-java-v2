@@ -84,7 +84,7 @@ public class DefaultS3ExtensionIntegrationTest extends S3IntegrationTestBase {
     public void objectDoesNotExistSync() {
         assertThat(s3.doesObjectExist(BUCKET, "noexist")).isFalse();
     }
-  
+
     @Test
     public void objectDoesNotExistAsync() {
         assertThat(s3Async.doesObjectExist(BUCKET, "noexist").join()).isFalse();
