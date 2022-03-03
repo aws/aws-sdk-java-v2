@@ -16,8 +16,10 @@
 package software.amazon.awssdk.services.s3.internal.extensions;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.extensions.S3ClientSdkExtension;
+import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.utils.Validate;
@@ -51,6 +53,19 @@ public class DefaultS3ClientSdkExtension implements S3ClientSdkExtension {
             return true;
         } catch (NoSuchKeyException e) {
             return false;
+        }
+    }
+
+    @Override
+    public void verifyBucketOwnership(String bucket) {
+        Validate.notEmpty(bucket, "bucket");
+        boolean isBucketOwner = s3.listBuckets()
+                                  .buckets()
+                                  .stream()
+                                  .map(Bucket::name)
+                                  .anyMatch(b -> b.equals(bucket));
+        if (!isBucketOwner) {
+            throw SdkClientException.create("Bucket ownership verification failed.");
         }
     }
 }
