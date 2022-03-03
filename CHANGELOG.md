@@ -1,3 +1,70 @@
+# __2.17.142__ __2022-03-03__
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Doc only update that clarifies Create Deployment section.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now suggests spell corrections for a query. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/query-spell-check.html
+
+## __Amazon Appflow__
+  - ### Features
+    - Launching Amazon AppFlow Marketo as a destination connector SDK.
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for data repository associations to use root ("/") as the file system path
+
+## __Amazon Timestream Query__
+  - ### Features
+    - Documentation only update for SDK and CLI
+
+# __2.17.141__ __2022-03-02__
+## __AWS CloudTrail__
+  - ### Features
+    - Add bytesScanned field into responses of DescribeQuery and GetQueryResults.
+
+## __Amazon Athena__
+  - ### Features
+    - This release adds support for S3 Object Ownership by allowing the S3 bucket owner full control canned ACL to be set when Athena writes query results to S3 buckets.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds support for tracking images lastRecordedPullTime.
+
+## __Amazon GameLift__
+  - ### Features
+    - Minor updates to address errors.
+
+## __Amazon Keyspaces__
+  - ### Features
+    - This release adds support for data definition language (DDL) operations
+
+# __2.17.140__ __2022-03-01__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - This release adds Hybridcast as an available profile option for Dash Origin Endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for Multi-AZ DB clusters.
+
+## __Application Migration Service__
+  - ### Features
+    - Add support for GP3 and IO2 volume types. Add bootMode to LaunchConfiguration object (and as a parameter to UpdateLaunchConfigurationRequest).
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Adds operation for custom plugin deletion (DeleteCustomPlugin) and adds new StateDescription field to DescribeCustomPlugin and DescribeConnector responses to return errors from asynchronous resource creation.
+
 # __2.17.139__ __2022-02-28__
 ## __AWS Amplify__
   - ### Features
