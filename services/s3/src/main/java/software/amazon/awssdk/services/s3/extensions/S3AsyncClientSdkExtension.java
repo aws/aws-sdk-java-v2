@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkExtensionMethod;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.extensions.DefaultS3AsyncClientSdkExtension;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 /**
@@ -40,7 +41,7 @@ public interface S3AsyncClientSdkExtension {
      */
     @SdkExtensionMethod
     default CompletableFuture<Boolean> doesBucketExist(String bucket) {
-        throw new UnsupportedOperationException("not implemented yet");
+        return new DefaultS3AsyncClientSdkExtension((S3AsyncClient) this).doesBucketExist(bucket);
     }
 
     /**
@@ -48,13 +49,13 @@ public interface S3AsyncClientSdkExtension {
      * not accessible (e.g., due to access being denied or the bucket existing in another region), an {@link S3Exception} will be
      * thrown.
      *
-     * @param bucketName the bucket that contains the object
-     * @param key        the name of the object
+     * @param bucket the bucket that contains the object
+     * @param key    the name of the object
      * @return true if the bucket object exists and you have permission to access it; false if it does not exist
      * @throws S3Exception if the bucket exists but is not accessible
      */
     @SdkExtensionMethod
-    default CompletableFuture<Boolean> doesObjectExist(String bucketName, String key) {
-        throw new UnsupportedOperationException("not implemented yet");
+    default CompletableFuture<Boolean> doesObjectExist(String bucket, String key) {
+        return new DefaultS3AsyncClientSdkExtension((S3AsyncClient) this).doesObjectExist(bucket, key);
     }
 }
