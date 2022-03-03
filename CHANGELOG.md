@@ -1,3 +1,28 @@
+# __2.17.142__ __2022-03-03__
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Doc only update that clarifies Create Deployment section.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now suggests spell corrections for a query. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/query-spell-check.html
+
+## __Amazon Appflow__
+  - ### Features
+    - Launching Amazon AppFlow Marketo as a destination connector SDK.
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for data repository associations to use root ("/") as the file system path
+
+## __Amazon Timestream Query__
+  - ### Features
+    - Documentation only update for SDK and CLI
+
 # __2.17.141__ __2022-03-02__
 ## __AWS CloudTrail__
   - ### Features
