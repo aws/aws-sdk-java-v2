@@ -41,9 +41,9 @@ public class DefaultS3AsyncClientSdkExtension implements S3AsyncClientSdkExtensi
         try {
             Validate.notEmpty(bucket, "bucket");
             CompletableFuture<Boolean> returnFuture = new CompletableFuture<>();
-            CompletableFuture<HeadBucketResponse> responseFuture = s3.headBucket(req -> req.bucket(bucket));
+            CompletableFuture<HeadBucketResponse> responseFuture = s3.headBucket(r -> r.bucket(bucket));
             forwardExceptionTo(returnFuture, responseFuture);
-            responseFuture.whenComplete((resp, t) -> {
+            responseFuture.whenComplete((r, t) -> {
                 t = unwrap(t);
                 if (t == null) {
                     returnFuture.complete(true);
@@ -65,9 +65,9 @@ public class DefaultS3AsyncClientSdkExtension implements S3AsyncClientSdkExtensi
             Validate.notEmpty(bucket, "bucket");
             Validate.notEmpty(bucket, "key");
             CompletableFuture<Boolean> returnFuture = new CompletableFuture<>();
-            CompletableFuture<HeadObjectResponse> responseFuture = s3.headObject(req -> req.bucket(bucket).key(key));
+            CompletableFuture<HeadObjectResponse> responseFuture = s3.headObject(r -> r.bucket(bucket).key(key));
             forwardExceptionTo(returnFuture, responseFuture);
-            responseFuture.whenComplete((resp, t) -> {
+            responseFuture.whenComplete((r, t) -> {
                 t = unwrap(t);
                 if (t == null) {
                     returnFuture.complete(true);
