@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.s3.extensions;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.File;
@@ -23,6 +25,7 @@ import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -65,5 +68,17 @@ public class DefaultS3ExtensionIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void objectDoesNotExist() {
         assertThat(s3.doesObjectExist(BUCKET, "noexist")).isFalse();
+    }
+
+    @Test
+    public void verifyBucketOwnership_userOwnsBucket() {
+        assertThatCode(() -> s3.verifyBucketOwnership(BUCKET)).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void verifyBucketOwnership_userDoesNotOwnBucket() {
+        assertThatThrownBy(() -> s3.verifyBucketOwnership(temporaryBucketName("noexist")))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Bucket ownership verification failed.");
     }
 }

@@ -124,4 +124,22 @@ public interface S3ClientSdkExtension {
     default S3Presigner presigner() {
         return S3Presigner.create();
     }
+
+    /**
+     * Validate that the currently configured AWS Account is the owner of a given S3 bucket. Because Amazon S3 identifies buckets
+     * based on their names, an application that uses an incorrect bucket name in a request could inadvertently perform operations
+     * against a different bucket than expected.
+     * <p>
+     * Because buckets can be deleted and re-created at any time, this method should only be used when you know that the bucket in
+     * question will not be deleted after its ownership is verified. For more robust protection, you should include the {@code
+     * expectedBucketOwner} parameter with all eligible requests. For more information, see:
+     * <p>
+     * https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-owner-condition.html
+     *
+     * @param bucket the bucket to verify ownership
+     */
+    @SdkExtensionMethod
+    default void verifyBucketOwnership(String bucket) {
+        new DefaultS3ClientSdkExtension((S3Client) this).verifyBucketOwnership(bucket);
+    }
 }
