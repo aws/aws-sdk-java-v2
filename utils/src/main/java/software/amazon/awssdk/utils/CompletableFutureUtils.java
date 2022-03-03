@@ -144,4 +144,15 @@ public final class CompletableFutureUtils {
 
         return src;
     }
+
+    /**
+     * Unwrap a {@link Throwable} provided by a {@link CompletableFuture} to discard the {@link CompletionException} and retrieve
+     * the underlying exception.
+     */
+    public static Throwable unwrap(Throwable exception) {
+        while (exception instanceof CompletionException) {
+            exception = exception.getCause();
+        }
+        return exception;
+    }
 }

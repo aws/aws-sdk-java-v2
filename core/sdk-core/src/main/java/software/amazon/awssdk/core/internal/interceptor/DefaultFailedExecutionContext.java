@@ -15,8 +15,9 @@
 
 package software.amazon.awssdk.core.internal.interceptor;
 
+import static software.amazon.awssdk.utils.CompletableFutureUtils.unwrap;
+
 import java.util.Optional;
-import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -41,13 +42,6 @@ public class DefaultFailedExecutionContext implements Context.FailedExecution,
     private DefaultFailedExecutionContext(Builder builder) {
         this.exception = unwrap(Validate.paramNotNull(builder.exception, "exception"));
         this.interceptorContext = Validate.paramNotNull(builder.interceptorContext, "interceptorContext");
-    }
-
-    private Throwable unwrap(Throwable exception) {
-        while (exception instanceof CompletionException) {
-            exception = exception.getCause();
-        }
-        return exception;
     }
 
     @Override
