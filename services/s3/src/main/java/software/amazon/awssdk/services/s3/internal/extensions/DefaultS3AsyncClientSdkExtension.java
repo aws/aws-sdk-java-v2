@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.CompletableFutureUtils.forwardExcepti
 import static software.amazon.awssdk.utils.CompletableFutureUtils.unwrap;
 
 import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.extensions.S3AsyncClientSdkExtension;
 import software.amazon.awssdk.services.s3.model.HeadBucketResponse;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.utils.Validate;
 
+@SdkInternalApi
 public class DefaultS3AsyncClientSdkExtension implements S3AsyncClientSdkExtension {
 
     private final S3AsyncClient s3;

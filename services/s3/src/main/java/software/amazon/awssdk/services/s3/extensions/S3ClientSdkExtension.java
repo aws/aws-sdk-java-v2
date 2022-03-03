@@ -33,9 +33,7 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 /**
- * Extension methods for the {@link S3Client} interface.
- * 
- * @see SdkExtensionMethod
+ * {@link SdkExtensionMethod}s for the {@link S3Client} interface.
  */
 @SdkPublicApi
 public interface S3ClientSdkExtension {
@@ -60,7 +58,7 @@ public interface S3ClientSdkExtension {
      * thrown.
      *
      * @param bucket the bucket that contains the object
-     * @param key the name of the object
+     * @param key    the name of the object
      * @return true if the bucket object exists and you have permission to access it; false if it does not exist
      * @throws S3Exception if the bucket exists but is not accessible
      */
@@ -95,7 +93,7 @@ public interface S3ClientSdkExtension {
 
     /**
      * Shortcut to the {@link S3Utilities#getUrl(GetUrlRequest)} method.
-     * 
+     *
      * @param getUrlRequest The get URL request
      * @return the URL for the object
      */
