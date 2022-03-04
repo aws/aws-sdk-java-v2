@@ -54,6 +54,7 @@ public final class EnhancedClientUtils {
                 || chars[i] == '.'
                 || chars[i] == '-'
                 || chars[i] == '#'
+                || chars[i] == '+'
                 || chars[i] == ':') {
                 chars[i] = '_';
                 somethingChanged = true;
