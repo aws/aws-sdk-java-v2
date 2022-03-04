@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Transfer Family",
-    "contributor": "",
-    "description": "Add waiters for server online and offline."
-}
