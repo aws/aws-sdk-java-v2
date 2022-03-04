@@ -45,7 +45,7 @@ import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 
 public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
-    private static final String ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS = "a*t:t.r-i#bute3";
+    private static final String ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS = "a*t:t.r-i#bute+3";
 
     private static class Record {
         private String id;
