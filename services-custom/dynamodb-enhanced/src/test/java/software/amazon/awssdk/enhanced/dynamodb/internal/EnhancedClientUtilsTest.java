@@ -60,8 +60,8 @@ public class EnhancedClientUtilsTest {
 
     @Test
     public void cleanAttributeName_cleansSpecialCharacters() {
-        String result = EnhancedClientUtils.cleanAttributeName("a*b.c-d:e#f");
+        String result = EnhancedClientUtils.cleanAttributeName("a*b.c-d:e#f+g");
         
-        assertThat(result).isEqualTo("a_b_c_d_e_f");
+        assertThat(result).isEqualTo("a_b_c_d_e_f_g");
     }
 }
