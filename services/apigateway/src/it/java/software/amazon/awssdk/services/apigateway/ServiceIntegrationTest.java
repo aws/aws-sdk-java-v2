@@ -62,11 +62,11 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
 
     private static final String DESCRIPTION = "fooDesc";
 
-    private static String restApiId = null;
-
     // Limit deletes to once every 31 seconds
     // https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html#api-gateway-control-service-limits-table
     private static final Lazy<RateLimiter> DELETE_RATE_LIMITER = new Lazy<>(() -> RateLimiter.create(1.0 / 31));
+    
+    private static String restApiId = null;
 
     @BeforeClass
     public static void createRestApi() {
