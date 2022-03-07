@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.update.AddUpdateAction;
-import software.amazon.awssdk.enhanced.dynamodb.update.DeleteUpdateAction;
-import software.amazon.awssdk.enhanced.dynamodb.update.RemoveUpdateAction;
-import software.amazon.awssdk.enhanced.dynamodb.update.SetUpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.AddAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.DeleteAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -95,7 +95,7 @@ public final class UpdateExpressionConverter {
      * the combined collection of paths and ExpressionName values. Because attribute names can be composed from nested
      * attribute references and list references, the leftmost part will be returned if composition is detected.
      * <p>
-     * Examples: The expression contains a {@link DeleteUpdateAction} with a path value of 'MyAttribute[1]'; the list returned
+     * Examples: The expression contains a {@link DeleteAction} with a path value of 'MyAttribute[1]'; the list returned
      * will have 'MyAttribute' as an element.}
      *
      * @return A list of top level attribute names that have update actions associated.
@@ -119,7 +119,7 @@ public final class UpdateExpressionConverter {
         }
         if (!expression.removeActions().isEmpty()) {
             groupExpressions.add(REMOVE + expression.removeActions().stream()
-                                                    .map(RemoveUpdateAction::path)
+                                                    .map(RemoveAction::path)
                                                     .collect(Collectors.joining(ACTION_SEPARATOR)));
         }
         if (!expression.deleteActions().isEmpty()) {
@@ -136,12 +136,12 @@ public final class UpdateExpressionConverter {
     }
 
     private static Stream<Map<String, String>> streamOfExpressionNames(UpdateExpression expression) {
-        return Stream.concat(expression.setActions().stream().map(SetUpdateAction::expressionNames),
-                             Stream.concat(expression.removeActions().stream().map(RemoveUpdateAction::expressionNames),
+        return Stream.concat(expression.setActions().stream().map(SetAction::expressionNames),
+                             Stream.concat(expression.removeActions().stream().map(RemoveAction::expressionNames),
                                            Stream.concat(expression.deleteActions().stream()
-                                                                   .map(DeleteUpdateAction::expressionNames),
+                                                                   .map(DeleteAction::expressionNames),
                                                          expression.addActions().stream()
-                                                                   .map(AddUpdateAction::expressionNames))));
+                                                                   .map(AddAction::expressionNames))));
     }
 
     private static Map<String, AttributeValue> mergeExpressionValues(UpdateExpression expression) {
@@ -151,9 +151,9 @@ public final class UpdateExpressionConverter {
     }
 
     private static Stream<Map<String, AttributeValue>> streamOfExpressionValues(UpdateExpression expression) {
-        return Stream.concat(expression.setActions().stream().map(SetUpdateAction::expressionValues),
-                             Stream.concat(expression.deleteActions().stream().map(DeleteUpdateAction::expressionValues),
-                                           expression.addActions().stream().map(AddUpdateAction::expressionValues)));
+        return Stream.concat(expression.setActions().stream().map(SetAction::expressionValues),
+                             Stream.concat(expression.deleteActions().stream().map(DeleteAction::expressionValues),
+                                           expression.addActions().stream().map(AddAction::expressionValues)));
     }
 
     private static Map<String, String> mergeExpressionNames(UpdateExpression expression) {
@@ -163,10 +163,10 @@ public final class UpdateExpressionConverter {
     }
 
     private static List<String> listPathsWithoutTokens(UpdateExpression expression) {
-        return Stream.concat(expression.setActions().stream().map(SetUpdateAction::path),
-                             Stream.concat(expression.removeActions().stream().map(RemoveUpdateAction::path),
-                                           Stream.concat(expression.deleteActions().stream().map(DeleteUpdateAction::path),
-                                                         expression.addActions().stream().map(AddUpdateAction::path))))
+        return Stream.concat(expression.setActions().stream().map(SetAction::path),
+                             Stream.concat(expression.removeActions().stream().map(RemoveAction::path),
+                                           Stream.concat(expression.deleteActions().stream().map(DeleteAction::path),
+                                                         expression.addActions().stream().map(AddAction::path))))
                      .map(UpdateExpressionConverter::removeNestingAndListReference)
                      .filter(attributeName -> !attributeName.contains("#"))
                      .collect(Collectors.toList());

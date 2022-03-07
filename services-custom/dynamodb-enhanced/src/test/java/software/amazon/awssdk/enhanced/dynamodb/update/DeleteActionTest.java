@@ -22,7 +22,7 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-class SetUpdateActionTest {
+class DeleteActionTest {
 
     private static final String PATH = "path string";
     private static final String VALUE = "value string";
@@ -33,7 +33,7 @@ class SetUpdateActionTest {
 
     @Test
     void equalsHashcode() {
-        EqualsVerifier.forClass(SetUpdateAction.class)
+        EqualsVerifier.forClass(DeleteAction.class)
                       .usingGetClass()
                       .withPrefabValues(AttributeValue.class,
                                         AttributeValue.builder().s("1").build(),
@@ -43,11 +43,11 @@ class SetUpdateActionTest {
 
     @Test
     void build_minimal() {
-        SetUpdateAction action = SetUpdateAction.builder()
-                                                .path(PATH)
-                                                .value(VALUE)
-                                                .putExpressionValue(VALUE_TOKEN, NUMERIC_VALUE)
-                                                .build();
+        DeleteAction action = DeleteAction.builder()
+                                          .path(PATH)
+                                          .value(VALUE)
+                                          .putExpressionValue(VALUE_TOKEN, NUMERIC_VALUE)
+                                          .build();
         assertThat(action.path()).isEqualTo(PATH);
         assertThat(action.value()).isEqualTo(VALUE);
         assertThat(action.expressionValues()).containsEntry(VALUE_TOKEN, NUMERIC_VALUE);
@@ -56,15 +56,27 @@ class SetUpdateActionTest {
 
     @Test
     void build_maximal() {
-        SetUpdateAction action = SetUpdateAction.builder()
-                                                .path(PATH)
-                                                .value(VALUE)
-                                                .expressionValues(Collections.singletonMap(VALUE_TOKEN, NUMERIC_VALUE))
-                                                .expressionNames(Collections.singletonMap(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME))
-                                                .build();
+        DeleteAction action = DeleteAction.builder()
+                                          .path(PATH)
+                                          .value(VALUE)
+                                          .expressionValues(Collections.singletonMap(VALUE_TOKEN, NUMERIC_VALUE))
+                                          .expressionNames(Collections.singletonMap(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME))
+                                          .build();
         assertThat(action.path()).isEqualTo(PATH);
         assertThat(action.value()).isEqualTo(VALUE);
         assertThat(action.expressionValues()).containsEntry(VALUE_TOKEN, NUMERIC_VALUE);
         assertThat(action.expressionNames()).containsEntry(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME);
+    }
+
+    @Test
+    void copy() {
+        DeleteAction action = DeleteAction.builder()
+                                          .path(PATH)
+                                          .value(VALUE)
+                                          .expressionValues(Collections.singletonMap(VALUE_TOKEN, NUMERIC_VALUE))
+                                          .expressionNames(Collections.singletonMap(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME))
+                                          .build();
+        DeleteAction copy = action.toBuilder().build();
+        assertThat(action).isEqualTo(copy);
     }
 }

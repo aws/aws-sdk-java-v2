@@ -29,8 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
-import software.amazon.awssdk.enhanced.dynamodb.update.RemoveUpdateAction;
-import software.amazon.awssdk.enhanced.dynamodb.update.SetUpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -86,7 +86,7 @@ public final class UpdateExpressionUtils {
     /**
      * Creates a list of SET actions for all attributes supplied in the map.
      */
-    private static List<SetUpdateAction> setActionsFor(Map<String, AttributeValue> attributesToSet, TableMetadata tableMetadata) {
+    private static List<SetAction> setActionsFor(Map<String, AttributeValue> attributesToSet, TableMetadata tableMetadata) {
         return attributesToSet.entrySet()
                               .stream()
                               .map(entry -> setValue(entry.getKey(),
@@ -98,7 +98,7 @@ public final class UpdateExpressionUtils {
     /**
      * Creates a list of REMOVE actions for all attributes supplied in the map.
      */
-    private static List<RemoveUpdateAction> removeActionsFor(Map<String, AttributeValue> attributesToSet) {
+    private static List<RemoveAction> removeActionsFor(Map<String, AttributeValue> attributesToSet) {
         return attributesToSet.entrySet()
                               .stream()
                               .map(entry -> remove(entry.getKey()))
@@ -108,11 +108,11 @@ public final class UpdateExpressionUtils {
     /**
      * Creates a REMOVE action for an attribute, using a token as a placeholder for the attribute name.
      */
-    private static RemoveUpdateAction remove(String attributeName) {
-        return RemoveUpdateAction.builder()
-                                 .path(keyRef(attributeName))
-                                 .expressionNames(Collections.singletonMap(keyRef(attributeName), attributeName))
-                                 .build();
+    private static RemoveAction remove(String attributeName) {
+        return RemoveAction.builder()
+                           .path(keyRef(attributeName))
+                           .expressionNames(Collections.singletonMap(keyRef(attributeName), attributeName))
+                           .build();
     }
 
     /**
@@ -120,13 +120,13 @@ public final class UpdateExpressionUtils {
      *
      * @see UpdateBehavior for information about the values available.
      */
-    private static SetUpdateAction setValue(String attributeName, AttributeValue value, UpdateBehavior updateBehavior) {
-        return SetUpdateAction.builder()
-                              .path(keyRef(attributeName))
-                              .value(behaviorBasedValue(updateBehavior).apply(attributeName))
-                              .expressionNames(expressionNamesFor(attributeName))
-                              .expressionValues(Collections.singletonMap(valueRef(attributeName), value))
-                              .build();
+    private static SetAction setValue(String attributeName, AttributeValue value, UpdateBehavior updateBehavior) {
+        return SetAction.builder()
+                        .path(keyRef(attributeName))
+                        .value(behaviorBasedValue(updateBehavior).apply(attributeName))
+                        .expressionNames(expressionNamesFor(attributeName))
+                        .expressionValues(Collections.singletonMap(valueRef(attributeName), value))
+                        .build();
     }
 
     /**

@@ -44,15 +44,15 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * }
  * </pre>
  *
- * See respective subtype of {@link UpdateAction}, for example {@link SetUpdateAction}, for details on creating that action.
+ * See respective subtype of {@link UpdateAction}, for example {@link SetAction}, for details on creating that action.
  */
 @SdkPublicApi
 public final class UpdateExpression {
 
-    private final List<RemoveUpdateAction> removeActions;
-    private final List<SetUpdateAction> setActions;
-    private final List<DeleteUpdateAction> deleteActions;
-    private final List<AddUpdateAction> addActions;
+    private final List<RemoveAction> removeActions;
+    private final List<SetAction> setActions;
+    private final List<DeleteAction> deleteActions;
+    private final List<AddAction> addActions;
 
     private UpdateExpression(Builder builder) {
         this.removeActions = builder.removeActions;
@@ -70,19 +70,19 @@ public final class UpdateExpression {
         return new Builder();
     }
 
-    public List<RemoveUpdateAction> removeActions() {
+    public List<RemoveAction> removeActions() {
         return Collections.unmodifiableList(new ArrayList<>(removeActions));
     }
 
-    public List<SetUpdateAction> setActions() {
+    public List<SetAction> setActions() {
         return Collections.unmodifiableList(new ArrayList<>(setActions));
     }
 
-    public List<DeleteUpdateAction> deleteActions() {
+    public List<DeleteAction> deleteActions() {
         return Collections.unmodifiableList(new ArrayList<>(deleteActions));
     }
 
-    public List<AddUpdateAction> addActions() {
+    public List<AddAction> addActions() {
         return Collections.unmodifiableList(new ArrayList<>(addActions));
     }
 
@@ -145,42 +145,42 @@ public final class UpdateExpression {
      */
     public static final class Builder {
 
-        private List<RemoveUpdateAction> removeActions = new ArrayList<>();
-        private List<SetUpdateAction> setActions = new ArrayList<>();
-        private List<DeleteUpdateAction> deleteActions = new ArrayList<>();
-        private List<AddUpdateAction> addActions = new ArrayList<>();
+        private List<RemoveAction> removeActions = new ArrayList<>();
+        private List<SetAction> setActions = new ArrayList<>();
+        private List<DeleteAction> deleteActions = new ArrayList<>();
+        private List<AddAction> addActions = new ArrayList<>();
 
         private Builder() {
         }
 
         /**
-         * Add an action of type {@link RemoveUpdateAction}
+         * Add an action of type {@link RemoveAction}
          */
-        public Builder addAction(RemoveUpdateAction action) {
+        public Builder addAction(RemoveAction action) {
             removeActions.add(action);
             return this;
         }
 
         /**
-         * Add an action of type {@link SetUpdateAction}
+         * Add an action of type {@link SetAction}
          */
-        public Builder addAction(SetUpdateAction action) {
+        public Builder addAction(SetAction action) {
             setActions.add(action);
             return this;
         }
 
         /**
-         * Add an action of type {@link DeleteUpdateAction}
+         * Add an action of type {@link DeleteAction}
          */
-        public Builder addAction(DeleteUpdateAction action) {
+        public Builder addAction(DeleteAction action) {
             deleteActions.add(action);
             return this;
         }
 
         /**
-         * Add an action of type {@link AddUpdateAction}
+         * Add an action of type {@link AddAction}
          */
-        public Builder addAction(AddUpdateAction action) {
+        public Builder addAction(AddAction action) {
             addActions.add(action);
             return this;
         }
@@ -219,14 +219,14 @@ public final class UpdateExpression {
         }
 
         private void assignAction(UpdateAction action) {
-            if (action instanceof RemoveUpdateAction) {
-                addAction((RemoveUpdateAction) action);
-            } else if (action instanceof SetUpdateAction) {
-                addAction((SetUpdateAction) action);
-            } else if (action instanceof DeleteUpdateAction) {
-                addAction((DeleteUpdateAction) action);
-            } else if (action instanceof AddUpdateAction) {
-                addAction((AddUpdateAction) action);
+            if (action instanceof RemoveAction) {
+                addAction((RemoveAction) action);
+            } else if (action instanceof SetAction) {
+                addAction((SetAction) action);
+            } else if (action instanceof DeleteAction) {
+                addAction((DeleteAction) action);
+            } else if (action instanceof AddAction) {
+                addAction((AddAction) action);
             } else {
                 throw new IllegalArgumentException(
                     String.format("Do not recognize UpdateAction: %s", action.getClass()));

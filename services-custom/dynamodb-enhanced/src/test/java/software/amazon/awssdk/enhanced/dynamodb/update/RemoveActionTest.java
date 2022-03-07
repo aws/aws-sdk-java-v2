@@ -21,7 +21,7 @@ import java.util.Collections;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-class RemoveUpdateActionTest {
+class RemoveActionTest {
 
     private static final String PATH = "path string";
     private static final String ATTRIBUTE_TOKEN = "#attributeToken";
@@ -29,27 +29,37 @@ class RemoveUpdateActionTest {
 
     @Test
     void equalsHashcode() {
-        EqualsVerifier.forClass(RemoveUpdateAction.class)
+        EqualsVerifier.forClass(RemoveAction.class)
                       .usingGetClass()
                       .verify();
     }
 
     @Test
     void build_minimal() {
-        RemoveUpdateAction action = RemoveUpdateAction.builder()
-                                                      .path(PATH)
-                                                      .build();
+        RemoveAction action = RemoveAction.builder()
+                                          .path(PATH)
+                                          .build();
         assertThat(action.path()).isEqualTo(PATH);
         assertThat(action.expressionNames()).isEmpty();
     }
 
     @Test
     void build_maximal() {
-        RemoveUpdateAction action = RemoveUpdateAction.builder()
-                                                      .path(PATH)
-                                                      .expressionNames(Collections.singletonMap(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME))
-                                                      .build();
+        RemoveAction action = RemoveAction.builder()
+                                          .path(PATH)
+                                          .expressionNames(Collections.singletonMap(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME))
+                                          .build();
         assertThat(action.path()).isEqualTo(PATH);
         assertThat(action.expressionNames()).containsEntry(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME);
+    }
+
+    @Test
+    void copy() {
+        RemoveAction action = RemoveAction.builder()
+                                          .path(PATH)
+                                          .expressionNames(Collections.singletonMap(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME))
+                                          .build();
+        RemoveAction copy = action.toBuilder().build();
+        assertThat(action).isEqualTo(copy);
     }
 }
