@@ -48,6 +48,7 @@ import software.amazon.awssdk.services.apigateway.model.PutMethodRequest;
 import software.amazon.awssdk.services.apigateway.model.PutMethodResponse;
 import software.amazon.awssdk.services.apigateway.model.Resource;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
+import software.amazon.awssdk.services.apigateway.model.TooManyRequestsException;
 import software.amazon.awssdk.services.apigateway.model.UpdateApiKeyRequest;
 import software.amazon.awssdk.services.apigateway.model.UpdateResourceRequest;
 import software.amazon.awssdk.services.apigateway.model.UpdateRestApiRequest;
@@ -92,7 +93,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
             DELETE_RATE_LIMITER.getValue().acquire();
             try {
                 apiGateway.deleteRestApi(DeleteRestApiRequest.builder().restApiId(restApiId).build());
-            } catch (Exception e) {
+            } catch (TooManyRequestsException e) {
                 log.warn(() -> String.format("Failed to delete REST API %s (%s). This API should be deleted automatically in a "
                                              + "future 'deleteStaleRestApis' execution.",
                                              NAME, restApiId), e);
