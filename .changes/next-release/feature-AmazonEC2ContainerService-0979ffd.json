@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Service",
+    "contributor": "",
+    "description": "Amazon ECS UpdateService API now supports additional parameters: loadBalancers, propagateTags, enableECSManagedTags, and serviceRegistries"
+}
