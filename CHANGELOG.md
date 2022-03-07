@@ -1,3 +1,16 @@
+# __2.17.144__ __2022-03-07__
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - AWS Migration Hub Refactor Spaces documentation update.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Adds support for Transcribe language identification feature to the StartMeetingTranscription API.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS UpdateService API now supports additional parameters: loadBalancers, propagateTags, enableECSManagedTags, and serviceRegistries
+
 # __2.17.143__ __2022-03-04__
 ## __AWS Security Token Service__
   - ### Features
