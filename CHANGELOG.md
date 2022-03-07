@@ -1,3 +1,36 @@
+# __2.17.143__ __2022-03-04__
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for AWS Security Token Service.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Add waiters for server online and offline.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates the *InstanceStorageConfig APIs so they support a new ResourceType: REAL_TIME_CONTACT_ANALYSIS_SEGMENTS. Use this resource type to enable streaming for real-time contact analysis and to associate the Kinesis stream where real-time contact analysis segments will be published.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Amazon DevOps Guru now integrates with Amazon CodeGuru Profiler. You can view CodeGuru Profiler recommendations for your AWS Lambda function in DevOps Guru. This feature is enabled by default for new customers as of 3/4/2022. Existing customers can enable this feature with UpdateEventSourcesConfig.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Bugfix for handling attribute names with `+` character
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
+## __Amazon Macie__
+  - ### Features
+    - Amazon Macie Classic (macie) has been discontinued and is no longer available. A new Amazon Macie (macie2) is now available with significant design improvements and additional features.
+
+## __Synthetics__
+  - ### Features
+    - Allow custom handler function.
+
 # __2.17.142__ __2022-03-03__
 ## __AWS IoT Greengrass V2__
   - ### Features
