@@ -54,7 +54,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.update.DeleteUpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.DeleteAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -345,11 +345,11 @@ public class UpdateItemOperationTest {
     @Test
     public void generateRequest_withExtensions_singleUpdateExpression() {
         Map<String, AttributeValue> deleteActionMap = singletonMap(":val", AttributeValue.builder().s("s").build());
-        DeleteUpdateAction deleteUpdateAction = DeleteUpdateAction.builder().path("attr1")
-                                                                  .value(":val")
-                                                                  .expressionValues(deleteActionMap)
-                                                                  .build();
-        UpdateExpression updateExpression = UpdateExpression.builder().addAction(deleteUpdateAction).build();
+        DeleteAction deleteAction = DeleteAction.builder().path("attr1")
+                                                .value(":val")
+                                                .expressionValues(deleteActionMap)
+                                                .build();
+        UpdateExpression updateExpression = UpdateExpression.builder().addAction(deleteAction).build();
 
         FakeItem item = createUniqueFakeItem();
         when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
@@ -373,11 +373,11 @@ public class UpdateItemOperationTest {
         Expression condition = Expression.builder().expression("condition").expressionValues(fakeMap).build();
 
         Map<String, AttributeValue> deleteActionMap = singletonMap(":val", AttributeValue.builder().s("s").build());
-        DeleteUpdateAction deleteUpdateAction = DeleteUpdateAction.builder().path("attr1")
-                                                                  .value(":val")
-                                                                  .expressionValues(deleteActionMap)
-                                                                  .build();
-        UpdateExpression updateExpression = UpdateExpression.builder().addAction(deleteUpdateAction).build();
+        DeleteAction deleteAction = DeleteAction.builder().path("attr1")
+                                                .value(":val")
+                                                .expressionValues(deleteActionMap)
+                                                .build();
+        UpdateExpression updateExpression = UpdateExpression.builder().addAction(deleteAction).build();
 
         when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder()

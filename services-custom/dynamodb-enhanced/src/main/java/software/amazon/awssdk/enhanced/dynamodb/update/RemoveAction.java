@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * A representation of a single {@link UpdateExpression} REMOVE action.
@@ -42,12 +44,12 @@ import software.amazon.awssdk.utils.Validate;
  * </pre>
  */
 @SdkPublicApi
-public final class RemoveUpdateAction implements UpdateAction {
+public final class RemoveAction implements UpdateAction, ToCopyableBuilder<RemoveAction.Builder, RemoveAction> {
 
     private final String path;
     private final Map<String, String> expressionNames;
 
-    private RemoveUpdateAction(Builder builder) {
+    private RemoveAction(Builder builder) {
         this.path = Validate.paramNotNull(builder.path, "path");
         this.expressionNames = wrapSecure(builder.expressionNames != null ? builder.expressionNames : new HashMap<>());
     }
@@ -57,12 +59,18 @@ public final class RemoveUpdateAction implements UpdateAction {
     }
 
     /**
-     * Constructs a new builder for {@link RemoveUpdateAction}.
+     * Constructs a new builder for {@link RemoveAction}.
      *
      * @return a new builder.
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public Builder toBuilder() {
+        return builder().path(path)
+                        .expressionNames(expressionNames);
     }
 
     public String path() {
@@ -82,7 +90,7 @@ public final class RemoveUpdateAction implements UpdateAction {
             return false;
         }
 
-        RemoveUpdateAction that = (RemoveUpdateAction) o;
+        RemoveAction that = (RemoveAction) o;
 
         if (path != null ? ! path.equals(that.path) : that.path != null) {
             return false;
@@ -98,9 +106,9 @@ public final class RemoveUpdateAction implements UpdateAction {
     }
 
     /**
-     * A builder for {@link RemoveUpdateAction}
+     * A builder for {@link RemoveAction}
      */
-    public static final class Builder {
+    public static final class Builder implements CopyableBuilder<Builder, RemoveAction> {
 
         private String path;
         private Map<String, String> expressionNames;
@@ -139,10 +147,10 @@ public final class RemoveUpdateAction implements UpdateAction {
         }
 
         /**
-         * Builds an {@link RemoveUpdateAction} based on the values stored in this builder.
+         * Builds an {@link RemoveAction} based on the values stored in this builder.
          */
-        public RemoveUpdateAction build() {
-            return new RemoveUpdateAction(this);
+        public RemoveAction build() {
+            return new RemoveAction(this);
         }
     }
 }

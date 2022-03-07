@@ -21,6 +21,8 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * A representation of a single {@link UpdateExpression} DELETE action.
@@ -47,14 +49,14 @@ import software.amazon.awssdk.utils.Validate;
  * </pre>
  */
 @SdkPublicApi
-public final class DeleteUpdateAction implements UpdateAction {
+public final class DeleteAction implements UpdateAction, ToCopyableBuilder<DeleteAction.Builder, DeleteAction> {
 
     private final String path;
     private final String value;
     private final Map<String, String> expressionNames;
     private final Map<String, AttributeValue> expressionValues;
 
-    private DeleteUpdateAction(Builder builder) {
+    private DeleteAction(Builder builder) {
         this.path = Validate.paramNotNull(builder.path, "path");
         this.value = Validate.paramNotNull(builder.value, "value");
         this.expressionValues = wrapSecure(Validate.paramNotNull(builder.expressionValues, "expressionValues"));
@@ -66,12 +68,20 @@ public final class DeleteUpdateAction implements UpdateAction {
     }
 
     /**
-     * Constructs a new builder for {@link DeleteUpdateAction}.
+     * Constructs a new builder for {@link DeleteAction}.
      *
      * @return a new builder.
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public Builder toBuilder() {
+        return builder().path(path)
+                        .value(value)
+                        .expressionNames(expressionNames)
+                        .expressionValues(expressionValues);
     }
 
     public String path() {
@@ -99,7 +109,7 @@ public final class DeleteUpdateAction implements UpdateAction {
             return false;
         }
 
-        DeleteUpdateAction that = (DeleteUpdateAction) o;
+        DeleteAction that = (DeleteAction) o;
 
         if (path != null ? ! path.equals(that.path) : that.path != null) {
             return false;
@@ -124,9 +134,9 @@ public final class DeleteUpdateAction implements UpdateAction {
     }
 
     /**
-     * A builder for {@link DeleteUpdateAction}
+     * A builder for {@link DeleteAction}
      */
-    public static final class Builder {
+    public static final class Builder implements CopyableBuilder<Builder, DeleteAction> {
 
         private String path;
         private String value;
@@ -202,10 +212,10 @@ public final class DeleteUpdateAction implements UpdateAction {
         }
 
         /**
-         * Builds an {@link DeleteUpdateAction} based on the values stored in this builder.
+         * Builds an {@link DeleteAction} based on the values stored in this builder.
          */
-        public DeleteUpdateAction build() {
-            return new DeleteUpdateAction(this);
+        public DeleteAction build() {
+            return new DeleteAction(this);
         }
     }
 }

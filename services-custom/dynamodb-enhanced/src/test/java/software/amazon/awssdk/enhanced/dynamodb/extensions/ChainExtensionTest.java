@@ -46,10 +46,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.ChainExtensi
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationName;
-import software.amazon.awssdk.enhanced.dynamodb.update.AddUpdateAction;
-import software.amazon.awssdk.enhanced.dynamodb.update.DeleteUpdateAction;
-import software.amazon.awssdk.enhanced.dynamodb.update.RemoveUpdateAction;
-import software.amazon.awssdk.enhanced.dynamodb.update.SetUpdateAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -304,20 +302,20 @@ public class ChainExtensionTest {
         return context.build();
     }
 
-    private static RemoveUpdateAction removeAction(String attributeName) {
-        return RemoveUpdateAction.builder()
-                                 .path(keyRef(attributeName))
-                                 .putExpressionName(keyRef(attributeName), attributeName)
-                                 .build();
+    private static RemoveAction removeAction(String attributeName) {
+        return RemoveAction.builder()
+                           .path(keyRef(attributeName))
+                           .putExpressionName(keyRef(attributeName), attributeName)
+                           .build();
     }
 
-    private static SetUpdateAction setAction(String attributeName, AttributeValue value) {
-        return SetUpdateAction.builder()
-                              .value(valueRef(attributeName))
-                              .putExpressionValue(valueRef(attributeName), value)
-                              .path(keyRef(attributeName))
-                              .putExpressionName(keyRef(attributeName), attributeName)
-                              .build();
+    private static SetAction setAction(String attributeName, AttributeValue value) {
+        return SetAction.builder()
+                        .value(valueRef(attributeName))
+                        .putExpressionValue(valueRef(attributeName), value)
+                        .path(keyRef(attributeName))
+                        .putExpressionName(keyRef(attributeName), attributeName)
+                        .build();
     }
 
     private UpdateExpression updateExpression(UpdateAction... actions) {

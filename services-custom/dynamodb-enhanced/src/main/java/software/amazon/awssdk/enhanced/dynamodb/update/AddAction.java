@@ -21,15 +21,14 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * A representation of a single {@link UpdateExpression} SET action.
+ * A representation of a single {@link UpdateExpression} ADD action.
  * <p>
  * At a minimum, this action must contain a path string referencing the attribute that should be acted upon and a value string
- * referencing the value to set or change.
- * <p>
- * The value string may contain just an operand, or operands combined with '+' or '-'. Furthermore, an operand can be a
- * reference to a specific value or a function. All references to values should be substituted with tokens using the
+ * referencing the value to be added to the attribute. The value should be substituted with tokens using the
  * ':value_token' syntax and values associated with the token must be explicitly added to the expressionValues map.
  * Consult the DynamoDB UpdateExpression documentation for details on this action.
  * <p>
@@ -40,34 +39,24 @@ import software.amazon.awssdk.utils.Validate;
  * Example:-
  * <pre>
  * {@code
- * //Simply setting the value of 'attributeA' to 'myAttributeValue'
- * SetUpdateAction setAction1 = SetUpdateAction.builder()
- *                                             .path("#a")
- *                                             .value(":b")
- *                                             .putExpressionName("#a", "attributeA")
- *                                             .putExpressionValue(":b", myAttributeValue)
- *                                             .build();
- *
- * //Increasing the value of 'attributeA' with 'delta' if it already exists, otherwise sets it to 'startValue'
- * SetUpdateAction setAction2 = SetUpdateAction.builder()
- *                                             .path("#a")
- *                                             .value("if_not_exists(#a, :startValue) + :delta")
- *                                             .putExpressionName("#a", "attributeA")
- *                                             .putExpressionValue(":delta", myNumericAttributeValue1)
- *                                             .putExpressionValue(":startValue", myNumericAttributeValue2)
- *                                             .build();
+ * AddUpdateAction addAction = AddUpdateAction.builder()
+ *                                            .path("#a")
+ *                                            .value(":b")
+ *                                            .putExpressionName("#a", "attributeA")
+ *                                            .putExpressionValue(":b", myAttributeValue)
+ *                                            .build();
  * }
  * </pre>
  */
 @SdkPublicApi
-public final class SetUpdateAction implements UpdateAction {
+public final class AddAction implements UpdateAction, ToCopyableBuilder<AddAction.Builder, AddAction> {
 
     private final String path;
     private final String value;
     private final Map<String, String> expressionNames;
     private final Map<String, AttributeValue> expressionValues;
 
-    private SetUpdateAction(Builder builder) {
+    private AddAction(Builder builder) {
         this.path = Validate.paramNotNull(builder.path, "path");
         this.value = Validate.paramNotNull(builder.value, "value");
         this.expressionValues = wrapSecure(Validate.paramNotNull(builder.expressionValues, "expressionValues"));
@@ -79,12 +68,20 @@ public final class SetUpdateAction implements UpdateAction {
     }
 
     /**
-     * Constructs a new builder for {@link SetUpdateAction}.
+     * Constructs a new builder for {@link AddAction}.
      *
      * @return a new builder.
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public Builder toBuilder() {
+        return builder().path(path)
+                        .value(value)
+                        .expressionNames(expressionNames)
+                        .expressionValues(expressionValues);
     }
 
     public String path() {
@@ -112,7 +109,7 @@ public final class SetUpdateAction implements UpdateAction {
             return false;
         }
 
-        SetUpdateAction that = (SetUpdateAction) o;
+        AddAction that = (AddAction) o;
 
         if (path != null ? ! path.equals(that.path) : that.path != null) {
             return false;
@@ -137,9 +134,9 @@ public final class SetUpdateAction implements UpdateAction {
     }
 
     /**
-     * A builder for {@link DeleteUpdateAction}
+     * A builder for {@link AddAction}
      */
-    public static final class Builder {
+    public static final class Builder implements CopyableBuilder<Builder, AddAction> {
 
         private String path;
         private String value;
@@ -164,8 +161,8 @@ public final class SetUpdateAction implements UpdateAction {
         }
 
         /**
-         * Sets the 'expression values' token map that maps from value references (expression attribute values) to
-         * DynamoDB AttributeValues, overriding any existing values.
+         * Sets the 'expression values' token map that maps from value references (expression attribute values) to 
+         * DynamoDB AttributeValues, overriding any existing values. 
          * The value reference should always start with ':' (colon).
          *
          * @see #putExpressionValue(String, AttributeValue)
@@ -190,11 +187,11 @@ public final class SetUpdateAction implements UpdateAction {
         }
 
         /**
-         * Sets the optional 'expression names' token map, overriding any existing values. Use if the attribute
-         * references in the path expression are token ('expression attribute names') prepended with the
+         * Sets the optional 'expression names' token map, overriding any existing values. Use if the attribute 
+         * references in the path expression are token ('expression attribute names') prepended with the 
          * '#' (pound) sign. It should map from token name to real attribute name.
-         *
-         * @see #putExpressionName(String, String)
+         * 
+         * @see #putExpressionName(String, String) 
          */
         public Builder expressionNames(Map<String, String> expressionNames) {
             this.expressionNames = expressionNames == null ? null : new HashMap<>(expressionNames);
@@ -204,7 +201,7 @@ public final class SetUpdateAction implements UpdateAction {
         /**
          * Adds a single element to the optional 'expression names' token map.
          *
-         * @see #expressionNames(Map)
+         * @see #expressionNames(Map) 
          */
         public Builder putExpressionName(String key, String value) {
             if (this.expressionNames == null) {
@@ -215,10 +212,10 @@ public final class SetUpdateAction implements UpdateAction {
         }
 
         /**
-         * Builds an {@link SetUpdateAction} based on the values stored in this builder.
+         * Builds an {@link AddAction} based on the values stored in this builder.
          */
-        public SetUpdateAction build() {
-            return new SetUpdateAction(this);
+        public AddAction build() {
+            return new AddAction(this);
         }
     }
 }

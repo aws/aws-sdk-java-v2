@@ -28,22 +28,22 @@ class UpdateExpressionTest {
 
     private static final AttributeValue VAL = AttributeValue.builder().n("5").build();
 
-    private static final RemoveUpdateAction removeAction = RemoveUpdateAction.builder().path("").build();
-    private static final SetUpdateAction setAction = SetUpdateAction.builder()
-                                                                    .path("")
-                                                                    .value("")
-                                                                    .putExpressionValue("", VAL)
-                                                                    .build();
-    private static final DeleteUpdateAction deleteAction = DeleteUpdateAction.builder()
-                                                                             .path("")
-                                                                             .value("")
-                                                                             .putExpressionValue("", VAL)
-                                                                             .build();
-    private static final AddUpdateAction addAction = AddUpdateAction.builder()
-                                                                    .path("")
-                                                                    .value("")
-                                                                    .putExpressionValue("", VAL)
-                                                                    .build();
+    private static final RemoveAction removeAction = RemoveAction.builder().path("").build();
+    private static final SetAction setAction = SetAction.builder()
+                                                        .path("")
+                                                        .value("")
+                                                        .putExpressionValue("", VAL)
+                                                        .build();
+    private static final DeleteAction deleteAction = DeleteAction.builder()
+                                                                 .path("")
+                                                                 .value("")
+                                                                 .putExpressionValue("", VAL)
+                                                                 .build();
+    private static final AddAction addAction = AddAction.builder()
+                                                        .path("")
+                                                        .value("")
+                                                        .putExpressionValue("", VAL)
+                                                        .build();
 
     @Test
     void equalsHashcode() {
@@ -91,7 +91,7 @@ class UpdateExpressionTest {
 
     @Test
     void build_plural_is_not_additive() {
-        List<RemoveUpdateAction> removeActions = Arrays.asList(removeAction, removeAction);
+        List<RemoveAction> removeActions = Arrays.asList(removeAction, removeAction);
         UpdateExpression updateExpression = UpdateExpression.builder()
                                                             .actions(removeActions)
                                                             .actions(setAction, deleteAction, addAction)
@@ -140,7 +140,7 @@ class UpdateExpressionTest {
                                                             .actions(removeAction, setAction, deleteAction, addAction)
                                                             .build();
 
-        RemoveUpdateAction extraRemoveAction = RemoveUpdateAction.builder().path("a").build();
+        RemoveAction extraRemoveAction = RemoveAction.builder().path("a").build();
         UpdateExpression additionalExpression = UpdateExpression.builder()
                                                                 .addAction(extraRemoveAction)
                                                                 .build();
@@ -157,10 +157,10 @@ class UpdateExpressionTest {
                                                             .actions(removeAction, setAction, deleteAction, addAction)
                                                             .build();
 
-        RemoveUpdateAction extraRemoveAction = RemoveUpdateAction.builder().path("a").build();
-        SetUpdateAction extraSetAction = SetUpdateAction.builder().path("").value("").putExpressionValue("", VAL).build();
-        DeleteUpdateAction extraDeleteAction = DeleteUpdateAction.builder().path("").value("").putExpressionValue("", VAL).build();
-        AddUpdateAction extraAddAction = AddUpdateAction.builder().path("").value("").putExpressionValue("", VAL).build();
+        RemoveAction extraRemoveAction = RemoveAction.builder().path("a").build();
+        SetAction extraSetAction = SetAction.builder().path("").value("").putExpressionValue("", VAL).build();
+        DeleteAction extraDeleteAction = DeleteAction.builder().path("").value("").putExpressionValue("", VAL).build();
+        AddAction extraAddAction = AddAction.builder().path("").value("").putExpressionValue("", VAL).build();
         UpdateExpression additionalExpression = UpdateExpression.builder()
                                                                 .actions(extraRemoveAction, extraSetAction, extraDeleteAction, extraAddAction)
                                                                 .build();

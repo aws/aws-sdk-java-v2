@@ -39,27 +39,27 @@ public class RecordForUpdateExpressions {
     }
 
     @DynamoDbUpdateBehavior(WRITE_IF_NOT_EXISTS)
-    public String getStringAttribute1() {
+    public String getStringAttribute() {
         return stringAttribute1;
     }
 
-    public void setStringAttribute1(String stringAttribute1) {
+    public void setStringAttribute(String stringAttribute1) {
         this.stringAttribute1 = stringAttribute1;
     }
 
-    public Long getExtensionAttribute1() {
+    public Long getExtensionNumberAttribute() {
         return extensionAttribute1;
     }
 
-    public void setExtensionAttribute1(Long extensionAttribute1) {
+    public void setExtensionNumberAttribute(Long extensionAttribute1) {
         this.extensionAttribute1 = extensionAttribute1;
     }
 
-    public Set<String> getExtensionAttribute2() {
+    public Set<String> getExtensionSetAttribute() {
         return extensionAttribute2;
     }
 
-    public void setExtensionAttribute2(Set<String> extensionAttribute2) {
+    public void setExtensionSetAttribute(Set<String> extensionAttribute2) {
         this.extensionAttribute2 = extensionAttribute2;
     }
 }
