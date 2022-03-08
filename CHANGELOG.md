@@ -1,3 +1,20 @@
+# __2.17.145__ __2022-03-08__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for reading timecode from AVCHD sources and now provides the ability to segment WebVTT at the same interval as the video and audio in HLS packages.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Introducing a new enum for NodeGroup error code: Ec2SubnetMissingIpv6Assignment
+
+## __Amazon Keyspaces__
+  - ### Features
+    - Adding link to CloudTrail section in Amazon Keyspaces Developer Guide
+
 # __2.17.144__ __2022-03-07__
 ## __AWS Migration Hub Refactor Spaces__
   - ### Features
