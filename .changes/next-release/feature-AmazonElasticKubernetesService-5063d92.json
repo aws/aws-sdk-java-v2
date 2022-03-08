@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Kubernetes Service",
+    "contributor": "",
+    "description": "Introducing a new enum for NodeGroup error code: Ec2SubnetMissingIpv6Assignment"
+}
