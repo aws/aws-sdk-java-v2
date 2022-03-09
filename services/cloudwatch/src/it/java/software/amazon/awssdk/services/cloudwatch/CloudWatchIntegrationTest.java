@@ -31,10 +31,12 @@ import static software.amazon.awssdk.testutils.service.AwsTestBase.isValidSdkSer
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -48,6 +50,7 @@ import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsForMetricR
 import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsRequest;
 import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsResponse;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricDataResponse;
 import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsRequest;
 import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsResponse;
 import software.amazon.awssdk.services.cloudwatch.model.HistoryItemType;
@@ -55,9 +58,11 @@ import software.amazon.awssdk.services.cloudwatch.model.ListMetricsRequest;
 import software.amazon.awssdk.services.cloudwatch.model.ListMetricsResponse;
 import software.amazon.awssdk.services.cloudwatch.model.Metric;
 import software.amazon.awssdk.services.cloudwatch.model.MetricAlarm;
+import software.amazon.awssdk.services.cloudwatch.model.MetricDataResult;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricAlarmRequest;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
+import software.amazon.awssdk.services.cloudwatch.model.ScanBy;
 import software.amazon.awssdk.services.cloudwatch.model.StateValue;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
@@ -108,34 +113,36 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
     /**
      * Tests putting metrics and then getting them back.
      */
-
     @Test
     public void put_get_metricdata_list_metric_returns_success() throws
                                                                  InterruptedException {
-        String measureName = this.getClass().getName() + System.currentTimeMillis();
+        String metricName = this.getClass().getName() + System.currentTimeMillis();
+        String namespace = "AWS.EC2";
+        Dimension dimension = Dimension.builder().name("InstanceType").value("m1.small").build();
 
-        MetricDatum datum = MetricDatum.builder().dimensions(
-                Dimension.builder().name("InstanceType").value("m1.small").build())
-                                             .metricName(measureName).timestamp(Instant.now())
-                                             .unit("Count").value(42.0).build();
-
-        cloudwatch.putMetricData(PutMetricDataRequest.builder()
-                                         .namespace("AWS.EC2").metricData(datum).build());
-
+        MetricDatum datum = MetricDatum.builder()
+                                       .dimensions(dimension)
+                                       .metricName(metricName)
+                                       .timestamp(Instant.now())
+                                       .unit("Count")
+                                       .value(42.0).build();
+        
+        cloudwatch.putMetricData(r -> r.namespace(namespace).metricData(datum));
+        
+        // Test GetMetricStatistics (single metric per call)
         GetMetricStatisticsResponse result =
                 Waiter.run(() -> cloudwatch.getMetricStatistics(r -> r.startTime(Instant.now().minus(Duration.ofDays(7)))
-                                                                      .namespace("AWS.EC2")
+                                                                      .namespace(namespace)
                                                                       .period(60 * 60)
-                                                                      .dimensions(Dimension.builder().name("InstanceType")
-                                                                                           .value("m1.small").build())
-                                                                      .metricName(measureName)
+                                                                      .dimensions(dimension)
+                                                                      .metricName(metricName)
                                                                       .statisticsWithStrings("Average", "Maximum", "Minimum", "Sum")
                                                                       .endTime(Instant.now())))
                       .until(r -> r.datapoints().size() == 1)
                       .orFailAfter(Duration.ofMinutes(2));
 
         assertNotNull(result.label());
-        assertEquals(measureName, result.label());
+        assertEquals(metricName, result.label());
 
         assertEquals(1, result.datapoints().size());
         for (Datapoint datapoint : result.datapoints()) {
@@ -147,6 +154,27 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
             assertEquals(datum.unit(), datapoint.unit());
         }
 
+        // Test GetMetricDataResponse (paginated metrics)
+        GetMetricDataResponse metricData = cloudwatch.getMetricData(r -> r
+            .metricDataQueries(mdq -> mdq
+                .id("query1")
+                .metricStat(ms -> ms
+                    .metric(m -> m
+                        .namespace(namespace)
+                        .metricName(metricName)
+                        .dimensions(dimension))
+                    .period(Math.toIntExact(Duration.ofMinutes(5).getSeconds()))
+                    .stat("Maximum")))
+            .startTime(Instant.now().minus(5, ChronoUnit.MINUTES))
+            .endTime(Instant.now())
+            .scanBy(ScanBy.TIMESTAMP_DESCENDING));
+
+        Assertions.assertThat(metricData.metricDataResults()).hasSize(1);
+        MetricDataResult metricDataResult = metricData.metricDataResults().get(0);
+        Assertions.assertThat(metricDataResult.label()).isEqualTo(metricName);
+        Assertions.assertThat(metricDataResult.values()).containsExactly(datum.value());
+
+        // Test ListMetrics
         ListMetricsResponse listResult = cloudwatch.listMetrics(ListMetricsRequest.builder().build());
 
         boolean seenDimensions = false;
@@ -155,10 +183,10 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
             assertNotNull(metric.metricName());
             assertNotNull(metric.namespace());
 
-            for (Dimension dimension : metric.dimensions()) {
+            for (Dimension dim : metric.dimensions()) {
                 seenDimensions = true;
-                assertNotNull(dimension.name());
-                assertNotNull(dimension.value());
+                assertNotNull(dim.name());
+                assertNotNull(dim.value());
             }
         }
         assertTrue(seenDimensions);
