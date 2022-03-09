@@ -38,6 +38,7 @@ public class RecordWithUpdateBehaviors {
     private Long version;
     private Instant lastAutoUpdatedOnMillis;
     private Instant formattedLastAutoUpdatedOn;
+    private NestedRecordWithUpdateBehavior nestedRecord;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -113,5 +114,13 @@ public class RecordWithUpdateBehaviors {
 
     public void setFormattedLastAutoUpdatedOn(Instant formattedLastAutoUpdatedOn) {
         this.formattedLastAutoUpdatedOn = formattedLastAutoUpdatedOn;
+    }
+
+    public NestedRecordWithUpdateBehavior getNestedRecord() {
+        return nestedRecord;
+    }
+
+    public void setNestedRecord(NestedRecordWithUpdateBehavior nestedRecord) {
+        this.nestedRecord = nestedRecord;
     }
 }

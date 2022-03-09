@@ -18,7 +18,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.amazonaws.util.StringUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +33,7 @@ import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * When converting, SetAction, DeleteAction and AddAction work similarly. Advanced test cases thus only need to test
@@ -467,7 +467,7 @@ class UpdateExpressionConverterTest {
     private static RemoveAction removeAction(String attributeName, String keyToken) {
         RemoveAction.Builder builder = RemoveAction.builder()
                                                    .path(attributeName);
-        if (!StringUtils.isNullOrEmpty(keyToken)) {
+        if (!StringUtils.isEmpty(keyToken)) {
             builder.path(keyRef(attributeName, keyToken));
             builder.putExpressionName(keyRef(attributeName, keyToken), attributeName);
         }
@@ -479,7 +479,7 @@ class UpdateExpressionConverterTest {
                                              .path(attributeName)
                                              .value(valueRef(attributeName, valueToken))
                                              .putExpressionValue(valueRef(attributeName, valueToken), value);
-        if (!StringUtils.isNullOrEmpty(keyToken)) {
+        if (!StringUtils.isEmpty(keyToken)) {
             builder.path(keyRef(attributeName, keyToken));
             builder.putExpressionName(keyRef(attributeName, keyToken), attributeName);
         }
@@ -491,7 +491,7 @@ class UpdateExpressionConverterTest {
                                                    .path(attributeName)
                                                    .value(valueRef(attributeName, valueToken))
                                                    .putExpressionValue(valueRef(attributeName, valueToken), value);
-        if (!StringUtils.isNullOrEmpty(keyToken)) {
+        if (!StringUtils.isEmpty(keyToken)) {
             builder.path(keyRef(attributeName, keyToken));
             builder.putExpressionName(keyRef(attributeName, keyToken), attributeName);
         }
@@ -503,7 +503,7 @@ class UpdateExpressionConverterTest {
                                              .path(attributeName)
                                              .value(valueRef(attributeName, valueToken))
                                              .putExpressionValue(valueRef(attributeName, valueToken), value);
-        if (!StringUtils.isNullOrEmpty(keyToken)) {
+        if (!StringUtils.isEmpty(keyToken)) {
             builder.path(keyRef(attributeName, keyToken));
             builder.putExpressionName(keyRef(attributeName, keyToken), attributeName);
         }

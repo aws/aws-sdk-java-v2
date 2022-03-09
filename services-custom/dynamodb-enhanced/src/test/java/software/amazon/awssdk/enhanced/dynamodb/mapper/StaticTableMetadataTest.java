@@ -21,6 +21,9 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static software.amazon.awssdk.enhanced.dynamodb.TableMetadata.primaryIndexName;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
@@ -271,6 +274,32 @@ public class StaticTableMetadataTest {
     }
 
     @Test
+    public void setAndRetrieveCustomMetadataCollection() {
+        TableMetadata tableMetadata = StaticTableMetadata.builder()
+                                                         .addCustomMetadataObject("custom-key", Collections.singleton("123"))
+                                                         .addCustomMetadataObject("custom-key", Collections.singleton("456"))
+                                                         .build();
+
+        Collection<String> metadataObject = tableMetadata.customMetadataObject("custom-key", Collection.class).orElse(null);
+        assertThat(metadataObject.size(), is(2));
+        assertThat(metadataObject, contains("123", "456"));
+    }
+
+    @Test
+    public void setAndRetrieveCustomMetadataMap() {
+        TableMetadata tableMetadata =
+            StaticTableMetadata.builder()
+                               .addCustomMetadataObject("custom-key", Collections.singletonMap("key1", "123"))
+                               .addCustomMetadataObject("custom-key", Collections.singletonMap("key2", "456"))
+                               .build();
+
+        Map<String, String> metadataObject = tableMetadata.customMetadataObject("custom-key", Map.class).orElse(null);
+        assertThat(metadataObject.size(), is(2));
+        assertThat(metadataObject.get("key1"), is("123"));
+        assertThat(metadataObject.get("key2"), is("456"));
+    }
+
+    @Test
     public void retrieveUnsetCustomMetadata() {
         TableMetadata tableMetadata = StaticTableMetadata.builder().build();
 
@@ -304,6 +333,8 @@ public class StaticTableMetadataTest {
             .addIndexSortKey(INDEX_NAME, "dummy2", AttributeValueType.S)
             .addCustomMetadataObject("custom1", "value1")
             .addCustomMetadataObject("custom2", "value2")
+            .addCustomMetadataObject("custom-key", Collections.singletonMap("key1", "123"))
+            .addCustomMetadataObject("custom-key", Collections.singletonMap("key2", "456"))
             .build();
 
         StaticTableMetadata mergedTableMetadata = StaticTableMetadata.builder().mergeWith(tableMetadata).build();
@@ -321,7 +352,9 @@ public class StaticTableMetadataTest {
                                                                .addIndexPartitionKey(INDEX_NAME, "dummy", AttributeValueType.S)
                                                                .addIndexSortKey(INDEX_NAME, "dummy2", AttributeValueType.S)
                                                                .addCustomMetadataObject("custom1", "value1")
-                                                               .addCustomMetadataObject("custom2", "value2");
+                                                               .addCustomMetadataObject("custom2", "value2")
+                                                               .addCustomMetadataObject("custom-key", Collections.singletonMap("key1", "123"))
+                                                               .addCustomMetadataObject("custom-key", Collections.singletonMap("key2", "456"));
 
         StaticTableMetadata original = tableMetadataBuilder.build();
         StaticTableMetadata merged = tableMetadataBuilder.mergeWith(emptyTableMetadata).build();
@@ -352,7 +385,7 @@ public class StaticTableMetadataTest {
     }
 
     @Test
-    public void mergeWithDuplicateCustomMetadata() {
+    public void mergeWithDuplicateSingleCustomMetadata() {
         StaticTableMetadata.Builder builder = StaticTableMetadata.builder().addCustomMetadataObject(INDEX_NAME, "id");
 
         exception.expect(IllegalArgumentException.class);
@@ -360,5 +393,36 @@ public class StaticTableMetadataTest {
         exception.expectMessage(INDEX_NAME);
 
         builder.mergeWith(builder.build());
+    }
+
+    @Test
+    public void mergeWithCustomMetadataCollection() {
+        StaticTableMetadata original = StaticTableMetadata.builder()
+                                                          .addCustomMetadataObject("custom-key", Collections.singleton("123"))
+                                                          .build();
+        StaticTableMetadata.Builder mergedBuilder =
+            StaticTableMetadata.builder().addCustomMetadataObject("custom-key", Collections.singleton("456"));
+
+        StaticTableMetadata merged = mergedBuilder.mergeWith(original).build();
+
+        Collection<String> metadataObject = merged.customMetadataObject("custom-key", Collection.class).orElse(null);
+        assertThat(metadataObject.size(), is(2));
+        assertThat(metadataObject, contains("123", "456"));
+    }
+
+    @Test
+    public void mergeWithCustomMetadataMap() {
+        StaticTableMetadata original = StaticTableMetadata.builder()
+                                                          .addCustomMetadataObject("custom-key", Collections.singletonMap("key1", "123"))
+                                                          .build();
+        StaticTableMetadata.Builder mergedBuilder =
+            StaticTableMetadata.builder().addCustomMetadataObject("custom-key", Collections.singletonMap("key2", "456"));
+
+        StaticTableMetadata merged = mergedBuilder.mergeWith(original).build();
+
+        Map<String, String> metadataObject = merged.customMetadataObject("custom-key", Map.class).orElse(null);
+        assertThat(metadataObject.size(), is(2));
+        assertThat(metadataObject.get("key1"), is("123"));
+        assertThat(metadataObject.get("key2"), is("456"));
     }
 }
