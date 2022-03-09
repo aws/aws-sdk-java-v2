@@ -166,7 +166,8 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
                     .period(Math.toIntExact(Duration.ofMinutes(5).getSeconds()))
                     .stat("Maximum")))
             .startTime(Instant.now().minus(5, ChronoUnit.MINUTES))
-            .endTime(Instant.now())
+            // Add 1 nanosecond to test an input with nanosecond granularity
+            .endTime(Instant.now().plusNanos(1))
             .scanBy(ScanBy.TIMESTAMP_DESCENDING));
 
         Assertions.assertThat(metricData.metricDataResults()).hasSize(1);
