@@ -1,3 +1,12 @@
+# __2.17.146__ __2022-03-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Comprehend__
+  - ### Features
+    - Amazon Comprehend now supports extracting the sentiment associated with entities such as brands, products and services from text documents.
+
 # __2.17.145__ __2022-03-08__
 ## __AWS Elemental MediaConvert__
   - ### Features
