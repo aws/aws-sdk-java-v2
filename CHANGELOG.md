@@ -1,3 +1,20 @@
+# __2.17.147__ __2022-03-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Adding more descriptive error types for managed workflows
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release makes slotTypeId an optional parameter in CreateSlot and UpdateSlot APIs in Amazon Lex V2 for model building. Customers can create and update slots without specifying a slot type id.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Documentation fix for API `StartMedicalTranscriptionJobRequest`, now showing min sample rate as 16khz
+
 # __2.17.146__ __2022-03-09__
 ## __AWS SDK for Java v2__
   - ### Features

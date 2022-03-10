@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Service",
-    "contributor": "",
-    "description": "Documentation fix for API `StartMedicalTranscriptionJobRequest`, now showing min sample rate as 16khz"
-}
