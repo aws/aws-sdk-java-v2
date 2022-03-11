@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Streaming Service",
-    "contributor": "",
-    "description": "Amazon Transcribe StartTranscription API now supports additional parameters for Language Identification feature: customVocabularies and customFilterVocabularies"
-}
