@@ -1,3 +1,28 @@
+# __2.17.148__ __2022-03-11__
+## __AWS Lambda__
+  - ### Features
+    - Adds PrincipalOrgID support to AddPermission API. Customers can use it to manage permissions to lambda functions at AWS Organizations level.
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds address filters for listSites
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager.
+
+## __Amazon Chime__
+  - ### Features
+    - Chime VoiceConnector Logging APIs will now support MediaMetricLogs. Also CreateMeetingDialOut now returns AccessDeniedException.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds support for enabling Rich Messaging when starting a new chat session via the StartChatContact API. Rich Messaging enables the following formatting options: bold, italics, hyperlinks, bulleted lists, and numbered lists.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - Amazon Transcribe StartTranscription API now supports additional parameters for Language Identification feature: customVocabularies and customFilterVocabularies
+
 # __2.17.147__ __2022-03-10__
 ## __AWS SDK for Java v2__
   - ### Features
