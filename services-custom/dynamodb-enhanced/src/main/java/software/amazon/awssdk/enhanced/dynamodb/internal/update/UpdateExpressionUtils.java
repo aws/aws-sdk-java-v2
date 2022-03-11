@@ -43,21 +43,21 @@ public final class UpdateExpressionUtils {
     /**
      * Creates a key token to be used with an ExpressionNames map.
      */
-    private static String keyRef(String key) {
+    public static String keyRef(String key) {
         return "#AMZN_MAPPED_" + EnhancedClientUtils.cleanAttributeName(key);
     }
 
     /**
      * Creates a value token to be used with an ExpressionValues map.
      */
-    private static String valueRef(String value) {
+    public static String valueRef(String value) {
         return ":AMZN_MAPPED_" + EnhancedClientUtils.cleanAttributeName(value);
     }
 
     /**
      * A function to specify an initial value if the attribute represented by 'key' does not exist.
      */
-    private static String ifNotExists(String key, String initValue) {
+    public static String ifNotExists(String key, String initValue) {
         return "if_not_exists(" + keyRef(key) + ", " + valueRef(initValue) + ")";
     }
 

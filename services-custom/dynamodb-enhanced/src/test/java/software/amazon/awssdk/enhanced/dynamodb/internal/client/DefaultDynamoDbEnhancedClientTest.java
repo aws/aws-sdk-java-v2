@@ -72,7 +72,7 @@ public class DefaultDynamoDbEnhancedClientTest {
                                                                                  .build();
 
         assertThat(builtObject.dynamoDbClient(), is(mockDynamoDbClient));
-        assertThat(builtObject.mapperExtension(), instanceOf(VersionedRecordExtension.class));
+        assertThat(builtObject.mapperExtension(), instanceOf(ChainExtension.class));
     }
 
     @Test
