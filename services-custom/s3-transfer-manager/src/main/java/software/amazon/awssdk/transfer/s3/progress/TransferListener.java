@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
@@ -203,6 +204,8 @@ public interface TransferListener {
              * {@link DownloadFileRequest}.
              */
             TransferObjectRequest request();
+
+            SdkResponse initialResponse();
 
             /**
              * The immutable {@link TransferProgressSnapshot} for this specific update.

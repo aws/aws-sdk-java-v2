@@ -16,7 +16,8 @@
 package software.amazon.awssdk.transfer.s3.internal.progress;
 
 import java.nio.ByteBuffer;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
@@ -41,10 +42,12 @@ public class TransferProgressUpdater {
 
     private final DefaultTransferProgress progress;
     private final TransferListenerContext context;
-    private final TransferListenerInvoker listeners;
+    private final TransferListenerInvoker listenerInvoker;
     private final CompletableFuture<Void> endOfStreamFuture;
 
-    public TransferProgressUpdater(TransferObjectRequest request, AsyncRequestBody requestBody) {
+    public TransferProgressUpdater(TransferObjectRequest request,
+                                   AsyncRequestBody requestBody,
+                                   TransferListener listener) {
         DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
         getContentLengthSafe(requestBody).ifPresent(snapshotBuilder::transferSizeInBytes);
         TransferProgressSnapshot snapshot = snapshotBuilder.build();
@@ -53,9 +56,17 @@ public class TransferProgressUpdater {
                                          .request(request)
                                          .progressSnapshot(snapshot)
                                          .build();
-        listeners = new TransferListenerInvoker(request.overrideConfiguration()
-                                                       .map(TransferRequestOverrideConfiguration::listeners)
-                                                       .orElseGet(Collections::emptyList));
+
+        List<TransferListener> listeners = new ArrayList<>();
+        if (listener != null) {
+            listeners.add(listener);
+        }
+
+        request.overrideConfiguration()
+               .map(TransferRequestOverrideConfiguration::listeners)
+               .ifPresent(listeners::addAll);
+
+        listenerInvoker = new TransferListenerInvoker(listeners);
         endOfStreamFuture = new CompletableFuture<>();
     }
 
@@ -64,7 +75,7 @@ public class TransferProgressUpdater {
     }
 
     public void transferInitiated() {
-        listeners.transferInitiated(context);
+        listenerInvoker.transferInitiated(context);
     }
 
     public AsyncRequestBody wrapRequestBody(AsyncRequestBody requestBody) {
@@ -140,7 +151,7 @@ public class TransferProgressUpdater {
         TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
             b.bytesTransferred(b.getBytesTransferred() + numBytes);
         });
-        listeners.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
+        listenerInvoker.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
     }
 
     public void registerCompletion(CompletableFuture<? extends CompletedObjectTransfer> future) {
@@ -160,7 +171,7 @@ public class TransferProgressUpdater {
     }
 
     private void transferComplete(CompletedObjectTransfer r) {
-        listeners.transferComplete(context.copy(b -> {
+        listenerInvoker.transferComplete(context.copy(b -> {
             TransferProgressSnapshot snapshot = progress.snapshot();
             b.progressSnapshot(snapshot);
             b.completedTransfer(r);
@@ -168,8 +179,8 @@ public class TransferProgressUpdater {
     }
 
     private void transferFailed(Throwable t) {
-        listeners.transferFailed(TransferListenerFailedContext.builder()
-                                                              .transferContext(context.copy(b -> {
+        listenerInvoker.transferFailed(TransferListenerFailedContext.builder()
+                                                                    .transferContext(context.copy(b -> {
                                                                   b.progressSnapshot(progress.snapshot());
                                                               }))
                                                               .exception(t)

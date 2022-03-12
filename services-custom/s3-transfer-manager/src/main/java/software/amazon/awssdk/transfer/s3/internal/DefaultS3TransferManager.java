@@ -50,6 +50,7 @@ import software.amazon.awssdk.transfer.s3.Upload;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.UploadRequest;
+import software.amazon.awssdk.transfer.s3.internal.progress.DownloadFileMonitor;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -110,7 +111,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         
         CompletableFuture<CompletedUpload> returnFuture = new CompletableFuture<>();
         
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadRequest, requestBody);
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadRequest, requestBody, null);
         progressUpdater.transferInitiated();
         requestBody = progressUpdater.wrapRequestBody(requestBody);
         progressUpdater.registerCompletion(returnFuture);
@@ -143,7 +144,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
         CompletableFuture<CompletedFileUpload> returnFuture = new CompletableFuture<>();
 
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadFileRequest, requestBody);
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadFileRequest, requestBody, null);
         progressUpdater.transferInitiated();
         requestBody = progressUpdater.wrapRequestBody(requestBody);
         progressUpdater.registerCompletion(returnFuture);
@@ -190,7 +191,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
         CompletableFuture<CompletedDownload<ResultT>> returnFuture = new CompletableFuture<>();
 
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null, null);
         progressUpdater.transferInitiated();
         responseTransformer = progressUpdater.wrapResponseTransformer(responseTransformer);
         progressUpdater.registerCompletion(returnFuture);
@@ -224,8 +225,10 @@ public final class DefaultS3TransferManager implements S3TransferManager {
                                             FileTransformerConfiguration.defaultCreateOrReplaceExisting());
 
         CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
+        DownloadFileMonitor listener = new DownloadFileMonitor(downloadRequest);
+        CompletableFuture<CompletedFileDownload> downloadFuture = new CompletableFuture<>();
 
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null, listener);
         progressUpdater.transferInitiated();
         responseTransformer = progressUpdater.wrapResponseTransformer(responseTransformer);
         progressUpdater.registerCompletion(returnFuture);
@@ -247,7 +250,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
             returnFuture.completeExceptionally(throwable);
         }
 
-        return new DefaultFileDownload(returnFuture, progressUpdater.progress());
+        return new DefaultFileDownload(downloadFuture, progressUpdater.progress(), listener);
     }
 
     @Override
@@ -269,7 +272,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
         CompletableFuture<CompletedCopy> returnFuture = new CompletableFuture<>();
 
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(copyRequest, null);
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(copyRequest, null, null);
         progressUpdater.transferInitiated();
         progressUpdater.registerCompletion(returnFuture);
 

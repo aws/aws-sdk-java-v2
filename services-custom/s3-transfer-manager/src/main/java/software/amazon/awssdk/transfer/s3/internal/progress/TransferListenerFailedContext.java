@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal.progress;
 import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
@@ -64,6 +65,11 @@ public class TransferListenerFailedContext
     @Override
     public TransferObjectRequest request() {
         return transferContext.request();
+    }
+
+    @Override
+    public SdkResponse initialResponse() {
+        return transferContext.initialResponse();
     }
 
     @Override

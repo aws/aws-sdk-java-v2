@@ -122,6 +122,17 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
+     * Resumes a download operation. This download operation uses the same configuration as the original download. Any data
+     * already fetched will be skipped, and only the remaining data is retrieved from Amazon S3.
+     *
+     * @param persistableFileDownload the download to resume.
+     * @return A new {@code FileDownload} object to use to check the state of the download.
+     */
+    default FileDownload resumeDownloadFile(PersistableFileDownload persistableFileDownload) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}. For 
      * downloading to a file, you may use {@link #downloadFile(DownloadFileRequest)} instead.
      * <p>

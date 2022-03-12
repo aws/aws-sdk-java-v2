@@ -27,6 +27,7 @@ import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
@@ -46,6 +48,7 @@ import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.FileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
+import software.amazon.awssdk.transfer.s3.internal.progress.DownloadFileMonitor;
 
 public class DownloadDirectoryHelperTest {
     private static FileSystem jimfs;
@@ -174,7 +177,9 @@ public class DownloadDirectoryHelperTest {
 
     private FileDownload newDownload(CompletableFuture<CompletedFileDownload> future) {
         return new DefaultFileDownload(future,
-                                       new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build())
-        );
+                                       new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build()),
+                                       new DownloadFileMonitor(DownloadFileRequest.builder().getObjectRequest(GetObjectRequest.builder().build())
+                                                                                  .destination(Paths.get("."))
+                                                                                  .build()));
     }
 }
