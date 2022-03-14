@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Timestream Query",
-    "contributor": "",
-    "description": "Amazon Timestream Scheduled Queries now support Timestamp datatype in a multi-measure record."
-}
