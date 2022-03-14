@@ -1,6 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "The default tlsNegotiationTimeout is now 5 seconds instead of 2 seconds to account for potential startup latency."
-}
