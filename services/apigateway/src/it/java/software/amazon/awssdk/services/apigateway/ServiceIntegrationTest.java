@@ -48,9 +48,11 @@ import software.amazon.awssdk.services.apigateway.model.PutMethodRequest;
 import software.amazon.awssdk.services.apigateway.model.PutMethodResponse;
 import software.amazon.awssdk.services.apigateway.model.Resource;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
+import software.amazon.awssdk.services.apigateway.model.TooManyRequestsException;
 import software.amazon.awssdk.services.apigateway.model.UpdateApiKeyRequest;
 import software.amazon.awssdk.services.apigateway.model.UpdateResourceRequest;
 import software.amazon.awssdk.services.apigateway.model.UpdateRestApiRequest;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Logger;
 
 public class ServiceIntegrationTest extends IntegrationTestBase {
@@ -61,6 +63,10 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
 
     private static final String DESCRIPTION = "fooDesc";
 
+    // Limit deletes to once every 31 seconds
+    // https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html#api-gateway-control-service-limits-table
+    private static final Lazy<RateLimiter> DELETE_RATE_LIMITER = new Lazy<>(() -> RateLimiter.create(1.0 / 31));
+    
     private static String restApiId = null;
 
     @BeforeClass
@@ -84,7 +90,14 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
     @AfterClass
     public static void deleteRestApiKey() {
         if (restApiId != null) {
-            apiGateway.deleteRestApi(DeleteRestApiRequest.builder().restApiId(restApiId).build());
+            DELETE_RATE_LIMITER.getValue().acquire();
+            try {
+                apiGateway.deleteRestApi(DeleteRestApiRequest.builder().restApiId(restApiId).build());
+            } catch (TooManyRequestsException e) {
+                log.warn(() -> String.format("Failed to delete REST API %s (%s). This API should be deleted automatically in a "
+                                             + "future 'deleteStaleRestApis' execution.",
+                                             NAME, restApiId), e);
+            }
         }
     }
 
@@ -94,10 +107,6 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         Duration maxApiAge = Duration.ofDays(7);
         AtomicInteger success = new AtomicInteger();
         AtomicInteger failure = new AtomicInteger();
-
-        // Limit deletes to once every 31 seconds
-        // https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html#api-gateway-control-service-limits-table
-        RateLimiter rateLimiter = RateLimiter.create(1.0 / 31);
 
         log.info(() -> String.format("Searching for stale REST APIs older than %s days...", maxApiAge.toDays()));
         for (RestApi api : apiGateway.getRestApisPaginator().items()) {
@@ -109,7 +118,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
             }
             Duration apiAge = Duration.between(api.createdDate(), Instant.now());
             if (api.name().startsWith(NAME_PREFIX) && apiAge.compareTo(maxApiAge) > 0) {
-                rateLimiter.acquire();
+                DELETE_RATE_LIMITER.getValue().acquire();
                 try {
                     apiGateway.deleteRestApi(r -> r.restApiId(api.id()));
                     log.info(() -> String.format("Successfully deleted REST API %s (%s) which was %s days old.",
