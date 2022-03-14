@@ -1,3 +1,71 @@
+# __2.17.148__ __2022-03-11__
+## __AWS Lambda__
+  - ### Features
+    - Adds PrincipalOrgID support to AddPermission API. Customers can use it to manage permissions to lambda functions at AWS Organizations level.
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds address filters for listSites
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager.
+
+## __Amazon Chime__
+  - ### Features
+    - Chime VoiceConnector Logging APIs will now support MediaMetricLogs. Also CreateMeetingDialOut now returns AccessDeniedException.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds support for enabling Rich Messaging when starting a new chat session via the StartChatContact API. Rich Messaging enables the following formatting options: bold, italics, hyperlinks, bulleted lists, and numbered lists.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - Amazon Transcribe StartTranscription API now supports additional parameters for Language Identification feature: customVocabularies and customFilterVocabularies
+
+# __2.17.147__ __2022-03-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Adding more descriptive error types for managed workflows
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release makes slotTypeId an optional parameter in CreateSlot and UpdateSlot APIs in Amazon Lex V2 for model building. Customers can create and update slots without specifying a slot type id.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Documentation fix for API `StartMedicalTranscriptionJobRequest`, now showing min sample rate as 16khz
+
+# __2.17.146__ __2022-03-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Comprehend__
+  - ### Features
+    - Amazon Comprehend now supports extracting the sentiment associated with entities such as brands, products and services from text documents.
+
+# __2.17.145__ __2022-03-08__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for reading timecode from AVCHD sources and now provides the ability to segment WebVTT at the same interval as the video and audio in HLS packages.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Introducing a new enum for NodeGroup error code: Ec2SubnetMissingIpv6Assignment
+
+## __Amazon Keyspaces__
+  - ### Features
+    - Adding link to CloudTrail section in Amazon Keyspaces Developer Guide
+
 # __2.17.144__ __2022-03-07__
 ## __AWS Migration Hub Refactor Spaces__
   - ### Features
