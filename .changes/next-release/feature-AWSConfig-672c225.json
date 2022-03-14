@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Config",
+    "contributor": "",
+    "description": "Add resourceType enums for AWS::ECR::PublicRepository and AWS::EC2::LaunchTemplate"
+}
