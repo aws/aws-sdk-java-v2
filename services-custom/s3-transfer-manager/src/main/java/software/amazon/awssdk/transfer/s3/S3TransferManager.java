@@ -22,9 +22,12 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.transfer.s3.internal.DefaultS3TransferManager;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
@@ -359,6 +362,49 @@ public interface S3TransferManager extends SdkAutoCloseable {
     default DirectoryDownload downloadDirectory(Consumer<DownloadDirectoryRequest.Builder> requestBuilder) {
         Validate.paramNotNull(requestBuilder, "requestBuilder");
         return downloadDirectory(DownloadDirectoryRequest.builder().applyMutation(requestBuilder).build());
+    }
+
+    /**
+     * Creates a copy of an object that is already stored in S3.
+     * <p>
+     * Under the hood, {@link S3TransferManager} will intelligently use plain {@link CopyObjectRequest}s for smaller objects, or
+     * multiple parallel {@link UploadPartCopyRequest}s for larger objects.
+     * <p>
+     * While this API supports {@link TransferListener}s, they will not receive {@code bytesTransferred} callback-updates due to
+     * the way the {@link CopyObjectRequest} API behaves. When copying an object, S3 performs the byte copying on your behalf
+     * while keeping the connection alive. The progress of the copy is not known until it fully completes and S3 sends a response
+     * describing the outcome.
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * Copy copy = tm.copy(c -> c
+     *     .copyObjectRequest(r -> r
+     *         .sourceBucket(BUCKET)
+     *         .sourceKey(ORIGINAL_OBJ)
+     *         .destinationBucket(BUCKET)
+     *         .destinationKey(COPIED_OBJ)));
+     * // Wait for the transfer to complete
+     * CompletedCopy completedCopy = copy.completionFuture().join();
+     * }
+     * </pre>
+     *
+     * @param copyRequest the copy request, containing a {@link CopyObjectRequest}
+     * @return A {@link Copy} that can be used to track the ongoing transfer
+     * @see #copy(Consumer)
+     */
+    default Copy copy(CopyRequest copyRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link CopyRequest} builder, avoiding the need to create one
+     * manually via {@link CopyRequest#builder()}.
+     *
+     * @see #copy(CopyRequest)
+     */
+    default Copy copy(Consumer<CopyRequest.Builder> copyRequestBuilder) {
+        return copy(CopyRequest.builder().applyMutation(copyRequestBuilder).build());
     }
 
     /**
