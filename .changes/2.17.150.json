@@ -52,12 +52,6 @@
         },
         {
             "type": "feature",
-            "category": "AWS SDK for Java v2",
-            "contributor": "",
-            "description": "Bump up crt version from 0.15.15 tp 0.15.22"
-        },
-        {
-            "type": "feature",
             "category": "Amazon Location Service",
             "contributor": "",
             "description": "New HERE style \"VectorHereExplore\" and \"VectorHereExploreTruck\"."
