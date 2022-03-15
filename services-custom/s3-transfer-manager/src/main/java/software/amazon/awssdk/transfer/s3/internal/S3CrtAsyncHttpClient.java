@@ -108,6 +108,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                     return S3MetaRequestOptions.MetaRequestType.GET_OBJECT;
                 case "PutObject":
                     return S3MetaRequestOptions.MetaRequestType.PUT_OBJECT;
+                case "CopyObject":
+                    return S3MetaRequestOptions.MetaRequestType.COPY_OBJECT;
                 default:
                     return S3MetaRequestOptions.MetaRequestType.DEFAULT;
             }
