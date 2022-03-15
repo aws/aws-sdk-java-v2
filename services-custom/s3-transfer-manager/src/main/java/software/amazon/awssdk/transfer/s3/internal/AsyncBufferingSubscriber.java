@@ -65,7 +65,7 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
             return;
         }
         this.subscription = subscription;
-        subscription.request(1);
+        subscription.request(maxConcurrentExecutions);
     }
 
     @Override
