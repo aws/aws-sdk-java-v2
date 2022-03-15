@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fixed an issue where NPE could be thrown when a request failed before API call timer started"
-}
