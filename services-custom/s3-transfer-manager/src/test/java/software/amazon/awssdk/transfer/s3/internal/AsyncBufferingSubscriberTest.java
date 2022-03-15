@@ -17,6 +17,10 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -24,19 +28,18 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 class AsyncBufferingSubscriberTest {
+    private static final int MAX_CONCURRENT_EXECUTIONS = 5;
     private AsyncBufferingSubscriber<String> subscriber;
     private Function<String, CompletableFuture<?>> consumer;
     private CompletableFuture<Void> returnFuture;
@@ -45,7 +48,7 @@ class AsyncBufferingSubscriberTest {
 
     @BeforeAll
     public static void setUp() {
-        scheduledExecutorService = Executors.newScheduledThreadPool(2);
+        scheduledExecutorService = Executors.newScheduledThreadPool(5);
     }
 
     @BeforeEach
@@ -55,15 +58,16 @@ class AsyncBufferingSubscriberTest {
             futures.add(new CompletableFuture<>());
         }
         Iterator<CompletableFuture<Void>> iterator = futures.iterator();
-        consumer = s -> iterator.next();
-
-        futures.forEach(f -> {
+        consumer = s -> {
+            CompletableFuture<Void> future = iterator.next();
             scheduledExecutorService.schedule(() -> {
-                f.complete(null);
-            }, 1, TimeUnit.SECONDS);
-        });
+                future.complete(null);
+            }, 200, TimeUnit.MILLISECONDS);
+            return future;
+        };
+
         subscriber = new AsyncBufferingSubscriber<>(consumer, returnFuture,
-                                                    5);
+                                                    MAX_CONCURRENT_EXECUTIONS);
     }
 
     @AfterAll
@@ -74,9 +78,21 @@ class AsyncBufferingSubscriberTest {
     @ParameterizedTest
     @ValueSource(ints = {1, 4, 11, 20, 100})
     void differentNumberOfStrings_shouldCompleteSuccessfully(int numberOfStrings) throws Exception {
-        new TestPublisher(numberOfStrings).subscribe(subscriber);
+        Flowable.fromArray(IntStream.range(0, numberOfStrings).mapToObj(String::valueOf).toArray(String[]::new)).subscribe(subscriber);
+
+
+        List<Integer> numRequestsInFlightSampling = new ArrayList<>();
+
+        Disposable disposable = Observable.interval(100, TimeUnit.MILLISECONDS, Schedulers.newThread())
+                                         .map(time -> subscriber.numRequestsInFlight())
+                                         .subscribe(numRequestsInFlightSampling::add, t -> {});
+
         returnFuture.get(1000, TimeUnit.SECONDS);
         assertThat(returnFuture).isCompleted().isNotCompletedExceptionally();
+        if (numberOfStrings >= MAX_CONCURRENT_EXECUTIONS) {
+            assertThat(numRequestsInFlightSampling).contains(MAX_CONCURRENT_EXECUTIONS);
+        }
+        disposable.dispose();
     }
 
     @Test
@@ -95,41 +111,5 @@ class AsyncBufferingSubscriberTest {
         RuntimeException exception = new RuntimeException("test");
         subscriber.onError(exception);
         assertThat(returnFuture).isCompletedExceptionally();
-    }
-
-
-
-    private static final class TestPublisher implements Publisher<String> {
-        private final int numberOfStrings;
-        private volatile boolean isDone = false;
-        private final AtomicInteger requestNumber = new AtomicInteger(0);
-
-        private TestPublisher(int numberOfStrings) {
-            this.numberOfStrings = numberOfStrings;
-        }
-
-        @Override
-        public void subscribe(Subscriber<? super String> subscriber) {
-            subscriber.onSubscribe(new Subscription() {
-                @Override
-                public void request(long n) {
-                    if (isDone) {
-                        return;
-                    }
-
-                    if (requestNumber.incrementAndGet() > numberOfStrings) {
-                        isDone = true;
-                        subscriber.onComplete();
-                        return;
-                    }
-
-                    subscriber.onNext("key" + requestNumber.get());
-                }
-
-                @Override
-                public void cancel() {
-                }
-            });
-        }
     }
 }

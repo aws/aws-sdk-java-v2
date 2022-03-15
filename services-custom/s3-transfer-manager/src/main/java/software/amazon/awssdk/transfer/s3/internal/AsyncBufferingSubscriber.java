@@ -162,6 +162,13 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
         flushBufferIfNeeded();
     }
 
+    /**
+     * @return the number of requests that are currently in flight
+     */
+    public int numRequestsInFlight() {
+        return numRequestsInFlight.get();
+    }
+
     private static boolean isCompleteEvent(Object event) {
         return COMPLETE_EVENT.equals(event);
     }
