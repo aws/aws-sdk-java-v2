@@ -83,6 +83,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
 
     protected static void createBucket(String bucketName) {
         createBucket(bucketName, 0);
+        s3.waiter().waitUntilBucketExists(b -> b.bucket(bucketName));
     }
 
     private static void createBucket(String bucketName, int retryCount) {

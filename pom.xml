@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.17.150-SNAPSHOT</version>
+    <version>2.17.151-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -89,7 +89,7 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.17.149</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.17.150</awsjavasdk.previous.version>
         <jackson.version>2.13.1</jackson.version>
         <jackson.databind.version>2.13.1</jackson.databind.version>
         <jacksonjr.version>2.13.1</jacksonjr.version>
@@ -114,7 +114,7 @@
         <rxjava.version>2.2.21</rxjava.version>
         <commons-codec.verion>1.10</commons-codec.verion>
         <jmh.version>1.29</jmh.version>
-        <awscrt.version>0.15.22</awscrt.version>
+        <awscrt.version>0.15.23</awscrt.version>
 
         <!--Test dependencies -->
         <junit5.version>5.8.1</junit5.version>
@@ -765,6 +765,46 @@
                                     <includes>
                                         <include>**/*StabilityTest.java</include>
                                         <include>**/*StabilityTests.java</include>
+                                    </includes>
+                                    <trimStackTrace>false</trimStackTrace>
+                                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>crt-tests</id>
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+                <spotbugs.skip>true</spotbugs.skip>
+                <skip.unit.tests>true</skip.unit.tests>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+                <japicmp.skip>true</japicmp.skip>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${maven-failsafe-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                                <configuration>
+                                    <includes>
+                                        <include>**/*TransferManager*IntegrationTest.java</include>
+                                        <include>**/*Crt*StabilityTest.java</include>
+                                        <include>**/*Crt*StabilityTests.java</include>
+                                        <include>**/*Crt*IntegrationTest.java</include>
+                                        <include>**/*Crt*IntegrationTests.java</include>
                                     </includes>
                                     <trimStackTrace>false</trimStackTrace>
                                     <rerunFailingTestsCount>2</rerunFailingTestsCount>

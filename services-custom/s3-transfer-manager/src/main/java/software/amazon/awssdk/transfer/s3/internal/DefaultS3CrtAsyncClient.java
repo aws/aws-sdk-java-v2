@@ -38,6 +38,8 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
@@ -102,6 +104,12 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
     @Override
     public CompletableFuture<ListObjectsV2Response> listObjectsV2(ListObjectsV2Request listObjectsV2Request) {
         return s3AsyncClient.listObjectsV2(listObjectsV2Request);
+    }
+
+    @Override
+    public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
+        validateOverrideConfiguration(copyObjectRequest);
+        return s3AsyncClient.copyObject(copyObjectRequest);
     }
 
     @Override
