@@ -65,7 +65,7 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
             return;
         }
         this.subscription = subscription;
-        subscription.request(1);
+        subscription.request(maxConcurrentExecutions);
     }
 
     @Override
@@ -160,6 +160,13 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
     public void onComplete() {
         buffer.add(COMPLETE_EVENT);
         flushBufferIfNeeded();
+    }
+
+    /**
+     * @return the number of requests that are currently in flight
+     */
+    public int numRequestsInFlight() {
+        return numRequestsInFlight.get();
     }
 
     private static boolean isCompleteEvent(Object event) {
