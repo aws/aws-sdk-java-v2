@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Keyspaces",
+    "contributor": "",
+    "description": "Fixing formatting issues in CLI and SDK documentation"
+}
