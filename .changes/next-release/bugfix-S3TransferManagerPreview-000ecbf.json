@@ -1,6 +1,0 @@
-{
-    "category": "S3 Transfer Manager (Preview)", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fixed the bug in the transfer manager where files were downloaded sequentially in downloadDirectory. See [#3092](https://github.com/aws/aws-sdk-java-v2/issues/3092)"
-}

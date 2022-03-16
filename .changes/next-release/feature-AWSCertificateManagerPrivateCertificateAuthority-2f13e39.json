@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Certificate Manager Private Certificate Authority",
-    "contributor": "",
-    "description": "AWS Certificate Manager (ACM) Private Certificate Authority (CA) now supports customizable certificate subject names and extensions."
-}

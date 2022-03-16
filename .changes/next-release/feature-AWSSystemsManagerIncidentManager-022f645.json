@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Systems Manager Incident Manager",
-    "contributor": "",
-    "description": "Removed incorrect validation pattern for IncidentRecordSource.invokedBy"
-}
