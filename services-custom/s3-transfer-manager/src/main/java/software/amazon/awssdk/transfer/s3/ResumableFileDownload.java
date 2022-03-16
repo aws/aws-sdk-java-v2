@@ -28,13 +28,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * @see S3TransferManager#downloadFile(DownloadFileRequest)
  */
 @SdkPublicApi
-public final class PersistableFileDownload implements PersistableTransfer,
-                                                      ToCopyableBuilder<PersistableFileDownload.Builder, PersistableFileDownload> {
+public final class ResumableFileDownload implements PersistableTransfer,
+                                                    ToCopyableBuilder<ResumableFileDownload.Builder, ResumableFileDownload> {
     private final DownloadFileRequest downloadFileRequest;
     private final long bytesTransferred;
     private final Instant lastModified;
 
-    private PersistableFileDownload(DefaultBuilder builder) {
+    private ResumableFileDownload(DefaultBuilder builder) {
         this.downloadFileRequest = builder.downloadFileRequest;
         this.bytesTransferred = Validate.paramNotNull(builder.bytesTransferred, "bytesTransferred");
         this.lastModified = Validate.paramNotNull(builder.lastModified, "lastModified");
@@ -71,7 +71,7 @@ public final class PersistableFileDownload implements PersistableTransfer,
         return new DefaultBuilder(this);
     }
 
-    public interface Builder extends CopyableBuilder<Builder, PersistableFileDownload> {
+    public interface Builder extends CopyableBuilder<Builder, ResumableFileDownload> {
 
         /**
          * Sets the download file request
@@ -107,7 +107,7 @@ public final class PersistableFileDownload implements PersistableTransfer,
 
         }
 
-        private DefaultBuilder(PersistableFileDownload persistableFileDownload) {
+        private DefaultBuilder(ResumableFileDownload persistableFileDownload) {
             this.downloadFileRequest = persistableFileDownload.downloadFileRequest;
             this.bytesTransferred = persistableFileDownload.bytesTransferred;
             this.lastModified = persistableFileDownload.lastModified;
@@ -132,8 +132,8 @@ public final class PersistableFileDownload implements PersistableTransfer,
         }
 
         @Override
-        public PersistableFileDownload build() {
-            return new PersistableFileDownload(this);
+        public ResumableFileDownload build() {
+            return new ResumableFileDownload(this);
         }
     }
 }

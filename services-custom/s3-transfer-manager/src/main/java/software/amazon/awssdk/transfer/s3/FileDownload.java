@@ -31,10 +31,10 @@ public interface FileDownload extends ObjectTransfer {
      * Pause the current download operation and returns the information that can
      * be used to resume the download at a later time.
      *
-     * @return {@link PersistableFileDownload} that can be used to resume the download
+     * @return {@link ResumableFileDownload} that can be used to resume the download
      * @throws TransferPauseException if pause fails
      */
-    PersistableFileDownload pause();
+    ResumableFileDownload pause();
 
     @Override
     CompletableFuture<CompletedFileDownload> completionFuture();

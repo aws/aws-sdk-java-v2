@@ -25,7 +25,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.FileDownload;
-import software.amazon.awssdk.transfer.s3.PersistableFileDownload;
+import software.amazon.awssdk.transfer.s3.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.exception.TransferPauseException;
 import software.amazon.awssdk.transfer.s3.internal.progress.DownloadFileMonitor;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
@@ -53,17 +53,17 @@ public final class DefaultFileDownload implements FileDownload {
     }
 
     @Override
-    public PersistableFileDownload pause() {
+    public ResumableFileDownload pause() {
         validatePauseStatus();
         paused = true;
         completionFuture.cancel(false);
         GetObjectResponse getObjectResponse = monitor.initialResponse().get();
         long bytesTransferred = progress.snapshot().bytesTransferred();
-        return PersistableFileDownload.builder()
-                                      .downloadFileRequest(monitor.downloadFileRequest())
-                                      .lastModified(getObjectResponse.lastModified())
-                                      .bytesTransferred(bytesTransferred)
-                                      .build();
+        return ResumableFileDownload.builder()
+                                    .downloadFileRequest(monitor.downloadFileRequest())
+                                    .lastModified(getObjectResponse.lastModified())
+                                    .bytesTransferred(bytesTransferred)
+                                    .build();
     }
 
     private void validatePauseStatus() {

@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
-import software.amazon.awssdk.transfer.s3.PersistableFileDownload;
+import software.amazon.awssdk.transfer.s3.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.exception.TransferPauseException;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.internal.progress.DownloadFileMonitor;
@@ -63,7 +63,7 @@ class DefaultFileDownloadTest {
                                                                    transferProgress,
                                                                    downloadFileMonitor);
 
-        PersistableFileDownload pause = fileDownload.pause();
+        ResumableFileDownload pause = fileDownload.pause();
         assertThat(pause.downloadFileRequest()).isEqualTo(downloadFileMonitor.downloadFileRequest());
         assertThat(pause.bytesTransferred()).isEqualTo(1000L);
         assertThat(pause.lastModified()).isEqualTo(downloadFileMonitor.initialResponse().get().lastModified());

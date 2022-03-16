@@ -128,7 +128,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * @param persistableFileDownload the download to resume.
      * @return A new {@code FileDownload} object to use to check the state of the download.
      */
-    default FileDownload resumeDownloadFile(PersistableFileDownload persistableFileDownload) {
+    default FileDownload resumeDownloadFile(ResumableFileDownload persistableFileDownload) {
         throw new UnsupportedOperationException();
     }
 
