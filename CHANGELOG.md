@@ -1,3 +1,32 @@
+# __2.17.151__ __2022-03-16__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - AWS Certificate Manager (ACM) Private Certificate Authority (CA) now supports customizable certificate subject names and extensions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Removed incorrect validation pattern for IncidentRecordSource.invokedBy
+
+## __AWSBillingConductor__
+  - ### Features
+    - This is the initial SDK release for AWS Billing Conductor. The AWS Billing Conductor is a customizable billing service, allowing you to customize your billing data to match your desired business structure.
+
+## __Amazon S3 on Outposts__
+  - ### Features
+    - S3 on Outposts is releasing a new API, ListSharedEndpoints, that lists all endpoints associated with S3 on Outpost, that has been shared by Resource Access Manager (RAM).
+
+## __AmplifyBackend__
+  - ### Features
+    - Adding the ability to customize Cognito verification messages for email and SMS in CreateBackendAuth and UpdateBackendAuth. Adding deprecation documentation for ForgotPassword in CreateBackendAuth and UpdateBackendAuth
+
+## __S3 Transfer Manager (Preview)__
+  - ### Bugfixes
+    - Fixed the bug in the transfer manager where files were downloaded sequentially in downloadDirectory. See [#3092](https://github.com/aws/aws-sdk-java-v2/issues/3092)
+
 # __2.17.150__ __2022-03-15__
 ## __AWS Data Exchange__
   - ### Features
@@ -10,7 +39,6 @@
 ## __AWS SDK for Java v2__
   - ### Features
     - Bump CRT version to `0.15.23`.
-    - Bump up crt version from 0.15.15 tp 0.15.22
 
   - ### Bugfixes
     - Fixed an issue where NPE could be thrown when a request failed before API call timer started
