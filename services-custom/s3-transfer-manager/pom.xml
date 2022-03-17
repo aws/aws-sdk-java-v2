@@ -173,6 +173,12 @@
             <artifactId>equalsverifier</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${commons-codec.verion}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
