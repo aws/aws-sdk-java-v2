@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
@@ -39,6 +40,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
     private final Long minimumPartSizeInBytes;
     private final Double targetThroughputInGbps;
     private final Integer maxConcurrency;
+    private final URI endpointOverride;
 
     private S3ClientConfiguration(DefaultBuilder builder) {
         this.credentialsProvider = builder.credentialsProvider;
@@ -47,6 +49,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         this.targetThroughputInGbps = Validate.isPositiveOrNull(builder.targetThroughputInGbps, "targetThroughputInGbps");
         this.maxConcurrency = Validate.isPositiveOrNull(builder.maxConcurrency,
                                                         "maxConcurrency");
+        this.endpointOverride = builder.endpointOverride;
     }
 
     /**
@@ -84,6 +87,13 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         return Optional.ofNullable(maxConcurrency);
     }
 
+    /**
+     * @return the optional endpoint override with which the SDK should communicate.
+     */
+    public Optional<URI> endpointOverride() {
+        return Optional.ofNullable(endpointOverride);
+    }
+
     @Override
     public Builder toBuilder() {
         return new DefaultBuilder(this);
@@ -112,7 +122,10 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         if (!Objects.equals(targetThroughputInGbps, that.targetThroughputInGbps)) {
             return false;
         }
-        return Objects.equals(maxConcurrency, that.maxConcurrency);
+        if (!Objects.equals(maxConcurrency, that.maxConcurrency)) {
+            return false;
+        }
+        return Objects.equals(endpointOverride, that.endpointOverride);
     }
 
     @Override
@@ -122,6 +135,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         result = 31 * result + (minimumPartSizeInBytes != null ? minimumPartSizeInBytes.hashCode() : 0);
         result = 31 * result + (targetThroughputInGbps != null ? targetThroughputInGbps.hashCode() : 0);
         result = 31 * result + (maxConcurrency != null ? maxConcurrency.hashCode() : 0);
+        result = 31 * result + (endpointOverride != null ? endpointOverride.hashCode() : 0);
         return result;
     }
 
@@ -216,6 +230,14 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
          * @see #targetThroughputInGbps(Double)
          */
         Builder maxConcurrency(Integer maxConcurrency);
+
+        /**
+         * Configure the endpoint override with which the SDK should communicate.
+         *
+         * @param endpointOverride the endpoint override to be used
+         * @return this builder for method chaining.
+         */
+        Builder endpointOverride(URI endpointOverride);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -224,6 +246,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         private Long minimumPartSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
+        private URI endpointOverride;
 
         private DefaultBuilder() {
         }
@@ -234,6 +257,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
             this.minimumPartSizeInBytes = configuration.minimumPartSizeInBytes;
             this.targetThroughputInGbps = configuration.targetThroughputInGbps;
             this.maxConcurrency = configuration.maxConcurrency;
+            this.endpointOverride = configuration.endpointOverride;
         }
 
         @Override
@@ -263,6 +287,12 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         @Override
         public Builder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        @Override
+        public Builder endpointOverride(URI endpointOverride) {
+            this.endpointOverride = endpointOverride;
             return this;
         }
 
