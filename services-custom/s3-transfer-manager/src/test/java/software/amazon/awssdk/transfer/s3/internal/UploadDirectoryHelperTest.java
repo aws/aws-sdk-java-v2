@@ -155,7 +155,8 @@ public class UploadDirectoryHelperTest {
 
         assertThat(completedDirectoryUpload.failedTransfers()).hasSize(1);
         assertThat(completedDirectoryUpload.failedTransfers().iterator().next().exception()).isEqualTo(exception);
-        assertThat(completedDirectoryUpload.failedTransfers().iterator().next().request().source().toString()).isEqualTo("test/2");
+        assertThat(completedDirectoryUpload.failedTransfers().iterator().next().request().source().toString())
+            .isEqualTo("test" + directory.getFileSystem().getSeparator() + "2");
     }
 
     @Test
