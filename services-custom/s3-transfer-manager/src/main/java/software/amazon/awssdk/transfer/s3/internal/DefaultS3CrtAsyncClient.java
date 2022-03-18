@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.transfer.s3.internal.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 
+import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -58,6 +59,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                                                         .minimumPartSizeInBytes(builder.minimumPartSizeInBytes())
                                                         .maxConcurrency(builder.maxConcurrency)
                                                         .region(builder.region)
+                                                        .endpointOverride(builder.endpointOverride)
                                                         .credentialsProvider(builder.credentialsProvider)
                                                         .build();
 
@@ -79,6 +81,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                                                                  .checksumValidationEnabled(false)
                                                                  .build())
                             .region(builder.region)
+                            .endpointOverride(builder.endpointOverride)
                             .credentialsProvider(builder.credentialsProvider)
                             .overrideConfiguration(o -> o.putAdvancedOption(SdkAdvancedClientOption.SIGNER,
                                                                             new NoOpSigner())
@@ -144,6 +147,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         private Long minimalPartSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
+        private URI endpointOverride;
 
         public AwsCredentialsProvider credentialsProvider() {
             return credentialsProvider;
@@ -164,6 +168,11 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         public Integer maxConcurrency() {
             return maxConcurrency;
         }
+
+        public URI endpointOverride() {
+            return endpointOverride;
+        }
+
 
         @Override
         public S3CrtAsyncClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
@@ -192,6 +201,12 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         @Override
         public S3CrtAsyncClientBuilder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder endpointOverride(URI endpointOverride) {
+            this.endpointOverride = endpointOverride;
             return this;
         }
 

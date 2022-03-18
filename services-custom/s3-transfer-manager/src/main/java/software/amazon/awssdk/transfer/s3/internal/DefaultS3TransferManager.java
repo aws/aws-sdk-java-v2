@@ -96,6 +96,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         tmBuilder.s3ClientConfiguration.minimumPartSizeInBytes().ifPresent(clientBuilder::minimumPartSizeInBytes);
         tmBuilder.s3ClientConfiguration.region().ifPresent(clientBuilder::region);
         tmBuilder.s3ClientConfiguration.targetThroughputInGbps().ifPresent(clientBuilder::targetThroughputInGbps);
+        tmBuilder.s3ClientConfiguration.endpointOverride().ifPresent(clientBuilder::endpointOverride);
 
         return clientBuilder.build();
     }

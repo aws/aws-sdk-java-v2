@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -38,6 +39,8 @@ public interface S3CrtAsyncClient extends S3AsyncClient {
         S3CrtAsyncClientBuilder targetThroughputInGbps(Double targetThroughputInGbps);
 
         S3CrtAsyncClientBuilder maxConcurrency(Integer maxConcurrency);
+
+        S3CrtAsyncClientBuilder endpointOverride(URI endpointOverride);
 
         @Override
         S3CrtAsyncClient build();
