@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS MediaConnect",
+    "contributor": "",
+    "description": "This release adds support for selecting a maintenance window."
+}
