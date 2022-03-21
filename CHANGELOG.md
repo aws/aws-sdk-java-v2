@@ -1,3 +1,29 @@
+# __2.17.153__ __2022-03-21__
+## __AWS MediaConnect__
+  - ### Features
+    - This release adds support for selecting a maintenance window.
+
+## __AWS Resource Access Manager__
+  - ### Features
+    - Document improvements to the RAM API operations and parameter descriptions.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Add support for media replication to link multiple WebRTC media sessions together to reach larger and global audiences. Participants connected to a replica session can be granted access to join the primary session and can switch sessions with their existing WebRTC connection
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release includes a fix in the DescribeImageScanFindings paginated output.
+
+## __Amazon QuickSight__
+  - ### Features
+    - AWS QuickSight Service Features - Expand public API support for group management.
+
+# __2.17.152__ __2022-03-18__
+## __AWS Glue__
+  - ### Features
+    - Added 9 new APIs for AWS Glue Interactive Sessions: ListSessions, StopSession, CreateSession, GetSession, DeleteSession, RunStatement, GetStatement, ListStatements, CancelStatement
+
 # __2.17.151__ __2022-03-16__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features

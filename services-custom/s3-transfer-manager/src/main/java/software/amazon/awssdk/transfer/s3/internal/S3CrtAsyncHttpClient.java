@@ -57,11 +57,14 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                        .partSizeInBytes(builder.minimalPartSizeInBytes)
                                        .maxConcurrency(builder.maxConcurrency)
                                        .signingRegion(builder.region == null ? null : builder.region.id())
+                                       .endpointOverride(builder.endpointOverride)
                                        .credentialsProvider(builder.credentialsProvider)
                                        .build();
 
         S3ClientOptions s3ClientOptions =
             new S3ClientOptions().withRegion(s3NativeClientConfiguration.signingRegion())
+                                 .withEndpoint(s3NativeClientConfiguration.endpointOverride() == null ? null :
+                                               s3NativeClientConfiguration.endpointOverride().toString())
                                  .withCredentialsProvider(s3NativeClientConfiguration.credentialsProvider())
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
                                  .withPartSize(s3NativeClientConfiguration.partSizeBytes())
@@ -76,17 +79,20 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     @Override
-    public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
+    public CompletableFuture<Void> execute(AsyncExecuteRequest asyncRequest) {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
-        HttpRequest httpRequest = toCrtRequest(request);
-        S3CrtResponseHandlerAdapter responseHandler = new S3CrtResponseHandlerAdapter(executeFuture, request.responseHandler());
+        URI uri = asyncRequest.request().getUri();
+        HttpRequest httpRequest = toCrtRequest(uri, asyncRequest);
+        S3CrtResponseHandlerAdapter responseHandler =
+            new S3CrtResponseHandlerAdapter(executeFuture, asyncRequest.responseHandler());
 
-        S3MetaRequestOptions.MetaRequestType requestType = requestType(request);
+        S3MetaRequestOptions.MetaRequestType requestType = requestType(asyncRequest);
 
         S3MetaRequestOptions requestOptions = new S3MetaRequestOptions()
             .withHttpRequest(httpRequest)
             .withMetaRequestType(requestType)
-            .withResponseHandler(responseHandler);
+            .withResponseHandler(responseHandler)
+            .withEndpoint(s3NativeClientConfiguration.endpointOverride());
 
         try (S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions)) {
             closeResourcesWhenComplete(executeFuture, s3MetaRequest);
@@ -100,8 +106,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         return "s3crt";
     }
 
-    private static S3MetaRequestOptions.MetaRequestType requestType(AsyncExecuteRequest request) {
-        String operationName = request.httpExecutionAttributes().getAttribute(OPERATION_NAME);
+    private static S3MetaRequestOptions.MetaRequestType requestType(AsyncExecuteRequest asyncRequest) {
+        String operationName = asyncRequest.httpExecutionAttributes().getAttribute(OPERATION_NAME);
         if (operationName != null) {
             switch (operationName) {
                 case "GetObject":
@@ -128,8 +134,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         });
     }
 
-    private static HttpRequest toCrtRequest(AsyncExecuteRequest asyncRequest) {
-        URI uri = asyncRequest.request().getUri();
+    private static HttpRequest toCrtRequest(URI uri, AsyncExecuteRequest asyncRequest) {
         SdkHttpRequest sdkRequest = asyncRequest.request();
 
         String method = sdkRequest.method().name();
@@ -166,6 +171,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         private Long minimalPartSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
+        private URI endpointOverride;
 
         /**
          * Configure the credentials that should be used to authenticate with S3.
@@ -218,6 +224,14 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
          */
         public Builder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        /**
+         * Configure the endpoint override with which the SDK should communicate.
+         */
+        public Builder endpointOverride(URI endpointOverride) {
+            this.endpointOverride = endpointOverride;
             return this;
         }
 

@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
+import java.net.URI;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -73,12 +74,15 @@ public class S3ClientConfigurationTest {
                                                                    .maxConcurrency(100)
                                                                    .targetThroughputInGbps(10.0)
                                                                    .region(Region.US_WEST_2)
+                                                                   .endpointOverride(URI.create(
+                                                                       "http://s3.us-west-1.amazonaws.com:80"))
                                                                    .minimumPartSizeInBytes(5 * MB)
                                                                    .build();
 
         assertThat(configuration.credentialsProvider()).contains(credentials);
         assertThat(configuration.maxConcurrency()).contains(100);
         assertThat(configuration.region()).contains(Region.US_WEST_2);
+        assertThat(configuration.endpointOverride().toString()).contains("http://s3.us-west-1.amazonaws.com:80");
         assertThat(configuration.targetThroughputInGbps()).contains(10.0);
         assertThat(configuration.minimumPartSizeInBytes()).contains(5 * MB);
     }
@@ -91,6 +95,7 @@ public class S3ClientConfigurationTest {
         assertThat(configuration.credentialsProvider()).isEmpty();
         assertThat(configuration.maxConcurrency()).isEmpty();
         assertThat(configuration.region()).isEmpty();
+        assertThat(configuration.endpointOverride()).isEmpty();
         assertThat(configuration.targetThroughputInGbps()).isEmpty();
         assertThat(configuration.minimumPartSizeInBytes()).isEmpty();
     }
