@@ -1,0 +1,6 @@
+{
+    "category": "UrlConnectionHttpClient", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "ProxyConfiguration support for UrlConnectionHttpClient."
+}
