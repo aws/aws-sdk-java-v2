@@ -39,7 +39,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 
-public class UrlConnectionHttpClientWithProxyTest {
+class UrlConnectionHttpClientWithProxyTest {
     @RegisterExtension
     static WireMockExtension httpsWm = WireMockExtension.newInstance()
                                                         .options(wireMockConfig().dynamicPort().dynamicHttpsPort())
@@ -53,7 +53,7 @@ public class UrlConnectionHttpClientWithProxyTest {
     private SdkHttpClient client;
 
     @Test
-    void Http_ProxyCallFrom_Https_Client() throws IOException {
+    void Http_ProxyCallFrom_Https_Client_getsRejectedWith_404() throws IOException {
         httpWm.stubFor(requestMatching(
             request -> MatchResult.of(request.getUrl().contains(anyString()))
         ).willReturn(aResponse()));
@@ -67,7 +67,7 @@ public class UrlConnectionHttpClientWithProxyTest {
     }
 
     @Test
-    void Http_ProxyCallFromWithDenyList_Https_Client() throws IOException {
+    void Http_ProxyCallFromWithDenyList_HttpsClient_bypassesProxy_AndReturns_OK() throws IOException {
         httpWm.stubFor(requestMatching(
             request -> MatchResult.of(request.getUrl().contains(anyString()))
         ).willReturn(aResponse()));
@@ -84,7 +84,7 @@ public class UrlConnectionHttpClientWithProxyTest {
     }
 
     @Test
-    void emptyProxyConfig_Https_Client() throws IOException {
+    void emptyProxyConfig_Https_Client_byPassesProxy_dReturns_OK() throws IOException {
         httpWm.stubFor(requestMatching(
             request -> MatchResult.of(request.getUrl().contains(anyString()))
         ).willReturn(aResponse()));
@@ -99,7 +99,7 @@ public class UrlConnectionHttpClientWithProxyTest {
     }
 
     @Test
-    void http_ProxyCallFrom_Http_Client() throws IOException {
+    void http_ProxyCallFrom_Http_Client_isAcceptedByHttpProxy_AndReturns_OK() throws IOException {
 
         httpWm.stubFor(requestMatching(
             request -> MatchResult.of(request.getUrl().contains(anyString()))
@@ -131,7 +131,6 @@ public class UrlConnectionHttpClientWithProxyTest {
         return httpClient.prepareRequest(request).call();
     }
 
-
     private HttpExecuteResponse makeRequestWithHttp_Client(SdkHttpClient httpClient, WireMockRuntimeInfo wm) throws IOException {
         SdkHttpRequest httpRequest = SdkHttpFullRequest.builder()
                                                        .method(SdkHttpMethod.GET)
@@ -146,7 +145,6 @@ public class UrlConnectionHttpClientWithProxyTest {
         return httpClient.prepareRequest(request).call();
     }
 
-
     private SdkHttpClient createHttpsClientForHttpServer(ProxyConfiguration proxyConfiguration) {
 
         UrlConnectionHttpClient.Builder builder =
@@ -155,5 +153,4 @@ public class UrlConnectionHttpClientWithProxyTest {
         attributeMap.put(TRUST_ALL_CERTIFICATES, true);
         return builder.buildWithDefaults(attributeMap.build());
     }
-
 }

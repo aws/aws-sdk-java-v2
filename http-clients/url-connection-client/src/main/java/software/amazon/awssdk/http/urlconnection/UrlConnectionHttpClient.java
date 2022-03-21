@@ -214,7 +214,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         if (isProxyEnabled() && isProxyHostIncluded(uri)) {
             return Optional.of(
                 new Proxy(Proxy.Type.HTTP,
-                          new InetSocketAddress(this.proxyConfiguration.host(), this.proxyConfiguration.port())));
+                          InetSocketAddress.createUnresolved(this.proxyConfiguration.host(), this.proxyConfiguration.port())));
         }
         return Optional.empty();
     }
