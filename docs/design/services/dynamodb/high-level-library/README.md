@@ -1,4 +1,4 @@
-**Design:** New Feature, **Status:** [Public Preview](../../../../../services-custom/dynamodb-enhanced/README.md)
+**Design:** New Feature, **Status:** [Released](../../../../../services-custom/dynamodb-enhanced/README.md)
 
 ## Tenets (unless you know better ones)
 
@@ -33,7 +33,7 @@ This problem is not currently addressed directly in the AWS SDK for Java
 2.x by any known third-party tool. In 1.11.x, several solutions exist,
 including AWS's own Document and Mapper Clients.
 
-## Proposed Solution
+## Proposed Solution [Implemented]
 
 The AWS SDK for Java will add a new "enhanced DynamoDB client" that
 provides an alternative to the data-access portion of the generated
