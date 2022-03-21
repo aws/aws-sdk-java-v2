@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Resource Access Manager",
+    "contributor": "",
+    "description": "Document improvements to the RAM API operations and parameter descriptions."
+}
