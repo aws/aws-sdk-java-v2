@@ -1,0 +1,36 @@
+{
+    "version": "2.17.153",
+    "date": "2022-03-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Registry",
+            "contributor": "",
+            "description": "This release includes a fix in the DescribeImageScanFindings paginated output."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "AWS QuickSight Service Features - Expand public API support for group management."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaConnect",
+            "contributor": "",
+            "description": "This release adds support for selecting a maintenance window."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Meetings",
+            "contributor": "",
+            "description": "Add support for media replication to link multiple WebRTC media sessions together to reach larger and global audiences. Participants connected to a replica session can be granted access to join the primary session and can switch sessions with their existing WebRTC connection"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Access Manager",
+            "contributor": "",
+            "description": "Document improvements to the RAM API operations and parameter descriptions."
+        }
+    ]
+}
