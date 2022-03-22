@@ -18,7 +18,6 @@ package software.amazon.awssdk.transfer.s3;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.transfer.s3.exception.TransferPauseException;
 
 /**
  * A download transfer of a single object from S3.
@@ -32,7 +31,6 @@ public interface FileDownload extends ObjectTransfer {
      * be used to resume the download at a later time.
      *
      * @return {@link ResumableFileDownload} that can be used to resume the download
-     * @throws TransferPauseException if pause fails
      */
     ResumableFileDownload pause();
 

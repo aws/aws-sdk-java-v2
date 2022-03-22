@@ -16,9 +16,6 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.transfer.s3.exception.TransferPauseException.ErrorCode.ALREADY_FINISHED;
-import static software.amazon.awssdk.transfer.s3.exception.TransferPauseException.ErrorCode.PAUSE_IN_PROGRESS;
 
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -31,19 +28,17 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.ResumableFileDownload;
-import software.amazon.awssdk.transfer.s3.exception.TransferPauseException;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
-import software.amazon.awssdk.transfer.s3.internal.progress.DownloadFileMonitor;
-import software.amazon.awssdk.transfer.s3.internal.progress.TransferListenerContext;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 
 class DefaultFileDownloadTest {
+    private static final long OBJECT_CONTENT_LENGTH = 1024L;
 
     @Test
     void equals_hashcode() {
         EqualsVerifier.forClass(DefaultFileDownload.class)
                       .withNonnullFields("completionFuture", "progress")
-                      .withIgnoredFields("paused")
+                      .withIgnoredFields("resumableFileDownload")
                       .verify();
     }
 
@@ -52,88 +47,68 @@ class DefaultFileDownloadTest {
         CompletableFuture<CompletedFileDownload> future =
             new CompletableFuture<>();
         TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
+        GetObjectResponse sdkResponse = getObjectResponse();
 
         Mockito.when(transferProgress.snapshot()).thenReturn(DefaultTransferProgressSnapshot.builder()
                                                                                             .bytesTransferred(1000L)
+                                                                                            .sdkResponse(sdkResponse)
                                                                                             .build());
 
-        DownloadFileMonitor downloadFileMonitor = monitorForInProgressTransfer();
+        DownloadFileRequest request = getDownloadFileRequest();
 
         DefaultFileDownload fileDownload = new DefaultFileDownload(future,
                                                                    transferProgress,
-                                                                   downloadFileMonitor);
+                                                                   request);
 
         ResumableFileDownload pause = fileDownload.pause();
-        assertThat(pause.downloadFileRequest()).isEqualTo(downloadFileMonitor.downloadFileRequest());
+        assertThat(pause.downloadFileRequest()).isEqualTo(request);
         assertThat(pause.bytesTransferred()).isEqualTo(1000L);
-        assertThat(pause.lastModified()).isEqualTo(downloadFileMonitor.initialResponse().get().lastModified());
+        assertThat(pause.lastModified()).isEqualTo(sdkResponse.lastModified());
+        assertThat(pause.transferSizeInBytes()).hasValue(sdkResponse.contentLength());
     }
 
     @Test
-    void pause_transferAlreadyFinished_shouldThrowException() {
+    void pause_transferAlreadyFinished_shouldReturnNormally() {
+        GetObjectResponse getObjectResponse = GetObjectResponse.builder()
+                                                               .contentLength(OBJECT_CONTENT_LENGTH)
+                                                               .build();
         CompletableFuture<CompletedFileDownload> future =
             CompletableFuture.completedFuture(CompletedFileDownload.builder()
-                                                                   .response(GetObjectResponse.builder().build())
+                                                                   .response(getObjectResponse)
                                                                    .build());
         TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
-
-
-        DownloadFileMonitor downloadFileMonitor = monitorForCompletedTransfer();
+        Mockito.when(transferProgress.snapshot()).thenReturn(DefaultTransferProgressSnapshot.builder()
+                                                                                            .bytesTransferred(OBJECT_CONTENT_LENGTH)
+                                                                                            .transferSizeInBytes(OBJECT_CONTENT_LENGTH)
+                                                                                            .sdkResponse(getObjectResponse)
+                                                                                            .build());
 
         DefaultFileDownload fileDownload = new DefaultFileDownload(future,
                                                                    transferProgress,
-                                                                   downloadFileMonitor);
-
-        assertThatThrownBy(fileDownload::pause).isInstanceOf(TransferPauseException.class)
-                                               .satisfies(e -> assertThat(((TransferPauseException) e).errorCode())
-                                                   .isEqualTo(ALREADY_FINISHED));
-
+                                                                   getDownloadFileRequest());
+        ResumableFileDownload resumableFileDownload = fileDownload.pause();
+        assertThat(resumableFileDownload.bytesTransferred()).isEqualTo(resumableFileDownload.transferSizeInBytes().get());
     }
 
-
     @Test
-    void pauseTwice_shouldThrowException() {
+    void pauseTwice_shouldReturnTheSame() {
         CompletableFuture<CompletedFileDownload> future =
             new CompletableFuture<>();
         TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
         Mockito.when(transferProgress.snapshot()).thenReturn(DefaultTransferProgressSnapshot.builder()
                                                                                             .bytesTransferred(1000L)
                                                                                             .build());
-        DownloadFileMonitor downloadFileMonitor = monitorForInProgressTransfer();
-
+        DownloadFileRequest request = getDownloadFileRequest();
 
         DefaultFileDownload fileDownload = new DefaultFileDownload(future,
                                                                    transferProgress,
-                                                                   downloadFileMonitor);
+                                                                   request);
 
-        fileDownload.pause();
+        ResumableFileDownload resumableFileDownload = fileDownload.pause();
+        ResumableFileDownload resumableFileDownload2 = fileDownload.pause();
 
+        assertThat(resumableFileDownload).isEqualTo(resumableFileDownload2);
 
-        assertThatThrownBy(fileDownload::pause).isInstanceOf(TransferPauseException.class)
-                                               .satisfies(e -> assertThat(((TransferPauseException) e).errorCode())
-                                                   .isEqualTo(PAUSE_IN_PROGRESS));
-
-    }
-
-    private DownloadFileMonitor monitorForCompletedTransfer() {
-        DownloadFileRequest downloadFileRequest = getDownloadFileRequest();
-        DownloadFileMonitor downloadFileMonitor = new DownloadFileMonitor(downloadFileRequest);
-        downloadFileMonitor.transferComplete(TransferListenerContext.builder().build());
-        return downloadFileMonitor;
-    }
-
-    private DownloadFileMonitor monitorForInProgressTransfer() {
-        DownloadFileRequest downloadFileRequest = getDownloadFileRequest();
-        DownloadFileMonitor downloadFileMonitor = new DownloadFileMonitor(downloadFileRequest);
-        GetObjectResponse getObjectResponse = GetObjectResponse.builder()
-                                                               .lastModified(Instant.now())
-                                                               .build();
-
-        downloadFileMonitor.transferInitiated(TransferListenerContext.builder()
-                                                                     .initialResponse(getObjectResponse)
-                                                                     .build());
-
-        return downloadFileMonitor;
     }
 
     private DownloadFileRequest getDownloadFileRequest() {
@@ -142,6 +117,13 @@ class DefaultFileDownloadTest {
                                   .getObjectRequest(GetObjectRequest.builder().key("KEY").bucket("BUCKET").build())
 
                                   .build();
+    }
+
+    private GetObjectResponse getObjectResponse() {
+        return GetObjectResponse.builder()
+                                .lastModified(Instant.now())
+                                .contentLength(OBJECT_CONTENT_LENGTH)
+                                .build();
     }
 
 }

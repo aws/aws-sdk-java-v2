@@ -48,7 +48,6 @@ import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.FileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
-import software.amazon.awssdk.transfer.s3.internal.progress.DownloadFileMonitor;
 
 public class DownloadDirectoryHelperTest {
     private static FileSystem jimfs;
@@ -178,8 +177,6 @@ public class DownloadDirectoryHelperTest {
     private FileDownload newDownload(CompletableFuture<CompletedFileDownload> future) {
         return new DefaultFileDownload(future,
                                        new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build()),
-                                       new DownloadFileMonitor(DownloadFileRequest.builder().getObjectRequest(GetObjectRequest.builder().build())
-                                                                                  .destination(Paths.get("."))
-                                                                                  .build()));
+                                       DownloadFileRequest.builder().destination(Paths.get(".")).getObjectRequest(GetObjectRequest.builder().build()).build());
     }
 }

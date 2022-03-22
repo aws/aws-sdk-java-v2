@@ -17,6 +17,7 @@ package software.amazon.awssdk.transfer.s3.internal.progress;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -33,6 +34,7 @@ public final class DefaultTransferProgressSnapshot
 
     private final long bytesTransferred;
     private final Long transferSizeInBytes;
+    private final SdkResponse sdkResponse;
 
     private DefaultTransferProgressSnapshot(Builder builder) {
         if (builder.transferSizeInBytes != null) {
@@ -43,6 +45,7 @@ public final class DefaultTransferProgressSnapshot
         }
         this.bytesTransferred = Validate.isNotNegative(builder.bytesTransferred, "bytesTransferred");
         this.transferSizeInBytes = builder.transferSizeInBytes;
+        this.sdkResponse = builder.sdkResponse;
     }
 
     public static Builder builder() {
@@ -65,6 +68,11 @@ public final class DefaultTransferProgressSnapshot
     }
 
     @Override
+    public Optional<SdkResponse> sdkResponse() {
+        return Optional.ofNullable(sdkResponse);
+    }
+
+    @Override
     public Optional<Double> ratioTransferred() {
         return transferSizeInBytes()
             .map(Long::doubleValue)
@@ -81,20 +89,22 @@ public final class DefaultTransferProgressSnapshot
         return ToString.builder("TransferProgressSnapshot")
                        .add("bytesTransferred", bytesTransferred)
                        .add("transferSizeInBytes", transferSizeInBytes)
+                       .add("sdkResponse", sdkResponse)
                        .build();
     }
 
     public static final class Builder implements CopyableBuilder<Builder, DefaultTransferProgressSnapshot> {
         private long bytesTransferred = 0L;
         private Long transferSizeInBytes;
+        private SdkResponse sdkResponse;
 
         private Builder() {
-            super();
         }
 
         private Builder(DefaultTransferProgressSnapshot snapshot) {
             this.bytesTransferred = snapshot.bytesTransferred;
             this.transferSizeInBytes = snapshot.transferSizeInBytes;
+            this.sdkResponse = snapshot.sdkResponse;
         }
 
         public Builder bytesTransferred(long bytesTransferred) {
@@ -113,6 +123,11 @@ public final class DefaultTransferProgressSnapshot
 
         public Long getTransferSizeInBytes() {
             return transferSizeInBytes;
+        }
+
+        public Builder sdkResponse(SdkResponse sdkResponse) {
+            this.sdkResponse = sdkResponse;
+            return this;
         }
 
         @Override

@@ -15,36 +15,36 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-import static software.amazon.awssdk.transfer.s3.exception.TransferPauseException.ErrorCode.ALREADY_FINISHED;
-import static software.amazon.awssdk.transfer.s3.exception.TransferPauseException.ErrorCode.NOT_STARTED;
-import static software.amazon.awssdk.transfer.s3.exception.TransferPauseException.ErrorCode.PAUSE_IN_PROGRESS;
-
+import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.FileDownload;
 import software.amazon.awssdk.transfer.s3.ResumableFileDownload;
-import software.amazon.awssdk.transfer.s3.exception.TransferPauseException;
-import software.amazon.awssdk.transfer.s3.internal.progress.DownloadFileMonitor;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
 public final class DefaultFileDownload implements FileDownload {
-
+    private static final Logger log = Logger.loggerFor(FileDownload.class);
     private final CompletableFuture<CompletedFileDownload> completionFuture;
     private final TransferProgress progress;
-    private final DownloadFileMonitor monitor;
-    private volatile boolean paused;
+    private final DownloadFileRequest request;
+    private final AtomicReference<ResumableFileDownload> resumableFileDownload;
 
     DefaultFileDownload(CompletableFuture<CompletedFileDownload> completionFuture,
                         TransferProgress progress,
-                        DownloadFileMonitor monitor) {
+                        DownloadFileRequest request) {
         this.completionFuture = completionFuture;
         this.progress = progress;
-        this.monitor = monitor;
+        this.resumableFileDownload = new AtomicReference<>();
+        this.request = request;
     }
 
     @Override
@@ -54,32 +54,29 @@ public final class DefaultFileDownload implements FileDownload {
 
     @Override
     public ResumableFileDownload pause() {
-        validatePauseStatus();
-        paused = true;
-        completionFuture.cancel(false);
-        GetObjectResponse getObjectResponse = monitor.initialResponse().get();
-        long bytesTransferred = progress.snapshot().bytesTransferred();
-        return ResumableFileDownload.builder()
-                                    .downloadFileRequest(monitor.downloadFileRequest())
-                                    .lastModified(getObjectResponse.lastModified())
-                                    .bytesTransferred(bytesTransferred)
-                                    .build();
-    }
+        log.trace(() -> "Start to pause " + request);
+        if (resumableFileDownload.get() == null) {
+            completionFuture.cancel(false);
 
-    private void validatePauseStatus() {
-        if (paused) {
-            throw TransferPauseException.create(PAUSE_IN_PROGRESS,
-                                                "Pause failed because a previous pause was requested");
-        }
+            Instant lastModified = null;
+            Long totalBytesTransferred = null;
+            TransferProgressSnapshot snapshot = progress.snapshot();
+            if (snapshot.sdkResponse().isPresent() && snapshot.sdkResponse().get() instanceof GetObjectResponse) {
+                GetObjectResponse getObjectResponse = (GetObjectResponse) snapshot.sdkResponse().get();
+                lastModified = getObjectResponse.lastModified();
+                totalBytesTransferred = getObjectResponse.contentLength();
+            }
 
-        if (monitor.isFinished()) {
-            throw TransferPauseException.create(ALREADY_FINISHED, "Pause failed because the transfer has already finished");
+            long bytesTransferred = snapshot.bytesTransferred();
+            ResumableFileDownload fileDownload = ResumableFileDownload.builder()
+                                                                      .downloadFileRequest(request)
+                                                                      .lastModified(lastModified)
+                                                                      .bytesTransferred(bytesTransferred)
+                                                                      .transferSizeInBytes(totalBytesTransferred)
+                                                                      .build();
+            resumableFileDownload.set(fileDownload);
         }
-
-        if (!monitor.initialResponse().isPresent()) {
-            throw TransferPauseException.create(NOT_STARTED, "Pause failed because the transfer has not been initiated yet. "
-                                                             + "Please try later.");
-        }
+        return resumableFileDownload.get();
     }
 
     @Override
@@ -102,7 +99,7 @@ public final class DefaultFileDownload implements FileDownload {
             return false;
         }
 
-        if (!Objects.equals(monitor, that.monitor)) {
+        if (!Objects.equals(request, that.request)) {
             return false;
         }
 
@@ -112,7 +109,7 @@ public final class DefaultFileDownload implements FileDownload {
     @Override
     public int hashCode() {
         int result = completionFuture != null ? completionFuture.hashCode() : 0;
-        result = 31 * result + (monitor != null ? monitor.hashCode() : 0);
+        result = 31 * result + (request != null ? request.hashCode() : 0);
         result = 31 * result + (progress != null ? progress.hashCode() : 0);
         return result;
     }
@@ -122,7 +119,7 @@ public final class DefaultFileDownload implements FileDownload {
         return ToString.builder("DefaultFileDownload")
                        .add("completionFuture", completionFuture)
                        .add("progress", progress)
-                       .add("monitor", monitor)
+                       .add("request", request)
                        .build();
     }
 }

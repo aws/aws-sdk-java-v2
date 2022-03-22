@@ -51,7 +51,6 @@ import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.FileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
-import software.amazon.awssdk.transfer.s3.internal.progress.DownloadFileMonitor;
 
 /**
  * Testing {@link DownloadDirectoryHelper} with different file systems.
@@ -146,9 +145,9 @@ public class DownloadDirectoryHelperParameterizedTest {
                                                                                               .response(GetObjectResponse.builder().build())
                                                                                               .build()),
                                        new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build()),
-                                       new DownloadFileMonitor(DownloadFileRequest.builder().getObjectRequest(GetObjectRequest.builder().build())
+                                       DownloadFileRequest.builder().getObjectRequest(GetObjectRequest.builder().build())
                                                                    .destination(Paths.get("."))
-                                                                                  .build()));
+                                                                                  .build());
     }
 
     private static void verifyDestinationPathForSingleDownload(FileSystem jimfs, String delimiter, String[] keys,

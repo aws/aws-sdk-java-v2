@@ -16,7 +16,10 @@
 package software.amazon.awssdk.transfer.s3;
 
 import java.time.Instant;
+import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -25,19 +28,66 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * An opaque token that holds the state and can be used to resume a
  * paused download operation.
  *
+ * TODO: should we just store GetObjectResponse? Do we actually need bytesTransferred since
+ * it can be inferred from file content length
+ *
  * @see S3TransferManager#downloadFile(DownloadFileRequest)
  */
 @SdkPublicApi
-public final class ResumableFileDownload implements PersistableTransfer,
+public final class ResumableFileDownload implements ResumableTransfer,
                                                     ToCopyableBuilder<ResumableFileDownload.Builder, ResumableFileDownload> {
     private final DownloadFileRequest downloadFileRequest;
     private final long bytesTransferred;
     private final Instant lastModified;
+    private final Long transferSizeInBytes;
 
     private ResumableFileDownload(DefaultBuilder builder) {
-        this.downloadFileRequest = builder.downloadFileRequest;
-        this.bytesTransferred = Validate.paramNotNull(builder.bytesTransferred, "bytesTransferred");
-        this.lastModified = Validate.paramNotNull(builder.lastModified, "lastModified");
+        this.downloadFileRequest = Validate.paramNotNull(builder.downloadFileRequest, "downloadFileRequest");
+        this.bytesTransferred = builder.bytesTransferred == null ? 0 : builder.bytesTransferred;
+        this.lastModified = builder.lastModified;
+        this.transferSizeInBytes = builder.transferSizeInBytes;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ResumableFileDownload that = (ResumableFileDownload) o;
+
+        if (bytesTransferred != that.bytesTransferred) {
+            return false;
+        }
+        if (!downloadFileRequest.equals(that.downloadFileRequest)) {
+            return false;
+        }
+        if (!Objects.equals(lastModified, that.lastModified)) {
+            return false;
+        }
+        return Objects.equals(transferSizeInBytes, that.transferSizeInBytes);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = downloadFileRequest.hashCode();
+        result = 31 * result + (int) (bytesTransferred ^ (bytesTransferred >>> 32));
+        result = 31 * result + (lastModified != null ? lastModified.hashCode() : 0);
+        result = 31 * result + (transferSizeInBytes != null ? transferSizeInBytes.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("ResumableFileDownload")
+                       .add("downloadFileRequest", downloadFileRequest)
+                       .add("bytesTransferred", bytesTransferred)
+                       .add("lastModified", lastModified)
+                       .add("transferSizeInBytes", transferSizeInBytes)
+                       .build();
     }
 
     public static Builder builder() {
@@ -66,6 +116,15 @@ public final class ResumableFileDownload implements PersistableTransfer,
         return lastModified;
     }
 
+    /**
+     * The total size of the transfer in bytes, or {@link Optional#empty()} if unknown
+     *
+     * @return the optional total size of the transfer.
+     */
+    public Optional<Long> transferSizeInBytes() {
+        return Optional.ofNullable(transferSizeInBytes);
+    }
+
     @Override
     public Builder toBuilder() {
         return new DefaultBuilder(this);
@@ -90,6 +149,13 @@ public final class ResumableFileDownload implements PersistableTransfer,
         Builder bytesTransferred(Long bytesTransferred);
 
         /**
+         * Sets the total transfer size in bytes
+         * @param transferSizeInBytes the transfer size in bytes
+         * @return a reference to this object so that method calls can be chained together.
+         */
+        Builder transferSizeInBytes(Long transferSizeInBytes);
+
+        /**
          * Sets the last modified time of the object
          *
          * @param lastModified the last modified time of the object
@@ -102,6 +168,7 @@ public final class ResumableFileDownload implements PersistableTransfer,
         private DownloadFileRequest downloadFileRequest;
         private Long bytesTransferred;
         private Instant lastModified;
+        private Long transferSizeInBytes;
 
         private DefaultBuilder() {
 
@@ -122,6 +189,12 @@ public final class ResumableFileDownload implements PersistableTransfer,
         @Override
         public Builder bytesTransferred(Long bytesTransferred) {
             this.bytesTransferred = bytesTransferred;
+            return this;
+        }
+
+        @Override
+        public Builder transferSizeInBytes(Long transferSizeInBytes) {
+            this.transferSizeInBytes = transferSizeInBytes;
             return this;
         }
 

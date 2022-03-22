@@ -17,7 +17,6 @@ package software.amazon.awssdk.transfer.s3.internal.progress;
 
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.transfer.s3.CompletedObjectTransfer;
 import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
@@ -40,13 +39,11 @@ public final class TransferListenerContext
     private final TransferObjectRequest request;
     private final TransferProgressSnapshot progressSnapshot;
     private final CompletedObjectTransfer completedTransfer;
-    private final SdkResponse initialResponse;
 
     private TransferListenerContext(Builder builder) {
         this.request = builder.request;
         this.progressSnapshot = builder.progressSnapshot;
         this.completedTransfer = builder.completedTransfer;
-        this.initialResponse = builder.initialResponse;
     }
 
     public static Builder builder() {
@@ -61,11 +58,6 @@ public final class TransferListenerContext
     @Override
     public TransferObjectRequest request() {
         return request;
-    }
-
-    @Override
-    public SdkResponse initialResponse() {
-        return initialResponse;
     }
 
     @Override
@@ -84,7 +76,6 @@ public final class TransferListenerContext
                        .add("request", request)
                        .add("progressSnapshot", progressSnapshot)
                        .add("completedTransfer", completedTransfer)
-                       .add("initialResponse", initialResponse)
                        .build();
     }
 
@@ -92,7 +83,6 @@ public final class TransferListenerContext
         private TransferObjectRequest request;
         private TransferProgressSnapshot progressSnapshot;
         private CompletedObjectTransfer completedTransfer;
-        private SdkResponse initialResponse;
 
         private Builder() {
         }
@@ -115,11 +105,6 @@ public final class TransferListenerContext
 
         public Builder completedTransfer(CompletedObjectTransfer completedTransfer) {
             this.completedTransfer = completedTransfer;
-            return this;
-        }
-
-        public Builder initialResponse(SdkResponse sdkResponse) {
-            this.initialResponse = sdkResponse;
             return this;
         }
 

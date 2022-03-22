@@ -16,8 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal.progress;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
@@ -39,15 +38,13 @@ import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
  */
 @SdkInternalApi
 public class TransferProgressUpdater {
-
     private final DefaultTransferProgress progress;
     private final TransferListenerContext context;
     private final TransferListenerInvoker listenerInvoker;
     private final CompletableFuture<Void> endOfStreamFuture;
 
     public TransferProgressUpdater(TransferObjectRequest request,
-                                   AsyncRequestBody requestBody,
-                                   TransferListener listener) {
+                                   AsyncRequestBody requestBody) {
         DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
         getContentLengthSafe(requestBody).ifPresent(snapshotBuilder::transferSizeInBytes);
         TransferProgressSnapshot snapshot = snapshotBuilder.build();
@@ -57,16 +54,9 @@ public class TransferProgressUpdater {
                                          .progressSnapshot(snapshot)
                                          .build();
 
-        List<TransferListener> listeners = new ArrayList<>();
-        if (listener != null) {
-            listeners.add(listener);
-        }
-
-        request.overrideConfiguration()
-               .map(TransferRequestOverrideConfiguration::listeners)
-               .ifPresent(listeners::addAll);
-
-        listenerInvoker = new TransferListenerInvoker(listeners);
+        listenerInvoker = new TransferListenerInvoker(request.overrideConfiguration()
+                                                             .map(TransferRequestOverrideConfiguration::listeners)
+                                                             .orElseGet(Collections::emptyList));
         endOfStreamFuture = new CompletableFuture<>();
     }
 
@@ -112,7 +102,7 @@ public class TransferProgressUpdater {
                 @Override
                 public void transformerOnResponse(GetObjectResponse response) {
                     if (response.contentLength() != null) {
-                        progress.updateAndGet(b -> b.transferSizeInBytes(response.contentLength()));
+                            progress.updateAndGet(b -> b.transferSizeInBytes(response.contentLength()).sdkResponse(response));
                     }
                 }
 
@@ -180,11 +170,11 @@ public class TransferProgressUpdater {
 
     private void transferFailed(Throwable t) {
         listenerInvoker.transferFailed(TransferListenerFailedContext.builder()
-                                                                    .transferContext(context.copy(b -> {
-                                                                  b.progressSnapshot(progress.snapshot());
-                                                              }))
-                                                              .exception(t)
-                                                              .build());
+                                                                    .transferContext(
+                                                                        context.copy(
+                                                                            b -> b.progressSnapshot(progress.snapshot())))
+                                                                    .exception(t)
+                                                                    .build());
     }
 
     private static Optional<Long> getContentLengthSafe(AsyncRequestBody requestBody) {

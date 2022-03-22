@@ -13,10 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3.internal.exception;
+package software.amazon.awssdk.transfer.s3;
+
+import software.amazon.awssdk.annotations.SdkPreviewApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Exception thrown when the response subscription is cancelled.
+ * Contains the information of a pausible upload or download; such
+ * information can be used to resume the upload or download later on
+ *
+ * @see FileDownload#pause()
  */
-public class PauseException {
+@SdkPublicApi
+@SdkPreviewApi
+public interface ResumableTransfer {
 }
