@@ -19,8 +19,10 @@ import static software.amazon.awssdk.utils.JavaSystemSetting.USER_NAME;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.util.Random;
+import software.amazon.awssdk.utils.Logger;
 
 public final class S3BucketUtils {
+    private static final Logger logger = Logger.loggerFor(S3BucketUtils.class);
     private static final Random RANDOM = new Random();
     private static final int MAX_BUCKET_NAME_LENGTH = 63;
 
@@ -64,8 +66,11 @@ public final class S3BucketUtils {
      * @return an s3 bucket name
      */
     public static String temporaryBucketName(String prefix) {
-        String bucketName = lowerCase(prefix) + "-" + lowerCase(USER_NAME.getStringValueOrThrow()) + "-" + RANDOM.nextInt(10000);
+        String shortenedUserName = shortenIfNeeded(USER_NAME.getStringValue().orElse("unknown"), 7);
+        String bucketName =
+            lowerCase(prefix) + "-" + lowerCase(shortenedUserName) + "-" + RANDOM.nextInt(10000);
         if (bucketName.length() > 63) {
+            logger.error(() -> "S3 buckets can only be 63 chars in length, try a shorter prefix");
             throw new RuntimeException("S3 buckets can only be 63 chars in length, try a shorter prefix");
         }
         return bucketName;
@@ -73,5 +78,9 @@ public final class S3BucketUtils {
 
     private static String shortenClassName(String clzName) {
         return clzName.length() <= 45 ? clzName : clzName.substring(0, 45);
+    }
+
+    private static String shortenIfNeeded(String str, int length) {
+        return str.length() <= length ? str : str.substring(0, length);
     }
 }

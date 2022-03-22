@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
@@ -56,7 +56,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
      * Loads the AWS account info for the integration tests and creates an S3
      * client for tests to use.
      */
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         Log.initLoggingToStdout(Log.LogLevel.Warn);
         System.setProperty("aws.crt.debugnative", "true");
@@ -64,7 +64,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
         s3Async = s3AsyncClientBuilder().build();
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanUp() {
         CrtResource.waitForNoResources();
     }

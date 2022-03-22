@@ -22,9 +22,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.UUID;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -41,7 +41,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
     private static RandomTempFile testFile;
     private static S3TransferManager tm;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(TEST_BUCKET);
@@ -56,7 +56,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
 
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() throws IOException {
         tm.close();
         Files.delete(testFile.toPath());
@@ -65,7 +65,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
     }
 
     @Test
-    public void upload_file_SentCorrectly() throws IOException {
+    void upload_file_SentCorrectly() throws IOException {
         FileUpload fileUpload =
             tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET).key(TEST_KEY))
                                 .source(testFile.toPath())
@@ -85,7 +85,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
     }
 
     @Test
-    public void upload_asyncRequestBody_SentCorrectly() throws IOException {
+    void upload_asyncRequestBody_SentCorrectly() throws IOException {
         String content = UUID.randomUUID().toString();
 
         Upload upload =
