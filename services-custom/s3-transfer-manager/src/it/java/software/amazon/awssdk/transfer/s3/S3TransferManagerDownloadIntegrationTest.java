@@ -23,9 +23,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.ResponsePublisher;
@@ -42,7 +42,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     private static S3TransferManager tm;
     private static File file;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         createBucket(BUCKET);
         file = new RandomTempFile(OBJ_SIZE);
@@ -56,7 +56,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
                               .build();
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
         tm.close();
@@ -64,7 +64,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     }
 
     @Test
-    public void download_toFile() throws IOException {
+    void download_toFile() throws IOException {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         FileDownload download =
             tm.downloadFile(DownloadFileRequest.builder()
@@ -78,7 +78,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     }
 
     @Test
-    public void download_toBytes() throws Exception {
+    void download_toBytes() throws Exception {
         Download<ResponseBytes<GetObjectResponse>> download =
             tm.download(DownloadRequest.builder()
                                        .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
@@ -92,7 +92,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     }
 
     @Test
-    public void download_toPublisher() throws Exception {
+    void download_toPublisher() throws Exception {
         Download<ResponsePublisher<GetObjectResponse>> download =
             tm.download(DownloadRequest.builder()
                                        .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))

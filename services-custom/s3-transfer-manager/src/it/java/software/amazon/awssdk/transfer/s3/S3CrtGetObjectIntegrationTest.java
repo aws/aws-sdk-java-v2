@@ -26,9 +26,9 @@ import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
@@ -46,7 +46,7 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
     private static File file;
     private static ExecutorService executorService;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         S3IntegrationTestBase.createBucket(BUCKET);
         crtClient = S3CrtAsyncClient.builder()
@@ -61,7 +61,7 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
         executorService = Executors.newFixedThreadPool(2);
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanup() {
         crtClient.close();
         S3IntegrationTestBase.deleteBucketAndAllContents(BUCKET);
@@ -70,7 +70,7 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void getObject_toFiles() throws IOException {
+    void getObject_toFiles() throws IOException {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
 
         GetObjectResponse response =
@@ -80,14 +80,14 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void getObject_toBytes() throws IOException {
+    void getObject_toBytes() throws IOException {
         byte[] bytes =
             crtClient.getObject(b -> b.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join().asByteArray();
         assertThat(bytes).isEqualTo(Files.readAllBytes(file.toPath()));
     }
 
     @Test
-    public void getObject_customResponseTransformer() {
+    void getObject_customResponseTransformer() {
         crtClient.getObject(b -> b.bucket(BUCKET).key(KEY),
                             new TestResponseTransformer()).join();
 
