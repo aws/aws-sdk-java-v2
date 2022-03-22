@@ -85,6 +85,7 @@ public class S3TransferManagerUploadDirectoryUnicodeIntegrationTest extends S3In
     @BeforeClass
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
+        createBucket(TEST_BUCKET);
         tm = S3TransferManager.builder()
                               .s3ClientConfiguration(b -> b.credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                                            .region(DEFAULT_REGION)
@@ -97,7 +98,6 @@ public class S3TransferManagerUploadDirectoryUnicodeIntegrationTest extends S3In
 
     @Before
     public void testSetup() throws Exception {
-        createBucket(TEST_BUCKET);
         testDirectory = createLocalTestDirectory();
     }
 
@@ -108,15 +108,15 @@ public class S3TransferManagerUploadDirectoryUnicodeIntegrationTest extends S3In
         } catch (Exception exception) {
             log.warn(() -> "Failed to clean up test directory " + testDirectory, exception);
         }
+    }
+
+    @AfterClass
+    public static void teardown() {
         try {
             deleteBucketAndAllContents(TEST_BUCKET);
         } catch (Exception exception) {
             log.warn(() -> "Failed to delete s3 bucket " + TEST_BUCKET, exception);
         }
-    }
-
-    @AfterClass
-    public static void teardown() {
         closeQuietly(tm, log.logger());
         closeQuietly(s3Client, log.logger());
         S3IntegrationTestBase.cleanUp();
