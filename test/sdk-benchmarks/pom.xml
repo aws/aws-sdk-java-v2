@@ -48,8 +48,6 @@
         <uberjar.name>benchmarks</uberjar.name>
 
         <sdk-v1.version>1.11.404</sdk-v1.version>
-        <jackson.version>2.12.3</jackson.version>
-        <jackson.databind.version>2.12.3</jackson.databind.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     </properties>
 
@@ -224,7 +222,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>2.12.3</version>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
