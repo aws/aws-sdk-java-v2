@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_OR_APPEND_EXISTING;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.IOException;
@@ -22,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.CompletableFuture;
@@ -30,8 +32,11 @@ import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.FileTransformerConfiguration;
+import software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * {@link AsyncResponseTransformer} that writes the data to the specified file.
@@ -44,13 +49,48 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     private volatile AsynchronousFileChannel fileChannel;
     private volatile CompletableFuture<Void> cf;
     private volatile ResponseT response;
+    private final long position;
+    private final FileWriteOption fileModificationOption;
+    private final boolean deleteOnFailure;
 
     public FileAsyncResponseTransformer(Path path) {
         this.path = path;
+        this.fileModificationOption = FileWriteOption.CREATE_NEW;
+        this.deleteOnFailure = true;
+        this.position = 0L;
+    }
+
+    public FileAsyncResponseTransformer(Path path, FileTransformerConfiguration fileConfiguration) {
+        this.path = path;
+        this.fileModificationOption = fileConfiguration.fileModificationOption().orElse(FileWriteOption.CREATE_NEW);
+        this.position = determineFilePositionToWrite(path);
+        this.deleteOnFailure = fileConfiguration.deleteOnFailure().orElse(true);
+    }
+
+    private long determineFilePositionToWrite(Path path) {
+        if (fileModificationOption == CREATE_OR_APPEND_EXISTING) {
+            try {
+                return Files.size(path);
+            } catch (NoSuchFileException e) {
+                // Ignore
+            } catch (IOException exception) {
+                throw SdkClientException.create("Cannot determine the current file size " + path, exception);
+            }
+        }
+        return  0L;
     }
 
     private AsynchronousFileChannel createChannel(Path path) throws IOException {
-        return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
+        switch (fileModificationOption) {
+            case CREATE_OR_APPEND_EXISTING:
+                return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+            case CREATE_OR_REPLACE_EXISTING:
+                return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE,
+                                                    StandardOpenOption.TRUNCATE_EXISTING);
+            case CREATE_NEW:
+            default:
+                return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
+        }
     }
 
     @Override
@@ -73,7 +113,8 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
         // onStream may be called multiple times so reset the file channel every time
         this.fileChannel = invokeSafely(() -> createChannel(path));
-        publisher.subscribe(new FileSubscriber(this.fileChannel, path, cf, this::exceptionOccurred));
+        publisher.subscribe(new FileSubscriber(this.fileChannel, path, cf, this::exceptionOccurred,
+                                               position));
     }
 
     @Override
@@ -83,7 +124,9 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                 invokeSafely(fileChannel::close);
             }
         } finally {
-            invokeSafely(() -> Files.deleteIfExists(path));
+            if (deleteOnFailure) {
+                invokeSafely(() -> Files.deleteIfExists(path));
+            }
         }
         cf.completeExceptionally(throwable);
     }
@@ -92,8 +135,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
      * {@link Subscriber} implementation that writes chunks to a file.
      */
     static class FileSubscriber implements Subscriber<ByteBuffer> {
-        private final AtomicLong position = new AtomicLong();
-
+        private final AtomicLong position;
         private final AsynchronousFileChannel fileChannel;
         private final Path path;
         private final CompletableFuture<Void> future;
@@ -104,11 +146,12 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         private Subscription subscription;
 
         FileSubscriber(AsynchronousFileChannel fileChannel, Path path, CompletableFuture<Void> future,
-                       Consumer<Throwable> onErrorMethod) {
+                       Consumer<Throwable> onErrorMethod, long startingPosition) {
             this.fileChannel = fileChannel;
             this.path = path;
             this.future = future;
             this.onErrorMethod = onErrorMethod;
+            this.position = new AtomicLong(startingPosition);
         }
 
         @Override

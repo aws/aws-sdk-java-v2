@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
@@ -116,9 +117,25 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * @param path        Path to file to write to.
      * @param <ResponseT> Pojo Response type.
      * @return AsyncResponseTransformer instance.
+     * @see #toFile(Path, FileTransformerConfiguration)
      */
     static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(Path path) {
         return new FileAsyncResponseTransformer<>(path);
+    }
+
+    /**
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified configuration.
+     * By default, if the file already exists, an exception will be thrown, and in the event of an error, the SDK will attempt to
+     * delete the file. This behavior can be configured via {@link FileTransformerConfiguration}.
+     *
+     * @param path        Path to file to write to.
+     * @param config      configuration for the transformer
+     * @param <ResponseT> Pojo Response type.
+     * @return AsyncResponseTransformer instance.
+     * @see FileTransformerConfiguration
+     */
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(Path path, FileTransformerConfiguration config) {
+        return new FileAsyncResponseTransformer<>(path, config);
     }
 
     /**
@@ -132,6 +149,21 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      */
     static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(File file) {
         return toFile(file.toPath());
+    }
+
+    /**
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified configuration.
+     * By default, if the file already exists, an exception will be thrown, and in the event of an error, the SDK will attempt to
+     * delete the file. This behavior can be configured via {@link FileTransformerConfiguration}.
+     *
+     * @param file        File to write to.
+     * @param config      configuration for the transformer
+     * @param <ResponseT> Pojo Response type.
+     * @return AsyncResponseTransformer instance.
+     * @see FileTransformerConfiguration
+     */
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(File file, FileTransformerConfiguration config) {
+        return new FileAsyncResponseTransformer<>(file.toPath(), config);
     }
 
     /**
