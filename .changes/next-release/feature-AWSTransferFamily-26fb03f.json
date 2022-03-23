@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Transfer Family",
+    "contributor": "",
+    "description": "Documentation updates for AWS Transfer Family to describe how to remove an associated workflow from a server."
+}
