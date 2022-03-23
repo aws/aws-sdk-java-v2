@@ -1,3 +1,36 @@
+# __2.17.155__ __2022-03-23__
+## __AWS Audit Manager__
+  - ### Features
+    - This release updates 1 API parameter, the SnsArn attribute. The character length and regex pattern for the SnsArn attribute have been updated, which enables you to deselect an SNS topic when using the UpdateSettings operation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Documentation updates for AWS Transfer Family to describe how to remove an associated workflow from a server.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Doc only update for ElastiCache
+
+## __Amazon Elastic Block Store__
+  - ### Features
+    - Increased the maximum supported value for the Timeout parameter of the StartSnapshot API from 60 minutes to 4320 minutes. Changed the HTTP error code for ConflictException from 503 to 409.
+
+## __Amazon Redshift__
+  - ### Features
+    - This release adds a new [--encrypted | --no-encrypted] field in restore-from-cluster-snapshot API. Customers can now restore an unencrypted snapshot to a cluster encrypted with AWS Managed Key or their own KMS key.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Update AddTagsToResource, ListTagsForResource, and RemoveTagsFromResource APIs to reflect the support for tagging Automation resources. Includes other minor documentation updates.
+
+## __GameSparks__
+  - ### Features
+    - Released the preview of Amazon GameSparks, a fully managed AWS service that provides a multi-service backend for game developers.
+
 # __2.17.154__ __2022-03-22__
 ## __AWS Cost Explorer Service__
   - ### Features
