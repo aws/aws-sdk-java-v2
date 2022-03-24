@@ -21,8 +21,11 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -66,6 +69,22 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     @Test
     void download_toFile() throws IOException {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
+        FileDownload download =
+            tm.downloadFile(DownloadFileRequest.builder()
+                                               .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                               .destination(path)
+                                               .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                               .build());
+        CompletedFileDownload completedFileDownload = download.completionFuture().join();
+        assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
+        assertThat(completedFileDownload.response().responseMetadata().requestId()).isNotNull();
+    }
+
+    @Test
+    void download_toFile_shouldReplaceExisting() throws IOException {
+        Path path = RandomTempFile.randomUncreatedFile().toPath();
+        Files.write(path, RandomStringUtils.random(1024).getBytes(StandardCharsets.UTF_8));
+        assertThat(path).exists();
         FileDownload download =
             tm.downloadFile(DownloadFileRequest.builder()
                                                .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))

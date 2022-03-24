@@ -101,8 +101,8 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
         try {
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
                 AsyncResponseTransformer.toFile(fileToWrite, FileTransformerConfiguration.builder()
-                                                                                  .fileModificationOption(CREATE_OR_REPLACE_EXISTING)
-                                                                                  .build());
+                                                                                         .fileWriteOption(CREATE_OR_REPLACE_EXISTING)
+                                                                                         .build());
             s3Async.getObject(getObjectRequest, transformer).join();
         } finally {
             assertThat(Md5Utils.md5AsBase64(fileToWrite)).isEqualTo(Md5Utils.md5AsBase64(file));
@@ -119,7 +119,7 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
         try {
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
                 AsyncResponseTransformer.toFile(fileToWrite, FileTransformerConfiguration.builder()
-                                                                                         .fileModificationOption(CREATE_OR_APPEND_EXISTING)
+                                                                                         .fileWriteOption(CREATE_OR_APPEND_EXISTING)
                                                                                          .build());
             response = s3Async.getObject(getObjectRequest, transformer).join();
         } finally {
