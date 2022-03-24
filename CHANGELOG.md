@@ -1,3 +1,20 @@
+# __2.17.156__ __2022-03-24__
+## __AWS Config__
+  - ### Features
+    - Added new APIs GetCustomRulePolicy and GetOrganizationCustomRulePolicy, and updated existing APIs PutConfigRule, DescribeConfigRule, DescribeConfigRuleEvaluationStatus, PutOrganizationConfigRule, DescribeConfigRule to support a new feature for building AWS Config rules with AWS CloudFormation Guard
+
+## __AWS Lambda__
+  - ### Features
+    - Adds support for increased ephemeral storage (/tmp) up to 10GB for Lambda functions. Customers can now provision up to 10 GB of ephemeral storage per function instance, a 20x increase over the previous limit of 512 MB.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds an additional parameter for subtitling with Amazon Transcribe batch jobs: outputStartIndex.
+
 # __2.17.155__ __2022-03-23__
 ## __AWS Audit Manager__
   - ### Features
