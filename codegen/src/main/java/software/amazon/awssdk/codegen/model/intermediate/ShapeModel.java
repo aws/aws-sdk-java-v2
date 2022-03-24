@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
+import static software.amazon.awssdk.codegen.internal.Constant.LF;
 import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.removeFromEnd;
@@ -70,6 +71,8 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     private XmlNamespace xmlNamespace;
 
     private boolean document;
+
+    private boolean union;
 
     public ShapeModel() {
     }
@@ -526,6 +529,16 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
         }
     }
 
+    public String getUnionTypeGetterDocumentation() {
+        return "Retrieve an enum value representing which member of this object is populated. "
+               + LF + LF
+               + "When this class is returned in a service response, this will be {@link Type#UNKNOWN_TO_SDK_VERSION} if the "
+               + "service returned a member that is only known to a newer SDK version."
+               + LF + LF
+               + "When this class is created directly in your code, this will be {@link Type#UNKNOWN_TO_SDK_VERSION} if zero or "
+               + "more than one member is set.";
+    }
+
     @Override
     public String toString() {
         return shapeName;
@@ -616,5 +629,13 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     public ShapeModel withIsDocument(boolean document) {
         this.document = document;
         return this;
+    }
+
+    public boolean isUnion() {
+        return union;
+    }
+
+    public void withIsUnion(boolean union) {
+        this.union = union;
     }
 }

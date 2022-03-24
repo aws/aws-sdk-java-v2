@@ -1,15 +1,18 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.beans.Transient;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -36,40 +39,44 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class AllTypesResponse extends JsonProtocolTestsResponse implements
-                                                                      ToCopyableBuilder<AllTypesResponse.Builder, AllTypesResponse> {
+public final class AllTypesUnionStructure implements SdkPojo, Serializable,
+                                                     ToCopyableBuilder<AllTypesUnionStructure.Builder, AllTypesUnionStructure> {
     private static final SdkField<String> STRING_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-                                                                        .memberName("StringMember").getter(getter(AllTypesResponse::stringMember)).setter(setter(Builder::stringMember))
+                                                                        .memberName("StringMember").getter(getter(AllTypesUnionStructure::stringMember))
+                                                                        .setter(setter(Builder::stringMember))
                                                                         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
 
     private static final SdkField<Integer> INTEGER_MEMBER_FIELD = SdkField.<Integer> builder(MarshallingType.INTEGER)
-                                                                          .memberName("IntegerMember").getter(getter(AllTypesResponse::integerMember)).setter(setter(Builder::integerMember))
+                                                                          .memberName("IntegerMember").getter(getter(AllTypesUnionStructure::integerMember))
+                                                                          .setter(setter(Builder::integerMember))
                                                                           .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("IntegerMember").build()).build();
 
     private static final SdkField<Boolean> BOOLEAN_MEMBER_FIELD = SdkField.<Boolean> builder(MarshallingType.BOOLEAN)
-                                                                          .memberName("BooleanMember").getter(getter(AllTypesResponse::booleanMember)).setter(setter(Builder::booleanMember))
+                                                                          .memberName("BooleanMember").getter(getter(AllTypesUnionStructure::booleanMember))
+                                                                          .setter(setter(Builder::booleanMember))
                                                                           .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BooleanMember").build()).build();
 
     private static final SdkField<Float> FLOAT_MEMBER_FIELD = SdkField.<Float> builder(MarshallingType.FLOAT)
-                                                                      .memberName("FloatMember").getter(getter(AllTypesResponse::floatMember)).setter(setter(Builder::floatMember))
+                                                                      .memberName("FloatMember").getter(getter(AllTypesUnionStructure::floatMember)).setter(setter(Builder::floatMember))
                                                                       .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("FloatMember").build()).build();
 
     private static final SdkField<Double> DOUBLE_MEMBER_FIELD = SdkField.<Double> builder(MarshallingType.DOUBLE)
-                                                                        .memberName("DoubleMember").getter(getter(AllTypesResponse::doubleMember)).setter(setter(Builder::doubleMember))
+                                                                        .memberName("DoubleMember").getter(getter(AllTypesUnionStructure::doubleMember))
+                                                                        .setter(setter(Builder::doubleMember))
                                                                         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("DoubleMember").build()).build();
 
     private static final SdkField<Long> LONG_MEMBER_FIELD = SdkField.<Long> builder(MarshallingType.LONG)
-                                                                    .memberName("LongMember").getter(getter(AllTypesResponse::longMember)).setter(setter(Builder::longMember))
+                                                                    .memberName("LongMember").getter(getter(AllTypesUnionStructure::longMember)).setter(setter(Builder::longMember))
                                                                     .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("LongMember").build()).build();
 
     private static final SdkField<Short> SHORT_MEMBER_FIELD = SdkField.<Short> builder(MarshallingType.SHORT)
-                                                                      .memberName("ShortMember").getter(getter(AllTypesResponse::shortMember)).setter(setter(Builder::shortMember))
+                                                                      .memberName("ShortMember").getter(getter(AllTypesUnionStructure::shortMember)).setter(setter(Builder::shortMember))
                                                                       .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ShortMember").build()).build();
 
     private static final SdkField<List<String>> SIMPLE_LIST_FIELD = SdkField
         .<List<String>> builder(MarshallingType.LIST)
         .memberName("SimpleList")
-        .getter(getter(AllTypesResponse::simpleList))
+        .getter(getter(AllTypesUnionStructure::simpleList))
         .setter(setter(Builder::simpleList))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SimpleList").build(),
                 ListTrait
@@ -83,7 +90,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<List<String>> LIST_OF_ENUMS_FIELD = SdkField
         .<List<String>> builder(MarshallingType.LIST)
         .memberName("ListOfEnums")
-        .getter(getter(AllTypesResponse::listOfEnumsAsStrings))
+        .getter(getter(AllTypesUnionStructure::listOfEnumsAsStrings))
         .setter(setter(Builder::listOfEnumsWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfEnums").build(),
                 ListTrait
@@ -97,7 +104,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<List<Map<String, String>>> LIST_OF_MAPS_FIELD = SdkField
         .<List<Map<String, String>>> builder(MarshallingType.LIST)
         .memberName("ListOfMaps")
-        .getter(getter(AllTypesResponse::listOfMaps))
+        .getter(getter(AllTypesUnionStructure::listOfMaps))
         .setter(setter(Builder::listOfMaps))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMaps").build(),
                 ListTrait
@@ -120,7 +127,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<List<SimpleStruct>> LIST_OF_STRUCTS_FIELD = SdkField
         .<List<SimpleStruct>> builder(MarshallingType.LIST)
         .memberName("ListOfStructs")
-        .getter(getter(AllTypesResponse::listOfStructs))
+        .getter(getter(AllTypesUnionStructure::listOfStructs))
         .setter(setter(Builder::listOfStructs))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfStructs").build(),
                 ListTrait
@@ -135,7 +142,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<List<Map<String, String>>> LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD = SdkField
         .<List<Map<String, String>>> builder(MarshallingType.LIST)
         .memberName("ListOfMapOfEnumToString")
-        .getter(getter(AllTypesResponse::listOfMapOfEnumToStringAsStrings))
+        .getter(getter(AllTypesUnionStructure::listOfMapOfEnumToStringAsStrings))
         .setter(setter(Builder::listOfMapOfEnumToStringWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMapOfEnumToString").build(),
                 ListTrait
@@ -158,7 +165,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<List<Map<String, SimpleStruct>>> LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD = SdkField
         .<List<Map<String, SimpleStruct>>> builder(MarshallingType.LIST)
         .memberName("ListOfMapOfStringToStruct")
-        .getter(getter(AllTypesResponse::listOfMapOfStringToStruct))
+        .getter(getter(AllTypesUnionStructure::listOfMapOfStringToStruct))
         .setter(setter(Builder::listOfMapOfStringToStruct))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMapOfStringToStruct").build(),
                 ListTrait
@@ -182,7 +189,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<Map<String, List<Integer>>> MAP_OF_STRING_TO_INTEGER_LIST_FIELD = SdkField
         .<Map<String, List<Integer>>> builder(MarshallingType.MAP)
         .memberName("MapOfStringToIntegerList")
-        .getter(getter(AllTypesResponse::mapOfStringToIntegerList))
+        .getter(getter(AllTypesUnionStructure::mapOfStringToIntegerList))
         .setter(setter(Builder::mapOfStringToIntegerList))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToIntegerList").build(),
                 MapTrait.builder()
@@ -205,7 +212,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<Map<String, String>> MAP_OF_STRING_TO_STRING_FIELD = SdkField
         .<Map<String, String>> builder(MarshallingType.MAP)
         .memberName("MapOfStringToString")
-        .getter(getter(AllTypesResponse::mapOfStringToString))
+        .getter(getter(AllTypesUnionStructure::mapOfStringToString))
         .setter(setter(Builder::mapOfStringToString))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToString").build(),
                 MapTrait.builder()
@@ -219,7 +226,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<Map<String, SimpleStruct>> MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD = SdkField
         .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
         .memberName("MapOfStringToSimpleStruct")
-        .getter(getter(AllTypesResponse::mapOfStringToSimpleStruct))
+        .getter(getter(AllTypesUnionStructure::mapOfStringToSimpleStruct))
         .setter(setter(Builder::mapOfStringToSimpleStruct))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToSimpleStruct").build(),
                 MapTrait.builder()
@@ -234,7 +241,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<Map<String, String>> MAP_OF_ENUM_TO_ENUM_FIELD = SdkField
         .<Map<String, String>> builder(MarshallingType.MAP)
         .memberName("MapOfEnumToEnum")
-        .getter(getter(AllTypesResponse::mapOfEnumToEnumAsStrings))
+        .getter(getter(AllTypesUnionStructure::mapOfEnumToEnumAsStrings))
         .setter(setter(Builder::mapOfEnumToEnumWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToEnum").build(),
                 MapTrait.builder()
@@ -248,7 +255,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<Map<String, String>> MAP_OF_ENUM_TO_STRING_FIELD = SdkField
         .<Map<String, String>> builder(MarshallingType.MAP)
         .memberName("MapOfEnumToString")
-        .getter(getter(AllTypesResponse::mapOfEnumToStringAsStrings))
+        .getter(getter(AllTypesUnionStructure::mapOfEnumToStringAsStrings))
         .setter(setter(Builder::mapOfEnumToStringWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToString").build(),
                 MapTrait.builder()
@@ -262,7 +269,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<Map<String, String>> MAP_OF_STRING_TO_ENUM_FIELD = SdkField
         .<Map<String, String>> builder(MarshallingType.MAP)
         .memberName("MapOfStringToEnum")
-        .getter(getter(AllTypesResponse::mapOfStringToEnumAsStrings))
+        .getter(getter(AllTypesUnionStructure::mapOfStringToEnumAsStrings))
         .setter(setter(Builder::mapOfStringToEnumWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToEnum").build(),
                 MapTrait.builder()
@@ -276,7 +283,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<Map<String, SimpleStruct>> MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD = SdkField
         .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
         .memberName("MapOfEnumToSimpleStruct")
-        .getter(getter(AllTypesResponse::mapOfEnumToSimpleStructAsStrings))
+        .getter(getter(AllTypesUnionStructure::mapOfEnumToSimpleStructAsStrings))
         .setter(setter(Builder::mapOfEnumToSimpleStructWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToSimpleStruct").build(),
                 MapTrait.builder()
@@ -291,7 +298,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<Map<String, List<String>>> MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD = SdkField
         .<Map<String, List<String>>> builder(MarshallingType.MAP)
         .memberName("MapOfEnumToListOfEnums")
-        .getter(getter(AllTypesResponse::mapOfEnumToListOfEnumsAsStrings))
+        .getter(getter(AllTypesUnionStructure::mapOfEnumToListOfEnumsAsStrings))
         .setter(setter(Builder::mapOfEnumToListOfEnumsWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToListOfEnums").build(),
                 MapTrait.builder()
@@ -314,7 +321,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<Map<String, Map<String, String>>> MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD = SdkField
         .<Map<String, Map<String, String>>> builder(MarshallingType.MAP)
         .memberName("MapOfEnumToMapOfStringToEnum")
-        .getter(getter(AllTypesResponse::mapOfEnumToMapOfStringToEnumAsStrings))
+        .getter(getter(AllTypesUnionStructure::mapOfEnumToMapOfStringToEnumAsStrings))
         .setter(setter(Builder::mapOfEnumToMapOfStringToEnumWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToMapOfStringToEnum")
                              .build(),
@@ -336,26 +343,26 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
                                                     .build()).build()).build()).build();
 
     private static final SdkField<Instant> TIMESTAMP_MEMBER_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
-                                                                            .memberName("TimestampMember").getter(getter(AllTypesResponse::timestampMember))
+                                                                            .memberName("TimestampMember").getter(getter(AllTypesUnionStructure::timestampMember))
                                                                             .setter(setter(Builder::timestampMember))
                                                                             .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("TimestampMember").build()).build();
 
     private static final SdkField<StructWithTimestamp> STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD = SdkField
         .<StructWithTimestamp> builder(MarshallingType.SDK_POJO)
         .memberName("StructWithNestedTimestampMember")
-        .getter(getter(AllTypesResponse::structWithNestedTimestampMember))
+        .getter(getter(AllTypesUnionStructure::structWithNestedTimestampMember))
         .setter(setter(Builder::structWithNestedTimestampMember))
         .constructor(StructWithTimestamp::builder)
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StructWithNestedTimestampMember")
                              .build()).build();
 
     private static final SdkField<SdkBytes> BLOB_ARG_FIELD = SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
-                                                                     .memberName("BlobArg").getter(getter(AllTypesResponse::blobArg)).setter(setter(Builder::blobArg))
+                                                                     .memberName("BlobArg").getter(getter(AllTypesUnionStructure::blobArg)).setter(setter(Builder::blobArg))
                                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobArg").build()).build();
 
     private static final SdkField<StructWithNestedBlobType> STRUCT_WITH_NESTED_BLOB_FIELD = SdkField
         .<StructWithNestedBlobType> builder(MarshallingType.SDK_POJO).memberName("StructWithNestedBlob")
-        .getter(getter(AllTypesResponse::structWithNestedBlob)).setter(setter(Builder::structWithNestedBlob))
+        .getter(getter(AllTypesUnionStructure::structWithNestedBlob)).setter(setter(Builder::structWithNestedBlob))
         .constructor(StructWithNestedBlobType::builder)
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StructWithNestedBlob").build())
         .build();
@@ -363,7 +370,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<Map<String, SdkBytes>> BLOB_MAP_FIELD = SdkField
         .<Map<String, SdkBytes>> builder(MarshallingType.MAP)
         .memberName("BlobMap")
-        .getter(getter(AllTypesResponse::blobMap))
+        .getter(getter(AllTypesUnionStructure::blobMap))
         .setter(setter(Builder::blobMap))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobMap").build(),
                 MapTrait.builder()
@@ -377,7 +384,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<List<SdkBytes>> LIST_OF_BLOBS_FIELD = SdkField
         .<List<SdkBytes>> builder(MarshallingType.LIST)
         .memberName("ListOfBlobs")
-        .getter(getter(AllTypesResponse::listOfBlobs))
+        .getter(getter(AllTypesUnionStructure::listOfBlobs))
         .setter(setter(Builder::listOfBlobs))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfBlobs").build(),
                 ListTrait
@@ -390,14 +397,14 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
     private static final SdkField<RecursiveStructType> RECURSIVE_STRUCT_FIELD = SdkField
         .<RecursiveStructType> builder(MarshallingType.SDK_POJO).memberName("RecursiveStruct")
-        .getter(getter(AllTypesResponse::recursiveStruct)).setter(setter(Builder::recursiveStruct))
+        .getter(getter(AllTypesUnionStructure::recursiveStruct)).setter(setter(Builder::recursiveStruct))
         .constructor(RecursiveStructType::builder)
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("RecursiveStruct").build()).build();
 
     private static final SdkField<BaseType> POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD = SdkField
         .<BaseType> builder(MarshallingType.SDK_POJO)
         .memberName("PolymorphicTypeWithSubTypes")
-        .getter(getter(AllTypesResponse::polymorphicTypeWithSubTypes))
+        .getter(getter(AllTypesUnionStructure::polymorphicTypeWithSubTypes))
         .setter(setter(Builder::polymorphicTypeWithSubTypes))
         .constructor(BaseType::builder)
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("PolymorphicTypeWithSubTypes")
@@ -406,30 +413,30 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     private static final SdkField<SubTypeOne> POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD = SdkField
         .<SubTypeOne> builder(MarshallingType.SDK_POJO)
         .memberName("PolymorphicTypeWithoutSubTypes")
-        .getter(getter(AllTypesResponse::polymorphicTypeWithoutSubTypes))
+        .getter(getter(AllTypesUnionStructure::polymorphicTypeWithoutSubTypes))
         .setter(setter(Builder::polymorphicTypeWithoutSubTypes))
         .constructor(SubTypeOne::builder)
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("PolymorphicTypeWithoutSubTypes")
                              .build()).build();
 
     private static final SdkField<String> ENUM_TYPE_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-                                                                    .memberName("EnumType").getter(getter(AllTypesResponse::enumTypeAsString)).setter(setter(Builder::enumType))
+                                                                    .memberName("EnumType").getter(getter(AllTypesUnionStructure::enumTypeAsString)).setter(setter(Builder::enumType))
                                                                     .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("EnumType").build()).build();
 
     private static final SdkField<Underscore_Name_Type> UNDERSCORE_NAME_TYPE_FIELD = SdkField
         .<Underscore_Name_Type> builder(MarshallingType.SDK_POJO).memberName("Underscore_Name_Type")
-        .getter(getter(AllTypesResponse::underscore_Name_Type)).setter(setter(Builder::underscore_Name_Type))
+        .getter(getter(AllTypesUnionStructure::underscore_Name_Type)).setter(setter(Builder::underscore_Name_Type))
         .constructor(Underscore_Name_Type::builder)
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Underscore_Name_Type").build())
         .build();
 
     private static final SdkField<Document> MY_DOCUMENT_FIELD = SdkField.<Document> builder(MarshallingType.DOCUMENT)
-                                                                        .memberName("MyDocument").getter(getter(AllTypesResponse::myDocument)).setter(setter(Builder::myDocument))
+                                                                        .memberName("MyDocument").getter(getter(AllTypesUnionStructure::myDocument)).setter(setter(Builder::myDocument))
                                                                         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MyDocument").build()).build();
 
     private static final SdkField<AllTypesUnionStructure> ALL_TYPES_UNION_STRUCTURE_FIELD = SdkField
         .<AllTypesUnionStructure> builder(MarshallingType.SDK_POJO).memberName("AllTypesUnionStructure")
-        .getter(getter(AllTypesResponse::allTypesUnionStructure)).setter(setter(Builder::allTypesUnionStructure))
+        .getter(getter(AllTypesUnionStructure::allTypesUnionStructure)).setter(setter(Builder::allTypesUnionStructure))
         .constructor(AllTypesUnionStructure::builder)
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("AllTypesUnionStructure").build())
         .build();
@@ -445,6 +452,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
                                                                                                    LIST_OF_BLOBS_FIELD, RECURSIVE_STRUCT_FIELD, POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD,
                                                                                                    POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD, UNDERSCORE_NAME_TYPE_FIELD, MY_DOCUMENT_FIELD,
                                                                                                    ALL_TYPES_UNION_STRUCTURE_FIELD));
+
+    private static final long serialVersionUID = 1L;
 
     private final String stringMember;
 
@@ -516,8 +525,9 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
     private final AllTypesUnionStructure allTypesUnionStructure;
 
-    private AllTypesResponse(BuilderImpl builder) {
-        super(builder);
+    private final Type type;
+
+    private AllTypesUnionStructure(BuilderImpl builder) {
         this.stringMember = builder.stringMember;
         this.integerMember = builder.integerMember;
         this.booleanMember = builder.booleanMember;
@@ -553,6 +563,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         this.underscore_Name_Type = builder.underscore_Name_Type;
         this.myDocument = builder.myDocument;
         this.allTypesUnionStructure = builder.allTypesUnionStructure;
+        this.type = builder.type;
     }
 
     /**
@@ -1358,7 +1369,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     @Override
     public final int hashCode() {
         int hashCode = 1;
-        hashCode = 31 * hashCode + super.hashCode();
         hashCode = 31 * hashCode + Objects.hashCode(stringMember());
         hashCode = 31 * hashCode + Objects.hashCode(integerMember());
         hashCode = 31 * hashCode + Objects.hashCode(booleanMember());
@@ -1400,7 +1410,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
     @Override
     public final boolean equals(Object obj) {
-        return super.equals(obj) && equalsBySdkFields(obj);
+        return equalsBySdkFields(obj);
     }
 
     @Override
@@ -1411,10 +1421,10 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof AllTypesResponse)) {
+        if (!(obj instanceof AllTypesUnionStructure)) {
             return false;
         }
-        AllTypesResponse other = (AllTypesResponse) obj;
+        AllTypesUnionStructure other = (AllTypesUnionStructure) obj;
         return Objects.equals(stringMember(), other.stringMember()) && Objects.equals(integerMember(), other.integerMember())
                && Objects.equals(booleanMember(), other.booleanMember()) && Objects.equals(floatMember(), other.floatMember())
                && Objects.equals(doubleMember(), other.doubleMember()) && Objects.equals(longMember(), other.longMember())
@@ -1467,7 +1477,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     @Override
     public final String toString() {
         return ToString
-            .builder("AllTypesResponse")
+            .builder("AllTypesUnionStructure")
             .add("StringMember", stringMember())
             .add("IntegerMember", integerMember())
             .add("BooleanMember", booleanMember())
@@ -1578,20 +1588,673 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
     }
 
+    /**
+     * Create an instance of this class with {@link #stringMember()} initialized to the given value.
+     *
+     * Sets the value of the StringMember property for this object.
+     *
+     * @param stringMember
+     *        The new value for the StringMember property for this object.
+     */
+    public static AllTypesUnionStructure fromStringMember(String stringMember) {
+        return builder().stringMember(stringMember).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #integerMember()} initialized to the given value.
+     *
+     * Sets the value of the IntegerMember property for this object.
+     *
+     * @param integerMember
+     *        The new value for the IntegerMember property for this object.
+     */
+    public static AllTypesUnionStructure fromIntegerMember(Integer integerMember) {
+        return builder().integerMember(integerMember).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #booleanMember()} initialized to the given value.
+     *
+     * Sets the value of the BooleanMember property for this object.
+     *
+     * @param booleanMember
+     *        The new value for the BooleanMember property for this object.
+     */
+    public static AllTypesUnionStructure fromBooleanMember(Boolean booleanMember) {
+        return builder().booleanMember(booleanMember).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #floatMember()} initialized to the given value.
+     *
+     * Sets the value of the FloatMember property for this object.
+     *
+     * @param floatMember
+     *        The new value for the FloatMember property for this object.
+     */
+    public static AllTypesUnionStructure fromFloatMember(Float floatMember) {
+        return builder().floatMember(floatMember).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #doubleMember()} initialized to the given value.
+     *
+     * Sets the value of the DoubleMember property for this object.
+     *
+     * @param doubleMember
+     *        The new value for the DoubleMember property for this object.
+     */
+    public static AllTypesUnionStructure fromDoubleMember(Double doubleMember) {
+        return builder().doubleMember(doubleMember).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #longMember()} initialized to the given value.
+     *
+     * Sets the value of the LongMember property for this object.
+     *
+     * @param longMember
+     *        The new value for the LongMember property for this object.
+     */
+    public static AllTypesUnionStructure fromLongMember(Long longMember) {
+        return builder().longMember(longMember).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #shortMember()} initialized to the given value.
+     *
+     * Sets the value of the ShortMember property for this object.
+     *
+     * @param shortMember
+     *        The new value for the ShortMember property for this object.
+     */
+    public static AllTypesUnionStructure fromShortMember(Short shortMember) {
+        return builder().shortMember(shortMember).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #simpleList()} initialized to the given value.
+     *
+     * Sets the value of the SimpleList property for this object.
+     *
+     * @param simpleList
+     *        The new value for the SimpleList property for this object.
+     */
+    public static AllTypesUnionStructure fromSimpleList(List<String> simpleList) {
+        return builder().simpleList(simpleList).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #listOfEnumsAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the ListOfEnums property for this object.
+     *
+     * @param listOfEnums
+     *        The new value for the ListOfEnums property for this object.
+     */
+    public static AllTypesUnionStructure fromListOfEnumsWithStrings(List<String> listOfEnumsWithStrings) {
+        return builder().listOfEnumsWithStrings(listOfEnumsWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #listOfEnumsAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the ListOfEnums property for this object.
+     *
+     * @param listOfEnums
+     *        The new value for the ListOfEnums property for this object.
+     */
+    public static AllTypesUnionStructure fromListOfEnums(List<EnumType> listOfEnumsWithStrings) {
+        return builder().listOfEnums(listOfEnumsWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #listOfMaps()} initialized to the given value.
+     *
+     * Sets the value of the ListOfMaps property for this object.
+     *
+     * @param listOfMaps
+     *        The new value for the ListOfMaps property for this object.
+     */
+    public static AllTypesUnionStructure fromListOfMaps(List<Map<String, String>> listOfMaps) {
+        return builder().listOfMaps(listOfMaps).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #listOfStructs()} initialized to the given value.
+     *
+     * Sets the value of the ListOfStructs property for this object.
+     *
+     * @param listOfStructs
+     *        The new value for the ListOfStructs property for this object.
+     */
+    public static AllTypesUnionStructure fromListOfStructs(List<SimpleStruct> listOfStructs) {
+        return builder().listOfStructs(listOfStructs).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #listOfMapOfEnumToStringAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the ListOfMapOfEnumToString property for this object.
+     *
+     * @param listOfMapOfEnumToString
+     *        The new value for the ListOfMapOfEnumToString property for this object.
+     */
+    public static AllTypesUnionStructure fromListOfMapOfEnumToStringWithStrings(
+        List<Map<String, String>> listOfMapOfEnumToStringWithStrings) {
+        return builder().listOfMapOfEnumToStringWithStrings(listOfMapOfEnumToStringWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #listOfMapOfEnumToStringAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the ListOfMapOfEnumToString property for this object.
+     *
+     * @param listOfMapOfEnumToString
+     *        The new value for the ListOfMapOfEnumToString property for this object.
+     */
+    public static AllTypesUnionStructure fromListOfMapOfEnumToString(
+        List<Map<EnumType, String>> listOfMapOfEnumToStringWithStrings) {
+        return builder().listOfMapOfEnumToString(listOfMapOfEnumToStringWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #listOfMapOfStringToStruct()} initialized to the given value.
+     *
+     * Sets the value of the ListOfMapOfStringToStruct property for this object.
+     *
+     * @param listOfMapOfStringToStruct
+     *        The new value for the ListOfMapOfStringToStruct property for this object.
+     */
+    public static AllTypesUnionStructure fromListOfMapOfStringToStruct(List<Map<String, SimpleStruct>> listOfMapOfStringToStruct) {
+        return builder().listOfMapOfStringToStruct(listOfMapOfStringToStruct).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfStringToIntegerList()} initialized to the given value.
+     *
+     * Sets the value of the MapOfStringToIntegerList property for this object.
+     *
+     * @param mapOfStringToIntegerList
+     *        The new value for the MapOfStringToIntegerList property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfStringToIntegerList(Map<String, List<Integer>> mapOfStringToIntegerList) {
+        return builder().mapOfStringToIntegerList(mapOfStringToIntegerList).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfStringToString()} initialized to the given value.
+     *
+     * Sets the value of the MapOfStringToString property for this object.
+     *
+     * @param mapOfStringToString
+     *        The new value for the MapOfStringToString property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfStringToString(Map<String, String> mapOfStringToString) {
+        return builder().mapOfStringToString(mapOfStringToString).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfStringToSimpleStruct()} initialized to the given value.
+     *
+     * Sets the value of the MapOfStringToSimpleStruct property for this object.
+     *
+     * @param mapOfStringToSimpleStruct
+     *        The new value for the MapOfStringToSimpleStruct property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfStringToSimpleStruct(Map<String, SimpleStruct> mapOfStringToSimpleStruct) {
+        return builder().mapOfStringToSimpleStruct(mapOfStringToSimpleStruct).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfEnumToEnumAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the MapOfEnumToEnum property for this object.
+     *
+     * @param mapOfEnumToEnum
+     *        The new value for the MapOfEnumToEnum property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfEnumToEnumWithStrings(Map<String, String> mapOfEnumToEnumWithStrings) {
+        return builder().mapOfEnumToEnumWithStrings(mapOfEnumToEnumWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfEnumToEnumAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the MapOfEnumToEnum property for this object.
+     *
+     * @param mapOfEnumToEnum
+     *        The new value for the MapOfEnumToEnum property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfEnumToEnum(Map<EnumType, EnumType> mapOfEnumToEnumWithStrings) {
+        return builder().mapOfEnumToEnum(mapOfEnumToEnumWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfEnumToStringAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the MapOfEnumToString property for this object.
+     *
+     * @param mapOfEnumToString
+     *        The new value for the MapOfEnumToString property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfEnumToStringWithStrings(Map<String, String> mapOfEnumToStringWithStrings) {
+        return builder().mapOfEnumToStringWithStrings(mapOfEnumToStringWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfEnumToStringAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the MapOfEnumToString property for this object.
+     *
+     * @param mapOfEnumToString
+     *        The new value for the MapOfEnumToString property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfEnumToString(Map<EnumType, String> mapOfEnumToStringWithStrings) {
+        return builder().mapOfEnumToString(mapOfEnumToStringWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfStringToEnumAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the MapOfStringToEnum property for this object.
+     *
+     * @param mapOfStringToEnum
+     *        The new value for the MapOfStringToEnum property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfStringToEnumWithStrings(Map<String, String> mapOfStringToEnumWithStrings) {
+        return builder().mapOfStringToEnumWithStrings(mapOfStringToEnumWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfStringToEnumAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the MapOfStringToEnum property for this object.
+     *
+     * @param mapOfStringToEnum
+     *        The new value for the MapOfStringToEnum property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfStringToEnum(Map<String, EnumType> mapOfStringToEnumWithStrings) {
+        return builder().mapOfStringToEnum(mapOfStringToEnumWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfEnumToSimpleStructAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the MapOfEnumToSimpleStruct property for this object.
+     *
+     * @param mapOfEnumToSimpleStruct
+     *        The new value for the MapOfEnumToSimpleStruct property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfEnumToSimpleStructWithStrings(
+        Map<String, SimpleStruct> mapOfEnumToSimpleStructWithStrings) {
+        return builder().mapOfEnumToSimpleStructWithStrings(mapOfEnumToSimpleStructWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfEnumToSimpleStructAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the MapOfEnumToSimpleStruct property for this object.
+     *
+     * @param mapOfEnumToSimpleStruct
+     *        The new value for the MapOfEnumToSimpleStruct property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfEnumToSimpleStruct(
+        Map<EnumType, SimpleStruct> mapOfEnumToSimpleStructWithStrings) {
+        return builder().mapOfEnumToSimpleStruct(mapOfEnumToSimpleStructWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfEnumToListOfEnumsAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the MapOfEnumToListOfEnums property for this object.
+     *
+     * @param mapOfEnumToListOfEnums
+     *        The new value for the MapOfEnumToListOfEnums property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfEnumToListOfEnumsWithStrings(
+        Map<String, List<String>> mapOfEnumToListOfEnumsWithStrings) {
+        return builder().mapOfEnumToListOfEnumsWithStrings(mapOfEnumToListOfEnumsWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfEnumToListOfEnumsAsStrings()} initialized to the given value.
+     *
+     * Sets the value of the MapOfEnumToListOfEnums property for this object.
+     *
+     * @param mapOfEnumToListOfEnums
+     *        The new value for the MapOfEnumToListOfEnums property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfEnumToListOfEnums(
+        Map<EnumType, List<EnumType>> mapOfEnumToListOfEnumsWithStrings) {
+        return builder().mapOfEnumToListOfEnums(mapOfEnumToListOfEnumsWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfEnumToMapOfStringToEnumAsStrings()} initialized to the given
+     * value.
+     *
+     * Sets the value of the MapOfEnumToMapOfStringToEnum property for this object.
+     *
+     * @param mapOfEnumToMapOfStringToEnum
+     *        The new value for the MapOfEnumToMapOfStringToEnum property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfEnumToMapOfStringToEnumWithStrings(
+        Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnumWithStrings) {
+        return builder().mapOfEnumToMapOfStringToEnumWithStrings(mapOfEnumToMapOfStringToEnumWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #mapOfEnumToMapOfStringToEnumAsStrings()} initialized to the given
+     * value.
+     *
+     * Sets the value of the MapOfEnumToMapOfStringToEnum property for this object.
+     *
+     * @param mapOfEnumToMapOfStringToEnum
+     *        The new value for the MapOfEnumToMapOfStringToEnum property for this object.
+     */
+    public static AllTypesUnionStructure fromMapOfEnumToMapOfStringToEnum(
+        Map<EnumType, Map<String, EnumType>> mapOfEnumToMapOfStringToEnumWithStrings) {
+        return builder().mapOfEnumToMapOfStringToEnum(mapOfEnumToMapOfStringToEnumWithStrings).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #timestampMember()} initialized to the given value.
+     *
+     * Sets the value of the TimestampMember property for this object.
+     *
+     * @param timestampMember
+     *        The new value for the TimestampMember property for this object.
+     */
+    public static AllTypesUnionStructure fromTimestampMember(Instant timestampMember) {
+        return builder().timestampMember(timestampMember).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #structWithNestedTimestampMember()} initialized to the given value.
+     *
+     * Sets the value of the StructWithNestedTimestampMember property for this object.
+     *
+     * @param structWithNestedTimestampMember
+     *        The new value for the StructWithNestedTimestampMember property for this object.
+     */
+    public static AllTypesUnionStructure fromStructWithNestedTimestampMember(StructWithTimestamp structWithNestedTimestampMember) {
+        return builder().structWithNestedTimestampMember(structWithNestedTimestampMember).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #structWithNestedTimestampMember()} initialized to the given value.
+     *
+     * Sets the value of the StructWithNestedTimestampMember property for this object.
+     *
+     * @param structWithNestedTimestampMember
+     *        The new value for the StructWithNestedTimestampMember property for this object.
+     */
+    public static AllTypesUnionStructure fromStructWithNestedTimestampMember(
+        Consumer<StructWithTimestamp.Builder> structWithNestedTimestampMember) {
+        StructWithTimestamp.Builder builder = StructWithTimestamp.builder();
+        structWithNestedTimestampMember.accept(builder);
+        return fromStructWithNestedTimestampMember(builder.build());
+    }
+
+    /**
+     * Create an instance of this class with {@link #blobArg()} initialized to the given value.
+     *
+     * Sets the value of the BlobArg property for this object.
+     *
+     * @param blobArg
+     *        The new value for the BlobArg property for this object.
+     */
+    public static AllTypesUnionStructure fromBlobArg(SdkBytes blobArg) {
+        return builder().blobArg(blobArg).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #structWithNestedBlob()} initialized to the given value.
+     *
+     * Sets the value of the StructWithNestedBlob property for this object.
+     *
+     * @param structWithNestedBlob
+     *        The new value for the StructWithNestedBlob property for this object.
+     */
+    public static AllTypesUnionStructure fromStructWithNestedBlob(StructWithNestedBlobType structWithNestedBlob) {
+        return builder().structWithNestedBlob(structWithNestedBlob).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #structWithNestedBlob()} initialized to the given value.
+     *
+     * Sets the value of the StructWithNestedBlob property for this object.
+     *
+     * @param structWithNestedBlob
+     *        The new value for the StructWithNestedBlob property for this object.
+     */
+    public static AllTypesUnionStructure fromStructWithNestedBlob(Consumer<StructWithNestedBlobType.Builder> structWithNestedBlob) {
+        StructWithNestedBlobType.Builder builder = StructWithNestedBlobType.builder();
+        structWithNestedBlob.accept(builder);
+        return fromStructWithNestedBlob(builder.build());
+    }
+
+    /**
+     * Create an instance of this class with {@link #blobMap()} initialized to the given value.
+     *
+     * Sets the value of the BlobMap property for this object.
+     *
+     * @param blobMap
+     *        The new value for the BlobMap property for this object.
+     */
+    public static AllTypesUnionStructure fromBlobMap(Map<String, SdkBytes> blobMap) {
+        return builder().blobMap(blobMap).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #listOfBlobs()} initialized to the given value.
+     *
+     * Sets the value of the ListOfBlobs property for this object.
+     *
+     * @param listOfBlobs
+     *        The new value for the ListOfBlobs property for this object.
+     */
+    public static AllTypesUnionStructure fromListOfBlobs(List<SdkBytes> listOfBlobs) {
+        return builder().listOfBlobs(listOfBlobs).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #recursiveStruct()} initialized to the given value.
+     *
+     * Sets the value of the RecursiveStruct property for this object.
+     *
+     * @param recursiveStruct
+     *        The new value for the RecursiveStruct property for this object.
+     */
+    public static AllTypesUnionStructure fromRecursiveStruct(RecursiveStructType recursiveStruct) {
+        return builder().recursiveStruct(recursiveStruct).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #recursiveStruct()} initialized to the given value.
+     *
+     * Sets the value of the RecursiveStruct property for this object.
+     *
+     * @param recursiveStruct
+     *        The new value for the RecursiveStruct property for this object.
+     */
+    public static AllTypesUnionStructure fromRecursiveStruct(Consumer<RecursiveStructType.Builder> recursiveStruct) {
+        RecursiveStructType.Builder builder = RecursiveStructType.builder();
+        recursiveStruct.accept(builder);
+        return fromRecursiveStruct(builder.build());
+    }
+
+    /**
+     * Create an instance of this class with {@link #polymorphicTypeWithSubTypes()} initialized to the given value.
+     *
+     * Sets the value of the PolymorphicTypeWithSubTypes property for this object.
+     *
+     * @param polymorphicTypeWithSubTypes
+     *        The new value for the PolymorphicTypeWithSubTypes property for this object.
+     */
+    public static AllTypesUnionStructure fromPolymorphicTypeWithSubTypes(BaseType polymorphicTypeWithSubTypes) {
+        return builder().polymorphicTypeWithSubTypes(polymorphicTypeWithSubTypes).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #polymorphicTypeWithSubTypes()} initialized to the given value.
+     *
+     * Sets the value of the PolymorphicTypeWithSubTypes property for this object.
+     *
+     * @param polymorphicTypeWithSubTypes
+     *        The new value for the PolymorphicTypeWithSubTypes property for this object.
+     */
+    public static AllTypesUnionStructure fromPolymorphicTypeWithSubTypes(Consumer<BaseType.Builder> polymorphicTypeWithSubTypes) {
+        BaseType.Builder builder = BaseType.builder();
+        polymorphicTypeWithSubTypes.accept(builder);
+        return fromPolymorphicTypeWithSubTypes(builder.build());
+    }
+
+    /**
+     * Create an instance of this class with {@link #polymorphicTypeWithoutSubTypes()} initialized to the given value.
+     *
+     * Sets the value of the PolymorphicTypeWithoutSubTypes property for this object.
+     *
+     * @param polymorphicTypeWithoutSubTypes
+     *        The new value for the PolymorphicTypeWithoutSubTypes property for this object.
+     */
+    public static AllTypesUnionStructure fromPolymorphicTypeWithoutSubTypes(SubTypeOne polymorphicTypeWithoutSubTypes) {
+        return builder().polymorphicTypeWithoutSubTypes(polymorphicTypeWithoutSubTypes).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #polymorphicTypeWithoutSubTypes()} initialized to the given value.
+     *
+     * Sets the value of the PolymorphicTypeWithoutSubTypes property for this object.
+     *
+     * @param polymorphicTypeWithoutSubTypes
+     *        The new value for the PolymorphicTypeWithoutSubTypes property for this object.
+     */
+    public static AllTypesUnionStructure fromPolymorphicTypeWithoutSubTypes(
+        Consumer<SubTypeOne.Builder> polymorphicTypeWithoutSubTypes) {
+        SubTypeOne.Builder builder = SubTypeOne.builder();
+        polymorphicTypeWithoutSubTypes.accept(builder);
+        return fromPolymorphicTypeWithoutSubTypes(builder.build());
+    }
+
+    /**
+     * Create an instance of this class with {@link #enumTypeAsString()} initialized to the given value.
+     *
+     * Sets the value of the EnumType property for this object.
+     *
+     * @param enumType
+     *        The new value for the EnumType property for this object.
+     * @see EnumType
+     */
+    public static AllTypesUnionStructure fromEnumType(String enumType) {
+        return builder().enumType(enumType).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #enumTypeAsString()} initialized to the given value.
+     *
+     * Sets the value of the EnumType property for this object.
+     *
+     * @param enumType
+     *        The new value for the EnumType property for this object.
+     * @see EnumType
+     */
+    public static AllTypesUnionStructure fromEnumType(EnumType enumType) {
+        return builder().enumType(enumType).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #underscore_Name_Type()} initialized to the given value.
+     *
+     * Sets the value of the Underscore_Name_Type property for this object.
+     *
+     * @param underscore_Name_Type
+     *        The new value for the Underscore_Name_Type property for this object.
+     */
+    public static AllTypesUnionStructure fromUnderscore_Name_Type(Underscore_Name_Type underscore_Name_Type) {
+        return builder().underscore_Name_Type(underscore_Name_Type).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #underscore_Name_Type()} initialized to the given value.
+     *
+     * Sets the value of the Underscore_Name_Type property for this object.
+     *
+     * @param underscore_Name_Type
+     *        The new value for the Underscore_Name_Type property for this object.
+     */
+    public static AllTypesUnionStructure fromUnderscore_Name_Type(Consumer<Underscore_Name_Type.Builder> underscore_Name_Type) {
+        Underscore_Name_Type.Builder builder = Underscore_Name_Type.builder();
+        underscore_Name_Type.accept(builder);
+        return fromUnderscore_Name_Type(builder.build());
+    }
+
+    /**
+     * Create an instance of this class with {@link #myDocument()} initialized to the given value.
+     *
+     * Sets the value of the MyDocument property for this object.
+     *
+     * @param myDocument
+     *        The new value for the MyDocument property for this object.
+     */
+    public static AllTypesUnionStructure fromMyDocument(Document myDocument) {
+        return builder().myDocument(myDocument).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #allTypesUnionStructure()} initialized to the given value.
+     *
+     * Sets the value of the AllTypesUnionStructure property for this object.
+     *
+     * @param allTypesUnionStructure
+     *        The new value for the AllTypesUnionStructure property for this object.
+     */
+    public static AllTypesUnionStructure fromAllTypesUnionStructure(AllTypesUnionStructure allTypesUnionStructure) {
+        return builder().allTypesUnionStructure(allTypesUnionStructure).build();
+    }
+
+    /**
+     * Create an instance of this class with {@link #allTypesUnionStructure()} initialized to the given value.
+     *
+     * Sets the value of the AllTypesUnionStructure property for this object.
+     *
+     * @param allTypesUnionStructure
+     *        The new value for the AllTypesUnionStructure property for this object.
+     */
+    public static AllTypesUnionStructure fromAllTypesUnionStructure(Consumer<Builder> allTypesUnionStructure) {
+        Builder builder = AllTypesUnionStructure.builder();
+        allTypesUnionStructure.accept(builder);
+        return fromAllTypesUnionStructure(builder.build());
+    }
+
+    /**
+     * Retrieve an enum value representing which member of this object is populated.
+     *
+     * When this class is returned in a service response, this will be {@link Type#UNKNOWN_TO_SDK_VERSION} if the
+     * service returned a member that is only known to a newer SDK version.
+     *
+     * When this class is created directly in your code, this will be {@link Type#UNKNOWN_TO_SDK_VERSION} if zero or
+     * more than one member is set.
+     */
+    public Type type() {
+        return type;
+    }
+
     @Override
     public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
     }
 
-    private static <T> Function<Object, T> getter(Function<AllTypesResponse, T> g) {
-        return obj -> g.apply((AllTypesResponse) obj);
+    private static <T> Function<Object, T> getter(Function<AllTypesUnionStructure, T> g) {
+        return obj -> g.apply((AllTypesUnionStructure) obj);
     }
 
     private static <T> BiConsumer<Object, T> setter(BiConsumer<Builder, T> s) {
         return (obj, val) -> s.accept((Builder) obj, val);
     }
 
-    public interface Builder extends JsonProtocolTestsResponse.Builder, SdkPojo, CopyableBuilder<Builder, AllTypesResponse> {
+    public interface Builder extends SdkPojo, CopyableBuilder<Builder, AllTypesUnionStructure> {
         /**
          * Sets the value of the StringMember property for this object.
          *
@@ -2194,12 +2857,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
          * @return Returns a reference to this object so that method calls can be chained together.
          * @see #allTypesUnionStructure(AllTypesUnionStructure)
          */
-        default Builder allTypesUnionStructure(Consumer<AllTypesUnionStructure.Builder> allTypesUnionStructure) {
+        default Builder allTypesUnionStructure(Consumer<Builder> allTypesUnionStructure) {
             return allTypesUnionStructure(AllTypesUnionStructure.builder().applyMutation(allTypesUnionStructure).build());
         }
     }
 
-    static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {
+    static final class BuilderImpl implements Builder {
         private String stringMember;
 
         private Integer integerMember;
@@ -2270,11 +2933,14 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
         private AllTypesUnionStructure allTypesUnionStructure;
 
+        private Type type = Type.UNKNOWN_TO_SDK_VERSION;
+
+        private Set<Type> setTypes = EnumSet.noneOf(Type.class);
+
         private BuilderImpl() {
         }
 
-        private BuilderImpl(AllTypesResponse model) {
-            super(model);
+        private BuilderImpl(AllTypesUnionStructure model) {
             stringMember(model.stringMember);
             integerMember(model.integerMember);
             booleanMember(model.booleanMember);
@@ -2317,13 +2983,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setStringMember(String stringMember) {
+            Object oldValue = this.stringMember;
             this.stringMember = stringMember;
+            handleUnionValueChange(Type.STRING_MEMBER, oldValue, this.stringMember);
         }
 
         @Override
         @Transient
         public final Builder stringMember(String stringMember) {
+            Object oldValue = this.stringMember;
             this.stringMember = stringMember;
+            handleUnionValueChange(Type.STRING_MEMBER, oldValue, this.stringMember);
             return this;
         }
 
@@ -2332,13 +3002,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setIntegerMember(Integer integerMember) {
+            Object oldValue = this.integerMember;
             this.integerMember = integerMember;
+            handleUnionValueChange(Type.INTEGER_MEMBER, oldValue, this.integerMember);
         }
 
         @Override
         @Transient
         public final Builder integerMember(Integer integerMember) {
+            Object oldValue = this.integerMember;
             this.integerMember = integerMember;
+            handleUnionValueChange(Type.INTEGER_MEMBER, oldValue, this.integerMember);
             return this;
         }
 
@@ -2347,13 +3021,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setBooleanMember(Boolean booleanMember) {
+            Object oldValue = this.booleanMember;
             this.booleanMember = booleanMember;
+            handleUnionValueChange(Type.BOOLEAN_MEMBER, oldValue, this.booleanMember);
         }
 
         @Override
         @Transient
         public final Builder booleanMember(Boolean booleanMember) {
+            Object oldValue = this.booleanMember;
             this.booleanMember = booleanMember;
+            handleUnionValueChange(Type.BOOLEAN_MEMBER, oldValue, this.booleanMember);
             return this;
         }
 
@@ -2362,13 +3040,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setFloatMember(Float floatMember) {
+            Object oldValue = this.floatMember;
             this.floatMember = floatMember;
+            handleUnionValueChange(Type.FLOAT_MEMBER, oldValue, this.floatMember);
         }
 
         @Override
         @Transient
         public final Builder floatMember(Float floatMember) {
+            Object oldValue = this.floatMember;
             this.floatMember = floatMember;
+            handleUnionValueChange(Type.FLOAT_MEMBER, oldValue, this.floatMember);
             return this;
         }
 
@@ -2377,13 +3059,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setDoubleMember(Double doubleMember) {
+            Object oldValue = this.doubleMember;
             this.doubleMember = doubleMember;
+            handleUnionValueChange(Type.DOUBLE_MEMBER, oldValue, this.doubleMember);
         }
 
         @Override
         @Transient
         public final Builder doubleMember(Double doubleMember) {
+            Object oldValue = this.doubleMember;
             this.doubleMember = doubleMember;
+            handleUnionValueChange(Type.DOUBLE_MEMBER, oldValue, this.doubleMember);
             return this;
         }
 
@@ -2392,13 +3078,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setLongMember(Long longMember) {
+            Object oldValue = this.longMember;
             this.longMember = longMember;
+            handleUnionValueChange(Type.LONG_MEMBER, oldValue, this.longMember);
         }
 
         @Override
         @Transient
         public final Builder longMember(Long longMember) {
+            Object oldValue = this.longMember;
             this.longMember = longMember;
+            handleUnionValueChange(Type.LONG_MEMBER, oldValue, this.longMember);
             return this;
         }
 
@@ -2407,13 +3097,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setShortMember(Short shortMember) {
+            Object oldValue = this.shortMember;
             this.shortMember = shortMember;
+            handleUnionValueChange(Type.SHORT_MEMBER, oldValue, this.shortMember);
         }
 
         @Override
         @Transient
         public final Builder shortMember(Short shortMember) {
+            Object oldValue = this.shortMember;
             this.shortMember = shortMember;
+            handleUnionValueChange(Type.SHORT_MEMBER, oldValue, this.shortMember);
             return this;
         }
 
@@ -2425,13 +3119,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setSimpleList(Collection<String> simpleList) {
+            Object oldValue = this.simpleList;
             this.simpleList = ListOfStringsCopier.copy(simpleList);
+            handleUnionValueChange(Type.SIMPLE_LIST, oldValue, this.simpleList);
         }
 
         @Override
         @Transient
         public final Builder simpleList(Collection<String> simpleList) {
+            Object oldValue = this.simpleList;
             this.simpleList = ListOfStringsCopier.copy(simpleList);
+            handleUnionValueChange(Type.SIMPLE_LIST, oldValue, this.simpleList);
             return this;
         }
 
@@ -2451,13 +3149,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setListOfEnums(Collection<String> listOfEnums) {
+            Object oldValue = this.listOfEnums;
             this.listOfEnums = ListOfEnumsCopier.copy(listOfEnums);
+            handleUnionValueChange(Type.LIST_OF_ENUMS, oldValue, this.listOfEnums);
         }
 
         @Override
         @Transient
         public final Builder listOfEnumsWithStrings(Collection<String> listOfEnums) {
+            Object oldValue = this.listOfEnums;
             this.listOfEnums = ListOfEnumsCopier.copy(listOfEnums);
+            handleUnionValueChange(Type.LIST_OF_ENUMS, oldValue, this.listOfEnums);
             return this;
         }
 
@@ -2472,7 +3174,9 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         @Override
         @Transient
         public final Builder listOfEnums(Collection<EnumType> listOfEnums) {
+            Object oldValue = this.listOfEnums;
             this.listOfEnums = ListOfEnumsCopier.copyEnumToString(listOfEnums);
+            handleUnionValueChange(Type.LIST_OF_ENUMS, oldValue, this.listOfEnums);
             return this;
         }
 
@@ -2492,13 +3196,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setListOfMaps(Collection<? extends Map<String, String>> listOfMaps) {
+            Object oldValue = this.listOfMaps;
             this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
+            handleUnionValueChange(Type.LIST_OF_MAPS, oldValue, this.listOfMaps);
         }
 
         @Override
         @Transient
         public final Builder listOfMaps(Collection<? extends Map<String, String>> listOfMaps) {
+            Object oldValue = this.listOfMaps;
             this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
+            handleUnionValueChange(Type.LIST_OF_MAPS, oldValue, this.listOfMaps);
             return this;
         }
 
@@ -2519,13 +3227,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setListOfStructs(Collection<SimpleStruct.BuilderImpl> listOfStructs) {
+            Object oldValue = this.listOfStructs;
             this.listOfStructs = ListOfSimpleStructsCopier.copyFromBuilder(listOfStructs);
+            handleUnionValueChange(Type.LIST_OF_STRUCTS, oldValue, this.listOfStructs);
         }
 
         @Override
         @Transient
         public final Builder listOfStructs(Collection<SimpleStruct> listOfStructs) {
+            Object oldValue = this.listOfStructs;
             this.listOfStructs = ListOfSimpleStructsCopier.copy(listOfStructs);
+            handleUnionValueChange(Type.LIST_OF_STRUCTS, oldValue, this.listOfStructs);
             return this;
         }
 
@@ -2554,13 +3266,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setListOfMapOfEnumToString(Collection<? extends Map<String, String>> listOfMapOfEnumToString) {
+            Object oldValue = this.listOfMapOfEnumToString;
             this.listOfMapOfEnumToString = ListOfMapOfEnumToStringCopier.copy(listOfMapOfEnumToString);
+            handleUnionValueChange(Type.LIST_OF_MAP_OF_ENUM_TO_STRING, oldValue, this.listOfMapOfEnumToString);
         }
 
         @Override
         @Transient
         public final Builder listOfMapOfEnumToStringWithStrings(Collection<? extends Map<String, String>> listOfMapOfEnumToString) {
+            Object oldValue = this.listOfMapOfEnumToString;
             this.listOfMapOfEnumToString = ListOfMapOfEnumToStringCopier.copy(listOfMapOfEnumToString);
+            handleUnionValueChange(Type.LIST_OF_MAP_OF_ENUM_TO_STRING, oldValue, this.listOfMapOfEnumToString);
             return this;
         }
 
@@ -2583,13 +3299,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
         public final void setListOfMapOfStringToStruct(
             Collection<? extends Map<String, SimpleStruct.BuilderImpl>> listOfMapOfStringToStruct) {
+            Object oldValue = this.listOfMapOfStringToStruct;
             this.listOfMapOfStringToStruct = ListOfMapOfStringToStructCopier.copyFromBuilder(listOfMapOfStringToStruct);
+            handleUnionValueChange(Type.LIST_OF_MAP_OF_STRING_TO_STRUCT, oldValue, this.listOfMapOfStringToStruct);
         }
 
         @Override
         @Transient
         public final Builder listOfMapOfStringToStruct(Collection<? extends Map<String, SimpleStruct>> listOfMapOfStringToStruct) {
+            Object oldValue = this.listOfMapOfStringToStruct;
             this.listOfMapOfStringToStruct = ListOfMapOfStringToStructCopier.copy(listOfMapOfStringToStruct);
+            handleUnionValueChange(Type.LIST_OF_MAP_OF_STRING_TO_STRUCT, oldValue, this.listOfMapOfStringToStruct);
             return this;
         }
 
@@ -2609,13 +3329,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setMapOfStringToIntegerList(Map<String, ? extends Collection<Integer>> mapOfStringToIntegerList) {
+            Object oldValue = this.mapOfStringToIntegerList;
             this.mapOfStringToIntegerList = MapOfStringToIntegerListCopier.copy(mapOfStringToIntegerList);
+            handleUnionValueChange(Type.MAP_OF_STRING_TO_INTEGER_LIST, oldValue, this.mapOfStringToIntegerList);
         }
 
         @Override
         @Transient
         public final Builder mapOfStringToIntegerList(Map<String, ? extends Collection<Integer>> mapOfStringToIntegerList) {
+            Object oldValue = this.mapOfStringToIntegerList;
             this.mapOfStringToIntegerList = MapOfStringToIntegerListCopier.copy(mapOfStringToIntegerList);
+            handleUnionValueChange(Type.MAP_OF_STRING_TO_INTEGER_LIST, oldValue, this.mapOfStringToIntegerList);
             return this;
         }
 
@@ -2627,13 +3351,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setMapOfStringToString(Map<String, String> mapOfStringToString) {
+            Object oldValue = this.mapOfStringToString;
             this.mapOfStringToString = MapOfStringToStringCopier.copy(mapOfStringToString);
+            handleUnionValueChange(Type.MAP_OF_STRING_TO_STRING, oldValue, this.mapOfStringToString);
         }
 
         @Override
         @Transient
         public final Builder mapOfStringToString(Map<String, String> mapOfStringToString) {
+            Object oldValue = this.mapOfStringToString;
             this.mapOfStringToString = MapOfStringToStringCopier.copy(mapOfStringToString);
+            handleUnionValueChange(Type.MAP_OF_STRING_TO_STRING, oldValue, this.mapOfStringToString);
             return this;
         }
 
@@ -2647,13 +3375,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setMapOfStringToSimpleStruct(Map<String, SimpleStruct.BuilderImpl> mapOfStringToSimpleStruct) {
+            Object oldValue = this.mapOfStringToSimpleStruct;
             this.mapOfStringToSimpleStruct = MapOfStringToSimpleStructCopier.copyFromBuilder(mapOfStringToSimpleStruct);
+            handleUnionValueChange(Type.MAP_OF_STRING_TO_SIMPLE_STRUCT, oldValue, this.mapOfStringToSimpleStruct);
         }
 
         @Override
         @Transient
         public final Builder mapOfStringToSimpleStruct(Map<String, SimpleStruct> mapOfStringToSimpleStruct) {
+            Object oldValue = this.mapOfStringToSimpleStruct;
             this.mapOfStringToSimpleStruct = MapOfStringToSimpleStructCopier.copy(mapOfStringToSimpleStruct);
+            handleUnionValueChange(Type.MAP_OF_STRING_TO_SIMPLE_STRUCT, oldValue, this.mapOfStringToSimpleStruct);
             return this;
         }
 
@@ -2665,20 +3397,26 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setMapOfEnumToEnum(Map<String, String> mapOfEnumToEnum) {
+            Object oldValue = this.mapOfEnumToEnum;
             this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copy(mapOfEnumToEnum);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_ENUM, oldValue, this.mapOfEnumToEnum);
         }
 
         @Override
         @Transient
         public final Builder mapOfEnumToEnumWithStrings(Map<String, String> mapOfEnumToEnum) {
+            Object oldValue = this.mapOfEnumToEnum;
             this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copy(mapOfEnumToEnum);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_ENUM, oldValue, this.mapOfEnumToEnum);
             return this;
         }
 
         @Override
         @Transient
         public final Builder mapOfEnumToEnum(Map<EnumType, EnumType> mapOfEnumToEnum) {
+            Object oldValue = this.mapOfEnumToEnum;
             this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copyEnumToString(mapOfEnumToEnum);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_ENUM, oldValue, this.mapOfEnumToEnum);
             return this;
         }
 
@@ -2690,20 +3428,26 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setMapOfEnumToString(Map<String, String> mapOfEnumToString) {
+            Object oldValue = this.mapOfEnumToString;
             this.mapOfEnumToString = MapOfEnumToStringCopier.copy(mapOfEnumToString);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_STRING, oldValue, this.mapOfEnumToString);
         }
 
         @Override
         @Transient
         public final Builder mapOfEnumToStringWithStrings(Map<String, String> mapOfEnumToString) {
+            Object oldValue = this.mapOfEnumToString;
             this.mapOfEnumToString = MapOfEnumToStringCopier.copy(mapOfEnumToString);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_STRING, oldValue, this.mapOfEnumToString);
             return this;
         }
 
         @Override
         @Transient
         public final Builder mapOfEnumToString(Map<EnumType, String> mapOfEnumToString) {
+            Object oldValue = this.mapOfEnumToString;
             this.mapOfEnumToString = MapOfEnumToStringCopier.copyEnumToString(mapOfEnumToString);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_STRING, oldValue, this.mapOfEnumToString);
             return this;
         }
 
@@ -2715,20 +3459,26 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setMapOfStringToEnum(Map<String, String> mapOfStringToEnum) {
+            Object oldValue = this.mapOfStringToEnum;
             this.mapOfStringToEnum = MapOfStringToEnumCopier.copy(mapOfStringToEnum);
+            handleUnionValueChange(Type.MAP_OF_STRING_TO_ENUM, oldValue, this.mapOfStringToEnum);
         }
 
         @Override
         @Transient
         public final Builder mapOfStringToEnumWithStrings(Map<String, String> mapOfStringToEnum) {
+            Object oldValue = this.mapOfStringToEnum;
             this.mapOfStringToEnum = MapOfStringToEnumCopier.copy(mapOfStringToEnum);
+            handleUnionValueChange(Type.MAP_OF_STRING_TO_ENUM, oldValue, this.mapOfStringToEnum);
             return this;
         }
 
         @Override
         @Transient
         public final Builder mapOfStringToEnum(Map<String, EnumType> mapOfStringToEnum) {
+            Object oldValue = this.mapOfStringToEnum;
             this.mapOfStringToEnum = MapOfStringToEnumCopier.copyEnumToString(mapOfStringToEnum);
+            handleUnionValueChange(Type.MAP_OF_STRING_TO_ENUM, oldValue, this.mapOfStringToEnum);
             return this;
         }
 
@@ -2741,20 +3491,26 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setMapOfEnumToSimpleStruct(Map<String, SimpleStruct.BuilderImpl> mapOfEnumToSimpleStruct) {
+            Object oldValue = this.mapOfEnumToSimpleStruct;
             this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copyFromBuilder(mapOfEnumToSimpleStruct);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_SIMPLE_STRUCT, oldValue, this.mapOfEnumToSimpleStruct);
         }
 
         @Override
         @Transient
         public final Builder mapOfEnumToSimpleStructWithStrings(Map<String, SimpleStruct> mapOfEnumToSimpleStruct) {
+            Object oldValue = this.mapOfEnumToSimpleStruct;
             this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copy(mapOfEnumToSimpleStruct);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_SIMPLE_STRUCT, oldValue, this.mapOfEnumToSimpleStruct);
             return this;
         }
 
         @Override
         @Transient
         public final Builder mapOfEnumToSimpleStruct(Map<EnumType, SimpleStruct> mapOfEnumToSimpleStruct) {
+            Object oldValue = this.mapOfEnumToSimpleStruct;
             this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copyEnumToString(mapOfEnumToSimpleStruct);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_SIMPLE_STRUCT, oldValue, this.mapOfEnumToSimpleStruct);
             return this;
         }
 
@@ -2766,20 +3522,26 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setMapOfEnumToListOfEnums(Map<String, ? extends Collection<String>> mapOfEnumToListOfEnums) {
+            Object oldValue = this.mapOfEnumToListOfEnums;
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copy(mapOfEnumToListOfEnums);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_LIST_OF_ENUMS, oldValue, this.mapOfEnumToListOfEnums);
         }
 
         @Override
         @Transient
         public final Builder mapOfEnumToListOfEnumsWithStrings(Map<String, ? extends Collection<String>> mapOfEnumToListOfEnums) {
+            Object oldValue = this.mapOfEnumToListOfEnums;
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copy(mapOfEnumToListOfEnums);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_LIST_OF_ENUMS, oldValue, this.mapOfEnumToListOfEnums);
             return this;
         }
 
         @Override
         @Transient
         public final Builder mapOfEnumToListOfEnums(Map<EnumType, ? extends Collection<EnumType>> mapOfEnumToListOfEnums) {
+            Object oldValue = this.mapOfEnumToListOfEnums;
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copyEnumToString(mapOfEnumToListOfEnums);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_LIST_OF_ENUMS, oldValue, this.mapOfEnumToListOfEnums);
             return this;
         }
 
@@ -2791,14 +3553,18 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setMapOfEnumToMapOfStringToEnum(Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
+            Object oldValue = this.mapOfEnumToMapOfStringToEnum;
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM, oldValue, this.mapOfEnumToMapOfStringToEnum);
         }
 
         @Override
         @Transient
         public final Builder mapOfEnumToMapOfStringToEnumWithStrings(
             Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
+            Object oldValue = this.mapOfEnumToMapOfStringToEnum;
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM, oldValue, this.mapOfEnumToMapOfStringToEnum);
             return this;
         }
 
@@ -2806,7 +3572,9 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         @Transient
         public final Builder mapOfEnumToMapOfStringToEnum(
             Map<EnumType, ? extends Map<String, EnumType>> mapOfEnumToMapOfStringToEnum) {
+            Object oldValue = this.mapOfEnumToMapOfStringToEnum;
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copyEnumToString(mapOfEnumToMapOfStringToEnum);
+            handleUnionValueChange(Type.MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM, oldValue, this.mapOfEnumToMapOfStringToEnum);
             return this;
         }
 
@@ -2815,13 +3583,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setTimestampMember(Instant timestampMember) {
+            Object oldValue = this.timestampMember;
             this.timestampMember = timestampMember;
+            handleUnionValueChange(Type.TIMESTAMP_MEMBER, oldValue, this.timestampMember);
         }
 
         @Override
         @Transient
         public final Builder timestampMember(Instant timestampMember) {
+            Object oldValue = this.timestampMember;
             this.timestampMember = timestampMember;
+            handleUnionValueChange(Type.TIMESTAMP_MEMBER, oldValue, this.timestampMember);
             return this;
         }
 
@@ -2830,14 +3602,18 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setStructWithNestedTimestampMember(StructWithTimestamp.BuilderImpl structWithNestedTimestampMember) {
+            Object oldValue = this.structWithNestedTimestampMember;
             this.structWithNestedTimestampMember = structWithNestedTimestampMember != null ? structWithNestedTimestampMember
                 .build() : null;
+            handleUnionValueChange(Type.STRUCT_WITH_NESTED_TIMESTAMP_MEMBER, oldValue, this.structWithNestedTimestampMember);
         }
 
         @Override
         @Transient
         public final Builder structWithNestedTimestampMember(StructWithTimestamp structWithNestedTimestampMember) {
+            Object oldValue = this.structWithNestedTimestampMember;
             this.structWithNestedTimestampMember = structWithNestedTimestampMember;
+            handleUnionValueChange(Type.STRUCT_WITH_NESTED_TIMESTAMP_MEMBER, oldValue, this.structWithNestedTimestampMember);
             return this;
         }
 
@@ -2852,7 +3628,9 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         @Override
         @Transient
         public final Builder blobArg(SdkBytes blobArg) {
+            Object oldValue = this.blobArg;
             this.blobArg = blobArg;
+            handleUnionValueChange(Type.BLOB_ARG, oldValue, this.blobArg);
             return this;
         }
 
@@ -2861,13 +3639,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setStructWithNestedBlob(StructWithNestedBlobType.BuilderImpl structWithNestedBlob) {
+            Object oldValue = this.structWithNestedBlob;
             this.structWithNestedBlob = structWithNestedBlob != null ? structWithNestedBlob.build() : null;
+            handleUnionValueChange(Type.STRUCT_WITH_NESTED_BLOB, oldValue, this.structWithNestedBlob);
         }
 
         @Override
         @Transient
         public final Builder structWithNestedBlob(StructWithNestedBlobType structWithNestedBlob) {
+            Object oldValue = this.structWithNestedBlob;
             this.structWithNestedBlob = structWithNestedBlob;
+            handleUnionValueChange(Type.STRUCT_WITH_NESTED_BLOB, oldValue, this.structWithNestedBlob);
             return this;
         }
 
@@ -2887,7 +3669,9 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         @Override
         @Transient
         public final Builder blobMap(Map<String, SdkBytes> blobMap) {
+            Object oldValue = this.blobMap;
             this.blobMap = BlobMapTypeCopier.copy(blobMap);
+            handleUnionValueChange(Type.BLOB_MAP, oldValue, this.blobMap);
             return this;
         }
 
@@ -2906,7 +3690,9 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         @Override
         @Transient
         public final Builder listOfBlobs(Collection<SdkBytes> listOfBlobs) {
+            Object oldValue = this.listOfBlobs;
             this.listOfBlobs = ListOfBlobsTypeCopier.copy(listOfBlobs);
+            handleUnionValueChange(Type.LIST_OF_BLOBS, oldValue, this.listOfBlobs);
             return this;
         }
 
@@ -2923,13 +3709,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setRecursiveStruct(RecursiveStructType.BuilderImpl recursiveStruct) {
+            Object oldValue = this.recursiveStruct;
             this.recursiveStruct = recursiveStruct != null ? recursiveStruct.build() : null;
+            handleUnionValueChange(Type.RECURSIVE_STRUCT, oldValue, this.recursiveStruct);
         }
 
         @Override
         @Transient
         public final Builder recursiveStruct(RecursiveStructType recursiveStruct) {
+            Object oldValue = this.recursiveStruct;
             this.recursiveStruct = recursiveStruct;
+            handleUnionValueChange(Type.RECURSIVE_STRUCT, oldValue, this.recursiveStruct);
             return this;
         }
 
@@ -2938,13 +3728,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setPolymorphicTypeWithSubTypes(BaseType.BuilderImpl polymorphicTypeWithSubTypes) {
+            Object oldValue = this.polymorphicTypeWithSubTypes;
             this.polymorphicTypeWithSubTypes = polymorphicTypeWithSubTypes != null ? polymorphicTypeWithSubTypes.build() : null;
+            handleUnionValueChange(Type.POLYMORPHIC_TYPE_WITH_SUB_TYPES, oldValue, this.polymorphicTypeWithSubTypes);
         }
 
         @Override
         @Transient
         public final Builder polymorphicTypeWithSubTypes(BaseType polymorphicTypeWithSubTypes) {
+            Object oldValue = this.polymorphicTypeWithSubTypes;
             this.polymorphicTypeWithSubTypes = polymorphicTypeWithSubTypes;
+            handleUnionValueChange(Type.POLYMORPHIC_TYPE_WITH_SUB_TYPES, oldValue, this.polymorphicTypeWithSubTypes);
             return this;
         }
 
@@ -2953,14 +3747,18 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setPolymorphicTypeWithoutSubTypes(SubTypeOne.BuilderImpl polymorphicTypeWithoutSubTypes) {
+            Object oldValue = this.polymorphicTypeWithoutSubTypes;
             this.polymorphicTypeWithoutSubTypes = polymorphicTypeWithoutSubTypes != null ? polymorphicTypeWithoutSubTypes.build()
                                                                                          : null;
+            handleUnionValueChange(Type.POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES, oldValue, this.polymorphicTypeWithoutSubTypes);
         }
 
         @Override
         @Transient
         public final Builder polymorphicTypeWithoutSubTypes(SubTypeOne polymorphicTypeWithoutSubTypes) {
+            Object oldValue = this.polymorphicTypeWithoutSubTypes;
             this.polymorphicTypeWithoutSubTypes = polymorphicTypeWithoutSubTypes;
+            handleUnionValueChange(Type.POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES, oldValue, this.polymorphicTypeWithoutSubTypes);
             return this;
         }
 
@@ -2969,13 +3767,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setEnumType(String enumType) {
+            Object oldValue = this.enumType;
             this.enumType = enumType;
+            handleUnionValueChange(Type.ENUM_TYPE, oldValue, this.enumType);
         }
 
         @Override
         @Transient
         public final Builder enumType(String enumType) {
+            Object oldValue = this.enumType;
             this.enumType = enumType;
+            handleUnionValueChange(Type.ENUM_TYPE, oldValue, this.enumType);
             return this;
         }
 
@@ -2991,13 +3793,17 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setUnderscore_Name_Type(Underscore_Name_Type.BuilderImpl underscore_Name_Type) {
+            Object oldValue = this.underscore_Name_Type;
             this.underscore_Name_Type = underscore_Name_Type != null ? underscore_Name_Type.build() : null;
+            handleUnionValueChange(Type.UNDERSCORE_NAME_TYPE, oldValue, this.underscore_Name_Type);
         }
 
         @Override
         @Transient
         public final Builder underscore_Name_Type(Underscore_Name_Type underscore_Name_Type) {
+            Object oldValue = this.underscore_Name_Type;
             this.underscore_Name_Type = underscore_Name_Type;
+            handleUnionValueChange(Type.UNDERSCORE_NAME_TYPE, oldValue, this.underscore_Name_Type);
             return this;
         }
 
@@ -3006,39 +3812,140 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final void setMyDocument(Document myDocument) {
+            Object oldValue = this.myDocument;
             this.myDocument = myDocument;
+            handleUnionValueChange(Type.MY_DOCUMENT, oldValue, this.myDocument);
         }
 
         @Override
         @Transient
         public final Builder myDocument(Document myDocument) {
+            Object oldValue = this.myDocument;
             this.myDocument = myDocument;
+            handleUnionValueChange(Type.MY_DOCUMENT, oldValue, this.myDocument);
             return this;
         }
 
-        public final AllTypesUnionStructure.Builder getAllTypesUnionStructure() {
+        public final Builder getAllTypesUnionStructure() {
             return allTypesUnionStructure != null ? allTypesUnionStructure.toBuilder() : null;
         }
 
-        public final void setAllTypesUnionStructure(AllTypesUnionStructure.BuilderImpl allTypesUnionStructure) {
+        public final void setAllTypesUnionStructure(BuilderImpl allTypesUnionStructure) {
+            Object oldValue = this.allTypesUnionStructure;
             this.allTypesUnionStructure = allTypesUnionStructure != null ? allTypesUnionStructure.build() : null;
+            handleUnionValueChange(Type.ALL_TYPES_UNION_STRUCTURE, oldValue, this.allTypesUnionStructure);
         }
 
         @Override
         @Transient
         public final Builder allTypesUnionStructure(AllTypesUnionStructure allTypesUnionStructure) {
+            Object oldValue = this.allTypesUnionStructure;
             this.allTypesUnionStructure = allTypesUnionStructure;
+            handleUnionValueChange(Type.ALL_TYPES_UNION_STRUCTURE, oldValue, this.allTypesUnionStructure);
             return this;
         }
 
         @Override
-        public AllTypesResponse build() {
-            return new AllTypesResponse(this);
+        public AllTypesUnionStructure build() {
+            return new AllTypesUnionStructure(this);
         }
 
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
         }
+
+        private final void handleUnionValueChange(Type type, Object oldValue, Object newValue) {
+            if (this.type == type || oldValue == newValue) {
+                return;
+            }
+            if (newValue == null || newValue instanceof SdkAutoConstructList || newValue instanceof SdkAutoConstructMap) {
+                setTypes.remove(type);
+            } else if (oldValue == null || oldValue instanceof SdkAutoConstructList || oldValue instanceof SdkAutoConstructMap) {
+                setTypes.add(type);
+            }
+            if (setTypes.size() == 1) {
+                this.type = setTypes.iterator().next();
+            } else {
+                this.type = Type.UNKNOWN_TO_SDK_VERSION;
+            }
+        }
+    }
+
+    /**
+     * @see AllTypesUnionStructure#type()
+     */
+    public enum Type {
+        STRING_MEMBER,
+
+        INTEGER_MEMBER,
+
+        BOOLEAN_MEMBER,
+
+        FLOAT_MEMBER,
+
+        DOUBLE_MEMBER,
+
+        LONG_MEMBER,
+
+        SHORT_MEMBER,
+
+        SIMPLE_LIST,
+
+        LIST_OF_ENUMS,
+
+        LIST_OF_MAPS,
+
+        LIST_OF_STRUCTS,
+
+        LIST_OF_MAP_OF_ENUM_TO_STRING,
+
+        LIST_OF_MAP_OF_STRING_TO_STRUCT,
+
+        MAP_OF_STRING_TO_INTEGER_LIST,
+
+        MAP_OF_STRING_TO_STRING,
+
+        MAP_OF_STRING_TO_SIMPLE_STRUCT,
+
+        MAP_OF_ENUM_TO_ENUM,
+
+        MAP_OF_ENUM_TO_STRING,
+
+        MAP_OF_STRING_TO_ENUM,
+
+        MAP_OF_ENUM_TO_SIMPLE_STRUCT,
+
+        MAP_OF_ENUM_TO_LIST_OF_ENUMS,
+
+        MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM,
+
+        TIMESTAMP_MEMBER,
+
+        STRUCT_WITH_NESTED_TIMESTAMP_MEMBER,
+
+        BLOB_ARG,
+
+        STRUCT_WITH_NESTED_BLOB,
+
+        BLOB_MAP,
+
+        LIST_OF_BLOBS,
+
+        RECURSIVE_STRUCT,
+
+        POLYMORPHIC_TYPE_WITH_SUB_TYPES,
+
+        POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES,
+
+        ENUM_TYPE,
+
+        UNDERSCORE_NAME_TYPE,
+
+        MY_DOCUMENT,
+
+        ALL_TYPES_UNION_STRUCTURE,
+
+        UNKNOWN_TO_SDK_VERSION
     }
 }
