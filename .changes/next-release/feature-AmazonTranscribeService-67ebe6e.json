@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Transcribe Service",
+    "contributor": "",
+    "description": "This release adds an additional parameter for subtitling with Amazon Transcribe batch jobs: outputStartIndex."
+}
