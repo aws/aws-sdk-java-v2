@@ -1,0 +1,10 @@
+{
+  "resources": {
+    "includes": [
+      { "pattern": ".*\\.so" },
+      { "pattern": ".*\\.dylib" },
+      { "pattern": ".*\\.dll" }
+    ]
+  },
+  "bundles": []
+}
