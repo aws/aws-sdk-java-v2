@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "This is release adds support for Amazon VPC Reachability Analyzer to analyze path through a Transit Gateway."
+}
