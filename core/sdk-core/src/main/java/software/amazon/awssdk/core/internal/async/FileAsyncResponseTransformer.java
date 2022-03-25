@@ -50,25 +50,25 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     private volatile CompletableFuture<Void> cf;
     private volatile ResponseT response;
     private final long position;
-    private final FileWriteOption fileModificationOption;
+    private final FileWriteOption fileWriteOption;
     private final boolean deleteOnFailure;
 
     public FileAsyncResponseTransformer(Path path) {
         this.path = path;
-        this.fileModificationOption = FileWriteOption.CREATE_NEW;
+        this.fileWriteOption = FileWriteOption.CREATE_NEW;
         this.deleteOnFailure = true;
         this.position = 0L;
     }
 
     public FileAsyncResponseTransformer(Path path, FileTransformerConfiguration fileConfiguration) {
         this.path = path;
-        this.fileModificationOption = fileConfiguration.fileModificationOption().orElse(FileWriteOption.CREATE_NEW);
+        this.fileWriteOption = fileConfiguration.fileWriteOption().orElse(FileWriteOption.CREATE_NEW);
         this.position = determineFilePositionToWrite(path);
         this.deleteOnFailure = fileConfiguration.deleteOnFailure().orElse(true);
     }
 
     private long determineFilePositionToWrite(Path path) {
-        if (fileModificationOption == CREATE_OR_APPEND_EXISTING) {
+        if (fileWriteOption == CREATE_OR_APPEND_EXISTING) {
             try {
                 return Files.size(path);
             } catch (NoSuchFileException e) {
@@ -81,15 +81,16 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     }
 
     private AsynchronousFileChannel createChannel(Path path) throws IOException {
-        switch (fileModificationOption) {
+        switch (fileWriteOption) {
             case CREATE_OR_APPEND_EXISTING:
                 return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
             case CREATE_OR_REPLACE_EXISTING:
                 return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE,
                                                     StandardOpenOption.TRUNCATE_EXISTING);
             case CREATE_NEW:
-            default:
                 return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
+            default:
+                throw new IllegalArgumentException("Unsupported file write option: " + fileWriteOption);
         }
     }
 

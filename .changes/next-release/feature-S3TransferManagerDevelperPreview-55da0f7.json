@@ -2,5 +2,5 @@
     "category": "S3 Transfer Manager (Develper Preview)", 
     "contributor": "", 
     "type": "feature", 
-    "description": "S3TransferManager#downloadFile now by default replaces exsiting file if it already exists instead of throwing FileAlreadyExistsException. See [#3108](https://github.com/aws/aws-sdk-java-v2/issues/3108)"
+    "description": "S3TransferManager#downloadFile now by default replaces existing file if it already exists instead of throwing FileAlreadyExistsException. See [#3108](https://github.com/aws/aws-sdk-java-v2/issues/3108)"
 }

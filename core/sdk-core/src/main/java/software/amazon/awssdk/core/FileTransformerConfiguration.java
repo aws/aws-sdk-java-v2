@@ -30,19 +30,19 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkPublicApi
 public final class FileTransformerConfiguration implements ToCopyableBuilder<FileTransformerConfiguration.Builder,
     FileTransformerConfiguration> {
-    private final FileWriteOption fileModificationOption;
+    private final FileWriteOption fileWriteOption;
     private final Boolean deleteOnFailure;
 
     private FileTransformerConfiguration(DefaultBuilder builder) {
-        this.fileModificationOption = builder.fileWriteOption;
+        this.fileWriteOption = builder.fileWriteOption;
         this.deleteOnFailure = builder.deleteOnFailure;
     }
 
     /**
      * The configured {@link FileWriteOption} or {@link Optional#empty()} if not configured
      */
-    public Optional<FileWriteOption> fileModificationOption() {
-        return Optional.ofNullable(fileModificationOption);
+    public Optional<FileWriteOption> fileWriteOption() {
+        return Optional.ofNullable(fileWriteOption);
     }
 
     /**
@@ -61,7 +61,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
 
     @Override
     public Builder toBuilder() {
-        return new DefaultBuilder().fileWriteOption(fileModificationOption)
+        return new DefaultBuilder().fileWriteOption(fileWriteOption)
                                    .deleteOnFailure(deleteOnFailure);
     }
 
@@ -76,7 +76,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
 
         FileTransformerConfiguration that = (FileTransformerConfiguration) o;
 
-        if (fileModificationOption != that.fileModificationOption) {
+        if (fileWriteOption != that.fileWriteOption) {
             return false;
         }
         return Objects.equals(deleteOnFailure, that.deleteOnFailure);
@@ -84,7 +84,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
 
     @Override
     public int hashCode() {
-        int result = fileModificationOption != null ? fileModificationOption.hashCode() : 0;
+        int result = fileWriteOption != null ? fileWriteOption.hashCode() : 0;
         result = 31 * result + (deleteOnFailure != null ? deleteOnFailure.hashCode() : 0);
         return result;
     }
@@ -104,7 +104,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         CREATE_OR_REPLACE_EXISTING,
 
         /**
-         * Create a new file if it doesn't exist, otherwise append the existing file.
+         * Create a new file if it doesn't exist, otherwise append to the existing file.
          * <p>
          * In the event of an error, the SDK will NOT attempt to delete the file.
          */
