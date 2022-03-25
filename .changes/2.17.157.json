@@ -1,0 +1,24 @@
+{
+    "version": "2.17.157",
+    "date": "2022-03-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "This Patch Manager release supports creating, updating, and deleting Patch Baselines for Rocky Linux OS."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "Bug Fix: Fixed a bug where shapes were marked as unboxed and were not serialized and sent over the wire, causing an API error from the service."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This is release adds support for Amazon VPC Reachability Analyzer to analyze path through a Transit Gateway."
+        }
+    ]
+}
