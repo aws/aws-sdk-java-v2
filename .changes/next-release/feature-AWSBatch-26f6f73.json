@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Batch",
+    "contributor": "",
+    "description": "Bug Fix: Fixed a bug where shapes were marked as unboxed and were not serialized and sent over the wire, causing an API error from the service."
+}
