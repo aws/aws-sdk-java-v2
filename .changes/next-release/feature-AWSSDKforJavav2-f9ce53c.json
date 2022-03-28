@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Use the client's profile file and name for instance profile credentials when the default credentials provider is not overridden."
+}

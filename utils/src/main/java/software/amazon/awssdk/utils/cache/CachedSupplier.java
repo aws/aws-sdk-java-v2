@@ -45,13 +45,13 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
     /**
      * Used as a primitive form of rate limiting for the speed of our refreshes. This will make sure that the backing supplier has
-     * a period of time to update the value when the {@link RefreshResult#staleTime} arrives without getting called by every
+     * a period of time to update the value when the {@link RefreshResult#staleTime()} arrives without getting called by every
      * thread that initiates a {@link #get()}.
      */
     private final Lock refreshLock = new ReentrantLock();
 
     /**
-     * The strategy we should use for pre-fetching the cached data when the {@link RefreshResult#prefetchTime} arrives. This is
+     * The strategy we should use for pre-fetching the cached data when the {@link RefreshResult#prefetchTime()} arrives. This is
      * configured when the cache is created via {@link Builder#prefetchStrategy(PrefetchStrategy)}.
      */
     private final PrefetchStrategy prefetchStrategy;
@@ -98,6 +98,9 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * Determines whether the value in this cache is stale, and all threads should block and wait for an updated value.
      */
     private boolean cacheIsStale() {
+        if (cachedValue.staleTime() == null) {
+            return false;
+        }
         return Instant.now().isAfter(cachedValue.staleTime());
     }
 
@@ -106,6 +109,9 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * configured {@link #prefetchStrategy}.
      */
     private boolean shouldInitiateCachePrefetch() {
+        if (cachedValue.prefetchTime() == null) {
+            return false;
+        }
         return Instant.now().isAfter(cachedValue.prefetchTime());
     }
 
