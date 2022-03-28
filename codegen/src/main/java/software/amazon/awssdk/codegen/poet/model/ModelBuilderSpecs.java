@@ -349,8 +349,10 @@ class ModelBuilderSpecs {
                      .endControlFlow()
                      .beginControlFlow("if (setTypes.size() == 1)")
                      .addStatement("this.type = setTypes.iterator().next()")
-                     .nextControlFlow("else")
+                     .nextControlFlow("else if (setTypes.isEmpty())")
                      .addStatement("this.type = Type.UNKNOWN_TO_SDK_VERSION")
+                     .nextControlFlow("else")
+                     .addStatement("this.type = null")
                      .endControlFlow()
                      .build();
 

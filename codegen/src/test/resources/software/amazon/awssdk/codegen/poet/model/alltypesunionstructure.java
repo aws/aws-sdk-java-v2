@@ -2234,8 +2234,8 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * When this class is returned in a service response, this will be {@link Type#UNKNOWN_TO_SDK_VERSION} if the
      * service returned a member that is only known to a newer SDK version.
      *
-     * When this class is created directly in your code, this will be {@link Type#UNKNOWN_TO_SDK_VERSION} if zero or
-     * more than one member is set.
+     * When this class is created directly in your code, this will be {@link Type#UNKNOWN_TO_SDK_VERSION} if zero
+     * members are set, and {@code null} if more than one member is set.
      */
     public Type type() {
         return type;
@@ -3866,8 +3866,10 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
             }
             if (setTypes.size() == 1) {
                 this.type = setTypes.iterator().next();
-            } else {
+            } else if (setTypes.isEmpty()) {
                 this.type = Type.UNKNOWN_TO_SDK_VERSION;
+            } else {
+                this.type = null;
             }
         }
     }

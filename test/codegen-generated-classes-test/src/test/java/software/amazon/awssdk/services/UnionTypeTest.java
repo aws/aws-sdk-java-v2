@@ -209,7 +209,7 @@ public class UnionTypeTest {
 
     @ParameterizedTest
     @MethodSource("testCases")
-    public <T> void twoMembersIsUnknownType(TestCase<T> testCase) {
+    public <T> void twoMembersIsNull(TestCase<T> testCase) {
         AllTypesUnionStructure.Builder builder = AllTypesUnionStructure.builder();
 
         testCase.setter.apply(builder, testCase.value);
@@ -219,7 +219,7 @@ public class UnionTypeTest {
             builder.stringMember("foo");
         }
 
-        assertThat(builder.build().type()).isEqualTo(Type.UNKNOWN_TO_SDK_VERSION);
+        assertThat(builder.build().type()).isNull();
     }
 
     @ParameterizedTest
