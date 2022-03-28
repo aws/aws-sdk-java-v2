@@ -201,13 +201,26 @@ abstract class AbstractMemberSetters implements MemberSetters {
     }
 
     private CodeBlock copySetterBody(String copyAssignment, String regularAssignment, String copyMethodName) {
+        CodeBlock.Builder body = CodeBlock.builder();
+
+        if (shapeModel.isUnion()) {
+            body.addStatement("Object oldValue = this.$N", fieldName());
+        }
+
         Optional<ClassName> copierClass = serviceModelCopiers.copierClassFor(memberModel);
 
-        return copierClass.map(className -> CodeBlock.builder().addStatement(copyAssignment,
-                                                                             fieldName(),
-                                                                             className,
-                                                                             copyMethodName)
-                                                     .build())
-                          .orElseGet(() -> CodeBlock.builder().addStatement(regularAssignment, fieldName()).build());
+        if (copierClass.isPresent()) {
+            body.addStatement(copyAssignment, fieldName(), copierClass.get(), copyMethodName);
+        } else {
+            body.addStatement(regularAssignment, fieldName());
+        }
+
+        if (shapeModel.isUnion()) {
+            body.addStatement("handleUnionValueChange(Type.$N, oldValue, this.$N)",
+                              memberModel.getUnionEnumTypeName(),
+                              fieldName());
+        }
+
+        return body.build();
     }
 }

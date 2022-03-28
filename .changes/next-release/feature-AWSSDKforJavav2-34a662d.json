@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Allow services to model structures with mutually exclusive fields (union types). Such structures have additional static constructors and the ability to query for which field is populated. Services which support this feature at launch: accessanalyzer, appconfig, appconfigdata, appmesh, connect, emrcontainers, evidently, grafana, groundstation, healthlake, inspector2, iottwinmaker, migrationhubstrategy, nimble, panorama, proton, rdsdata, redshiftdata, s3control, snowdevicemanagement, ssmincidents, transcribe, wisdom."
+}

@@ -74,6 +74,8 @@ public class Shape {
 
     private boolean document;
 
+    private boolean union;
+
     public boolean isFault() {
         return fault;
     }
@@ -318,4 +320,11 @@ public class Shape {
         this.document = document;
     }
 
+    public boolean isUnion() {
+        return union;
+    }
+
+    public void setUnion(boolean union) {
+        this.union = union;
+    }
 }

@@ -84,6 +84,7 @@ abstract class AddShapes {
         shapeModel.withIsEventStream(shape.isEventstream());
         shapeModel.withIsEvent(shape.isEvent());
         shapeModel.withXmlNamespace(shape.getXmlNamespace());
+        shapeModel.withIsUnion(shape.isUnion());
 
         boolean hasHeaderMember = false;
         boolean hasStatusCodeMember = false;
@@ -188,6 +189,8 @@ abstract class AddShapes {
         memberModel.setEventHeader(c2jMemberDefinition.isEventheader());
         memberModel.setEndpointDiscoveryId(c2jMemberDefinition.isEndpointdiscoveryid());
         memberModel.setXmlAttribute(c2jMemberDefinition.isXmlAttribute());
+        memberModel.setUnionEnumTypeName(namingStrategy.getUnionEnumTypeName(memberModel));
+
 
         // Pass the xmlNameSpace from the member reference
         if (c2jMemberDefinition.getXmlNamespace() != null) {
