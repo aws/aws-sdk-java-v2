@@ -61,7 +61,7 @@ public final class PoetMatchers {
     private static String getExpectedClass(ClassSpec spec, String testFile) {
         try {
             InputStream resource = spec.getClass().getResourceAsStream(testFile);
-            Validate.notNull(resource, "Failed to load test file: " + testFile);
+            Validate.notNull(resource, "Failed to load test file " + testFile + " with " + spec.getClass());
             return processor.apply(IoUtils.toUtf8String(resource));
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -212,8 +212,8 @@ public final class TestXmlNamespaceResponse extends ProtocolRestXmlResponse impl
         /**
          * Sets the value of the XmlNamespaceMember property for this object.
          *
-         * This is a convenience that creates an instance of the {@link XmlNamespaceMember.Builder} avoiding the need to
-         * create one manually via {@link XmlNamespaceMember#builder()}.
+         * This is a convenience method that creates an instance of the {@link XmlNamespaceMember.Builder} avoiding the
+         * need to create one manually via {@link XmlNamespaceMember#builder()}.
          *
          * When the {@link Consumer} completes, {@link XmlNamespaceMember.Builder#build()} is called immediately and its
          * result is passed to {@link #xmlNamespaceMember(XmlNamespaceMember)}.
