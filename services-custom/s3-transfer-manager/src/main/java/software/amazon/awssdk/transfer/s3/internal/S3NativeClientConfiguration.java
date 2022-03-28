@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 
+import java.net.URI;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -50,6 +51,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final long partSizeInBytes;
     private final double targetThroughputInGbps;
     private final int maxConcurrency;
+    private final URI endpointOverride;
     private final Executor futureCompletionExecutor;
 
     public S3NativeClientConfiguration(Builder builder) {
@@ -71,6 +73,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         // Using 0 so that CRT will calculate it based on targetThroughputGbps
         this.maxConcurrency = builder.maxConcurrency == null ? 0 : builder.maxConcurrency;
+
+        this.endpointOverride = builder.endpointOverride;
 
         this.futureCompletionExecutor = resolveAsyncFutureCompletionExecutor(builder.asynConfiguration);
     }
@@ -101,6 +105,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
     public int maxConcurrency() {
         return maxConcurrency;
+    }
+
+    public URI endpointOverride() {
+        return endpointOverride;
     }
 
     public Executor futureCompletionExecutor() {
@@ -155,6 +163,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private Long partSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
+        private URI endpointOverride;
         private ClientAsyncConfiguration asynConfiguration;
 
         private Builder() {
@@ -182,6 +191,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        public Builder endpointOverride(URI endpointOverride) {
+            this.endpointOverride = endpointOverride;
             return this;
         }
 

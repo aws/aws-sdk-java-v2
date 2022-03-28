@@ -40,11 +40,13 @@ import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
+import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -174,7 +176,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add(discoveredEndpoint(opModel))
                      .add(".withInput($L)\n", opModel.getInput().getVariableName())
                      .add(".withMetricCollector(apiCallMetricCollector)")
-                     .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
+                     .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
+                     .add(HttpChecksumTrait.create(opModel));
 
         if (opModel.hasStreamingInput()) {
             codeBlock.add(".withRequestBody(requestBody)")
@@ -223,7 +226,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         boolean isStreaming = opModel.hasStreamingOutput() || opModel.hasEventStreamOutput();
         String protocolFactory = protocolFactoryLiteral(intermediateModel, opModel);
-        String customerResponseHandler = opModel.hasEventStreamOutput() ? "asyncResponseHandler" : "asyncResponseTransformer";
         TypeName responseType = opModel.hasEventStreamOutput() && !isRestJson ? ClassName.get(SdkResponse.class)
                                                                               : pojoResponseType;
         TypeName executeFutureValueType = executeFutureValueType(opModel, poetExtensions);
@@ -242,10 +244,17 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(discoveredEndpoint(opModel))
                .add(asyncRequestBody)
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
+               .add(HttpChecksumTrait.create(opModel))
                .add(".withInput($L)$L);",
                     opModel.getInput().getVariableName(), asyncResponseTransformerVariable(isStreaming, isRestJson, opModel));
 
-
+        if (opModel.hasStreamingOutput()) {
+            builder.addStatement("$T<$T, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer",
+                                 AsyncResponseTransformer.class,
+                                 pojoResponseType);
+        }
+        String customerResponseHandler = opModel.hasEventStreamOutput() ?
+                                         "asyncResponseHandler" : "finalAsyncResponseTransformer";
         String whenComplete = whenCompleteBody(opModel, customerResponseHandler);
         if (!whenComplete.isEmpty()) {
             String whenCompletedFutureName = "whenCompleted";

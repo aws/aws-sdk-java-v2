@@ -29,7 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
@@ -136,7 +136,7 @@ public class CrtRequestExecutorTest {
         completableFuture.complete(httpClientConnection);
 
         CompletableFuture<Void> executeFuture = requestExecutor.execute(context);
-        Mockito.verifyZeroInteractions(responseHandler);
+        Mockito.verifyNoMoreInteractions(responseHandler);
     }
 
     @Test

@@ -16,50 +16,44 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.reset;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.http.trafficlistener.WiremockNetworkTrafficListener;
+import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.mockito.internal.verification.AtLeast;
 import org.mockito.internal.verification.Times;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.http.ConnectionCountingTrafficListener;
+import software.amazon.awssdk.http.EmptyPublisher;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.EmptyPublisher;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.RecordingResponseHandler;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConnectionReaperTest {
-    private static final WiremockNetworkTrafficListener TRAFFIC_LISTENER = Mockito.mock(WiremockNetworkTrafficListener.class);
+    private static final ConnectionCountingTrafficListener TRAFFIC_LISTENER = new ConnectionCountingTrafficListener();
 
     @Rule
     public final WireMockRule mockServer = new WireMockRule(wireMockConfig().dynamicPort()
                                                                             .dynamicHttpsPort()
                                                                             .networkTrafficListener(TRAFFIC_LISTENER));
-
-    @Before
-    public void methodSetup() {
-        reset(TRAFFIC_LISTENER);
-    }
 
     @Test
     public void idleConnectionReaperDoesNotReapActiveConnections() throws InterruptedException {
@@ -71,16 +65,19 @@ public class ConnectionReaperTest {
             Instant end = Instant.now().plus(maxIdleTime.plusSeconds(1));
 
             // Send requests for longer than the max-idle time, ensuring no connections are closed.
+            int connectionCount = TRAFFIC_LISTENER.openedConnections();
             while (Instant.now().isBefore(end)) {
                 makeRequest(client);
                 Thread.sleep(100);
-                verify(TRAFFIC_LISTENER, new Times(0)).closed(any());
             }
+
+            assertThat(TRAFFIC_LISTENER.openedConnections()).isEqualTo(connectionCount + 1);
 
             // Do nothing for longer than the max-idle time, ensuring connections are closed.
             Thread.sleep(maxIdleTime.plusSeconds(1).toMillis());
 
-            verify(TRAFFIC_LISTENER, new AtLeast(1)).closed(any());
+            makeRequest(client);
+            assertThat(TRAFFIC_LISTENER.openedConnections()).isEqualTo(connectionCount + 2);
         }
 
     }
@@ -95,15 +92,15 @@ public class ConnectionReaperTest {
 
             Instant end = Instant.now().plus(Duration.ofSeconds(5));
 
-            verify(TRAFFIC_LISTENER, new Times(0)).closed(any());
+            int connectionCount = TRAFFIC_LISTENER.openedConnections();
 
-            // Send requests frequently, validating that connections are still being closed.
+            // Send requests frequently, validating that new connections are being opened.
             while (Instant.now().isBefore(end)) {
                 makeRequest(client);
                 Thread.sleep(100);
             }
 
-            verify(TRAFFIC_LISTENER, new AtLeast(20)).closed(any());
+            assertThat(TRAFFIC_LISTENER.openedConnections()).isGreaterThanOrEqualTo(connectionCount + 15);
         }
     }
 
@@ -115,18 +112,19 @@ public class ConnectionReaperTest {
                                                                 .buildWithDefaults(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS)) {
 
 
-            verify(TRAFFIC_LISTENER, new Times(0)).closed(any());
+            int connectionCount = TRAFFIC_LISTENER.openedConnections();
             makeRequest(client);
-
             Thread.sleep(2_000);
-
-            verify(TRAFFIC_LISTENER, new Times(0)).closed(any());
+            makeRequest(client);
+            assertThat(TRAFFIC_LISTENER.openedConnections()).isEqualTo(connectionCount + 1);
         }
     }
 
 
     private void makeRequest(SdkAsyncHttpClient client) {
-        stubFor(WireMock.any(urlPathEqualTo("/")).willReturn(aResponse().withBody(randomAlphabetic(10))));
+        stubFor(WireMock.any(anyUrl()).willReturn(aResponse().withBody(randomAlphabetic(10))));
+
+        RecordingResponseHandler handler = new RecordingResponseHandler();
 
         URI uri = URI.create("http://localhost:" + mockServer.port());
         client.execute(AsyncExecuteRequest.builder()
@@ -135,11 +133,14 @@ public class ConnectionReaperTest {
                                                                  .method(SdkHttpMethod.GET)
                                                                  .encodedPath("/")
                                                                  .putHeader("Host", uri.getHost())
+                                                                 .putHeader("Content-Length", "0")
                                                                  .build())
                                           .requestContentPublisher(new EmptyPublisher())
-                                          .responseHandler(new RecordingResponseHandler())
+                                          .responseHandler(handler)
                                           .build())
               .join();
+
+        assertThat(handler.fullResponseAsString()).hasSize(10);
     }
 
 }

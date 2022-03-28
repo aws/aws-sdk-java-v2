@@ -553,7 +553,7 @@
         },
         "MediaSampleRateHertz":{
           "shape":"MediaSampleRateHertz",
-          "documentation":"<p>The sample rate of the input audio in Hertz.</p>",
+          "documentation":"<p>The sample rate of the input audio (in Hertz). Amazon Transcribe medical supports a range from 16,000 Hz to 48,000 Hz. Note that the sample rate you specify must match that of your audio.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-sample-rate"
         },
@@ -632,7 +632,7 @@
         },
         "MediaSampleRateHertz":{
           "shape":"MediaSampleRateHertz",
-          "documentation":"<p>The sample rate of the input audio in Hertz.</p>",
+          "documentation":"<p>The sample rate of the input audio, in Hertz (Hz).</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-sample-rate"
         },
@@ -713,7 +713,7 @@
         },
         "MediaSampleRateHertz":{
           "shape":"MediaSampleRateHertz",
-          "documentation":"<p>The sample rate, in Hertz (Hz), of the input audio. We suggest that you use 8,000 Hz for low quality audio and 16,000 Hz or higher for high quality audio.</p>",
+          "documentation":"<p>The sample rate of the input audio (in Hertz). Low-quality audio, such as telephone audio, is typically around 8,000 Hz. High-quality audio typically ranges from 16,000 Hz to 48,000 Hz. Note that the sample rate you specify must match that of your audio.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-sample-rate"
         },
@@ -725,7 +725,7 @@
         },
         "VocabularyName":{
           "shape":"VocabularyName",
-          "documentation":"<p>The name of the vocabulary to use when processing the transcription job.</p>",
+          "documentation":"<p>The name of the custom vocabulary you want to use with your transcription.</p> <p>This operation is not intended for use in conjunction with the <code>IdentifyLanguage</code> operation. If you're using <code>IdentifyLanguage</code> in your request and want to use one or more custom vocabularies with your transcription, use the <code>VocabularyNames</code> operation instead.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-name"
         },
@@ -741,7 +741,7 @@
         },
         "VocabularyFilterName":{
           "shape":"VocabularyFilterName",
-          "documentation":"<p>The name of the vocabulary filter you've created that is unique to your account. Provide the name in this field to successfully use it in a stream.</p>",
+          "documentation":"<p>The name of the vocabulary filter you want to use with your transcription.</p> <p>This operation is not intended for use in conjunction with the <code>IdentifyLanguage</code> operation. If you're using <code>IdentifyLanguage</code> in your request and want to use one or more vocabulary filters with your transcription, use the <code>VocabularyFilterNames</code> operation instead.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-name"
         },
@@ -759,7 +759,7 @@
         },
         "EnableChannelIdentification":{
           "shape":"Boolean",
-          "documentation":"<p>When <code>true</code>, instructs Amazon Transcribe to process each audio channel separately, then merges the transcription output of each channel into a single transcription.</p> <p>Amazon Transcribe also produces a transcription of each item. An item includes the start time, end time, and any alternative transcriptions.</p> <p>You can't set both <code>ShowSpeakerLabel</code> and <code>EnableChannelIdentification</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p>",
+          "documentation":"<p>When <code>true</code>, instructs Amazon Transcribe to process each audio channel separately, then merges the transcription output of each channel into a single transcription.</p> <p>Amazon Transcribe also produces a transcription of each item. An item includes the start time, end time, and any alternative transcriptions.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-enable-channel-identification"
         },
@@ -822,6 +822,18 @@
           "documentation":"<p>Optional. From the subset of languages codes you provided for <code>LanguageOptions</code>, you can select one preferred language for your transcription.</p> <p>You can only use this parameter if you've set <code>IdentifyLanguage</code> to <code>true</code>in your request.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-preferred-language"
+        },
+        "VocabularyNames":{
+          "shape":"VocabularyNames",
+          "documentation":"<p>The names of the custom vocabularies you want to use with your transcription.</p> <p>Note that if the custom vocabularies you specify are in languages that don't match the language identified in your media, your job fails.</p> <p>This operation is only intended for use in conjunction with the <code>IdentifyLanguage</code> operation. If you're not using <code>IdentifyLanguage</code> in your request and want to use a custom vocabulary with your transcription, use the <code>VocabularyName</code> operation instead.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-names"
+        },
+        "VocabularyFilterNames":{
+          "shape":"VocabularyFilterNames",
+          "documentation":"<p>The names of the vocabulary filters you want to use with your transcription.</p> <p>Note that if the vocabulary filters you specify are in languages that don't match the language identified in your media, your job fails.</p> <p>This operation is only intended for use in conjunction with the <code>IdentifyLanguage</code> operation. If you're not using <code>IdentifyLanguage</code> in your request and want to use a vocabulary filter with your transcription, use the <code>VocabularyFilterName</code> operation instead.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-names"
         }
       },
       "payload":"AudioStream"
@@ -831,7 +843,7 @@
       "members":{
         "RequestId":{
           "shape":"RequestId",
-          "documentation":"<p>An identifier for the streaming transcription.</p>",
+          "documentation":"<p>An identifier for the transcription.</p>",
           "location":"header",
           "locationName":"x-amzn-request-id"
         },
@@ -843,7 +855,7 @@
         },
         "MediaSampleRateHertz":{
           "shape":"MediaSampleRateHertz",
-          "documentation":"<p>The sample rate, in Hertz (Hz), for the input audio stream. Use 8,000 Hz for low quality audio and 16,000 Hz or higher for high quality audio.</p>",
+          "documentation":"<p>The sample rate, in Hertz (Hz), for the input audio stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-sample-rate"
         },
@@ -855,7 +867,7 @@
         },
         "VocabularyName":{
           "shape":"VocabularyName",
-          "documentation":"<p>The name of the vocabulary used when processing the stream.</p>",
+          "documentation":"<p>The name of the custom vocabulary used when processing the stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-name"
         },
@@ -871,25 +883,25 @@
         },
         "VocabularyFilterName":{
           "shape":"VocabularyFilterName",
-          "documentation":"<p>The name of the vocabulary filter used in your media stream.</p>",
+          "documentation":"<p>The name of the vocabulary filter used when processing the stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-name"
         },
         "VocabularyFilterMethod":{
           "shape":"VocabularyFilterMethod",
-          "documentation":"<p>The vocabulary filtering method used in the media stream.</p>",
+          "documentation":"<p>The vocabulary filtering method used when processing the stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-method"
         },
         "ShowSpeakerLabel":{
           "shape":"Boolean",
-          "documentation":"<p>Shows whether speaker identification was enabled in the stream.</p>",
+          "documentation":"<p>Shows whether speaker identification was enabled in the transcription.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-show-speaker-label"
         },
         "EnableChannelIdentification":{
           "shape":"Boolean",
-          "documentation":"<p>Shows whether channel identification has been enabled in the stream.</p>",
+          "documentation":"<p>Shows whether channel identification was enabled in the stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-enable-channel-identification"
         },
@@ -901,7 +913,7 @@
         },
         "EnablePartialResultsStabilization":{
           "shape":"Boolean",
-          "documentation":"<p>Shows whether partial results stabilization has been enabled in the stream.</p>",
+          "documentation":"<p>Shows whether partial results stabilization was enabled in the transcription.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-enable-partial-results-stabilization"
         },
@@ -931,7 +943,7 @@
         },
         "LanguageModelName":{
           "shape":"ModelName",
-          "documentation":"<p>The name of the language model used in your media stream.</p>",
+          "documentation":"<p>The name of the custom language model used in the transcription.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-language-model-name"
         },
@@ -952,6 +964,18 @@
           "documentation":"<p>The preferred language you specified in your request.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-preferred-language"
+        },
+        "VocabularyNames":{
+          "shape":"VocabularyNames",
+          "documentation":"<p>The name of the custom vocabulary used when processing the stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-names"
+        },
+        "VocabularyFilterNames":{
+          "shape":"VocabularyFilterNames",
+          "documentation":"<p>The name of the vocabulary filter used when processing the stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-names"
         }
       },
       "payload":"TranscriptResultStream"
@@ -1030,11 +1054,23 @@
       "min":1,
       "pattern":"^[0-9a-zA-Z._-]+"
     },
+    "VocabularyFilterNames":{
+      "type":"string",
+      "max":3000,
+      "min":1,
+      "pattern":"^[a-zA-Z0-9,-._]+"
+    },
     "VocabularyName":{
       "type":"string",
       "max":200,
       "min":1,
       "pattern":"^[0-9a-zA-Z._-]+"
+    },
+    "VocabularyNames":{
+      "type":"string",
+      "max":3000,
+      "min":1,
+      "pattern":"^[a-zA-Z0-9,-._]+"
     }
   },
   "documentation":"<p>Operations and objects for transcribing streaming speech to text.</p>"

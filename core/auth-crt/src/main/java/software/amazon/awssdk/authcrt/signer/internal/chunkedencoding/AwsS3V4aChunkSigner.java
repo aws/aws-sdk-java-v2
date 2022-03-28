@@ -16,10 +16,13 @@
 package software.amazon.awssdk.authcrt.signer.internal.chunkedencoding;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkSigner;
 import software.amazon.awssdk.authcrt.signer.internal.AwsCrt4aSigningAdapter;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
+import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * An implementation of AwsChunkSigner that can calculate a Sigv4a compatible chunk signature.
@@ -44,6 +47,18 @@ public class AwsS3V4aChunkSigner implements AwsChunkSigner {
                                                       signingConfig);
         return new String(chunkSignature, StandardCharsets.UTF_8);
     }
+
+    @Override
+    public String signChecksumChunk(byte[] calculatedChecksum, String previousSignature, String checksumHeaderForTrailer) {
+        AwsSigningResult awsSigningResult =
+            aws4aSigner.signTrailerHeaders(
+                Collections.singletonMap(checksumHeaderForTrailer,
+                                         Collections.singletonList(BinaryUtils.toBase64(calculatedChecksum))),
+                previousSignature.getBytes(StandardCharsets.UTF_8),
+                signingConfig);
+        return awsSigningResult != null ? new String(awsSigningResult.getSignature(), StandardCharsets.UTF_8) : null;
+    }
+
 
     public static int getSignatureLength() {
         return SIGNATURE_LENGTH;

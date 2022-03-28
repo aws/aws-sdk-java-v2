@@ -17,13 +17,27 @@ package software.amazon.awssdk.core.client.builder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_ATTEMPT_TIMEOUT;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;
@@ -31,23 +45,37 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.StringInputStream;
 
 /**
  * Validate the functionality of the {@link SdkDefaultClientBuilder}.
@@ -75,6 +103,168 @@ public class DefaultClientBuilderTest {
     public void setup() {
         when(defaultHttpClientFactory.buildWithDefaults(any())).thenReturn(mock(SdkHttpClient.class));
         when(defaultAsyncHttpClientFactory.buildWithDefaults(any())).thenReturn(mock(SdkAsyncHttpClient.class));
+    }
+
+    @Test
+    public void overrideConfigurationIsNeverNull() {
+        ClientOverrideConfiguration config = testClientBuilder().overrideConfiguration();
+        assertThat(config).isNotNull();
+
+        config = testClientBuilder().overrideConfiguration((ClientOverrideConfiguration) null).overrideConfiguration();
+        assertThat(config).isNotNull();
+    }
+
+    @Test
+    public void overrideConfigurationReturnsSetValues() {
+        List<ExecutionInterceptor> interceptors = new ArrayList<>();
+        RetryPolicy retryPolicy = RetryPolicy.builder().build();
+        Map<String, List<String>> headers = new HashMap<>();
+        List<MetricPublisher> metricPublishers = new ArrayList<>();
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        Signer signer = (request, execAttributes) -> request;
+        String suffix = "suffix";
+        String prefix = "prefix";
+        Duration apiCallTimeout = Duration.ofMillis(42);
+        Duration apiCallAttemptTimeout = Duration.ofMillis(43);
+        ProfileFile profileFile = ProfileFile.builder()
+                                             .content(new StringInputStream(""))
+                                             .type(ProfileFile.Type.CONFIGURATION)
+                                             .build();
+        String profileName = "name";
+
+        ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
+            .executionInterceptors(interceptors)
+            .retryPolicy(retryPolicy)
+            .headers(headers)
+            .putAdvancedOption(SIGNER, signer)
+            .putAdvancedOption(USER_AGENT_SUFFIX, suffix)
+            .putAdvancedOption(USER_AGENT_PREFIX, prefix)
+            .apiCallTimeout(apiCallTimeout)
+            .apiCallAttemptTimeout(apiCallAttemptTimeout)
+            .putAdvancedOption(DISABLE_HOST_PREFIX_INJECTION, Boolean.TRUE)
+            .defaultProfileFile(profileFile)
+            .defaultProfileName(profileName)
+            .metricPublishers(metricPublishers)
+            .executionAttributes(executionAttributes)
+            .putAdvancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE, Boolean.TRUE)
+            .build();
+
+        TestClientBuilder builder = testClientBuilder().overrideConfiguration(overrideConfig);
+        ClientOverrideConfiguration builderOverrideConfig = builder.overrideConfiguration();
+
+        assertThat(builderOverrideConfig.executionInterceptors()).isEqualTo(interceptors);
+        assertThat(builderOverrideConfig.retryPolicy()).isEqualTo(Optional.of(retryPolicy));
+        assertThat(builderOverrideConfig.headers()).isEqualTo(headers);
+        assertThat(builderOverrideConfig.advancedOption(SIGNER)).isEqualTo(Optional.of(signer));
+        assertThat(builderOverrideConfig.advancedOption(USER_AGENT_SUFFIX)).isEqualTo(Optional.of(suffix));
+        assertThat(builderOverrideConfig.apiCallTimeout()).isEqualTo(Optional.of(apiCallTimeout));
+        assertThat(builderOverrideConfig.apiCallAttemptTimeout()).isEqualTo(Optional.of(apiCallAttemptTimeout));
+        assertThat(builderOverrideConfig.advancedOption(DISABLE_HOST_PREFIX_INJECTION)).isEqualTo(Optional.of(Boolean.TRUE));
+        assertThat(builderOverrideConfig.defaultProfileFile()).isEqualTo(Optional.of(profileFile));
+        assertThat(builderOverrideConfig.defaultProfileName()).isEqualTo(Optional.of(profileName));
+        assertThat(builderOverrideConfig.metricPublishers()).isEqualTo(metricPublishers);
+        assertThat(builderOverrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributes.getAttributes());
+        assertThat(builderOverrideConfig.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE)).isEqualTo(Optional.of(Boolean.TRUE));
+    }
+
+    @Test
+    public void overrideConfigurationOmitsUnsetValues() {
+        ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
+                                                                                .build();
+
+        TestClientBuilder builder = testClientBuilder().overrideConfiguration(overrideConfig);
+        ClientOverrideConfiguration builderOverrideConfig = builder.overrideConfiguration();
+
+        assertThat(builderOverrideConfig.executionInterceptors()).isEmpty();
+        assertThat(builderOverrideConfig.retryPolicy()).isEmpty();
+        assertThat(builderOverrideConfig.headers()).isEmpty();
+        assertThat(builderOverrideConfig.advancedOption(SIGNER)).isEmpty();
+        assertThat(builderOverrideConfig.advancedOption(USER_AGENT_SUFFIX)).isEmpty();
+        assertThat(builderOverrideConfig.apiCallTimeout()).isEmpty();
+        assertThat(builderOverrideConfig.apiCallAttemptTimeout()).isEmpty();
+        assertThat(builderOverrideConfig.advancedOption(DISABLE_HOST_PREFIX_INJECTION)).isEmpty();
+        assertThat(builderOverrideConfig.defaultProfileFile()).isEmpty();
+        assertThat(builderOverrideConfig.defaultProfileName()).isEmpty();
+        assertThat(builderOverrideConfig.metricPublishers()).isEmpty();
+        assertThat(builderOverrideConfig.executionAttributes().getAttributes()).isEmpty();
+        assertThat(builderOverrideConfig.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE)).isEmpty();
+    }
+
+    @Test
+    public void buildIncludesClientOverrides() {
+        List<ExecutionInterceptor> interceptors = new ArrayList<>();
+        ExecutionInterceptor interceptor = new ExecutionInterceptor() {};
+        interceptors.add(interceptor);
+
+        RetryPolicy retryPolicy = RetryPolicy.builder().build();
+
+        Map<String, List<String>> headers = new HashMap<>();
+        List<String> headerValues = new ArrayList<>();
+        headerValues.add("value");
+        headers.put("client-override-test", headerValues);
+
+        List<MetricPublisher> metricPublishers = new ArrayList<>();
+        MetricPublisher metricPublisher = new MetricPublisher() {
+            @Override
+            public void publish(MetricCollection metricCollection) {
+
+            }
+
+            @Override
+            public void close() {
+
+            }
+        };
+        metricPublishers.add(metricPublisher);
+
+        ExecutionAttribute<String> execAttribute = new ExecutionAttribute<>("test");
+        ExecutionAttributes executionAttributes = ExecutionAttributes.builder().put(execAttribute, "value").build();
+
+        Signer signer = (request, execAttributes) -> request;
+        String suffix = "suffix";
+        String prefix = "prefix";
+        Duration apiCallTimeout = Duration.ofMillis(42);
+        Duration apiCallAttemptTimeout = Duration.ofMillis(43);
+        ProfileFile profileFile = ProfileFile.builder()
+                                             .content(new StringInputStream(""))
+                                             .type(ProfileFile.Type.CONFIGURATION)
+                                             .build();
+        String profileName = "name";
+
+        ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
+            .executionInterceptors(interceptors)
+            .retryPolicy(retryPolicy)
+            .headers(headers)
+            .putAdvancedOption(SIGNER, signer)
+            .putAdvancedOption(USER_AGENT_SUFFIX, suffix)
+            .putAdvancedOption(USER_AGENT_PREFIX, prefix)
+            .apiCallTimeout(apiCallTimeout)
+            .apiCallAttemptTimeout(apiCallAttemptTimeout)
+            .putAdvancedOption(DISABLE_HOST_PREFIX_INJECTION, Boolean.TRUE)
+            .defaultProfileFile(profileFile)
+            .defaultProfileName(profileName)
+            .metricPublishers(metricPublishers)
+            .executionAttributes(executionAttributes)
+            .putAdvancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE, Boolean.TRUE)
+            .build();
+
+        SdkClientConfiguration config =
+            testClientBuilder().overrideConfiguration(overrideConfig).build().clientConfiguration;
+
+        assertThat(config.option(EXECUTION_INTERCEPTORS)).contains(interceptor);
+        assertThat(config.option(RETRY_POLICY)).isEqualTo(retryPolicy);
+        assertThat(config.option(ADDITIONAL_HTTP_HEADERS).get("client-override-test")).isEqualTo(headerValues);
+        assertThat(config.option(SIGNER)).isEqualTo(signer);
+        assertThat(config.option(USER_AGENT_SUFFIX)).isEqualTo(suffix);
+        assertThat(config.option(USER_AGENT_PREFIX)).isEqualTo(prefix);
+        assertThat(config.option(API_CALL_TIMEOUT)).isEqualTo(apiCallTimeout);
+        assertThat(config.option(API_CALL_ATTEMPT_TIMEOUT)).isEqualTo(apiCallAttemptTimeout);
+        assertThat(config.option(DISABLE_HOST_PREFIX_INJECTION)).isEqualTo(Boolean.TRUE);
+        assertThat(config.option(PROFILE_FILE)).isEqualTo(profileFile);
+        assertThat(config.option(PROFILE_NAME)).isEqualTo(profileName);
+        assertThat(config.option(METRIC_PUBLISHERS)).contains(metricPublisher);
+        assertThat(config.option(EXECUTION_ATTRIBUTES).getAttribute(execAttribute)).isEqualTo("value");
+        assertThat(config.option(ENDPOINT_OVERRIDDEN)).isEqualTo(Boolean.TRUE);
     }
 
     @Test

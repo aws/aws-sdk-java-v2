@@ -1,0 +1,36 @@
+{
+    "version": "2.17.123",
+    "date": "2022-02-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS RoboMaker",
+            "contributor": "",
+            "description": "The release deprecates the use various APIs of RoboMaker Deployment Service in favor of AWS IoT GreenGrass v2.0."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "adds support for AMIs in Recycle Bin"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Recycle Bin",
+            "contributor": "",
+            "description": "Add EC2 Image recycle bin support."
+        },
+        {
+            "type": "feature",
+            "category": "AWSMarketplace Metering",
+            "contributor": "",
+            "description": "Add CustomerAWSAccountId to ResolveCustomer API response and increase UsageAllocation limit to 2500."
+        }
+    ]
+}

@@ -16,7 +16,7 @@
 package software.amazon.awssdk.authcrt.signer.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
@@ -34,10 +34,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.authcrt.signer.internal.chunkedencoding.AwsS3V4aChunkSigner;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Runs unit tests that check that the class AwsChunkedEncodingInputStream supports params required for Sigv4a chunk
@@ -50,6 +53,7 @@ public class AwsChunkedEncodingInputStreamTest {
     private static final String CHUNK_SIGNATURE_1;
     private static final String CHUNK_SIGNATURE_2;
     private static final String CHUNK_SIGNATURE_3;
+    private static final String CHECKSUM_CHUNK_SIGNATURE_3;
 
     private static final String SIGNATURE_KEY = "chunk-signature=";
     private static final String EMPTY_STRING = "";
@@ -73,6 +77,10 @@ public class AwsChunkedEncodingInputStreamTest {
         tmp = new byte[144];
         Arrays.fill(tmp, (byte) 0x2E);
         CHUNK_SIGNATURE_3 = new String(tmp);
+
+        tmp = new byte[144];
+        Arrays.fill(tmp, (byte) 0x2F);
+        CHECKSUM_CHUNK_SIGNATURE_3 = new String(tmp);
     }
 
     @Mock
@@ -144,7 +152,7 @@ public class AwsChunkedEncodingInputStreamTest {
                                                                                         .awsChunkedEncodingConfig(AwsChunkedEncodingConfig.create())
                                                                                         .build();
         int expectedChunks = 2;
-        consumeAndVerify(stream, expectedChunks);
+        consumeAndVerify(stream, expectedChunks,false);
         Mockito.verify(chunkSigner, times(1)).signChunk(chunkData.getBytes(StandardCharsets.UTF_8), REQUEST_SIGNATURE);
         Mockito.verify(chunkSigner, times(1)).signChunk(EMPTY_STRING.getBytes(StandardCharsets.UTF_8), CHUNK_SIGNATURE_1);
     }
@@ -166,7 +174,7 @@ public class AwsChunkedEncodingInputStreamTest {
                                                                                         .awsChunkedEncodingConfig(AwsChunkedEncodingConfig.create())
                                                                                         .build();
         int expectedChunks = 3;
-        consumeAndVerify(stream, expectedChunks);
+        consumeAndVerify(stream, expectedChunks,false);
         Mockito.verify(chunkSigner, times(1)).signChunk(chunk1Data.getBytes(StandardCharsets.UTF_8), REQUEST_SIGNATURE);
         Mockito.verify(chunkSigner, times(1)).signChunk(chunk2Data.getBytes(StandardCharsets.UTF_8), CHUNK_SIGNATURE_1);
         Mockito.verify(chunkSigner, times(1)).signChunk(EMPTY_STRING.getBytes(StandardCharsets.UTF_8), CHUNK_SIGNATURE_2);
@@ -192,7 +200,7 @@ public class AwsChunkedEncodingInputStreamTest {
                                                                                         .awsChunkedEncodingConfig(chunkConfig)
                                                                                         .build();
         int expectedChunks = 3;
-        consumeAndVerify(stream, expectedChunks);
+        consumeAndVerify(stream, expectedChunks,false);
         Mockito.verify(chunkSigner, times(1)).signChunk(chunk1Data.getBytes(StandardCharsets.UTF_8), REQUEST_SIGNATURE);
         Mockito.verify(chunkSigner, times(1)).signChunk(chunk2Data.getBytes(StandardCharsets.UTF_8), CHUNK_SIGNATURE_1);
         Mockito.verify(chunkSigner, times(1)).signChunk(EMPTY_STRING.getBytes(StandardCharsets.UTF_8), CHUNK_SIGNATURE_2);
@@ -213,23 +221,124 @@ public class AwsChunkedEncodingInputStreamTest {
                                                                                         .awsChunkedEncodingConfig(AwsChunkedEncodingConfig.create())
                                                                                         .build();
         int expectedChunks = 1;
-        consumeAndVerify(stream, expectedChunks);
+        consumeAndVerify(stream, expectedChunks,false);
         Mockito.verify(chunkSigner, times(1)).signChunk(chunkData.getBytes(StandardCharsets.UTF_8), REQUEST_SIGNATURE);
     }
 
-    private void consumeAndVerify(AwsSignedChunkedEncodingInputStream stream, int numChunks) throws IOException {
+
+    @Test
+    public void chunkedEncodingStream_smallObject_createsCorrectChunks_and_checksum() throws IOException {
+        when(chunkSigner.signChunk(any(), any())).thenReturn(CHUNK_SIGNATURE_1)
+                                                 .thenReturn(CHUNK_SIGNATURE_2);
+
+        when(chunkSigner.signChecksumChunk(any(), any(), any())).thenReturn(CHECKSUM_CHUNK_SIGNATURE_3);
+
+        String payloadData = "helloworld";
+        SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(Algorithm.CRC32);
+        sdkChecksum.update(payloadData.getBytes(StandardCharsets.UTF_8));
+
+        ByteArrayInputStream input = new ByteArrayInputStream(payloadData.getBytes());
+
+        AwsSignedChunkedEncodingInputStream stream =
+            AwsSignedChunkedEncodingInputStream.builder()
+                                               .inputStream(input)
+                                               .sdkChecksum(SdkChecksum.forAlgorithm(Algorithm.CRC32))
+                                               .checksumHeaderForTrailer("x-amz-checksum-crc32")
+                                               .headerSignature(REQUEST_SIGNATURE)
+                                               .awsChunkSigner(chunkSigner)
+                                               .awsChunkedEncodingConfig(AwsChunkedEncodingConfig.create())
+                                               .build();
+        int expectedChunks = 2;
+        consumeAndVerify(stream, expectedChunks, true);
+        Mockito.verify(chunkSigner, times(1)).signChunk(payloadData.getBytes(StandardCharsets.UTF_8), REQUEST_SIGNATURE);
+        Mockito.verify(chunkSigner, times(1)).signChunk(EMPTY_STRING.getBytes(StandardCharsets.UTF_8), CHUNK_SIGNATURE_1);
+        Mockito.verify(chunkSigner, times(1))
+               .signChecksumChunk(sdkChecksum.getChecksumBytes(),CHUNK_SIGNATURE_2, "x-amz-checksum-crc32" );
+    }
+
+    @Test
+    public void chunkedEncodingStream_largeObject_createsCorrectChunks__with_checksums() throws IOException {
+        when(chunkSigner.signChunk(any(), any())).thenReturn(CHUNK_SIGNATURE_1)
+                                                 .thenReturn(CHUNK_SIGNATURE_2)
+                                                 .thenReturn(CHUNK_SIGNATURE_3);
+
+        when(chunkSigner.signChecksumChunk(any(), any(), any())).thenReturn(CHECKSUM_CHUNK_SIGNATURE_3);
+
+        String chunk1Data = StringUtils.repeat("a", DEFAULT_CHUNK_SIZE);
+        String chunk2Data = "a";
+
+        SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(Algorithm.CRC32);
+        sdkChecksum.update(chunk1Data.getBytes(StandardCharsets.UTF_8));
+        sdkChecksum.update(chunk2Data.getBytes(StandardCharsets.UTF_8));
+        ByteArrayInputStream input = new ByteArrayInputStream(chunk1Data.concat(chunk2Data).getBytes());
+
+        AwsSignedChunkedEncodingInputStream stream =
+            AwsSignedChunkedEncodingInputStream.builder()
+                                               .inputStream(input)
+                                               .sdkChecksum(SdkChecksum.forAlgorithm(Algorithm.CRC32))
+                                               .checksumHeaderForTrailer("x-amz-checksum-crc32")
+                                               .headerSignature(REQUEST_SIGNATURE)
+                                               .awsChunkSigner(chunkSigner)
+                                               .awsChunkedEncodingConfig(AwsChunkedEncodingConfig.create())
+                                               .build();
+        int expectedChunks = 3;
+        consumeAndVerify(stream, expectedChunks, true);
+        Mockito.verify(chunkSigner, times(1)).signChunk(chunk1Data.getBytes(StandardCharsets.UTF_8), REQUEST_SIGNATURE);
+        Mockito.verify(chunkSigner, times(1)).signChunk(chunk2Data.getBytes(StandardCharsets.UTF_8), CHUNK_SIGNATURE_1);
+        Mockito.verify(chunkSigner, times(1)).signChunk(EMPTY_STRING.getBytes(StandardCharsets.UTF_8), CHUNK_SIGNATURE_2);
+        Mockito.verify(chunkSigner, times(1))
+               .signChecksumChunk(sdkChecksum.getChecksumBytes(), CHUNK_SIGNATURE_3, "x-amz-checksum-crc32");
+    }
+
+    @Test
+    public void chunkedEncodingStream_emptyString_createsCorrectChunks_checksum() throws IOException {
+        when(chunkSigner.signChunk(any(), any())).thenReturn(CHUNK_SIGNATURE_1);
+        when(chunkSigner.signChecksumChunk(any(), any(), any())).thenReturn(CHECKSUM_CHUNK_SIGNATURE_3);
+
+        String chunkData = EMPTY_STRING;
+
+        SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(Algorithm.CRC32);
+
+        byte[] bytes = chunkData.getBytes(StandardCharsets.UTF_8);
+
+        ByteArrayInputStream input = new ByteArrayInputStream(chunkData.getBytes());
+
+        AwsSignedChunkedEncodingInputStream stream =
+            AwsSignedChunkedEncodingInputStream.builder()
+                                               .inputStream(input)
+                                               .sdkChecksum(SdkChecksum.forAlgorithm(Algorithm.CRC32))
+                                               .checksumHeaderForTrailer("x-amz-checksum-crc32")
+                                               .headerSignature(REQUEST_SIGNATURE)
+                                               .awsChunkSigner(chunkSigner)
+                                               .awsChunkedEncodingConfig(AwsChunkedEncodingConfig.create())
+                                               .build();
+        int expectedChunks = 1;
+        consumeAndVerify(stream, expectedChunks, true);
+        Mockito.verify(chunkSigner, times(1)).signChunk(bytes, REQUEST_SIGNATURE);
+
+        Mockito.verify(chunkSigner, times(1))
+               .signChecksumChunk(sdkChecksum.getChecksumBytes(), CHUNK_SIGNATURE_1, "x-amz-checksum-crc32");
+    }
+
+
+    private void consumeAndVerify(AwsSignedChunkedEncodingInputStream stream, int numChunks, boolean isTrailerChecksum) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         IOUtils.copy(stream, output);
         String result = new String(output.toByteArray(), StandardCharsets.UTF_8);
-        assertChunks(result, numChunks);
+        assertChunks(result, numChunks, isTrailerChecksum);
     }
 
-    private void assertChunks(String result, int numExpectedChunks) {
+    private void assertChunks(String result, int numExpectedChunks, boolean isTrailerChecksum) {
         List<String> lines = Stream.of(result.split(CRLF)).collect(Collectors.toList());
-        assertThat(lines.size()).isEqualTo(numExpectedChunks * 2 - 1);
+        int expectedNumberOfChunks = (2 * numExpectedChunks) - 1 + (isTrailerChecksum ? 2 : 0);
+        assertThat(lines).hasSize(expectedNumberOfChunks);
         for (int i = 0; i < lines.size(); i = i + 2) {
             String chunkMetadata = lines.get(i);
-            String signatureValue = chunkMetadata.substring(chunkMetadata.indexOf(SIGNATURE_KEY) + SIGNATURE_KEY.length());
+            boolean isTrailerSignature = isTrailerChecksum && i == lines.size() - 1;
+            String signatureValue = isTrailerSignature
+                                    ? chunkMetadata.substring(chunkMetadata.indexOf("x-amz-trailer-signature:")
+                                                            + "x-amz-trailer-signature:".length())
+                                    : chunkMetadata.substring(chunkMetadata.indexOf(SIGNATURE_KEY) + SIGNATURE_KEY.length());
             assertThat(signatureValue.length()).isEqualTo(SIGV4A_SIGNATURE_LENGTH);
         }
     }

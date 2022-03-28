@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

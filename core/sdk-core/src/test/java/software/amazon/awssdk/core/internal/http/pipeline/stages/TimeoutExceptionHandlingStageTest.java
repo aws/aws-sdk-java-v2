@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
@@ -87,7 +87,6 @@ public class TimeoutExceptionHandlingStageTest {
     @Test
     public void IOException_bothTimeouts_shouldThrowInterruptedException() throws Exception {
         when(apiCallTimeoutTask.hasExecuted()).thenReturn(true);
-        when(apiCallAttemptTimeoutTask.hasExecuted()).thenReturn(true);
         when(requestPipeline.execute(any(), any())).thenThrow(new IOException());
         verifyExceptionThrown(InterruptedException.class);
     }
@@ -159,7 +158,6 @@ public class TimeoutExceptionHandlingStageTest {
     public void interruptFlagWasSet_causedByApiCallTimeout_shouldThrowInterruptException() throws Exception {
         Thread.currentThread().interrupt();
         when(apiCallTimeoutTask.hasExecuted()).thenReturn(true);
-        when(apiCallAttemptTimeoutTask.hasExecuted()).thenReturn(true);
         when(requestPipeline.execute(any(), any())).thenThrow(new RuntimeException());
         verifyExceptionThrown(InterruptedException.class);
         verifyInterruptStatusPreserved();

@@ -1,0 +1,24 @@
+{
+    "version": "2.17.130",
+    "date": "2022-02-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds support for determining which Aurora PostgreSQL versions support Babelfish."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "This release adds a subfield, ErrorType, to the AthenaError response object in the GetQueryExecution API when a query fails."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Appflow",
+            "contributor": "",
+            "description": "Launching Amazon AppFlow SAP as a destination connector SDK."
+        }
+    ]
+}

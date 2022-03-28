@@ -16,14 +16,14 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyDouble;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -86,7 +86,7 @@ public class RetryableStageAdaptiveModeTest {
         retryableStage = createStage(retryPolicy);
         retryableStage.execute(createHttpRequest(), createExecutionContext());
 
-        verifyZeroInteractions(tokenBucket);
+        verifyNoMoreInteractions(tokenBucket);
     }
 
     @Test
@@ -96,7 +96,7 @@ public class RetryableStageAdaptiveModeTest {
         retryableStage = createStage(retryPolicy);
         retryableStage.execute(createHttpRequest(), createExecutionContext());
 
-        verifyZeroInteractions(tokenBucket);
+        verifyNoMoreInteractions(tokenBucket);
     }
 
     @Test

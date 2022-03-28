@@ -56,6 +56,19 @@ public interface SystemSetting {
     }
 
     /**
+     * Attempt to load a system setting from {@link System#getenv(String)}. This should NOT BE USED, so checkstyle will
+     * complain about using it. The only reason this is made available is for when we ABSOLUTELY CANNOT support a system
+     * property for a specific setting. That should be the exception, NOT the rule. We should almost always provide a system
+     * property alternative for all environment variables.
+     *
+     * @return The requested setting, or {@link Optional#empty()} if the values were not set, or the security manager did not
+     *         allow reading the setting.
+     */
+    static Optional<String> getStringValueFromEnvironmentVariable(String key) {
+        return SystemSettingUtils.resolveEnvironmentVariable(key);
+    }
+
+    /**
      * Attempt to load a system setting from {@link System#getProperty(String)} and {@link System#getenv(String)}. This should be
      * used in favor of those methods because the SDK should support both methods of configuration.
      *

@@ -53,6 +53,7 @@ public class HttpTestUtils {
                                       .dynamicHttpsPort()
                                       .keystorePath(selfSignedJks.toString())
                                       .keystorePassword("changeit")
+                                      .keyManagerPassword("changeit")
                                       .keystoreType("jks")
         );
     }
@@ -76,8 +77,18 @@ public class HttpTestUtils {
     }
 
     private static CompletableFuture<byte[]> sendRequest(int serverPort,
-                                                                  SdkAsyncHttpClient client,
-                                                                  SdkHttpMethod httpMethod) {
+                                                         SdkAsyncHttpClient client,
+                                                         SdkHttpMethod httpMethod) {
+        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                       .method(httpMethod)
+                                                       .protocol("https")
+                                                       .host("127.0.0.1")
+                                                       .port(serverPort)
+                                                       .build();
+        return sendRequest(client, request);
+    }
+
+    public static CompletableFuture<byte[]> sendRequest(SdkAsyncHttpClient client, SdkHttpFullRequest request) {
         ByteArrayOutputStream responsePayload = new ByteArrayOutputStream();
         AtomicBoolean responsePayloadReceived = new AtomicBoolean(false);
         return client.execute(AsyncExecuteRequest.builder()
@@ -98,12 +109,7 @@ public class HttpTestUtils {
                                                          public void onError(Throwable error) {
                                                          }
                                                      })
-                                                 .request(SdkHttpFullRequest.builder()
-                                                                            .method(httpMethod)
-                                                                            .protocol("https")
-                                                                            .host("127.0.0.1")
-                                                                            .port(serverPort)
-                                                                            .build())
+                                                 .request(request)
                                                  .requestContentPublisher(new EmptyPublisher())
                                                  .build())
                      .thenApply(v -> responsePayloadReceived.get() ? responsePayload.toByteArray() : null);

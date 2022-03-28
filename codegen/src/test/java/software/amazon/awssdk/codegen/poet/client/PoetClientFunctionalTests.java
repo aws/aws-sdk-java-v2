@@ -25,7 +25,6 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
 public class PoetClientFunctionalTests {
-
     @Test
     public void asyncClientClass() throws Exception {
         AsyncClientClass asyncClientClass = createAsyncClientClass(ClientTestModels.restJsonServiceModels());
@@ -41,7 +40,7 @@ public class PoetClientFunctionalTests {
     @Test
     public void simpleMethodsIntegClass() throws Exception {
         ClientSimpleMethodsIntegrationTests simpleMethodsClass = new ClientSimpleMethodsIntegrationTests(
-                ClientTestModels.restJsonServiceModels());
+            ClientTestModels.restJsonServiceModels());
         assertThat(simpleMethodsClass, generatesTo("test-simple-methods-integ-class.java"));
     }
 
@@ -104,14 +103,14 @@ public class PoetClientFunctionalTests {
     @Test
     public void asyncClientEndpointDiscovery() throws Exception {
         ClassSpec asyncClientEndpointDiscovery = new AsyncClientClass(
-                GeneratorTaskParams.create(ClientTestModels.endpointDiscoveryModels(), "sources/", "tests/"));
+            GeneratorTaskParams.create(ClientTestModels.endpointDiscoveryModels(), "sources/", "tests/"));
         assertThat(asyncClientEndpointDiscovery, generatesTo("test-endpoint-discovery-async.java"));
     }
 
     @Test
     public void asyncClientCustomServiceMetaData() throws Exception {
         ClassSpec asyncClientCustomServiceMetaData = new AsyncClientClass(
-                GeneratorTaskParams.create(ClientTestModels.customContentTypeModels(), "sources/", "tests/"));
+            GeneratorTaskParams.create(ClientTestModels.customContentTypeModels(), "sources/", "tests/"));
         assertThat(asyncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-async.java"));
     }
 
@@ -120,4 +119,5 @@ public class PoetClientFunctionalTests {
         ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(ClientTestModels.customContentTypeModels());
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-sync.java"));
     }
+
 }

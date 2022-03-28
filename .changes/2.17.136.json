@@ -1,0 +1,42 @@
+{
+    "version": "2.17.136",
+    "date": "2022-02-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Lambda releases .NET 6 managed runtime to be available in all commercial regions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "smswz",
+            "description": "Add `ClientOverrideConfiguration` getter to `SdkClientBuilder`. Allows for changing multiple overrides on a client through the client builder alone."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Textract",
+            "contributor": "",
+            "description": "Added support for merged cells and column header for table response."
+        },
+        {
+            "type": "bugfix",
+            "category": "URL Connection HTTP Client",
+            "contributor": "",
+            "description": "Fix \"java.net.ProtocolException: Server rejected operation\" when the HTTP response has no response content. If the response includes content, update the exception message to say that the Apache HTTP client may fix the problem."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "The file input selection feature provides the ability to use either the originally uploaded file or the output file from the previous workflow step, enabling customers to make multiple copies of the original file while keeping the source file intact for file archival."
+        }
+    ]
+}

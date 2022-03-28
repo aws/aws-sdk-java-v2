@@ -17,7 +17,7 @@ package software.amazon.awssdk.authcrt.signer.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.authcrt.signer.internal.SigningUtils.SIGNING_CLOCK;
 import static software.amazon.awssdk.authcrt.signer.internal.SigningUtils.buildCredentials;
@@ -32,7 +32,10 @@ import java.text.SimpleDateFormat;
 import java.time.Clock;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,14 +44,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.authcrt.signer.internal.chunkedencoding.AwsS3V4aChunkSigner;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
+import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -77,6 +83,25 @@ public class ChunkedEncodingFunctionalTest {
                                                                    "content-encoding;content-length;host;x-amz-content-sha256;x-amz-date;x-amz-decoded-content-length;x-amz-region-set;x-amz-storage-class\n" +
                                                                    "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD";
 
+    private static final String CHUNKED_TRAILER_SIGV4A_CANONICAL_REQUEST = "PUT\n" +
+                                                                           "/examplebucket/chunkObject.txt\n" +
+                                                                           "\n" +
+                                                                           "content-encoding:aws-chunked\n" +
+                                                                           "content-length:66824\n" +
+                                                                           "host:s3.amazonaws.com\n" +
+                                                                           "x-amz-content-sha256:STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD-TRAILER\n" +
+                                                                           "x-amz-date:20130524T000000Z\n" +
+                                                                           "x-amz-decoded-content-length:66560\n" +
+                                                                           "x-amz-region-set:us-east-1\n" +
+                                                                           "x-amz-storage-class:REDUCED_REDUNDANCY\n" +
+                                                                           "x-amz-trailer:first,second,third\n" +
+                                                                           "\n" +
+                                                                           "content-encoding;content-length;host;x-amz-content-sha256;x-amz-date;x-amz-decoded-content-length;x-amz-region-set;x-amz-storage-class;x-amz-trailer\n" +
+                                                                           "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD-TRAILER";
+
+
+
+
     private static final String CHUNKED_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE";
     private static final String CHUNKED_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
     private static final String CHUNKED_SIGV4A_TEST_ECC_PUB_X = "18b7d04643359f6ec270dcbab8dce6d169d66ddc9778c75cfb08dfdb701637ab";
@@ -97,6 +122,13 @@ public class ChunkedEncodingFunctionalTest {
 
     private static final String CHUNK3_STS_POST_SIGNATURE = "\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n" +
                                                             "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+    public static final String X_AMZ_TRAILER_SIGNATURE = "x-amz-trailer-signature:";
+
+    private static String TRAILING_HEADERS_STS_POST_SIGNATURE = "\n83d8f190334fb741bc8daf73c891689d320bd8017756bc730c540021ed48001f";
+
+    private static String TRAILING_HEADERS_STS_PRE_SIGNATURE = "AWS4-ECDSA-P256-SHA256-TRAILER\n" + "20130524T000000Z\n" +
+                                                               "20130524/s3/aws4_request\n";
+
 
     private static final String CRLF = "\r\n";
     private static final String SIGNATURE_KEY = "chunk-signature=";
@@ -139,8 +171,6 @@ public class ChunkedEncodingFunctionalTest {
         executionAttributes = buildBasicExecutionAttributes();
         chunkedRequestSigningConfig = createChunkedRequestSigningConfig(executionAttributes);
         chunkSigningConfig = createChunkSigningConfig(executionAttributes);
-        when(configProvider.createS3CrtSigningConfig(any())).thenReturn(chunkedRequestSigningConfig);
-        when(configProvider.createChunkedSigningConfig(any())).thenReturn(createChunkSigningConfig(buildBasicExecutionAttributes()));
     }
 
     @Test
@@ -182,25 +212,116 @@ public class ChunkedEncodingFunctionalTest {
         IOUtils.copy(stream, output);
         String result = new String(output.toByteArray(), StandardCharsets.UTF_8);
 
-        assertChunks(result, 3, requestSignature);
+        assertChunks(result, 3, requestSignature, false);
     }
 
-    private void assertChunks(String result, int numExpectedChunks, byte[] requestSignature) {
+    @Test
+    public void calling_adapter_APIs_directly_creates_correct_signatures_for_trailer_headers() throws Exception {
+        SdkHttpFullRequest sdkHttpFullRequest = createChunkedTrailerTestRequest().build();
+        chunkedRequestSigningConfig.setAlgorithm(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
+        chunkedRequestSigningConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER);
+        SdkSigningResult result = adapter.sign(sdkHttpFullRequest, chunkedRequestSigningConfig);
+        byte[] requestSignature = result.getSignature();
+
+        assertTrue(AwsSigningUtils.verifySigv4aEcdsaSignature(converter.requestToCrt(sdkHttpFullRequest),
+                                                              CHUNKED_TRAILER_SIGV4A_CANONICAL_REQUEST,
+                                                              chunkedRequestSigningConfig, requestSignature,
+                                                              CHUNKED_SIGV4A_TEST_ECC_PUB_X,
+                                                              CHUNKED_SIGV4A_TEST_ECC_PUB_Y));
+        byte[] previousSignature = result.getSignature();
+
+        for (int i = 0; i < 3; i++) {
+            byte[] currentSignature = adapter.signChunk(getChunkData(i), previousSignature, chunkSigningConfig);
+            assertTrue(AwsSigningUtils.verifyRawSha256EcdsaSignature(createStringToSign(i, previousSignature),
+                                                                     currentSignature,
+                                                                     CHUNKED_SIGV4A_TEST_ECC_PUB_X,
+                                                                     CHUNKED_SIGV4A_TEST_ECC_PUB_Y));
+            previousSignature = currentSignature;
+        }
+        updateTrailerHeaderSigningConfig();
+        Map<String, List<String>> trailerHeader = getTrailerHeaderMap();
+        AwsSigningResult trailingHeadersStringToSignResult = adapter.signTrailerHeaders(trailerHeader, previousSignature,
+                                                                                        chunkedRequestSigningConfig);
+        byte[] trailingHeadersStringToSign = buildTrailingHeadersStringToSign(previousSignature,
+                                                                              TRAILING_HEADERS_STS_POST_SIGNATURE);
+        assertTrue(AwsSigningUtils.verifyRawSha256EcdsaSignature(trailingHeadersStringToSign,
+                                                                 trailingHeadersStringToSignResult.getSignature(),
+                                                                 CHUNKED_SIGV4A_TEST_ECC_PUB_X,
+                                                                 CHUNKED_SIGV4A_TEST_ECC_PUB_Y));
+    }
+
+
+    @Test
+    public void using_a_request_stream_with_checksum_trailer_creates_correct_signatures() throws Exception {
+        SdkHttpFullRequest request = defaultHttpRequest()
+            .contentStreamProvider(() -> new ByteArrayInputStream(data))
+            .build();
+        byte[] requestSignature = createAndVerifyRequestSignature(request);
+
+        AwsS3V4aChunkSigner chunkSigner = new AwsS3V4aChunkSigner(adapter, chunkSigningConfig);
+        AwsChunkedEncodingConfig chunkedEncodingConfig = AwsChunkedEncodingConfig.builder()
+                                                                                 .chunkSize(STREAM_CHUNK_SIZE)
+                                                                                 .build();
+
+        AwsSignedChunkedEncodingInputStream stream =
+            AwsSignedChunkedEncodingInputStream.builder()
+                .checksumHeaderForTrailer("x-amz-checksum-crc32")
+                .sdkChecksum(SdkChecksum.forAlgorithm(Algorithm.CRC32))
+                                               .inputStream(request.contentStreamProvider().get().newStream())
+                                               .awsChunkSigner(chunkSigner)
+                                               .awsChunkedEncodingConfig(chunkedEncodingConfig)
+                                               .headerSignature(new String(requestSignature, StandardCharsets.UTF_8))
+                                               .build();
+
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        IOUtils.copy(stream, output);
+        String result = new String(output.toByteArray(), StandardCharsets.UTF_8);
+        assertChunks(result, 3, requestSignature, true);
+    }
+
+    private Map<String, List<String>> getTrailerHeaderMap() {
+        Map<String, List<String>> trailerHeader = new LinkedHashMap<>();
+        trailerHeader.put("first", Collections.singletonList("1st"));
+        trailerHeader.put("second", Collections.singletonList("2nd"));
+        trailerHeader.put("third", Collections.singletonList("3rd"));
+        return trailerHeader;
+    }
+
+    private void updateTrailerHeaderSigningConfig() {
+        chunkedRequestSigningConfig.setAlgorithm(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
+        chunkedRequestSigningConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_TRAILING_HEADERS);
+        chunkedRequestSigningConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
+    }
+
+
+    private void assertChunks(String result, int numExpectedChunks, byte[] requestSignature, boolean isTrailerChecksum) {
         List<String> lines = Stream.of(result.split(CRLF)).collect(Collectors.toList());
-        assertThat(lines.size()).isEqualTo(numExpectedChunks * 2 - 1);
+        assertThat(lines).hasSize(numExpectedChunks * 2 - 1 + (isTrailerChecksum ? 2 : 0));
         byte[] previousSignature = requestSignature;
+
+        int index = 0;
         for (String line : lines) {
+
             int chunk = lines.indexOf(line) / 2;
             if (lines.indexOf(line) % 2 == 0) {
-                String signatureValue = line.substring(line.indexOf(SIGNATURE_KEY) + SIGNATURE_KEY.length());
+                boolean isFinalTrailerSignature = isTrailerChecksum && index == lines.size() - 1;
+                String signatureValue = isFinalTrailerSignature ?
+                                        line.substring(line.indexOf(X_AMZ_TRAILER_SIGNATURE)
+                                                       + X_AMZ_TRAILER_SIGNATURE.length()) :
+                                        line.substring(line.indexOf(SIGNATURE_KEY) + SIGNATURE_KEY.length());
                 byte[] currentSignature = signatureValue.getBytes(StandardCharsets.UTF_8);
                 assertThat(signatureValue.length()).isEqualTo(AwsS3V4aChunkSigner.getSignatureLength());
-                assertTrue(AwsSigningUtils.verifyRawSha256EcdsaSignature(createStringToSign(chunk, previousSignature),
-                                                                         currentSignature,
-                                                                         CHUNKED_SIGV4A_TEST_ECC_PUB_X,
-                                                                         CHUNKED_SIGV4A_TEST_ECC_PUB_Y));
+                if (!isFinalTrailerSignature) {
+                    assertTrue(AwsSigningUtils.verifyRawSha256EcdsaSignature(createStringToSign(chunk, previousSignature),
+                                                                             currentSignature,
+                                                                             CHUNKED_SIGV4A_TEST_ECC_PUB_X,
+                                                                             CHUNKED_SIGV4A_TEST_ECC_PUB_Y));
+                } else {
+                    assertThat(signatureValue).hasSize(144);
+                }
                 previousSignature = currentSignature;
             }
+            index++;
         }
     }
 
@@ -270,6 +391,10 @@ public class ChunkedEncodingFunctionalTest {
                                  .putHeader("Content-Length", Integer.toString(TOTAL_CONTENT_LENGTH));
     }
 
+    private SdkHttpFullRequest.Builder createChunkedTrailerTestRequest(){
+        return defaultHttpRequest().putHeader("x-amz-trailer", "first,second,third");
+    }
+
     private byte[] getChunkData(int chunk) {
         switch(chunk) {
             case 0: return Arrays.copyOfRange(data, 0, STREAM_CHUNK_SIZE);
@@ -300,4 +425,19 @@ public class ChunkedEncodingFunctionalTest {
 
         return stsBuilder.toString().getBytes(StandardCharsets.UTF_8);
     }
+    private byte[] buildTrailingHeadersStringToSign(byte[] previousSignature, String stsPostSignature) {
+        StringBuilder stsBuilder = new StringBuilder();
+
+        stsBuilder.append(TRAILING_HEADERS_STS_PRE_SIGNATURE);
+        String signature = new String(previousSignature, StandardCharsets.UTF_8);
+        int paddingIndex = signature.indexOf('*');
+        if (paddingIndex != -1) {
+            signature = signature.substring(0, paddingIndex);
+        }
+        stsBuilder.append(signature);
+        stsBuilder.append(stsPostSignature);
+
+        return stsBuilder.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
 }

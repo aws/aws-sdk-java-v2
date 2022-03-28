@@ -161,5 +161,4 @@ public interface SdkPublisher<T> extends Publisher<T> {
         subscribe(new SequentialSubscriber<>(consumer, future));
         return future;
     }
-
 }
