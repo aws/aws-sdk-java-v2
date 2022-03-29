@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
+import software.amazon.awssdk.core.internal.io.SdkLengthAwareInputStream;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -119,11 +120,22 @@ public abstract class BaseClientHandler {
     }
 
     private static RequestBody getBody(SdkHttpFullRequest request) {
-        Optional<ContentStreamProvider> contentStreamProvider = request.contentStreamProvider();
-        if (contentStreamProvider.isPresent()) {
-            long contentLength = Long.parseLong(request.firstMatchingHeader("Content-Length").orElse("0"));
+        Optional<ContentStreamProvider> contentStreamProviderOptional = request.contentStreamProvider();
+        if (contentStreamProviderOptional.isPresent()) {
+            Optional<String> contentLengthOptional = request.firstMatchingHeader("Content-Length");
+            long contentLength = Long.parseLong(contentLengthOptional.orElse("0"));
             String contentType = request.firstMatchingHeader("Content-Type").orElse("");
-            return RequestBody.fromContentProvider(contentStreamProvider.get(), contentLength, contentType);
+
+            // Enforce the content length specified only if it was present on the request (and not the default).
+            ContentStreamProvider streamProvider = contentStreamProviderOptional.get();
+            if (contentLengthOptional.isPresent()) {
+                ContentStreamProvider toWrap = contentStreamProviderOptional.get();
+                streamProvider = () -> new SdkLengthAwareInputStream(toWrap.newStream(), contentLength);
+            }
+
+            return RequestBody.fromContentProvider(streamProvider,
+                                                   contentLength,
+                                                   contentType);
         }
 
         return null;
