@@ -17,39 +17,43 @@ package software.amazon.awssdk.core;
 
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
-import java.util.Objects;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Configuration options for {@link AsyncResponseTransformer#toFile(Path, FileTransformerConfiguration)}. All values are optional.
+ * Configuration options for {@link AsyncResponseTransformer#toFile(Path, FileTransformerConfiguration)} to configure how the SDK
+ * should write the file and if the SDK should delete the file when an exception occurs.
+ *
+ * @see #builder()
+ * @see FileWriteOption
+ * @see FailureBehavior
  */
 @SdkPublicApi
 public final class FileTransformerConfiguration implements ToCopyableBuilder<FileTransformerConfiguration.Builder,
     FileTransformerConfiguration> {
     private final FileWriteOption fileWriteOption;
-    private final Boolean deleteOnFailure;
+    private final FailureBehavior failureBehavior;
 
     private FileTransformerConfiguration(DefaultBuilder builder) {
-        this.fileWriteOption = builder.fileWriteOption;
-        this.deleteOnFailure = builder.deleteOnFailure;
+        this.fileWriteOption = Validate.paramNotNull(builder.fileWriteOption, "fileWriteOption");
+        this.failureBehavior = Validate.paramNotNull(builder.failureBehavior, "failureBehavior");
     }
 
     /**
-     * The configured {@link FileWriteOption} or {@link Optional#empty()} if not configured
+     * The configured {@link FileWriteOption}
      */
-    public Optional<FileWriteOption> fileWriteOption() {
-        return Optional.ofNullable(fileWriteOption);
+    public FileWriteOption fileWriteOption() {
+        return fileWriteOption;
     }
 
     /**
-     * Whether to delete the file in the event of a failure.
+     * The configured {@link FailureBehavior}
      */
-    public Optional<Boolean> deleteOnFailure() {
-        return Optional.ofNullable(deleteOnFailure);
+    public FailureBehavior failureBehavior() {
+        return failureBehavior;
     }
 
     /**
@@ -59,10 +63,46 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         return new DefaultBuilder();
     }
 
+    /**
+     * Returns the default {@link FileTransformerConfiguration} for {@link FileWriteOption#CREATE_NEW}
+     * <p>
+     * Always create a new file. If the file already exists, {@link FileAlreadyExistsException} will be thrown.
+     * In the event of an error, the SDK will attempt to delete the file (whatever has been written to it so far).
+     */
+    public static FileTransformerConfiguration defaultCreateNew() {
+        return builder().fileWriteOption(FileWriteOption.CREATE_NEW)
+                        .failureBehavior(FailureBehavior.DELETE)
+                        .build();
+    }
+
+    /**
+     * Returns the default {@link FileTransformerConfiguration} for {@link FileWriteOption#CREATE_OR_REPLACE_EXISTING}
+     * <p>
+     * Create a new file if it doesn't exist, otherwise replace the existing file.
+     * In the event of an error, the SDK will attempt to delete the file (whatever has been written to it so far).
+     */
+    public static FileTransformerConfiguration defaultCreateOrReplaceExisting() {
+        return builder().fileWriteOption(FileWriteOption.CREATE_OR_REPLACE_EXISTING)
+                        .failureBehavior(FailureBehavior.DELETE)
+                        .build();
+    }
+
+    /**
+     * Returns the default {@link FileTransformerConfiguration} for {@link FileWriteOption#CREATE_OR_APPEND_EXISTING}
+     * <p>
+     * Create a new file if it doesn't exist, otherwise append to the existing file.
+     * In the event of an error, the SDK will NOT attempt to delete the file, leaving it as-is
+     */
+    public static FileTransformerConfiguration defaultCreateOrAppend() {
+        return builder().fileWriteOption(FileWriteOption.CREATE_OR_APPEND_EXISTING)
+                        .failureBehavior(FailureBehavior.LEAVE)
+                        .build();
+    }
+
     @Override
     public Builder toBuilder() {
         return new DefaultBuilder().fileWriteOption(fileWriteOption)
-                                   .deleteOnFailure(deleteOnFailure);
+                                   .failureBehavior(failureBehavior);
     }
 
     @Override
@@ -79,42 +119,56 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         if (fileWriteOption != that.fileWriteOption) {
             return false;
         }
-        return Objects.equals(deleteOnFailure, that.deleteOnFailure);
+        return failureBehavior == that.failureBehavior;
     }
 
     @Override
     public int hashCode() {
         int result = fileWriteOption != null ? fileWriteOption.hashCode() : 0;
-        result = 31 * result + (deleteOnFailure != null ? deleteOnFailure.hashCode() : 0);
+        result = 31 * result + (failureBehavior != null ? failureBehavior.hashCode() : 0);
         return result;
     }
 
+    /**
+     * Defines how the SDK should write the file
+     */
     public enum FileWriteOption {
         /**
          * Always create a new file. If the file already exists, {@link FileAlreadyExistsException} will be thrown.
-         * In the event of an error, the SDK will attempt to delete the file (whatever has been written to it so far).
          */
         CREATE_NEW,
 
         /**
          * Create a new file if it doesn't exist, otherwise replace the existing file.
-         * <p>
-         * In the event of an error, the SDK will NOT attempt to delete the file.
          */
         CREATE_OR_REPLACE_EXISTING,
 
         /**
          * Create a new file if it doesn't exist, otherwise append to the existing file.
-         * <p>
-         * In the event of an error, the SDK will NOT attempt to delete the file.
          */
         CREATE_OR_APPEND_EXISTING
+    }
+
+    /**
+     * Defines how the SDK should handle the file if there is an exception
+     */
+    public enum FailureBehavior {
+        /**
+         * In the event of an error, the SDK will attempt to delete the file (whatever has been written to it so far).
+         */
+        DELETE,
+
+        /**
+         * In the event of an error, the SDK will NOT attempt to delete the file and leave the file as-is (whatever has been
+         * written to it so far)
+         */
+        LEAVE
     }
 
     public interface Builder extends CopyableBuilder<Builder, FileTransformerConfiguration> {
 
         /**
-         * Configures the file write option
+         * Configures how to write the file
          *
          * @param fileWriteOption the file write option
          * @return This object for method chaining.
@@ -122,17 +176,17 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         Builder fileWriteOption(FileWriteOption fileWriteOption);
 
         /**
-         * Configures whether the file should be deleted in the event of an error
+         * Configures the {@link FailureBehavior} in the event of an error
          *
-         * @param deleteOnFailure whether to delete the file upon failure
+         * @param failureBehavior the failure behavior
          * @return This object for method chaining.
          */
-        Builder deleteOnFailure(Boolean deleteOnFailure);
+        Builder failureBehavior(FailureBehavior failureBehavior);
     }
 
     private static class DefaultBuilder implements Builder {
         private FileWriteOption fileWriteOption;
-        private Boolean deleteOnFailure;
+        private FailureBehavior failureBehavior;
 
         @Override
         public Builder fileWriteOption(FileWriteOption fileWriteOption) {
@@ -141,8 +195,8 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         }
 
         @Override
-        public Builder deleteOnFailure(Boolean deleteOnFailure) {
-            this.deleteOnFailure = deleteOnFailure;
+        public Builder failureBehavior(FailureBehavior failureBehavior) {
+            this.failureBehavior = failureBehavior;
             return this;
         }
 

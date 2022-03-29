@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior.DELETE;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_NEW;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
@@ -26,6 +27,7 @@ class FileTransformerConfigurationTest {
     @Test
     void equalsHashcode() {
         EqualsVerifier.forClass(FileTransformerConfiguration.class)
+                      .withNonnullFields("fileWriteOption", "failureBehavior")
                       .verify();
 
     }
@@ -34,7 +36,7 @@ class FileTransformerConfigurationTest {
     void toBuilder() {
         FileTransformerConfiguration configuration =
             FileTransformerConfiguration.builder()
-                                        .deleteOnFailure(true)
+                                        .failureBehavior(DELETE)
                                         .fileWriteOption(CREATE_NEW)
                                         .build();
 

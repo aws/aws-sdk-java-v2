@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_OR_REPLACE_EXISTING;
-
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -223,9 +221,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
             AsyncResponseTransformer.toFile(downloadRequest.destination(),
-                                            FileTransformerConfiguration.builder()
-                                                                        .fileWriteOption(CREATE_OR_REPLACE_EXISTING)
-                                                                        .build());
+                                            FileTransformerConfiguration.defaultCreateOrReplaceExisting());
 
         CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
 

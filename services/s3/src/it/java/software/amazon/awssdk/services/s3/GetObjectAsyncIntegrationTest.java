@@ -17,8 +17,6 @@ package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_OR_APPEND_EXISTING;
-import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_OR_REPLACE_EXISTING;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.File;
@@ -100,9 +98,7 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
         GetObjectResponse response = null;
         try {
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
-                AsyncResponseTransformer.toFile(fileToWrite, FileTransformerConfiguration.builder()
-                                                                                         .fileWriteOption(CREATE_OR_REPLACE_EXISTING)
-                                                                                         .build());
+                AsyncResponseTransformer.toFile(fileToWrite, FileTransformerConfiguration.defaultCreateOrReplaceExisting());
             s3Async.getObject(getObjectRequest, transformer).join();
         } finally {
             assertThat(Md5Utils.md5AsBase64(fileToWrite)).isEqualTo(Md5Utils.md5AsBase64(file));
@@ -118,9 +114,7 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
         GetObjectResponse response = null;
         try {
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
-                AsyncResponseTransformer.toFile(fileToWrite, FileTransformerConfiguration.builder()
-                                                                                         .fileWriteOption(CREATE_OR_APPEND_EXISTING)
-                                                                                         .build());
+                AsyncResponseTransformer.toFile(fileToWrite, FileTransformerConfiguration.defaultCreateOrAppend());
             response = s3Async.getObject(getObjectRequest, transformer).join();
         } finally {
             assertThat(fileToWrite.length()).isEqualTo(file.length() + bytes.length);

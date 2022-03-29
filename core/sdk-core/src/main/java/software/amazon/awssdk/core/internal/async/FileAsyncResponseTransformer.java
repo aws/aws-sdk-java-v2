@@ -33,7 +33,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
-import software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption;
+import software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -50,25 +50,22 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     private volatile CompletableFuture<Void> cf;
     private volatile ResponseT response;
     private final long position;
-    private final FileWriteOption fileWriteOption;
-    private final boolean deleteOnFailure;
+    private final FileTransformerConfiguration configuration;
 
     public FileAsyncResponseTransformer(Path path) {
         this.path = path;
-        this.fileWriteOption = FileWriteOption.CREATE_NEW;
-        this.deleteOnFailure = true;
+        this.configuration = FileTransformerConfiguration.defaultCreateNew();
         this.position = 0L;
     }
 
     public FileAsyncResponseTransformer(Path path, FileTransformerConfiguration fileConfiguration) {
         this.path = path;
-        this.fileWriteOption = fileConfiguration.fileWriteOption().orElse(FileWriteOption.CREATE_NEW);
+        this.configuration = fileConfiguration;
         this.position = determineFilePositionToWrite(path);
-        this.deleteOnFailure = fileConfiguration.deleteOnFailure().orElse(true);
     }
 
     private long determineFilePositionToWrite(Path path) {
-        if (fileWriteOption == CREATE_OR_APPEND_EXISTING) {
+        if (configuration.fileWriteOption() == CREATE_OR_APPEND_EXISTING) {
             try {
                 return Files.size(path);
             } catch (NoSuchFileException e) {
@@ -81,7 +78,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     }
 
     private AsynchronousFileChannel createChannel(Path path) throws IOException {
-        switch (fileWriteOption) {
+        switch (configuration.fileWriteOption()) {
             case CREATE_OR_APPEND_EXISTING:
                 return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
             case CREATE_OR_REPLACE_EXISTING:
@@ -90,7 +87,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
             case CREATE_NEW:
                 return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
             default:
-                throw new IllegalArgumentException("Unsupported file write option: " + fileWriteOption);
+                throw new IllegalArgumentException("Unsupported file write option: " + configuration.fileWriteOption());
         }
     }
 
@@ -125,7 +122,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                 invokeSafely(fileChannel::close);
             }
         } finally {
-            if (deleteOnFailure) {
+            if (configuration.failureBehavior() == FailureBehavior.DELETE) {
                 invokeSafely(() -> Files.deleteIfExists(path));
             }
         }

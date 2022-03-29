@@ -17,6 +17,8 @@ package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior.DELETE;
+import static software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior.LEAVE;
 
 import com.google.common.jimfs.Jimfs;
 import io.reactivex.Flowable;
@@ -125,9 +127,7 @@ class FileAsyncResponseTransformerTest {
         assertThat(testPath).doesNotExist();
         String newContent = RandomStringUtils.randomAlphanumeric(2000);
         FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath,
-                                                                                              FileTransformerConfiguration.builder()
-                                                                                                                          .fileWriteOption(FileWriteOption.CREATE_OR_REPLACE_EXISTING)
-                                                                                                                          .build());
+                                                                                              FileTransformerConfiguration.defaultCreateOrReplaceExisting());
 
         stubSuccessfulStreaming(newContent, transformer);
         assertThat(testPath).hasContent(newContent);
@@ -145,9 +145,7 @@ class FileAsyncResponseTransformerTest {
         int newBytesLength = 10;
         String newContent = RandomStringUtils.randomAlphanumeric(newBytesLength);
         FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath,
-                                                                                              FileTransformerConfiguration.builder()
-                                                                                                                          .fileWriteOption(FileWriteOption.CREATE_OR_REPLACE_EXISTING)
-                                                                                                                          .build());
+                                                                                              FileTransformerConfiguration.defaultCreateOrReplaceExisting());
         stubSuccessfulStreaming(newContent, transformer);
         assertThat(testPath).hasContent(newContent);
     }
@@ -158,9 +156,7 @@ class FileAsyncResponseTransformerTest {
         assertThat(testPath).doesNotExist();
         String newContent = RandomStringUtils.randomAlphanumeric(500);
         FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath,
-                                                                                              FileTransformerConfiguration.builder()
-                                                                                                                          .fileWriteOption(FileWriteOption.CREATE_OR_APPEND_EXISTING)
-                                                                                                                          .build());
+                                                                                              FileTransformerConfiguration.defaultCreateOrAppend());
         stubSuccessfulStreaming(newContent, transformer);
         assertThat(testPath).hasContent(newContent);
     }
@@ -173,9 +169,7 @@ class FileAsyncResponseTransformerTest {
         Files.write(testPath, existingBytes);
         String content = RandomStringUtils.randomAlphanumeric(20);
         FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath,
-                                                                                              FileTransformerConfiguration.builder()
-                                                                                                                          .fileWriteOption(FileWriteOption.CREATE_OR_APPEND_EXISTING)
-                                                                                                                          .build());
+                                                                                              FileTransformerConfiguration.defaultCreateOrAppend());
         stubSuccessfulStreaming(content, transformer);
         assertThat(testPath).hasContent(existingString + content);
     }
@@ -187,7 +181,7 @@ class FileAsyncResponseTransformerTest {
         FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath,
                                                                                               configuration);
         stubException(RandomStringUtils.random(200), transformer);
-        if (configuration.deleteOnFailure().filter(i -> !i).isPresent()) {
+        if (configuration.failureBehavior() == LEAVE) {
             assertThat(testPath).exists();
         } else {
             assertThat(testPath).doesNotExist();
@@ -196,25 +190,27 @@ class FileAsyncResponseTransformerTest {
 
     private static List<FileTransformerConfiguration> configurations() {
         return Arrays.asList(
-            FileTransformerConfiguration.builder().build(),
+            FileTransformerConfiguration.defaultCreateNew(),
+            FileTransformerConfiguration.defaultCreateOrAppend(),
+            FileTransformerConfiguration.defaultCreateOrReplaceExisting(),
             FileTransformerConfiguration.builder()
                                         .fileWriteOption(FileWriteOption.CREATE_NEW)
-                                        .deleteOnFailure(true).build(),
+                                        .failureBehavior(LEAVE).build(),
             FileTransformerConfiguration.builder()
                                         .fileWriteOption(FileWriteOption.CREATE_NEW)
-                                        .deleteOnFailure(false).build(),
+                                        .failureBehavior(DELETE).build(),
             FileTransformerConfiguration.builder()
                                         .fileWriteOption(FileWriteOption.CREATE_OR_APPEND_EXISTING)
-                                        .deleteOnFailure(true).build(),
+                                        .failureBehavior(DELETE).build(),
             FileTransformerConfiguration.builder()
                                         .fileWriteOption(FileWriteOption.CREATE_OR_APPEND_EXISTING)
-                                        .deleteOnFailure(false).build(),
+                                        .failureBehavior(LEAVE).build(),
             FileTransformerConfiguration.builder()
                                         .fileWriteOption(FileWriteOption.CREATE_OR_REPLACE_EXISTING)
-                                        .deleteOnFailure(true).build(),
+                                        .failureBehavior(DELETE).build(),
             FileTransformerConfiguration.builder()
                                         .fileWriteOption(FileWriteOption.CREATE_OR_REPLACE_EXISTING)
-                                        .deleteOnFailure(false).build());
+                                        .failureBehavior(LEAVE).build());
     }
 
     private static void stubSuccessfulStreaming(String newContent, FileAsyncResponseTransformer<String> transformer) throws Exception {
