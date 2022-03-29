@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -147,7 +146,6 @@ public final class SimpleStruct implements SdkPojo, Serializable, ToCopyableBuil
         }
 
         @Override
-        @Transient
         public final Builder stringMember(String stringMember) {
             this.stringMember = stringMember;
             return this;

@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.time.Instant;
@@ -2989,7 +2988,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder stringMember(String stringMember) {
             Object oldValue = this.stringMember;
             this.stringMember = stringMember;
@@ -3008,7 +3006,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder integerMember(Integer integerMember) {
             Object oldValue = this.integerMember;
             this.integerMember = integerMember;
@@ -3027,7 +3024,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder booleanMember(Boolean booleanMember) {
             Object oldValue = this.booleanMember;
             this.booleanMember = booleanMember;
@@ -3046,7 +3042,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder floatMember(Float floatMember) {
             Object oldValue = this.floatMember;
             this.floatMember = floatMember;
@@ -3065,7 +3060,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder doubleMember(Double doubleMember) {
             Object oldValue = this.doubleMember;
             this.doubleMember = doubleMember;
@@ -3084,7 +3078,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder longMember(Long longMember) {
             Object oldValue = this.longMember;
             this.longMember = longMember;
@@ -3103,7 +3096,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder shortMember(Short shortMember) {
             Object oldValue = this.shortMember;
             this.shortMember = shortMember;
@@ -3125,7 +3117,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder simpleList(Collection<String> simpleList) {
             Object oldValue = this.simpleList;
             this.simpleList = ListOfStringsCopier.copy(simpleList);
@@ -3134,7 +3125,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder simpleList(String... simpleList) {
             simpleList(Arrays.asList(simpleList));
@@ -3155,7 +3145,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder listOfEnumsWithStrings(Collection<String> listOfEnums) {
             Object oldValue = this.listOfEnums;
             this.listOfEnums = ListOfEnumsCopier.copy(listOfEnums);
@@ -3164,7 +3153,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfEnumsWithStrings(String... listOfEnums) {
             listOfEnumsWithStrings(Arrays.asList(listOfEnums));
@@ -3172,7 +3160,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder listOfEnums(Collection<EnumType> listOfEnums) {
             Object oldValue = this.listOfEnums;
             this.listOfEnums = ListOfEnumsCopier.copyEnumToString(listOfEnums);
@@ -3181,7 +3168,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfEnums(EnumType... listOfEnums) {
             listOfEnums(Arrays.asList(listOfEnums));
@@ -3202,7 +3188,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder listOfMaps(Collection<? extends Map<String, String>> listOfMaps) {
             Object oldValue = this.listOfMaps;
             this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
@@ -3211,7 +3196,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfMaps(Map<String, String>... listOfMaps) {
             listOfMaps(Arrays.asList(listOfMaps));
@@ -3233,7 +3217,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder listOfStructs(Collection<SimpleStruct> listOfStructs) {
             Object oldValue = this.listOfStructs;
             this.listOfStructs = ListOfSimpleStructsCopier.copy(listOfStructs);
@@ -3242,7 +3225,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfStructs(SimpleStruct... listOfStructs) {
             listOfStructs(Arrays.asList(listOfStructs));
@@ -3250,7 +3232,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfStructs(Consumer<SimpleStruct.Builder>... listOfStructs) {
             listOfStructs(Stream.of(listOfStructs).map(c -> SimpleStruct.builder().applyMutation(c).build())
@@ -3272,7 +3253,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder listOfMapOfEnumToStringWithStrings(Collection<? extends Map<String, String>> listOfMapOfEnumToString) {
             Object oldValue = this.listOfMapOfEnumToString;
             this.listOfMapOfEnumToString = ListOfMapOfEnumToStringCopier.copy(listOfMapOfEnumToString);
@@ -3281,7 +3261,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfMapOfEnumToStringWithStrings(Map<String, String>... listOfMapOfEnumToString) {
             listOfMapOfEnumToStringWithStrings(Arrays.asList(listOfMapOfEnumToString));
@@ -3305,7 +3284,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder listOfMapOfStringToStruct(Collection<? extends Map<String, SimpleStruct>> listOfMapOfStringToStruct) {
             Object oldValue = this.listOfMapOfStringToStruct;
             this.listOfMapOfStringToStruct = ListOfMapOfStringToStructCopier.copy(listOfMapOfStringToStruct);
@@ -3314,7 +3292,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfMapOfStringToStruct(Map<String, SimpleStruct>... listOfMapOfStringToStruct) {
             listOfMapOfStringToStruct(Arrays.asList(listOfMapOfStringToStruct));
@@ -3335,7 +3312,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToIntegerList(Map<String, ? extends Collection<Integer>> mapOfStringToIntegerList) {
             Object oldValue = this.mapOfStringToIntegerList;
             this.mapOfStringToIntegerList = MapOfStringToIntegerListCopier.copy(mapOfStringToIntegerList);
@@ -3357,7 +3333,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToString(Map<String, String> mapOfStringToString) {
             Object oldValue = this.mapOfStringToString;
             this.mapOfStringToString = MapOfStringToStringCopier.copy(mapOfStringToString);
@@ -3381,7 +3356,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToSimpleStruct(Map<String, SimpleStruct> mapOfStringToSimpleStruct) {
             Object oldValue = this.mapOfStringToSimpleStruct;
             this.mapOfStringToSimpleStruct = MapOfStringToSimpleStructCopier.copy(mapOfStringToSimpleStruct);
@@ -3403,7 +3377,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToEnumWithStrings(Map<String, String> mapOfEnumToEnum) {
             Object oldValue = this.mapOfEnumToEnum;
             this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copy(mapOfEnumToEnum);
@@ -3412,7 +3385,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToEnum(Map<EnumType, EnumType> mapOfEnumToEnum) {
             Object oldValue = this.mapOfEnumToEnum;
             this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copyEnumToString(mapOfEnumToEnum);
@@ -3434,7 +3406,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToStringWithStrings(Map<String, String> mapOfEnumToString) {
             Object oldValue = this.mapOfEnumToString;
             this.mapOfEnumToString = MapOfEnumToStringCopier.copy(mapOfEnumToString);
@@ -3443,7 +3414,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToString(Map<EnumType, String> mapOfEnumToString) {
             Object oldValue = this.mapOfEnumToString;
             this.mapOfEnumToString = MapOfEnumToStringCopier.copyEnumToString(mapOfEnumToString);
@@ -3465,7 +3435,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToEnumWithStrings(Map<String, String> mapOfStringToEnum) {
             Object oldValue = this.mapOfStringToEnum;
             this.mapOfStringToEnum = MapOfStringToEnumCopier.copy(mapOfStringToEnum);
@@ -3474,7 +3443,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToEnum(Map<String, EnumType> mapOfStringToEnum) {
             Object oldValue = this.mapOfStringToEnum;
             this.mapOfStringToEnum = MapOfStringToEnumCopier.copyEnumToString(mapOfStringToEnum);
@@ -3497,7 +3465,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToSimpleStructWithStrings(Map<String, SimpleStruct> mapOfEnumToSimpleStruct) {
             Object oldValue = this.mapOfEnumToSimpleStruct;
             this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copy(mapOfEnumToSimpleStruct);
@@ -3506,7 +3473,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToSimpleStruct(Map<EnumType, SimpleStruct> mapOfEnumToSimpleStruct) {
             Object oldValue = this.mapOfEnumToSimpleStruct;
             this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copyEnumToString(mapOfEnumToSimpleStruct);
@@ -3528,7 +3494,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToListOfEnumsWithStrings(Map<String, ? extends Collection<String>> mapOfEnumToListOfEnums) {
             Object oldValue = this.mapOfEnumToListOfEnums;
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copy(mapOfEnumToListOfEnums);
@@ -3537,7 +3502,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToListOfEnums(Map<EnumType, ? extends Collection<EnumType>> mapOfEnumToListOfEnums) {
             Object oldValue = this.mapOfEnumToListOfEnums;
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copyEnumToString(mapOfEnumToListOfEnums);
@@ -3559,7 +3523,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToMapOfStringToEnumWithStrings(
             Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
             Object oldValue = this.mapOfEnumToMapOfStringToEnum;
@@ -3569,7 +3532,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToMapOfStringToEnum(
             Map<EnumType, ? extends Map<String, EnumType>> mapOfEnumToMapOfStringToEnum) {
             Object oldValue = this.mapOfEnumToMapOfStringToEnum;
@@ -3589,7 +3551,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder timestampMember(Instant timestampMember) {
             Object oldValue = this.timestampMember;
             this.timestampMember = timestampMember;
@@ -3609,7 +3570,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder structWithNestedTimestampMember(StructWithTimestamp structWithNestedTimestampMember) {
             Object oldValue = this.structWithNestedTimestampMember;
             this.structWithNestedTimestampMember = structWithNestedTimestampMember;
@@ -3626,7 +3586,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder blobArg(SdkBytes blobArg) {
             Object oldValue = this.blobArg;
             this.blobArg = blobArg;
@@ -3645,7 +3604,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder structWithNestedBlob(StructWithNestedBlobType structWithNestedBlob) {
             Object oldValue = this.structWithNestedBlob;
             this.structWithNestedBlob = structWithNestedBlob;
@@ -3667,7 +3625,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder blobMap(Map<String, SdkBytes> blobMap) {
             Object oldValue = this.blobMap;
             this.blobMap = BlobMapTypeCopier.copy(blobMap);
@@ -3688,7 +3645,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder listOfBlobs(Collection<SdkBytes> listOfBlobs) {
             Object oldValue = this.listOfBlobs;
             this.listOfBlobs = ListOfBlobsTypeCopier.copy(listOfBlobs);
@@ -3697,7 +3653,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfBlobs(SdkBytes... listOfBlobs) {
             listOfBlobs(Arrays.asList(listOfBlobs));
@@ -3715,7 +3670,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder recursiveStruct(RecursiveStructType recursiveStruct) {
             Object oldValue = this.recursiveStruct;
             this.recursiveStruct = recursiveStruct;
@@ -3734,7 +3688,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder polymorphicTypeWithSubTypes(BaseType polymorphicTypeWithSubTypes) {
             Object oldValue = this.polymorphicTypeWithSubTypes;
             this.polymorphicTypeWithSubTypes = polymorphicTypeWithSubTypes;
@@ -3754,7 +3707,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder polymorphicTypeWithoutSubTypes(SubTypeOne polymorphicTypeWithoutSubTypes) {
             Object oldValue = this.polymorphicTypeWithoutSubTypes;
             this.polymorphicTypeWithoutSubTypes = polymorphicTypeWithoutSubTypes;
@@ -3773,7 +3725,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder enumType(String enumType) {
             Object oldValue = this.enumType;
             this.enumType = enumType;
@@ -3782,7 +3733,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder enumType(EnumType enumType) {
             this.enumType(enumType == null ? null : enumType.toString());
             return this;
@@ -3799,7 +3749,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder underscore_Name_Type(Underscore_Name_Type underscore_Name_Type) {
             Object oldValue = this.underscore_Name_Type;
             this.underscore_Name_Type = underscore_Name_Type;
@@ -3818,7 +3767,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder myDocument(Document myDocument) {
             Object oldValue = this.myDocument;
             this.myDocument = myDocument;
@@ -3837,7 +3785,6 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder allTypesUnionStructure(AllTypesUnionStructure allTypesUnionStructure) {
             Object oldValue = this.allTypesUnionStructure;
             this.allTypesUnionStructure = allTypesUnionStructure;
