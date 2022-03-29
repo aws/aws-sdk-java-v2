@@ -19,7 +19,9 @@ import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
@@ -52,6 +54,7 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
  * @param <R> the class that the value of this attribute converts to.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class StaticAttribute<T, R> {
     private final ImmutableAttribute<T, T, R> delegateAttribute;
 
@@ -139,6 +142,7 @@ public final class StaticAttribute<T, R> {
      * @param <T> the class of the item this attribute maps into.
      * @param <R> the class that the value of this attribute converts to.
      */
+    @NotThreadSafe
     public static final class Builder<T, R> {
         private final ImmutableAttribute.Builder<T, T, R> delegateBuilder;
 

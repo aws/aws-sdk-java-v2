@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
@@ -249,6 +250,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
     /**
      * A builder for configuring and creating {@link DefaultAttributeConverterProvider}s.
      */
+    @NotThreadSafe
     public static class Builder {
         private List<AttributeConverter<?>> converters = new ArrayList<>();
 

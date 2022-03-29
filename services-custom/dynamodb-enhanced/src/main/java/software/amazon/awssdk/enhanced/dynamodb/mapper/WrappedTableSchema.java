@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * @param <R> The actual type of the {@link TableSchema} being proxied.
  */
 @SdkPublicApi
+@ThreadSafe
 public abstract class WrappedTableSchema<T, R extends TableSchema<T>> implements TableSchema<T> {
     private final R delegateTableSchema;
 

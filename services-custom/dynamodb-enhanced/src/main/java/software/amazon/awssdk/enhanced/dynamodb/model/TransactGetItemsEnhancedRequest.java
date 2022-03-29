@@ -20,7 +20,9 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUt
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
@@ -39,6 +41,7 @@ import software.amazon.awssdk.services.dynamodb.model.TransactGetItem;
  * .
  */
 @SdkPublicApi
+@ThreadSafe
 public final class TransactGetItemsEnhancedRequest {
 
     private final List<TransactGetItem> transactGetItems;
@@ -85,6 +88,7 @@ public final class TransactGetItemsEnhancedRequest {
      * <p>
      * A valid builder should contain at least one {@link GetItemEnhancedRequest} added through addGetItem().
      */
+    @NotThreadSafe
     public static final class Builder {
         private List<Supplier<TransactGetItem>> itemSupplierList = new ArrayList<>();
 

@@ -16,9 +16,11 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 @SdkPublicApi
+@ThreadSafe
 public enum AttributeValueType {
     B(ScalarAttributeType.B),        // binary
     BOOL,                            // boolean

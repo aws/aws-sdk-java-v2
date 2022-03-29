@@ -16,7 +16,9 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.Objects;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -32,6 +34,7 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionChe
  * @param <T> The type of the modelled object.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class TransactPutItemEnhancedRequest<T> {
     private final T item;
     private final Expression conditionExpression;
@@ -138,6 +141,7 @@ public final class TransactPutItemEnhancedRequest<T> {
      * <p>
      * <b>Note</b>: A valid request builder must define an item.
      */
+    @NotThreadSafe
     public static final class Builder<T> {
         private T item;
         private Expression conditionExpression;

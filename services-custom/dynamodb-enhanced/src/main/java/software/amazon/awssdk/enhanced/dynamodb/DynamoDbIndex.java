@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
  * @param <T> The type of the modelled object.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface DynamoDbIndex<T> {
 
     /**

@@ -16,7 +16,9 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.Objects;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
@@ -29,6 +31,7 @@ import software.amazon.awssdk.utils.Validate;
  * {@link DynamoDbTable#describeTable()} and {@link DynamoDbAsyncTable#describeTable()}
  */
 @SdkPublicApi
+@ThreadSafe
 public final class DescribeTableEnhancedResponse {
     private final DescribeTableResponse response;
 
@@ -75,6 +78,7 @@ public final class DescribeTableEnhancedResponse {
         return new Builder();
     }
 
+    @NotThreadSafe
     public static final class Builder {
         private DescribeTableResponse response;
 

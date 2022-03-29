@@ -23,7 +23,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
@@ -52,6 +54,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * written to the database, the record version number will be automatically incremented.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class VersionedRecordExtension implements DynamoDbEnhancedClientExtension {
     private static final Function<String, String> EXPRESSION_KEY_MAPPER = key -> ":old_" + key + "_value";
     private static final String CUSTOM_METADATA_KEY = "VersionedRecordExtension:VersionAttribute";
@@ -135,6 +138,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                 .build();
     }
 
+    @NotThreadSafe
     public static final class Builder {
         private Builder() {
         }
