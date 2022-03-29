@@ -84,6 +84,8 @@ public class MemberModel extends DocumentationModel {
 
     private String beanStyleSetterName;
 
+    private String unionEnumTypeName;
+
     private boolean isJsonValue;
 
     private String timestampFormat;
@@ -481,7 +483,7 @@ public class MemberModel extends DocumentationModel {
     public String getDefaultConsumerFluentSetterDocumentation() {
         return (StringUtils.isNotBlank(documentation) ? documentation : defaultSetter().replace("%s", name) + "\n")
                + LF
-               + "This is a convenience that creates an instance of the {@link "
+               + "This is a convenience method that creates an instance of the {@link "
                + variable.getSimpleType()
                + ".Builder} avoiding the need to create one manually via {@link "
                + variable.getSimpleType()
@@ -507,6 +509,13 @@ public class MemberModel extends DocumentationModel {
                + "("
                + variable.getSimpleType()
                + ")";
+    }
+
+    public String getUnionConstructorDocumentation() {
+        return "Create an instance of this class with {@link #" + this.getFluentGetterMethodName() +
+               "()} initialized to the given value." +
+               LF + LF +
+               getSetterDocumentation();
     }
 
     private String getParamDoc() {
@@ -725,5 +734,13 @@ public class MemberModel extends DocumentationModel {
 
     public void setDeprecatedBeanStyleSetterMethodName(String deprecatedBeanStyleSetterMethodName) {
         this.deprecatedBeanStyleSetterMethodName = deprecatedBeanStyleSetterMethodName;
+    }
+
+    public String getUnionEnumTypeName() {
+        return unionEnumTypeName;
+    }
+
+    public void setUnionEnumTypeName(String unionEnumTypeName) {
+        this.unionEnumTypeName = unionEnumTypeName;
     }
 }

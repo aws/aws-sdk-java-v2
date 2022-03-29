@@ -275,8 +275,8 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         /**
          * Sets the value of the RecursiveStruct property for this object.
          *
-         * This is a convenience that creates an instance of the {@link RecursiveStructType.Builder} avoiding the need
-         * to create one manually via {@link RecursiveStructType#builder()}.
+         * This is a convenience method that creates an instance of the {@link RecursiveStructType.Builder} avoiding the
+         * need to create one manually via {@link RecursiveStructType#builder()}.
          *
          * When the {@link Consumer} completes, {@link RecursiveStructType.Builder#build()} is called immediately and
          * its result is passed to {@link #recursiveStruct(RecursiveStructType)}.
@@ -311,8 +311,8 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         /**
          * Sets the value of the RecursiveList property for this object.
          *
-         * This is a convenience that creates an instance of the {@link List<RecursiveStructType>.Builder} avoiding the
-         * need to create one manually via {@link List<RecursiveStructType>#builder()}.
+         * This is a convenience method that creates an instance of the {@link List<RecursiveStructType>.Builder}
+         * avoiding the need to create one manually via {@link List<RecursiveStructType>#builder()}.
          *
          * When the {@link Consumer} completes, {@link List<RecursiveStructType>.Builder#build()} is called immediately
          * and its result is passed to {@link #recursiveList(List<RecursiveStructType>)}.

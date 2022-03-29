@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
+import static java.util.Collections.emptyList;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
+import static javax.lang.model.element.Modifier.STATIC;
+import static software.amazon.awssdk.codegen.internal.Utils.capitalize;
 import static software.amazon.awssdk.codegen.poet.model.DeprecationUtils.checkDeprecated;
 
 import com.squareup.javapoet.ClassName;
@@ -54,9 +57,11 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
+import software.amazon.awssdk.codegen.poet.model.TypeProvider.TypeNameOptions;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
@@ -106,6 +111,11 @@ public class AwsServiceModel implements ClassSpec {
                                                .addMethod(addModifier(sdkFieldsMethod(), FINAL))
                                                .addTypes(nestedModelClassTypes());
 
+
+        if (shapeModel.isUnion()) {
+            specBuilder.addField(unionTypeField());
+        }
+
         if (!isEvent()) {
             specBuilder.addModifiers(Modifier.FINAL);
         }
@@ -113,7 +123,7 @@ public class AwsServiceModel implements ClassSpec {
         // Add serializable version UID for model and exceptions.
         if (shapeModel.getShapeType() == ShapeType.Model || shapeModel.getShapeType() == ShapeType.Exception) {
             specBuilder.addField(FieldSpec.builder(long.class, "serialVersionUID",
-                                                   Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                                                   Modifier.PRIVATE, STATIC, Modifier.FINAL)
                                           .initializer("1L")
                                           .build());
         }
@@ -171,7 +181,7 @@ public class AwsServiceModel implements ClassSpec {
             builder.addSuperinterface(ClassName.get(SdkPojo.class))
                    .addJavadoc("Base interface for all event types in $L.", shapeModel.getShapeName())
                     .addField(FieldSpec.builder(modelClass, "UNKNOWN")
-                                    .addModifiers(PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                                    .addModifiers(PUBLIC, STATIC, Modifier.FINAL)
                                     .initializer(unknownInitializer)
                                     .addJavadoc("Special type of {@link $T} for unknown types of events that this "
                                             + "version of the SDK does not know about", modelClass)
@@ -309,7 +319,7 @@ public class AwsServiceModel implements ClassSpec {
         TypeVariableName t = TypeVariableName.get("T");
         return MethodSpec.methodBuilder("getter")
                          .addTypeVariable(t)
-                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                         .addModifiers(Modifier.PRIVATE, STATIC)
                          .addParameter(ParameterizedTypeName.get(ClassName.get(Function.class),
                                                                  className(), t),
                                        "g")
@@ -323,7 +333,7 @@ public class AwsServiceModel implements ClassSpec {
         TypeVariableName t = TypeVariableName.get("T");
         return MethodSpec.methodBuilder("setter")
                          .addTypeVariable(t)
-                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                         .addModifiers(Modifier.PRIVATE, STATIC)
                          .addParameter(ParameterizedTypeName.get(ClassName.get(BiConsumer.class),
                                                                  builderClassName(),
                                                                  t),
@@ -353,6 +363,10 @@ public class AwsServiceModel implements ClassSpec {
 
     private ClassName builderClassName() {
         return className().nestedClass("Builder");
+    }
+
+    private ClassName unionTypeClassName() {
+        return className().nestedClass("Type");
     }
 
     private List<TypeName> modelSuperInterfaces() {
@@ -435,6 +449,7 @@ public class AwsServiceModel implements ClassSpec {
                 methodSpecs.add(addModifier(modelMethodOverrides.equalsBySdkFieldsMethod(shapeModel), FINAL));
                 methodSpecs.add(addModifier(modelMethodOverrides.toStringMethod(shapeModel), FINAL));
                 methodSpecs.add(getValueForField());
+                methodSpecs.addAll(unionMembers());
                 break;
         }
 
@@ -471,6 +486,98 @@ public class AwsServiceModel implements ClassSpec {
         methodBuilder.endControlFlow();
 
         return methodBuilder.build();
+    }
+
+    private FieldSpec unionTypeField() {
+        return FieldSpec.builder(unionTypeClassName(), "type", PRIVATE, FINAL).build();
+    }
+
+    private Collection<MethodSpec> unionMembers() {
+        if (!shapeModel.isUnion()) {
+            return emptyList();
+        }
+
+        Validate.isFalse(shapeModel.isEvent(), "Event shape %s must not be a union", shapeModel.getShapeName());
+        Validate.isFalse(shapeModel.isEventStream(), "Event stream shape %s must not be a union", shapeModel.getShapeName());
+        Validate.isFalse(shapeModel.isDocument(), "Document shape %s must not be a union", shapeModel.getShapeName());
+        Validate.isFalse(isRequest() && isResponse(), "Input or output shape %s must not be a union", shapeModel.getShapeName());
+
+        List<MethodSpec> unionMembers = new ArrayList<>();
+        unionMembers.addAll(unionConstructors());
+        unionMembers.add(unionTypeMethod());
+        unionMembers.addAll(unionAcceptMethods());
+        return unionMembers;
+    }
+
+    private Collection<MethodSpec> unionConstructors() {
+        return shapeModel.getMembers().stream()
+                         .flatMap(this::unionConstructors)
+                         .collect(Collectors.toList());
+    }
+
+    private Stream<MethodSpec> unionConstructors(MemberModel member) {
+        List<MethodSpec> unionConstructors = new ArrayList<>();
+
+        String memberName = member.getFluentSetterMethodName();
+        String methodName = "from" + capitalize(memberName);
+
+        unionConstructors.add(MethodSpec.methodBuilder(methodName)
+                                        .addJavadoc("$L", member.getUnionConstructorDocumentation())
+                                        .addModifiers(PUBLIC, STATIC)
+                                        .returns(className())
+                                        .addParameter(typeProvider.typeName(member, new TypeNameOptions().useEnumTypes(false)),
+                                                      memberName)
+                                        .addCode(CodeBlock.of("return builder()." + memberName + "(" + memberName + ").build();"))
+                                        .build());
+
+        if (member.getFluentEnumSetterMethodName() != null) {
+            unionConstructors.add(MethodSpec.methodBuilder("from" + capitalize(member.getFluentEnumSetterMethodName()))
+                                            .addJavadoc("$L", member.getUnionConstructorDocumentation())
+                                            .addModifiers(PUBLIC, STATIC)
+                                            .returns(className())
+                                            .addParameter(typeProvider.typeName(member, new TypeNameOptions().useEnumTypes(true)),
+                                                          memberName)
+                                            .addCode(CodeBlock.of("return builder()." + member.getFluentEnumSetterMethodName() +
+                                                                  "(" + memberName + ").build();"))
+                                            .build());
+        }
+
+        // Include a consumer-builder if the inner types are structures
+        if (!member.isSimple() && !member.isList() && !member.isMap()) {
+            TypeName memberType = typeProvider.typeName(member);
+            ClassName memberClass = Validate.isInstanceOf(ClassName.class, memberType,
+                                                          "Non-simple TypeName was not represented as a ClassName: %s",
+                                                          memberType);
+            ClassName memberClassBuilder = memberClass.nestedClass("Builder");
+            unionConstructors.add(MethodSpec.methodBuilder(methodName)
+                                            .addJavadoc("$L", member.getUnionConstructorDocumentation())
+                                            .addModifiers(PUBLIC, STATIC)
+                                            .returns(className())
+                                            .addParameter(ParameterizedTypeName.get(ClassName.get(Consumer.class),
+                                                                                    memberClassBuilder),
+                                                          memberName)
+                                            .addCode(CodeBlock.builder()
+                                                              .add("$T builder = $T.builder();", memberClassBuilder, memberClass)
+                                                              .add("$L.accept(builder);", memberName)
+                                                              .add("return $L(builder.build());", methodName)
+                                                              .build())
+                                            .build());
+        }
+
+        return unionConstructors.stream();
+    }
+
+    private MethodSpec unionTypeMethod() {
+        return MethodSpec.methodBuilder("type")
+                         .addJavadoc("$L", shapeModel.getUnionTypeGetterDocumentation())
+                         .addModifiers(PUBLIC)
+                         .returns(unionTypeClassName())
+                         .addCode("return type;")
+                         .build();
+    }
+
+    private Collection<MethodSpec> unionAcceptMethods() {
+        return emptyList();
     }
 
     private void addCasesForMember(MethodSpec.Builder methodBuilder, MemberModel member) {
@@ -595,6 +702,11 @@ public class AwsServiceModel implements ClassSpec {
             default:
                 break;
         }
+
+        if (shapeModel.isUnion()) {
+            nestedClasses.add(modelBuilderSpecs.unionTypeClass());
+        }
+
         return nestedClasses;
     }
 
@@ -614,6 +726,10 @@ public class AwsServiceModel implements ClassSpec {
 
         shapeModelSpec.fields().forEach(f -> ctorBuilder.addStatement("this.$N = builder.$N", f, f));
 
+        if (shapeModel.isUnion()) {
+            ctorBuilder.addStatement("this.type = builder.type");
+        }
+
         return ctorBuilder.build();
     }
 
@@ -631,7 +747,7 @@ public class AwsServiceModel implements ClassSpec {
 
     private MethodSpec builderMethod() {
         return MethodSpec.methodBuilder("builder")
-                         .addModifiers(PUBLIC, Modifier.STATIC)
+                         .addModifiers(PUBLIC, STATIC)
                          .returns(modelBuilderSpecs.builderInterfaceName())
                          .addStatement("return new $T()", modelBuilderSpecs.builderImplName())
                          .build();
@@ -648,7 +764,7 @@ public class AwsServiceModel implements ClassSpec {
 
     private MethodSpec serializableBuilderClass() {
         return MethodSpec.methodBuilder("serializableBuilderClass")
-                         .addModifiers(PUBLIC, Modifier.STATIC)
+                         .addModifiers(PUBLIC, STATIC)
                          .returns(ParameterizedTypeName.get(ClassName.get(Class.class),
                                                             WildcardTypeName.subtypeOf(modelBuilderSpecs.builderInterfaceName())))
                          .addStatement("return $T.class", modelBuilderSpecs.builderImplName())
@@ -702,7 +818,7 @@ public class AwsServiceModel implements ClassSpec {
 
         String methodName = specHelper.eventBuilderMethodName(event);
         return MethodSpec.methodBuilder(methodName)
-                .addModifiers(PUBLIC, Modifier.STATIC)
+                .addModifiers(PUBLIC, STATIC)
                 .returns(returnType)
                 .addJavadoc("Create a builder for the {@code $L} event type for this stream.", event.getC2jName())
                 .addStatement("return $T.builder()", eventClassName)

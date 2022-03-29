@@ -1,3 +1,19 @@
+# __2.17.159__ __2022-03-29__
+## __AWS Organizations__
+  - ### Features
+    - This release provides the new CloseAccount API that enables principals in the management account to close any member account within an organization.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Allow services to model structures with mutually exclusive fields (union types). Such structures have additional static constructors and the ability to query for which field is populated. Services which support this feature at launch: accessanalyzer, appconfig, appconfigdata, appmesh, connect, emrcontainers, evidently, grafana, groundstation, healthlake, inspector2, iottwinmaker, migrationhubstrategy, nimble, panorama, proton, rdsdata, redshiftdata, s3control, snowdevicemanagement, ssmincidents, transcribe, wisdom.
+    - Allow specifying the profile file and name used by the instance profile credentials provider.
+    - Improve resilience of instance profile credentials provider to short-term outages. Credentials that are close to expiration or expired can still be used to sign calls when the instance metadata service appears to be having issues. Services are now responsible for determining whether the credentials have actually expired.
+    - Include SDK user-agent in container credential provider calls.
+    - Use the client's profile file and name for instance profile credentials when the default credentials provider is not overridden.
+
+  - ### Bugfixes
+    - Moved HttpCredentialsProvider (base class of ContainerCredentialsProvider and InstanceProfileCredentialsProvider) from private to public. This fixes an issue where public classes extended an internal class. Some components of this type were modified to allow it to be public.
+
 # __2.17.158__ __2022-03-28__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
