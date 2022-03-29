@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
@@ -150,7 +149,6 @@ public final class StructWithTimestamp implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder nestedTimestamp(Instant nestedTimestamp) {
             this.nestedTimestamp = nestedTimestamp;
             return this;

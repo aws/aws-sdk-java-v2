@@ -50,4 +50,7 @@
     <!-- Ignore usage of sslContext.newHandler for NettyUtils.!-->
     <suppress checks="Regexp"
               files=".*NettyUtils\.java$"/>
+
+    <!-- Allow non-java.base usage in tests -->
+    <suppress checks="software.amazon.awssdk.buildtools.checkstyle.NonJavaBaseModuleCheck" files=".*testutils.*"/>
 </suppressions>

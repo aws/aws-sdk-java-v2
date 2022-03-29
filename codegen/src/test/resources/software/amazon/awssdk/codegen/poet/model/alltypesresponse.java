@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Arrays;
@@ -2321,7 +2320,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder stringMember(String stringMember) {
             this.stringMember = stringMember;
             return this;
@@ -2336,7 +2334,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder integerMember(Integer integerMember) {
             this.integerMember = integerMember;
             return this;
@@ -2351,7 +2348,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder booleanMember(Boolean booleanMember) {
             this.booleanMember = booleanMember;
             return this;
@@ -2366,7 +2362,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder floatMember(Float floatMember) {
             this.floatMember = floatMember;
             return this;
@@ -2381,7 +2376,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder doubleMember(Double doubleMember) {
             this.doubleMember = doubleMember;
             return this;
@@ -2396,7 +2390,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder longMember(Long longMember) {
             this.longMember = longMember;
             return this;
@@ -2411,7 +2404,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder shortMember(Short shortMember) {
             this.shortMember = shortMember;
             return this;
@@ -2429,14 +2421,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder simpleList(Collection<String> simpleList) {
             this.simpleList = ListOfStringsCopier.copy(simpleList);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder simpleList(String... simpleList) {
             simpleList(Arrays.asList(simpleList));
@@ -2455,14 +2445,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder listOfEnumsWithStrings(Collection<String> listOfEnums) {
             this.listOfEnums = ListOfEnumsCopier.copy(listOfEnums);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfEnumsWithStrings(String... listOfEnums) {
             listOfEnumsWithStrings(Arrays.asList(listOfEnums));
@@ -2470,14 +2458,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder listOfEnums(Collection<EnumType> listOfEnums) {
             this.listOfEnums = ListOfEnumsCopier.copyEnumToString(listOfEnums);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfEnums(EnumType... listOfEnums) {
             listOfEnums(Arrays.asList(listOfEnums));
@@ -2496,14 +2482,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder listOfMaps(Collection<? extends Map<String, String>> listOfMaps) {
             this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfMaps(Map<String, String>... listOfMaps) {
             listOfMaps(Arrays.asList(listOfMaps));
@@ -2523,14 +2507,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder listOfStructs(Collection<SimpleStruct> listOfStructs) {
             this.listOfStructs = ListOfSimpleStructsCopier.copy(listOfStructs);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfStructs(SimpleStruct... listOfStructs) {
             listOfStructs(Arrays.asList(listOfStructs));
@@ -2538,7 +2520,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfStructs(Consumer<SimpleStruct.Builder>... listOfStructs) {
             listOfStructs(Stream.of(listOfStructs).map(c -> SimpleStruct.builder().applyMutation(c).build())
@@ -2558,14 +2539,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder listOfMapOfEnumToStringWithStrings(Collection<? extends Map<String, String>> listOfMapOfEnumToString) {
             this.listOfMapOfEnumToString = ListOfMapOfEnumToStringCopier.copy(listOfMapOfEnumToString);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfMapOfEnumToStringWithStrings(Map<String, String>... listOfMapOfEnumToString) {
             listOfMapOfEnumToStringWithStrings(Arrays.asList(listOfMapOfEnumToString));
@@ -2587,14 +2566,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder listOfMapOfStringToStruct(Collection<? extends Map<String, SimpleStruct>> listOfMapOfStringToStruct) {
             this.listOfMapOfStringToStruct = ListOfMapOfStringToStructCopier.copy(listOfMapOfStringToStruct);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfMapOfStringToStruct(Map<String, SimpleStruct>... listOfMapOfStringToStruct) {
             listOfMapOfStringToStruct(Arrays.asList(listOfMapOfStringToStruct));
@@ -2613,7 +2590,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToIntegerList(Map<String, ? extends Collection<Integer>> mapOfStringToIntegerList) {
             this.mapOfStringToIntegerList = MapOfStringToIntegerListCopier.copy(mapOfStringToIntegerList);
             return this;
@@ -2631,7 +2607,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToString(Map<String, String> mapOfStringToString) {
             this.mapOfStringToString = MapOfStringToStringCopier.copy(mapOfStringToString);
             return this;
@@ -2651,7 +2626,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToSimpleStruct(Map<String, SimpleStruct> mapOfStringToSimpleStruct) {
             this.mapOfStringToSimpleStruct = MapOfStringToSimpleStructCopier.copy(mapOfStringToSimpleStruct);
             return this;
@@ -2669,14 +2643,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToEnumWithStrings(Map<String, String> mapOfEnumToEnum) {
             this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copy(mapOfEnumToEnum);
             return this;
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToEnum(Map<EnumType, EnumType> mapOfEnumToEnum) {
             this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copyEnumToString(mapOfEnumToEnum);
             return this;
@@ -2694,14 +2666,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToStringWithStrings(Map<String, String> mapOfEnumToString) {
             this.mapOfEnumToString = MapOfEnumToStringCopier.copy(mapOfEnumToString);
             return this;
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToString(Map<EnumType, String> mapOfEnumToString) {
             this.mapOfEnumToString = MapOfEnumToStringCopier.copyEnumToString(mapOfEnumToString);
             return this;
@@ -2719,14 +2689,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToEnumWithStrings(Map<String, String> mapOfStringToEnum) {
             this.mapOfStringToEnum = MapOfStringToEnumCopier.copy(mapOfStringToEnum);
             return this;
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToEnum(Map<String, EnumType> mapOfStringToEnum) {
             this.mapOfStringToEnum = MapOfStringToEnumCopier.copyEnumToString(mapOfStringToEnum);
             return this;
@@ -2745,14 +2713,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToSimpleStructWithStrings(Map<String, SimpleStruct> mapOfEnumToSimpleStruct) {
             this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copy(mapOfEnumToSimpleStruct);
             return this;
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToSimpleStruct(Map<EnumType, SimpleStruct> mapOfEnumToSimpleStruct) {
             this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copyEnumToString(mapOfEnumToSimpleStruct);
             return this;
@@ -2770,14 +2736,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToListOfEnumsWithStrings(Map<String, ? extends Collection<String>> mapOfEnumToListOfEnums) {
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copy(mapOfEnumToListOfEnums);
             return this;
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToListOfEnums(Map<EnumType, ? extends Collection<EnumType>> mapOfEnumToListOfEnums) {
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copyEnumToString(mapOfEnumToListOfEnums);
             return this;
@@ -2795,7 +2759,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToMapOfStringToEnumWithStrings(
             Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
@@ -2803,7 +2766,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToMapOfStringToEnum(
             Map<EnumType, ? extends Map<String, EnumType>> mapOfEnumToMapOfStringToEnum) {
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copyEnumToString(mapOfEnumToMapOfStringToEnum);
@@ -2819,7 +2781,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder timestampMember(Instant timestampMember) {
             this.timestampMember = timestampMember;
             return this;
@@ -2835,7 +2796,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder structWithNestedTimestampMember(StructWithTimestamp structWithNestedTimestampMember) {
             this.structWithNestedTimestampMember = structWithNestedTimestampMember;
             return this;
@@ -2850,7 +2810,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder blobArg(SdkBytes blobArg) {
             this.blobArg = blobArg;
             return this;
@@ -2865,7 +2824,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder structWithNestedBlob(StructWithNestedBlobType structWithNestedBlob) {
             this.structWithNestedBlob = structWithNestedBlob;
             return this;
@@ -2885,7 +2843,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder blobMap(Map<String, SdkBytes> blobMap) {
             this.blobMap = BlobMapTypeCopier.copy(blobMap);
             return this;
@@ -2904,14 +2861,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder listOfBlobs(Collection<SdkBytes> listOfBlobs) {
             this.listOfBlobs = ListOfBlobsTypeCopier.copy(listOfBlobs);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfBlobs(SdkBytes... listOfBlobs) {
             listOfBlobs(Arrays.asList(listOfBlobs));
@@ -2927,7 +2882,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder recursiveStruct(RecursiveStructType recursiveStruct) {
             this.recursiveStruct = recursiveStruct;
             return this;
@@ -2942,7 +2896,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder polymorphicTypeWithSubTypes(BaseType polymorphicTypeWithSubTypes) {
             this.polymorphicTypeWithSubTypes = polymorphicTypeWithSubTypes;
             return this;
@@ -2958,7 +2911,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder polymorphicTypeWithoutSubTypes(SubTypeOne polymorphicTypeWithoutSubTypes) {
             this.polymorphicTypeWithoutSubTypes = polymorphicTypeWithoutSubTypes;
             return this;
@@ -2973,14 +2925,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder enumType(String enumType) {
             this.enumType = enumType;
             return this;
         }
 
         @Override
-        @Transient
         public final Builder enumType(EnumType enumType) {
             this.enumType(enumType == null ? null : enumType.toString());
             return this;
@@ -2995,7 +2945,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder underscore_Name_Type(Underscore_Name_Type underscore_Name_Type) {
             this.underscore_Name_Type = underscore_Name_Type;
             return this;
@@ -3010,7 +2959,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder myDocument(Document myDocument) {
             this.myDocument = myDocument;
             return this;
@@ -3025,7 +2973,6 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        @Transient
         public final Builder allTypesUnionStructure(AllTypesUnionStructure allTypesUnionStructure) {
             this.allTypesUnionStructure = allTypesUnionStructure;
             return this;
