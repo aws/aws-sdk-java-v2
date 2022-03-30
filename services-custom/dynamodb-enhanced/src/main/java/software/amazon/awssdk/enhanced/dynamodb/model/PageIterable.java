@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.pagination.sync.PaginatedItemsIterable;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 
@@ -49,6 +50,7 @@ import software.amazon.awssdk.core.pagination.sync.SdkIterable;
  * @param <T> The modelled type of the object in a page.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface PageIterable<T> extends SdkIterable<Page<T>> {
 
     static <T> PageIterable<T> create(SdkIterable<Page<T>> pageIterable) {

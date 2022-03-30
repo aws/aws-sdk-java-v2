@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.sharedeventstream.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
@@ -207,7 +206,6 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
         }
 
         @Override
-        @Transient
         public final Builder name(String name) {
             this.name = name;
             return this;
@@ -222,7 +220,6 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
         }
 
         @Override
-        @Transient
         public final Builder birthday(Instant birthday) {
             this.birthday = birthday;
             return this;

@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.protocolrestxml.model;
 
-import java.beans.Transient;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -261,7 +260,6 @@ public final class TestXmlNamespaceRequest extends ProtocolRestXmlRequest implem
         }
 
         @Override
-        @Transient
         public final Builder stringMember(String stringMember) {
             this.stringMember = stringMember;
             return this;
@@ -276,7 +274,6 @@ public final class TestXmlNamespaceRequest extends ProtocolRestXmlRequest implem
         }
 
         @Override
-        @Transient
         public final Builder integerMember(Integer integerMember) {
             this.integerMember = integerMember;
             return this;
@@ -291,7 +288,6 @@ public final class TestXmlNamespaceRequest extends ProtocolRestXmlRequest implem
         }
 
         @Override
-        @Transient
         public final Builder xmlNamespaceMember(XmlNamespaceMember xmlNamespaceMember) {
             this.xmlNamespaceMember = xmlNamespaceMember;
             return this;

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -148,6 +149,7 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
         return result;
     }
 
+    @NotThreadSafe
     public static final class Builder implements DynamoDbEnhancedClient.Builder {
         private DynamoDbClient dynamoDbClient;
         private List<DynamoDbEnhancedClientExtension> dynamoDbEnhancedClientExtensions =

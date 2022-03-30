@@ -25,6 +25,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
@@ -247,6 +248,7 @@ public class SetAttributeConverter<T extends Collection<?>> implements Attribute
         }
     }
 
+    @NotThreadSafe
     public static final class Builder<T extends Collection<U>, U> {
         private final EnhancedType<T> collectionType;
         private Supplier<? extends T> collectionConstructor;

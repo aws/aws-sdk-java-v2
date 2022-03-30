@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
@@ -190,6 +191,7 @@ public class ListAttributeConverter<T extends Collection<?>> implements Attribut
         }
     }
 
+    @NotThreadSafe
     public static final class Builder<T extends Collection<U>, U> {
         private final EnhancedType<T> collectionType;
         private Supplier<? extends T> collectionConstructor;

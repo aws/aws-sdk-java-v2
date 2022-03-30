@@ -204,6 +204,10 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
                 shape.getMembers().putAll(injects);
             }
         }
+
+        if (modifier.isUnion() != null) {
+            shape.setUnion(modifier.isUnion());
+        }
     }
 
     private void doModifyShapeMembers(ServiceModel serviceModel, Shape shape, String memberToModify,

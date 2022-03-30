@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Interface for a tag that can be applied to any {@link StaticTableSchema}. When the table schema is instantiated,
@@ -24,6 +25,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * associated with the table.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface StaticTableTag {
     /**
      * A function that modifies an existing {@link StaticTableSchema.Builder} when this tag is applied to a table. This

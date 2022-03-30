@@ -23,7 +23,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
@@ -37,6 +39,7 @@ import software.amazon.awssdk.utils.Validate;
  * All parameters are optional.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class ScanEnhancedRequest {
 
     private final Map<String, AttributeValue> exclusiveStartKey;
@@ -190,6 +193,7 @@ public final class ScanEnhancedRequest {
     /**
      * A builder that is used to create a request with the desired parameters.
      */
+    @NotThreadSafe
     public static final class Builder {
         private Map<String, AttributeValue> exclusiveStartKey;
         private Integer limit;

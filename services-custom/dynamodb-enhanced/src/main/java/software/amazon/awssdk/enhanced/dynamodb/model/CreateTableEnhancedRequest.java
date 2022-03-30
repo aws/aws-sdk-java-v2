@@ -20,7 +20,9 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
@@ -33,6 +35,7 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
  * All parameters are optional.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class CreateTableEnhancedRequest {
     private final ProvisionedThroughput provisionedThroughput;
     private final Collection<EnhancedLocalSecondaryIndex> localSecondaryIndices;
@@ -115,6 +118,7 @@ public final class CreateTableEnhancedRequest {
     /**
      * A builder that is used to create a request with the desired parameters.
      */
+    @NotThreadSafe
     public static final class Builder {
         private ProvisionedThroughput provisionedThroughput;
         private Collection<EnhancedLocalSecondaryIndex> localSecondaryIndices;
