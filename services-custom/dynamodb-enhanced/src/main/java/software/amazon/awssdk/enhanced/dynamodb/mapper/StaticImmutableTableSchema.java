@@ -33,7 +33,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
@@ -74,6 +76,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * }
  */
 @SdkPublicApi
+@ThreadSafe
 public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
     private final List<ResolvedImmutableAttribute<T, B>> attributeMappers;
     private final Supplier<B> newBuilderSupplier;
@@ -225,6 +228,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
      * @param <T> The immutable data item class object that the {@link StaticImmutableTableSchema} is to map to.
      * @param <B> The builder class object that can be used to construct instances of the immutable data item.
      */
+    @NotThreadSafe
     public static final class Builder<T, B> {
         private final Class<T> itemClass;
         private final Class<B> builderClass;

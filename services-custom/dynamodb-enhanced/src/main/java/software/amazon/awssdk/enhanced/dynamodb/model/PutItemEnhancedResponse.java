@@ -16,7 +16,9 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.Objects;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
@@ -30,6 +32,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
  * @param <T> The type of the item.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class PutItemEnhancedResponse<T> {
     private final T attributes;
     private final ConsumedCapacity consumedCapacity;
@@ -93,6 +96,7 @@ public final class PutItemEnhancedResponse<T> {
         return result;
     }
 
+    @NotThreadSafe
     public static final class Builder<T> {
         private T attributes;
         private ConsumedCapacity consumedCapacity;

@@ -17,7 +17,9 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.List;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetItemEnhancedRequest;
@@ -42,6 +44,7 @@ import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
  * implementing classes.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface DynamoDbEnhancedClient extends DynamoDbEnhancedResource {
 
     /**
@@ -443,6 +446,7 @@ public interface DynamoDbEnhancedClient extends DynamoDbEnhancedResource {
     /**
      * The builder definition for a {@link DynamoDbEnhancedClient}.
      */
+    @NotThreadSafe
     interface Builder extends DynamoDbEnhancedResource.Builder {
         /**
          * The regular low-level SDK client to use with the enhanced client.

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Interface for a resource object that is part of either a {@link DynamoDbTable} or {@link DynamoDbAsyncTable}. This
@@ -26,6 +27,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * @param <T> The type of the modelled object.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface MappedTableResource<T> {
     /**
      * Gets the {@link DynamoDbEnhancedClientExtension} associated with this mapped resource.

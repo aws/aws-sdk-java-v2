@@ -22,7 +22,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
@@ -41,6 +43,7 @@ import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
  * A valid write batch should contain one or more delete or put action reference.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class WriteBatch {
     private final String tableName;
     private final List<WriteRequest> writeRequests;
@@ -109,6 +112,7 @@ public final class WriteBatch {
      *
      * @param <T> the type that items in this table map to
      */
+    @NotThreadSafe
     public interface Builder<T> {
 
         /**

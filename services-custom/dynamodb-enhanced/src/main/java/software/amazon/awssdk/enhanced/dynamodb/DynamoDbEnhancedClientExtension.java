@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 
@@ -29,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
  * calculation.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface DynamoDbEnhancedClientExtension {
     /**
      * This hook is called just before an operation is going to write data to the database. The extension that

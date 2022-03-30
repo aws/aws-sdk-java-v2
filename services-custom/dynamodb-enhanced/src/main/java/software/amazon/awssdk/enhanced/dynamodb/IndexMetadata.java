@@ -17,11 +17,13 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * A metadata class that stores information about an index
  */
 @SdkPublicApi
+@ThreadSafe
 public interface IndexMetadata {
     /**
      * The name of the index

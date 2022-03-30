@@ -23,7 +23,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.IndexMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.KeyAttributeMetadata;
@@ -38,6 +40,7 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
  * and {@link StaticTableTag} which permit manipulation of the table metadata.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class StaticTableMetadata implements TableMetadata {
     private final Map<String, Object> customMetadata;
     private final Map<String, IndexMetadata> indexByNameMap;
@@ -195,6 +198,7 @@ public final class StaticTableMetadata implements TableMetadata {
     /**
      * Builder for {@link StaticTableMetadata}
      */
+    @NotThreadSafe
     public static class Builder {
         private final Map<String, Object> customMetadata = new LinkedHashMap<>();
         private final Map<String, IndexMetadata> indexByNameMap = new LinkedHashMap<>();
