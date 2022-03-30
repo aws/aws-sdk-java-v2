@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -391,14 +390,12 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
         }
 
         @Override
-        @Transient
         public final Builder build(Collection<String> build) {
             this.build = ListOfStringsCopier.copy(build);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder build(String... build) {
             build(Arrays.asList(build));
@@ -417,14 +414,12 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
         }
 
         @Override
-        @Transient
         public final Builder superValue(Collection<String> superValue) {
             this.superValue = ListOfStringsCopier.copy(superValue);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder superValue(String... superValue) {
             superValue(Arrays.asList(superValue));
@@ -443,7 +438,6 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
         }
 
         @Override
-        @Transient
         public final Builder toStringValue(Map<String, String> toStringValue) {
             this.toStringValue = MapOfStringToStringCopier.copy(toStringValue);
             return this;
@@ -461,7 +455,6 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
         }
 
         @Override
-        @Transient
         public final Builder equalsValue(Map<String, String> equalsValue) {
             this.equalsValue = MapOfStringToStringCopier.copy(equalsValue);
             return this;

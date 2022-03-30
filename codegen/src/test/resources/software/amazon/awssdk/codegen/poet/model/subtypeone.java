@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -148,7 +147,6 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
         }
 
         @Override
-        @Transient
         public final Builder subTypeOneMember(String subTypeOneMember) {
             this.subTypeOneMember = subTypeOneMember;
             return this;

@@ -15,14 +15,19 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 import static software.amazon.awssdk.codegen.poet.model.TypeProvider.ShapeTransformation.USE_BUILDER_IMPL;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
+// CHECKSTYLE:OFF java.beans is required for services that use names starting with 'set' to fix bean-based marshalling.
 import java.beans.Transient;
+// CHECKSTYLE:ON
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
@@ -85,9 +90,17 @@ abstract class AbstractMemberSetters implements MemberSetters {
         return MethodSpec.methodBuilder(methodName)
                          .addParameter(setterParam)
                          .addAnnotation(Override.class)
-                         .addAnnotation(Transient.class)
+                         .addAnnotations(maybeTransient(methodName))
                          .returns(returnType)
                          .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
+    }
+
+    private Iterable<AnnotationSpec> maybeTransient(String methodName) {
+        if (methodName.startsWith("set")) {
+            return singleton(AnnotationSpec.builder(Transient.class).build());
+        }
+
+        return emptyList();
     }
 
     protected MethodSpec.Builder beanStyleSetterBuilder() {

@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -362,7 +361,6 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder noRecurse(String noRecurse) {
             this.noRecurse = noRecurse;
             return this;
@@ -377,7 +375,6 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder recursiveStruct(RecursiveStructType recursiveStruct) {
             this.recursiveStruct = recursiveStruct;
             return this;
@@ -396,14 +393,12 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder recursiveList(Collection<RecursiveStructType> recursiveList) {
             this.recursiveList = RecursiveListTypeCopier.copy(recursiveList);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder recursiveList(RecursiveStructType... recursiveList) {
             recursiveList(Arrays.asList(recursiveList));
@@ -411,7 +406,6 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder recursiveList(Consumer<Builder>... recursiveList) {
             recursiveList(Stream.of(recursiveList).map(c -> RecursiveStructType.builder().applyMutation(c).build())
@@ -432,7 +426,6 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder recursiveMap(Map<String, RecursiveStructType> recursiveMap) {
             this.recursiveMap = RecursiveMapTypeCopier.copy(recursiveMap);
             return this;

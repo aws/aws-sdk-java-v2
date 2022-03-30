@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -404,14 +403,12 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
         }
 
         @Override
-        @Transient
         public final Builder listOfListOfStrings(Collection<? extends Collection<String>> listOfListOfStrings) {
             this.listOfListOfStrings = ListOfListOfStringsCopier.copy(listOfListOfStrings);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfListOfStrings(Collection<String>... listOfListOfStrings) {
             listOfListOfStrings(Arrays.asList(listOfListOfStrings));
@@ -431,7 +428,6 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
         }
 
         @Override
-        @Transient
         public final Builder listOfListOfListOfStrings(
             Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
             this.listOfListOfListOfStrings = ListOfListOfListOfStringsCopier.copy(listOfListOfListOfStrings);
@@ -439,7 +435,6 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfListOfListOfStrings(Collection<? extends Collection<String>>... listOfListOfListOfStrings) {
             listOfListOfListOfStrings(Arrays.asList(listOfListOfListOfStrings));
@@ -459,7 +454,6 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToListOfListOfStrings(
             Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
             this.mapOfStringToListOfListOfStrings = MapOfStringToListOfListOfStringsCopier.copy(mapOfStringToListOfListOfStrings);
