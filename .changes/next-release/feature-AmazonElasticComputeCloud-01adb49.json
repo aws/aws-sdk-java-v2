@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "This release simplifies the auto-recovery configuration process enabling customers to set the recovery behavior to disabled or default"
+}
