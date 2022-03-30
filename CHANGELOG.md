@@ -1,3 +1,32 @@
+# __2.17.160__ __2022-03-30__
+## __AWS IoT__
+  - ### Features
+    - Doc only update for IoT that fixes customer-reported issues.
+
+## __AWS IoT Data Plane__
+  - ### Features
+    - Update the default AWS IoT Core Data Plane endpoint from VeriSign signed to ATS signed. If you have firewalls with strict egress rules, configure the rules to grant you access to data-ats.iot.[region].amazonaws.com or data-ats.iot.[region].amazonaws.com.cn.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Extend union type improvements to additional services: dynamodb, dynamodbstreams, iot, sagemaker, clouddirectory, iotanalytics, kendra, marketplaceentitlement, quicksight, s3, xray.
+    - Remove unnecessary dependencies on JDK modules not in java.base. This didn't remove all of the dependencies on such modules, just the unnecessary ones.
+
+  - ### Bugfixes
+    - Fix issue where the `contentLength` specified on the `RequestBody` is not honored. Fixes [#2908](https://github.com/aws/aws-sdk-java-v2/issues/2908).
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release simplifies the auto-recovery configuration process enabling customers to set the recovery behavior to disabled or default
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for modifying throughput capacity for FSx for ONTAP file systems.
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now supports the configuration of third-party policies that can use either the centralized or distributed deployment models.
+
 # __2.17.159__ __2022-03-29__
 ## __AWS Organizations__
   - ### Features

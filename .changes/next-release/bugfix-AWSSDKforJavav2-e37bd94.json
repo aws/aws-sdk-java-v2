@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fix issue where the `contentLength` specified on the `RequestBody` is not honored. Fixes [#2908](https://github.com/aws/aws-sdk-java-v2/issues/2908)."
-}
