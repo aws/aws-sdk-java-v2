@@ -33,7 +33,7 @@ final class RecursiveListTypeCopier {
         } else {
             List<RecursiveStructType> modifiableList = new ArrayList<>();
             recursiveListTypeParam.forEach(entry -> {
-                RecursiveStructType member = entry.build();
+                RecursiveStructType member = entry == null ? null : entry.build();
                 modifiableList.add(member);
             });
             list = Collections.unmodifiableList(modifiableList);
@@ -48,7 +48,7 @@ final class RecursiveListTypeCopier {
         } else {
             List<RecursiveStructType.Builder> modifiableList = new ArrayList<>();
             recursiveListTypeParam.forEach(entry -> {
-                RecursiveStructType.Builder member = entry.toBuilder();
+                RecursiveStructType.Builder member = entry == null ? null : entry.toBuilder();
                 modifiableList.add(member);
             });
             list = Collections.unmodifiableList(modifiableList);
