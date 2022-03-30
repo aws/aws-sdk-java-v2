@@ -251,8 +251,8 @@ class MemberCopierSpec implements ClassSpec {
                 case BUILDABLE_TO_BUILDER:
                     String builderOutput = variableSource.getNew("member");
                     TypeName builderOutputType = typeName(inputMember, false, false, builderTransform, enumTransform);
-                    code.add("$T $N = $N == null ? null : $N.toBuilder();", builderOutputType, builderOutput, inputVariableName
-                        , inputVariableName);
+                    code.add("$T $N = $N == null ? null : $N.toBuilder();", builderOutputType, builderOutput, inputVariableName,
+                             inputVariableName);
                     return builderOutput;
                 default:
                     throw new IllegalStateException();
