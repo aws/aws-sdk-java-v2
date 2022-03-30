@@ -224,7 +224,6 @@ public final class DefaultS3TransferManager implements S3TransferManager {
                                             FileTransformerConfiguration.defaultCreateOrReplaceExisting());
 
         CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
-        CompletableFuture<CompletedFileDownload> downloadFuture = new CompletableFuture<>();
 
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
         progressUpdater.transferInitiated();
@@ -248,7 +247,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
             returnFuture.completeExceptionally(throwable);
         }
 
-        return new DefaultFileDownload(downloadFuture, progressUpdater.progress(), downloadRequest);
+        return new DefaultFileDownload(returnFuture, progressUpdater.progress(), downloadRequest);
     }
 
     @Override
