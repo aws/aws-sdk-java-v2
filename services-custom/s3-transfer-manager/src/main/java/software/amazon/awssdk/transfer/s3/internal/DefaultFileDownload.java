@@ -18,7 +18,6 @@ package software.amazon.awssdk.transfer.s3.internal;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
@@ -36,14 +35,14 @@ public final class DefaultFileDownload implements FileDownload {
     private final CompletableFuture<CompletedFileDownload> completionFuture;
     private final TransferProgress progress;
     private final DownloadFileRequest request;
-    private final AtomicReference<ResumableFileDownload> resumableFileDownload;
+    private volatile ResumableFileDownload resumableFileDownload;
+    private final Object lock = new Object();
 
     DefaultFileDownload(CompletableFuture<CompletedFileDownload> completionFuture,
                         TransferProgress progress,
                         DownloadFileRequest request) {
         this.completionFuture = completionFuture;
         this.progress = progress;
-        this.resumableFileDownload = new AtomicReference<>();
         this.request = request;
     }
 
@@ -54,29 +53,33 @@ public final class DefaultFileDownload implements FileDownload {
 
     @Override
     public ResumableFileDownload pause() {
-        log.trace(() -> "Start to pause " + request);
-        if (resumableFileDownload.get() == null) {
-            completionFuture.cancel(false);
+        log.debug(() -> "Start to pause " + request);
+        if (resumableFileDownload == null) {
+            synchronized (lock) {
+                if (resumableFileDownload == null) {
+                    completionFuture.cancel(true);
 
-            Instant lastModified = null;
-            Long totalBytesTransferred = null;
-            TransferProgressSnapshot snapshot = progress.snapshot();
-            if (snapshot.sdkResponse().isPresent() && snapshot.sdkResponse().get() instanceof GetObjectResponse) {
-                GetObjectResponse getObjectResponse = (GetObjectResponse) snapshot.sdkResponse().get();
-                lastModified = getObjectResponse.lastModified();
-                totalBytesTransferred = getObjectResponse.contentLength();
+                    Instant lastModified = null;
+                    Long totalBytesTransferred = null;
+                    TransferProgressSnapshot snapshot = progress.snapshot();
+                    if (snapshot.sdkResponse().isPresent() && snapshot.sdkResponse().get() instanceof GetObjectResponse) {
+                        GetObjectResponse getObjectResponse = (GetObjectResponse) snapshot.sdkResponse().get();
+                        lastModified = getObjectResponse.lastModified();
+                        totalBytesTransferred = getObjectResponse.contentLength();
+                    }
+
+                    long length = request.destination().toFile().length();
+                    resumableFileDownload = ResumableFileDownload.builder()
+                                                                 .downloadFileRequest(request)
+                                                                 .lastModified(lastModified)
+                                                                 .bytesTransferred(length)
+                                                                 .transferSizeInBytes(totalBytesTransferred)
+                                                                 .build();
+                }
+
             }
-
-            long bytesTransferred = snapshot.bytesTransferred();
-            ResumableFileDownload fileDownload = ResumableFileDownload.builder()
-                                                                      .downloadFileRequest(request)
-                                                                      .lastModified(lastModified)
-                                                                      .bytesTransferred(bytesTransferred)
-                                                                      .transferSizeInBytes(totalBytesTransferred)
-                                                                      .build();
-            resumableFileDownload.set(fileDownload);
         }
-        return resumableFileDownload.get();
+        return resumableFileDownload;
     }
 
     @Override

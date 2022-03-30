@@ -28,8 +28,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * An opaque token that holds the state and can be used to resume a
  * paused download operation.
  *
- * TODO: should we just store GetObjectResponse? Do we actually need bytesTransferred since
- * it can be inferred from file content length
+ * TODO: 1. should we just store GetObjectResponse?
+ *   2. consider providing a way to serialize and deserialize the token
+ *   3. Do we need to store file checksum?
  *
  * @see S3TransferManager#downloadFile(DownloadFileRequest)
  */

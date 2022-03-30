@@ -17,10 +17,19 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Paths;
+import com.google.common.jimfs.Jimfs;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.time.Instant;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -33,12 +42,27 @@ import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 
 class DefaultFileDownloadTest {
     private static final long OBJECT_CONTENT_LENGTH = 1024L;
+    private static FileSystem fileSystem;
+    private static File file;
+
+    @BeforeAll
+    public static void setUp() throws IOException {
+        fileSystem = Jimfs.newFileSystem();
+        file = File.createTempFile("test", UUID.randomUUID().toString());
+        Files.write(file.toPath(), RandomStringUtils.random(2000).getBytes(StandardCharsets.UTF_8));
+    }
+
+    @AfterAll
+    public static void tearDown() throws IOException {
+        file.delete();
+    }
+
 
     @Test
     void equals_hashcode() {
         EqualsVerifier.forClass(DefaultFileDownload.class)
                       .withNonnullFields("completionFuture", "progress")
-                      .withIgnoredFields("resumableFileDownload")
+                      .withIgnoredFields("resumableFileDownload", "lock")
                       .verify();
     }
 
@@ -62,7 +86,7 @@ class DefaultFileDownloadTest {
 
         ResumableFileDownload pause = fileDownload.pause();
         assertThat(pause.downloadFileRequest()).isEqualTo(request);
-        assertThat(pause.bytesTransferred()).isEqualTo(1000L);
+        assertThat(pause.bytesTransferred()).isEqualTo(file.length());
         assertThat(pause.lastModified()).isEqualTo(sdkResponse.lastModified());
         assertThat(pause.transferSizeInBytes()).hasValue(sdkResponse.contentLength());
     }
@@ -87,7 +111,8 @@ class DefaultFileDownloadTest {
                                                                    transferProgress,
                                                                    getDownloadFileRequest());
         ResumableFileDownload resumableFileDownload = fileDownload.pause();
-        assertThat(resumableFileDownload.bytesTransferred()).isEqualTo(resumableFileDownload.transferSizeInBytes().get());
+        assertThat(resumableFileDownload.bytesTransferred()).isEqualTo(file.length());
+        assertThat(resumableFileDownload.transferSizeInBytes()).hasValue(OBJECT_CONTENT_LENGTH);
     }
 
     @Test
@@ -113,9 +138,8 @@ class DefaultFileDownloadTest {
 
     private DownloadFileRequest getDownloadFileRequest() {
         return DownloadFileRequest.builder()
-                                  .destination(Paths.get("."))
+                                  .destination(file)
                                   .getObjectRequest(GetObjectRequest.builder().key("KEY").bucket("BUCKET").build())
-
                                   .build();
     }
 

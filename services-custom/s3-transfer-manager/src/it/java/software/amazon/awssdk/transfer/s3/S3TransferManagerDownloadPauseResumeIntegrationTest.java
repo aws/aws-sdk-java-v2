@@ -19,7 +19,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -41,7 +40,8 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
     private static File file;
 
     @BeforeAll
-    public static void setup() throws IOException {
+    public static void setup() throws Exception {
+        S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
         file = new RandomTempFile(OBJ_SIZE);
         s3.putObject(PutObjectRequest.builder()
@@ -62,7 +62,7 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
     }
 
     @Test
-    public void downloadToFile_pause_shouldReturnResumableDownload() throws InterruptedException {
+    void downloadToFile_pause_shouldReturnResumableDownload() throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         TestDownloadListener testDownloadListener = new TestDownloadListener(countDownLatch);
