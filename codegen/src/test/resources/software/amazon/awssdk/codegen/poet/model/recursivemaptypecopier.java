@@ -33,7 +33,7 @@ final class RecursiveMapTypeCopier {
         } else {
             Map<String, RecursiveStructType> modifiableMap = new LinkedHashMap<>();
             recursiveMapTypeParam.forEach((key, value) -> {
-                RecursiveStructType member = value.build();
+                RecursiveStructType member = value == null ? null : value.build();
                 modifiableMap.put(key, member);
             });
             map = Collections.unmodifiableMap(modifiableMap);
@@ -48,7 +48,7 @@ final class RecursiveMapTypeCopier {
         } else {
             Map<String, RecursiveStructType.Builder> modifiableMap = new LinkedHashMap<>();
             recursiveMapTypeParam.forEach((key, value) -> {
-                RecursiveStructType.Builder member = value.toBuilder();
+                RecursiveStructType.Builder member = value == null ? null : value.toBuilder();
                 modifiableMap.put(key, member);
             });
             map = Collections.unmodifiableMap(modifiableMap);
