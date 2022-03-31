@@ -19,12 +19,14 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.utils.StringUtils.isEmpty;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -37,6 +39,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -354,5 +357,22 @@ public final class SdkHttpUtils {
         results.add(StringUtils.trimToEmpty(result.toString()));
         return results;
     }
+
+    /**
+     * Returns the Java system property for nonProxyHosts as set of Strings.
+     * See http://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html
+     */
+    public static Set<String> parseNonProxyHostsProperty() {
+        String systemNonProxyHosts = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
+
+        if (systemNonProxyHosts != null && !isEmpty(systemNonProxyHosts)) {
+            return Arrays.stream(systemNonProxyHosts.split("\\|"))
+                         .map(String::toLowerCase)
+                         .map(s -> s.replace("*", ".*?"))
+                         .collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
+    }
+
 
 }
