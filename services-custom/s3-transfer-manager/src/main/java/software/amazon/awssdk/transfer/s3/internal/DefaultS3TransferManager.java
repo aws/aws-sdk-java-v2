@@ -247,7 +247,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
             returnFuture.completeExceptionally(throwable);
         }
 
-        return new DefaultFileDownload(returnFuture, progressUpdater.progress());
+        return new DefaultFileDownload(returnFuture, progressUpdater.progress(), downloadRequest);
     }
 
     @Override

@@ -20,11 +20,14 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.Download;
 import software.amazon.awssdk.transfer.s3.FileUpload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.TransferRequest;
+import software.amazon.awssdk.transfer.s3.Upload;
 
 /**
  * {@link TransferProgressSnapshot} is an <b>immutable</b>, point-in-time representation of the progress of a given transfer
@@ -64,6 +67,16 @@ public interface TransferProgressSnapshot {
      * Amazon S3.
      */
     Optional<Long> transferSizeInBytes();
+
+    /**
+     * The SDK response, or {@link Optional#empty()} if unknown.
+     *
+     * <p>
+     * In the case of {@link Download}, the response is {@link GetObjectResponse}, and the response is known before
+     * it starts streaming. In the case of {@link Upload}, the response is {@link PutObjectResponse}, and the response is not
+     * known until streaming finishes.
+     */
+    Optional<SdkResponse> sdkResponse();
 
     /**
      * The ratio of the {@link #transferSizeInBytes()} that has been transferred so far, or {@link Optional#empty()} if unknown.

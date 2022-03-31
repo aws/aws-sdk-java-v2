@@ -122,6 +122,49 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
+     * Resumes a download operation. This download operation uses the same configuration as the original download. Any data
+     * already fetched will be skipped, and only the remaining data is retrieved from Amazon S3.
+     *
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * // Initiate the transfer
+     * FileDownload download =
+     *     tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
+     *                           .destination(Paths.get("myFile.txt")));
+     *
+     * // Pause the download
+     * ResumableFileDownload resumableFileDownload = download.pause();
+     *
+     * // Resume the download
+     * FileDownload resumedDownload = tm.resumeDownloadFile(resumableFileDownload);
+     *
+     * // Wait for the transfer to complete
+     * resumedDownload.completionFuture().join();
+     * }
+     * </pre>
+     *
+     * @param persistableFileDownload the download to resume.
+     * @return A new {@code FileDownload} object to use to check the state of the download.
+     * @see #downloadFile(DownloadFileRequest)
+     * @see FileDownload#pause()
+     */
+    default FileDownload resumeDownloadFile(ResumableFileDownload persistableFileDownload) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link ResumableFileDownload} builder, avoiding the need to
+     * create one manually via {@link ResumableFileDownload#builder()}.
+     *
+     * @see #resumeDownloadFile(ResumableFileDownload)
+     */
+    default FileDownload resumeDownloadFile(Consumer<ResumableFileDownload.Builder> persistableFileDownload) {
+        return resumeDownloadFile(ResumableFileDownload.builder().applyMutation(persistableFileDownload).build());
+    }
+
+    /**
      * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}. For 
      * downloading to a file, you may use {@link #downloadFile(DownloadFileRequest)} instead.
      * <p>
