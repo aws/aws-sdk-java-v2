@@ -1,3 +1,43 @@
+# __2.17.161__ __2022-03-31__
+## __AWS Audit Manager__
+  - ### Features
+    - This release adds documentation updates for Audit Manager. The updates provide data deletion guidance when a customer deregisters Audit Manager or deregisters a delegated administrator.
+
+## __AWS Cloud Control API__
+  - ### Features
+    - SDK release for Cloud Control API in Amazon Web Services China (Beijing) Region, operated by Sinnet, and Amazon Web Services China (Ningxia) Region, operated by NWCD
+
+## __AWS Glue DataBrew__
+  - ### Features
+    - This AWS Glue Databrew release adds feature to support ORC as an input format.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fix NPE thrown from serializing/deserializing a structure that has map type with null values
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - This release adds tagging support to the Managed Grafana service. New APIs: TagResource, UntagResource and ListTagsForResource. Updates: add optional field tags to support tagging while calling CreateWorkspace.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - Amazon Pinpoint now offers a version 2.0 suite of SMS and voice APIs, providing increased control over sending and configuration. This release is a new SDK for sending SMS and voice messages called PinpointSMSVoiceV2.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added APIs that allow you to customize the logo, login message, and help links in the WorkSpaces client login page. To learn more, visit https://docs.aws.amazon.com/workspaces/latest/adminguide/customize-branding.html
+
+## __Route53 Recovery Cluster__
+  - ### Features
+    - This release adds a new API "ListRoutingControls" to list routing control states using the highly reliable Route 53 ARC data plane endpoints.
+
+## __URLConnection HTTP Client__
+  - ### Features
+    - ProxyConfiguration support for UrlConnectionHttpClient.
+
 # __2.17.160__ __2022-03-30__
 ## __AWS IoT__
   - ### Features

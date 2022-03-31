@@ -26,15 +26,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.net.ssl.HostnameVerifier;
@@ -60,6 +66,7 @@ import software.amazon.awssdk.http.TlsTrustManagersProvider;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -79,9 +86,12 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
 
     private final AttributeMap options;
     private final UrlConnectionFactory connectionFactory;
+    private final ProxyConfiguration proxyConfiguration;
 
-    private UrlConnectionHttpClient(AttributeMap options, UrlConnectionFactory connectionFactory) {
+    private UrlConnectionHttpClient(AttributeMap options, UrlConnectionFactory connectionFactory, DefaultBuilder builder) {
         this.options = options;
+        this.proxyConfiguration = builder != null ? builder.proxyConfiguration : null;
+
         if (connectionFactory != null) {
             this.connectionFactory = connectionFactory;
         } else {
@@ -91,6 +101,10 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
 
             this.connectionFactory = url -> createDefaultConnection(url, socketFactory);
         }
+    }
+
+    private UrlConnectionHttpClient(AttributeMap options, UrlConnectionFactory connectionFactory) {
+        this(options, connectionFactory, null);
     }
 
     public static Builder builder() {
@@ -154,7 +168,12 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     }
 
     private HttpURLConnection createDefaultConnection(URI uri, SSLSocketFactory socketFactory) {
-        HttpURLConnection connection = invokeSafely(() -> (HttpURLConnection) uri.toURL().openConnection());
+
+        Optional<Proxy> proxy = determineProxy(uri);
+        HttpURLConnection connection = !proxy.isPresent() ?
+                                       invokeSafely(() -> (HttpURLConnection) uri.toURL().openConnection())
+                                                          :
+                                       invokeSafely(() -> (HttpURLConnection) uri.toURL().openConnection(proxy.get()));
 
         if (connection instanceof HttpsURLConnection) {
             HttpsURLConnection httpsConnection = (HttpsURLConnection) connection;
@@ -165,10 +184,49 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
             httpsConnection.setSSLSocketFactory(socketFactory);
         }
 
+        if (proxy.isPresent() && shouldProxyAuthorize()) {
+            connection.addRequestProperty("proxy-authorization", String.format("Basic %s", encodedAuthToken(proxyConfiguration)));
+        }
+
         connection.setConnectTimeout(saturatedCast(options.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT).toMillis()));
         connection.setReadTimeout(saturatedCast(options.get(SdkHttpConfigurationOption.READ_TIMEOUT).toMillis()));
 
         return connection;
+    }
+
+    /**
+     * If a proxy is configured with username+password, then set the proxy-authorization header to authorize ourselves with the
+     * proxy
+     */
+    private static String encodedAuthToken(ProxyConfiguration proxyConfiguration) {
+
+        String authToken = String.format("%s:%s", proxyConfiguration.username(), proxyConfiguration.password());
+        return Base64.getEncoder().encodeToString(authToken.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private boolean shouldProxyAuthorize() {
+        return this.proxyConfiguration != null
+               && ! StringUtils.isEmpty(this.proxyConfiguration.username())
+               && ! StringUtils.isEmpty(this.proxyConfiguration.password());
+    }
+
+    private Optional<Proxy> determineProxy(URI uri) {
+        if (isProxyEnabled() && isProxyHostIncluded(uri)) {
+            return Optional.of(
+                new Proxy(Proxy.Type.HTTP,
+                          InetSocketAddress.createUnresolved(this.proxyConfiguration.host(), this.proxyConfiguration.port())));
+        }
+        return Optional.empty();
+    }
+
+    private boolean isProxyHostIncluded(URI uri) {
+        return this.proxyConfiguration.nonProxyHosts()
+                                      .stream()
+                                      .noneMatch(uri.getHost().toLowerCase(Locale.getDefault())::matches);
+    }
+
+    private boolean isProxyEnabled() {
+        return this.proxyConfiguration != null && this.proxyConfiguration.host() != null;
     }
 
     private SSLContext getSslContext(AttributeMap options) {
@@ -402,10 +460,28 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
          * when constructing the SSL context.
          */
         Builder tlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider);
+
+        /**
+         * Configuration that defines how to communicate via an HTTP proxy.
+         * @param proxyConfiguration proxy configuration builder object.
+         * @return the builder for method chaining.
+         */
+        Builder proxyConfiguration(ProxyConfiguration proxyConfiguration);
+
+        /**
+         * Sets the http proxy configuration to use for this client.
+         *
+         * @param proxyConfigurationBuilderConsumer The consumer of the proxy configuration builder object.
+         * @return the builder for method chaining.
+         */
+        Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer);
+
+
     }
 
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
+        private ProxyConfiguration proxyConfiguration;
 
         private DefaultBuilder() {
         }
@@ -462,6 +538,24 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
             tlsTrustManagersProvider(tlsTrustManagersProvider);
         }
 
+        @Override
+        public Builder proxyConfiguration(ProxyConfiguration proxyConfiguration) {
+            this.proxyConfiguration = proxyConfiguration;
+            return this;
+        }
+
+        @Override
+        public Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer) {
+            ProxyConfiguration.Builder builder = ProxyConfiguration.builder();
+            proxyConfigurationBuilderConsumer.accept(builder);
+            return proxyConfiguration(builder.build());
+        }
+
+        public void setProxyConfiguration(ProxyConfiguration proxyConfiguration) {
+            proxyConfiguration(proxyConfiguration);
+        }
+
+
         /**
          * Used by the SDK to create a {@link SdkHttpClient} with service-default values if no other values have been configured
          *
@@ -474,7 +568,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
             return new UrlConnectionHttpClient(standardOptions.build()
                                                               .merge(serviceDefaults)
                                                               .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS),
-                                               null);
+                                               null, this);
         }
     }
 
