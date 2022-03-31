@@ -27,9 +27,9 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -48,7 +48,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
     private static RandomTempFile testFile;
     private static S3CrtAsyncClient s3Crt;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
         S3IntegrationTestBase.createBucket(TEST_BUCKET);
@@ -61,7 +61,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
                                 .build();
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() throws IOException {
         S3IntegrationTestBase.deleteBucketAndAllContents(TEST_BUCKET);
         Files.delete(testFile.toPath());
@@ -70,7 +70,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void putObject_fileRequestBody_objectSentCorrectly() throws Exception {
+    void putObject_fileRequestBody_objectSentCorrectly() throws Exception {
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
         s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
 
@@ -83,7 +83,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void putObject_byteBufferBody_objectSentCorrectly() {
+    void putObject_byteBufferBody_objectSentCorrectly() {
         byte[] data = new byte[16384];
         new Random().nextBytes(data);
         ByteBuffer byteBuffer = ByteBuffer.wrap(data);
@@ -101,7 +101,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void putObject_customRequestBody_objectSentCorrectly() throws IOException {
+    void putObject_customRequestBody_objectSentCorrectly() throws IOException {
         Random rng = new Random();
         int bufferSize = 16384;
         int nBuffers = 15;

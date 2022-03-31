@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * A context object that is associated with a specific operation and identifies the resources that the operation is
@@ -24,6 +25,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * This context is passed to and can be read by extension hooks (see {@link DynamoDbEnhancedClientExtension}).
  */
 @SdkPublicApi
+@ThreadSafe
 public interface OperationContext {
     /**
      * The name of the table being operated on

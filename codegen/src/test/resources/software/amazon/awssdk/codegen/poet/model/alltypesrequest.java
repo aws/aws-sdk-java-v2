@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Arrays;
@@ -428,6 +427,13 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                                                                         .memberName("MyDocument").getter(getter(AllTypesRequest::myDocument)).setter(setter(Builder::myDocument))
                                                                         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MyDocument").build()).build();
 
+    private static final SdkField<AllTypesUnionStructure> ALL_TYPES_UNION_STRUCTURE_FIELD = SdkField
+        .<AllTypesUnionStructure> builder(MarshallingType.SDK_POJO).memberName("AllTypesUnionStructure")
+        .getter(getter(AllTypesRequest::allTypesUnionStructure)).setter(setter(Builder::allTypesUnionStructure))
+        .constructor(AllTypesUnionStructure::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("AllTypesUnionStructure").build())
+        .build();
+
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD,
                                                                                                    INTEGER_MEMBER_FIELD, BOOLEAN_MEMBER_FIELD, FLOAT_MEMBER_FIELD, DOUBLE_MEMBER_FIELD, LONG_MEMBER_FIELD,
                                                                                                    SHORT_MEMBER_FIELD, SIMPLE_LIST_FIELD, LIST_OF_ENUMS_FIELD, LIST_OF_MAPS_FIELD, LIST_OF_STRUCTS_FIELD,
@@ -437,7 +443,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                                                                                                    MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD, MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD, TIMESTAMP_MEMBER_FIELD,
                                                                                                    STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD, BLOB_ARG_FIELD, STRUCT_WITH_NESTED_BLOB_FIELD, BLOB_MAP_FIELD,
                                                                                                    LIST_OF_BLOBS_FIELD, RECURSIVE_STRUCT_FIELD, POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD,
-                                                                                                   POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD, UNDERSCORE_NAME_TYPE_FIELD, MY_DOCUMENT_FIELD));
+                                                                                                   POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD, UNDERSCORE_NAME_TYPE_FIELD, MY_DOCUMENT_FIELD,
+                                                                                                   ALL_TYPES_UNION_STRUCTURE_FIELD));
 
     private final String stringMember;
 
@@ -507,6 +514,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private final Document myDocument;
 
+    private final AllTypesUnionStructure allTypesUnionStructure;
+
     private AllTypesRequest(BuilderImpl builder) {
         super(builder);
         this.stringMember = builder.stringMember;
@@ -543,6 +552,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         this.enumType = builder.enumType;
         this.underscore_Name_Type = builder.underscore_Name_Type;
         this.myDocument = builder.myDocument;
+        this.allTypesUnionStructure = builder.allTypesUnionStructure;
     }
 
     /**
@@ -1323,6 +1333,15 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         return myDocument;
     }
 
+    /**
+     * Returns the value of the AllTypesUnionStructure property for this object.
+     *
+     * @return The value of the AllTypesUnionStructure property for this object.
+     */
+    public final AllTypesUnionStructure allTypesUnionStructure() {
+        return allTypesUnionStructure;
+    }
+
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
@@ -1375,6 +1394,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         hashCode = 31 * hashCode + Objects.hashCode(enumTypeAsString());
         hashCode = 31 * hashCode + Objects.hashCode(underscore_Name_Type());
         hashCode = 31 * hashCode + Objects.hashCode(myDocument());
+        hashCode = 31 * hashCode + Objects.hashCode(allTypesUnionStructure());
         return hashCode;
     }
 
@@ -1436,7 +1456,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                && Objects.equals(polymorphicTypeWithoutSubTypes(), other.polymorphicTypeWithoutSubTypes())
                && Objects.equals(enumTypeAsString(), other.enumTypeAsString())
                && Objects.equals(underscore_Name_Type(), other.underscore_Name_Type())
-               && Objects.equals(myDocument(), other.myDocument());
+               && Objects.equals(myDocument(), other.myDocument())
+               && Objects.equals(allTypesUnionStructure(), other.allTypesUnionStructure());
     }
 
     /**
@@ -1476,7 +1497,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             .add("ListOfBlobs", hasListOfBlobs() ? listOfBlobs() : null).add("RecursiveStruct", recursiveStruct())
             .add("PolymorphicTypeWithSubTypes", polymorphicTypeWithSubTypes())
             .add("PolymorphicTypeWithoutSubTypes", polymorphicTypeWithoutSubTypes()).add("EnumType", enumTypeAsString())
-            .add("Underscore_Name_Type", underscore_Name_Type()).add("MyDocument", myDocument()).build();
+            .add("Underscore_Name_Type", underscore_Name_Type()).add("MyDocument", myDocument())
+            .add("AllTypesUnionStructure", allTypesUnionStructure()).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -1549,6 +1571,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                 return Optional.ofNullable(clazz.cast(underscore_Name_Type()));
             case "MyDocument":
                 return Optional.ofNullable(clazz.cast(myDocument()));
+            case "AllTypesUnionStructure":
+                return Optional.ofNullable(clazz.cast(allTypesUnionStructure()));
             default:
                 return Optional.empty();
         }
@@ -1724,8 +1748,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         /**
          * Sets the value of the ListOfStructs property for this object.
          *
-         * This is a convenience that creates an instance of the {@link List<SimpleStruct>.Builder} avoiding the need to
-         * create one manually via {@link List<SimpleStruct>#builder()}.
+         * This is a convenience method that creates an instance of the {@link List<SimpleStruct>.Builder} avoiding the
+         * need to create one manually via {@link List<SimpleStruct>#builder()}.
          *
          * When the {@link Consumer} completes, {@link List<SimpleStruct>.Builder#build()} is called immediately and its
          * result is passed to {@link #listOfStructs(List<SimpleStruct>)}.
@@ -1929,8 +1953,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         /**
          * Sets the value of the StructWithNestedTimestampMember property for this object.
          *
-         * This is a convenience that creates an instance of the {@link StructWithTimestamp.Builder} avoiding the need
-         * to create one manually via {@link StructWithTimestamp#builder()}.
+         * This is a convenience method that creates an instance of the {@link StructWithTimestamp.Builder} avoiding the
+         * need to create one manually via {@link StructWithTimestamp#builder()}.
          *
          * When the {@link Consumer} completes, {@link StructWithTimestamp.Builder#build()} is called immediately and
          * its result is passed to {@link #structWithNestedTimestampMember(StructWithTimestamp)}.
@@ -1966,8 +1990,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         /**
          * Sets the value of the StructWithNestedBlob property for this object.
          *
-         * This is a convenience that creates an instance of the {@link StructWithNestedBlobType.Builder} avoiding the
-         * need to create one manually via {@link StructWithNestedBlobType#builder()}.
+         * This is a convenience method that creates an instance of the {@link StructWithNestedBlobType.Builder}
+         * avoiding the need to create one manually via {@link StructWithNestedBlobType#builder()}.
          *
          * When the {@link Consumer} completes, {@link StructWithNestedBlobType.Builder#build()} is called immediately
          * and its result is passed to {@link #structWithNestedBlob(StructWithNestedBlobType)}.
@@ -2020,8 +2044,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         /**
          * Sets the value of the RecursiveStruct property for this object.
          *
-         * This is a convenience that creates an instance of the {@link RecursiveStructType.Builder} avoiding the need
-         * to create one manually via {@link RecursiveStructType#builder()}.
+         * This is a convenience method that creates an instance of the {@link RecursiveStructType.Builder} avoiding the
+         * need to create one manually via {@link RecursiveStructType#builder()}.
          *
          * When the {@link Consumer} completes, {@link RecursiveStructType.Builder#build()} is called immediately and
          * its result is passed to {@link #recursiveStruct(RecursiveStructType)}.
@@ -2047,8 +2071,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         /**
          * Sets the value of the PolymorphicTypeWithSubTypes property for this object.
          *
-         * This is a convenience that creates an instance of the {@link BaseType.Builder} avoiding the need to create
-         * one manually via {@link BaseType#builder()}.
+         * This is a convenience method that creates an instance of the {@link BaseType.Builder} avoiding the need to
+         * create one manually via {@link BaseType#builder()}.
          *
          * When the {@link Consumer} completes, {@link BaseType.Builder#build()} is called immediately and its result is
          * passed to {@link #polymorphicTypeWithSubTypes(BaseType)}.
@@ -2074,8 +2098,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         /**
          * Sets the value of the PolymorphicTypeWithoutSubTypes property for this object.
          *
-         * This is a convenience that creates an instance of the {@link SubTypeOne.Builder} avoiding the need to create
-         * one manually via {@link SubTypeOne#builder()}.
+         * This is a convenience method that creates an instance of the {@link SubTypeOne.Builder} avoiding the need to
+         * create one manually via {@link SubTypeOne#builder()}.
          *
          * When the {@link Consumer} completes, {@link SubTypeOne.Builder#build()} is called immediately and its result
          * is passed to {@link #polymorphicTypeWithoutSubTypes(SubTypeOne)}.
@@ -2123,8 +2147,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         /**
          * Sets the value of the Underscore_Name_Type property for this object.
          *
-         * This is a convenience that creates an instance of the {@link Underscore_Name_Type.Builder} avoiding the need
-         * to create one manually via {@link Underscore_Name_Type#builder()}.
+         * This is a convenience method that creates an instance of the {@link Underscore_Name_Type.Builder} avoiding
+         * the need to create one manually via {@link Underscore_Name_Type#builder()}.
          *
          * When the {@link Consumer} completes, {@link Underscore_Name_Type.Builder#build()} is called immediately and
          * its result is passed to {@link #underscore_Name_Type(Underscore_Name_Type)}.
@@ -2146,6 +2170,33 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder myDocument(Document myDocument);
+
+        /**
+         * Sets the value of the AllTypesUnionStructure property for this object.
+         *
+         * @param allTypesUnionStructure
+         *        The new value for the AllTypesUnionStructure property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder allTypesUnionStructure(AllTypesUnionStructure allTypesUnionStructure);
+
+        /**
+         * Sets the value of the AllTypesUnionStructure property for this object.
+         *
+         * This is a convenience method that creates an instance of the {@link AllTypesUnionStructure.Builder} avoiding
+         * the need to create one manually via {@link AllTypesUnionStructure#builder()}.
+         *
+         * When the {@link Consumer} completes, {@link AllTypesUnionStructure.Builder#build()} is called immediately and
+         * its result is passed to {@link #allTypesUnionStructure(AllTypesUnionStructure)}.
+         *
+         * @param allTypesUnionStructure
+         *        a consumer that will call methods on {@link AllTypesUnionStructure.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #allTypesUnionStructure(AllTypesUnionStructure)
+         */
+        default Builder allTypesUnionStructure(Consumer<AllTypesUnionStructure.Builder> allTypesUnionStructure) {
+            return allTypesUnionStructure(AllTypesUnionStructure.builder().applyMutation(allTypesUnionStructure).build());
+        }
 
         @Override
         Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
@@ -2223,6 +2274,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         private Document myDocument;
 
+        private AllTypesUnionStructure allTypesUnionStructure;
+
         private BuilderImpl() {
         }
 
@@ -2262,6 +2315,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             enumType(model.enumType);
             underscore_Name_Type(model.underscore_Name_Type);
             myDocument(model.myDocument);
+            allTypesUnionStructure(model.allTypesUnionStructure);
         }
 
         public final String getStringMember() {
@@ -2273,7 +2327,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder stringMember(String stringMember) {
             this.stringMember = stringMember;
             return this;
@@ -2288,7 +2341,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder integerMember(Integer integerMember) {
             this.integerMember = integerMember;
             return this;
@@ -2303,7 +2355,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder booleanMember(Boolean booleanMember) {
             this.booleanMember = booleanMember;
             return this;
@@ -2318,7 +2369,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder floatMember(Float floatMember) {
             this.floatMember = floatMember;
             return this;
@@ -2333,7 +2383,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder doubleMember(Double doubleMember) {
             this.doubleMember = doubleMember;
             return this;
@@ -2348,7 +2397,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder longMember(Long longMember) {
             this.longMember = longMember;
             return this;
@@ -2363,7 +2411,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder shortMember(Short shortMember) {
             this.shortMember = shortMember;
             return this;
@@ -2381,14 +2428,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder simpleList(Collection<String> simpleList) {
             this.simpleList = ListOfStringsCopier.copy(simpleList);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder simpleList(String... simpleList) {
             simpleList(Arrays.asList(simpleList));
@@ -2407,14 +2452,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder listOfEnumsWithStrings(Collection<String> listOfEnums) {
             this.listOfEnums = ListOfEnumsCopier.copy(listOfEnums);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfEnumsWithStrings(String... listOfEnums) {
             listOfEnumsWithStrings(Arrays.asList(listOfEnums));
@@ -2422,14 +2465,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder listOfEnums(Collection<EnumType> listOfEnums) {
             this.listOfEnums = ListOfEnumsCopier.copyEnumToString(listOfEnums);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfEnums(EnumType... listOfEnums) {
             listOfEnums(Arrays.asList(listOfEnums));
@@ -2448,14 +2489,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder listOfMaps(Collection<? extends Map<String, String>> listOfMaps) {
             this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfMaps(Map<String, String>... listOfMaps) {
             listOfMaps(Arrays.asList(listOfMaps));
@@ -2475,14 +2514,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder listOfStructs(Collection<SimpleStruct> listOfStructs) {
             this.listOfStructs = ListOfSimpleStructsCopier.copy(listOfStructs);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfStructs(SimpleStruct... listOfStructs) {
             listOfStructs(Arrays.asList(listOfStructs));
@@ -2490,7 +2527,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfStructs(Consumer<SimpleStruct.Builder>... listOfStructs) {
             listOfStructs(Stream.of(listOfStructs).map(c -> SimpleStruct.builder().applyMutation(c).build())
@@ -2510,14 +2546,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder listOfMapOfEnumToStringWithStrings(Collection<? extends Map<String, String>> listOfMapOfEnumToString) {
             this.listOfMapOfEnumToString = ListOfMapOfEnumToStringCopier.copy(listOfMapOfEnumToString);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfMapOfEnumToStringWithStrings(Map<String, String>... listOfMapOfEnumToString) {
             listOfMapOfEnumToStringWithStrings(Arrays.asList(listOfMapOfEnumToString));
@@ -2539,14 +2573,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder listOfMapOfStringToStruct(Collection<? extends Map<String, SimpleStruct>> listOfMapOfStringToStruct) {
             this.listOfMapOfStringToStruct = ListOfMapOfStringToStructCopier.copy(listOfMapOfStringToStruct);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfMapOfStringToStruct(Map<String, SimpleStruct>... listOfMapOfStringToStruct) {
             listOfMapOfStringToStruct(Arrays.asList(listOfMapOfStringToStruct));
@@ -2565,7 +2597,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToIntegerList(Map<String, ? extends Collection<Integer>> mapOfStringToIntegerList) {
             this.mapOfStringToIntegerList = MapOfStringToIntegerListCopier.copy(mapOfStringToIntegerList);
             return this;
@@ -2583,7 +2614,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToString(Map<String, String> mapOfStringToString) {
             this.mapOfStringToString = MapOfStringToStringCopier.copy(mapOfStringToString);
             return this;
@@ -2603,7 +2633,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToSimpleStruct(Map<String, SimpleStruct> mapOfStringToSimpleStruct) {
             this.mapOfStringToSimpleStruct = MapOfStringToSimpleStructCopier.copy(mapOfStringToSimpleStruct);
             return this;
@@ -2621,14 +2650,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToEnumWithStrings(Map<String, String> mapOfEnumToEnum) {
             this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copy(mapOfEnumToEnum);
             return this;
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToEnum(Map<EnumType, EnumType> mapOfEnumToEnum) {
             this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copyEnumToString(mapOfEnumToEnum);
             return this;
@@ -2646,14 +2673,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToStringWithStrings(Map<String, String> mapOfEnumToString) {
             this.mapOfEnumToString = MapOfEnumToStringCopier.copy(mapOfEnumToString);
             return this;
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToString(Map<EnumType, String> mapOfEnumToString) {
             this.mapOfEnumToString = MapOfEnumToStringCopier.copyEnumToString(mapOfEnumToString);
             return this;
@@ -2671,14 +2696,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToEnumWithStrings(Map<String, String> mapOfStringToEnum) {
             this.mapOfStringToEnum = MapOfStringToEnumCopier.copy(mapOfStringToEnum);
             return this;
         }
 
         @Override
-        @Transient
         public final Builder mapOfStringToEnum(Map<String, EnumType> mapOfStringToEnum) {
             this.mapOfStringToEnum = MapOfStringToEnumCopier.copyEnumToString(mapOfStringToEnum);
             return this;
@@ -2697,14 +2720,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToSimpleStructWithStrings(Map<String, SimpleStruct> mapOfEnumToSimpleStruct) {
             this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copy(mapOfEnumToSimpleStruct);
             return this;
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToSimpleStruct(Map<EnumType, SimpleStruct> mapOfEnumToSimpleStruct) {
             this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copyEnumToString(mapOfEnumToSimpleStruct);
             return this;
@@ -2722,14 +2743,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToListOfEnumsWithStrings(Map<String, ? extends Collection<String>> mapOfEnumToListOfEnums) {
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copy(mapOfEnumToListOfEnums);
             return this;
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToListOfEnums(Map<EnumType, ? extends Collection<EnumType>> mapOfEnumToListOfEnums) {
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copyEnumToString(mapOfEnumToListOfEnums);
             return this;
@@ -2747,7 +2766,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToMapOfStringToEnumWithStrings(
             Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
@@ -2755,7 +2773,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder mapOfEnumToMapOfStringToEnum(
             Map<EnumType, ? extends Map<String, EnumType>> mapOfEnumToMapOfStringToEnum) {
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copyEnumToString(mapOfEnumToMapOfStringToEnum);
@@ -2771,7 +2788,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder timestampMember(Instant timestampMember) {
             this.timestampMember = timestampMember;
             return this;
@@ -2787,7 +2803,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder structWithNestedTimestampMember(StructWithTimestamp structWithNestedTimestampMember) {
             this.structWithNestedTimestampMember = structWithNestedTimestampMember;
             return this;
@@ -2802,7 +2817,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder blobArg(SdkBytes blobArg) {
             this.blobArg = blobArg;
             return this;
@@ -2817,7 +2831,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder structWithNestedBlob(StructWithNestedBlobType structWithNestedBlob) {
             this.structWithNestedBlob = structWithNestedBlob;
             return this;
@@ -2837,7 +2850,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder blobMap(Map<String, SdkBytes> blobMap) {
             this.blobMap = BlobMapTypeCopier.copy(blobMap);
             return this;
@@ -2856,14 +2868,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder listOfBlobs(Collection<SdkBytes> listOfBlobs) {
             this.listOfBlobs = ListOfBlobsTypeCopier.copy(listOfBlobs);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder listOfBlobs(SdkBytes... listOfBlobs) {
             listOfBlobs(Arrays.asList(listOfBlobs));
@@ -2879,7 +2889,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder recursiveStruct(RecursiveStructType recursiveStruct) {
             this.recursiveStruct = recursiveStruct;
             return this;
@@ -2894,7 +2903,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder polymorphicTypeWithSubTypes(BaseType polymorphicTypeWithSubTypes) {
             this.polymorphicTypeWithSubTypes = polymorphicTypeWithSubTypes;
             return this;
@@ -2910,7 +2918,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder polymorphicTypeWithoutSubTypes(SubTypeOne polymorphicTypeWithoutSubTypes) {
             this.polymorphicTypeWithoutSubTypes = polymorphicTypeWithoutSubTypes;
             return this;
@@ -2925,14 +2932,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder enumType(String enumType) {
             this.enumType = enumType;
             return this;
         }
 
         @Override
-        @Transient
         public final Builder enumType(EnumType enumType) {
             this.enumType(enumType == null ? null : enumType.toString());
             return this;
@@ -2947,7 +2952,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder underscore_Name_Type(Underscore_Name_Type underscore_Name_Type) {
             this.underscore_Name_Type = underscore_Name_Type;
             return this;
@@ -2962,9 +2966,22 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        @Transient
         public final Builder myDocument(Document myDocument) {
             this.myDocument = myDocument;
+            return this;
+        }
+
+        public final AllTypesUnionStructure.Builder getAllTypesUnionStructure() {
+            return allTypesUnionStructure != null ? allTypesUnionStructure.toBuilder() : null;
+        }
+
+        public final void setAllTypesUnionStructure(AllTypesUnionStructure.BuilderImpl allTypesUnionStructure) {
+            this.allTypesUnionStructure = allTypesUnionStructure != null ? allTypesUnionStructure.build() : null;
+        }
+
+        @Override
+        public final Builder allTypesUnionStructure(AllTypesUnionStructure allTypesUnionStructure) {
+            this.allTypesUnionStructure = allTypesUnionStructure;
             return this;
         }
 

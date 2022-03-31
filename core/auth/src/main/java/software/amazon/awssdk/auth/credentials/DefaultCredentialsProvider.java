@@ -83,6 +83,8 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
                                                 .build(),
                     InstanceProfileCredentialsProvider.builder()
                                                       .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
+                                                      .profileFile(builder.profileFile)
+                                                      .profileName(builder.profileName)
                                                       .build()
             };
 

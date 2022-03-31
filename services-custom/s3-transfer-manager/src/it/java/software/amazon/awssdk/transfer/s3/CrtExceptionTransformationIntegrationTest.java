@@ -21,9 +21,9 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
@@ -42,7 +42,7 @@ public class CrtExceptionTransformationIntegrationTest extends S3IntegrationTest
     private static S3TransferManager transferManager;
     private static S3CrtAsyncClient s3Crt;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupFixture() throws IOException {
         createBucket(BUCKET);
         testFile = new RandomTempFile(BUCKET, OBJ_SIZE);
@@ -57,7 +57,7 @@ public class CrtExceptionTransformationIntegrationTest extends S3IntegrationTest
                              .build();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownFixture() {
         deleteBucketAndAllContents(BUCKET);
         s3Crt.close();

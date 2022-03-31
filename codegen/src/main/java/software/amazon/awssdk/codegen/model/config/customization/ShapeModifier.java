@@ -30,6 +30,7 @@ public class ShapeModifier {
     private List<Map<String, ModifyModelShapeModifier>> modify;
     private List<Map<String, Member>> inject;
     private Integer staxTargetDepthOffset;
+    private Boolean union;
 
     /**
      * @return true if the whole shape should be excluded.
@@ -86,5 +87,13 @@ public class ShapeModifier {
 
     public void setStaxTargetDepthOffset(Integer staxTargetDepthOffset) {
         this.staxTargetDepthOffset = staxTargetDepthOffset;
+    }
+
+    public Boolean isUnion() {
+        return union;
+    }
+
+    public void setUnion(Boolean union) {
+        this.union = union;
     }
 }

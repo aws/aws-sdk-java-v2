@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -244,7 +243,6 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         }
 
         @Override
-        @Transient
         @Deprecated
         public final Builder memberModeledAsDeprecated(String memberModeledAsDeprecated) {
             this.memberModeledAsDeprecated = memberModeledAsDeprecated;
@@ -262,7 +260,6 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         }
 
         @Override
-        @Transient
         @Deprecated
         public final Builder memberModifiedAsDeprecated(String memberModifiedAsDeprecated) {
             this.memberModifiedAsDeprecated = memberModifiedAsDeprecated;
@@ -278,7 +275,6 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         }
 
         @Override
-        @Transient
         public final Builder undeprecatedMember(String undeprecatedMember) {
             this.undeprecatedMember = undeprecatedMember;
             return this;

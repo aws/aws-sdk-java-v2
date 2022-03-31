@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
@@ -49,6 +50,7 @@ import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
  * </pre>
  */
 @SdkPublicApi
+@ThreadSafe
 public interface BatchGetResultPagePublisher extends SdkPublisher<BatchGetResultPage> {
 
     /**

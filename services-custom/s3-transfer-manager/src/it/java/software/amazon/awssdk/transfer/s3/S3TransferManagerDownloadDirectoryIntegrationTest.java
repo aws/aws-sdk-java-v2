@@ -29,18 +29,18 @@ import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.ComparisonFailure;
-import org.junit.Test;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.utils.Logger;
 
 public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3IntegrationTestBase {
     private static final Logger log = Logger.loggerFor(S3TransferManagerDownloadDirectoryIntegrationTest.class);
-    private static final String TEST_BUCKET = temporaryBucketName(S3TransferManagerUploadIntegrationTest.class);
+    private static final String TEST_BUCKET = temporaryBucketName(S3TransferManagerDownloadDirectoryIntegrationTest.class);
     private static final String TEST_BUCKET_CUSTOM_DELIMITER = temporaryBucketName("S3TransferManagerUploadIntegrationTest"
                                                                                    + "-delimiter");
     private static final String CUSTOM_DELIMITER = "-";
@@ -49,7 +49,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
     private static Path sourceDirectory;
     private Path destinationDirectory;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(TEST_BUCKET);
@@ -70,17 +70,17 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
           .completionFuture().join();
     }
 
-    @Before
+    @BeforeEach
     public void setUpPerTest() throws IOException {
         destinationDirectory = Files.createTempDirectory("destination");
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         FileUtils.cleanUpTestDirectory(destinationDirectory);
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() {
         try {
             FileUtils.cleanUpTestDirectory(sourceDirectory);

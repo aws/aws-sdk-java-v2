@@ -16,7 +16,9 @@
 package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
 import java.util.Map;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -30,6 +32,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * and added as a parameter to the write operation.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class WriteModification {
     private final Map<String, AttributeValue> transformedItem;
     private final Expression additionalConditionalExpression;
@@ -77,6 +80,7 @@ public final class WriteModification {
         return result;
     }
 
+    @NotThreadSafe
     public static final class Builder {
         private Map<String, AttributeValue> transformedItem;
         private Expression additionalConditionalExpression;

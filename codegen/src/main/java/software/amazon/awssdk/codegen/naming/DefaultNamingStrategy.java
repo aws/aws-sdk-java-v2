@@ -363,6 +363,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
         return screamCase(memberModel.getName()) + "_FIELD";
     }
 
+    @Override
+    public String getUnionEnumTypeName(MemberModel memberModel) {
+        return screamCase(memberModel.getName());
+    }
+
     private String rewriteInvalidMemberName(String memberName, Shape parentShape) {
         if (isJavaKeyword(memberName) || isDisallowedNameForShape(memberName, parentShape)) {
             return Utils.unCapitalize(memberName + CONFLICTING_NAME_SUFFIX);
@@ -372,6 +377,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     private boolean isDisallowedNameForShape(String name, Shape parentShape) {
+        // Reserve the name "type" for union shapes.
+        if (parentShape.isUnion() && name.equals("type")) {
+            return true;
+        }
+
         if (parentShape.isException()) {
             return RESERVED_EXCEPTION_METHOD_NAMES.contains(name);
         } else {

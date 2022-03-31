@@ -19,12 +19,14 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 /**
  * Interface for an object the stores structural information about a DynamoDb table.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface TableMetadata {
     /**
      * Returns the attribute name of the partition key for an index.

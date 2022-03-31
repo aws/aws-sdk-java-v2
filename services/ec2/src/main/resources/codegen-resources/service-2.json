@@ -4172,6 +4172,16 @@
       "output":{"shape":"ModifyInstanceEventWindowResult"},
       "documentation":"<p>Modifies the specified event window.</p> <p>You can define either a set of time ranges or a cron expression when modifying the event window, but not both.</p> <p>To modify the targets associated with the event window, use the <a>AssociateInstanceEventWindow</a> and <a>DisassociateInstanceEventWindow</a> API.</p> <p>If Amazon Web Services has already scheduled an event, modifying an event window won't change the time of the scheduled event.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/event-windows.html\">Define event windows for scheduled events</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
+    "ModifyInstanceMaintenanceOptions":{
+      "name":"ModifyInstanceMaintenanceOptions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ModifyInstanceMaintenanceOptionsRequest"},
+      "output":{"shape":"ModifyInstanceMaintenanceOptionsResult"},
+      "documentation":"<p>Modifies the recovery behavior of your instance to disable simplified automatic recovery or set the recovery behavior to default. The default configuration will not enable simplified automatic recovery for an unsupported instance type. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-recover.html#instance-configuration-recovery\">Simplified automatic recovery</a>.</p>"
+    },
     "ModifyInstanceMetadataOptions":{
       "name":"ModifyInstanceMetadataOptions",
       "http":{
@@ -5666,6 +5676,29 @@
       },
       "documentation":"<p>An entry for a prefix list.</p>"
     },
+    "AdditionalDetail":{
+      "type":"structure",
+      "members":{
+        "AdditionalDetailType":{
+          "shape":"String",
+          "documentation":"<p>The information type.</p>",
+          "locationName":"additionalDetailType"
+        },
+        "Component":{
+          "shape":"AnalysisComponent",
+          "documentation":"<p>The path component.</p>",
+          "locationName":"component"
+        }
+      },
+      "documentation":"<p>Describes an additional detail for a path analysis.</p>"
+    },
+    "AdditionalDetailList":{
+      "type":"list",
+      "member":{
+        "shape":"AdditionalDetail",
+        "locationName":"item"
+      }
+    },
     "Address":{
       "type":"structure",
       "members":{
@@ -6282,7 +6315,7 @@
         },
         "Origin":{
           "shape":"String",
-          "documentation":"<p>Describes how the route was created. The following are possible values:</p> <ul> <li> <p> <code>CreateRouteTable</code> - The route was automatically created when the route table was created.</p> </li> <li> <p> <code>CreateRoute</code> - The route was manually added to the route table.</p> </li> <li> <p> <code>EnableVgwRoutePropagation</code> - The route was propagated by route propagation.</p> </li> </ul>",
+          "documentation":"<p>Describes how the route was created. The following are the possible values:</p> <ul> <li> <p>CreateRouteTable - The route was automatically created when the route table was created.</p> </li> <li> <p>CreateRoute - The route was manually added to the route table.</p> </li> <li> <p>EnableVgwRoutePropagation - The route was propagated by route propagation.</p> </li> </ul>",
           "locationName":"origin"
         },
         "TransitGatewayId":{
@@ -6308,7 +6341,7 @@
         },
         "Direction":{
           "shape":"String",
-          "documentation":"<p>The direction. The following are possible values:</p> <ul> <li> <p>egress</p> </li> <li> <p>ingress</p> </li> </ul>",
+          "documentation":"<p>The direction. The following are the possible values:</p> <ul> <li> <p>egress</p> </li> <li> <p>ingress</p> </li> </ul>",
           "locationName":"direction"
         },
         "SecurityGroupId":{
@@ -9627,7 +9660,7 @@
       "type":"structure",
       "members":{
         "PoolId":{
-          "shape":"CoipPoolId",
+          "shape":"Ipv4PoolCoipId",
           "documentation":"<p>The ID of the address pool.</p>",
           "locationName":"poolId"
         },
@@ -9658,7 +9691,7 @@
     "CoipPoolIdSet":{
       "type":"list",
       "member":{
-        "shape":"CoipPoolId",
+        "shape":"Ipv4PoolCoipId",
         "locationName":"item"
       }
     },
@@ -18727,7 +18760,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>The filters. The following are possible values:</p> <ul> <li> <p>PathFound - A Boolean value that indicates whether a feasible path is found.</p> </li> <li> <p>Status - The status of the analysis (running | succeeded | failed).</p> </li> </ul>",
+          "documentation":"<p>The filters. The following are the possible values:</p> <ul> <li> <p>PathFound - A Boolean value that indicates whether a feasible path is found.</p> </li> <li> <p>Status - The status of the analysis (running | succeeded | failed).</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -18769,7 +18802,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>The filters. The following are possible values:</p> <ul> <li> <p>Destination - The ID of the resource.</p> </li> <li> <p>DestinationPort - The destination port.</p> </li> <li> <p>Name - The path name.</p> </li> <li> <p>Protocol - The protocol.</p> </li> <li> <p>Source - The ID of the resource.</p> </li> </ul>",
+          "documentation":"<p>The filters. The following are the possible values:</p> <ul> <li> <p>Destination - The ID of the resource.</p> </li> <li> <p>DestinationPort - The destination port.</p> </li> <li> <p>Name - The path name.</p> </li> <li> <p>Protocol - The protocol.</p> </li> <li> <p>Source - The ID of the resource.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -23773,7 +23806,7 @@
         },
         "Direction":{
           "shape":"String",
-          "documentation":"<p>The direction. The following are possible values:</p> <ul> <li> <p>egress</p> </li> <li> <p>ingress</p> </li> </ul>",
+          "documentation":"<p>The direction. The following are the possible values:</p> <ul> <li> <p>egress</p> </li> <li> <p>ingress</p> </li> </ul>",
           "locationName":"direction"
         },
         "ExplanationCode":{
@@ -23940,6 +23973,26 @@
           "shape":"AnalysisComponent",
           "documentation":"<p>The VPN gateway.</p>",
           "locationName":"vpnGateway"
+        },
+        "TransitGateway":{
+          "shape":"AnalysisComponent",
+          "documentation":"<p>The transit gateway.</p>",
+          "locationName":"transitGateway"
+        },
+        "TransitGatewayRouteTable":{
+          "shape":"AnalysisComponent",
+          "documentation":"<p>The transit gateway route table.</p>",
+          "locationName":"transitGatewayRouteTable"
+        },
+        "TransitGatewayRouteTableRoute":{
+          "shape":"TransitGatewayRouteTableRoute",
+          "documentation":"<p>The transit gateway route table route.</p>",
+          "locationName":"transitGatewayRouteTableRoute"
+        },
+        "TransitGatewayAttachment":{
+          "shape":"AnalysisComponent",
+          "documentation":"<p>The transit gateway attachment.</p>",
+          "locationName":"transitGatewayAttachment"
         }
       },
       "documentation":"<p>Describes an explanation code for an unreachable path. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/reachability/explanation-codes.html\">Reachability Analyzer explanation codes</a>.</p>"
@@ -25539,7 +25592,7 @@
       "required":["PoolId"],
       "members":{
         "PoolId":{
-          "shape":"CoipPoolId",
+          "shape":"Ipv4PoolCoipId",
           "documentation":"<p>The ID of the address pool.</p>"
         },
         "Filters":{
@@ -28876,6 +28929,11 @@
           "shape":"String",
           "documentation":"<p>The IPv6 address assigned to the instance.</p>",
           "locationName":"ipv6Address"
+        },
+        "MaintenanceOptions":{
+          "shape":"InstanceMaintenanceOptions",
+          "documentation":"<p>Provides information on the recovery and maintenance options of your instance.</p>",
+          "locationName":"maintenanceOptions"
         }
       },
       "documentation":"<p>Describes an instance.</p>"
@@ -28984,6 +29042,13 @@
         "sriovNetSupport",
         "enaSupport",
         "enclaveOptions"
+      ]
+    },
+    "InstanceAutoRecoveryState":{
+      "type":"string",
+      "enum":[
+        "disabled",
+        "default"
       ]
     },
     "InstanceBlockDeviceMapping":{
@@ -29516,6 +29581,27 @@
         "shape":"Instance",
         "locationName":"item"
       }
+    },
+    "InstanceMaintenanceOptions":{
+      "type":"structure",
+      "members":{
+        "AutoRecovery":{
+          "shape":"InstanceAutoRecoveryState",
+          "documentation":"<p>Provides information on the current automatic recovery behavior of your instance.</p>",
+          "locationName":"autoRecovery"
+        }
+      },
+      "documentation":"<p>The maintenance options for the instance.</p>"
+    },
+    "InstanceMaintenanceOptionsRequest":{
+      "type":"structure",
+      "members":{
+        "AutoRecovery":{
+          "shape":"InstanceAutoRecoveryState",
+          "documentation":"<p>Disables the automatic recovery behavior of your instance or sets it to default. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-recover.html#instance-configuration-recovery\">Simplified automatic recovery</a>.</p>"
+        }
+      },
+      "documentation":"<p>The maintenance options for the instance.</p>"
     },
     "InstanceMarketOptionsRequest":{
       "type":"structure",
@@ -32065,6 +32151,7 @@
         "delete-failed"
       ]
     },
+    "Ipv4PoolCoipId":{"type":"string"},
     "Ipv4PoolEc2Id":{"type":"string"},
     "Ipv4PrefixList":{
       "type":"list",
@@ -32599,6 +32686,13 @@
       },
       "documentation":"<p>Describes a launch template and overrides.</p>"
     },
+    "LaunchTemplateAutoRecoveryState":{
+      "type":"string",
+      "enum":[
+        "default",
+        "disabled"
+      ]
+    },
     "LaunchTemplateBlockDeviceMapping":{
       "type":"structure",
       "members":{
@@ -32974,6 +33068,27 @@
         "shape":"LaunchTemplateId",
         "locationName":"item"
       }
+    },
+    "LaunchTemplateInstanceMaintenanceOptions":{
+      "type":"structure",
+      "members":{
+        "AutoRecovery":{
+          "shape":"LaunchTemplateAutoRecoveryState",
+          "documentation":"<p>Disables the automatic recovery behavior of your instance or sets it to default.</p>",
+          "locationName":"autoRecovery"
+        }
+      },
+      "documentation":"<p>The maintenance options of your instance.</p>"
+    },
+    "LaunchTemplateInstanceMaintenanceOptionsRequest":{
+      "type":"structure",
+      "members":{
+        "AutoRecovery":{
+          "shape":"LaunchTemplateAutoRecoveryState",
+          "documentation":"<p>Disables the automatic recovery behavior of your instance or sets it to default. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-recover.html#instance-configuration-recovery\">Simplified automatic recovery</a>.</p>"
+        }
+      },
+      "documentation":"<p>The maintenance options of your instance.</p>"
     },
     "LaunchTemplateInstanceMarketOptions":{
       "type":"structure",
@@ -34838,7 +34953,7 @@
       "members":{
         "Return":{
           "shape":"Boolean",
-          "documentation":"<p>Is <code>true</code> if the request succeeds, and an error otherwise.</p>",
+          "documentation":"<p>If the request succeeds, the response returns <code>true</code>. If the request fails, no response is returned, and instead an error message is returned.</p>",
           "locationName":"return"
         }
       }
@@ -35267,6 +35382,39 @@
           "shape":"InstanceEventWindow",
           "documentation":"<p>Information about the event window.</p>",
           "locationName":"instanceEventWindow"
+        }
+      }
+    },
+    "ModifyInstanceMaintenanceOptionsRequest":{
+      "type":"structure",
+      "required":["InstanceId"],
+      "members":{
+        "InstanceId":{
+          "shape":"InstanceId",
+          "documentation":"<p>The ID of the instance.</p>"
+        },
+        "AutoRecovery":{
+          "shape":"InstanceAutoRecoveryState",
+          "documentation":"<p>Disables the automatic recovery behavior of your instance or sets it to default.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "ModifyInstanceMaintenanceOptionsResult":{
+      "type":"structure",
+      "members":{
+        "InstanceId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the instance.</p>",
+          "locationName":"instanceId"
+        },
+        "AutoRecovery":{
+          "shape":"InstanceAutoRecoveryState",
+          "documentation":"<p>Provides information on the current automatic recovery behavior of your instance.</p>",
+          "locationName":"autoRecovery"
         }
       }
     },
@@ -35872,7 +36020,7 @@
       "members":{
         "Return":{
           "shape":"Boolean",
-          "documentation":"<p>Is <code>true</code> if the request succeeds, and an error otherwise.</p>",
+          "documentation":"<p>If the request succeeds, the response returns <code>true</code>. If the request fails, no response is returned, and instead an error message is returned.</p>",
           "locationName":"return"
         }
       },
@@ -38428,6 +38576,20 @@
           "shape":"AnalysisComponent",
           "documentation":"<p>The component VPC.</p>",
           "locationName":"vpc"
+        },
+        "AdditionalDetails":{
+          "shape":"AdditionalDetailList",
+          "documentation":"<p>The additional details.</p>",
+          "locationName":"additionalDetailSet"
+        },
+        "TransitGateway":{
+          "shape":"AnalysisComponent",
+          "locationName":"transitGateway"
+        },
+        "TransitGatewayRouteTableRoute":{
+          "shape":"TransitGatewayRouteTableRoute",
+          "documentation":"<p>The route in a transit gateway route table.</p>",
+          "locationName":"transitGatewayRouteTableRoute"
         }
       },
       "documentation":"<p>Describes a path component.</p>"
@@ -41149,6 +41311,10 @@
         "PrivateDnsNameOptions":{
           "shape":"LaunchTemplatePrivateDnsNameOptionsRequest",
           "documentation":"<p>The options for the instance hostname. The default values are inherited from the subnet.</p>"
+        },
+        "MaintenanceOptions":{
+          "shape":"LaunchTemplateInstanceMaintenanceOptionsRequest",
+          "documentation":"<p>The maintenance options for the instance.</p>"
         }
       },
       "documentation":"<p>The information to include in the launch template.</p>"
@@ -42055,7 +42221,7 @@
       "members":{
         "Attribute":{
           "shape":"InstanceAttributeName",
-          "documentation":"<p>The attribute to reset.</p> <important> <p>You can only reset the following attributes: <code>kernel</code> | <code>ramdisk</code> | <code>sourceDestCheck</code>. To change an instance attribute, use <a>ModifyInstanceAttribute</a>.</p> </important>",
+          "documentation":"<p>The attribute to reset.</p> <important> <p>You can only reset the following attributes: <code>kernel</code> | <code>ramdisk</code> | <code>sourceDestCheck</code>.</p> </important>",
           "locationName":"attribute"
         },
         "DryRun":{
@@ -42412,6 +42578,11 @@
           "shape":"LaunchTemplatePrivateDnsNameOptions",
           "documentation":"<p>The options for the instance hostname.</p>",
           "locationName":"privateDnsNameOptions"
+        },
+        "MaintenanceOptions":{
+          "shape":"LaunchTemplateInstanceMaintenanceOptions",
+          "documentation":"<p>The maintenance options for your instance.</p>",
+          "locationName":"maintenanceOptions"
         }
       },
       "documentation":"<p>The information for a launch template. </p>"
@@ -43252,6 +43423,10 @@
         "PrivateDnsNameOptions":{
           "shape":"PrivateDnsNameOptionsRequest",
           "documentation":"<p>The options for the instance hostname. The default values are inherited from the subnet.</p>"
+        },
+        "MaintenanceOptions":{
+          "shape":"InstanceMaintenanceOptionsRequest",
+          "documentation":"<p>The maintenance and recovery options for the instance.</p>"
         }
       }
     },
@@ -48512,6 +48687,47 @@
         "shape":"TransitGatewayRouteTablePropagation",
         "locationName":"item"
       }
+    },
+    "TransitGatewayRouteTableRoute":{
+      "type":"structure",
+      "members":{
+        "DestinationCidr":{
+          "shape":"String",
+          "documentation":"<p>The CIDR block used for destination matches.</p>",
+          "locationName":"destinationCidr"
+        },
+        "State":{
+          "shape":"String",
+          "documentation":"<p>The state of the route.</p>",
+          "locationName":"state"
+        },
+        "RouteOrigin":{
+          "shape":"String",
+          "documentation":"<p>The route origin. The following are the possible values:</p> <ul> <li> <p>static</p> </li> <li> <p>propagated</p> </li> </ul>",
+          "locationName":"routeOrigin"
+        },
+        "PrefixListId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the prefix list.</p>",
+          "locationName":"prefixListId"
+        },
+        "AttachmentId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the route attachment.</p>",
+          "locationName":"attachmentId"
+        },
+        "ResourceId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the resource for the route attachment.</p>",
+          "locationName":"resourceId"
+        },
+        "ResourceType":{
+          "shape":"String",
+          "documentation":"<p>The resource type for the route attachment.</p>",
+          "locationName":"resourceType"
+        }
+      },
+      "documentation":"<p>Describes a route in a transit gateway route table.</p>"
     },
     "TransitGatewayRouteTableState":{
       "type":"string",

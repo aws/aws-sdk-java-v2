@@ -21,9 +21,9 @@ import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.transfer.s3.util.ChecksumUtils.computeCheckSum;
 
 import java.util.concurrent.ThreadLocalRandom;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -38,7 +38,7 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
 
     private static S3TransferManager tm;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
@@ -50,7 +50,7 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
                               .build();
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() throws Exception {
         tm.close();
         deleteBucketAndAllContents(BUCKET);
@@ -58,7 +58,7 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
     }
 
     @Test
-    public void copy_copiedObject_hasSameContent() {
+    void copy_copiedObject_hasSameContent() {
         byte[] originalContent = randomBytes(OBJ_SIZE);
         createOriginalObject(originalContent);
         copyObject();
