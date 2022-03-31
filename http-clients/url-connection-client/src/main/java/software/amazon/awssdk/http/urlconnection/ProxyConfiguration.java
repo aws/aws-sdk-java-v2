@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.apache;
+package software.amazon.awssdk.http.urlconnection;
 
 import static software.amazon.awssdk.utils.StringUtils.isEmpty;
 import static software.amazon.awssdk.utils.http.SdkHttpUtils.parseNonProxyHostsProperty;
@@ -30,7 +30,10 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Configuration that defines how to communicate via an HTTP proxy.
+ * Proxy configuration for {@link UrlConnectionHttpClient}. This class is used to configure an HTTP proxy to be used by
+ * the {@link UrlConnectionHttpClient}.
+ *
+ * @see UrlConnectionHttpClient.Builder#proxyConfiguration(ProxyConfiguration)
  */
 @SdkPublicApi
 public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfiguration.Builder, ProxyConfiguration> {
@@ -38,14 +41,11 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     private final URI endpoint;
     private final String username;
     private final String password;
-    private final String ntlmDomain;
-    private final String ntlmWorkstation;
     private final Set<String> nonProxyHosts;
-    private final Boolean preemptiveBasicAuthenticationEnabled;
-    private final Boolean useSystemPropertyValues;
     private final String host;
     private final int port;
     private final String scheme;
+    private final boolean useSystemPropertyValues;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -54,11 +54,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         this.endpoint = builder.endpoint;
         this.username = builder.username;
         this.password = builder.password;
-        this.ntlmDomain = builder.ntlmDomain;
-        this.ntlmWorkstation = builder.ntlmWorkstation;
         this.nonProxyHosts = builder.nonProxyHosts;
-        this.preemptiveBasicAuthenticationEnabled = builder.preemptiveBasicAuthenticationEnabled == null ? Boolean.FALSE :
-                builder.preemptiveBasicAuthenticationEnabled;
         this.useSystemPropertyValues = builder.useSystemPropertyValues;
         this.host = resolveHost();
         this.port = resolvePort();
@@ -109,24 +105,6 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     /**
-     * For NTLM proxies: The Windows domain name to use when authenticating with the proxy.
-     *
-     * @see Builder#ntlmDomain(String)
-     */
-    public String ntlmDomain() {
-        return ntlmDomain;
-    }
-
-    /**
-     * For NTLM proxies: The Windows workstation name to use when authenticating with the proxy.
-     *
-     * @see Builder#ntlmWorkstation(String)
-     */
-    public String ntlmWorkstation() {
-        return ntlmWorkstation;
-    }
-
-    /**
      * The hosts that the client is allowed to access without going through the proxy.
      *
      * If the value is not set on the object, the value represent by "http.nonProxyHosts" system property is returned.
@@ -141,25 +119,13 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         return Collections.unmodifiableSet(hosts != null ? hosts : Collections.emptySet());
     }
 
-    /**
-     * Whether to attempt to authenticate preemptively against the proxy server using basic authentication.
-     *
-     * @see Builder#preemptiveBasicAuthenticationEnabled(Boolean)
-     */
-    public Boolean preemptiveBasicAuthenticationEnabled() {
-        return preemptiveBasicAuthenticationEnabled;
-    }
-
     @Override
     public Builder toBuilder() {
         return builder()
                 .endpoint(endpoint)
                 .username(username)
                 .password(password)
-                .ntlmDomain(ntlmDomain)
-                .ntlmWorkstation(ntlmWorkstation)
-                .nonProxyHosts(nonProxyHosts)
-                .preemptiveBasicAuthenticationEnabled(preemptiveBasicAuthenticationEnabled);
+                .nonProxyHosts(nonProxyHosts);
     }
 
     /**
@@ -174,10 +140,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         return ToString.builder("ProxyConfiguration")
                        .add("endpoint", endpoint)
                        .add("username", username)
-                       .add("ntlmDomain", ntlmDomain)
-                       .add("ntlmWorkstation", ntlmWorkstation)
                        .add("nonProxyHosts", nonProxyHosts)
-                       .add("preemptiveBasicAuthenticationEnabled", preemptiveBasicAuthenticationEnabled)
                        .build();
     }
 
@@ -188,17 +151,12 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     private int resolvePort() {
-        int port = 0;
-
         if (endpoint != null) {
-            port = endpoint.getPort();
+            return endpoint.getPort();
         } else if (useSystemPropertyValues) {
-            port = ProxySystemSetting.PROXY_PORT.getStringValue()
-                                                .map(Integer::parseInt)
-                                                .orElse(0);
+            return ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0);
         }
-
-        return port;
+        return 0;
     }
 
     public String resolveScheme() {
@@ -212,6 +170,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         return value == null && useSystemPropertyValues ? systemSetting.getStringValue().orElse(null)
                                                         : value;
     }
+
 
     /**
      * A builder for {@link ProxyConfiguration}.
@@ -237,16 +196,6 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         Builder password(String password);
 
         /**
-         * For NTLM proxies: Configure the Windows domain name to use when authenticating with the proxy.
-         */
-        Builder ntlmDomain(String proxyDomain);
-
-        /**
-         * For NTLM proxies: Configure the Windows workstation name to use when authenticating with the proxy.
-         */
-        Builder ntlmWorkstation(String proxyWorkstation);
-
-        /**
          * Configure the hosts that the client is allowed to access without going through the proxy.
          */
         Builder nonProxyHosts(Set<String> nonProxyHosts);
@@ -257,11 +206,6 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * @see ProxyConfiguration#nonProxyHosts()
          */
         Builder addNonProxyHost(String nonProxyHost);
-
-        /**
-         * Configure whether to attempt to authenticate pre-emptively against the proxy server using basic authentication.
-         */
-        Builder preemptiveBasicAuthenticationEnabled(Boolean preemptiveBasicAuthenticationEnabled);
 
         /**
          * Option whether to use system property values from {@link ProxySystemSetting} if any of the config options are missing.
@@ -282,10 +226,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         private URI endpoint;
         private String username;
         private String password;
-        private String ntlmDomain;
-        private String ntlmWorkstation;
         private Set<String> nonProxyHosts;
-        private Boolean preemptiveBasicAuthenticationEnabled;
         private Boolean useSystemPropertyValues = Boolean.TRUE;
 
         @Override
@@ -326,26 +267,6 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         }
 
         @Override
-        public Builder ntlmDomain(String proxyDomain) {
-            this.ntlmDomain = proxyDomain;
-            return this;
-        }
-
-        public void setNtlmDomain(String ntlmDomain) {
-            ntlmDomain(ntlmDomain);
-        }
-
-        @Override
-        public Builder ntlmWorkstation(String proxyWorkstation) {
-            this.ntlmWorkstation = proxyWorkstation;
-            return this;
-        }
-
-        public void setNtlmWorkstation(String ntlmWorkstation) {
-            ntlmWorkstation(ntlmWorkstation);
-        }
-
-        @Override
         public Builder nonProxyHosts(Set<String> nonProxyHosts) {
             this.nonProxyHosts = nonProxyHosts != null ? new HashSet<>(nonProxyHosts) : null;
             return this;
@@ -362,16 +283,6 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
         public void setNonProxyHosts(Set<String> nonProxyHosts) {
             nonProxyHosts(nonProxyHosts);
-        }
-
-        @Override
-        public Builder preemptiveBasicAuthenticationEnabled(Boolean preemptiveBasicAuthenticationEnabled) {
-            this.preemptiveBasicAuthenticationEnabled = preemptiveBasicAuthenticationEnabled;
-            return this;
-        }
-
-        public void setPreemptiveBasicAuthenticationEnabled(Boolean preemptiveBasicAuthenticationEnabled) {
-            preemptiveBasicAuthenticationEnabled(preemptiveBasicAuthenticationEnabled);
         }
 
         @Override
