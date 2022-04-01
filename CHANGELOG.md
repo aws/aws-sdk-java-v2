@@ -1,3 +1,12 @@
+# __2.17.162__ __2022-04-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates these APIs: UpdateInstanceAttribute, DescribeInstanceAttribute and ListInstanceAttributes. You can use it to programmatically enable/disable multi-party conferencing using attribute type MULTI_PARTY_CONFERENCING on the specified Amazon Connect instance.
+
 # __2.17.161__ __2022-03-31__
 ## __AWS Audit Manager__
   - ### Features
