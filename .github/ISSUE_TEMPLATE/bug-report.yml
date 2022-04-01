@@ -29,6 +29,7 @@ body:
         
         Please include full errors, uncaught exceptions, stack traces, and relevant logs.
         If service responses are relevant, please include wire logs.
+        To turn on SDK logging, follow instructions here: http://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/java-dg-logging.html
     validations:
       required: true
   - type: textarea
