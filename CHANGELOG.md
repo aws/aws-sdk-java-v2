@@ -1,3 +1,20 @@
+# __2.17.163__ __2022-04-04__
+## __AWS IoT__
+  - ### Features
+    - AWS IoT - AWS IoT Device Defender adds support to list metric datapoints collected for IoT devices through the ListMetricValues API
+
+## __AWS Proton__
+  - ### Features
+    - SDK release to support tagging for AWS Proton Repository resource
+
+## __AWS Server Migration Service__
+  - ### Features
+    - Revised product update notice for SMS console deprecation.
+
+## __AWS Service Catalog__
+  - ### Features
+    - This release adds ProvisioningArtifictOutputKeys to DescribeProvisioningParameters to reference the outputs of a Provisioned Product and deprecates ProvisioningArtifactOutputs.
+
 # __2.17.162__ __2022-04-01__
 ## __AWS SDK for Java v2__
   - ### Features
