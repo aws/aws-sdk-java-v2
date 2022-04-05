@@ -15,8 +15,9 @@
 
 package software.amazon.awssdk.auth.credentials;
 
-import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
+import static java.time.temporal.ChronoUnit.SECONDS;
+import static software.amazon.awssdk.utils.ComparableUtils.minimum;
 
 import java.io.IOException;
 import java.net.URI;
@@ -156,24 +157,39 @@ public final class InstanceProfileCredentialsProvider implements HttpCredentials
 
     private Instant prefetchTime(Instant expiration) {
         Instant now = clock.instant();
-        Instant oneHourFromNow = now.plus(1, HOURS);
 
-        // If expiration time is infinite or farther out than an hour, wait an hour before refreshing
-        if (expiration == null || expiration.isAfter(oneHourFromNow)) {
-            return oneHourFromNow;
+        // If expiration time doesn't exist, refresh in 60 minutes
+        if (expiration == null) {
+            return now.plus(60, MINUTES);
         }
 
-        // If expiration time is within 15 minutes (or in the past), wait 15 minutes and warn the customer that they'll be using
-        // expired credentials.
-        Instant fifteenMinutesFromNow = now.plus(15, MINUTES);
-        if (expiration.isBefore(fifteenMinutesFromNow)) {
-            log.warn(() -> "IMDS credential expiration has been extended due to an IMDS availability outage. A refresh"
-                           + " of these credentials will be attempted again in 15 minutes.");
-            return fifteenMinutesFromNow;
+        // If expiration time is 60+ minutes from now, refresh in 60 minutes or 60 minutes before expiration, whichever is
+        // sooner. This is the average case, where customers are using IMDS and there is no IMDS outage.
+        Instant sixtyMinutesBeforeExpiration = expiration.minus(60, MINUTES);
+        if (now.isBefore(sixtyMinutesBeforeExpiration)) {
+            return minimum(sixtyMinutesBeforeExpiration, now.plus(60, MINUTES));
         }
 
-        // Otherwise, just refresh 15 minutes before the credentials expire.
-        return expiration.minus(15, MINUTES);
+        // If expiration time is 5-60 minutes from now, refresh in 30 minutes or 5 minutes before expiration, whatever is
+        // sooner. This is an unusual case: IMDS is either having an outage or the customer is using a mock IMDS with shorter
+        // default session durations.
+        Instant fiveMinutesBeforeExpiration = expiration.minus(5, MINUTES);
+        if (now.isBefore(fiveMinutesBeforeExpiration)) {
+            return minimum(fiveMinutesBeforeExpiration, now.plus(30, MINUTES));
+        }
+
+        // If expiration time is 0.25-5 minutes from now, refresh 15 seconds before expiration. This is an unusual case: IMDS is
+        // either having an outage or the customer is using a mock IMDS with very aggressive session durations.
+        Instant fifteenSecondsBeforeExpiration = expiration.minus(15, SECONDS);
+        if (now.isBefore(fifteenSecondsBeforeExpiration)) {
+            return fifteenSecondsBeforeExpiration;
+        }
+
+        // These credentials are expired. Try refreshing again in 5 minutes. We can't be more aggressive than that, because we
+        // don't want to overload the IMDS endpoint.
+        log.warn(() -> "IMDS credential expiration has been extended due to an IMDS availability outage. A refresh "
+                       + "of these credentials will be attempted again in 5 minutes.");
+        return now.plus(5, MINUTES);
     }
 
     @Override
