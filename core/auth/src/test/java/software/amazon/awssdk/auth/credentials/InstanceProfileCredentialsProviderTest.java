@@ -24,6 +24,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MINUTES;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -333,6 +335,46 @@ public class InstanceProfileCredentialsProviderTest {
         AwsCredentials credentialsAfter = credentialsProvider.resolveCredentials();
 
         assertThat(credentialsBefore).isEqualTo(credentialsAfter);
+    }
+
+    @Test
+    public void resolveCredentials_callsImdsIfCredentialsWithin5MinutesOfExpiration() {
+        AdjustableClock clock = new AdjustableClock();
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
+        Instant now = Instant.now();
+        String successfulCredentialsResponse1 =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now) + '"'
+            + "}";
+
+        String successfulCredentialsResponse2 =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY2\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now.plus(6, HOURS)) + '"'
+            + "}";
+
+        // Set the time to the past and call IMDS to prime the cache
+        clock.time = now.minus(24, HOURS);
+        stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
+        AwsCredentials credentials24HoursAgo = credentialsProvider.resolveCredentials();
+
+        // Set the time to 3 minutes before expiration, and fail to call IMDS
+        clock.time = now.minus(3, MINUTES);
+        stubCredentialsResponse(aResponse().withStatus(500));
+        AwsCredentials credentials3MinutesAgo = credentialsProvider.resolveCredentials();
+
+        // Set the time to 10 seconds before expiration, and verify that we still call IMDS to try to get credentials in at the
+        // last moment before expiration
+        clock.time = now.minus(10, SECONDS);
+        stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
+        AwsCredentials credentials10SecondsAgo = credentialsProvider.resolveCredentials();
+
+        assertThat(credentials24HoursAgo).isEqualTo(credentials3MinutesAgo);
+        assertThat(credentials24HoursAgo.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(credentials10SecondsAgo.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
     }
 
     private AwsCredentialsProvider credentialsProviderWithClock(Clock clock) {
