@@ -1,0 +1,42 @@
+{
+    "version": "2.17.165",
+    "date": "2022-04-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Panorama",
+            "contributor": "",
+            "description": "Added Brand field to device listings."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "This release adds new APIs for creating and managing Lambda Function URLs and adds a new FunctionUrlAuthType parameter to the AddPermission API. Customers can use Function URLs to create built-in HTTPS endpoints on their functions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Upgrade jackson-databind to 2.13.2.2"
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "Amazon Kendra now provides a data source connector for Box. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-box.html"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Add resourceType enums for AWS::EMR::SecurityConfiguration and AWS::SageMaker::CodeRepository"
+        }
+    ]
+}

@@ -1,3 +1,25 @@
+# __2.17.165__ __2022-04-06__
+## __AWS Config__
+  - ### Features
+    - Add resourceType enums for AWS::EMR::SecurityConfiguration and AWS::SageMaker::CodeRepository
+
+## __AWS Lambda__
+  - ### Features
+    - This release adds new APIs for creating and managing Lambda Function URLs and adds a new FunctionUrlAuthType parameter to the AddPermission API. Customers can use Function URLs to create built-in HTTPS endpoints on their functions.
+
+## __AWS Panorama__
+  - ### Features
+    - Added Brand field to device listings.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+    - Upgrade jackson-databind to 2.13.2.2
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now provides a data source connector for Box. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-box.html
+
 # __2.17.164__ __2022-04-05__
 ## __AWS DataSync__
   - ### Features
