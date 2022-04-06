@@ -1,7 +1,9 @@
-name: "\U0001F4D5 Documentation Issue"
+---
+name: "📕 Documentation Issue"
 description: Report an issue in the API Reference documentation or Developer Guide
 title: "(short issue description)"
 labels: [documentation, needs-triage]
+assignees: []
 body:
   - type: textarea
     id: description
