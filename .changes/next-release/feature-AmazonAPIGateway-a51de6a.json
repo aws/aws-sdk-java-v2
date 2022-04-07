@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon API Gateway",
+    "contributor": "",
+    "description": "ApiGateway CLI command get-usage now includes usagePlanId, startDate, and endDate fields in the output to match documentation."
+}
