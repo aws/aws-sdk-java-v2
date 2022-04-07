@@ -140,7 +140,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("component must only contain alphanumeric characters and dashes");
+            .hasMessageContaining("The provided object lambda ARN is not valid: the 'accountId' component must match the "
+                                  + "pattern \"[A-Za-z0-9\\-]+\".");
     }
 
     @Test
@@ -160,7 +161,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("component must only contain alphanumeric characters and dashes");
+            .hasMessageContaining("The provided object lambda ARN is not valid: the 'accessPointName' component must match the "
+                                  + "pattern \"[A-Za-z0-9\\-]+\".");
     }
 
     @Test
@@ -170,7 +172,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("component must only contain alphanumeric characters and dashes");
+            .hasMessageContaining("The provided object lambda ARN is not valid: the 'accessPointName' component must match the "
+                                  + "pattern \"[A-Za-z0-9\\-]+\".");
     }
 
     @Test

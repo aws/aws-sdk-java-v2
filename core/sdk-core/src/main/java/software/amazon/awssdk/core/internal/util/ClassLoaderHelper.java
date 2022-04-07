@@ -29,6 +29,9 @@ public final class ClassLoaderHelper {
         }
 
         for (Class<?> clzz: classes) {
+            if (clzz == null) {
+                continue;
+            }
             ClassLoader loader = clzz.getClassLoader();
             if (loader != null) {
                 try {
