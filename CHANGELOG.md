@@ -1,3 +1,140 @@
+# __2.17.166__ __2022-04-07__
+## __AWS Performance Insights__
+  - ### Features
+    - Adds support for DocumentDB to the Performance Insights API.
+
+## __Amazon API Gateway__
+  - ### Features
+    - ApiGateway CLI command get-usage now includes usagePlanId, startDate, and endDate fields in the output to match documentation.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Added support to enable/disable performance insights when creating or modifying db instances
+
+## __Amazon EventBridge__
+  - ### Features
+    - Adds new EventBridge Endpoint resources for disaster recovery, multi-region failover, and cross-region replication capabilities to help you build resilient event-driven applications.
+
+## __Amazon Personalize__
+  - ### Features
+    - This release provides tagging support in AWS Personalize.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon Sagemaker Notebook Instances now supports G5 instance types
+
+# __2.17.165__ __2022-04-06__
+## __AWS Config__
+  - ### Features
+    - Add resourceType enums for AWS::EMR::SecurityConfiguration and AWS::SageMaker::CodeRepository
+
+## __AWS Lambda__
+  - ### Features
+    - This release adds new APIs for creating and managing Lambda Function URLs and adds a new FunctionUrlAuthType parameter to the AddPermission API. Customers can use Function URLs to create built-in HTTPS endpoints on their functions.
+
+## __AWS Panorama__
+  - ### Features
+    - Added Brand field to device listings.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+    - Upgrade jackson-databind to 2.13.2.2
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now provides a data source connector for Box. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-box.html
+
+# __2.17.164__ __2022-04-05__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports Amazon FSx for OpenZFS locations.
+
+## __AWS S3 Control__
+  - ### Features
+    - Documentation-only update for doc bug fixes for the S3 Control API docs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Bump CRT version to `0.16.1`.
+
+  - ### Bugfixes
+    - Refresh IMDS credentials more aggressively.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added additional ASFF details for RdsSecurityGroup AutoScalingGroup, ElbLoadBalancer, CodeBuildProject and RedshiftCluster.
+
+## __Amazon FSx__
+  - ### Features
+    - Provide customers more visibility into file system status by adding new "Misconfigured Unavailable" status for Amazon FSx for Windows File Server.
+
+# __2.17.163__ __2022-04-04__
+## __AWS IoT__
+  - ### Features
+    - AWS IoT - AWS IoT Device Defender adds support to list metric datapoints collected for IoT devices through the ListMetricValues API
+
+## __AWS Proton__
+  - ### Features
+    - SDK release to support tagging for AWS Proton Repository resource
+
+## __AWS Server Migration Service__
+  - ### Features
+    - Revised product update notice for SMS console deprecation.
+
+## __AWS Service Catalog__
+  - ### Features
+    - This release adds ProvisioningArtifictOutputKeys to DescribeProvisioningParameters to reference the outputs of a Provisioned Product and deprecates ProvisioningArtifactOutputs.
+
+# __2.17.162__ __2022-04-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates these APIs: UpdateInstanceAttribute, DescribeInstanceAttribute and ListInstanceAttributes. You can use it to programmatically enable/disable multi-party conferencing using attribute type MULTI_PARTY_CONFERENCING on the specified Amazon Connect instance.
+
+# __2.17.161__ __2022-03-31__
+## __AWS Audit Manager__
+  - ### Features
+    - This release adds documentation updates for Audit Manager. The updates provide data deletion guidance when a customer deregisters Audit Manager or deregisters a delegated administrator.
+
+## __AWS Cloud Control API__
+  - ### Features
+    - SDK release for Cloud Control API in Amazon Web Services China (Beijing) Region, operated by Sinnet, and Amazon Web Services China (Ningxia) Region, operated by NWCD
+
+## __AWS Glue DataBrew__
+  - ### Features
+    - This AWS Glue Databrew release adds feature to support ORC as an input format.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fix NPE thrown from serializing/deserializing a structure that has map type with null values
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - This release adds tagging support to the Managed Grafana service. New APIs: TagResource, UntagResource and ListTagsForResource. Updates: add optional field tags to support tagging while calling CreateWorkspace.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - Amazon Pinpoint now offers a version 2.0 suite of SMS and voice APIs, providing increased control over sending and configuration. This release is a new SDK for sending SMS and voice messages called PinpointSMSVoiceV2.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added APIs that allow you to customize the logo, login message, and help links in the WorkSpaces client login page. To learn more, visit https://docs.aws.amazon.com/workspaces/latest/adminguide/customize-branding.html
+
+## __Route53 Recovery Cluster__
+  - ### Features
+    - This release adds a new API "ListRoutingControls" to list routing control states using the highly reliable Route 53 ARC data plane endpoints.
+
+## __URLConnection HTTP Client__
+  - ### Features
+    - ProxyConfiguration support for UrlConnectionHttpClient.
+
 # __2.17.160__ __2022-03-30__
 ## __AWS IoT__
   - ### Features
