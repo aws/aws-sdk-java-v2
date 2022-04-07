@@ -15,33 +15,22 @@
 
 package software.amazon.awssdk.services.s3.internal.signing;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.arns.Arn;
-import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
 import software.amazon.awssdk.services.s3.model.S3Request;
-import software.amazon.awssdk.utils.Lazy;
 
 /**
  * Utilities for working with S3 specific signing
  */
 @SdkInternalApi
 public final class S3SigningUtils {
-
-    private static final String SIGV4A_SIGNER_CLASS = "software.amazon.awssdk.authcrt.signer.AwsCrtS3V4aSigner";
-    private static final Lazy<Signer> SIGV4A_SIGNER = new Lazy<>(S3SigningUtils::initializeV4aSigner);
-
+    
     private S3SigningUtils() {
-    }
-
-    public static Signer getSigV4aSigner() {
-        return SIGV4A_SIGNER.getValue();
     }
 
     public static Optional<Signer> internalSignerOverride(S3Request originalRequest) {
@@ -53,20 +42,5 @@ public final class S3SigningUtils {
     private static Optional<Signer> getS3ResourceSigner(String name) {
         S3Resource resolvedS3Resource = S3ArnConverter.create().convertArn(Arn.fromString(name));
         return resolvedS3Resource.overrideSigner();
-    }
-
-    private static Signer initializeV4aSigner() {
-        try {
-            Class<?> signerClass = ClassLoaderHelper.loadClass(SIGV4A_SIGNER_CLASS, false, (Class) null);
-            Method m = signerClass.getDeclaredMethod("create");
-            Object o = m.invoke(null);
-            return (Signer) o;
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Cannot find the " + SIGV4A_SIGNER_CLASS + " class."
-                                            + " To invoke a request that requires a SigV4a signer, such as region independent " +
-                                            "signing, the 'auth-crt' core module must be on the class path. ", e);
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            throw new IllegalStateException("Failed to create an S3 SigV4a signer.", e);
-        }
     }
 }
