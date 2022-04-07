@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Amazon Sagemaker Notebook Instances now supports G5 instance types"
+}
