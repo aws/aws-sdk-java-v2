@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Personalize",
+    "contributor": "",
+    "description": "This release provides tagging support in AWS Personalize."
+}
