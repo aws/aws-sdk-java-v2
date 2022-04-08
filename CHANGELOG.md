@@ -1,3 +1,16 @@
+# __2.17.167__ __2022-04-08__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for the pass-through of WebVTT styling to WebVTT outputs, pass-through of KLV metadata to supported formats, and improved filter support for processing 444/RGB content.
+
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - This release adds ScteMarkersSource as an available field for Dash Packaging Configurations. When set to MANIFEST, MediaPackage will source the SCTE-35 markers from the manifest. When set to SEGMENTS, MediaPackage will source the SCTE-35 markers from the segments.
+
+## __AWS WAFV2__
+  - ### Features
+    - Add a new CurrentDefaultVersion field to ListAvailableManagedRuleGroupVersions API response; add a new VersioningSupported boolean to each ManagedRuleGroup returned from ListAvailableManagedRuleGroups API response.
+
 # __2.17.166__ __2022-04-07__
 ## __AWS Performance Insights__
   - ### Features
