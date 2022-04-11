@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkSpaces",
+    "contributor": "",
+    "description": "Added API support that allows customers to create GPU-enabled WorkSpaces using EC2 G4dn instances."
+}
