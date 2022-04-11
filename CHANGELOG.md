@@ -1,3 +1,20 @@
+# __2.17.168__ __2022-04-11__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - In this release, we have added the ability to bind events to component level actions.
+
+## __AWS App Runner__
+  - ### Features
+    - This release adds tracing for App Runner services with X-Ray using AWS Distro for OpenTelemetry. New APIs: CreateObservabilityConfiguration, DescribeObservabilityConfiguration, ListObservabilityConfigurations, and DeleteObservabilityConfiguration. Updated APIs: CreateService and UpdateService.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added API support that allows customers to create GPU-enabled WorkSpaces using EC2 G4dn instances.
+
 # __2.17.167__ __2022-04-08__
 ## __AWS Elemental MediaConvert__
   - ### Features
