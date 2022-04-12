@@ -117,16 +117,23 @@ See the [Set up the AWS SDK for Java][docs-setup] section of the developer guide
 
 ## Building From Source
 
-Once you check out the code from GitHub, you can build it using Maven.
+Once you check out the code from GitHub, you can build it using the following commands.
+
+Linux:
 
 ```sh
-mvn clean install
+./mvnw clean install
 
 # Skip tests, checkstyles, findbugs, etc for quick build
-mvn clean install -P quick
+./mvnw clean install -P quick
 
 # Build a specific service module
-mvn clean install -pl :s3 -P quick --am
+./mvnw clean install -pl :s3 -P quick --am
+```
+
+Windows:
+```sh
+./mvnw.cmd clean install
 ```
 
 ## Sample Code
