@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
@@ -31,7 +32,7 @@ import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 @SdkPreviewApi
 public interface ObjectTransfer extends Transfer {
     /**
-     * The stateful {@link TransferProgress} associated with this transfer.
+     * The {@link CompletableFuture} holding the stateful {@link TransferProgress} associated with this transfer.
      */
-    TransferProgress progress();
+    CompletableFuture<TransferProgress> progress();
 }

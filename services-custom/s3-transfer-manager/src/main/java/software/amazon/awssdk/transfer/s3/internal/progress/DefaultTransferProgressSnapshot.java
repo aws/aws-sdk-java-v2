@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.internal.progress;
 
+import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkResponse;
@@ -80,6 +81,34 @@ public final class DefaultTransferProgressSnapshot
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultTransferProgressSnapshot that = (DefaultTransferProgressSnapshot) o;
+
+        if (bytesTransferred != that.bytesTransferred) {
+            return false;
+        }
+        if (!Objects.equals(transferSizeInBytes, that.transferSizeInBytes)) {
+            return false;
+        }
+        return Objects.equals(sdkResponse, that.sdkResponse);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (bytesTransferred ^ (bytesTransferred >>> 32));
+        result = 31 * result + (transferSizeInBytes != null ? transferSizeInBytes.hashCode() : 0);
+        result = 31 * result + (sdkResponse != null ? sdkResponse.hashCode() : 0);
+        return result;
+    }
+
+    @Override
     public Optional<Long> bytesRemaining() {
         return transferSizeInBytes().map(size -> size - bytesTransferred);
     }
@@ -92,6 +121,8 @@ public final class DefaultTransferProgressSnapshot
                        .add("sdkResponse", sdkResponse)
                        .build();
     }
+
+
 
     public static final class Builder implements CopyableBuilder<Builder, DefaultTransferProgressSnapshot> {
         private long bytesTransferred = 0L;

@@ -22,6 +22,7 @@ import software.amazon.awssdk.transfer.s3.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.Download;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultDownload<ReturnT> implements Download<ReturnT> {
@@ -31,7 +32,7 @@ public final class DefaultDownload<ReturnT> implements Download<ReturnT> {
 
     DefaultDownload(CompletableFuture<CompletedDownload<ReturnT>> completionFuture, TransferProgress progress) {
         this.completionFuture = completionFuture;
-        this.progress = progress;
+        this.progress = Validate.paramNotNull(progress, "progress");
     }
 
     @Override
@@ -40,8 +41,8 @@ public final class DefaultDownload<ReturnT> implements Download<ReturnT> {
     }
 
     @Override
-    public TransferProgress progress() {
-        return progress;
+    public CompletableFuture<TransferProgress> progress() {
+        return CompletableFuture.completedFuture(progress);
     }
 
     @Override

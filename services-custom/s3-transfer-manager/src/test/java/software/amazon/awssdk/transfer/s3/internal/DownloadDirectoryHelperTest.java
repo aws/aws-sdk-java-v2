@@ -176,7 +176,8 @@ public class DownloadDirectoryHelperTest {
 
     private FileDownload newDownload(CompletableFuture<CompletedFileDownload> future) {
         return new DefaultFileDownload(future,
-                                       new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build()),
-                                       DownloadFileRequest.builder().destination(Paths.get(".")).getObjectRequest(GetObjectRequest.builder().build()).build());
+                                       CompletableFuture.completedFuture(new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build())),
+                                       CompletableFuture.completedFuture(DownloadFileRequest.builder().destination(Paths.get(
+                                           ".")).getObjectRequest(GetObjectRequest.builder().build()).build()));
     }
 }

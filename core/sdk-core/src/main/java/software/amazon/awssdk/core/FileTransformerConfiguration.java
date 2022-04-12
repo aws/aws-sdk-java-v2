@@ -79,11 +79,11 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
      * Returns the default {@link FileTransformerConfiguration} for {@link FileWriteOption#CREATE_OR_REPLACE_EXISTING}
      * <p>
      * Create a new file if it doesn't exist, otherwise replace the existing file.
-     * In the event of an error, the SDK will attempt to delete the file (whatever has been written to it so far).
+     * In the event of an error, the SDK will NOT attempt to delete the file, leaving it as-is
      */
     public static FileTransformerConfiguration defaultCreateOrReplaceExisting() {
         return builder().fileWriteOption(FileWriteOption.CREATE_OR_REPLACE_EXISTING)
-                        .failureBehavior(FailureBehavior.DELETE)
+                        .failureBehavior(FailureBehavior.LEAVE)
                         .build();
     }
 

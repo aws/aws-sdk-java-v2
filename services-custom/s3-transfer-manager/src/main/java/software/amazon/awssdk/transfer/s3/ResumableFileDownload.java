@@ -19,7 +19,6 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -28,10 +27,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * An opaque token that holds the state and can be used to resume a
  * paused download operation.
  *
- * TODO: 1. should we just store GetObjectResponse?
- *   2. consider providing a way to serialize and deserialize the token
- *   3. Do we need to store file checksum?
- *
  * @see S3TransferManager#downloadFile(DownloadFileRequest)
  */
 @SdkPublicApi
@@ -39,14 +34,17 @@ public final class ResumableFileDownload implements ResumableTransfer,
                                                     ToCopyableBuilder<ResumableFileDownload.Builder, ResumableFileDownload> {
     private final DownloadFileRequest downloadFileRequest;
     private final long bytesTransferred;
-    private final Instant lastModified;
-    private final Long transferSizeInBytes;
+    private final Instant s3ObjectLastModified;
+    private final Long totalSizeInBytes;
+    private final Instant fileLastModified;
 
     private ResumableFileDownload(DefaultBuilder builder) {
         this.downloadFileRequest = Validate.paramNotNull(builder.downloadFileRequest, "downloadFileRequest");
+        Validate.isPositiveOrNull(builder.bytesTransferred, "bytesTransferred");
         this.bytesTransferred = builder.bytesTransferred == null ? 0 : builder.bytesTransferred;
-        this.lastModified = builder.lastModified;
-        this.transferSizeInBytes = builder.transferSizeInBytes;
+        this.s3ObjectLastModified = builder.s3ObjectLastModified;
+        this.totalSizeInBytes = Validate.isPositiveOrNull(builder.totalSizeInBytes, "totalSizeInBytes");
+        this.fileLastModified = builder.fileLastModified;
     }
 
     @Override
@@ -66,29 +64,23 @@ public final class ResumableFileDownload implements ResumableTransfer,
         if (!downloadFileRequest.equals(that.downloadFileRequest)) {
             return false;
         }
-        if (!Objects.equals(lastModified, that.lastModified)) {
+        if (!Objects.equals(s3ObjectLastModified, that.s3ObjectLastModified)) {
             return false;
         }
-        return Objects.equals(transferSizeInBytes, that.transferSizeInBytes);
+        if (!Objects.equals(fileLastModified, that.fileLastModified)) {
+            return false;
+        }
+        return Objects.equals(totalSizeInBytes, that.totalSizeInBytes);
     }
 
     @Override
     public int hashCode() {
         int result = downloadFileRequest.hashCode();
         result = 31 * result + (int) (bytesTransferred ^ (bytesTransferred >>> 32));
-        result = 31 * result + (lastModified != null ? lastModified.hashCode() : 0);
-        result = 31 * result + (transferSizeInBytes != null ? transferSizeInBytes.hashCode() : 0);
+        result = 31 * result + (s3ObjectLastModified != null ? s3ObjectLastModified.hashCode() : 0);
+        result = 31 * result + (fileLastModified != null ? fileLastModified.hashCode() : 0);
+        result = 31 * result + (totalSizeInBytes != null ? totalSizeInBytes.hashCode() : 0);
         return result;
-    }
-
-    @Override
-    public String toString() {
-        return ToString.builder("ResumableFileDownload")
-                       .add("downloadFileRequest", downloadFileRequest)
-                       .add("bytesTransferred", bytesTransferred)
-                       .add("lastModified", lastModified)
-                       .add("transferSizeInBytes", transferSizeInBytes)
-                       .build();
     }
 
     public static Builder builder() {
@@ -111,10 +103,17 @@ public final class ResumableFileDownload implements ResumableTransfer,
     }
 
     /**
-     * Last modified time on Amazon S3 for this object.
+     * Last modified time of the S3 object since last pause, or {@link Optional#empty()} if unknown
      */
-    public Instant lastModified() {
-        return lastModified;
+    public Optional<Instant> s3ObjectLastModified() {
+        return Optional.ofNullable(s3ObjectLastModified);
+    }
+
+    /**
+     * Last modified time of the file since last pause
+     */
+    public Instant fileLastModified() {
+        return fileLastModified;
     }
 
     /**
@@ -122,8 +121,8 @@ public final class ResumableFileDownload implements ResumableTransfer,
      *
      * @return the optional total size of the transfer.
      */
-    public Optional<Long> transferSizeInBytes() {
-        return Optional.ofNullable(transferSizeInBytes);
+    public Optional<Long> totalSizeInBytes() {
+        return Optional.ofNullable(totalSizeInBytes);
     }
 
     @Override
@@ -151,10 +150,18 @@ public final class ResumableFileDownload implements ResumableTransfer,
 
         /**
          * Sets the total transfer size in bytes
-         * @param transferSizeInBytes the transfer size in bytes
+         * @param totalSizeInBytes the transfer size in bytes
          * @return a reference to this object so that method calls can be chained together.
          */
-        Builder transferSizeInBytes(Long transferSizeInBytes);
+        Builder totalSizeInBytes(Long totalSizeInBytes);
+
+        /**
+         * Sets the last modified time of the object
+         *
+         * @param s3ObjectLastModified the last modified time of the object
+         * @return a reference to this object so that method calls can be chained together.
+         */
+        Builder s3ObjectLastModified(Instant s3ObjectLastModified);
 
         /**
          * Sets the last modified time of the object
@@ -162,23 +169,24 @@ public final class ResumableFileDownload implements ResumableTransfer,
          * @param lastModified the last modified time of the object
          * @return a reference to this object so that method calls can be chained together.
          */
-        Builder lastModified(Instant lastModified);
+        Builder fileLastModified(Instant lastModified);
     }
 
     private static final class DefaultBuilder implements Builder {
+
         private DownloadFileRequest downloadFileRequest;
         private Long bytesTransferred;
-        private Instant lastModified;
-        private Long transferSizeInBytes;
+        private Instant s3ObjectLastModified;
+        private Long totalSizeInBytes;
+        private Instant fileLastModified;
 
         private DefaultBuilder() {
-
         }
 
         private DefaultBuilder(ResumableFileDownload persistableFileDownload) {
             this.downloadFileRequest = persistableFileDownload.downloadFileRequest;
             this.bytesTransferred = persistableFileDownload.bytesTransferred;
-            this.lastModified = persistableFileDownload.lastModified;
+            this.s3ObjectLastModified = persistableFileDownload.s3ObjectLastModified;
         }
 
         @Override
@@ -194,14 +202,20 @@ public final class ResumableFileDownload implements ResumableTransfer,
         }
 
         @Override
-        public Builder transferSizeInBytes(Long transferSizeInBytes) {
-            this.transferSizeInBytes = transferSizeInBytes;
+        public Builder totalSizeInBytes(Long totalSizeInBytes) {
+            this.totalSizeInBytes = totalSizeInBytes;
             return this;
         }
 
         @Override
-        public Builder lastModified(Instant lastModified) {
-            this.lastModified = lastModified;
+        public Builder s3ObjectLastModified(Instant s3ObjectLastModified) {
+            this.s3ObjectLastModified = s3ObjectLastModified;
+            return this;
+        }
+
+        @Override
+        public Builder fileLastModified(Instant fileLastModified) {
+            this.fileLastModified = fileLastModified;
             return this;
         }
 

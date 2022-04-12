@@ -92,6 +92,9 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * Download an object identified by the bucket and key from S3 to a local file. For non-file-based downloads, you may use
      * {@link #download(DownloadRequest)} instead.
      * <p>
+     *  The SDK will create a new file if the provided one doesn't exist, otherwise replace the existing file. In the
+     *  event of an error, the SDK will NOT attempt to delete the file, leaving it as-is.
+     * <p>
      * <b>Usage Example:</b>
      * <pre>
      * {@code
@@ -122,8 +125,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Resumes a download operation. This download operation uses the same configuration as the original download. Any data
-     * already fetched will be skipped, and only the remaining data is retrieved from Amazon S3.
+     * Resumes a downloadFile operation. This download operation uses the same configuration as the original download. Any data
+     * already fetched will be skipped, and only the remaining data is retrieved from Amazon S3. If it is determined that the S3
+     * object to download or the file has be modified since the last pause, the SDK will download the object from the beginning
+     * as if it is a new {@link DownloadFileRequest} and replace the existing file.
      *
      * <p>
      * <b>Usage Example:</b>
@@ -145,12 +150,12 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * }
      * </pre>
      *
-     * @param persistableFileDownload the download to resume.
+     * @param resumableFileDownload the download to resume.
      * @return A new {@code FileDownload} object to use to check the state of the download.
      * @see #downloadFile(DownloadFileRequest)
      * @see FileDownload#pause()
      */
-    default FileDownload resumeDownloadFile(ResumableFileDownload persistableFileDownload) {
+    default FileDownload resumeDownloadFile(ResumableFileDownload resumableFileDownload) {
         throw new UnsupportedOperationException();
     }
 
@@ -160,8 +165,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *
      * @see #resumeDownloadFile(ResumableFileDownload)
      */
-    default FileDownload resumeDownloadFile(Consumer<ResumableFileDownload.Builder> persistableFileDownload) {
-        return resumeDownloadFile(ResumableFileDownload.builder().applyMutation(persistableFileDownload).build());
+    default FileDownload resumeDownloadFile(Consumer<ResumableFileDownload.Builder> resumableFileDownload) {
+        return resumeDownloadFile(ResumableFileDownload.builder().applyMutation(resumableFileDownload).build());
     }
 
     /**
