@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic File System",
-    "contributor": "",
-    "description": "Amazon EFS adds support for a ThrottlingException when using the CreateAccessPoint API if the account is nearing the AccessPoint limit(120)."
-}
