@@ -154,12 +154,11 @@ class DefaultFileDownloadTest {
                                                                    progressFuture,
                                                                    requestFuture);
 
-        CompletableFuture<TransferProgress> progress = fileDownload.progress();
-        assertThat(progress).isNotCompleted();
+        TransferProgress progress = fileDownload.progress();
+        assertThat(fileDownload.progress().snapshot()).isEqualTo(DefaultTransferProgressSnapshot.builder().build());
 
         progressFuture.complete(transferProgress);
-        assertThat(progress).isCompleted();
-        assertThat(progress.join().snapshot()).isEqualTo(snapshot);
+        assertThat(fileDownload.progress().snapshot()).isEqualTo(snapshot);
     }
 
     private DownloadFileRequest getDownloadFileRequest() {

@@ -38,7 +38,6 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
-import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 import software.amazon.awssdk.utils.Logger;
 
@@ -123,10 +122,10 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
 
         log.debug(() -> "Resuming download ");
         FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
-        resumedFileDownload.progress().join().snapshot();
+        resumedFileDownload.progress().snapshot();
         resumedFileDownload.completionFuture().join();
         assertThat(path.toFile()).hasContent(newObject);
-        assertThat(resumedFileDownload.progress().join().snapshot().transferSizeInBytes()).hasValue((long) newObject.getBytes(StandardCharsets.UTF_8).length);
+        assertThat(resumedFileDownload.progress().snapshot().transferSizeInBytes()).hasValue((long) newObject.getBytes(StandardCharsets.UTF_8).length);
     }
 
     @Test
@@ -147,21 +146,20 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
 
     private static void verifyFileDownload(Path path, ResumableFileDownload resumableFileDownload, long expectedBytesTransferred) {
         FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
-        resumedFileDownload.progress().join().snapshot();
+        resumedFileDownload.progress().snapshot();
         resumedFileDownload.completionFuture().join();
         assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
-        assertThat(resumedFileDownload.progress().join().snapshot().transferSizeInBytes()).hasValue(expectedBytesTransferred);
+        assertThat(resumedFileDownload.progress().snapshot().transferSizeInBytes()).hasValue(expectedBytesTransferred);
     }
 
     private static void waitUntilFirstByteBufferDelivered(FileDownload download) {
-        TransferProgress progress = download.progress().join();
         Waiter<TransferProgressSnapshot> waiter = Waiter.builder(TransferProgressSnapshot.class)
                                                         .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(r -> r.bytesTransferred() > 0))
                                                         .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(r -> true))
                                                         .overrideConfiguration(o -> o.waitTimeout(Duration.ofMinutes(1))
                                                                                      .maxAttempts(Integer.MAX_VALUE))
                                                         .build();
-        waiter.run(() -> progress.snapshot());
+        waiter.run(() -> download.progress().snapshot());
     }
 
     private static final class TestDownloadListener implements TransferListener {

@@ -26,6 +26,8 @@ import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.FileDownload;
 import software.amazon.awssdk.transfer.s3.ResumableFileDownload;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 import software.amazon.awssdk.utils.Logger;
@@ -50,8 +52,9 @@ public final class DefaultFileDownload implements FileDownload {
     }
 
     @Override
-    public CompletableFuture<TransferProgress> progress() {
-        return progressFuture;
+    public TransferProgress progress() {
+        return progressFuture.isDone() ? progressFuture.join() :
+               new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build());
     }
 
     @Override

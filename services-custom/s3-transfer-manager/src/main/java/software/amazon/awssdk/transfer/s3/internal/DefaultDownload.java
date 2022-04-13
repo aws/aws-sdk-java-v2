@@ -41,8 +41,8 @@ public final class DefaultDownload<ReturnT> implements Download<ReturnT> {
     }
 
     @Override
-    public CompletableFuture<TransferProgress> progress() {
-        return CompletableFuture.completedFuture(progress);
+    public TransferProgress progress() {
+        return progress;
     }
 
     @Override

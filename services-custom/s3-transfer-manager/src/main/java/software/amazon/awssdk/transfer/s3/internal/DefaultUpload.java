@@ -41,8 +41,8 @@ public final class DefaultUpload implements Upload {
     }
 
     @Override
-    public CompletableFuture<TransferProgress> progress() {
-        return CompletableFuture.completedFuture(progress);
+    public TransferProgress progress() {
+        return progress;
     }
 
     @Override

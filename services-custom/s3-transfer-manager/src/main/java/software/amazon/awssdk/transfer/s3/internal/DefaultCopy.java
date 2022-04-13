@@ -41,8 +41,8 @@ public final class DefaultCopy implements Copy {
     }
 
     @Override
-    public CompletableFuture<TransferProgress> progress() {
-        return CompletableFuture.completedFuture(progress);
+    public TransferProgress progress() {
+        return progress;
     }
 
     @Override
