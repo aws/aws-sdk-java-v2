@@ -31,7 +31,7 @@ public final class DefaultFileUpload implements FileUpload {
     private final TransferProgress progress;
 
     DefaultFileUpload(CompletableFuture<CompletedFileUpload> completionFuture, TransferProgress progress) {
-        this.completionFuture = completionFuture;
+        this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
         this.progress = Validate.paramNotNull(progress, "progress");
     }
 

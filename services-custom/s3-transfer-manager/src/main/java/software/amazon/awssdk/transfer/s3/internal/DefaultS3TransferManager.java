@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-import static software.amazon.awssdk.transfer.s3.internal.ResumableRequestConverter.resumedRequestAndTransformer;
+import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -280,8 +280,8 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         s3CrtAsyncClient.headObject(b -> b.bucket(getObjectRequest.bucket()).key(getObjectRequest.key()))
                         .thenAccept(headObjectResponse -> {
                             Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>
-                                requestPair = resumedRequestAndTransformer(resumableFileDownload, headObjectResponse,
-                                                                           originalDownloadRequest);
+                                requestPair = toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse,
+                                                                                  originalDownloadRequest);
 
                             DownloadFileRequest newDownloadFileRequest = requestPair.left();
                             newDownloadFileRequestFuture.complete(newDownloadFileRequest);

@@ -72,7 +72,7 @@ class S3TransferManagerPauseAndResumeTest {
     }
 
     @Test
-    void resumeDownloadFile_s3ObjectUnmodified_shouldSetRangeAccordingly() {
+    void resumeDownloadFile_shouldSetRangeAccordingly() {
         GetObjectRequest getObjectRequest = getObjectRequest();
         GetObjectResponse response = GetObjectResponse.builder().build();
         Instant s3ObjectLastModified = Instant.now();
@@ -98,67 +98,6 @@ class S3TransferManagerPauseAndResumeTest {
                                                         .join();
         assertThat(completedFileDownload.response()).isEqualTo(response);
         verifyActualGetObjectRequest(getObjectRequest, "bytes=1000-2000");
-    }
-
-    @Test
-    void resumeDownloadFile_s3ObjectModified_shouldRestart() {
-
-        GetObjectRequest getObjectRequest = getObjectRequest();
-        GetObjectResponse response = GetObjectResponse.builder().build();
-        Instant s3ObjectLastModified = Instant.now();
-        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
-        HeadObjectResponse headObjectResponse = headObjectResponse(s3ObjectLastModified);
-
-        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
-                                                                     .getObjectRequest(getObjectRequest)
-                                                                     .destination(file)
-                                                                     .build();
-
-        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
-            .thenReturn(CompletableFuture.completedFuture(response));
-
-        when(mockS3Crt.headObject(any(Consumer.class)))
-            .thenReturn(CompletableFuture.completedFuture(headObjectResponse));
-
-        CompletedFileDownload completedFileDownload = tm.resumeDownloadFile(r -> r.bytesTransferred(1000l)
-                                                                                  .downloadFileRequest(downloadFileRequest)
-                                                                                  .fileLastModified(fileLastModified)
-                                                                                  .s3ObjectLastModified(Instant.now()))
-                                                        .completionFuture()
-                                                        .join();
-        assertThat(completedFileDownload.response()).isEqualTo(response);
-
-        verifyActualGetObjectRequest(getObjectRequest, null);
-    }
-
-    @Test
-    void resumeDownloadFile_fileModified_shouldRestart() throws IOException {
-        GetObjectRequest getObjectRequest = getObjectRequest();
-        GetObjectResponse response = GetObjectResponse.builder().build();
-        Instant s3ObjectLastModified = Instant.now();
-        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
-        HeadObjectResponse headObjectResponse = headObjectResponse(s3ObjectLastModified);
-
-        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
-                                                                     .getObjectRequest(getObjectRequest)
-                                                                     .destination(file)
-                                                                     .build();
-        Files.write(file.toPath(), RandomStringUtils.random(100).getBytes(StandardCharsets.UTF_8));
-
-        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
-            .thenReturn(CompletableFuture.completedFuture(response));
-
-        when(mockS3Crt.headObject(any(Consumer.class)))
-            .thenReturn(CompletableFuture.completedFuture(headObjectResponse));
-
-        CompletedFileDownload completedFileDownload = tm.resumeDownloadFile(r -> r.bytesTransferred(1000l)
-                                                                                  .downloadFileRequest(downloadFileRequest)
-                                                                                  .fileLastModified(fileLastModified)
-                                                                                  .s3ObjectLastModified(Instant.now()))
-                                                        .completionFuture()
-                                                        .join();
-        assertThat(completedFileDownload.response()).isEqualTo(response);
-        verifyActualGetObjectRequest(getObjectRequest, null);
     }
 
     @Test

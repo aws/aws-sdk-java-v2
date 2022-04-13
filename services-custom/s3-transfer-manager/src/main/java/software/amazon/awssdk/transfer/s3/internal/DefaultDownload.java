@@ -31,7 +31,7 @@ public final class DefaultDownload<ReturnT> implements Download<ReturnT> {
     private final TransferProgress progress;
 
     DefaultDownload(CompletableFuture<CompletedDownload<ReturnT>> completionFuture, TransferProgress progress) {
-        this.completionFuture = completionFuture;
+        this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
         this.progress = Validate.paramNotNull(progress, "progress");
     }
 

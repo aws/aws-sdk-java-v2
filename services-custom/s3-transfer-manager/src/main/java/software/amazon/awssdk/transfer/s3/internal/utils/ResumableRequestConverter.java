@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3.internal;
+package software.amazon.awssdk.transfer.s3.internal.utils;
 
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -39,9 +39,9 @@ public final class ResumableRequestConverter {
      * Converts a {@link ResumableFileDownload} to {@link DownloadFileRequest} and {@link AsyncResponseTransformer} pair.
      */
     public static Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>
-            resumedRequestAndTransformer(ResumableFileDownload resumableFileDownload,
-                                         HeadObjectResponse headObjectResponse,
-                                         DownloadFileRequest originalDownloadRequest) {
+            toDownloadFileRequestAndTransformer(ResumableFileDownload resumableFileDownload,
+                                                HeadObjectResponse headObjectResponse,
+                                                DownloadFileRequest originalDownloadRequest) {
 
         GetObjectRequest getObjectRequest = originalDownloadRequest.getObjectRequest();
         DownloadFileRequest newDownloadFileRequest;

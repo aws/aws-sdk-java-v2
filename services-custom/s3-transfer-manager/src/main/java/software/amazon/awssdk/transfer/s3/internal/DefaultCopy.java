@@ -31,7 +31,7 @@ public final class DefaultCopy implements Copy {
     private final TransferProgress progress;
 
     DefaultCopy(CompletableFuture<CompletedCopy> completionFuture, TransferProgress progress) {
-        this.completionFuture = completionFuture;
+        this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
         this.progress = Validate.paramNotNull(progress, "progress");
     }
 
