@@ -103,14 +103,13 @@ class ResumableRequestConverterTest {
                                                                      .getObjectRequest(getObjectRequest)
                                                                      .destination(file)
                                                                      .build();
-        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        Instant fileLastModified = Instant.now().minusSeconds(10);
         ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
                                                                            .bytesTransferred(1000L)
                                                                            .s3ObjectLastModified(s3ObjectLastModified)
                                                                            .fileLastModified(fileLastModified)
                                                                            .downloadFileRequest(downloadFileRequest)
                                                                            .build();
-        Files.write(file.toPath(), RandomStringUtils.random(100).getBytes(StandardCharsets.UTF_8));
         Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> actual =
             toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse(s3ObjectLastModified),
                                                 downloadFileRequest);
