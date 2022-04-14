@@ -1,3 +1,33 @@
+# __2.17.171__ __2022-04-14__
+## __AWS Batch__
+  - ### Features
+    - Enables configuration updates for compute environments with BEST_FIT_PROGRESSIVE and SPOT_CAPACITY_OPTIMIZED allocation strategies.
+
+## __AWS Glue__
+  - ### Features
+    - Auto Scaling for Glue version 3.0 and later jobs to dynamically scale compute resources. This SDK change provides customers with the auto-scaled DPU usage
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Automatically refresh credentials in the background when async credential refreshes are enabled, even if traffic is low.
+    - Updated service endpoint metadata.
+
+## __Amazon AppStream__
+  - ### Features
+    - Includes updates for create and update fleet APIs to manage the session scripts locations for Elastic fleets.
+
+## __Amazon Appflow__
+  - ### Features
+    - Enables users to pass custom token URL parameters for Oauth2 authentication during create connector profile
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Updates documentation for additional statistics in CloudWatch Metric Streams.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
 # __2.17.170__ __2022-04-13__
 ## __Amazon CloudWatch__
   - ### Features

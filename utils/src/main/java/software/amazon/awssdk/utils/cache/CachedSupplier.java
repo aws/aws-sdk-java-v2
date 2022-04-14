@@ -72,6 +72,9 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     private CachedSupplier(Builder<T> builder) {
         this.valueSupplier = Validate.notNull(builder.supplier, "builder.supplier");
         this.prefetchStrategy = Validate.notNull(builder.prefetchStrategy, "builder.prefetchStrategy");
+
+        // Because we pass 'this', ensure this is always the last line in the constructor.
+        this.prefetchStrategy.initializeCachedSupplier(this);
     }
 
     /**
@@ -203,6 +206,12 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          * Execute the provided value updater to update the cache. The specific implementation defines how this is invoked.
          */
         void prefetch(Runnable valueUpdater);
+
+        /**
+         * Invoked when the prefetch strategy is registered with a {@link CachedSupplier}.
+         */
+        default void initializeCachedSupplier(CachedSupplier<?> cachedSupplier) {
+        }
 
         /**
          * Free any resources associated with the strategy. This is invoked when the {@link CachedSupplier#close()} method is
