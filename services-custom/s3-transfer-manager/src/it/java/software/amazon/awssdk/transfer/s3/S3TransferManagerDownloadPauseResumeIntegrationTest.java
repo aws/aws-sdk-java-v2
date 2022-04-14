@@ -31,6 +31,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
@@ -94,6 +95,8 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         assertThat(resumableFileDownload.s3ObjectLastModified()).hasValue(testDownloadListener.getObjectResponse.lastModified());
         assertThat(bytesTransferred).isEqualTo(path.toFile().length());
         assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(sourceFile.length());
+
+        assertThat(bytesTransferred).isLessThan(sourceFile.length());
         assertThat(download.completionFuture()).isCancelled();
 
         log.debug(() -> "Resuming download ");
@@ -112,7 +115,7 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
 
         ResumableFileDownload resumableFileDownload = download.pause();
         log.debug(() -> "Paused: " + resumableFileDownload);
-        String newObject = RandomStringUtils.random(1000);
+        String newObject = RandomStringUtils.randomAlphanumeric(1000);
 
         // Re-upload the S3 object
         s3.putObject(PutObjectRequest.builder()
@@ -157,7 +160,8 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
                                                         .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(r -> r.bytesTransferred() > 0))
                                                         .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(r -> true))
                                                         .overrideConfiguration(o -> o.waitTimeout(Duration.ofMinutes(1))
-                                                                                     .maxAttempts(Integer.MAX_VALUE))
+                                                                                     .maxAttempts(Integer.MAX_VALUE)
+                                                                                     .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(100))))
                                                         .build();
         waiter.run(() -> download.progress().snapshot());
     }
