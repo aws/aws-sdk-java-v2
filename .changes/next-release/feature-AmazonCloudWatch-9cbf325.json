@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch",
+    "contributor": "",
+    "description": "Updates documentation for additional statistics in CloudWatch Metric Streams."
+}
