@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Appflow",
-    "contributor": "",
-    "description": "Enables users to pass custom token URL parameters for Oauth2 authentication during create connector profile"
-}
