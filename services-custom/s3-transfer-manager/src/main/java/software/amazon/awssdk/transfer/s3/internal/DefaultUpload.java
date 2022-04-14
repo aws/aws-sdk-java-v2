@@ -22,6 +22,7 @@ import software.amazon.awssdk.transfer.s3.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.Upload;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultUpload implements Upload {
@@ -30,8 +31,8 @@ public final class DefaultUpload implements Upload {
     private final TransferProgress progress;
 
     DefaultUpload(CompletableFuture<CompletedUpload> completionFuture, TransferProgress progress) {
-        this.completionFuture = completionFuture;
-        this.progress = progress;
+        this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
+        this.progress = Validate.paramNotNull(progress, "progress");
     }
 
     @Override
