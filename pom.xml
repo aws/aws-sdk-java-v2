@@ -562,7 +562,6 @@
                             <includeModule>s3</includeModule>
                             <includeModule>s3-control</includeModule>
                             <includeModule>sqs</includeModule>
-                            <includeModule>rds</includeModule>
                             <includeModule>apigateway</includeModule>
                             <includeModule>polly</includeModule>
                         </includeModules>
