@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lightsail",
+    "contributor": "",
+    "description": "This release adds support to describe the synchronization status of the account-level block public access feature for your Amazon Lightsail buckets."
+}
