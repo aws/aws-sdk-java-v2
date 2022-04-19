@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Textract",
+    "contributor": "",
+    "description": "This release adds support for specifying and extracting information from documents using the Queries feature within Analyze Document API"
+}
