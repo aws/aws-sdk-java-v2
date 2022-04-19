@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Transfer Family",
-    "contributor": "",
-    "description": "This release contains corrected HomeDirectoryMappings examples for several API functions: CreateAccess, UpdateAccess, CreateUser, and UpdateUser,."
-}

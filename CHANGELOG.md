@@ -1,3 +1,48 @@
+# __2.17.173__ __2022-04-19__
+## __AWS Key Management Service__
+  - ### Features
+    - Adds support for KMS keys and APIs that generate and verify HMAC codes
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release contains corrected HomeDirectoryMappings examples for several API functions: CreateAccess, UpdateAccess, CreateUser, and UpdateUser,.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now provides a data source connector for Quip. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-quip.html
+
+## __Amazon Personalize__
+  - ### Features
+    - Adding StartRecommender and StopRecommender APIs for Personalize.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new Austrian German voice - Hannah. Hannah is available as Neural voice only.
+
+## __Amazon Redshift__
+  - ### Features
+    - Introduces new fields for LogDestinationType and LogExports on EnableLogging requests and Enable/Disable/DescribeLogging responses. Customers can now select CloudWatch Logs as a destination for their Audit Logs.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Added offset support for specifying the number of days to wait after the date and time specified by a CRON expression when creating SSM association.
+
+## __Amazon Textract__
+  - ### Features
+    - This release adds support for specifying and extracting information from documents using the Queries feature within Analyze Document API
+
+## __Amazon WorkLink__
+  - ### Features
+    - Amazon WorkLink is no longer supported. This will be removed in a future version of the SDK.
+
+## __Auto Scaling__
+  - ### Features
+    - EC2 Auto Scaling now adds default instance warm-up times for all scaling activities, health check replacements, and other replacement events in the Auto Scaling instance lifecycle.
+
 # __2.17.172__ __2022-04-15__
 ## __Amazon Athena__
   - ### Features

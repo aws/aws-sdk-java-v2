@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Personalize",
-    "contributor": "",
-    "description": "Adding StartRecommender and StopRecommender APIs for Personalize."
-}
