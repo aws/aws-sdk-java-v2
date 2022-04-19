@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Key Management Service",
+    "contributor": "",
+    "description": "Adds support for KMS keys and APIs that generate and verify HMAC codes"
+}
