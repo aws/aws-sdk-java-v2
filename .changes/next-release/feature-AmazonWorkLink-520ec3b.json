@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkLink",
+    "contributor": "",
+    "description": "Amazon WorkLink is no longer supported. This will be removed in a future version of the SDK."
+}
