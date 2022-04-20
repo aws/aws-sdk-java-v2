@@ -39,19 +39,21 @@ public final class TaggingAdapter implements TypeAdapter<Tagging, String> {
     public String adapt(Tagging tagging) {
         StringBuilder tagBuilder = new StringBuilder();
 
-        Tagging taggingClone = tagging.toBuilder().build();
+        if (tagging != null && !tagging.tagSet().isEmpty()) {
+            Tagging taggingClone = tagging.toBuilder().build();
 
-        Tag firstTag = taggingClone.tagSet().get(0);
-        tagBuilder.append(SdkHttpUtils.urlEncode(firstTag.key()));
-        tagBuilder.append("=");
-        tagBuilder.append(SdkHttpUtils.urlEncode(firstTag.value()));
-
-        for (int i = 1; i < taggingClone.tagSet().size(); i++) {
-            Tag t = taggingClone.tagSet().get(i);
-            tagBuilder.append("&");
-            tagBuilder.append(SdkHttpUtils.urlEncode(t.key()));
+            Tag firstTag = taggingClone.tagSet().get(0);
+            tagBuilder.append(SdkHttpUtils.urlEncode(firstTag.key()));
             tagBuilder.append("=");
-            tagBuilder.append(SdkHttpUtils.urlEncode(t.value()));
+            tagBuilder.append(SdkHttpUtils.urlEncode(firstTag.value()));
+
+            for (int i = 1; i < taggingClone.tagSet().size(); i++) {
+                Tag t = taggingClone.tagSet().get(i);
+                tagBuilder.append("&");
+                tagBuilder.append(SdkHttpUtils.urlEncode(t.key()));
+                tagBuilder.append("=");
+                tagBuilder.append(SdkHttpUtils.urlEncode(t.value()));
+            }
         }
 
         return tagBuilder.toString();

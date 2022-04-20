@@ -1,3 +1,27 @@
+# __2.17.174__ __2022-04-20__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Prevent IndexOutOfBoundsException when PutObject tagging is an empty set.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds APIs to search, claim, release, list, update, and describe phone numbers. You can also use them to associate and disassociate contact flows to phone numbers.
+
+## __Amazon Macie 2__
+  - ### Features
+    - Sensitive data findings in Amazon Macie now indicate how Macie found the sensitive data that produced a finding (originType).
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Added a new cluster-level attribute to set the capacity range for Aurora Serverless v2 instances.
+
+## __Application Migration Service__
+  - ### Features
+    - Removed required annotation from input fields in Describe operations requests. Added quotaValue to ServiceQuotaExceededException
+
 # __2.17.173__ __2022-04-19__
 ## __AWS Key Management Service__
   - ### Features
