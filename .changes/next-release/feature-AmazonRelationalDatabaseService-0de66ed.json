@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Added a new cluster-level attribute to set the capacity range for Aurora Serverless v2 instances."
-}

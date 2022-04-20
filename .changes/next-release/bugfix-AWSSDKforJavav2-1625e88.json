@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Prevent IndexOutOfBoundsException when PutObject tagging is an empty set."
-}
