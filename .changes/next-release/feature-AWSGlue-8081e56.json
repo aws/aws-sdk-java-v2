@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "This release adds APIs to create, read, delete, list, and batch read of Glue custom entity types"
+}
