@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT SiteWise",
-    "contributor": "",
-    "description": "This release adds 3 new batch data query APIs : BatchGetAssetPropertyValue, BatchGetAssetPropertyValueHistory and BatchGetAssetPropertyAggregates"
-}

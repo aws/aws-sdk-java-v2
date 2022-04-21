@@ -1,3 +1,40 @@
+# __2.17.175__ __2022-04-21__
+## __AWS Glue__
+  - ### Features
+    - This release adds APIs to create, read, delete, list, and batch read of Glue custom entity types
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - This release adds 3 new batch data query APIs : BatchGetAssetPropertyValue, BatchGetAssetPropertyValueHistory and BatchGetAssetPropertyAggregates
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - General availability (GA) for AWS IoT TwinMaker. For more information, see https://docs.aws.amazon.com/iot-twinmaker/latest/apireference/Welcome.html
+
+## __AWS MediaTailor__
+  - ### Features
+    - This release introduces tiered channels and adds support for live sources. Customers using a STANDARD channel can now create programs using live sources.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __AWS Storage Gateway__
+  - ### Features
+    - This release adds support for minimum of 5 character length virtual tape barcodes.
+
+## __Amazon Connect Wisdom Service__
+  - ### Features
+    - This release updates the GetRecommendations API to include a trigger event list for classifying and grouping recommendations.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Doc only update for ElastiCache
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - Added DetectMetricSetConfig API for detecting configuration required for creating metric set from provided S3 data source.
+
 # __2.17.174__ __2022-04-20__
 ## __AWS SDK for Java v2__
   - ### Features

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lookout for Metrics",
-    "contributor": "",
-    "description": "Added DetectMetricSetConfig API for detecting configuration required for creating metric set from provided S3 data source."
-}
