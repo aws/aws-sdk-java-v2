@@ -1,3 +1,16 @@
+# __2.17.176__ __2022-04-22__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix to ignore empty strings while marshalling list of strings in header field.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Include additional exceptions types.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for waiters that automatically poll for a deleted NAT Gateway until it reaches the deleted state.
+
 # __2.17.175__ __2022-04-21__
 ## __AWS Glue__
   - ### Features
