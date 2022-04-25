@@ -57,7 +57,7 @@ class S3TransferManagerPauseAndResumeTest {
     @BeforeEach
     public void methodSetup() throws IOException {
         file = RandomTempFile.createTempFile("test", UUID.randomUUID().toString());
-        Files.write(file.toPath(), RandomStringUtils.random(2000).getBytes(StandardCharsets.UTF_8));
+        Files.write(file.toPath(), RandomStringUtils.randomAlphanumeric(1000).getBytes(StandardCharsets.UTF_8));
         mockS3Crt = mock(S3CrtAsyncClient.class);
         uploadDirectoryHelper = mock(UploadDirectoryHelper.class);
         configuration = mock(TransferManagerConfiguration.class);
@@ -90,7 +90,7 @@ class S3TransferManagerPauseAndResumeTest {
         when(mockS3Crt.headObject(any(Consumer.class)))
             .thenReturn(CompletableFuture.completedFuture(headObjectResponse));
 
-        CompletedFileDownload completedFileDownload = tm.resumeDownloadFile(r -> r.bytesTransferred(1000l)
+        CompletedFileDownload completedFileDownload = tm.resumeDownloadFile(r -> r.bytesTransferred(file.length())
                                                                                   .downloadFileRequest(downloadFileRequest)
                                                                                   .fileLastModified(fileLastModified)
                                                                                   .s3ObjectLastModified(s3ObjectLastModified))

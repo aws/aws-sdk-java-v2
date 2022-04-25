@@ -45,7 +45,7 @@ class ResumableRequestConverterTest {
     @BeforeEach
     public void methodSetup() throws IOException {
         file = RandomTempFile.createTempFile("test", UUID.randomUUID().toString());
-        Files.write(file.toPath(), RandomStringUtils.random(2000).getBytes(StandardCharsets.UTF_8));
+        Files.write(file.toPath(), RandomStringUtils.randomAlphanumeric(1000).getBytes(StandardCharsets.UTF_8));
     }
 
     @AfterEach
@@ -63,7 +63,7 @@ class ResumableRequestConverterTest {
                                                                      .build();
         Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
         ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
-                                                                           .bytesTransferred(1000L)
+                                                                           .bytesTransferred(file.length())
                                                                            .s3ObjectLastModified(s3ObjectLastModified)
                                                                            .fileLastModified(fileLastModified)
                                                                            .downloadFileRequest(downloadFileRequest)
@@ -96,7 +96,7 @@ class ResumableRequestConverterTest {
     }
 
     @Test
-    void toDownloadFileAndTransformer_fileModified_shouldStartFromBeginning() throws IOException {
+    void toDownloadFileAndTransformer_fileLastModifiedTimeChanged_shouldStartFromBeginning() throws IOException {
         Instant s3ObjectLastModified = Instant.now();
         GetObjectRequest getObjectRequest = getObjectRequest();
         DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
@@ -106,6 +106,27 @@ class ResumableRequestConverterTest {
         Instant fileLastModified = Instant.now().minusSeconds(10);
         ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
                                                                            .bytesTransferred(1000L)
+                                                                           .s3ObjectLastModified(s3ObjectLastModified)
+                                                                           .fileLastModified(fileLastModified)
+                                                                           .downloadFileRequest(downloadFileRequest)
+                                                                           .build();
+        Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> actual =
+            toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse(s3ObjectLastModified),
+                                                downloadFileRequest);
+        verifyActualGetObjectRequest(getObjectRequest, actual.left().getObjectRequest(), null);
+    }
+
+    @Test
+    void toDownloadFileAndTransformer_fileLengthChanged_shouldStartFromBeginning() {
+        Instant s3ObjectLastModified = Instant.now();
+        GetObjectRequest getObjectRequest = getObjectRequest();
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+        Instant fileLastModified = Instant.now().minusSeconds(10);
+        ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
+                                                                           .bytesTransferred(1100L)
                                                                            .s3ObjectLastModified(s3ObjectLastModified)
                                                                            .fileLastModified(fileLastModified)
                                                                            .downloadFileRequest(downloadFileRequest)

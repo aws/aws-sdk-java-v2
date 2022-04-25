@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.internal.utils;
 
+import java.io.File;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
@@ -53,7 +54,8 @@ public final class ResumableRequestConverter {
                                                       .toFile()
                                                       .lastModified());
         boolean s3ObjectNotModified = headObjectResponse.lastModified().equals(lastModified);
-        boolean fileNotModified = resumableFileDownload.fileLastModified().equals(fileLastModified);
+        boolean fileNotModified = fileNotModified(resumableFileDownload, originalDownloadRequest.destination().toFile(),
+                                                  fileLastModified);
 
         if (fileNotModified && s3ObjectNotModified) {
             newDownloadFileRequest = resumedDownloadFileRequest(resumableFileDownload,
@@ -71,6 +73,14 @@ public final class ResumableRequestConverter {
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
             fileAsyncResponseTransformer(newDownloadFileRequest, shouldAppend);
         return Pair.of(newDownloadFileRequest, responseTransformer);
+    }
+
+    private static boolean fileNotModified(ResumableFileDownload resumableFileDownload,
+                                           File destination, Instant fileLastModified) {
+        // On certain platforms, File.lastModified() does not contain milliseconds precision, so we need to check the
+        // file length as well https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8177809
+        return resumableFileDownload.fileLastModified().equals(fileLastModified)
+               && resumableFileDownload.bytesTransferred() == destination.length();
     }
 
     private static AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> fileAsyncResponseTransformer(

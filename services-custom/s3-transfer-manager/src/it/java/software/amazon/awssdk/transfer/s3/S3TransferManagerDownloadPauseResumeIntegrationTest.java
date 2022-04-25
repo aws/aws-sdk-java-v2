@@ -20,7 +20,6 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -105,34 +104,41 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
 
     @Test
     void pauseAndResume_objectChanged_shouldStartFromBeginning() {
-        Path path = RandomTempFile.randomUncreatedFile().toPath();
-        DownloadFileRequest request = DownloadFileRequest.builder()
-                                                         .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
-                                                         .destination(path)
-                                                         .build();
-        FileDownload download = tm.downloadFile(request);
-        waitUntilFirstByteBufferDelivered(download);
+        try {
+            Path path = RandomTempFile.randomUncreatedFile().toPath();
+            DownloadFileRequest request = DownloadFileRequest.builder()
+                                                             .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                                             .destination(path)
+                                                             .build();
+            FileDownload download = tm.downloadFile(request);
+            waitUntilFirstByteBufferDelivered(download);
 
-        ResumableFileDownload resumableFileDownload = download.pause();
-        log.debug(() -> "Paused: " + resumableFileDownload);
-        String newObject = RandomStringUtils.randomAlphanumeric(1000);
+            ResumableFileDownload resumableFileDownload = download.pause();
+            log.debug(() -> "Paused: " + resumableFileDownload);
+            String newObject = RandomStringUtils.randomAlphanumeric(1000);
 
-        // Re-upload the S3 object
-        s3.putObject(PutObjectRequest.builder()
-                                     .bucket(BUCKET)
-                                     .key(KEY)
-                                     .build(), RequestBody.fromString(newObject));
+            // Re-upload the S3 object
+            s3.putObject(PutObjectRequest.builder()
+                                         .bucket(BUCKET)
+                                         .key(KEY)
+                                         .build(), RequestBody.fromString(newObject));
 
-        log.debug(() -> "Resuming download ");
-        FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
-        resumedFileDownload.progress().snapshot();
-        resumedFileDownload.completionFuture().join();
-        assertThat(path.toFile()).hasContent(newObject);
-        assertThat(resumedFileDownload.progress().snapshot().transferSizeInBytes()).hasValue((long) newObject.getBytes(StandardCharsets.UTF_8).length);
+            log.debug(() -> "Resuming download ");
+            FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
+            resumedFileDownload.progress().snapshot();
+            resumedFileDownload.completionFuture().join();
+            assertThat(path.toFile()).hasContent(newObject);
+            assertThat(resumedFileDownload.progress().snapshot().transferSizeInBytes()).hasValue((long) newObject.getBytes(StandardCharsets.UTF_8).length);
+        } finally {
+            s3.putObject(PutObjectRequest.builder()
+                                         .bucket(BUCKET)
+                                         .key(KEY)
+                                         .build(), sourceFile.toPath());
+        }
     }
 
     @Test
-    void pauseAndResume_fileChanged_shouldStartFromBeginning() throws IOException {
+    void pauseAndResume_fileChanged_shouldStartFromBeginning() throws Exception {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         DownloadFileRequest request = DownloadFileRequest.builder()
                                                          .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
