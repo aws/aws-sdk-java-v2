@@ -149,10 +149,9 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
 
     private static void verifyFileDownload(Path path, ResumableFileDownload resumableFileDownload, long expectedBytesTransferred) {
         FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
-        resumedFileDownload.progress().snapshot();
         resumedFileDownload.completionFuture().join();
-        assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
         assertThat(resumedFileDownload.progress().snapshot().transferSizeInBytes()).hasValue(expectedBytesTransferred);
+        assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
     }
 
     private static void waitUntilFirstByteBufferDelivered(FileDownload download) {
