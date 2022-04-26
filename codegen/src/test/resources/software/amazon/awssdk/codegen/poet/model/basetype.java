@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -147,7 +146,6 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
         }
 
         @Override
-        @Transient
         public final Builder baseMember(String baseMember) {
             this.baseMember = baseMember;
             return this;

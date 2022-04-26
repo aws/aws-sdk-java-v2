@@ -1,0 +1,42 @@
+{
+    "version": "2.17.166",
+    "date": "2022-04-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "contributor": "",
+            "description": "Adds new EventBridge Endpoint resources for disaster recovery, multi-region failover, and cross-region replication capabilities to help you build resilient event-driven applications."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon API Gateway",
+            "contributor": "",
+            "description": "ApiGateway CLI command get-usage now includes usagePlanId, startDate, and endDate fields in the output to match documentation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon Sagemaker Notebook Instances now supports G5 instance types"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Performance Insights",
+            "contributor": "",
+            "description": "Adds support for DocumentDB to the Performance Insights API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "contributor": "",
+            "description": "Added support to enable/disable performance insights when creating or modifying db instances"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize",
+            "contributor": "",
+            "description": "This release provides tagging support in AWS Personalize."
+        }
+    ]
+}

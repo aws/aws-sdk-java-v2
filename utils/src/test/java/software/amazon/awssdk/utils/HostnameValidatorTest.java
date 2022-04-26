@@ -42,15 +42,23 @@ public class HostnameValidatorTest {
     public void emptyHostComponent_shouldThrowException() {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("id");
-        exception.expectMessage("missing");
+        exception.expectMessage("empty");
         HostnameValidator.validateHostnameCompliant("", "id", "test");
+    }
+
+    @Test
+    public void blankHostComponent_shouldThrowException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("id");
+        exception.expectMessage("blank");
+        HostnameValidator.validateHostnameCompliant(" ", "id", "test");
     }
 
     @Test
     public void hostComponentWithSlash_shouldThrowException() {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("id");
-        exception.expectMessage("alphanumeric");
+        exception.expectMessage("\"[A-Za-z0-9\\-]+\"");
 
         HostnameValidator.validateHostnameCompliant("foo%2bar", "id", "test");
     }

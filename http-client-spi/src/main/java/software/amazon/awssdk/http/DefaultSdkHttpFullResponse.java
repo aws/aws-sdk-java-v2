@@ -18,7 +18,6 @@ package software.amazon.awssdk.http;
 import static software.amazon.awssdk.utils.CollectionUtils.deepCopyMap;
 import static software.amazon.awssdk.utils.CollectionUtils.deepUnmodifiableMap;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -61,7 +60,6 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
         return headers;
     }
 
-    @Transient
     @Override
     public Optional<AbortableInputStream> content() {
         return Optional.ofNullable(content);

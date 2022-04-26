@@ -21,7 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -48,6 +50,7 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
  * into {@link TransactWriteItem} and stored in the request.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class TransactWriteItemsEnhancedRequest {
 
     private final List<TransactWriteItem> transactWriteItems;
@@ -117,6 +120,7 @@ public final class TransactWriteItemsEnhancedRequest {
      * <p>
      * A valid builder should contain at least one low-level request such as {@link DeleteItemEnhancedRequest}.
      */
+    @NotThreadSafe
     public static final class Builder {
         private List<Supplier<TransactWriteItem>> itemSupplierList = new ArrayList<>();
 

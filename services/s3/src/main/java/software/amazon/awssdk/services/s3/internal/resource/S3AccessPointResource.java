@@ -19,8 +19,8 @@ import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.signer.SignerLoader;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.services.s3.internal.signing.S3SigningUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -120,7 +120,7 @@ public final class S3AccessPointResource
 
     @Override
     public Optional<Signer> overrideSigner() {
-        return StringUtils.isEmpty(region) ? Optional.of(S3SigningUtils.getSigV4aSigner()) : Optional.empty();
+        return StringUtils.isEmpty(region) ? Optional.of(SignerLoader.getS3SigV4aSigner()) : Optional.empty();
     }
 
     @Override

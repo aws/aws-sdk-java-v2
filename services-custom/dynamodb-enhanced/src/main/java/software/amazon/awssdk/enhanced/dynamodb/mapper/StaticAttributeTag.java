@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 
@@ -30,6 +31,7 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
  * {@link StaticAttributeTags}.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface StaticAttributeTag {
     /**
      * A function that modifies an existing {@link StaticTableSchema.Builder} when this tag is applied to a specific

@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
@@ -47,6 +48,7 @@ import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter;
  * @param <T> The type of the modelled object.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface DynamoDbTable<T> extends MappedTableResource<T> {
     /**
      * Returns a mapped index that can be used to execute commands against a secondary index belonging to the table

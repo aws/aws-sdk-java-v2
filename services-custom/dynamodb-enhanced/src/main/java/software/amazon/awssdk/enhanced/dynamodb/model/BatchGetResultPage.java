@@ -23,7 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -41,6 +43,7 @@ import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
  * to retrieve items from that table in the page.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class BatchGetResultPage {
     private final BatchGetItemResponse batchGetItemResponse;
     private final DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension;
@@ -111,6 +114,7 @@ public final class BatchGetResultPage {
     /**
      * A builder that is used to create a result object with the desired parameters.
      */
+    @NotThreadSafe
     public static final class Builder {
 
         private BatchGetItemResponse batchGetItemResponse;

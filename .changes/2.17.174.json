@@ -1,0 +1,42 @@
+{
+    "version": "2.17.174",
+    "date": "2022-04-20",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Prevent IndexOutOfBoundsException when PutObject tagging is an empty set."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Added a new cluster-level attribute to set the capacity range for Aurora Serverless v2 instances."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds APIs to search, claim, release, list, update, and describe phone numbers. You can also use them to associate and disassociate contact flows to phone numbers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "Sensitive data findings in Amazon Macie now indicate how Macie found the sensitive data that produced a finding (originType)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Application Migration Service",
+            "contributor": "",
+            "description": "Removed required annotation from input fields in Describe operations requests. Added quotaValue to ServiceQuotaExceededException"
+        }
+    ]
+}

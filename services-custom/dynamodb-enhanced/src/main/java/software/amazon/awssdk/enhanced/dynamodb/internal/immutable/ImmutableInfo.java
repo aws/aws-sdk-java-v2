@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.immutable;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Optional;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
@@ -60,6 +61,7 @@ public class ImmutableInfo<T> {
         return new Builder<>(immutableClass);
     }
 
+    @NotThreadSafe
     public static final class Builder<T> {
         private final Class<T> immutableClass;
         private Class<?> builderClass;

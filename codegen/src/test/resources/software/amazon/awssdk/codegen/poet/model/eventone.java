@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -164,7 +163,6 @@ public class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<EventO
         }
 
         @Override
-        @Transient
         public final Builder foo(String foo) {
             this.foo = foo;
             return this;

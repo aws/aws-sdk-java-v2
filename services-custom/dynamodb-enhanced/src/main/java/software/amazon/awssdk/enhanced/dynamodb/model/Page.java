@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.ToString;
 
@@ -28,6 +29,7 @@ import software.amazon.awssdk.utils.ToString;
  * @param <T> The modelled type of the object that has been read.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class Page<T> {
     private final List<T> items;
     private final Map<String, AttributeValue> lastEvaluatedKey;

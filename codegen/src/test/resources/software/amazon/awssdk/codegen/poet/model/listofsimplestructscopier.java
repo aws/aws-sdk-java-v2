@@ -33,7 +33,7 @@ final class ListOfSimpleStructsCopier {
         } else {
             List<SimpleStruct> modifiableList = new ArrayList<>();
             listOfSimpleStructsParam.forEach(entry -> {
-                SimpleStruct member = entry.build();
+                SimpleStruct member = entry == null ? null : entry.build();
                 modifiableList.add(member);
             });
             list = Collections.unmodifiableList(modifiableList);
@@ -48,7 +48,7 @@ final class ListOfSimpleStructsCopier {
         } else {
             List<SimpleStruct.Builder> modifiableList = new ArrayList<>();
             listOfSimpleStructsParam.forEach(entry -> {
-                SimpleStruct.Builder member = entry.toBuilder();
+                SimpleStruct.Builder member = entry == null ? null : entry.toBuilder();
                 modifiableList.add(member);
             });
             list = Collections.unmodifiableList(modifiableList);

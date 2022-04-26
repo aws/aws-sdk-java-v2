@@ -32,7 +32,7 @@ final class MapOfEnumToSimpleStructCopier {
         } else {
             Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>();
             mapOfEnumToSimpleStructParam.forEach((key, value) -> {
-                SimpleStruct member = value.build();
+                SimpleStruct member = value == null ? null : value.build();
                 modifiableMap.put(key, member);
             });
             map = Collections.unmodifiableMap(modifiableMap);
@@ -47,7 +47,7 @@ final class MapOfEnumToSimpleStructCopier {
         } else {
             Map<String, SimpleStruct.Builder> modifiableMap = new LinkedHashMap<>();
             mapOfEnumToSimpleStructParam.forEach((key, value) -> {
-                SimpleStruct.Builder member = value.toBuilder();
+                SimpleStruct.Builder member = value == null ? null : value.toBuilder();
                 modifiableMap.put(key, member);
             });
             map = Collections.unmodifiableMap(modifiableMap);

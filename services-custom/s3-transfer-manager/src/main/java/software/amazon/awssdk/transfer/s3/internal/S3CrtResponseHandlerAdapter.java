@@ -90,9 +90,12 @@ public class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseHandler
             resultFuture.complete(null);
         } else {
             SdkClientException sdkClientException =
-                SdkClientException.create(String.format("Failed to send the request. CRT error code: %s",
-                                                        crtCode));
-            notifyError(sdkClientException);
+                SdkClientException.create("Failed to send the request: " +
+                                          CRT.awsErrorString(crtCode));
+            resultFuture.completeExceptionally(sdkClientException);
+
+            responseHandler.onError(sdkClientException);
+            publisher.notifyError(sdkClientException);
         }
     }
 

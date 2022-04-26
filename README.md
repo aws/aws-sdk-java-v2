@@ -52,7 +52,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.17.157</version>
+      <version>2.17.178</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -86,12 +86,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.17.157</version>
+  <version>2.17.178</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.17.157</version>
+  <version>2.17.178</version>
 </dependency>
 ```
 
@@ -103,7 +103,7 @@ You can import the whole SDK into your project (includes *ALL* services). Please
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>aws-sdk-java</artifactId>
-  <version>2.17.157</version>
+  <version>2.17.178</version>
 </dependency>
 ```
 
@@ -117,16 +117,23 @@ See the [Set up the AWS SDK for Java][docs-setup] section of the developer guide
 
 ## Building From Source
 
-Once you check out the code from GitHub, you can build it using Maven.
+Once you check out the code from GitHub, you can build it using the following commands.
+
+Linux:
 
 ```sh
-mvn clean install
+./mvnw clean install
 
 # Skip tests, checkstyles, findbugs, etc for quick build
-mvn clean install -P quick
+./mvnw clean install -P quick
 
 # Build a specific service module
-mvn clean install -pl :s3 -P quick --am
+./mvnw clean install -pl :s3 -P quick --am
+```
+
+Windows:
+```sh
+./mvnw.cmd clean install
 ```
 
 ## Sample Code

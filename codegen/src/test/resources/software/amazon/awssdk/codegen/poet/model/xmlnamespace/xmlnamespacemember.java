@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.protocolrestxml.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -189,7 +188,6 @@ public final class XmlNamespaceMember implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder type(String type) {
             this.type = type;
             return this;
@@ -204,7 +202,6 @@ public final class XmlNamespaceMember implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder stringMember(String stringMember) {
             this.stringMember = stringMember;
             return this;

@@ -33,7 +33,12 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.net.URI;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,8 +47,11 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.HttpChecksumConstant;
+import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm;
@@ -84,6 +92,29 @@ public class SyncHttpChecksumInTrailerTest {
                 "b" + CRLF + "Hello world" + CRLF
                 + "0" + CRLF
                 + "x-amz-checksum-crc32:i9aeUg==" + CRLF + CRLF)));
+    }
+
+    @Test
+    public void sync_streaming_specifiedLengthIsLess_NoSigner_appends_trailer_checksum() {
+        stubResponseWithHeaders();
+
+        ContentStreamProvider provider = () -> new ByteArrayInputStream("Hello world".getBytes(StandardCharsets.UTF_8));
+        // length of 5 truncates to "Hello"
+        RequestBody requestBody = RequestBody.fromContentProvider(provider, 5, "text/plain");
+        client.putOperationWithChecksum(r -> r.checksumAlgorithm(ChecksumAlgorithm.CRC32),
+                                        requestBody,
+                                        ResponseTransformer.toBytes());
+        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_LENGTH, equalTo("46")));
+        verify(putRequestedFor(anyUrl()).withHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, equalTo("x-amz-checksum-crc32")));
+        verify(putRequestedFor(anyUrl()).withHeader("x-amz-content-sha256", equalTo("STREAMING-UNSIGNED-PAYLOAD-TRAILER")));
+        verify(putRequestedFor(anyUrl()).withHeader("x-amz-decoded-content-length", equalTo("5")));
+        verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("aws-chunked")));
+        verify(putRequestedFor(anyUrl()).withRequestBody(
+            containing(
+                "5" + CRLF + "Hello" + CRLF
+                + "0" + CRLF
+                // 99GJgg== is the base64 encoded CRC32 of "Hello"
+                + "x-amz-checksum-crc32:99GJgg==" + CRLF + CRLF)));
     }
 
     @Test

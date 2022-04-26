@@ -1,0 +1,42 @@
+{
+    "version": "2.17.164",
+    "date": "2022-04-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Bump CRT version to `0.16.1`."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Refresh IMDS credentials more aggressively."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Documentation-only update for doc bug fixes for the S3 Control API docs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Added additional ASFF details for RdsSecurityGroup AutoScalingGroup, ElbLoadBalancer, CodeBuildProject and RedshiftCluster."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "AWS DataSync now supports Amazon FSx for OpenZFS locations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "Provide customers more visibility into file system status by adding new \"Misconfigured Unavailable\" status for Amazon FSx for Windows File Server."
+        }
+    ]
+}

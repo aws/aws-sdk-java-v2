@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.utils.cache;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
@@ -235,6 +236,24 @@ public class CachedSupplierTest {
 
             // Make sure only one "get" has actually happened (the async get is currently waiting to be released).
             waitingSupplier.waitForGetsToHaveFinished(1);
+        }
+    }
+
+    @Test
+    public void nonBlockingPrefetchStrategyRefreshesInBackground() {
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
+             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
+                                                                   .prefetchStrategy(new NonBlocking("test-%s"))
+                                                                   .build()) {
+            waitingSupplier.permits.release(1);
+
+            // Ensure an async "get" happens even without a call to the cached supplier.
+            waitingSupplier.waitForGetsToHaveStarted(1);
+
+            // Ensure an async "get" finishes even without a call to the cached supplier.
+            waitingSupplier.waitForGetsToHaveFinished(1);
+
+            assertThat(cachedSupplier.get()).isNotNull();
         }
     }
 
