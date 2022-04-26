@@ -1,0 +1,6 @@
+{
+    "category": "S3 Transfer Manager (Develper Preview)", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Add `DownloadDirectoryRequest.Builder#downloadFileRequestTransformer` and `DownloadDirectoryRequest.Builder#listObjectsRequestTranformer` to allow users to modify requests during directory downloads."
+}

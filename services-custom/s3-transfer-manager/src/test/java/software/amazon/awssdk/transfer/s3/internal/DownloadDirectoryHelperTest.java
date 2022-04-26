@@ -27,6 +27,7 @@ import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -37,15 +38,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.EncodingType;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.transfer.s3.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.DirectoryDownload;
 import software.amazon.awssdk.transfer.s3.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.FileDownload;
+import software.amazon.awssdk.transfer.s3.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
+import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 
 public class DownloadDirectoryHelperTest {
     private static FileSystem jimfs;
@@ -74,8 +80,8 @@ public class DownloadDirectoryHelperTest {
         listObjectsHelper = mock(ListObjectsHelper.class);
         singleDownloadFunction = mock(Function.class);
         downloadDirectoryHelper = new DownloadDirectoryHelper(TransferManagerConfiguration.builder().build(),
-                                                              singleDownloadFunction,
-                                                              listObjectsHelper);
+                                                              listObjectsHelper,
+                                                              singleDownloadFunction);
     }
 
     @Test
@@ -154,6 +160,72 @@ public class DownloadDirectoryHelperTest {
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
         assertThat(argumentCaptor.getAllValues()).element(0).satisfies(d -> assertThat(d.getObjectRequest().key()).isEqualTo(
             "key2"));
+    }
+
+    @Test
+    void downloadDirectory_withDownloadRequestTransformer_shouldTransform() throws Exception {
+        stubSuccessfulListObjects(listObjectsHelper, "key1", "key2");
+
+        FileDownload fileDownload = newSuccessfulDownload();
+        FileDownload fileDownload2 = newSuccessfulDownload();
+
+        when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
+        Path newDestination = Paths.get("/new/path");
+        GetObjectRequest newGetObjectRequest = GetObjectRequest.builder().build();
+        TransferRequestOverrideConfiguration newOverrideConfiguration = TransferRequestOverrideConfiguration.builder()
+                                                                                                         .addListener(LoggingTransferListener.create())
+                                                                                                         .build();
+        DirectoryDownload DownloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destinationDirectory(directory)
+                                                                              .bucket("bucket")
+                                                                              .downloadFileRequestTransformer(d -> d.destination(newDestination)
+                                                                                                                    .getObjectRequest(newGetObjectRequest)
+                                                                                                                    .overrideConfiguration(newOverrideConfiguration))
+                                                                              .build());
+
+        CompletedDirectoryDownload completedDirectoryDownload = DownloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+
+        ArgumentCaptor<DownloadFileRequest> argumentCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
+        verify(singleDownloadFunction, times(2)).apply(argumentCaptor.capture());
+
+        assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
+        assertThat(argumentCaptor.getAllValues()).allSatisfy(d -> {
+            assertThat(d.getObjectRequest()).isEqualTo(newGetObjectRequest);
+            assertThat(d.overrideConfiguration()).hasValue(newOverrideConfiguration);
+            assertThat(d.destination()).isEqualTo(newDestination);
+        });
+    }
+
+    @Test
+    void downloadDirectory_withListObjectsRequestTransformer_shouldTransform() throws Exception {
+        stubSuccessfulListObjects(listObjectsHelper, "key1", "key2");
+
+        FileDownload fileDownload = newSuccessfulDownload();
+        FileDownload fileDownload2 = newSuccessfulDownload();
+
+        EncodingType newEncodingType = EncodingType.URL;
+        int newMaxKeys = 10;
+
+        when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
+        DirectoryDownload DownloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destinationDirectory(directory)
+                                                                              .bucket("bucket")
+                                                                              .listObjectsV2RequestTransformer(l -> l.encodingType(newEncodingType)
+                                                                                  .maxKeys(newMaxKeys))
+                                                                              .build());
+
+        CompletedDirectoryDownload completedDirectoryDownload = DownloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+
+        ArgumentCaptor<ListObjectsV2Request> argumentCaptor = ArgumentCaptor.forClass(ListObjectsV2Request.class);
+        verify(listObjectsHelper, times(1)).listS3ObjectsRecursively(argumentCaptor.capture());
+
+        assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
+        assertThat(argumentCaptor.getValue()).satisfies(l -> {
+            assertThat(l.encodingType()).isEqualTo(newEncodingType);
+            assertThat(l.maxKeys()).isEqualTo(newMaxKeys);
+        });
     }
 
     private FileDownload newSuccessfulDownload() {
