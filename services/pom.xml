@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.17.177</version>
+        <version>2.17.178</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -323,6 +323,7 @@
         <module>billingconductor</module>
         <module>gamesparks</module>
         <module>pinpointsmsvoicev2</module>
+        <module>ivschat</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
