@@ -200,10 +200,10 @@ class FileAsyncResponseTransformerTest {
                                         .fileWriteOption(FileWriteOption.CREATE_NEW)
                                         .failureBehavior(DELETE).build(),
             FileTransformerConfiguration.builder()
-                                        .fileWriteOption(FileWriteOption.CREATE_OR_APPEND_EXISTING)
+                                        .fileWriteOption(FileWriteOption.CREATE_OR_APPEND_TO_EXISTING)
                                         .failureBehavior(DELETE).build(),
             FileTransformerConfiguration.builder()
-                                        .fileWriteOption(FileWriteOption.CREATE_OR_APPEND_EXISTING)
+                                        .fileWriteOption(FileWriteOption.CREATE_OR_APPEND_TO_EXISTING)
                                         .failureBehavior(LEAVE).build(),
             FileTransformerConfiguration.builder()
                                         .fileWriteOption(FileWriteOption.CREATE_OR_REPLACE_EXISTING)

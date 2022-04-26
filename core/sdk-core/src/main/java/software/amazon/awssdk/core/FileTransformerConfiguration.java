@@ -88,13 +88,13 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
     }
 
     /**
-     * Returns the default {@link FileTransformerConfiguration} for {@link FileWriteOption#CREATE_OR_APPEND_EXISTING}
+     * Returns the default {@link FileTransformerConfiguration} for {@link FileWriteOption#CREATE_OR_APPEND_TO_EXISTING}
      * <p>
      * Create a new file if it doesn't exist, otherwise append to the existing file.
      * In the event of an error, the SDK will NOT attempt to delete the file, leaving it as-is
      */
     public static FileTransformerConfiguration defaultCreateOrAppend() {
-        return builder().fileWriteOption(FileWriteOption.CREATE_OR_APPEND_EXISTING)
+        return builder().fileWriteOption(FileWriteOption.CREATE_OR_APPEND_TO_EXISTING)
                         .failureBehavior(FailureBehavior.LEAVE)
                         .build();
     }
@@ -146,7 +146,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         /**
          * Create a new file if it doesn't exist, otherwise append to the existing file.
          */
-        CREATE_OR_APPEND_EXISTING
+        CREATE_OR_APPEND_TO_EXISTING
     }
 
     /**
@@ -154,12 +154,12 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
      */
     public enum FailureBehavior {
         /**
-         * In the event of an error, the SDK will attempt to delete the file (whatever has been written to it so far).
+         * In the event of an error, the SDK will attempt to delete the file and whatever has been written to it so far.
          */
         DELETE,
 
         /**
-         * In the event of an error, the SDK will NOT attempt to delete the file and leave the file as-is (whatever has been
+         * In the event of an error, the SDK will NOT attempt to delete the file and leave the file as-is (with whatever has been
          * written to it so far)
          */
         LEAVE

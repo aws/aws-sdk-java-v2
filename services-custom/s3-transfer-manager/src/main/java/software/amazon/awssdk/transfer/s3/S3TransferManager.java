@@ -369,8 +369,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *
      * <p>
      * The SDK will create the destination directory if it does not already exist. If a specific file
-     * already exists, the corresponding transfer will fail, and it will be added to the
-     * {@link CompletedDirectoryDownload#failedTransfers()}.
+     * already exists, the existing content will be replaced with the corresponding S3 object content.
      *
      * <p>
      * The current user must have write access to all directories and files

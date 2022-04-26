@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.internal.async;
 
-import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_OR_APPEND_EXISTING;
+import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_OR_APPEND_TO_EXISTING;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.IOException;
@@ -65,7 +65,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     }
 
     private long determineFilePositionToWrite(Path path) {
-        if (configuration.fileWriteOption() == CREATE_OR_APPEND_EXISTING) {
+        if (configuration.fileWriteOption() == CREATE_OR_APPEND_TO_EXISTING) {
             try {
                 return Files.size(path);
             } catch (NoSuchFileException e) {
@@ -79,7 +79,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
     private AsynchronousFileChannel createChannel(Path path) throws IOException {
         switch (configuration.fileWriteOption()) {
-            case CREATE_OR_APPEND_EXISTING:
+            case CREATE_OR_APPEND_TO_EXISTING:
                 return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
             case CREATE_OR_REPLACE_EXISTING:
                 return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE,
