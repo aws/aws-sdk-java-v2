@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime SDK Media Pipelines",
+    "contributor": "",
+    "description": "For Amazon Chime SDK meetings, the Amazon Chime Media Pipelines SDK allows builders to capture audio, video, and content share streams. You can also capture meeting events, live transcripts, and data messages. The pipelines save the artifacts to an Amazon S3 bucket that you designate."
+}
