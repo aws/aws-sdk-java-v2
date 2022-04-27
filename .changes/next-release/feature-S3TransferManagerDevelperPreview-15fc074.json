@@ -1,6 +1,0 @@
-{
-    "category": "S3 Transfer Manager (Develper Preview)", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Implement pause and resume for `S3TransferManager#downloadFile`"
-}
