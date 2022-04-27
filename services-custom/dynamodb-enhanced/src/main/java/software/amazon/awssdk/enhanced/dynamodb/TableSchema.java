@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * @param <T> The type of model object that is being mapped to records in the DynamoDb table.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface TableSchema<T> {
     /**
      * Returns a builder for the {@link StaticTableSchema} implementation of this interface which allows all attributes,

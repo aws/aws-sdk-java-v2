@@ -20,7 +20,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 
 /**
@@ -30,6 +32,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
  * A request contains references to keys and tables organized into one {@link ReadBatch} object per queried table.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class BatchGetItemEnhancedRequest {
 
     private final List<ReadBatch> readBatches;
@@ -85,6 +88,7 @@ public final class BatchGetItemEnhancedRequest {
     /**
      * A builder that is used to create a request with the desired parameters.
      */
+    @NotThreadSafe
     public static final class Builder {
         private List<ReadBatch> readBatches;
 

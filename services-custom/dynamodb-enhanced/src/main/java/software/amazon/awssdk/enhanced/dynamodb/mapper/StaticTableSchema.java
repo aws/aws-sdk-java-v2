@@ -23,7 +23,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
@@ -61,6 +63,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  * }</pre>
  */
 @SdkPublicApi
+@ThreadSafe
 public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmutableTableSchema<T, T>> {
     private StaticTableSchema(Builder<T> builder) {
         super(builder.delegateBuilder.build());
@@ -79,6 +82,7 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
      * Builder for a {@link StaticTableSchema}
      * @param <T> The data item type that the {@link StaticTableSchema} this builder will build is to map to.
      */
+    @NotThreadSafe
     public static final class Builder<T> {
         private final StaticImmutableTableSchema.Builder<T, T> delegateBuilder;
         private final Class<T> itemClass;

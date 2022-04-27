@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
@@ -181,6 +182,7 @@ public class MapAttributeConverter<T extends Map<?, ?>> implements AttributeConv
         }
     }
 
+    @NotThreadSafe
     public static final class Builder<T extends Map<K, V>, K, V> {
         private final EnhancedType<T> mapType;
 

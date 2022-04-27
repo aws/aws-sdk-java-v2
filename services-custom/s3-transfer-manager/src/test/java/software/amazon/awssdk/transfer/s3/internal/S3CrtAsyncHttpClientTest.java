@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.transfer.s3.internal.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -44,13 +45,13 @@ import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 
 @RunWith(MockitoJUnitRunner.class)
 public class S3CrtAsyncHttpClientTest {
+    private static final URI DEFAULT_ENDPOINT = URI.create("https://127.0.0.1:443");
+
     private S3CrtAsyncHttpClient asyncHttpClient;
+    private S3NativeClientConfiguration s3NativeClientConfiguration;
 
     @Mock
     private S3Client s3Client;
-
-    @Mock
-    private S3NativeClientConfiguration mockConfiguration;
 
     @Mock
     private SdkAsyncHttpResponseHandler responseHandler;
@@ -60,7 +61,13 @@ public class S3CrtAsyncHttpClientTest {
 
     @Before
     public void methodSetup() {
-        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, mockConfiguration);
+
+        s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
+                                                                 .endpointOverride(DEFAULT_ENDPOINT)
+                                                                 .credentialsProvider(null)
+                                                                 .build();
+
+        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration);
     }
 
     @Test
@@ -77,6 +84,7 @@ public class S3CrtAsyncHttpClientTest {
         S3MetaRequestOptions actual = s3MetaRequestOptionsArgumentCaptor.getValue();
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.DEFAULT);
         assertThat(actual.getCredentialsProvider()).isNull();
+        assertThat(actual.getEndpoint().equals(DEFAULT_ENDPOINT));
 
         HttpRequest httpRequest = actual.getHttpRequest();
         assertThat(httpRequest.getEncodedPath()).isEqualTo("/key");
@@ -87,7 +95,7 @@ public class S3CrtAsyncHttpClientTest {
                                                      , Map::putAll);
 
         assertThat(headers).hasSize(4)
-                           .containsEntry("Host", "127.0.0.1")
+                           .containsEntry("Host", DEFAULT_ENDPOINT.getHost())
                            .containsEntry("custom-header", "foobar")
                            .containsEntry("amz-sdk-invocation-id", "1234")
                            .containsEntry("Content-Length", "100");
@@ -142,7 +150,7 @@ public class S3CrtAsyncHttpClientTest {
     public void closeHttpClient_shouldCloseUnderlyingResources() {
         asyncHttpClient.close();
         verify(s3Client).close();
-        verify(mockConfiguration).close();
+        s3NativeClientConfiguration.close();
     }
 
     private AsyncExecuteRequest.Builder getExecuteRequestBuilder() {
@@ -150,10 +158,10 @@ public class S3CrtAsyncHttpClientTest {
                                   .responseHandler(responseHandler)
                                   .requestContentPublisher(contentPublisher)
                                   .request(SdkHttpRequest.builder()
-                                                         .protocol("https")
+                                                         .protocol(DEFAULT_ENDPOINT.getScheme())
                                                          .method(SdkHttpMethod.GET)
-                                                         .host("127.0.0.1")
-                                                         .port(443)
+                                                         .host(DEFAULT_ENDPOINT.getHost())
+                                                         .port(DEFAULT_ENDPOINT.getPort())
                                                          .encodedPath("/key")
                                                          .putHeader(CONTENT_LENGTH, "100")
                                                          .putHeader("amz-sdk-invocation-id",

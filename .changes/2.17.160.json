@@ -1,0 +1,54 @@
+{
+    "version": "2.17.160",
+    "date": "2022-03-30",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix issue where the `contentLength` specified on the `RequestBody` is not honored. Fixes [#2908](https://github.com/aws/aws-sdk-java-v2/issues/2908)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Remove unnecessary dependencies on JDK modules not in java.base. This didn't remove all of the dependencies on such modules, just the unnecessary ones."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release simplifies the auto-recovery configuration process enabling customers to set the recovery behavior to disabled or default"
+        },
+        {
+            "type": "feature",
+            "category": "Firewall Management Service",
+            "contributor": "",
+            "description": "AWS Firewall Manager now supports the configuration of third-party policies that can use either the centralized or distributed deployment models."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "Doc only update for IoT that fixes customer-reported issues."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Extend union type improvements to additional services: dynamodb, dynamodbstreams, iot, sagemaker, clouddirectory, iotanalytics, kendra, marketplaceentitlement, quicksight, s3, xray."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "This release adds support for modifying throughput capacity for FSx for ONTAP file systems."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Data Plane",
+            "contributor": "",
+            "description": "Update the default AWS IoT Core Data Plane endpoint from VeriSign signed to ATS signed. If you have firewalls with strict egress rules, configure the rules to grant you access to data-ats.iot.[region].amazonaws.com or data-ats.iot.[region].amazonaws.com.cn."
+        }
+    ]
+}

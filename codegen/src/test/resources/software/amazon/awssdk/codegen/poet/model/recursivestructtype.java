@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -275,8 +274,8 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         /**
          * Sets the value of the RecursiveStruct property for this object.
          *
-         * This is a convenience that creates an instance of the {@link RecursiveStructType.Builder} avoiding the need
-         * to create one manually via {@link RecursiveStructType#builder()}.
+         * This is a convenience method that creates an instance of the {@link RecursiveStructType.Builder} avoiding the
+         * need to create one manually via {@link RecursiveStructType#builder()}.
          *
          * When the {@link Consumer} completes, {@link RecursiveStructType.Builder#build()} is called immediately and
          * its result is passed to {@link #recursiveStruct(RecursiveStructType)}.
@@ -311,8 +310,8 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         /**
          * Sets the value of the RecursiveList property for this object.
          *
-         * This is a convenience that creates an instance of the {@link List<RecursiveStructType>.Builder} avoiding the
-         * need to create one manually via {@link List<RecursiveStructType>#builder()}.
+         * This is a convenience method that creates an instance of the {@link List<RecursiveStructType>.Builder}
+         * avoiding the need to create one manually via {@link List<RecursiveStructType>#builder()}.
          *
          * When the {@link Consumer} completes, {@link List<RecursiveStructType>.Builder#build()} is called immediately
          * and its result is passed to {@link #recursiveList(List<RecursiveStructType>)}.
@@ -362,7 +361,6 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder noRecurse(String noRecurse) {
             this.noRecurse = noRecurse;
             return this;
@@ -377,7 +375,6 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder recursiveStruct(RecursiveStructType recursiveStruct) {
             this.recursiveStruct = recursiveStruct;
             return this;
@@ -396,14 +393,12 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder recursiveList(Collection<RecursiveStructType> recursiveList) {
             this.recursiveList = RecursiveListTypeCopier.copy(recursiveList);
             return this;
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder recursiveList(RecursiveStructType... recursiveList) {
             recursiveList(Arrays.asList(recursiveList));
@@ -411,7 +406,6 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         @SafeVarargs
         public final Builder recursiveList(Consumer<Builder>... recursiveList) {
             recursiveList(Stream.of(recursiveList).map(c -> RecursiveStructType.builder().applyMutation(c).build())
@@ -432,7 +426,6 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
 
         @Override
-        @Transient
         public final Builder recursiveMap(Map<String, RecursiveStructType> recursiveMap) {
             this.recursiveMap = RecursiveMapTypeCopier.copy(recursiveMap);
             return this;

@@ -15,10 +15,15 @@
 
 package software.amazon.awssdk.utils.cache;
 
-import java.util.concurrent.ExecutorService;
+import static java.util.concurrent.TimeUnit.MINUTES;
+
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.utils.ExecutorUtils;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * A {@link CachedSupplier.PrefetchStrategy} that will run a single thread in the background to update the value. A call to
@@ -28,6 +33,8 @@ import software.amazon.awssdk.utils.ExecutorUtils;
  */
 @SdkProtectedApi
 public class NonBlocking implements CachedSupplier.PrefetchStrategy {
+    private static final Logger log = Logger.loggerFor(NonBlocking.class);
+
     /**
      * Whether we are currently refreshing the supplier. This is used to make sure only one caller is blocking at a time.
      */
@@ -36,14 +43,37 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
     /**
      * Single threaded executor to asynchronous refresh the value.
      */
-    private final ExecutorService executor;
+    private final ScheduledExecutorService executor;
 
     /**
      * Create a non-blocking prefetch strategy that uses the provided value for the name of the background thread that will be
      * performing the update.
      */
     public NonBlocking(String asyncThreadName) {
-        this.executor = ExecutorUtils.newSingleDaemonThreadExecutor(1, asyncThreadName);
+        this.executor = newExecutor(asyncThreadName);
+    }
+
+    private static ScheduledExecutorService newExecutor(String asyncThreadName) {
+        Validate.paramNotBlank(asyncThreadName, "asyncThreadName");
+        return new ScheduledThreadPoolExecutor(1, new ThreadFactoryBuilder().daemonThreads(true)
+                                                                            .threadNamePrefix(asyncThreadName)
+                                                                            .build());
+    }
+
+    @Override
+    public void initializeCachedSupplier(CachedSupplier<?> cachedSupplier) {
+        executor.execute(cachedSupplier::get);
+        scheduleRefresh(cachedSupplier::get);
+    }
+
+    private void scheduleRefresh(Runnable valueUpdater) {
+        executor.schedule(() -> {
+            try {
+                valueUpdater.run();
+            } finally {
+                scheduleRefresh(valueUpdater);
+            }
+        }, 1, MINUTES);
     }
 
     @Override
@@ -54,6 +84,8 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
                 executor.submit(() -> {
                     try {
                         valueUpdater.run();
+                    } catch (RuntimeException e) {
+                        log.warn(() -> "Exception occurred in AWS SDK background task.", e);
                     } finally {
                         currentlyRefreshing.set(false);
                     }

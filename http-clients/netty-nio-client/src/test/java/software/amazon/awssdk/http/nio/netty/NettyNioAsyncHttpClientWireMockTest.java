@@ -90,8 +90,8 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
-import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
+import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -126,7 +126,14 @@ public class NettyNioAsyncHttpClientWireMockTest {
     }
 
     @Test
-    public void noTlsTimeout_shouldResolveToConnectTimeout() {
+    public void defaultTlsHandshakeTimeout() {
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.create()) {
+            assertThat(client.configuration().tlsHandshakeTimeout().toMillis()).isEqualTo(5000);
+        }
+    }
+
+    @Test
+    public void noTlsTimeout_hasConnectTimeout_shouldResolveToConnectTimeout() {
         Duration connectTimeout = Duration.ofSeconds(1);
         try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
                                                                                                .connectionTimeout(connectTimeout)
@@ -135,17 +142,12 @@ public class NettyNioAsyncHttpClientWireMockTest {
         }
         Duration timeoutOverride = Duration.ofSeconds(2);
         try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
-                                                                                               .connectionTimeout(connectTimeout)
                                                                                                .connectionTimeout(timeoutOverride)
                                                                                                .build()) {
             assertThat(client.configuration().tlsHandshakeTimeout()).isEqualTo(timeoutOverride);
         }
-
-        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.create()) {
-            assertThat(client.configuration().tlsHandshakeTimeout().toMillis()).
-                isEqualTo(client.configuration().connectTimeoutMillis());
-        }
     }
+
 
     @Test
     public void tlsTimeoutConfigured_shouldHonor() {

@@ -66,10 +66,12 @@ public class HostPrefixTest {
     @Test
     public void invalidHostPrefix_shouldThrowException() {
         assertThatThrownBy(() -> client.operationWithHostPrefix(b -> b.stringMember("123#")))
-            .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("must only contain alphanumeric characters and "
-                                                                               + "dashes");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("The provided operationWithHostPrefixRequest is not valid: the 'StringMember' component must "
+                                  + "match the pattern \"[A-Za-z0-9\\-]+\".");
 
-        assertThatThrownBy(() -> asyncClient.operationWithHostPrefix(b -> b.stringMember("123#")).join()).hasCauseInstanceOf(IllegalArgumentException.class).hasMessageContaining("must only contain alphanumeric characters and dashes");
+        assertThatThrownBy(() -> asyncClient.operationWithHostPrefix(b -> b.stringMember("123#")).join())
+            .hasCauseInstanceOf(IllegalArgumentException.class).hasMessageContaining("The provided operationWithHostPrefixRequest is not valid: the 'StringMember' component must match the pattern \"[A-Za-z0-9\\-]+\".");
     }
 
     @Test

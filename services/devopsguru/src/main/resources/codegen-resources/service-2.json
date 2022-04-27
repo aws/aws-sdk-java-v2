@@ -30,7 +30,26 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p> Adds a notification channel to DevOps Guru. A notification channel is used to notify you about important DevOps Guru events, such as when an insight is generated. </p> <p>If you use an Amazon SNS topic in another account, you must attach a policy to it that grants DevOps Guru permission to it notifications. DevOps Guru adds the required policy on your behalf to send notifications using Amazon SNS in your account. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-required-permissions.html\">Permissions for cross account Amazon SNS topics</a>.</p> <p>If you use an Amazon SNS topic that is encrypted by an Amazon Web Services Key Management Service customer-managed key (CMK), then you must add permissions to the CMK. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-kms-permissions.html\">Permissions for Amazon Web Services KMS–encrypted Amazon SNS topics</a>.</p>"
+      "documentation":"<p> Adds a notification channel to DevOps Guru. A notification channel is used to notify you about important DevOps Guru events, such as when an insight is generated. </p> <p>If you use an Amazon SNS topic in another account, you must attach a policy to it that grants DevOps Guru permission to it notifications. DevOps Guru adds the required policy on your behalf to send notifications using Amazon SNS in your account. DevOps Guru only supports standard SNS topics. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-required-permissions.html\">Permissions for cross account Amazon SNS topics</a>.</p> <p>If you use an Amazon SNS topic in another account, you must attach a policy to it that grants DevOps Guru permission to it notifications. DevOps Guru adds the required policy on your behalf to send notifications using Amazon SNS in your account. For more information, see Permissions for cross account Amazon SNS topics.</p> <p>If you use an Amazon SNS topic that is encrypted by an Amazon Web Services Key Management Service customer-managed key (CMK), then you must add permissions to the CMK. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-kms-permissions.html\">Permissions for Amazon Web Services KMS–encrypted Amazon SNS topics</a>.</p>"
+    },
+    "DeleteInsight":{
+      "name":"DeleteInsight",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/insights/{Id}",
+        "responseCode":200
+      },
+      "input":{"shape":"DeleteInsightRequest"},
+      "output":{"shape":"DeleteInsightResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Deletes the insight along with the associated anomalies, events and recommendations.</p>"
     },
     "DescribeAccountHealth":{
       "name":"DescribeAccountHealth",
@@ -83,6 +102,23 @@
         {"shape":"ValidationException"}
       ],
       "documentation":"<p> Returns details about an anomaly that you specify using its ID. </p>"
+    },
+    "DescribeEventSourcesConfig":{
+      "name":"DescribeEventSourcesConfig",
+      "http":{
+        "method":"POST",
+        "requestUri":"/event-sources",
+        "responseCode":200
+      },
+      "input":{"shape":"DescribeEventSourcesConfigRequest"},
+      "output":{"shape":"DescribeEventSourcesConfigResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Returns the integration status of services that are integrated with DevOps Guru as Consumer via EventBridge. The one service that can be integrated with DevOps Guru is Amazon CodeGuru Profiler, which can produce proactive recommendations which can be stored and viewed in DevOps Guru.</p>"
     },
     "DescribeFeedback":{
       "name":"DescribeFeedback",
@@ -437,6 +473,23 @@
       ],
       "documentation":"<p>Starts the creation of an estimate of the monthly cost to analyze your Amazon Web Services resources.</p>"
     },
+    "UpdateEventSourcesConfig":{
+      "name":"UpdateEventSourcesConfig",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/event-sources",
+        "responseCode":200
+      },
+      "input":{"shape":"UpdateEventSourcesConfigRequest"},
+      "output":{"shape":"UpdateEventSourcesConfigResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Enables or disables integration with a service that can be integrated with DevOps Guru. The one service that can be integrated with DevOps Guru is Amazon CodeGuru Profiler, which can produce proactive recommendations which can be stored and viewed in DevOps Guru.</p>"
+    },
     "UpdateResourceCollection":{
       "name":"UpdateResourceCollection",
       "http":{
@@ -543,6 +596,16 @@
         }
       }
     },
+    "AmazonCodeGuruProfilerIntegration":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"EventSourceOptInStatus",
+          "documentation":"<p>The status of the CodeGuru Profiler integration. Specifies if DevOps Guru is enabled to consume recommendations that are generated from Amazon CodeGuru Profiler.</p>"
+        }
+      },
+      "documentation":"<p>Information about your account's integration with Amazon CodeGuru Profiler. This returns whether DevOps Guru is configured to consume recommendations generated from Amazon CodeGuru Profiler.</p>"
+    },
     "AnomalyDescription":{"type":"string"},
     "AnomalyId":{
       "type":"string",
@@ -596,6 +659,7 @@
         "HIGH"
       ]
     },
+    "AnomalySource":{"type":"string"},
     "AnomalySourceDetails":{
       "type":"structure",
       "members":{
@@ -609,6 +673,24 @@
         }
       },
       "documentation":"<p> Details about the source of the anomalous operational data that triggered the anomaly.</p>"
+    },
+    "AnomalySourceMetadata":{
+      "type":"structure",
+      "members":{
+        "Source":{
+          "shape":"AnomalySource",
+          "documentation":"<p>The source of the anomaly.</p>"
+        },
+        "SourceResourceName":{
+          "shape":"ResourceName",
+          "documentation":"<p>The name of the anomaly's resource.</p>"
+        },
+        "SourceResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>The anomaly's resource type.</p>"
+        }
+      },
+      "documentation":"<p>Metadata about the detection source that generates proactive anomalies. The anomaly is detected using analysis of the metric data&#x2028; over a period of time</p>"
     },
     "AnomalyStatus":{
       "type":"string",
@@ -888,6 +970,23 @@
       },
       "documentation":"<p>The time range of a cost estimation.</p>"
     },
+    "DeleteInsightRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"InsightId",
+          "documentation":"<p>The ID of the insight.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        }
+      }
+    },
+    "DeleteInsightResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "DescribeAccountHealthRequest":{
       "type":"structure",
       "members":{
@@ -984,6 +1083,20 @@
         "ReactiveAnomaly":{
           "shape":"ReactiveAnomaly",
           "documentation":"<p> A <code>ReactiveAnomaly</code> object that represents the requested anomaly. </p>"
+        }
+      }
+    },
+    "DescribeEventSourcesConfigRequest":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "DescribeEventSourcesConfigResponse":{
+      "type":"structure",
+      "members":{
+        "EventSources":{
+          "shape":"EventSourcesConfig",
+          "documentation":"<p>Lists the event sources in the configuration.</p>"
         }
       }
     },
@@ -1335,6 +1448,23 @@
       "min":10,
       "pattern":"^[a-z]+[a-z0-9]*\\.amazonaws\\.com|aws\\.events$"
     },
+    "EventSourceOptInStatus":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "EventSourcesConfig":{
+      "type":"structure",
+      "members":{
+        "AmazonCodeGuruProfiler":{
+          "shape":"AmazonCodeGuruProfilerIntegration",
+          "documentation":"<p>Information about whether DevOps Guru is configured to consume recommendations which are generated from AWS CodeGuru Profiler.</p>"
+        }
+      },
+      "documentation":"<p>Information about the integration of DevOps Guru as consumer with another AWS service, such as AWS CodeGuru Profiler via EventBridge.</p>"
+    },
     "EventTimeRange":{
       "type":"structure",
       "required":[
@@ -1428,6 +1558,7 @@
         }
       }
     },
+    "InsightDescription":{"type":"string"},
     "InsightFeedback":{
       "type":"structure",
       "members":{
@@ -1910,7 +2041,7 @@
           "documentation":"<p> A <code>NotificationChannelConfig</code> object that contains information about configured notification channels. </p>"
         }
       },
-      "documentation":"<p> Information about a notification channel. A notification channel is used to notify you when DevOps Guru creates an insight. The one supported notification channel is Amazon Simple Notification Service (Amazon SNS). </p> <p>If you use an Amazon SNS topic in another account, you must attach a policy to it that grants DevOps Guru permission to it notifications. DevOps Guru adds the required policy on your behalf to send notifications using Amazon SNS in your account. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-required-permissions.html\">Permissions for cross account Amazon SNS topics</a>.</p> <p>If you use an Amazon SNS topic that is encrypted by an Amazon Web Services Key Management Service customer-managed key (CMK), then you must add permissions to the CMK. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-kms-permissions.html\">Permissions for Amazon Web Services KMS–encrypted Amazon SNS topics</a>.</p>"
+      "documentation":"<p> Information about a notification channel. A notification channel is used to notify you when DevOps Guru creates an insight. The one supported notification channel is Amazon Simple Notification Service (Amazon SNS). </p> <p>If you use an Amazon SNS topic in another account, you must attach a policy to it that grants DevOps Guru permission to it notifications. DevOps Guru adds the required policy on your behalf to send notifications using Amazon SNS in your account. DevOps Guru only supports standard SNS topics. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-required-permissions.html\">Permissions for cross account Amazon SNS topics</a>.</p> <p>If you use an Amazon SNS topic in another account, you must attach a policy to it that grants DevOps Guru permission to it notifications. DevOps Guru adds the required policy on your behalf to send notifications using Amazon SNS in your account. For more information, see Permissions for cross account Amazon SNS topics.</p> <p>If you use an Amazon SNS topic that is encrypted by an Amazon Web Services Key Management Service customer-managed key (CMK), then you must add permissions to the CMK. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-kms-permissions.html\">Permissions for Amazon Web Services KMS–encrypted Amazon SNS topics</a>.</p>"
     },
     "NotificationChannelConfig":{
       "type":"structure",
@@ -1918,7 +2049,7 @@
       "members":{
         "Sns":{
           "shape":"SnsChannelConfig",
-          "documentation":"<p> Information about a notification channel configured in DevOps Guru to send notifications when insights are created. </p> <p>If you use an Amazon SNS topic in another account, you must attach a policy to it that grants DevOps Guru permission to it notifications. DevOps Guru adds the required policy on your behalf to send notifications using Amazon SNS in your account. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-required-permissions.html\">Permissions for cross account Amazon SNS topics</a>.</p> <p>If you use an Amazon SNS topic that is encrypted by an Amazon Web Services Key Management Service customer-managed key (CMK), then you must add permissions to the CMK. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-kms-permissions.html\">Permissions for Amazon Web Services KMS–encrypted Amazon SNS topics</a>.</p>"
+          "documentation":"<p> Information about a notification channel configured in DevOps Guru to send notifications when insights are created. </p> <p>If you use an Amazon SNS topic in another account, you must attach a policy to it that grants DevOps Guru permission to it notifications. DevOps Guru adds the required policy on your behalf to send notifications using Amazon SNS in your account. DevOps Guru only supports standard SNS topics. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-required-permissions.html\">Permissions for cross account Amazon SNS topics</a>.</p> <p>If you use an Amazon SNS topic in another account, you must attach a policy to it that grants DevOps Guru permission to it notifications. DevOps Guru adds the required policy on your behalf to send notifications using Amazon SNS in your account. For more information, see Permissions for cross account Amazon SNS topics.</p> <p>If you use an Amazon SNS topic that is encrypted by an Amazon Web Services Key Management Service customer-managed key (CMK), then you must add permissions to the CMK. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-kms-permissions.html\">Permissions for Amazon Web Services KMS–encrypted Amazon SNS topics</a>.</p>"
         }
       },
       "documentation":"<p> Information about notification channels you have configured with DevOps Guru. The one supported notification channel is Amazon Simple Notification Service (Amazon SNS).</p>"
@@ -2211,6 +2342,14 @@
         "Limit":{
           "shape":"AnomalyLimit",
           "documentation":"<p> A threshold that was exceeded by behavior in analyzed resources. Exceeding this threshold is related to the anomalous behavior that generated this anomaly. </p>"
+        },
+        "SourceMetadata":{
+          "shape":"AnomalySourceMetadata",
+          "documentation":"<p>The metadata for the anomaly.</p>"
+        },
+        "AnomalyResources":{
+          "shape":"AnomalyResources",
+          "documentation":"<p>Information about a resource in which DevOps Guru detected anomalous behavior.</p>"
         }
       },
       "documentation":"<p>Information about an anomaly. This object is returned by <code>ListAnomalies</code>.</p>"
@@ -2252,6 +2391,14 @@
         "Limit":{
           "shape":"AnomalyLimit",
           "documentation":"<p> A threshold that was exceeded by behavior in analyzed resources. Exceeding this threshold is related to the anomalous behavior that generated this anomaly. </p>"
+        },
+        "SourceMetadata":{
+          "shape":"AnomalySourceMetadata",
+          "documentation":"<p>The metadata of the source which detects proactive anomalies.</p>"
+        },
+        "AnomalyResources":{
+          "shape":"AnomalyResources",
+          "documentation":"<p>Information about a resource in which DevOps Guru detected anomalous behavior.</p>"
         }
       },
       "documentation":"<p>Details about a proactive anomaly. This object is returned by <code>DescribeAnomaly.</code> </p>"
@@ -2281,6 +2428,10 @@
         "SsmOpsItemId":{
           "shape":"SsmOpsItemId",
           "documentation":"<p> The ID of the Amazon Web Services System Manager OpsItem created for this insight. You must enable the creation of OpstItems insights before they are created for each insight. </p>"
+        },
+        "Description":{
+          "shape":"InsightDescription",
+          "documentation":"<p>Describes the proactive insight.</p>"
         }
       },
       "documentation":"<p>Details about a proactive insight. This object is returned by <code>ListInsights</code>.</p>"
@@ -2506,6 +2657,10 @@
         "SsmOpsItemId":{
           "shape":"SsmOpsItemId",
           "documentation":"<p> The ID of the Amazon Web Services System Manager OpsItem created for this insight. You must enable the creation of OpstItems insights before they are created for each insight. </p>"
+        },
+        "Description":{
+          "shape":"InsightDescription",
+          "documentation":"<p>Describes the reactive insight.</p>"
         }
       },
       "documentation":"<p> Information about a reactive insight. This object is returned by <code>ListInsights</code>. </p>"
@@ -2609,10 +2764,15 @@
         "RelatedAnomalies":{
           "shape":"RecommendationRelatedAnomalies",
           "documentation":"<p> Anomalies that are related to the problem. Use these Anomalies to learn more about what's happening and to help address the issue. </p>"
+        },
+        "Category":{
+          "shape":"RecommendationCategory",
+          "documentation":"<p>The category type of the recommendation.</p>"
         }
       },
       "documentation":"<p> Recommendation information to help you remediate detected anomalous behavior that generated an insight. </p>"
     },
+    "RecommendationCategory":{"type":"string"},
     "RecommendationDescription":{"type":"string"},
     "RecommendationLink":{"type":"string"},
     "RecommendationName":{"type":"string"},
@@ -3107,7 +3267,7 @@
           "documentation":"<p> The Amazon Resource Name (ARN) of an Amazon Simple Notification Service topic. </p>"
         }
       },
-      "documentation":"<p> Contains the Amazon Resource Name (ARN) of an Amazon Simple Notification Service topic. </p> <p>If you use an Amazon SNS topic in another account, you must attach a policy to it that grants DevOps Guru permission to it notifications. DevOps Guru adds the required policy on your behalf to send notifications using Amazon SNS in your account. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-required-permissions.html\">Permissions for cross account Amazon SNS topics</a>.</p> <p>If you use an Amazon SNS topic that is encrypted by an Amazon Web Services Key Management Service customer-managed key (CMK), then you must add permissions to the CMK. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-kms-permissions.html\">Permissions for Amazon Web Services KMS–encrypted Amazon SNS topics</a>.</p>"
+      "documentation":"<p> Contains the Amazon Resource Name (ARN) of an Amazon Simple Notification Service topic. </p> <p>If you use an Amazon SNS topic in another account, you must attach a policy to it that grants DevOps Guru permission to it notifications. DevOps Guru adds the required policy on your behalf to send notifications using Amazon SNS in your account. DevOps Guru only supports standard SNS topics. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-required-permissions.html\">Permissions for cross account Amazon SNS topics</a>.</p> <p>If you use an Amazon SNS topic in another account, you must attach a policy to it that grants DevOps Guru permission to it notifications. DevOps Guru adds the required policy on your behalf to send notifications using Amazon SNS in your account. For more information, see Permissions for cross account Amazon SNS topics.</p> <p>If you use an Amazon SNS topic that is encrypted by an Amazon Web Services Key Management Service customer-managed key (CMK), then you must add permissions to the CMK. For more information, see <a href=\"https://docs.aws.amazon.com/devops-guru/latest/userguide/sns-kms-permissions.html\">Permissions for Amazon Web Services KMS–encrypted Amazon SNS topics</a>.</p>"
     },
     "SsmOpsItemId":{
       "type":"string",
@@ -3315,6 +3475,20 @@
         }
       },
       "documentation":"<p> Contains the names of Amazon Web Services CloudFormation stacks used to update a collection of stacks. You can specify up to 500 Amazon Web Services CloudFormation stacks.</p>"
+    },
+    "UpdateEventSourcesConfigRequest":{
+      "type":"structure",
+      "members":{
+        "EventSources":{
+          "shape":"EventSourcesConfig",
+          "documentation":"<p>Configuration information about the integration of DevOps Guru as the Consumer via EventBridge with another AWS Service.</p>"
+        }
+      }
+    },
+    "UpdateEventSourcesConfigResponse":{
+      "type":"structure",
+      "members":{
+      }
     },
     "UpdateResourceCollectionAction":{
       "type":"string",

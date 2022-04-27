@@ -16,7 +16,9 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.utils.Validate;
 
@@ -25,6 +27,7 @@ import software.amazon.awssdk.utils.Validate;
  * 'createTable' operation in the enhanced client.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class EnhancedLocalSecondaryIndex {
     private final String indexName;
     private final Projection projection;
@@ -89,6 +92,7 @@ public final class EnhancedLocalSecondaryIndex {
     /**
      * A builder for {@link EnhancedLocalSecondaryIndex}
      */
+    @NotThreadSafe
     public static final class Builder {
         private String indexName;
         private Projection projection;

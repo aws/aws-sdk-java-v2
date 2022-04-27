@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
 import java.util.Optional;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.IndexMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.KeyAttributeMetadata;
@@ -57,6 +58,7 @@ public class StaticIndexMetadata implements IndexMetadata {
         return Optional.ofNullable(this.sortKey);
     }
 
+    @NotThreadSafe
     public static class Builder {
         private String name;
         private KeyAttributeMetadata partitionKey;

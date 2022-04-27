@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -228,7 +227,6 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
         }
 
         @Override
-        @Transient
         public final Builder implicitPayloadMemberOne(SdkBytes implicitPayloadMemberOne) {
             this.implicitPayloadMemberOne = implicitPayloadMemberOne;
             return this;
@@ -243,7 +241,6 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
         }
 
         @Override
-        @Transient
         public final Builder implicitPayloadMemberTwo(String implicitPayloadMemberTwo) {
             this.implicitPayloadMemberTwo = implicitPayloadMemberTwo;
             return this;
@@ -258,7 +255,6 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
         }
 
         @Override
-        @Transient
         public final Builder eventHeaderMember(String eventHeaderMember) {
             this.eventHeaderMember = eventHeaderMember;
             return this;

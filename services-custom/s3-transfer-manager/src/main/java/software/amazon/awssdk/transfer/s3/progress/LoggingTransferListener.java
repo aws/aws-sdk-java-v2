@@ -31,7 +31,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkPublicApi
 @SdkPreviewApi
-public class LoggingTransferListener implements TransferListener {
+public final class LoggingTransferListener implements TransferListener {
     private static final Logger log = Logger.loggerFor(LoggingTransferListener.class);
     private static final int DEFAULT_MAX_TICKS = 20;
     private final ProgressBar progressBar;

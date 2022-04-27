@@ -1,0 +1,18 @@
+{
+    "version": "2.17.170",
+    "date": "2022-04-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "This release adds support for deploying FSx for ONTAP file systems in a single Availability Zone."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "Adds support for additional statistics in CloudWatch Metric Streams."
+        }
+    ]
+}

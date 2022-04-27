@@ -22,17 +22,33 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 @SdkProtectedApi
 public final class HostnameValidator {
 
-    private static final Pattern HOSTNAME_COMPLIANT_PATTERN = Pattern.compile("[A-Za-z0-9\\-]+");
+    private static final Pattern DEFAULT_HOSTNAME_COMPLIANT_PATTERN = Pattern.compile("[A-Za-z0-9\\-]+");
     private static final int HOSTNAME_MAX_LENGTH = 63;
 
     private HostnameValidator() {
     }
 
     public static void validateHostnameCompliant(String hostnameComponent, String paramName, String object) {
-        if (StringUtils.isEmpty(hostnameComponent)) {
+        validateHostnameCompliant(hostnameComponent, paramName, object, DEFAULT_HOSTNAME_COMPLIANT_PATTERN);
+    }
+
+    public static void validateHostnameCompliant(String hostnameComponent, String paramName, String object, Pattern pattern) {
+        if (hostnameComponent == null) {
             throw new IllegalArgumentException(
                 String.format("The provided %s is not valid: the required '%s' "
                               + "component is missing.", object, paramName));
+        }
+
+        if (StringUtils.isEmpty(hostnameComponent)) {
+            throw new IllegalArgumentException(
+                String.format("The provided %s is not valid: the '%s' "
+                              + "component is empty.", object, paramName));
+        }
+
+        if (StringUtils.isBlank(hostnameComponent)) {
+            throw new IllegalArgumentException(
+                String.format("The provided %s is not valid: the '%s' "
+                              + "component is blank.", object, paramName));
         }
 
         if (hostnameComponent.length() > HOSTNAME_MAX_LENGTH) {
@@ -42,11 +58,11 @@ public final class HostnameValidator {
                               HOSTNAME_MAX_LENGTH));
         }
 
-        Matcher m = HOSTNAME_COMPLIANT_PATTERN.matcher(hostnameComponent);
+        Matcher m = pattern.matcher(hostnameComponent);
         if (!m.matches()) {
             throw new IllegalArgumentException(
                 String.format("The provided %s is not valid: the '%s' "
-                              + "component must only contain alphanumeric characters and dashes.", object, paramName));
+                              + "component must match the pattern \"%s\".", object, paramName, pattern));
         }
     }
 }

@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.extensions;
 
 import java.util.Map;
 import java.util.Objects;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
@@ -111,6 +112,7 @@ public final class DefaultDynamoDbExtensionContext implements DynamoDbExtensionC
         return result;
     }
 
+    @NotThreadSafe
     public static final class Builder {
         private Map<String, AttributeValue> items;
         private OperationContext operationContext;

@@ -431,6 +431,18 @@
             <property name="packageToCheck" value="software.amazon.awssdk.http.nio.netty" />
             <property name="illegalPkgs" value="software.amazon.awssdk.utils.Logger,org.slf4j.Logger"/>
         </module>
+        
+        <module name="software.amazon.awssdk.buildtools.checkstyle.NonJavaBaseModuleCheck">
+            <!--
+            codegen: Allowed to use classes from java.compiler, because poet requires them.
+            aws-query-protocol: Allowed to use classes from java.xml for XML parsing.
+            protocol-tests-core: Allows to use classes from java.xml for XML assertions.
+            dynamodb-enhanced: Allowed to use classes from java.beans for bean processing.
+            release-scripts: Allowed to use classes from java.xml for XML writing.
+            sdk-benchmarks: Allowed to use classes from javax.servlet.http for benchmark servlets.
+            -->
+            <property name="legalPackages" value="software.amazon.awssdk.codegen:javax.lang.model, software.amazon.awssdk.codegen:javax.lang.model.element, software.amazon.awssdk.codegen:javax.lang.model.type, software.amazon.awssdk.protocols.query:javax.xml.stream, software.amazon.awssdk.protocols.query:javax.xml.stream.events, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.parsers, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform.dom, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform.stream, software.amazon.awssdk.enhanced.dynamodb.mapper:java.beans, software.amazon.awssdk.release:javax.xml, software.amazon.awssdk.release:javax.xml.parsers, software.amazon.awssdk.release:javax.xml.transform, software.amazon.awssdk.release:javax.xml.xpath, software.amazon.awssdk.release:javax.xml.transform.dom, software.amazon.awssdk.release:javax.xml.transform.stream, software.amazon.awssdk.benchmark:javax.servlet.http"/>
+        </module>
     </module>
 
         <!-- Enforce maximum line lengths. -->
