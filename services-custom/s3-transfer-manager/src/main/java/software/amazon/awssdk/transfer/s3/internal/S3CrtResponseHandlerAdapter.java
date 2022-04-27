@@ -23,6 +23,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
+import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 
@@ -76,6 +77,12 @@ public class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseHandler
         }
     }
 
+    public void cancelRequest() {
+        SdkCancellationException sdkClientException =
+            new SdkCancellationException("request is cancelled");
+        notifyError(sdkClientException);
+    }
+
     private void handleError(int crtCode, int responseStatus, byte[] errorPayload) {
         if (isErrorResponse(responseStatus) && errorPayload != null) {
             publisher.deliverData(ByteBuffer.wrap(errorPayload));
@@ -83,13 +90,19 @@ public class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseHandler
             resultFuture.complete(null);
         } else {
             SdkClientException sdkClientException =
-                SdkClientException.create(String.format("Failed to send the request. CRT error code: %s",
-                                                        crtCode));
+                SdkClientException.create("Failed to send the request: " +
+                                          CRT.awsErrorString(crtCode));
             resultFuture.completeExceptionally(sdkClientException);
 
             responseHandler.onError(sdkClientException);
             publisher.notifyError(sdkClientException);
         }
+    }
+
+    private void notifyError(Exception exception) {
+        resultFuture.completeExceptionally(exception);
+        responseHandler.onError(exception);
+        publisher.notifyError(exception);
     }
 
     private static boolean isErrorResponse(int responseStatus) {

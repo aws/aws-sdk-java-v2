@@ -18,14 +18,24 @@ package software.amazon.awssdk.transfer.s3;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * A download transfer of a single object from S3.
  */
 @SdkPublicApi
 @SdkPreviewApi
+@ThreadSafe
 public interface FileDownload extends ObjectTransfer {
-    
+
+    /**
+     * Pause the current download operation and returns the information that can
+     * be used to resume the download at a later time.
+     *
+     * @return {@link ResumableFileDownload} that can be used to resume the download
+     */
+    ResumableFileDownload pause();
+
     @Override
     CompletableFuture<CompletedFileDownload> completionFuture();
 }

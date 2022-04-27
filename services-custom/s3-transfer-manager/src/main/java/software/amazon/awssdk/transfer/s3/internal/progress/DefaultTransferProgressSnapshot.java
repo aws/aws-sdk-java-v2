@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.transfer.s3.internal.progress;
 
+import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -33,6 +35,7 @@ public final class DefaultTransferProgressSnapshot
 
     private final long bytesTransferred;
     private final Long transferSizeInBytes;
+    private final SdkResponse sdkResponse;
 
     private DefaultTransferProgressSnapshot(Builder builder) {
         if (builder.transferSizeInBytes != null) {
@@ -43,6 +46,7 @@ public final class DefaultTransferProgressSnapshot
         }
         this.bytesTransferred = Validate.isNotNegative(builder.bytesTransferred, "bytesTransferred");
         this.transferSizeInBytes = builder.transferSizeInBytes;
+        this.sdkResponse = builder.sdkResponse;
     }
 
     public static Builder builder() {
@@ -65,10 +69,43 @@ public final class DefaultTransferProgressSnapshot
     }
 
     @Override
+    public Optional<SdkResponse> sdkResponse() {
+        return Optional.ofNullable(sdkResponse);
+    }
+
+    @Override
     public Optional<Double> ratioTransferred() {
         return transferSizeInBytes()
             .map(Long::doubleValue)
             .map(size -> (size == 0) ? 1.0 : (bytesTransferred / size));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultTransferProgressSnapshot that = (DefaultTransferProgressSnapshot) o;
+
+        if (bytesTransferred != that.bytesTransferred) {
+            return false;
+        }
+        if (!Objects.equals(transferSizeInBytes, that.transferSizeInBytes)) {
+            return false;
+        }
+        return Objects.equals(sdkResponse, that.sdkResponse);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (bytesTransferred ^ (bytesTransferred >>> 32));
+        result = 31 * result + (transferSizeInBytes != null ? transferSizeInBytes.hashCode() : 0);
+        result = 31 * result + (sdkResponse != null ? sdkResponse.hashCode() : 0);
+        return result;
     }
 
     @Override
@@ -81,20 +118,24 @@ public final class DefaultTransferProgressSnapshot
         return ToString.builder("TransferProgressSnapshot")
                        .add("bytesTransferred", bytesTransferred)
                        .add("transferSizeInBytes", transferSizeInBytes)
+                       .add("sdkResponse", sdkResponse)
                        .build();
     }
+
+
 
     public static final class Builder implements CopyableBuilder<Builder, DefaultTransferProgressSnapshot> {
         private long bytesTransferred = 0L;
         private Long transferSizeInBytes;
+        private SdkResponse sdkResponse;
 
         private Builder() {
-            super();
         }
 
         private Builder(DefaultTransferProgressSnapshot snapshot) {
             this.bytesTransferred = snapshot.bytesTransferred;
             this.transferSizeInBytes = snapshot.transferSizeInBytes;
+            this.sdkResponse = snapshot.sdkResponse;
         }
 
         public Builder bytesTransferred(long bytesTransferred) {
@@ -113,6 +154,11 @@ public final class DefaultTransferProgressSnapshot
 
         public Long getTransferSizeInBytes() {
             return transferSizeInBytes;
+        }
+
+        public Builder sdkResponse(SdkResponse sdkResponse) {
+            this.sdkResponse = sdkResponse;
+            return this;
         }
 
         @Override

@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Expose an option in `AsyncResponseTransformer#toFile` to allow overwriting and appending existing file."
+}

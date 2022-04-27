@@ -1,3 +1,32 @@
+# __2.17.178__ __2022-04-26__
+## __AWS Glue__
+  - ### Features
+    - This release adds documentation for the APIs to create, read, delete, list, and batch read of AWS Glue custom patterns, and for Lake Formation configuration settings in the AWS Glue crawler.
+
+## __AWS Network Firewall__
+  - ### Features
+    - AWS Network Firewall now enables customers to use a customer managed AWS KMS key for the encryption of their firewall resources.
+
+## __AWS Price List Service__
+  - ### Features
+    - Documentation updates for Price List API
+
+## __Amazon CloudFront__
+  - ### Features
+    - CloudFront now supports the Server-Timing header in HTTP responses sent from CloudFront. You can use this header to view metrics that help you gain insights about the behavior and performance of CloudFront. To use this header, enable it in a response headers policy.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Adds new APIs for IVS Chat, a feature for building interactive chat experiences alongside an IVS broadcast.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for Lightsail load balancer HTTP to HTTPS redirect and TLS policy configuration.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Inference Recommender now accepts customer KMS key ID for encryption of endpoints and compilation outputs created during inference recommendation.
+
 # __2.17.177__ __2022-04-25__
 ## __AWS RDS DataService__
   - ### Features

@@ -19,12 +19,15 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.PublisherAsyncResponseTransformer;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Callback interface to handle a streaming asynchronous response.
@@ -116,9 +119,36 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * @param path        Path to file to write to.
      * @param <ResponseT> Pojo Response type.
      * @return AsyncResponseTransformer instance.
+     * @see #toFile(Path, FileTransformerConfiguration)
      */
     static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(Path path) {
         return new FileAsyncResponseTransformer<>(path);
+    }
+
+    /**
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified {@link
+     * FileTransformerConfiguration}.
+     *
+     * @param path        Path to file to write to.
+     * @param config      configuration for the transformer
+     * @param <ResponseT> Pojo Response type.
+     * @return AsyncResponseTransformer instance.
+     * @see FileTransformerConfiguration
+     */
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(Path path, FileTransformerConfiguration config) {
+        return new FileAsyncResponseTransformer<>(path, config);
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link FileTransformerConfiguration} builder,
+     * avoiding the need to create one manually via {@link FileTransformerConfiguration#builder()}.
+     *
+     * @see #toFile(Path, FileTransformerConfiguration)
+     */
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(
+        Path path, Consumer<FileTransformerConfiguration.Builder> config) {
+        Validate.paramNotNull(config, "config");
+        return new FileAsyncResponseTransformer<>(path, FileTransformerConfiguration.builder().applyMutation(config).build());
     }
 
     /**
@@ -132,6 +162,34 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      */
     static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(File file) {
         return toFile(file.toPath());
+    }
+
+    /**
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified {@link
+     * FileTransformerConfiguration}.
+     *
+     * @param file        File to write to.
+     * @param config      configuration for the transformer
+     * @param <ResponseT> Pojo Response type.
+     * @return AsyncResponseTransformer instance.
+     * @see FileTransformerConfiguration
+     */
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(File file, FileTransformerConfiguration config) {
+        return new FileAsyncResponseTransformer<>(file.toPath(), config);
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link FileTransformerConfiguration} builder,
+     * avoiding the need to create one manually via {@link FileTransformerConfiguration#builder()}.
+     *
+     * @see #toFile(File, FileTransformerConfiguration)
+     */
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(
+        File file, Consumer<FileTransformerConfiguration.Builder> config) {
+        Validate.paramNotNull(config, "config");
+        return new FileAsyncResponseTransformer<>(file.toPath(), FileTransformerConfiguration.builder()
+                                                                                             .applyMutation(config)
+                                                                                             .build());
     }
 
     /**
