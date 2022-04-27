@@ -1,3 +1,41 @@
+# __2.17.179__ __2022-04-27__
+## __AWS Amplify__
+  - ### Features
+    - Documentation only update to support the Amplify GitHub App feature launch
+
+## __AWS CloudTrail__
+  - ### Features
+    - Increases the retention period maximum to 2557 days. Deprecates unused fields of the ListEventDataStores API response. Updates documentation.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Add list support for event configurations, allow to get and update event configurations by resource type, support LoRaWAN events; Make NetworkAnalyzerConfiguration as a resource, add List, Create, Delete API support; Add FCntStart attribute support for ABP WirelessDevice.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Expose an option in `AsyncResponseTransformer#toFile` to allow overwriting and appending existing file.
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - For Amazon Chime SDK meetings, the Amazon Chime Media Pipelines SDK allows builders to capture audio, video, and content share streams. You can also capture meeting events, live transcripts, and data messages. The pipelines save the artifacts to an Amazon S3 bucket that you designate.
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - This release adds the following new features: 1) Introduces an option for automatic schema creation 2) Now allows for Ingestion of data containing most common errors and allows automatic data cleaning 3) Introduces new API ListSensorStatistics that gives further information about the ingested data
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds support to configure stream-processor resources for label detections on streaming-videos. UpateStreamProcessor API is also launched with this release, which could be used to update an existing stream-processor.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Autopilot adds support for custom validation dataset and validation ratio through the CreateAutoMLJob and DescribeAutoMLJob APIs.
+
+## __S3 Transfer Manager (Develper Preview)__
+  - ### Features
+    - Implement pause and resume for `S3TransferManager#downloadFile`
+    - S3TransferManager#downloadFile now by default replaces existing file if it already exists instead of throwing FileAlreadyExistsException. See [#3108](https://github.com/aws/aws-sdk-java-v2/issues/3108)
+
 # __2.17.178__ __2022-04-26__
 ## __AWS Glue__
   - ### Features
