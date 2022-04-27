@@ -94,13 +94,13 @@ public class DownloadDirectoryHelperTest {
 
         when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
 
-        DirectoryDownload DownloadDirectory =
+        DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
                                                                               .destinationDirectory(directory)
                                                                               .bucket("bucket")
                                                                               .build());
 
-        CompletedDirectoryDownload completedDirectoryDownload = DownloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
 
         ArgumentCaptor<DownloadFileRequest> argumentCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
         verify(singleDownloadFunction, times(2)).apply(argumentCaptor.capture());
@@ -123,13 +123,13 @@ public class DownloadDirectoryHelperTest {
 
         when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
 
-        DirectoryDownload DownloadDirectory =
+        DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
                                                                               .destinationDirectory(directory)
                                                                               .bucket("bucket")
                                                                               .build());
 
-        CompletedDirectoryDownload completedDirectoryDownload = DownloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
 
         assertThat(completedDirectoryDownload.failedTransfers()).hasSize(1)
                                                                 .element(0).satisfies(failedFileDownload -> assertThat(failedFileDownload.exception()).isEqualTo(exception));
@@ -145,14 +145,14 @@ public class DownloadDirectoryHelperTest {
 
         when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
 
-        DirectoryDownload DownloadDirectory =
+        DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
                                                                               .destinationDirectory(directory)
                                                                               .bucket("bucket")
                                                                               .filter(ctx -> "key2".equals(ctx.source().key()))
                                                                               .build());
 
-        CompletedDirectoryDownload completedDirectoryDownload = DownloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
 
         ArgumentCaptor<DownloadFileRequest> argumentCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
         verify(singleDownloadFunction, times(1)).apply(argumentCaptor.capture());
@@ -175,7 +175,7 @@ public class DownloadDirectoryHelperTest {
         TransferRequestOverrideConfiguration newOverrideConfiguration = TransferRequestOverrideConfiguration.builder()
                                                                                                          .addListener(LoggingTransferListener.create())
                                                                                                          .build();
-        DirectoryDownload DownloadDirectory =
+        DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
                                                                               .destinationDirectory(directory)
                                                                               .bucket("bucket")
@@ -184,7 +184,7 @@ public class DownloadDirectoryHelperTest {
                                                                                                                     .overrideConfiguration(newOverrideConfiguration))
                                                                               .build());
 
-        CompletedDirectoryDownload completedDirectoryDownload = DownloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
 
         ArgumentCaptor<DownloadFileRequest> argumentCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
         verify(singleDownloadFunction, times(2)).apply(argumentCaptor.capture());
@@ -208,7 +208,7 @@ public class DownloadDirectoryHelperTest {
         int newMaxKeys = 10;
 
         when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
-        DirectoryDownload DownloadDirectory =
+        DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
                                                                               .destinationDirectory(directory)
                                                                               .bucket("bucket")
@@ -216,7 +216,7 @@ public class DownloadDirectoryHelperTest {
                                                                                   .maxKeys(newMaxKeys))
                                                                               .build());
 
-        CompletedDirectoryDownload completedDirectoryDownload = DownloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
 
         ArgumentCaptor<ListObjectsV2Request> argumentCaptor = ArgumentCaptor.forClass(ListObjectsV2Request.class);
         verify(listObjectsHelper, times(1)).listS3ObjectsRecursively(argumentCaptor.capture());

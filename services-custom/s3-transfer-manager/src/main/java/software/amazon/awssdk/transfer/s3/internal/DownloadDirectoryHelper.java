@@ -95,12 +95,13 @@ public class DownloadDirectoryHelper {
         String delimiter = downloadDirectoryRequest.delimiter().orElse(null);
         String prefix = downloadDirectoryRequest.prefix().orElse(DEFAULT_PREFIX);
 
-        ListObjectsV2Request request = ListObjectsV2Request.builder()
-                                                           .bucket(bucket)
-                                                           .prefix(prefix)
-                                                           .delimiter(delimiter)
-                                                           .applyMutation(downloadDirectoryRequest.listObjectsRequestTransformer())
-                                                           .build();
+        ListObjectsV2Request request =
+            ListObjectsV2Request.builder()
+                                .bucket(bucket)
+                                .prefix(prefix)
+                                .delimiter(delimiter)
+                                .applyMutation(downloadDirectoryRequest.listObjectsRequestTransformer())
+                                .build();
 
         Queue<FailedFileDownload> failedFileDownloads = new ConcurrentLinkedQueue<>();
 
