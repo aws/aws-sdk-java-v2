@@ -281,7 +281,32 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * at request level via {@link UploadDirectoryRequest.Builder#overrideConfiguration(UploadDirectoryOverrideConfiguration)} or
      * client level via {@link S3TransferManager.Builder#transferConfiguration(S3TransferManagerOverrideConfiguration)} Note
      * that request-level configuration takes precedence over client-level configuration.
-     *
+     * <p>
+     * By default, the prefix is an empty string and the delimiter is {@code "/"}. Assume you have a local
+     * directory "/test" with the following structure:
+     * <pre>
+     *   {@code
+     *      |- test
+     *         |- sample.jpg
+     *         |- photos
+     *             |- 2022
+     *                 |- January
+     *                     |- sample.jpg
+     *                 |- February
+     *                     |- sample1.jpg
+     *                     |- sample2.jpg
+     *                     |- sample3.jpg
+     *   }
+     * </pre>
+     * Give a request to upload directory "/test" to an S3 bucket, the target bucket will have the following
+     * S3 objects:
+     * <ul>
+     *     <li>sample.jpg</li>
+     *     <li>photos/2022/January/sample.jpg</li>
+     *     <li>photos/2022/February/sample1.jpg</li>
+     *     <li>photos/2022/February/sample2.jpg</li>
+     *     <li>photos/2022/February/sample3.jpg</li>
+     * </ul>
      * <p>
      * The returned {@link CompletableFuture} only completes exceptionally if the request cannot be attempted as a whole (the
      * source directory provided does not exist for example). The future completes successfully for partial successful
@@ -290,7 +315,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * even when the future completes successfully.
      *
      * <p>
-     * The current user must have read access to all directories and files
+     * The current user must have read access to all directories and files.
      *
      * <p>
      * <b>Usage Example:</b>
