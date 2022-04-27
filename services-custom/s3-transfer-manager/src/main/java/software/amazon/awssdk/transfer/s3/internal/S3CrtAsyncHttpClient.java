@@ -38,6 +38,7 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -46,7 +47,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  */
 @SdkInternalApi
 public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
-
+    private static final Logger log = Logger.loggerFor(S3CrtAsyncHttpClient.class);
     private final S3Client crtS3Client;
     private final S3NativeClientConfiguration s3NativeClientConfiguration;
 
@@ -95,7 +96,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             .withEndpoint(s3NativeClientConfiguration.endpointOverride());
 
         try (S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions)) {
-            closeResourcesWhenComplete(executeFuture, s3MetaRequest);
+            closeResourcesWhenComplete(executeFuture, s3MetaRequest, responseHandler);
         }
 
         return executeFuture;
@@ -124,9 +125,12 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private static void closeResourcesWhenComplete(CompletableFuture<Void> executeFuture,
-                                                   S3MetaRequest s3MetaRequest) {
+                                                   S3MetaRequest s3MetaRequest,
+                                                   S3CrtResponseHandlerAdapter responseHandler) {
         executeFuture.whenComplete((r, t) -> {
             if (executeFuture.isCancelled()) {
+                log.debug(() -> "The request is cancelled, cancelling meta request");
+                responseHandler.cancelRequest();
                 s3MetaRequest.cancel();
             }
 

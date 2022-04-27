@@ -92,6 +92,9 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * Download an object identified by the bucket and key from S3 to a local file. For non-file-based downloads, you may use
      * {@link #download(DownloadRequest)} instead.
      * <p>
+     *  The SDK will create a new file if the provided one doesn't exist, otherwise replace the existing file. In the
+     *  event of an error, the SDK will NOT attempt to delete the file, leaving it as-is.
+     * <p>
      * <b>Usage Example:</b>
      * <pre>
      * {@code
@@ -119,6 +122,51 @@ public interface S3TransferManager extends SdkAutoCloseable {
      */
     default FileDownload downloadFile(Consumer<DownloadFileRequest.Builder> request) {
         return downloadFile(DownloadFileRequest.builder().applyMutation(request).build());
+    }
+
+    /**
+     * Resumes a downloadFile operation. This download operation uses the same configuration as the original download. Any data
+     * already fetched will be skipped, and only the remaining data is retrieved from Amazon S3. If it is determined that the S3
+     * object to download or the file has be modified since the last pause, the SDK will download the object from the beginning
+     * as if it is a new {@link DownloadFileRequest} and replace the existing file.
+     *
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * // Initiate the transfer
+     * FileDownload download =
+     *     tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
+     *                           .destination(Paths.get("myFile.txt")));
+     *
+     * // Pause the download
+     * ResumableFileDownload resumableFileDownload = download.pause();
+     *
+     * // Resume the download
+     * FileDownload resumedDownload = tm.resumeDownloadFile(resumableFileDownload);
+     *
+     * // Wait for the transfer to complete
+     * resumedDownload.completionFuture().join();
+     * }
+     * </pre>
+     *
+     * @param resumableFileDownload the download to resume.
+     * @return A new {@code FileDownload} object to use to check the state of the download.
+     * @see #downloadFile(DownloadFileRequest)
+     * @see FileDownload#pause()
+     */
+    default FileDownload resumeDownloadFile(ResumableFileDownload resumableFileDownload) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link ResumableFileDownload} builder, avoiding the need to
+     * create one manually via {@link ResumableFileDownload#builder()}.
+     *
+     * @see #resumeDownloadFile(ResumableFileDownload)
+     */
+    default FileDownload resumeDownloadFile(Consumer<ResumableFileDownload.Builder> resumableFileDownload) {
+        return resumeDownloadFile(ResumableFileDownload.builder().applyMutation(resumableFileDownload).build());
     }
 
     /**
@@ -321,8 +369,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *
      * <p>
      * The SDK will create the destination directory if it does not already exist. If a specific file
-     * already exists, the corresponding transfer will fail, and it will be added to the
-     * {@link CompletedDirectoryDownload#failedTransfers()}.
+     * already exists, the existing content will be replaced with the corresponding S3 object content.
      *
      * <p>
      * The current user must have write access to all directories and files

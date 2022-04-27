@@ -85,7 +85,6 @@ public final class TransferListenerContext
         private CompletedObjectTransfer completedTransfer;
 
         private Builder() {
-            super();
         }
 
         private Builder(TransferListenerContext context) {

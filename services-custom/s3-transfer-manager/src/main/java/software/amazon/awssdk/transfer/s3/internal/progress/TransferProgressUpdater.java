@@ -38,13 +38,13 @@ import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
  */
 @SdkInternalApi
 public class TransferProgressUpdater {
-
     private final DefaultTransferProgress progress;
     private final TransferListenerContext context;
-    private final TransferListenerInvoker listeners;
+    private final TransferListenerInvoker listenerInvoker;
     private final CompletableFuture<Void> endOfStreamFuture;
 
-    public TransferProgressUpdater(TransferObjectRequest request, AsyncRequestBody requestBody) {
+    public TransferProgressUpdater(TransferObjectRequest request,
+                                   AsyncRequestBody requestBody) {
         DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
         getContentLengthSafe(requestBody).ifPresent(snapshotBuilder::transferSizeInBytes);
         TransferProgressSnapshot snapshot = snapshotBuilder.build();
@@ -53,9 +53,10 @@ public class TransferProgressUpdater {
                                          .request(request)
                                          .progressSnapshot(snapshot)
                                          .build();
-        listeners = new TransferListenerInvoker(request.overrideConfiguration()
-                                                       .map(TransferRequestOverrideConfiguration::listeners)
-                                                       .orElseGet(Collections::emptyList));
+
+        listenerInvoker = new TransferListenerInvoker(request.overrideConfiguration()
+                                                             .map(TransferRequestOverrideConfiguration::listeners)
+                                                             .orElseGet(Collections::emptyList));
         endOfStreamFuture = new CompletableFuture<>();
     }
 
@@ -64,7 +65,7 @@ public class TransferProgressUpdater {
     }
 
     public void transferInitiated() {
-        listeners.transferInitiated(context);
+        listenerInvoker.transferInitiated(context);
     }
 
     public AsyncRequestBody wrapRequestBody(AsyncRequestBody requestBody) {
@@ -101,7 +102,7 @@ public class TransferProgressUpdater {
                 @Override
                 public void transformerOnResponse(GetObjectResponse response) {
                     if (response.contentLength() != null) {
-                        progress.updateAndGet(b -> b.transferSizeInBytes(response.contentLength()));
+                            progress.updateAndGet(b -> b.transferSizeInBytes(response.contentLength()).sdkResponse(response));
                     }
                 }
 
@@ -140,7 +141,7 @@ public class TransferProgressUpdater {
         TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
             b.bytesTransferred(b.getBytesTransferred() + numBytes);
         });
-        listeners.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
+        listenerInvoker.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
     }
 
     public void registerCompletion(CompletableFuture<? extends CompletedObjectTransfer> future) {
@@ -160,7 +161,7 @@ public class TransferProgressUpdater {
     }
 
     private void transferComplete(CompletedObjectTransfer r) {
-        listeners.transferComplete(context.copy(b -> {
+        listenerInvoker.transferComplete(context.copy(b -> {
             TransferProgressSnapshot snapshot = progress.snapshot();
             b.progressSnapshot(snapshot);
             b.completedTransfer(r);
@@ -168,12 +169,12 @@ public class TransferProgressUpdater {
     }
 
     private void transferFailed(Throwable t) {
-        listeners.transferFailed(TransferListenerFailedContext.builder()
-                                                              .transferContext(context.copy(b -> {
-                                                                  b.progressSnapshot(progress.snapshot());
-                                                              }))
-                                                              .exception(t)
-                                                              .build());
+        listenerInvoker.transferFailed(TransferListenerFailedContext.builder()
+                                                                    .transferContext(
+                                                                        context.copy(
+                                                                            b -> b.progressSnapshot(progress.snapshot())))
+                                                                    .exception(t)
+                                                                    .build());
     }
 
     private static Optional<Long> getContentLengthSafe(AsyncRequestBody requestBody) {
