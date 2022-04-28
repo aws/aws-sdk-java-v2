@@ -73,8 +73,8 @@ public class DownloadDirectoryHelperParameterizedTest {
         singleDownloadFunction = mock(Function.class);
         listObjectsHelper = mock(ListObjectsHelper.class);
         downloadDirectoryHelper = new DownloadDirectoryHelper(TransferManagerConfiguration.builder().build(),
-                                                              singleDownloadFunction,
-                                                              listObjectsHelper);
+                                                              listObjectsHelper,
+                                                              singleDownloadFunction);
     }
 
     @ParameterizedTest

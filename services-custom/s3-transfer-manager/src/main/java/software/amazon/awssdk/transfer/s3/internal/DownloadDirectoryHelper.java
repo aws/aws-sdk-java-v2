@@ -29,7 +29,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
@@ -67,16 +66,6 @@ public class DownloadDirectoryHelper {
         this.listObjectsHelper = listObjectsHelper;
     }
 
-    @SdkTestInternalApi
-    DownloadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
-                            Function<DownloadFileRequest, FileDownload> downloadFileFunction,
-                            ListObjectsHelper listObjectsHelper) {
-
-        this.transferConfiguration = transferConfiguration;
-        this.downloadFileFunction = downloadFileFunction;
-        this.listObjectsHelper = listObjectsHelper;
-    }
-
     public DirectoryDownload downloadDirectory(DownloadDirectoryRequest downloadDirectoryRequest) {
 
         CompletableFuture<CompletedDirectoryDownload> returnFuture = new CompletableFuture<>();
@@ -106,11 +95,13 @@ public class DownloadDirectoryHelper {
         String delimiter = downloadDirectoryRequest.delimiter().orElse(null);
         String prefix = downloadDirectoryRequest.prefix().orElse(DEFAULT_PREFIX);
 
-        ListObjectsV2Request request = ListObjectsV2Request.builder()
-                                                           .bucket(bucket)
-                                                           .prefix(prefix)
-                                                           .delimiter(delimiter)
-                                                           .build();
+        ListObjectsV2Request request =
+            ListObjectsV2Request.builder()
+                                .bucket(bucket)
+                                .prefix(prefix)
+                                .delimiter(delimiter)
+                                .applyMutation(downloadDirectoryRequest.listObjectsRequestTransformer())
+                                .build();
 
         Queue<FailedFileDownload> failedFileDownloads = new ConcurrentLinkedQueue<>();
 
@@ -211,6 +202,7 @@ public class DownloadDirectoryHelper {
         return DownloadFileRequest.builder()
                                   .destination(downloadContext.destination())
                                   .getObjectRequest(getObjectRequest)
+                                  .applyMutation(downloadDirectoryRequest.downloadFileRequestTransformer())
                                   .build();
     }
 
