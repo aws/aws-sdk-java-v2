@@ -22,7 +22,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.17.180</version>
+        <version>2.17.181-SNAPSHOT</version>
     </parent>
 
     <artifactId>auth-crt</artifactId>
