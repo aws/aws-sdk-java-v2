@@ -18,6 +18,7 @@ package software.amazon.awssdk.core;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADERS;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 
+import java.util.StringJoiner;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -49,18 +50,25 @@ public final class SdkStandardLogger {
      * Log the response status code and request ID
      */
     public static void logRequestId(SdkHttpResponse response) {
-        String placeholder = "not available";
-        String requestId = String.format("Request ID: %s, Extended Request ID: %s",
-                                         SdkHttpUtils.firstMatchingHeaderFromCollection(response.headers(),
-                                                                                        X_AMZN_REQUEST_ID_HEADERS)
-                                                     .orElse(placeholder),
-                                         response.firstMatchingHeader(X_AMZ_ID_2_HEADER)
-                                                 .orElse(placeholder));
-        Supplier<String> logStatement = () -> String.format("Received %s response: %s, %s",
-                                                            response.isSuccessful() ? "successful" : "failed",
-                                                            response.statusCode(),
-                                                            requestId);
+        Supplier<String> logStatement = () -> constructLog(response);
         REQUEST_ID_LOGGER.debug(logStatement);
         REQUEST_LOGGER.debug(logStatement);
+    }
+
+    private static String constructLog(SdkHttpResponse response) {
+        String placeholder = "not available";
+        String prefix = "Received " + (response.isSuccessful() ? "successful" : "failed") +
+                        " response: ";
+        StringJoiner details = new StringJoiner(", ", prefix, "");
+        details.add("Status Code: " + response.statusCode());
+        String requestId = SdkHttpUtils.firstMatchingHeaderFromCollection(response.headers(),
+                                                       X_AMZN_REQUEST_ID_HEADERS)
+                    .orElse(placeholder);
+
+        details.add("Request ID: " + requestId);
+
+        response.firstMatchingHeader(X_AMZ_ID_2_HEADER).ifPresent(extendedRequestId ->
+                                                                      details.add("Extended Request ID: " + extendedRequestId));
+        return details.toString();
     }
 }

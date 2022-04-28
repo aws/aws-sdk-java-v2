@@ -15,9 +15,10 @@
 
 package software.amazon.awssdk.core.checksums;
 
-import java.util.Arrays;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Enum that indicates all the checksums supported by Flexible checksums in a Service Request/Response Header.
@@ -30,6 +31,8 @@ public enum Algorithm {
     SHA256("sha256", 44),
     SHA1("sha1", 28),
     ;
+
+    private static final Map<String, Algorithm> VALUE_MAP = EnumUtils.uniqueIndex(Algorithm.class, Algorithm::toString);
 
     private final String value;
     private final int length;
@@ -44,12 +47,16 @@ public enum Algorithm {
             return null;
         }
         String normalizedValue = StringUtils.lowerCase(value);
-        return Arrays.stream(values())
-                .filter(algorithm -> algorithm.value.equals(normalizedValue))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown Algorithm '%s'", normalizedValue)));
+        if (!VALUE_MAP.containsKey(normalizedValue)) {
+            throw new IllegalArgumentException("The provided value is not a valid algorithm " + value);
+        }
+        return VALUE_MAP.get(normalizedValue);
     }
 
+    @Override
+    public String toString() {
+        return String.valueOf(value);
+    }
 
     /**
      * Length corresponds to Base64Encoded length for a given Checksum.
