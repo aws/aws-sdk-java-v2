@@ -19,9 +19,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -47,15 +49,13 @@ public final class EnhancedClientUtils {
      */
     public static String cleanAttributeName(String key) {
         boolean somethingChanged = false;
+        Set<Character> specialCharacters = Stream.of('*', '.', '-', '#', '+', ':', '/', '(', ')', '&', '<', '>',
+                                                     '?', '=', '!', '@', '%', '$', '|').collect(Collectors.toSet());
+
         char[] chars = key.toCharArray();
 
         for (int i = 0; i < chars.length; ++i) {
-            if (chars[i] == '*'
-                || chars[i] == '.'
-                || chars[i] == '-'
-                || chars[i] == '#'
-                || chars[i] == '+'
-                || chars[i] == ':') {
+            if (specialCharacters.contains(chars[i])) {
                 chars[i] = '_';
                 somethingChanged = true;
             }
