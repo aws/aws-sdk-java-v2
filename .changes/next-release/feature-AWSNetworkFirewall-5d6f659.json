@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Network Firewall",
-    "contributor": "",
-    "description": "AWS Network Firewall adds support for stateful threat signature AWS managed rule groups."
-}
