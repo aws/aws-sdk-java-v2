@@ -1,0 +1,48 @@
+{
+    "version": "2.17.180",
+    "date": "2022-04-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "S3 Transfer Manager (Develper Preview)",
+            "contributor": "",
+            "description": "Add `DownloadDirectoryRequest.Builder#downloadFileRequestTransformer` and `DownloadDirectoryRequest.Builder#listObjectsRequestTranformer` to allow users to modify requests during directory downloads."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release introduces an API for changing the current agent status of a user in Connect."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "AWS Network Firewall adds support for stateful threat signature AWS managed rule groups."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Documentation update for API description."
+        },
+        {
+            "type": "feature",
+            "category": "Braket",
+            "contributor": "",
+            "description": "This release enables Braket Hybrid Jobs with Embedded Simulators to have multiple instances."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Audit Manager",
+            "contributor": "",
+            "description": "This release adds documentation updates for Audit Manager. We provided examples of how to use the Custom_ prefix for the keywordValue attribute. We also provided more details about the DeleteAssessmentReport operation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support to query the public key and creation date of EC2 Key Pairs. Additionally, the format (pem or ppk) of a key pair can be specified when creating a new key pair."
+        }
+    ]
+}

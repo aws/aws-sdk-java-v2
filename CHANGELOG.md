@@ -1,3 +1,53 @@
+# __2.17.181__ __2022-04-29__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK nows supports creation of Dolby Vision profile 8.1, the ability to generate black frames of video, and introduces audio-only DASH and CMAF support.
+
+## __AWS WAFV2__
+  - ### Features
+    - You can now inspect all request headers and all cookies. You can now specify how to handle oversize body contents in your rules that inspect the body.
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - Amazon CodeGuru Reviewer now supports suppressing recommendations from being generated on specific files and directories.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Feature - Adds support for Internet Protocol Version 6 (IPv6) on RDS database instances.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Update the StartChangeRequestExecution, adding TargetMaps to the Runbook parameter
+
+# __2.17.180__ __2022-04-28__
+## __AWS Audit Manager__
+  - ### Features
+    - This release adds documentation updates for Audit Manager. We provided examples of how to use the Custom_ prefix for the keywordValue attribute. We also provided more details about the DeleteAssessmentReport operation.
+
+## __AWS Network Firewall__
+  - ### Features
+    - AWS Network Firewall adds support for stateful threat signature AWS managed rule groups.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release introduces an API for changing the current agent status of a user in Connect.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support to query the public key and creation date of EC2 Key Pairs. Additionally, the format (pem or ppk) of a key pair can be specified when creating a new key pair.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Documentation update for API description.
+
+## __Braket__
+  - ### Features
+    - This release enables Braket Hybrid Jobs with Embedded Simulators to have multiple instances.
+
+## __S3 Transfer Manager (Develper Preview)__
+  - ### Features
+    - Add `DownloadDirectoryRequest.Builder#downloadFileRequestTransformer` and `DownloadDirectoryRequest.Builder#listObjectsRequestTranformer` to allow users to modify requests during directory downloads.
+
 # __2.17.179__ __2022-04-27__
 ## __AWS Amplify__
   - ### Features
