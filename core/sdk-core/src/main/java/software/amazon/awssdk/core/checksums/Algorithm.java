@@ -47,10 +47,12 @@ public enum Algorithm {
             return null;
         }
         String normalizedValue = StringUtils.lowerCase(value);
-        if (!VALUE_MAP.containsKey(normalizedValue)) {
+        Algorithm algorithm = VALUE_MAP.get(normalizedValue);
+        if (algorithm == null) {
             throw new IllegalArgumentException("The provided value is not a valid algorithm " + value);
         }
-        return VALUE_MAP.get(normalizedValue);
+
+        return algorithm;
     }
 
     @Override

@@ -18,7 +18,6 @@ package software.amazon.awssdk.core;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADERS;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 
-import java.util.StringJoiner;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -57,18 +56,20 @@ public final class SdkStandardLogger {
 
     private static String constructLog(SdkHttpResponse response) {
         String placeholder = "not available";
-        String prefix = "Received " + (response.isSuccessful() ? "successful" : "failed") +
-                        " response: ";
-        StringJoiner details = new StringJoiner(", ", prefix, "");
-        details.add("Status Code: " + response.statusCode());
         String requestId = SdkHttpUtils.firstMatchingHeaderFromCollection(response.headers(),
-                                                       X_AMZN_REQUEST_ID_HEADERS)
-                    .orElse(placeholder);
-
-        details.add("Request ID: " + requestId);
+                                                                          X_AMZN_REQUEST_ID_HEADERS)
+                                       .orElse(placeholder);
+        StringBuilder details = new StringBuilder().append("Received")
+                                                   .append(response.isSuccessful() ? " successful" : " failed")
+                                                   .append(" response:")
+                                                   .append(" Status Code: ")
+                                                   .append(response.statusCode())
+                                                   .append(" Request ID: ")
+                                                   .append(requestId);
 
         response.firstMatchingHeader(X_AMZ_ID_2_HEADER).ifPresent(extendedRequestId ->
-                                                                      details.add("Extended Request ID: " + extendedRequestId));
+                                                                      details.append(" Extended Request ID: ")
+                                                                             .append(extendedRequestId));
         return details.toString();
     }
 }
