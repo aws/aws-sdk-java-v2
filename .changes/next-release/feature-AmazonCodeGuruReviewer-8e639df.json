@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CodeGuru Reviewer",
+    "contributor": "",
+    "description": "Amazon CodeGuru Reviewer now supports suppressing recommendations from being generated on specific files and directories."
+}
