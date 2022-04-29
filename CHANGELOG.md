@@ -1,3 +1,24 @@
+# __2.17.181__ __2022-04-29__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK nows supports creation of Dolby Vision profile 8.1, the ability to generate black frames of video, and introduces audio-only DASH and CMAF support.
+
+## __AWS WAFV2__
+  - ### Features
+    - You can now inspect all request headers and all cookies. You can now specify how to handle oversize body contents in your rules that inspect the body.
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - Amazon CodeGuru Reviewer now supports suppressing recommendations from being generated on specific files and directories.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Feature - Adds support for Internet Protocol Version 6 (IPv6) on RDS database instances.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Update the StartChangeRequestExecution, adding TargetMaps to the Runbook parameter
+
 # __2.17.180__ __2022-04-28__
 ## __AWS Audit Manager__
   - ### Features
