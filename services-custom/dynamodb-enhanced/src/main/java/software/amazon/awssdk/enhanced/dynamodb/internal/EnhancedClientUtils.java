@@ -36,6 +36,10 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
 public final class EnhancedClientUtils {
+
+    private static final Set<Character> SPECIAL_CHARACTERS = Stream.of('*', '.', '-', '#', '+', ':', '/', '(', ')', '&', '<',
+                                                                       '>', '?', '=', '!', '@', '%', '$', '|').collect(Collectors.toSet());
+
     private EnhancedClientUtils() {
 
     }
@@ -49,13 +53,11 @@ public final class EnhancedClientUtils {
      */
     public static String cleanAttributeName(String key) {
         boolean somethingChanged = false;
-        Set<Character> specialCharacters = Stream.of('*', '.', '-', '#', '+', ':', '/', '(', ')', '&', '<', '>',
-                                                     '?', '=', '!', '@', '%', '$', '|').collect(Collectors.toSet());
 
         char[] chars = key.toCharArray();
 
         for (int i = 0; i < chars.length; ++i) {
-            if (specialCharacters.contains(chars[i])) {
+            if (SPECIAL_CHARACTERS.contains(chars[i])) {
                 chars[i] = '_';
                 somethingChanged = true;
             }
