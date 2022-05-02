@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Organizations",
+    "contributor": "",
+    "description": "This release adds the INVALID_PAYMENT_INSTRUMENT as a fail reason and an error message."
+}
