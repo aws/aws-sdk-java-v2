@@ -37,8 +37,9 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SdkInternalApi
 public final class EnhancedClientUtils {
 
-    private static final Set<Character> SPECIAL_CHARACTERS = Stream.of('*', '.', '-', '#', '+', ':', '/', '(', ')', '&', '<',
-                                                                       '>', '?', '=', '!', '@', '%', '$', '|').collect(Collectors.toSet());
+    private static final Set<Character> SPECIAL_CHARACTERS = Stream.of(
+        '*', '.', '-', '#', '+', ':', '/', '(', ')',
+        '&', '<', '>', '?', '=', '!', '@', '%', '$', '|').collect(Collectors.toSet());
 
     private EnhancedClientUtils() {
 
