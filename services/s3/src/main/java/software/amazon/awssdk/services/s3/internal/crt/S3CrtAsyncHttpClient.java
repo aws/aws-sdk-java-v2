@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3.internal;
+package software.amazon.awssdk.services.s3.internal.crt;
 
-import static software.amazon.awssdk.transfer.s3.internal.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 
 import java.net.URI;
 import java.util.ArrayList;

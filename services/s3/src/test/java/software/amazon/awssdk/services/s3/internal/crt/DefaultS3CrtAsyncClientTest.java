@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3.internal;
+package software.amazon.awssdk.services.s3.internal.crt;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
@@ -47,11 +47,15 @@ public class DefaultS3CrtAsyncClientTest {
 
     @Test
     public void requestSignerOverrideProvided_shouldThrowException() {
-        assertThatThrownBy(() -> s3CrtAsyncClient.getObject(b -> b.bucket("bucket").key("key").overrideConfiguration(o -> o.signer(AwsS3V4Signer.create())),
-                                                            AsyncResponseTransformer.toBytes())).isInstanceOf(UnsupportedOperationException.class);
+        try (S3AsyncClient s3AsyncClient = S3CrtAsyncClient.builder().build()) {
+            assertThatThrownBy(() -> s3AsyncClient.getObject(
+                b -> b.bucket("bucket").key("key").overrideConfiguration(o -> o.signer(AwsS3V4Signer.create())),
+                AsyncResponseTransformer.toBytes()).join()).hasCauseInstanceOf(UnsupportedOperationException.class);
 
-        assertThatThrownBy(() -> s3CrtAsyncClient.putObject(b -> b.bucket("bucket").key("key").overrideConfiguration(o -> o.signer(AwsS3V4Signer.create())),
-                                                            AsyncRequestBody.fromString("foobar"))).isInstanceOf(UnsupportedOperationException.class);
+            assertThatThrownBy(() -> s3AsyncClient.putObject(
+                b -> b.bucket("bucket").key("key").overrideConfiguration(o -> o.signer(AwsS3V4Signer.create())),
+                AsyncRequestBody.fromString("foobar")).join()).hasCauseInstanceOf(UnsupportedOperationException.class);
+        }
     }
 
     @Test
