@@ -15,23 +15,50 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import static software.amazon.awssdk.utils.BinaryUtils.fromBase64Bytes;
+import static software.amazon.awssdk.utils.BinaryUtils.toBase64Bytes;
+import static software.amazon.awssdk.utils.IoUtils.toByteArray;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.transfer.s3.internal.serialization.ResumableFileDownloadSerializer;
+import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * An opaque token that holds the state and can be used to resume a
- * paused download operation.
+ * An opaque token that holds the state and can be used to resume a paused download operation.
+ * <p>
+ * <b>Serialization: </b>When serializing this token, the following structures will not be preserved/persisted:
+ * <ul>
+ *     <li>{@link TransferRequestOverrideConfiguration}</li>
+ *     <li>{@link AwsRequestOverrideConfiguration} (from {@link GetObjectRequest})</li>
+ * </ul>
  *
  * @see S3TransferManager#downloadFile(DownloadFileRequest)
  */
 @SdkPublicApi
 public final class ResumableFileDownload implements ResumableTransfer,
                                                     ToCopyableBuilder<ResumableFileDownload.Builder, ResumableFileDownload> {
+
     private final DownloadFileRequest downloadFileRequest;
     private final long bytesTransferred;
     private final Instant s3ObjectLastModified;
@@ -40,8 +67,8 @@ public final class ResumableFileDownload implements ResumableTransfer,
 
     private ResumableFileDownload(DefaultBuilder builder) {
         this.downloadFileRequest = Validate.paramNotNull(builder.downloadFileRequest, "downloadFileRequest");
-        Validate.isPositiveOrNull(builder.bytesTransferred, "bytesTransferred");
-        this.bytesTransferred = builder.bytesTransferred == null ? 0 : builder.bytesTransferred;
+        this.bytesTransferred = builder.bytesTransferred == null ? 0 : Validate.isNotNegative(builder.bytesTransferred,
+                                                                                              "bytesTransferred");
         this.s3ObjectLastModified = builder.s3ObjectLastModified;
         this.totalSizeInBytes = Validate.isPositiveOrNull(builder.totalSizeInBytes, "totalSizeInBytes");
         this.fileLastModified = builder.fileLastModified;
@@ -126,6 +153,153 @@ public final class ResumableFileDownload implements ResumableTransfer,
     }
 
     @Override
+    public String toString() {
+        return ToString.builder("ResumableFileDownload")
+                       .add("bytesTransferred", bytesTransferred)
+                       .add("fileLastModified", fileLastModified)
+                       .add("s3ObjectLastModified", s3ObjectLastModified)
+                       .add("totalSizeInBytes", totalSizeInBytes)
+                       .add("downloadFileRequest", downloadFileRequest)
+                       .build();
+    }
+
+    /**
+     * Persists this download object to a file in Base64-encoded JSON format.
+     *
+     * @param path The path to the file to which you want to write the serialized download object.
+     */
+    public void writeToFile(Path path) {
+        try {
+            Files.write(path, toBase64Bytes(ResumableFileDownloadSerializer.toJson(this)));
+        } catch (IOException e) {
+            throw SdkClientException.create("Failed to write to " + path, e);
+        }
+    }
+
+    /**
+     * Writes the serialized JSON data representing this object to an output stream.
+     * Note that the {@link OutputStream} is not closed or flushed after writing.
+     *
+     * @param outputStream The output stream to write the serialized object to.
+     */
+    public void writeToOutputStream(OutputStream outputStream) {
+        byte[] bytes = ResumableFileDownloadSerializer.toJson(this);
+        try {
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+            IoUtils.copy(byteArrayInputStream, outputStream);
+        } catch (IOException e) {
+            throw SdkClientException.create("Failed to write this download object to the given OutputStream", e);
+        }
+    }
+
+    /**
+     * Returns the serialized JSON data representing this object as a UTF-8 string.
+     */
+    public String toUtf8String() {
+        return new String(ResumableFileDownloadSerializer.toJson(this), StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Returns the serialized JSON data representing this object as a string encoded with the supplied charset.
+     *
+     * @param cs encoding charset
+     * @return the serialized JSON string
+     */
+    public String toString(Charset cs) {
+        return new String(ResumableFileDownloadSerializer.toJson(this), cs);
+    }
+
+    /**
+     * Returns the serialized JSON data representing this object as an {@link SdkBytes} object.
+     *
+     * @return the serialized JSON as {@link SdkBytes}
+     */
+    public SdkBytes toBytes() {
+        return SdkBytes.fromByteArray(ResumableFileDownloadSerializer.toJson(this));
+    }
+
+    /**
+     * Returns the serialized JSON data representing this object as a {@link ByteArrayInputStream}.
+     *
+     * @return the serialized JSON input stream
+     */
+    public InputStream toInputStream() {
+        return new ByteArrayInputStream(ResumableFileDownloadSerializer.toJson(this));
+    }
+
+    /**
+     * Deserialize data at the given path into a {@link ResumableFileDownload}. The file must be written as
+     * Base64 encoded JSON.
+     *
+     * @param path The {@link Path} to the file with serialized data
+     * @return the deserialized {@link ResumableFileDownload}
+     */
+    public static ResumableFileDownload fromFile(Path path) {
+        try {
+            return ResumableFileDownloadSerializer.fromJson(fromBase64Bytes(Files.readAllBytes(path)));
+        } catch (IOException e) {
+            throw SdkClientException.create("Failed to create a ResumableFileDownload from " + path, e);
+        }
+    }
+
+    /**
+     * Deserialize a ByteBuffer with JSON data into a {@link ResumableFileDownload}.
+     *
+     * @param byteBuffer the serialized data
+     * @return the deserialized {@link ResumableFileDownload}
+     */
+    public static ResumableFileDownload fromByteBuffer(ByteBuffer byteBuffer) {
+        byte[] bytes = new byte[byteBuffer.remaining()];
+        byteBuffer.get(bytes);
+        return ResumableFileDownloadSerializer.fromJson(bytes);
+    }
+
+    /**
+     * Deserialize a byte array with JSON data into a {@link ResumableFileDownload}.
+     *
+     * @param bytes the serialized data
+     * @return the deserialized {@link ResumableFileDownload}
+     */
+    public static ResumableFileDownload fromBytes(byte[] bytes) {
+        return ResumableFileDownloadSerializer.fromJson(bytes);
+    }
+
+    /**
+     * Deserialize contents of an input stream with JSON data into a {@link ResumableFileDownload}.
+     * Note that the {@link InputStream} is not closed after reading.
+     *
+     * @param inputStream the stream containing serialized data
+     * @return the deserialized {@link ResumableFileDownload}
+     */
+    public static ResumableFileDownload fromInputStream(InputStream inputStream) {
+        try {
+            return ResumableFileDownloadSerializer.fromJson(toByteArray(inputStream));
+        } catch (IOException e) {
+            throw SdkClientException.create("Failed to create a ResumableFileDownload from the given InputStream", e);
+        }
+    }
+
+    /**
+     * Deserialize a string with JSON data into a {@link ResumableFileDownload}.
+     *
+     * @param contents the serialized data
+     * @return the deserialized {@link ResumableFileDownload}
+     */
+    public static ResumableFileDownload fromString(String contents) {
+        return ResumableFileDownloadSerializer.fromJson(contents.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Deserialize a string with JSON data into a {@link ResumableFileDownload}.
+     *
+     * @param contents the serialized data
+     * @return the deserialized {@link ResumableFileDownload}
+     */
+    public static ResumableFileDownload fromString(String contents, Charset cs) {
+        return ResumableFileDownloadSerializer.fromJson(contents.getBytes(cs));
+    }
+
+    @Override
     public Builder toBuilder() {
         return new DefaultBuilder(this);
     }
@@ -139,6 +313,26 @@ public final class ResumableFileDownload implements ResumableTransfer,
          * @return a reference to this object so that method calls can be chained together.
          */
         Builder downloadFileRequest(DownloadFileRequest downloadFileRequest);
+
+        /**
+         * The {@link DownloadFileRequest} request
+         *
+         * <p>
+         * This is a convenience method that creates an instance of the {@link DownloadFileRequest} builder avoiding the
+         * need to create one manually via {@link DownloadFileRequest#builder()}.
+         *
+         * @param downloadFileRequestBuilder the download file request builder
+         * @return a reference to this object so that method calls can be chained together.
+         * @see #downloadFileRequest(DownloadFileRequest)
+         */
+        default ResumableFileDownload.Builder downloadFileRequest(Consumer<DownloadFileRequest.Builder>
+                                                                      downloadFileRequestBuilder) {
+            DownloadFileRequest request = DownloadFileRequest.builder()
+                                                             .applyMutation(downloadFileRequestBuilder)
+                                                             .build();
+            downloadFileRequest(request);
+            return this;
+        }
 
         /**
          * Sets the number of bytes transferred
@@ -186,6 +380,8 @@ public final class ResumableFileDownload implements ResumableTransfer,
         private DefaultBuilder(ResumableFileDownload persistableFileDownload) {
             this.downloadFileRequest = persistableFileDownload.downloadFileRequest;
             this.bytesTransferred = persistableFileDownload.bytesTransferred;
+            this.totalSizeInBytes = persistableFileDownload.totalSizeInBytes;
+            this.fileLastModified = persistableFileDownload.fileLastModified;
             this.s3ObjectLastModified = persistableFileDownload.s3ObjectLastModified;
         }
 
