@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Video Streams Archived Media",
-    "contributor": "",
-    "description": "Add support for GetImages API for retrieving images from a video stream"
-}
