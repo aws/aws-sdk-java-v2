@@ -45,18 +45,6 @@ public class SdkHttpRequestResponseTest {
     }
 
     @Test
-    public void mapsAreNotCopiedWhenRoundTrippedToBuilderWithoutModification() {
-        SdkHttpFullRequest request = validRequestWithMaps();
-        SdkHttpFullRequest request2 = request.toBuilder().build();
-        assertThat(request2.headers()).isSameAs(request.headers());
-        assertThat(request2.rawQueryParameters()).isSameAs(request.rawQueryParameters());
-
-        SdkHttpResponse response = validResponseWithMaps();
-        SdkHttpResponse response2 = response.toBuilder().build();
-        assertThat(response2.headers()).isSameAs(response.headers());
-    }
-
-    @Test
     public void requestHeaderMapsAreCopiedWhenModified() {
         assertRequestHeaderMapsAreCopied(b -> b.putHeader("foo", "bar"));
         assertRequestHeaderMapsAreCopied(b -> b.putHeader("foo", singletonList("bar")));

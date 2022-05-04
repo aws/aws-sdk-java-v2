@@ -151,6 +151,11 @@ public final class SdkClientOption<T> extends ClientOption<T> {
     public static final SdkClientOption<String> INTERNAL_USER_AGENT = new SdkClientOption<>(String.class);
 
     /**
+     * A user agent prefix that is specific to the client (agnostic of the request).
+     */
+    public static final SdkClientOption<String> CLIENT_USER_AGENT = new SdkClientOption<>(String.class);
+
+    /**
      * Option to specify the default retry mode.
      *
      * @see RetryMode.Resolver#defaultRetryMode(RetryMode)

@@ -27,6 +27,7 @@ import software.amazon.awssdk.codegen.lite.defaultsmode.DefaultConfiguration;
 import software.amazon.awssdk.codegen.lite.defaultsmode.DefaultsLoader;
 import software.amazon.awssdk.codegen.lite.defaultsmode.DefaultsModeConfigurationGenerator;
 import software.amazon.awssdk.codegen.lite.defaultsmode.DefaultsModeGenerator;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * The Maven mojo to generate defaults mode related classes.
@@ -61,12 +62,12 @@ public class DefaultsModeGenerationMojo extends AbstractMojo {
     }
 
     public void generateDefaultsModeClass(Path baseSourcesDirectory, DefaultConfiguration configuration) {
-        Path sourcesDirectory = baseSourcesDirectory.resolve(DEFAULTS_MODE_BASE.replace(".", "/"));
+        Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(DEFAULTS_MODE_BASE, ".", "/"));
         new CodeGenerator(sourcesDirectory.toString(), new DefaultsModeGenerator(DEFAULTS_MODE_BASE, configuration)).generate();
     }
 
     public void generateDefaultsModeConfiguartionClass(Path baseSourcesDirectory, DefaultConfiguration configuration) {
-        Path sourcesDirectory = baseSourcesDirectory.resolve(DEFAULTS_MODE_CONFIGURATION_BASE.replace(".", "/"));
+        Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(DEFAULTS_MODE_CONFIGURATION_BASE, ".", "/"));
         new CodeGenerator(sourcesDirectory.toString(), new DefaultsModeConfigurationGenerator(DEFAULTS_MODE_CONFIGURATION_BASE,
                                                                                               DEFAULTS_MODE_BASE,
                                                                                               configuration)).generate();

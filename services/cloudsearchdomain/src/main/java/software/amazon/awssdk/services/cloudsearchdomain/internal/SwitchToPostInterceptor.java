@@ -29,7 +29,6 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.cloudsearchdomain.model.SearchRequest;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Ensures that all SearchRequests use <code>POST</code> instead of <code>GET</code>, moving the query parameters to be form data.
@@ -53,14 +52,13 @@ public final class SwitchToPostInterceptor implements ExecutionInterceptor {
     @Override
     public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         if (context.request() instanceof SearchRequest) {
-            byte[] params = SdkHttpUtils.encodeAndFlattenFormData(context.httpRequest().rawQueryParameters()).orElse("")
-                                        .getBytes(StandardCharsets.UTF_8);
+            byte[] params = context.httpRequest().encodedQueryParametersAsFormData().orElse("")
+                                   .getBytes(StandardCharsets.UTF_8);
             return Optional.of(RequestBody.fromContentProvider(() -> new ByteArrayInputStream(params),
                                                                params.length,
                                                                "application/x-www-form-urlencoded; charset=" +
                                                                lowerCase(StandardCharsets.UTF_8.toString())));
         }
-
         return context.requestBody();
     }
 

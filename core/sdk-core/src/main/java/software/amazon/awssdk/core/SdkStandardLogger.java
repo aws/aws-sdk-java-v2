@@ -22,7 +22,6 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * A centralized set of loggers that used across the SDK to log particular types of events. SDK users can then specifically enable
@@ -49,27 +48,16 @@ public final class SdkStandardLogger {
      * Log the response status code and request ID
      */
     public static void logRequestId(SdkHttpResponse response) {
-        Supplier<String> logStatement = () -> constructLog(response);
+        Supplier<String> logStatement = () -> {
+            String placeholder = "not available";
+            String requestId = "Request ID: " + response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADERS).orElse(placeholder) +
+                               ", " +
+                               "Extended Request ID: " + response.firstMatchingHeader(X_AMZ_ID_2_HEADER).orElse(placeholder);
+            String responseState = response.isSuccessful() ? "successful" : "failed";
+
+            return "Received " + responseState + " response: " + response.statusCode() + ", " + requestId;
+        };
         REQUEST_ID_LOGGER.debug(logStatement);
         REQUEST_LOGGER.debug(logStatement);
-    }
-
-    private static String constructLog(SdkHttpResponse response) {
-        String placeholder = "not available";
-        String requestId = SdkHttpUtils.firstMatchingHeaderFromCollection(response.headers(),
-                                                                          X_AMZN_REQUEST_ID_HEADERS)
-                                       .orElse(placeholder);
-        StringBuilder details = new StringBuilder().append("Received")
-                                                   .append(response.isSuccessful() ? " successful" : " failed")
-                                                   .append(" response:")
-                                                   .append(" Status Code: ")
-                                                   .append(response.statusCode())
-                                                   .append(" Request ID: ")
-                                                   .append(requestId);
-
-        response.firstMatchingHeader(X_AMZ_ID_2_HEADER).ifPresent(extendedRequestId ->
-                                                                      details.append(" Extended Request ID: ")
-                                                                             .append(extendedRequestId));
-        return details.toString();
     }
 }

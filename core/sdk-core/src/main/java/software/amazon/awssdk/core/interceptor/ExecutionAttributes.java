@@ -38,7 +38,7 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
     private final Map<ExecutionAttribute<?>, Object> attributes;
 
     public ExecutionAttributes() {
-        this.attributes = new HashMap<>();
+        this.attributes = new HashMap<>(32);
     }
 
     protected ExecutionAttributes(Map<? extends ExecutionAttribute<?>, ?> attributes) {

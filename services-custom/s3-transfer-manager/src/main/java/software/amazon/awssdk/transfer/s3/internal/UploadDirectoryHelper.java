@@ -211,7 +211,7 @@ public class UploadDirectoryHelper {
             return relativePathName;
         }
 
-        return relativePathName.replace(separator, delimiter);
+        return StringUtils.replace(relativePathName, separator, delimiter);
     }
 
     private UploadFileRequest constructUploadRequest(UploadDirectoryRequest uploadDirectoryRequest, int directoryNameCount,

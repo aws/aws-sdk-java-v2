@@ -136,7 +136,7 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
     }
 
     private void setContentTypeHeaderIfNeeded(String contentType) {
-        if (contentType != null && !request.headers().containsKey(CONTENT_TYPE)) {
+        if (contentType != null && !request.firstMatchingHeader(CONTENT_TYPE).isPresent()) {
             request.putHeader(CONTENT_TYPE, contentType);
         }
     }

@@ -44,6 +44,7 @@ import software.amazon.awssdk.transfer.s3.FileDownload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -189,7 +190,7 @@ public class DownloadDirectoryHelper {
             return key;
         }
 
-        return key.replace(delimiter, fileSystem.getSeparator());
+        return StringUtils.replace(key, delimiter, fileSystem.getSeparator());
     }
 
     private static DownloadFileRequest downloadFileRequest(DownloadDirectoryRequest downloadDirectoryRequest,

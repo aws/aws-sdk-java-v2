@@ -349,6 +349,13 @@
                         <excludeFilterFile>software/amazon/awssdk/spotbugs-suppressions.xml</excludeFilterFile>
                         <threshold>Low</threshold>
                         <effort>Max</effort>
+                        <plugins>
+                            <dependency>
+                                <groupId>software.amazon.awssdk</groupId>
+                                <artifactId>build-tools</artifactId>
+                                <version>1.0</version>
+                            </dependency>
+                        </plugins>
                     </configuration>
                 </plugin>
                 <plugin>

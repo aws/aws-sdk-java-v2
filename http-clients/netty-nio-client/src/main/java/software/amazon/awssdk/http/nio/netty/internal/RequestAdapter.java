@@ -66,7 +66,7 @@ public final class RequestAdapter {
             encodedPath = "/";
         }
 
-        String encodedQueryParams = SdkHttpUtils.encodeAndFlattenQueryParameters(sdkRequest.rawQueryParameters())
+        String encodedQueryParams = sdkRequest.encodedQueryParameters()
                 .map(queryParams -> "?" + queryParams)
                 .orElse("");
 
@@ -85,13 +85,12 @@ public final class RequestAdapter {
         }
 
         // Copy over any other headers already in our request
-        request.headers().entrySet().stream()
-                /*
-                 * Skip the Host header to avoid sending it twice, which will
-                 * interfere with some signing schemes.
-                 */
-                .filter(e -> !IGNORE_HEADERS.contains(e.getKey()))
-                .forEach(e -> e.getValue().forEach(h -> httpRequest.headers().add(e.getKey(), h)));
+        request.forEachHeader((name, value) -> {
+            // Skip the Host header to avoid sending it twice, which will interfere with some signing schemes.
+            if (!IGNORE_HEADERS.contains(name)) {
+                value.forEach(h -> httpRequest.headers().add(name, h));
+            }
+        });
     }
 
     private String getHostHeaderValue(SdkHttpRequest request) {

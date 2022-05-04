@@ -41,6 +41,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -131,11 +132,14 @@ public class AmazonHttpClientTest {
 
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
 
+        String clientUserAgent =
+            ApplyUserAgentStage.resolveClientUserAgent(prefix, "", ClientType.SYNC, sdkHttpClient, null,
+                                                       RetryPolicy.forRetryMode(RetryMode.STANDARD));
+
         SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
-                                                     .option(SdkAdvancedClientOption.USER_AGENT_PREFIX, prefix)
                                                      .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, suffix)
+                                                     .option(SdkClientOption.CLIENT_USER_AGENT, clientUserAgent)
                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
-                                                     .option(SdkClientOption.ENDPOINT, URI.create("http://example.com"))
                                                      .build();
         AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
 
@@ -159,10 +163,13 @@ public class AmazonHttpClientTest {
     public void testUserAgentContainsHttpClientInfo() {
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
 
+        String clientUserAgent =
+            ApplyUserAgentStage.resolveClientUserAgent(null, null, ClientType.SYNC, sdkHttpClient, null,
+                                                       RetryPolicy.forRetryMode(RetryMode.STANDARD));
         SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
                                                      .option(SdkClientOption.CLIENT_TYPE, ClientType.SYNC)
-                                                     .option(SdkClientOption.ENDPOINT, URI.create("http://example.com"))
+                                                     .option(SdkClientOption.CLIENT_USER_AGENT, clientUserAgent)
                                                      .build();
         AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
 
@@ -186,11 +193,13 @@ public class AmazonHttpClientTest {
     public void testUserAgentContainsRetryModeInfo() {
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
 
+        String clientUserAgent =
+            ApplyUserAgentStage.resolveClientUserAgent(null, null, ClientType.SYNC, sdkHttpClient, null,
+                                                       RetryPolicy.forRetryMode(RetryMode.STANDARD));
+
         SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
+                                                     .option(SdkClientOption.CLIENT_USER_AGENT, clientUserAgent)
                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
-                                                     .option(SdkClientOption.CLIENT_TYPE, ClientType.SYNC)
-                                                     .option(SdkClientOption.ENDPOINT, URI.create("http://example.com"))
-                                                     .option(SdkClientOption.RETRY_POLICY, RetryPolicy.forRetryMode(RetryMode.STANDARD))
                                                      .build();
         AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
 

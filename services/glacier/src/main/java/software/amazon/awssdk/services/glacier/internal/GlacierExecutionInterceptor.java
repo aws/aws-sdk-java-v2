@@ -23,6 +23,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.glacier.model.DescribeJobRequest;
 import software.amazon.awssdk.services.glacier.model.GetJobOutputRequest;
 import software.amazon.awssdk.services.glacier.model.UploadMultipartPartRequest;
+import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public final class GlacierExecutionInterceptor implements ExecutionInterceptor {
@@ -50,7 +51,7 @@ public final class GlacierExecutionInterceptor implements ExecutionInterceptor {
         } else if (originalRequest instanceof GetJobOutputRequest || originalRequest instanceof DescribeJobRequest) {
             String resourcePath = mutableRequest.encodedPath();
             if (resourcePath != null) {
-                String newResourcePath = resourcePath.replace("{jobType}", "archive-retrievals");
+                String newResourcePath = StringUtils.replace(resourcePath, "{jobType}", "archive-retrievals");
                 mutableRequest.encodedPath(newResourcePath);
             }
         }
