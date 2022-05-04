@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "contributor": "",
-    "description": "This release adds the TargetMaps parameter in SSM State Manager API."
-}
