@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Secure Tunneling",
+    "contributor": "",
+    "description": "This release introduces a new API RotateTunnelAccessToken that allow revoking the existing tokens and generate new tokens"
+}
