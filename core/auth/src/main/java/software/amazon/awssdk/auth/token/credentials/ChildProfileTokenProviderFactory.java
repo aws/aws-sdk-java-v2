@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth.token.credentials;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.profiles.Profile;
+import software.amazon.awssdk.profiles.ProfileFile;
 
 /**
  * A factory for {@link SdkTokenProvider} that are derived from properties as defined in he given profile.
@@ -28,11 +29,13 @@ import software.amazon.awssdk.profiles.Profile;
 @FunctionalInterface
 @SdkProtectedApi
 public interface ChildProfileTokenProviderFactory {
+
     /**
      * Create a token provider for the provided profile.
      *
+     * @param profileFile The ProfileFile from which the Profile was derived.
      * @param profile The profile that should be used to load the configuration necessary to create the token provider.
      * @return The token provider with the properties derived from the source profile.
      */
-    SdkTokenProvider create(Profile profile);
+    SdkTokenProvider create(ProfileFile profileFile, Profile profile);
 }

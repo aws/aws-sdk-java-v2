@@ -66,7 +66,7 @@ public final class ProfileTokenProvider implements SdkTokenProvider, SdkAutoClos
             ProfileFile finalProfileFile = profileFile;
             tokenProvider =
                     profileFile.profile(profileName)
-                               .flatMap(p -> new ProfileTokenProviderLoader(p).tokenProvider())
+                               .flatMap(p -> new ProfileTokenProviderLoader(finalProfileFile, p).tokenProvider())
                                .orElseThrow(() -> {
                                    String errorMessage = String.format("Profile file contained no information for " +
                                                                        "profile '%s': %s", finalProfileName, finalProfileFile);

@@ -21,7 +21,9 @@ import software.amazon.awssdk.auth.token.credentials.ChildProfileTokenProviderFa
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.profiles.Profile;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
+import software.amazon.awssdk.profiles.internal.ProfileSection;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -36,39 +38,48 @@ public final class SsoOidcProfileTokenProviderFactory implements ChildProfileTok
                                                                 + "'%s' profile.";
 
     @Override
-    public SdkTokenProvider create(Profile profile) {
-        return new SsooidcProfileTokenProvider(profile);
+    public SdkTokenProvider create(ProfileFile profileFile, Profile profile) {
+        return new SsooidcProfileTokenProvider(profileFile, profile);
     }
 
 
-
     /**
-     * A wrapper for a {@link SdkTokenProvider} that is returned by this factory when {@link #create(Profile)} (Profile)} is
-     * invoked. This wrapper is important because it ensures the token provider is closed it is no longer needed.
+     * A wrapper for a {@link SdkTokenProvider} that is returned by this factory when {@link #create(ProfileFile,Profile)} is
+     * invoked. This wrapper is important because it ensures the token provider is closed when it is no longer needed.
      */
     private static final class SsooidcProfileTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
         private final SsoOidcTokenProvider sdkTokenProvider;
 
-        private SsooidcProfileTokenProvider(Profile profile) {
-            String startUrl = requireProperty(profile, ProfileProperty.SSO_START_URL);
-            String region = requireProperty(profile, ProfileProperty.SSO_REGION);
+        private SsooidcProfileTokenProvider(ProfileFile profileFile, Profile profile) {
+            String profileSsoSectionName = profile.property(
+                ProfileSection.SSO_SESSION
+                    .getPropertyKeyName()).orElseThrow(() -> new IllegalStateException(
+                        "Profile " + profile.name() + " does not have sso_session property"));
 
-            if (profile.property(ProfileProperty.SSO_ACCOUNT_ID).isPresent()
-                || profile.property(ProfileProperty.SSO_ROLE_NAME).isPresent()) {
+            Profile ssoProfile =
+                profileFile.getSection(
+                    ProfileSection.SSO_SESSION.getSectionTitle(),
+                    profileSsoSectionName).orElseThrow(() -> new IllegalArgumentException(
+                    "Sso-session section not found with sso-session title " + profileSsoSectionName + "."));
+
+            String startUrl = requireProperty(ssoProfile, ProfileProperty.SSO_START_URL);
+            String region = requireProperty(ssoProfile, ProfileProperty.SSO_REGION);
+
+            if (ssoProfile.property(ProfileProperty.SSO_ACCOUNT_ID).isPresent()
+                || ssoProfile.property(ProfileProperty.SSO_ROLE_NAME).isPresent()) {
                 throw new IllegalStateException("sso_account_id or sso_role_name properties must not be defined for"
                                                 + "profiles that provide ssooidc providers");
 
             }
 
             this.sdkTokenProvider = SsoOidcTokenProvider.builder()
-                                                        .startUrl(startUrl)
+                                                        .sessionName(ssoProfile.name())
                                                         .ssoOidcClient(SsoOidcClient.builder()
                                                                                     .region(Region.of(region))
                                                                                     .credentialsProvider(
                                                                                         AnonymousCredentialsProvider.create())
                                                                                     .build())
                                                         .build();
-
         }
 
         private String requireProperty(Profile profile, String requiredProperty) {

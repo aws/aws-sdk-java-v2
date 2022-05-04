@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.utils.UserHomeDirectoryUtils.userHomeDirectory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,6 +32,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
@@ -55,31 +57,41 @@ public abstract class SsoOidcTokenRefreshTestBase {
     protected boolean shouldMockServiceClient;
     protected SsoOidcClient ssoOidcClient;
     protected String testStartUrl;
+    protected String testSessionName = "sso-prod";;
     protected String baseTokenResourceFile;
     protected ProfileTokenProviderLoader profileTokenProviderLoader;
 
     private static final Path DEFAULT_TOKEN_LOCATION = Paths.get(userHomeDirectory(), ".aws", "sso", "cache");
 
-
-
     @BeforeEach
     public void setUp() throws IOException {
         initializeClient();
         initializeProfileProperties();
-        Path file = DEFAULT_TOKEN_LOCATION.resolve("2a98d44240ff87dab31d336d288f9aadcbac7fa3.json").getFileName();
+
+        File cacheDirectory = DEFAULT_TOKEN_LOCATION.toFile();
+        if(! cacheDirectory.exists()){
+            cacheDirectory.mkdirs();
+        }
+        Path file = DEFAULT_TOKEN_LOCATION.resolve("3472779af6e0770b3077daa955270982bc2518a3.json").getFileName();
         try {
             Files.createDirectories(file.getParent());
             Files.createFile(file);
         }catch (Exception e){
 
         }
+    }
 
+    @AfterAll
+    public static void cleanUp(){
+        File cacheDirectory = DEFAULT_TOKEN_LOCATION.toFile();
+        if(cacheDirectory.exists()){
+            cacheDirectory.delete();
+        }
     }
 
     protected abstract void initializeClient();
 
     protected void initializeProfileProperties() {
-
         String profileContent = "[profile sso-refresh]\n" +
                                 "sso_region=us-east-1\n" +
                                 "sso_start_url=" + testStartUrl + "\n";
@@ -89,15 +101,13 @@ public abstract class SsoOidcTokenRefreshTestBase {
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
         Optional<Profile> profile = profiles.profile("sso-refresh");
-
-        profileTokenProviderLoader = new ProfileTokenProviderLoader(profile.get());
-
+        profileTokenProviderLoader = new ProfileTokenProviderLoader(profiles, profile.get());
     }
 
     @Test
     public void tokenReadFromCacheLocation_when_tokenIsWithinExpiry() throws IOException {
         // Creating a token and saving to disc
-        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(testStartUrl);
+        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(testSessionName);
         SsoOidcToken tokenFromJsonFile = getTokenFromJsonFile(baseTokenResourceFile)
             .expiresAt(Instant.now().plusSeconds(3600)).build();
         onDiskTokenManager.storeToken(tokenFromJsonFile);
@@ -111,7 +121,7 @@ public abstract class SsoOidcTokenRefreshTestBase {
     @Test
     public void tokenReadFromService_And_DiscCacheUpdate_whenTokenInCacheIsExpired() {
         // Creating a token and saving to disc
-        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(testStartUrl);
+        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(testSessionName);
         SsoOidcToken tokenFromJsonFile =
             getTokenFromJsonFile(baseTokenResourceFile).expiresAt(Instant.now().minusSeconds(10)).build();
         onDiskTokenManager.storeToken(tokenFromJsonFile);
@@ -134,14 +144,14 @@ public abstract class SsoOidcTokenRefreshTestBase {
     public void tokenProvider_with_customStaleTime_refreshes_token() throws IOException {
 
         // Creating a token and saving to disc
-        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(testStartUrl);
+        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(testSessionName);
         SsoOidcToken tokenFromJsonFile =
             getTokenFromJsonFile(baseTokenResourceFile).expiresAt(Instant.now().minusSeconds(10)).build();
         onDiskTokenManager.storeToken(tokenFromJsonFile);
 
         //Creating default token provider
         SdkTokenProvider awsTokenProvider =
-            tokenProviderBuilderWithClient().staleTime(Duration.ofMinutes(70)).startUrl(testStartUrl).build();
+            tokenProviderBuilderWithClient().staleTime(Duration.ofMinutes(70)).sessionName(testSessionName).build();
 
         // Resolve first Time
         SsoOidcToken firstResolvedToken = (SsoOidcToken) awsTokenProvider.resolveToken();
@@ -157,9 +167,10 @@ public abstract class SsoOidcTokenRefreshTestBase {
     }
 
     @Test
-    public void asyncCredentialUpdateEnabled_prefetch_when_prefetch_time_expired() throws InterruptedException {
+    public void asyncCredentialUpdateEnabled_prefetch_when_prefetch_time_expired() throws InterruptedException, IOException {
+
         // Creating a token and saving to disc
-        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(testStartUrl);
+        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(testSessionName);
         SsoOidcToken tokenFromJsonFile = getTokenFromJsonFile(baseTokenResourceFile).build();
         onDiskTokenManager.storeToken(tokenFromJsonFile);
 
@@ -167,7 +178,7 @@ public abstract class SsoOidcTokenRefreshTestBase {
         SsoOidcTokenProvider awsTokenProvider =
             tokenProviderBuilderWithClient().staleTime(Duration.ofMinutes(5)).asyncTokenUpdateEnabled(true)
                 .prefetchTime(Duration.ofMinutes(10))
-                                            .startUrl(testStartUrl).prefetchTime(Duration.ofMillis(100)).build();
+                                            .sessionName(testSessionName).prefetchTime(Duration.ofMillis(100)).build();
         // Make sure that tokens are  refreshed from service after the autoRefreshDuration time
         awsTokenProvider.resolveToken();
         SsoOidcToken refreshedTokenInDisc = onDiskTokenManager.loadToken().get();
@@ -184,7 +195,7 @@ public abstract class SsoOidcTokenRefreshTestBase {
     @Test
     public void tokenNotRefreshed_when_serviceRequestFailure() throws IOException {
         // Creating a token and saving to disc
-        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(testStartUrl);
+        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(testSessionName);
 
         if (shouldMockServiceClient) {
             when(ssoOidcClient.createToken(any(CreateTokenRequest.class))).thenThrow(InvalidRequestException.builder().build());
@@ -206,12 +217,12 @@ public abstract class SsoOidcTokenRefreshTestBase {
     private SdkTokenProvider defaultTokenProvider() {
 
         if (shouldMockServiceClient) {
-            return tokenProviderBuilderWithClient().startUrl(testStartUrl)
+            return tokenProviderBuilderWithClient().sessionName(testSessionName)
                                                    .ssoOidcClient(this.ssoOidcClient).build();
         }
         //     return profileTokenProviderLoader.tokenProvider().get();
         // TODO : remove the custom client before GA.
-        return tokenProviderBuilderWithClient().startUrl(testStartUrl)
+        return tokenProviderBuilderWithClient().sessionName(testSessionName)
                                                .ssoOidcClient(this.ssoOidcClient).build();
     }
 

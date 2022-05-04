@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.ssooidc.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
@@ -36,7 +35,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 
@@ -60,11 +58,10 @@ public class OnDiskTokenManagerTest {
 
     @ParameterizedTest
     @CsvSource({
-        "https://d-abc123.awsapps.com/start, 40a89917e3175433e361b710a9d43528d7f1890a.json",
-        "https://d-abc123.awsapps.com, ab6e8a5ac0e97bd6867ae3eacd5fd7dc0cd4de86.json",
-        "https://vanity.example.com, 7ed69759fe20aa3027c01db4b744e1437b0c8f4f.json"
+        "admin , d033e22ae348aeb5660fc2140aec35850c4da997.json",
+        "dev-scopes, 75e4d41276d8bd17f85986fc6cccef29fd725ce3.json"
     })
-    public void loadToken_loadsCorrectFile(String startUrl, String expectedLocation) throws IOException {
+    public void loadToken_loadsCorrectFile(String sessionName, String expectedLocation) throws IOException {
         Path tokenPath = cache.resolve(expectedLocation);
         Instant expiresAt = Instant.now();
 
@@ -72,8 +69,6 @@ public class OnDiskTokenManagerTest {
                                          .accessToken("accesstoken")
                                          .expiresAt(expiresAt)
                                          .build();
-
-
         String tokenJson = String.format("{\n"
                                          + "    \"accessToken\": \"accesstoken\",\n"
                                          + "    \"expiresAt\": \"%s\"\n"
@@ -83,7 +78,7 @@ public class OnDiskTokenManagerTest {
             os.write(tokenJson.getBytes(StandardCharsets.UTF_8));
         }
 
-        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(cache, startUrl);
+        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(cache, sessionName);
 
         assertThat(onDiskTokenManager.loadToken().get()).isEqualTo(token);
     }
@@ -117,15 +112,15 @@ public class OnDiskTokenManagerTest {
                                          .startUrl("starturl")
                                          .build();
 
-        String startUrl = "https://d-abc123.awsapps.com/start";
-        String expectedFile = "40a89917e3175433e361b710a9d43528d7f1890a.json";
+        String ssoSession = "admin";
+        String expectedFile = "d033e22ae348aeb5660fc2140aec35850c4da997.json";
 
         try (OutputStream os = Files.newOutputStream(cache.resolve(expectedFile), StandardOpenOption.CREATE,
                                                      StandardOpenOption.WRITE)) {
             os.write(tokenJson.getBytes(StandardCharsets.UTF_8));
         }
 
-        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(cache, startUrl);
+        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(cache, ssoSession);
 
         SsoOidcToken loadedToken = onDiskTokenManager.loadToken().get();
 
@@ -137,6 +132,7 @@ public class OnDiskTokenManagerTest {
         Instant expiresAt = Instant.now();
         Instant registrationExpiresAt = expiresAt.plus(Duration.ofDays(1));
         String startUrl = "https://d-abc123.awsapps.com/start";
+        String ssoSessionName = "admin";
 
         String tokenJson = String.format("{\n"
                                          + "    \"accessToken\": \"accesstoken\",\n"
@@ -163,9 +159,9 @@ public class OnDiskTokenManagerTest {
                                          .startUrl(startUrl)
                                          .build();
 
-        String expectedFile = "40a89917e3175433e361b710a9d43528d7f1890a.json";
+        String expectedFile = "d033e22ae348aeb5660fc2140aec35850c4da997.json";
 
-        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(cache, startUrl);
+        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(cache, ssoSessionName);
 
         onDiskTokenManager.storeToken(token);
 
@@ -181,6 +177,7 @@ public class OnDiskTokenManagerTest {
         Instant expiresAt = Instant.now();
         Instant registrationExpiresAt = expiresAt.plus(Duration.ofDays(1));
         String startUrl = "https://d-abc123.awsapps.com/start";
+        String sessionName = "ssoToken-Session";
 
         SsoOidcToken token = SsoOidcToken.builder()
                                          .accessToken("accesstoken")
@@ -193,7 +190,7 @@ public class OnDiskTokenManagerTest {
                                          .startUrl(startUrl)
                                          .build();
 
-        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(cache, startUrl);
+        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(cache, sessionName);
 
         onDiskTokenManager.storeToken(token);
         SsoOidcToken loadedToken = onDiskTokenManager.loadToken().get();
@@ -203,24 +200,9 @@ public class OnDiskTokenManagerTest {
 
     @Test
     public void loadToken_cachedValueNotFound_returnsEmpty() {
-        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(cache, "https://does-not-exist.com");
+        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(cache, "does-not-exist-session");
         assertThat(onDiskTokenManager.loadToken()).isEmpty();
     }
 
-    @Test
-    public void storeToken_tokenHasDifferentStartUrl_throws() {
-        String startUrl = "https://my-start-url.com";
-        String startUrl2 = "https://my-other-start-url.com";
 
-        OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(cache, startUrl);
-        SsoOidcToken token = SsoOidcToken.builder()
-                                         .accessToken("accesstoken")
-                                         .expiresAt(Instant.now())
-                                         .startUrl(startUrl2)
-                                         .build();
-
-        assertThatThrownBy(() -> onDiskTokenManager.storeToken(token))
-            .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("Cannot store token with different startUrl");
-    }
 }
