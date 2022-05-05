@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSKendraFrontendService",
+    "contributor": "",
+    "description": "AWS Kendra now supports hierarchical facets for a query. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/filtering.html"
+}
