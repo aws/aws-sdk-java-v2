@@ -1,3 +1,24 @@
+# __2.17.185__ __2022-05-05__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports a new ObjectTags Task API option that can be used to control whether Object Tags are transferred.
+
+## __AWS IoT__
+  - ### Features
+    - AWS IoT Jobs now allows you to create up to 100,000 active continuous and snapshot jobs by using concurrency control.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - AWS Kendra now supports hierarchical facets for a query. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/filtering.html
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 I4i instances are powered by 3rd generation Intel Xeon Scalable processors and feature up to 30 TB of local AWS Nitro SSD storage
+
 # __2.17.184__ __2022-05-04__
 ## __AWS Backup__
   - ### Features

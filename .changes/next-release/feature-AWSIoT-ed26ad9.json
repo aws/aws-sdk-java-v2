@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT",
-    "contributor": "",
-    "description": "AWS IoT Jobs now allows you to create up to 100,000 active continuous and snapshot jobs by using concurrency control."
-}
