@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "Add new state values for IPAMs, IPAM Scopes, and IPAM Pools."
-}

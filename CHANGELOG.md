@@ -1,3 +1,32 @@
+# __2.17.186__ __2022-05-06__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - This release adds Dvb Dash 2014 as an available profile option for Dash Origin Endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for Security Hub API reference
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add new state values for IPAMs, IPAM Scopes, and IPAM Pools.
+
+## __Amazon Location Service__
+  - ### Features
+    - Amazon Location Service now includes a MaxResults parameter for ListGeofences requests.
+
+## __Amazon Redshift__
+  - ### Features
+    - Introduces new field 'LoadSampleData' in CreateCluster operation. Customers can now specify 'LoadSampleData' option during creation of a cluster, which results in loading of sample data in the cluster that is created.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Various documentation improvements.
+
 # __2.17.185__ __2022-05-05__
 ## __AWS DataSync__
   - ### Features
