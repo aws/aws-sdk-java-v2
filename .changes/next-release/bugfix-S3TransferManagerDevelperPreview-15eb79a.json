@@ -1,0 +1,6 @@
+{
+    "category": "S3 Transfer Manager (Develper Preview)", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixed a bug in `S3TransferManager#uploadDirectory` and `S3TransferManager#downloadDirectory` where failedUploads or failedDownloads did not contain all failed transfers"
+}

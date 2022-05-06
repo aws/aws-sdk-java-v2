@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -148,15 +149,14 @@ public class DownloadDirectoryHelper {
 
             CompletableFuture<CompletedFileDownload> future =
                 downloadFileFunction.apply(downloadFileRequest).completionFuture();
-            future.whenComplete((r, t) -> {
+            return future.whenComplete((r, t) -> {
                 if (t != null) {
                     failedFileDownloads.add(FailedFileDownload.builder()
-                                                              .exception(t)
+                                                              .exception(t instanceof CompletionException ? t.getCause() : t)
                                                               .request(downloadFileRequest)
                                                               .build());
                 }
             });
-            return future;
         } catch (Throwable throwable) {
             failedFileDownloads.add(FailedFileDownload.builder()
                                                       .exception(throwable)
