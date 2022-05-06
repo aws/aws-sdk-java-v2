@@ -31,6 +31,8 @@ import software.amazon.awssdk.services.sso.internal.SessionCredentialsHolder;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsRequest;
 import software.amazon.awssdk.services.sso.model.RoleCredentials;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -55,7 +57,8 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * </p>
  */
 @SdkPublicApi
-public final class SsoCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+public final class SsoCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable,
+                                                     ToCopyableBuilder<SsoCredentialsProvider.Builder, SsoCredentialsProvider> {
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
     private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
@@ -70,6 +73,8 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
 
     private final CachedSupplier<SessionCredentialsHolder> credentialCache;
 
+    private final Boolean asyncCredentialUpdateEnabled;
+
     /**
      * @see #builder()
      */
@@ -80,6 +85,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
 
+        this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder = CachedSupplier.builder(this::updateSsoCredentials);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(ASYNC_THREAD_NAME));
@@ -145,10 +151,15 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         credentialCache.close();
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
+    }
+
     /**
      * A builder for creating a custom {@link SsoCredentialsProvider}.
      */
-    public interface Builder {
+    public interface Builder extends CopyableBuilder<Builder, SsoCredentialsProvider> {
 
         /**
          * Configure the {@link SsoClient} to use when calling SSO to update the session. This client should not be shut
@@ -210,6 +221,14 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
 
         BuilderImpl() {
 
+        }
+
+        public BuilderImpl(SsoCredentialsProvider provider) {
+            this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
+            this.ssoClient = provider.ssoClient;
+            this.staleTime = provider.staleTime;
+            this.prefetchTime = provider.prefetchTime;
+            this.getRoleCredentialsRequestSupplier = provider.getRoleCredentialsRequestSupplier;
         }
 
         @Override

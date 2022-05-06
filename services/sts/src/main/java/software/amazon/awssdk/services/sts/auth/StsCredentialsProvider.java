@@ -28,6 +28,8 @@ import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -58,6 +60,7 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
 
     private final Duration staleTime;
     private final Duration prefetchTime;
+    private final Boolean asyncCredentialUpdateEnabled;
 
     protected StsCredentialsProvider(BaseBuilder<?, ?> builder, String asyncThreadName) {
         this.stsClient = Validate.notNull(builder.stsClient, "STS client must not be null.");
@@ -65,6 +68,7 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
 
+        this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder = CachedSupplier.builder(this::updateSessionCredentials);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(asyncThreadName));
@@ -121,7 +125,8 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
      * Extended by child class's builders to share configuration across credential providers.
      */
     @NotThreadSafe
-    protected abstract static class BaseBuilder<B extends BaseBuilder<B, T>, T> {
+    protected abstract static class BaseBuilder<B extends BaseBuilder<B, T>, T extends ToCopyableBuilder<B, T>>
+        implements CopyableBuilder<B, T> {
         private final Function<B, T> providerConstructor;
 
         private Boolean asyncCredentialUpdateEnabled = false;
@@ -131,6 +136,14 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
 
         protected BaseBuilder(Function<B, T> providerConstructor) {
             this.providerConstructor = providerConstructor;
+        }
+
+        public BaseBuilder(Function<B, T> providerConstructor, StsCredentialsProvider provider) {
+            this.providerConstructor = providerConstructor;
+            this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
+            this.stsClient = provider.stsClient;
+            this.staleTime = provider.staleTime;
+            this.prefetchTime = provider.prefetchTime;
         }
 
         /**
