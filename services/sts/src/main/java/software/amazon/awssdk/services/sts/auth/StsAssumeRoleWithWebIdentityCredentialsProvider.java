@@ -27,6 +27,7 @@ import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * An implementation of {@link AwsCredentialsProvider} that periodically sends a {@link AssumeRoleWithWebIdentityRequest}
@@ -42,7 +43,10 @@ import software.amazon.awssdk.utils.ToString;
  */
 @SdkPublicApi
 @ThreadSafe
-public final class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCredentialsProvider {
+public final class StsAssumeRoleWithWebIdentityCredentialsProvider
+    extends StsCredentialsProvider
+    implements ToCopyableBuilder<StsAssumeRoleWithWebIdentityCredentialsProvider.Builder,
+                                 StsAssumeRoleWithWebIdentityCredentialsProvider> {
     private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest;
 
     /**
@@ -76,6 +80,11 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCr
                        .build();
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     /**
      * A builder (created by {@link StsAssumeRoleWithWebIdentityCredentialsProvider#builder()}) for creating a
      * {@link StsAssumeRoleWithWebIdentityCredentialsProvider}.
@@ -86,6 +95,11 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCr
 
         private Builder() {
             super(StsAssumeRoleWithWebIdentityCredentialsProvider::new);
+        }
+
+        public Builder(StsAssumeRoleWithWebIdentityCredentialsProvider provider) {
+            super(StsAssumeRoleWithWebIdentityCredentialsProvider::new, provider);
+            this.assumeRoleWithWebIdentityRequestSupplier = provider.assumeRoleWithWebIdentityRequest;
         }
 
         /**
@@ -103,7 +117,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCr
          * Similar to {@link #refreshRequest(AssumeRoleWithWebIdentityRequest)}, but takes a {@link Supplier} to supply the
          * request to STS.
          *
-         * @param assumeRoleWithWebIdentityRequestSupplier A supplier
+         * @param assumeRoleWithWebIdentityRequest A supplier
          * @return This object for chained calls.
          */
         public Builder refreshRequest(Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest) {

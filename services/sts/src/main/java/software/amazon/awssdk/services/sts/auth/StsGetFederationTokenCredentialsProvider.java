@@ -25,6 +25,7 @@ import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenRequest;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * An implementation of {@link AwsCredentialsProvider} that periodically sends a {@link GetFederationTokenRequest} to the
@@ -40,7 +41,9 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 @ThreadSafe
-public class StsGetFederationTokenCredentialsProvider extends StsCredentialsProvider {
+public class StsGetFederationTokenCredentialsProvider
+    extends StsCredentialsProvider
+    implements ToCopyableBuilder<StsGetFederationTokenCredentialsProvider.Builder, StsGetFederationTokenCredentialsProvider> {
     private final GetFederationTokenRequest getFederationTokenRequest;
 
     /**
@@ -72,6 +75,11 @@ public class StsGetFederationTokenCredentialsProvider extends StsCredentialsProv
                        .build();
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     /**
      * A builder (created by {@link StsGetFederationTokenCredentialsProvider#builder()}) for creating a
      * {@link StsGetFederationTokenCredentialsProvider}.
@@ -82,6 +90,11 @@ public class StsGetFederationTokenCredentialsProvider extends StsCredentialsProv
 
         private Builder() {
             super(StsGetFederationTokenCredentialsProvider::new);
+        }
+
+        public Builder(StsGetFederationTokenCredentialsProvider provider) {
+            super(StsGetFederationTokenCredentialsProvider::new, provider);
+            this.getFederationTokenRequest = provider.getFederationTokenRequest;
         }
 
         /**

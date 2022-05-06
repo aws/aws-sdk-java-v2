@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleWithSamlRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * An implementation of {@link AwsCredentialsProvider} that periodically sends a {@link AssumeRoleWithSamlRequest}
@@ -41,7 +42,9 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 @ThreadSafe
-public final class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentialsProvider {
+public final class StsAssumeRoleWithSamlCredentialsProvider
+    extends StsCredentialsProvider
+    implements ToCopyableBuilder<StsAssumeRoleWithSamlCredentialsProvider.Builder, StsAssumeRoleWithSamlCredentialsProvider> {
     private final Supplier<AssumeRoleWithSamlRequest> assumeRoleWithSamlRequestSupplier;
 
 
@@ -76,6 +79,11 @@ public final class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentia
                        .build();
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     /**
      * A builder (created by {@link StsAssumeRoleWithSamlCredentialsProvider#builder()}) for creating a
      * {@link StsAssumeRoleWithSamlCredentialsProvider}.
@@ -86,6 +94,11 @@ public final class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentia
 
         private Builder() {
             super(StsAssumeRoleWithSamlCredentialsProvider::new);
+        }
+
+        public Builder(StsAssumeRoleWithSamlCredentialsProvider provider) {
+            super(StsAssumeRoleWithSamlCredentialsProvider::new, provider);
+            this.assumeRoleWithSamlRequestSupplier = provider.assumeRoleWithSamlRequestSupplier;
         }
 
         /**

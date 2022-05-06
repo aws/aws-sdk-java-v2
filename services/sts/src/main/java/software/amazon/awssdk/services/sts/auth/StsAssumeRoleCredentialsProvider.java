@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * An implementation of {@link AwsCredentialsProvider} that periodically sends an {@link AssumeRoleRequest} to the AWS
@@ -40,7 +41,9 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 @ThreadSafe
-public final class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
+public final class StsAssumeRoleCredentialsProvider
+    extends StsCredentialsProvider
+    implements ToCopyableBuilder<StsAssumeRoleCredentialsProvider.Builder, StsAssumeRoleCredentialsProvider> {
     private Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
 
     /**
@@ -74,6 +77,11 @@ public final class StsAssumeRoleCredentialsProvider extends StsCredentialsProvid
                        .build();
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     /**
      * A builder (created by {@link StsAssumeRoleCredentialsProvider#builder()}) for creating a
      * {@link StsAssumeRoleCredentialsProvider}.
@@ -84,6 +92,11 @@ public final class StsAssumeRoleCredentialsProvider extends StsCredentialsProvid
 
         private Builder() {
             super(StsAssumeRoleCredentialsProvider::new);
+        }
+
+        private Builder(StsAssumeRoleCredentialsProvider provider) {
+            super(StsAssumeRoleCredentialsProvider::new, provider);
+            this.assumeRoleRequestSupplier = provider.assumeRoleRequestSupplier;
         }
 
         /**

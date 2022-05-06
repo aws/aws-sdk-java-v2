@@ -42,6 +42,8 @@ import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -54,7 +56,9 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * credentials from EC2 metadata service and will return null.
  */
 @SdkPublicApi
-public final class InstanceProfileCredentialsProvider implements HttpCredentialsProvider {
+public final class InstanceProfileCredentialsProvider
+    implements HttpCredentialsProvider,
+               ToCopyableBuilder<InstanceProfileCredentialsProvider.Builder, InstanceProfileCredentialsProvider> {
     private static final Logger log = Logger.loggerFor(InstanceProfileCredentialsProvider.class);
     private static final String EC2_METADATA_TOKEN_HEADER = "x-aws-ec2-metadata-token";
 
@@ -69,6 +73,14 @@ public final class InstanceProfileCredentialsProvider implements HttpCredentials
     private final HttpCredentialsLoader httpCredentialsLoader;
     private final CachedSupplier<AwsCredentials> credentialsCache;
 
+    private final Boolean asyncCredentialUpdateEnabled;
+
+    private final String asyncThreadName;
+
+    private final ProfileFile profileFile;
+
+    private final String profileName;
+
     private volatile LoadedCredentials cachedCredentials;
 
     /**
@@ -77,6 +89,11 @@ public final class InstanceProfileCredentialsProvider implements HttpCredentials
     private InstanceProfileCredentialsProvider(BuilderImpl builder) {
         this.clock = builder.clock;
         this.endpoint = builder.endpoint;
+        this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
+        this.asyncThreadName = builder.asyncThreadName;
+        this.profileFile = builder.profileFile;
+        this.profileName = builder.profileName;
+
         this.httpCredentialsLoader = HttpCredentialsLoader.create();
         this.configProvider =
             Ec2MetadataConfigProvider.builder()
@@ -275,10 +292,16 @@ public final class InstanceProfileCredentialsProvider implements HttpCredentials
         return Collections.singletonMap(EC2_METADATA_TOKEN_HEADER, metadataToken);
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
+    }
+
     /**
      * A builder for creating a custom a {@link InstanceProfileCredentialsProvider}.
      */
-    public interface Builder extends HttpCredentialsProvider.Builder<InstanceProfileCredentialsProvider, Builder> {
+    public interface Builder extends HttpCredentialsProvider.Builder<InstanceProfileCredentialsProvider, Builder>,
+                                     CopyableBuilder<Builder, InstanceProfileCredentialsProvider> {
         /**
          * Configure the profile file used for loading IMDS-related configuration, like the endpoint mode (IPv4 vs IPv6).
          *
@@ -310,6 +333,15 @@ public final class InstanceProfileCredentialsProvider implements HttpCredentials
 
         private BuilderImpl() {
             asyncThreadName("instance-profile-credentials-provider");
+        }
+
+        private BuilderImpl(InstanceProfileCredentialsProvider provider) {
+            this.clock = provider.clock;
+            this.endpoint = provider.endpoint;
+            this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
+            this.asyncThreadName = provider.asyncThreadName;
+            this.profileFile = provider.profileFile;
+            this.profileName = provider.profileName;
         }
 
         Builder clock(Clock clock) {
