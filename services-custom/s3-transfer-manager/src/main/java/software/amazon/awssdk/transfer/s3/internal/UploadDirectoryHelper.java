@@ -144,8 +144,8 @@ public class UploadDirectoryHelper {
         int nameCount = uploadDirectoryRequest.sourceDirectory().getNameCount();
         UploadFileRequest uploadFileRequest = constructUploadRequest(uploadDirectoryRequest, nameCount, path);
         log.debug(() -> String.format("Sending upload request (%s) for path (%s)", uploadFileRequest, path));
-        CompletableFuture<CompletedFileUpload> future = uploadFunction.apply(uploadFileRequest).completionFuture();
-        return future.whenComplete((r, t) -> {
+        CompletableFuture<CompletedFileUpload> executionFuture = uploadFunction.apply(uploadFileRequest).completionFuture();
+        CompletableFuture<CompletedFileUpload> future = executionFuture.whenComplete((r, t) -> {
             if (t != null) {
                 failedFileUploads.add(FailedFileUpload.builder()
                                                       .exception(t instanceof CompletionException ? t.getCause() : t)
@@ -153,6 +153,8 @@ public class UploadDirectoryHelper {
                                                       .build());
             }
         });
+        CompletableFutureUtils.forwardExceptionTo(future, executionFuture);
+        return future;
     }
 
     private Stream<Path> listFiles(Path directory, UploadDirectoryRequest request) {

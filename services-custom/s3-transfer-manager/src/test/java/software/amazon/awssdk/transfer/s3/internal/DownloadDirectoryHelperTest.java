@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -29,6 +30,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -110,6 +112,32 @@ public class DownloadDirectoryHelperTest {
             "key1"));
         assertThat(argumentCaptor.getAllValues()).element(1).satisfies(d -> assertThat(d.getObjectRequest().key()).isEqualTo(
             "key2"));
+    }
+
+    @Test
+    void downloadDirectory_cancel_shouldCancelAllFutures() throws Exception {
+        stubSuccessfulListObjects(listObjectsHelper, "key1", "key2");
+
+        CompletableFuture<CompletedFileDownload> future = new CompletableFuture<>();
+        FileDownload fileDownload = newDownload(future);
+
+        CompletableFuture<CompletedFileDownload> future2 = new CompletableFuture<>();
+        FileDownload fileDownload2 = newDownload(future2);
+
+        when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
+
+        DirectoryDownload downloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destinationDirectory(directory)
+                                                                              .bucket("bucket")
+                                                                              .build());
+        downloadDirectory.completionFuture().cancel(true);
+
+        assertThatThrownBy(() -> future.get(1, TimeUnit.SECONDS))
+            .isInstanceOf(CancellationException.class);
+
+        assertThatThrownBy(() -> future2.get(1, TimeUnit.SECONDS))
+            .isInstanceOf(CancellationException.class);
     }
 
     @Test

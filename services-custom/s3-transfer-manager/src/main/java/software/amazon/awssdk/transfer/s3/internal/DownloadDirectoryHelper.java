@@ -107,10 +107,10 @@ public class DownloadDirectoryHelper {
         Queue<FailedFileDownload> failedFileDownloads = new ConcurrentLinkedQueue<>();
 
         CompletableFuture<Void> allOfFutures = new CompletableFuture<>();
+
         AsyncBufferingSubscriber<DownloadFileContext> asyncBufferingSubscriber =
-            new AsyncBufferingSubscriber<>(downloadContext -> downloadSingleFile(downloadDirectoryRequest,
-                                                                                 failedFileDownloads,
-                                                                                 downloadContext),
+            new AsyncBufferingSubscriber<>(downloadSingleFile(returnFuture, downloadDirectoryRequest,
+                                                              failedFileDownloads),
                                            allOfFutures,
                                            DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY);
         listObjectsHelper.listS3ObjectsRecursively(request)
@@ -129,6 +129,20 @@ public class DownloadDirectoryHelper {
         });
     }
 
+    private Function<DownloadFileContext, CompletableFuture<?>> downloadSingleFile(
+        CompletableFuture<CompletedDirectoryDownload> returnFuture,
+        DownloadDirectoryRequest downloadDirectoryRequest,
+        Queue<FailedFileDownload> failedFileDownloads) {
+
+        return downloadContext -> {
+            CompletableFuture<CompletedFileDownload> future = doDownloadSingleFile(downloadDirectoryRequest,
+                                                                                   failedFileDownloads,
+                                                                                   downloadContext);
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            return future;
+        };
+    }
+
     private DownloadFileContext determineDestinationPath(DownloadDirectoryRequest downloadDirectoryRequest, S3Object s3Object) {
         FileSystem fileSystem = downloadDirectoryRequest.destinationDirectory().getFileSystem();
         String delimiter = downloadDirectoryRequest.delimiter().orElse(null);
@@ -138,18 +152,18 @@ public class DownloadDirectoryHelper {
         return new DefaultDownloadFileContext(s3Object, destinationPath);
     }
 
-    private CompletableFuture<CompletedFileDownload> downloadSingleFile(DownloadDirectoryRequest downloadDirectoryRequest,
-                                                                        Collection<FailedFileDownload> failedFileDownloads,
-                                                                        DownloadFileContext downloadContext) {
+    private CompletableFuture<CompletedFileDownload> doDownloadSingleFile(DownloadDirectoryRequest downloadDirectoryRequest,
+                                                                          Collection<FailedFileDownload> failedFileDownloads,
+                                                                          DownloadFileContext downloadContext) {
         DownloadFileRequest downloadFileRequest = downloadFileRequest(downloadDirectoryRequest, downloadContext);
 
         try {
             log.debug(() -> "Sending download request " + downloadFileRequest);
             createParentDirectoriesIfNeeded(downloadContext.destination());
 
-            CompletableFuture<CompletedFileDownload> future =
+            CompletableFuture<CompletedFileDownload> executionFuture =
                 downloadFileFunction.apply(downloadFileRequest).completionFuture();
-            return future.whenComplete((r, t) -> {
+            CompletableFuture<CompletedFileDownload> future = executionFuture.whenComplete((r, t) -> {
                 if (t != null) {
                     failedFileDownloads.add(FailedFileDownload.builder()
                                                               .exception(t instanceof CompletionException ? t.getCause() : t)
@@ -157,6 +171,9 @@ public class DownloadDirectoryHelper {
                                                               .build());
                 }
             });
+            CompletableFutureUtils.forwardExceptionTo(future, executionFuture);
+            return future;
+
         } catch (Throwable throwable) {
             failedFileDownloads.add(FailedFileDownload.builder()
                                                       .exception(throwable)
