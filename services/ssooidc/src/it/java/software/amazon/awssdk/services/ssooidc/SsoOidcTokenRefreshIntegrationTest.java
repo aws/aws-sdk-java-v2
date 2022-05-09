@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.ssooidc;
 
 
 
-import java.net.URI;
 import org.junit.jupiter.api.Disabled;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -38,7 +37,6 @@ public class SsoOidcTokenRefreshIntegrationTest extends SsoOidcTokenRefreshTestB
         ssoOidcClient = SsoOidcClient.builder()
                                      .region(Region.of(REGION))
                                      .credentialsProvider(AnonymousCredentialsProvider.create())
-                                     .endpointOverride(URI.create("https://us-east-1.beta.oidc.access.idaho.aws.a2z.com"))
                                      .build();
     }
 }

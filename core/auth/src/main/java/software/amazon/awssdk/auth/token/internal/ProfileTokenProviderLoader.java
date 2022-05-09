@@ -23,7 +23,9 @@ import software.amazon.awssdk.auth.token.credentials.ChildProfileTokenProviderFa
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.profiles.Profile;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
+import software.amazon.awssdk.profiles.internal.ProfileSection;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -35,9 +37,11 @@ public final class ProfileTokenProviderLoader {
         "software.amazon.awssdk.services.ssooidc.SsoOidcProfileTokenProviderFactory";
 
     private final Profile profile;
+    private final ProfileFile profileFile;
 
-    public ProfileTokenProviderLoader(Profile profile) {
+    public ProfileTokenProviderLoader(ProfileFile profileFile, Profile profile) {
         this.profile = Validate.paramNotNull(profile, "profile");
+        this.profileFile = Validate.paramNotNull(profileFile, "profileFile");
     }
 
     /**
@@ -51,18 +55,28 @@ public final class ProfileTokenProviderLoader {
      * Create the SSO credentials provider based on the related profile properties.
      */
     private SdkTokenProvider ssoProfileCredentialsProvider() {
-        requireProperties(ProfileProperty.SSO_REGION,
-                          ProfileProperty.SSO_START_URL);
-        return ssoTokenProviderFactory().create(profile);
+
+        String profileSsoSectionName = profile.property(ProfileSection.SSO_SESSION.getPropertyKeyName())
+                                              .orElseThrow(() -> new IllegalArgumentException(
+                                                  "Profile " + profile.name() + " does not have sso_session property"));
+
+        Profile ssoProfile = profileFile.getSection(ProfileSection.SSO_SESSION.getSectionTitle(), profileSsoSectionName)
+                                        .orElseThrow(() -> new IllegalArgumentException(
+                                            "Sso-session section not found with sso-session title " + profileSsoSectionName));
+
+        validateRequiredProperties(ssoProfile,
+                                   ProfileProperty.SSO_REGION,
+                                   ProfileProperty.SSO_START_URL);
+        return ssoTokenProviderFactory().create(profileFile, profile);
     }
 
     /**
      * Require that the provided properties are configured in this profile.
      */
-    private void requireProperties(String... requiredProperties) {
+    private void validateRequiredProperties(Profile ssoProfile, String... requiredProperties) {
         Arrays.stream(requiredProperties)
-              .forEach(p -> Validate.isTrue(profile.properties().containsKey(p),
-                                            "Property '%s' was not configured for profile '%s'.", p, profile.name()));
+              .forEach(p -> Validate.isTrue(ssoProfile.properties().containsKey(p),
+                                            "Property '%s' was not configured for profile '%s'.", p, this.profile.name()));
     }
 
     /**

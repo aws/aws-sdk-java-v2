@@ -58,14 +58,14 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
     private final Duration prefetchTime;
 
     private SsoOidcTokenProvider(BuilderImpl builder) {
-        Validate.paramNotNull(builder.startUrl, "startUrl");
+        Validate.paramNotNull(builder.sessionName, "sessionName");
         Validate.paramNotNull(builder.ssoOidcClient, "ssoOidcClient");
 
         this.ssoOidcClient = builder.ssoOidcClient;
         this.staleTime = builder.staleTime == null ? DEFAULT_STALE_DURATION : builder.staleTime;
         this.prefetchTime = builder.prefetchTime == null ? DEFAULT_PREFETCH_DURATION : builder.prefetchTime;
 
-        this.onDiskTokenManager = OnDiskTokenManager.create(builder.startUrl);
+        this.onDiskTokenManager = OnDiskTokenManager.create(builder.sessionName);
 
         this.tokenRefresher = CachedTokenRefresher.builder()
                                                   .tokenRetriever(getDefaultSsoTokenRetriever(this.ssoOidcClient,
@@ -111,9 +111,9 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
 
     public interface Builder {
         /**
-         * The startUrl used to retrieve the SSO token.
+         * The sessionName used to retrieve the SSO token.
          */
-        Builder startUrl(String startUrl);
+        Builder sessionName(String sessionName);
 
         /**
          *
@@ -166,7 +166,7 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
     }
 
     private static class BuilderImpl implements Builder {
-        private String startUrl;
+        private String sessionName;
         private SsoOidcClient ssoOidcClient;
         private Duration staleTime;
         private Duration prefetchTime;
@@ -177,8 +177,8 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
         }
 
         @Override
-        public Builder startUrl(String startUrl) {
-            this.startUrl = startUrl;
+        public Builder sessionName(String sessionName) {
+            this.sessionName = sessionName;
             return this;
         }
 

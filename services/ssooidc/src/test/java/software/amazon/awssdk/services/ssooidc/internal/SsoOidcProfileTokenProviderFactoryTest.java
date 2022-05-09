@@ -15,8 +15,12 @@
 
 package software.amazon.awssdk.services.ssooidc.internal;
 
+import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProviderFactoryProperties;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -25,8 +29,35 @@ import software.amazon.awssdk.utils.StringInputStream;
 
 public class SsoOidcProfileTokenProviderFactoryTest {
 
+    private static Stream<Arguments> ssoSessionMissingProperties() {
+        String ssoRegionErrorMsg = "'sso_region' must be set to use bearer tokens loading in the 'one' profile.";
+        String ssoStartUrlErrorMsg = "'sso_start_url' must be set to use bearer tokens loading in the 'one' profile.";
+        String ssoSectionNotFoundError = "Sso-session section not found with sso-session title one.";
+
+
+        return Stream.of(Arguments.of("[profile sso]\n" +
+                                      "sso_session=one\n" +
+                                      "[sso-session one]\n" +
+                                      "sso_regions=us-east-1\n" +
+                                      "sso_start_url= https://start-url\n", ssoRegionErrorMsg),
+
+                         Arguments.of("[profile sso]\n" +
+                                      "sso_session=one\n" +
+                                      "[sso-session one]\n" +
+                                      "sso_region=us-east-1\n" +
+                                      "sso_end_url= https://start-url\n", ssoStartUrlErrorMsg),
+                         Arguments.of("[profile sso]\n" +
+                                      "sso_session=one\n" +
+                                      "[sso-session one]\n" , ssoStartUrlErrorMsg),
+                         Arguments.of( "[profile sso]\n" +
+                                       "sso_session=one\n" +
+                                       "[sso-session two]\n" +
+                                       "sso_region=us-east-1\n" +
+                                       "sso_start_url= https://start-url\n", ssoSectionNotFoundError));
+    }
+
     @Test
-    public void create_throwsExceptionIfRegionNotPassed() {
+    void create_throwsExceptionIfRegionNotPassed() {
         String startUrl = "https://my-start-url.com";
         Assertions.assertThatExceptionOfType(NullPointerException.class).isThrownBy(
             () -> SdkTokenProviderFactoryProperties.builder().
@@ -36,7 +67,7 @@ public class SsoOidcProfileTokenProviderFactoryTest {
     }
 
     @Test
-    public void create_throwsExceptionIfStartUrlNotPassed() {
+    void create_throwsExceptionIfStartUrlNotPassed() {
         String region = "test-region";
 
         Assertions.assertThatExceptionOfType(NullPointerException.class).isThrownBy(
@@ -47,22 +78,24 @@ public class SsoOidcProfileTokenProviderFactoryTest {
     }
 
     @Test
-    public void  create_SsooidcTokenProvider_from_SsooidcSpecificProfile(){
-        String profileContent = "[profile ssooidc]\n" +
+    void create_SsooidcTokenProvider_from_SsooidcSpecificProfile() {
+        String profileContent = "[profile ssotoken]\n" +
+                                "sso_session=admin\n" +
+                                "[sso-session admin]\n" +
                                 "sso_region=us-east-1\n" +
                                 "sso_start_url= https://start-url\n";
         ProfileFile profiles = ProfileFile.builder()
                                           .content(new StringInputStream(profileContent))
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
-        SdkTokenProvider sdkTokenProvider = new SsoOidcProfileTokenProviderFactory().create(profiles.profile("ssooidc").get());
+        SdkTokenProvider sdkTokenProvider = new SsoOidcProfileTokenProviderFactory().create(profiles,
+                                                                                            profiles.profile("ssotoken").get());
         Assertions.assertThat(sdkTokenProvider).isNotNull();
 
     }
 
-
     @Test
-    public void create_SsooidcTokenProvider_with_ssoAccountIdInProfile(){
+    void create_SsooidcTokenProvider_with_ssoAccountIdInProfile() {
         String profileContent = "[profile sso]\n" +
                                 "sso_region=us-east-1\n" +
                                 "sso_account_id=1234567\n" +
@@ -73,12 +106,12 @@ public class SsoOidcProfileTokenProviderFactoryTest {
                                           .build();
 
         Assertions.assertThatExceptionOfType(IllegalStateException.class)
-                  .isThrownBy(() -> new SsoOidcProfileTokenProviderFactory().create(profiles.profile("sso").get()));
+                  .isThrownBy(() -> new SsoOidcProfileTokenProviderFactory().create(profiles, profiles.profile("sso").get()));
 
     }
 
     @Test
-    public void create_SsooidcTokenProvider_with_ssoRoleNameInProfile(){
+    void create_SsooidcTokenProvider_with_ssoRoleNameInProfile() {
         String profileContent = "[profile sso]\n" +
                                 "sso_region=us-east-1\n" +
                                 "sso_role_name=ssoSpecificRole\n" +
@@ -89,8 +122,22 @@ public class SsoOidcProfileTokenProviderFactoryTest {
                                           .build();
 
         Assertions.assertThatExceptionOfType(IllegalStateException.class)
-                  .isThrownBy(() -> new SsoOidcProfileTokenProviderFactory().create(profiles.profile("sso").get()));
+                  .isThrownBy(() -> new SsoOidcProfileTokenProviderFactory().create(profiles, profiles.profile("sso").get()));
 
+    }
+
+    @ParameterizedTest
+    @MethodSource("ssoSessionMissingProperties")
+    void incorrectSsoProperties_throwsException(String ssoProfileContent, String msg) {
+        ProfileFile profiles = ProfileFile.builder()
+                                          .content(new StringInputStream(ssoProfileContent))
+                                          .type(ProfileFile.Type.CONFIGURATION)
+                                          .build();
+
+
+        Assertions.assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+                      () -> new SsoOidcProfileTokenProviderFactory().create(profiles, profiles.profile("sso").get()))
+                  .withMessageContaining(msg);
     }
 
 }

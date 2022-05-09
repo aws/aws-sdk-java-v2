@@ -51,13 +51,14 @@ public final class OnDiskTokenManager implements TokenManager<SsoOidcToken> {
 
     private final JsonNodeParser jsonParser = JsonNodeParser.builder().removeErrorLocations(true).build();
 
-    private final String startUrl;
+    private final String sessionName;
     private final Path tokenLocation;
 
-    private OnDiskTokenManager(Path cacheLocation, String startUrl) {
+    private OnDiskTokenManager(Path cacheLocation, String sessionName) {
         Validate.notNull(cacheLocation, "cacheLocation must not be null");
-        this.startUrl = Validate.notNull(startUrl, "startUrl must not be null");
-        String cacheKey = deriveCacheKey(startUrl);
+        this.sessionName = Validate.notNull(sessionName, "sessionName must not be null");
+        Validate.notBlank(sessionName, "sessionName must not be blank");
+        String cacheKey = deriveCacheKey(sessionName);
         this.tokenLocation = cacheLocation.resolve(cacheKey + ".json");
     }
 
@@ -77,10 +78,6 @@ public final class OnDiskTokenManager implements TokenManager<SsoOidcToken> {
 
     @Override
     public void storeToken(SsoOidcToken token) {
-        if (token.startUrl() != null && !token.startUrl().equals(startUrl)) {
-            throw SdkClientException.create("Cannot store token with different startUrl into " + tokenLocation);
-        }
-
         try (OutputStream os = Files.newOutputStream(tokenLocation)) {
             os.write(marshalToken(token));
         } catch (IOException e) {
@@ -92,12 +89,12 @@ public final class OnDiskTokenManager implements TokenManager<SsoOidcToken> {
     public void close() {
     }
 
-    public static OnDiskTokenManager create(Path cacheLocation, String startUrl) {
-        return new OnDiskTokenManager(cacheLocation, startUrl);
+    public static OnDiskTokenManager create(Path cacheLocation, String sessionName) {
+        return new OnDiskTokenManager(cacheLocation, sessionName);
     }
 
-    public static OnDiskTokenManager create(String startUrl) {
-        return create(DEFAULT_TOKEN_LOCATION, startUrl);
+    public static OnDiskTokenManager create(String sessionName) {
+        return create(DEFAULT_TOKEN_LOCATION, sessionName);
     }
 
     private SsoOidcToken unmarshalToken(String contents) {
@@ -172,10 +169,10 @@ public final class OnDiskTokenManager implements TokenManager<SsoOidcToken> {
         }
     }
 
-    private static String deriveCacheKey(String startUrl) {
+    private static String deriveCacheKey(String sessionName) {
         try {
             MessageDigest sha1 = MessageDigest.getInstance("sha1");
-            sha1.update(startUrl.getBytes(StandardCharsets.UTF_8));
+            sha1.update(sessionName.getBytes(StandardCharsets.UTF_8));
             return BinaryUtils.toHex(sha1.digest()).toLowerCase(Locale.ENGLISH);
         } catch (NoSuchAlgorithmException e) {
             throw SdkClientException.create("Unable to derive cache key", e);
