@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cloud Control API",
+    "contributor": "",
+    "description": "SDK release for Cloud Control API to include paginators for Python SDK."
+}
