@@ -1,3 +1,20 @@
+# __2.17.187__ __2022-05-09__
+## __AWS Cloud Control API__
+  - ### Features
+    - SDK release for Cloud Control API to include paginators for Python SDK.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - Fixed an error in the DescribeEngagement example for AWS Incident Manager.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - Add detail message inside GetExperimentResults API response to indicate experiment result availability
+
 # __2.17.186__ __2022-05-06__
 ## __AWS Elemental MediaPackage__
   - ### Features
