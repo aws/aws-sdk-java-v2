@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Systems Manager Incident Manager Contacts",
-    "contributor": "",
-    "description": "Fixed an error in the DescribeEngagement example for AWS Incident Manager."
-}

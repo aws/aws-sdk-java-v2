@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Evidently",
-    "contributor": "",
-    "description": "Add detail message inside GetExperimentResults API response to indicate experiment result availability"
-}
