@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -100,6 +102,18 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
         assertThat(keys).containsOnly(prefix + "/bar.txt", prefix + "/foo/1.txt", prefix + "/foo/2.txt");
 
         keys.forEach(k -> verifyContent(k, k.substring(prefix.length() + 1) + randomString));
+    }
+
+    @Test
+    void uploadDirectory_nonExistsBucket_shouldAddFailedRequest() {
+        String prefix = "yolo";
+        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(directory)
+                                                                   .bucket("nonExistingTestBucket" + UUID.randomUUID())
+                                                                   .prefix(prefix)
+                                                                   .overrideConfiguration(o -> o.recursive(true)));
+        CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
+        assertThat(completedDirectoryUpload.failedTransfers()).hasSize(3).allSatisfy(f ->
+            assertThat(f.exception()).isInstanceOf(NoSuchBucketException.class));
     }
 
     @Test

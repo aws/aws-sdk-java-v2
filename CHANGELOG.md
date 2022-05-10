@@ -1,3 +1,82 @@
+# __2.17.188__ __2022-05-10__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Documentation updates for Compute Optimizer
+
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - AWS Migration Hub Refactor Spaces documentation only update to fix a formatting issue.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Bump `aws-crt` version from `0.16.1` to `0.16.7`
+
+  - ### Bugfixes
+    - DynamoDBEnhanced - Fix handling attribute names with special characters including `/`
+
+## __Amazon EMR__
+  - ### Features
+    - This release updates the Amazon EMR ModifyInstanceGroups API to support "MERGE" type cluster reconfiguration. Also, added the ability to specify a particular Amazon Linux release for all nodes in a cluster launch request.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for using NitroTPM and UEFI Secure Boot on EC2 instances.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds BOTTLEROCKET_ARM_64_NVIDIA and BOTTLEROCKET_x86_64_NVIDIA AMI types to EKS managed nodegroups
+
+## __S3 Transfer Manager (Developer Preview)__
+  - ### Bugfixes
+    - Fixed a bug in `S3TransferManager#uploadDirectory` and `S3TransferManager#downloadDirectory` where failedUploads or failedDownloads did not contain all failed transfers
+    - Fixed cancellation logic in `S3TransferManager#downloadDirectory`
+
+# __2.17.187__ __2022-05-09__
+## __AWS Cloud Control API__
+  - ### Features
+    - SDK release for Cloud Control API to include paginators for Python SDK.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - Fixed an error in the DescribeEngagement example for AWS Incident Manager.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - Add detail message inside GetExperimentResults API response to indicate experiment result availability
+
+# __2.17.186__ __2022-05-06__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - This release adds Dvb Dash 2014 as an available profile option for Dash Origin Endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for Security Hub API reference
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add new state values for IPAMs, IPAM Scopes, and IPAM Pools.
+
+## __Amazon Location Service__
+  - ### Features
+    - Amazon Location Service now includes a MaxResults parameter for ListGeofences requests.
+
+## __Amazon Redshift__
+  - ### Features
+    - Introduces new field 'LoadSampleData' in CreateCluster operation. Customers can now specify 'LoadSampleData' option during creation of a cluster, which results in loading of sample data in the cluster that is created.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Various documentation improvements.
+
 # __2.17.185__ __2022-05-05__
 ## __AWS DataSync__
   - ### Features

@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -143,15 +144,16 @@ public class UploadDirectoryHelper {
         int nameCount = uploadDirectoryRequest.sourceDirectory().getNameCount();
         UploadFileRequest uploadFileRequest = constructUploadRequest(uploadDirectoryRequest, nameCount, path);
         log.debug(() -> String.format("Sending upload request (%s) for path (%s)", uploadFileRequest, path));
-        CompletableFuture<CompletedFileUpload> future = uploadFunction.apply(uploadFileRequest).completionFuture();
-        future.whenComplete((r, t) -> {
+        CompletableFuture<CompletedFileUpload> executionFuture = uploadFunction.apply(uploadFileRequest).completionFuture();
+        CompletableFuture<CompletedFileUpload> future = executionFuture.whenComplete((r, t) -> {
             if (t != null) {
                 failedFileUploads.add(FailedFileUpload.builder()
-                                                      .exception(t)
+                                                      .exception(t instanceof CompletionException ? t.getCause() : t)
                                                       .request(uploadFileRequest)
                                                       .build());
             }
         });
+        CompletableFutureUtils.forwardExceptionTo(future, executionFuture);
         return future;
     }
 
