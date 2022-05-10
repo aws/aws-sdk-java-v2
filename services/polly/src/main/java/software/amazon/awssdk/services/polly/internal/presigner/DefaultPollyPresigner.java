@@ -164,7 +164,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     private void initializePresignedRequest(PresignedRequest.Builder presignedRequest,
                                             ExecutionAttributes execAttrs,
                                             SdkHttpFullRequest signedHttpRequest) {
-        List<String> signedHeadersQueryParam = signedHttpRequest.rawQueryParameters().get("X-Amz-SignedHeaders");
+        List<String> signedHeadersQueryParam = signedHttpRequest.firstMatchingRawQueryParameters("X-Amz-SignedHeaders");
 
         Map<String, List<String>> signedHeaders =
                 signedHeadersQueryParam.stream()
@@ -188,8 +188,8 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                                               ExecutionAttributes executionAttributes) {
         Presigner presigner = resolvePresigner(requestToPresign);
         SdkHttpFullRequest presigned = presigner.presign(marshalledRequest, executionAttributes);
-        List<String> signedHeadersQueryParam = presigned.rawQueryParameters().get("X-Amz-SignedHeaders");
-        Validate.validState(signedHeadersQueryParam != null,
+        List<String> signedHeadersQueryParam = presigned.firstMatchingRawQueryParameters("X-Amz-SignedHeaders");
+        Validate.validState(!signedHeadersQueryParam.isEmpty(),
                 "Only SigV4 presigners are supported at this time, but the configured "
                         + "presigner (%s) did not seem to generate a SigV4 signature.", presigner);
         return presigned;

@@ -18,8 +18,6 @@ package software.amazon.awssdk.authcrt.signer.internal;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -116,11 +114,11 @@ public class SigningUtils {
         builder.clearHeaders();
 
         // Filter headers that will cause signing to fail
-        for (Map.Entry<String, List<String>> header: request.headers().entrySet()) {
-            if (!FORBIDDEN_HEADERS.contains(header.getKey())) {
-                builder.putHeader(header.getKey(), header.getValue());
+        request.forEachHeader((name, value) -> {
+            if (!FORBIDDEN_HEADERS.contains(name)) {
+                builder.putHeader(name, value);
             }
-        }
+        });
 
         // Add host, which must be signed. We ignore any pre-existing Host header to match the behavior of the SigV4 signer.
         String hostHeader = SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
@@ -131,12 +129,11 @@ public class SigningUtils {
         builder.clearQueryParameters();
 
         // Filter query parameters that will cause signing to fail
-        Map<String, List<String>> params = request.rawQueryParameters();
-        for (Map.Entry<String, List<String>> param: params.entrySet()) {
-            if (!FORBIDDEN_PARAMS.contains(param.getKey())) {
-                builder.putRawQueryParameter(param.getKey(), param.getValue());
+        request.forEachRawQueryParameter((key, value) -> {
+            if (!FORBIDDEN_PARAMS.contains(key)) {
+                builder.putRawQueryParameter(key, value);
             }
-        }
+        });
 
         return builder.build();
     }
