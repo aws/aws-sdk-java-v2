@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "DynamoDBEnhanced - Fix handling attribute names with special characters including `/`"
-}

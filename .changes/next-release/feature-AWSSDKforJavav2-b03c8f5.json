@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Bump `aws-crt` version from `0.16.1` to `0.16.7`"
-}
