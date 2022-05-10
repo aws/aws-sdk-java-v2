@@ -1,0 +1,6 @@
+{
+    "category": "S3 Transfer Manager (Developer Preview)", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixed cancellation logic in `S3TransferManager#downloadDirectory`"
+}
