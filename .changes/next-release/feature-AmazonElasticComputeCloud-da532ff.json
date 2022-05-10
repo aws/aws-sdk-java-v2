@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "Added support for using NitroTPM and UEFI Secure Boot on EC2 instances."
+}
