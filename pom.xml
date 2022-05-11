@@ -98,7 +98,7 @@
         <wiremock.version>2.32.0</wiremock.version>
         <slf4j.version>1.7.30</slf4j.version>
         <log4j.version>2.17.1</log4j.version>
-        <commons.io.version>2.5</commons.io.version>
+        <commons.io.version>2.11.0</commons.io.version>
         <equalsverifier.version>3.7.1</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml search "tcnative.version" -->
