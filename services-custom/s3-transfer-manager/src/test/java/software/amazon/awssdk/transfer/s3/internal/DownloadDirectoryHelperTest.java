@@ -27,6 +27,7 @@ import static software.amazon.awssdk.transfer.s3.util.S3ApiCallMockUtils.stubSuc
 import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
@@ -112,6 +113,30 @@ public class DownloadDirectoryHelperTest {
             "key1"));
         assertThat(argumentCaptor.getAllValues()).element(1).satisfies(d -> assertThat(d.getObjectRequest().key()).isEqualTo(
             "key2"));
+    }
+
+    @Test
+    void invalidKey_shouldThrowException() throws Exception {
+        assertExceptionThrownForInvalidKeys("../key1");
+        assertExceptionThrownForInvalidKeys("/../key1");
+        assertExceptionThrownForInvalidKeys("blah/../../object.dat");
+        assertExceptionThrownForInvalidKeys("blah/../object/../../blah/another/object.dat");
+        assertExceptionThrownForInvalidKeys("../{directory-name}-2/object.dat");
+    }
+
+    private void assertExceptionThrownForInvalidKeys(String key) throws IOException {
+        Path destinationDirectory = Files.createTempDirectory("test");
+        String lastElement = destinationDirectory.getName(destinationDirectory.getNameCount() - 1).toString();
+        key = key.replace("{directory-name}", lastElement);
+        stubSuccessfulListObjects(listObjectsHelper, key);
+        DirectoryDownload downloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destinationDirectory(destinationDirectory)
+                                                                              .bucket("bucket")
+                                                                              .build());
+
+        assertThatThrownBy(() -> downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS))
+            .hasCauseInstanceOf(SdkClientException.class).getRootCause().hasMessageContaining("Cannot download key");
     }
 
     @Test
