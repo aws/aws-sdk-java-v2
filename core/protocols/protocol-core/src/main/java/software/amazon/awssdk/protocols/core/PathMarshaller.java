@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocols.core;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -60,7 +61,7 @@ public abstract class PathMarshaller {
         @Override
         public String marshall(String resourcePath, String paramName, String pathValue) {
             Validate.notEmpty(pathValue, "%s cannot be empty.", paramName);
-            return resourcePath.replace(String.format("{%s}", paramName), SdkHttpUtils.urlEncode(pathValue));
+            return StringUtils.replace(resourcePath, "{" + paramName + "}", SdkHttpUtils.urlEncode(pathValue));
         }
     }
 
@@ -69,8 +70,9 @@ public abstract class PathMarshaller {
         @Override
         public String marshall(String resourcePath, String paramName, String pathValue) {
             Validate.notEmpty(pathValue, "%s cannot be empty.", paramName);
-            return resourcePath.replace(String.format("{%s+}", paramName),
-                                        SdkHttpUtils.urlEncodeIgnoreSlashes(trimLeadingSlash(pathValue)));
+            return StringUtils.replace(resourcePath,
+                                       "{" + paramName + "+}",
+                                       SdkHttpUtils.urlEncodeIgnoreSlashes(trimLeadingSlash(pathValue)));
         }
     }
 
@@ -79,8 +81,7 @@ public abstract class PathMarshaller {
         @Override
         public String marshall(String resourcePath, String paramName, String pathValue) {
             Validate.notEmpty(pathValue, "%s cannot be empty.", paramName);
-            return resourcePath.replace(String.format("{%s+}", paramName),
-                                        SdkHttpUtils.urlEncodeIgnoreSlashes(pathValue));
+            return StringUtils.replace(resourcePath, "{" + paramName + "+}", SdkHttpUtils.urlEncodeIgnoreSlashes(pathValue));
         }
     }
 

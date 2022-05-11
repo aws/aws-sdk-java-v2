@@ -61,7 +61,6 @@ public class AwsServiceExceptionSerializationTest {
         SdkHttpResponse httpResponse = SdkHttpFullResponse.builder()
                                                           .statusCode(403)
                                                           .statusText("SomeText")
-                                                          .putHeader("sample", "value")
                                                           .content(contentStream)
                                                           .build();
 

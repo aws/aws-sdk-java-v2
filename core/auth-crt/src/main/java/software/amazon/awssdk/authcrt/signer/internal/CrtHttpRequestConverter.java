@@ -16,7 +16,6 @@
 package software.amazon.awssdk.authcrt.signer.internal;
 
 import static java.lang.Math.min;
-import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -26,7 +25,6 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
@@ -52,9 +50,7 @@ public final class CrtHttpRequestConverter {
         String method = inputRequest.method().name();
         String encodedPath = encodedPathToCrtFormat(inputRequest.encodedPath());
 
-        String encodedQueryString = SdkHttpUtils.encodeAndFlattenQueryParameters(inputRequest.rawQueryParameters())
-                .map(value -> "?" + value)
-                .orElse("");
+        String encodedQueryString = inputRequest.encodedQueryParameters().map(value -> "?" + value).orElse("");
 
         HttpHeader[] crtHeaderArray = createHttpHeaderArray(inputRequest);
 
@@ -129,20 +125,20 @@ public final class CrtHttpRequestConverter {
     }
 
     private HttpHeader[] createHttpHeaderArray(SdkHttpFullRequest request) {
-        List<HttpHeader> crtHeaderList = new ArrayList<>(request.headers().size() + 2);
+        List<HttpHeader> crtHeaderList = new ArrayList<>(request.numHeaders() + 2);
 
         // Set Host Header if needed
-        if (isNullOrEmpty(request.headers().get(HOST_HEADER))) {
+        if (!request.firstMatchingHeader(HOST_HEADER).isPresent()) {
             crtHeaderList.add(new HttpHeader(HOST_HEADER, request.host()));
         }
 
         // Add the rest of the Headers
-        for (Map.Entry<String, List<String>> headerList: request.headers().entrySet()) {
-            for (String val: headerList.getValue()) {
-                HttpHeader h = new HttpHeader(headerList.getKey(), val);
+        request.forEachHeader((name, values) -> {
+            for (String val : values) {
+                HttpHeader h = new HttpHeader(name, val);
                 crtHeaderList.add(h);
             }
-        }
+        });
 
         return crtHeaderList.toArray(new HttpHeader[0]);
     }

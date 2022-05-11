@@ -42,11 +42,11 @@ public final class S3EndpointUtils {
 
     public static String removeFipsIfNeeded(String region) {
         if (region.startsWith("fips-")) {
-            return region.replace("fips-", "");
+            return StringUtils.replace(region, "fips-", "");
         }
 
         if (region.endsWith("-fips")) {
-            return region.replace("-fips", "");
+            return StringUtils.replace(region, "-fips", "");
         }
         return region;
     }

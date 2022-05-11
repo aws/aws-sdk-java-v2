@@ -69,8 +69,15 @@ public class RetryableStageHelper {
         this.request = request;
         this.context = context;
         this.retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
-        this.rateLimitingTokenBucket = rateLimitingTokenBucket;
         this.dependencies = dependencies;
+
+        if (rateLimitingTokenBucket != null) {
+            this.rateLimitingTokenBucket = rateLimitingTokenBucket;
+        } else if (isRateLimitingEnabled()) {
+            this.rateLimitingTokenBucket = new RateLimitingTokenBucket();
+        } else {
+            this.rateLimitingTokenBucket = null;
+        }
     }
 
     /**
@@ -216,7 +223,7 @@ public class RetryableStageHelper {
     /**
      * Whether rate limiting is enabled. Only {@link RetryMode#ADAPTIVE} enables rate limiting.
      */
-    public boolean isRateLimitingEnabled() {
+    private boolean isRateLimitingEnabled() {
         return retryPolicy.retryMode() == RetryMode.ADAPTIVE;
     }
 

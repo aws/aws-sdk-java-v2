@@ -32,7 +32,6 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Response handler for AWS/Query services and Amazon EC2 which is a dialect of the Query protocol.
@@ -84,12 +83,10 @@ public final class AwsQueryResponseHandler<T extends AwsResponse> implements Htt
      */
     private AwsResponseMetadata generateResponseMetadata(SdkHttpResponse response, Map<String, String> metadata) {
         if (!metadata.containsKey(AWS_REQUEST_ID)) {
-            metadata.put(AWS_REQUEST_ID,
-                         SdkHttpUtils.firstMatchingHeaderFromCollection(response.headers(), X_AMZN_REQUEST_ID_HEADERS)
-                                     .orElse(null));
+            metadata.put(AWS_REQUEST_ID, response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADERS).orElse(null));
         }
 
-        response.headers().forEach((key, value) -> metadata.put(key, value.get(0)));
+        response.forEachHeader((key, value) -> metadata.put(key, value.get(0)));
         return DefaultAwsResponseMetadata.create(metadata);
     }
 

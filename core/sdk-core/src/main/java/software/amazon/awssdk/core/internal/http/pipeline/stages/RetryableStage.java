@@ -43,7 +43,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                           RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline) {
         this.dependencies = dependencies;
         this.requestPipeline = requestPipeline;
-        this.rateLimitingTokenBucket = new RateLimitingTokenBucket();
+        this.rateLimitingTokenBucket = null;
     }
 
     @SdkTestInternalApi

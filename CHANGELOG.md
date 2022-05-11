@@ -1,3 +1,12 @@
+# __2.17.189__ __2022-05-11__
+## __AWS Secrets Manager__
+  - ### Features
+    - Doc only update for Secrets Manager that fixes several customer-reported issues.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release updates AWS PrivateLink APIs to support IPv6 for PrivateLink Services and Endpoints of type 'Interface'.
+
 # __2.17.188__ __2022-05-10__
 ## __AWS Compute Optimizer__
   - ### Features

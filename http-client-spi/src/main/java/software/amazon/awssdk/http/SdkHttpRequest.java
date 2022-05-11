@@ -15,12 +15,15 @@
 
 package software.amazon.awssdk.http;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -96,6 +99,43 @@ public interface SdkHttpRequest extends SdkHttpHeaders, ToCopyableBuilder<SdkHtt
      */
     Map<String, List<String>> rawQueryParameters();
 
+    default Optional<String> firstMatchingRawQueryParameter(String key) {
+        List<String> values = rawQueryParameters().get(key);
+        return values == null ? Optional.empty() : values.stream().findFirst();
+    }
+
+    default Optional<String> firstMatchingRawQueryParameter(Collection<String> keys) {
+        for (String key : keys) {
+            Optional<String> result = firstMatchingRawQueryParameter(key);
+            if (result.isPresent()) {
+                return result;
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    default List<String> firstMatchingRawQueryParameters(String key) {
+        List<String> values = rawQueryParameters().get(key);
+        return values == null ? emptyList() : values;
+    }
+
+    default void forEachRawQueryParameter(BiConsumer<? super String, ? super List<String>> consumer) {
+        rawQueryParameters().forEach(consumer);
+    }
+
+    default int numRawQueryParameters() {
+        return rawQueryParameters().size();
+    }
+
+    default Optional<String> encodedQueryParameters() {
+        return SdkHttpUtils.encodeAndFlattenQueryParameters(rawQueryParameters());
+    }
+
+    default Optional<String> encodedQueryParametersAsFormData() {
+        return SdkHttpUtils.encodeAndFlattenFormData(rawQueryParameters());
+    }
+
     /**
      * Convert this HTTP request's protocol, host, port, path and query string into a properly-encoded URI string that matches the
      * URI string used for AWS request signing.
@@ -109,10 +149,7 @@ public interface SdkHttpRequest extends SdkHttpHeaders, ToCopyableBuilder<SdkHtt
         // We can't create a URI by simply passing the query parameters into the URI constructor that takes a query string,
         // because URI will re-encode them. Because we want to encode them using our encoder, we have to build the URI
         // ourselves and pass it to the single-argument URI constructor that doesn't perform the encoding.
-
-        String encodedQueryString = SdkHttpUtils.encodeAndFlattenQueryParameters(rawQueryParameters())
-                                                .map(value -> "?" + value)
-                                                .orElse("");
+        String encodedQueryString = encodedQueryParameters().map(value -> "?" + value).orElse("");
 
         // Do not include the port in the URI when using the default port for the protocol.
         String portString = SdkHttpUtils.isUsingStandardPort(protocol(), port()) ? "" : ":" + port();
@@ -133,7 +170,7 @@ public interface SdkHttpRequest extends SdkHttpHeaders, ToCopyableBuilder<SdkHtt
      * A mutable builder for {@link SdkHttpFullRequest}. An instance of this can be created using
      * {@link SdkHttpFullRequest#builder()}.
      */
-    interface Builder extends CopyableBuilder<Builder, SdkHttpRequest> {
+    interface Builder extends CopyableBuilder<Builder, SdkHttpRequest>, SdkHttpHeaders {
         /**
          * Convenience method to set the {@link #protocol()}, {@link #host()}, {@link #port()},
          * {@link #encodedPath()} and extracts query parameters from a {@link URI} object.
@@ -262,6 +299,18 @@ public interface SdkHttpRequest extends SdkHttpHeaders, ToCopyableBuilder<SdkHtt
          */
         Builder clearQueryParameters();
 
+        default void forEachRawQueryParameter(BiConsumer<? super String, ? super List<String>> consumer) {
+            rawQueryParameters().forEach(consumer);
+        }
+
+        default int numRawQueryParameters() {
+            return rawQueryParameters().size();
+        }
+
+        default Optional<String> encodedQueryParameters() {
+            return SdkHttpUtils.encodeAndFlattenQueryParameters(rawQueryParameters());
+        }
+
         /**
          * The path, exactly as it was configured with {@link #method(SdkHttpMethod)}.
          */
@@ -272,22 +321,6 @@ public interface SdkHttpRequest extends SdkHttpHeaders, ToCopyableBuilder<SdkHtt
          * until the http request is created.
          */
         Builder method(SdkHttpMethod httpMethod);
-
-        /**
-         * Perform a case-insensitive search for a particular header in this request, returning the first matching header, if one
-         * is found.
-         *
-         * <p>This is useful for headers like 'Content-Type' or 'Content-Length' of which there is expected to be only one value
-         * present.</p>
-         *
-         * <p>This is equivalent to invoking {@link SdkHttpUtils#firstMatchingHeader(Map, String)}</p>.
-         *
-         * @param header The header to search for (case insensitively).
-         * @return The first header that matched the requested one, or empty if one was not found.
-         */
-        default Optional<String> firstMatchingHeader(String header) {
-            return SdkHttpUtils.firstMatchingHeader(headers(), header);
-        }
 
         /**
          * The query parameters, exactly as they were configured with {@link #headers(Map)},

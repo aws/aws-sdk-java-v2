@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.http.crt.internal;
 
-import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.IOException;
@@ -35,7 +34,6 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
 public final class CrtRequestExecutor {
@@ -122,9 +120,9 @@ public final class CrtRequestExecutor {
             encodedPath = "/";
         }
 
-        String encodedQueryString = SdkHttpUtils.encodeAndFlattenQueryParameters(sdkRequest.rawQueryParameters())
-                                                .map(value -> "?" + value)
-                                                .orElse("");
+        String encodedQueryString = sdkRequest.encodedQueryParameters()
+                                              .map(value -> "?" + value)
+                                              .orElse("");
 
         HttpHeader[] crtHeaderArray = asArray(createHttpHeaderList(uri, asyncRequest));
 
@@ -138,26 +136,26 @@ public final class CrtRequestExecutor {
     private static List<HttpHeader> createHttpHeaderList(URI uri, AsyncExecuteRequest asyncRequest) {
         SdkHttpRequest sdkRequest = asyncRequest.request();
         // worst case we may add 3 more headers here
-        List<HttpHeader> crtHeaderList = new ArrayList<>(sdkRequest.headers().size() + 3);
+        List<HttpHeader> crtHeaderList = new ArrayList<>(sdkRequest.numHeaders() + 3);
 
         // Set Host Header if needed
-        if (isNullOrEmpty(sdkRequest.headers().get(Header.HOST))) {
+        if (!sdkRequest.firstMatchingHeader(Header.HOST).isPresent()) {
             crtHeaderList.add(new HttpHeader(Header.HOST, uri.getHost()));
         }
 
         // Add Connection Keep Alive Header to reuse this Http Connection as long as possible
-        if (isNullOrEmpty(sdkRequest.headers().get(Header.CONNECTION))) {
+        if (!sdkRequest.firstMatchingHeader(Header.CONNECTION).isPresent()) {
             crtHeaderList.add(new HttpHeader(Header.CONNECTION, Header.KEEP_ALIVE_VALUE));
         }
 
         // Set Content-Length if needed
         Optional<Long> contentLength = asyncRequest.requestContentPublisher().contentLength();
-        if (isNullOrEmpty(sdkRequest.headers().get(Header.CONTENT_LENGTH)) && contentLength.isPresent()) {
+        if (!sdkRequest.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent() && contentLength.isPresent()) {
             crtHeaderList.add(new HttpHeader(Header.CONTENT_LENGTH, Long.toString(contentLength.get())));
         }
 
         // Add the rest of the Headers
-        sdkRequest.headers().forEach((key, value) -> {
+        sdkRequest.forEachHeader((key, value) -> {
             value.stream().map(val -> new HttpHeader(key, val)).forEach(crtHeaderList::add);
         });
 
