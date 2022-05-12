@@ -219,7 +219,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
     }
 
     /**
-     * Returns the serialized JSON data representing this object as a {@link ByteArrayInputStream}.
+     * Returns the serialized JSON data representing this object as an {@link InputStream}.
      *
      * @return the serialized JSON input stream
      */

@@ -18,6 +18,8 @@ package software.amazon.awssdk.transfer.s3.internal.serialization;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallingType;
@@ -41,6 +43,7 @@ public final class TransferManagerMarshallingUtils {
 
     private static final Map<MarshallingType<?>, TransferManagerJsonMarshaller<?>> MARSHALLERS;
     private static final Map<MarshallingType<?>, TransferManagerJsonUnmarshaller<?>> UNMARSHALLERS;
+    private static final Map<String, SdkField<?>> GET_OBJECT_SDK_FIELDS;
 
     static {
         Map<MarshallingType<?>, TransferManagerJsonMarshaller<?>> marshallers = new HashMap<>();
@@ -71,8 +74,12 @@ public final class TransferManagerMarshallingUtils {
         unmarshallers.put(MarshallingType.BIG_DECIMAL, TransferManagerJsonUnmarshaller.BIG_DECIMAL);
         unmarshallers.put(MarshallingType.BOOLEAN, TransferManagerJsonUnmarshaller.BOOLEAN);
         unmarshallers.put(MarshallingType.SDK_BYTES, TransferManagerJsonUnmarshaller.SDK_BYTES);
-
         UNMARSHALLERS = Collections.unmodifiableMap(unmarshallers);
+
+        GET_OBJECT_SDK_FIELDS = Collections.unmodifiableMap(
+            GetObjectRequest.builder().build()
+                            .sdkFields().stream()
+                            .collect(Collectors.toMap(SdkField::locationName, Function.identity())));
     }
 
     private TransferManagerMarshallingUtils() {
@@ -116,12 +123,12 @@ public final class TransferManagerMarshallingUtils {
         return (TransferManagerJsonUnmarshaller<Object>) unmarshaller;
     }
 
-    public static SdkField<?> getSdkField(String key) {
-        return GetObjectRequest.builder().build()
-                               .sdkFields().stream()
-                               .filter(f -> f.locationName().equalsIgnoreCase(key))
-                               .findFirst()
-                               .orElseThrow(() -> new IllegalStateException("Could not match a field in GetObjectRequest"));
+    public static SdkField<?> getObjectSdkField(String key) {
+        SdkField<?> sdkField = GET_OBJECT_SDK_FIELDS.get(key);
+        if (sdkField != null) {
+            return sdkField;
+        }
+        throw new IllegalStateException("Could not match a field in GetObjectRequest");
     }
 
 }

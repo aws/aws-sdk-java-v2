@@ -16,7 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal.serialization;
 
 import static software.amazon.awssdk.transfer.s3.internal.serialization.TransferManagerMarshallingUtils.getMarshaller;
-import static software.amazon.awssdk.transfer.s3.internal.serialization.TransferManagerMarshallingUtils.getSdkField;
+import static software.amazon.awssdk.transfer.s3.internal.serialization.TransferManagerMarshallingUtils.getObjectSdkField;
 import static software.amazon.awssdk.transfer.s3.internal.serialization.TransferManagerMarshallingUtils.getUnmarshaller;
 
 import java.nio.file.Paths;
@@ -137,7 +137,7 @@ public final class ResumableFileDownloadSerializer {
     }
 
     private static void setGetObjectParameters(GetObjectRequest.Builder getObjectBuilder, String key, JsonNode value) {
-        SdkField<?> f = getSdkField(key);
+        SdkField<?> f = getObjectSdkField(key);
         MarshallingType<?> marshallingType = f.marshallingType();
         TransferManagerJsonUnmarshaller<Object> unmarshaller = getUnmarshaller(marshallingType);
         f.set(getObjectBuilder, unmarshaller.unmarshall(value));

@@ -21,32 +21,45 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.time.Instant;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonGenerator;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.DateUtils;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Thin wrapper around Jackson's JSON generator.
  */
 @SdkProtectedApi
-public class JsonWriter {
+public class JsonWriter implements SdkAutoCloseable {
 
     /**
      * The default {@link JsonFactory} used for {@link #create()} or if a factory is not configured via
      * {@link JsonNodeParser.Builder#jsonFactory(JsonFactory)}.
      */
-    public static final JsonFactory DEFAULT_JSON_FACTORY = JsonFactory.builder().build();
-
+    public static final Supplier<JsonFactory> DEFAULT_JSON_FACTORY = () -> JsonFactory.builder().build();
     private static final int DEFAULT_BUFFER_SIZE = 1024;
-    private final ByteArrayOutputStream baos = new ByteArrayOutputStream(DEFAULT_BUFFER_SIZE);
-    private final JsonGenerator generator;
+    private final Supplier<JsonFactory> jsonFactory;
+    private ByteArrayOutputStream baos;
+    private JsonGenerator generator;
 
-    public JsonWriter(Builder builder) {
+    private JsonWriter(Builder builder) {
+        jsonFactory = builder.jsonFactory != null ? builder.jsonFactory : DEFAULT_JSON_FACTORY;
+    }
+
+    private JsonGenerator generator() {
+        if (generator == null) {
+            initializeGenerator();
+        }
+        return generator;
+    }
+
+    private void initializeGenerator() {
         try {
-            JsonFactory jsonFactory = builder.jsonFactory;
-            this.generator = jsonFactory.createGenerator(baos);
+            baos = new ByteArrayOutputStream(DEFAULT_BUFFER_SIZE);
+            generator = jsonFactory.get().createGenerator(baos);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -62,7 +75,7 @@ public class JsonWriter {
 
     public JsonWriter writeStartArray() {
         try {
-            generator.writeStartArray();
+            generator().writeStartArray();
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -71,7 +84,7 @@ public class JsonWriter {
 
     public JsonWriter writeEndArray() {
         try {
-            generator.writeEndArray();
+            generator().writeEndArray();
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -80,7 +93,7 @@ public class JsonWriter {
 
     public JsonWriter writeNull() {
         try {
-            generator.writeNull();
+            generator().writeNull();
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -89,7 +102,7 @@ public class JsonWriter {
 
     public JsonWriter writeStartObject() {
         try {
-            generator.writeStartObject();
+            generator().writeStartObject();
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -98,7 +111,7 @@ public class JsonWriter {
 
     public JsonWriter writeEndObject() {
         try {
-            generator.writeEndObject();
+            generator().writeEndObject();
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -107,7 +120,7 @@ public class JsonWriter {
 
     public JsonWriter writeFieldName(String fieldName) {
         try {
-            generator.writeFieldName(fieldName);
+            generator().writeFieldName(fieldName);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -116,7 +129,7 @@ public class JsonWriter {
 
     public JsonWriter writeValue(String val) {
         try {
-            generator.writeString(val);
+            generator().writeString(val);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -125,7 +138,7 @@ public class JsonWriter {
 
     public JsonWriter writeValue(boolean bool) {
         try {
-            generator.writeBoolean(bool);
+            generator().writeBoolean(bool);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -134,7 +147,7 @@ public class JsonWriter {
 
     public JsonWriter writeValue(long val) {
         try {
-            generator.writeNumber(val);
+            generator().writeNumber(val);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -143,7 +156,7 @@ public class JsonWriter {
 
     public JsonWriter writeValue(double val) {
         try {
-            generator.writeNumber(val);
+            generator().writeNumber(val);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -152,7 +165,7 @@ public class JsonWriter {
 
     public JsonWriter writeValue(float val) {
         try {
-            generator.writeNumber(val);
+            generator().writeNumber(val);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -161,7 +174,7 @@ public class JsonWriter {
 
     public JsonWriter writeValue(short val) {
         try {
-            generator.writeNumber(val);
+            generator().writeNumber(val);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -170,7 +183,7 @@ public class JsonWriter {
 
     public JsonWriter writeValue(int val) {
         try {
-            generator.writeNumber(val);
+            generator().writeNumber(val);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -179,17 +192,16 @@ public class JsonWriter {
 
     public JsonWriter writeValue(ByteBuffer bytes) {
         try {
-            generator.writeBinary(BinaryUtils.copyBytesFrom(bytes));
+            generator().writeBinary(BinaryUtils.copyBytesFrom(bytes));
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
         return this;
     }
 
-    //TODO: This date formatting is coupled to AWS's format. Should generalize it
     public JsonWriter writeValue(Instant instant) {
         try {
-            generator.writeNumber(DateUtils.formatUnixTimestampInstant(instant));
+            generator().writeNumber(DateUtils.formatUnixTimestampInstant(instant));
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -198,12 +210,7 @@ public class JsonWriter {
 
     public JsonWriter writeValue(BigDecimal value) {
         try {
-            /**
-             * Note that this is not how the backend represents BigDecimal types. On the wire
-             * it's normally a JSON number but this causes problems with certain JSON implementations
-             * that parse JSON numbers as floating points automatically. (See API-433)
-             */
-            generator.writeString(value.toString());
+            generator().writeString(value.toString());
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -212,7 +219,7 @@ public class JsonWriter {
 
     public JsonWriter writeValue(BigInteger value) {
         try {
-            generator.writeNumber(value);
+            generator().writeNumber(value);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -221,7 +228,7 @@ public class JsonWriter {
 
     public JsonWriter writeNumber(String number) {
         try {
-            generator.writeNumber(number);
+            generator().writeNumber(number);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -232,9 +239,9 @@ public class JsonWriter {
      * Closes the generator and flushes to write. Must be called when finished writing JSON
      * content.
      */
-    private void close() {
+    public void close() {
         try {
-            generator.close();
+            generator().close();
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -252,15 +259,11 @@ public class JsonWriter {
         return baos.toByteArray();
     }
 
-    protected software.amazon.awssdk.thirdparty.jackson.core.JsonGenerator getGenerator() {
-        return generator;
-    }
-
     /**
      * A builder for configuring and creating {@link JsonWriter}. Created via {@link #builder()}.
      */
     public static final class Builder {
-        private JsonFactory jsonFactory = DEFAULT_JSON_FACTORY;
+        private Supplier<JsonFactory> jsonFactory;
 
         private Builder() {
         }
@@ -274,7 +277,7 @@ public class JsonWriter {
          *
          * <p>By default, this is {@link #DEFAULT_JSON_FACTORY}.
          */
-        public JsonWriter.Builder jsonFactory(JsonFactory jsonFactory) {
+        public JsonWriter.Builder jsonFactory(Supplier<JsonFactory> jsonFactory) {
             this.jsonFactory = jsonFactory;
             return this;
         }
