@@ -27,7 +27,6 @@ import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.protocols.core.Marshaller;
 import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
-import software.amazon.awssdk.utils.DateUtils;
 
 /**
  * Interface to marshall data according to the JSON protocol specification.
@@ -46,8 +45,7 @@ public interface TransferManagerJsonMarshaller<T> extends Marshaller<T> {
     TransferManagerJsonMarshaller<Double> DOUBLE = (val, jsonGenerator) -> jsonGenerator.writeValue(val);
     TransferManagerJsonMarshaller<BigDecimal> BIG_DECIMAL = (val, jsonGenerator) -> jsonGenerator.writeValue(val);
     TransferManagerJsonMarshaller<Boolean> BOOLEAN = (val, jsonGenerator) -> jsonGenerator.writeValue(val);
-    TransferManagerJsonMarshaller<Instant> INSTANT =
-        (val, jsonGenerator) -> jsonGenerator.writeNumber(DateUtils.formatUnixTimestampInstant(val));
+    TransferManagerJsonMarshaller<Instant> INSTANT = (val, jsonGenerator) -> jsonGenerator.writeValue(val);
     TransferManagerJsonMarshaller<SdkBytes> SDK_BYTES = (val, jsonGenerator) -> jsonGenerator.writeValue(val.asByteBuffer());
 
     TransferManagerJsonMarshaller<Void> NULL = new TransferManagerJsonMarshaller<Void>() {

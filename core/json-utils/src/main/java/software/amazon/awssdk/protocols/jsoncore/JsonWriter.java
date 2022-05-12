@@ -15,13 +15,14 @@
 
 package software.amazon.awssdk.protocols.jsoncore;
 
+import static software.amazon.awssdk.protocols.jsoncore.JsonNodeParser.DEFAULT_JSON_FACTORY;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.time.Instant;
-import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonGenerator;
@@ -35,31 +36,16 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 @SdkProtectedApi
 public class JsonWriter implements SdkAutoCloseable {
 
-    /**
-     * The default {@link JsonFactory} used for {@link #create()} or if a factory is not configured via
-     * {@link JsonNodeParser.Builder#jsonFactory(JsonFactory)}.
-     */
-    public static final Supplier<JsonFactory> DEFAULT_JSON_FACTORY = () -> JsonFactory.builder().build();
     private static final int DEFAULT_BUFFER_SIZE = 1024;
-    private final Supplier<JsonFactory> jsonFactory;
-    private ByteArrayOutputStream baos;
-    private JsonGenerator generator;
+    private final JsonFactory jsonFactory;
+    private final ByteArrayOutputStream baos;
+    private final JsonGenerator generator;
 
     private JsonWriter(Builder builder) {
         jsonFactory = builder.jsonFactory != null ? builder.jsonFactory : DEFAULT_JSON_FACTORY;
-    }
-
-    private JsonGenerator generator() {
-        if (generator == null) {
-            initializeGenerator();
-        }
-        return generator;
-    }
-
-    private void initializeGenerator() {
         try {
             baos = new ByteArrayOutputStream(DEFAULT_BUFFER_SIZE);
-            generator = jsonFactory.get().createGenerator(baos);
+            generator = jsonFactory.createGenerator(baos);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -75,7 +61,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeStartArray() {
         try {
-            generator().writeStartArray();
+            generator.writeStartArray();
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -84,7 +70,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeEndArray() {
         try {
-            generator().writeEndArray();
+            generator.writeEndArray();
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -93,7 +79,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeNull() {
         try {
-            generator().writeNull();
+            generator.writeNull();
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -102,7 +88,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeStartObject() {
         try {
-            generator().writeStartObject();
+            generator.writeStartObject();
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -111,7 +97,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeEndObject() {
         try {
-            generator().writeEndObject();
+            generator.writeEndObject();
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -120,7 +106,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeFieldName(String fieldName) {
         try {
-            generator().writeFieldName(fieldName);
+            generator.writeFieldName(fieldName);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -129,7 +115,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeValue(String val) {
         try {
-            generator().writeString(val);
+            generator.writeString(val);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -138,7 +124,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeValue(boolean bool) {
         try {
-            generator().writeBoolean(bool);
+            generator.writeBoolean(bool);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -147,7 +133,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeValue(long val) {
         try {
-            generator().writeNumber(val);
+            generator.writeNumber(val);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -156,7 +142,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeValue(double val) {
         try {
-            generator().writeNumber(val);
+            generator.writeNumber(val);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -165,7 +151,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeValue(float val) {
         try {
-            generator().writeNumber(val);
+            generator.writeNumber(val);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -174,7 +160,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeValue(short val) {
         try {
-            generator().writeNumber(val);
+            generator.writeNumber(val);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -183,7 +169,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeValue(int val) {
         try {
-            generator().writeNumber(val);
+            generator.writeNumber(val);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -192,7 +178,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeValue(ByteBuffer bytes) {
         try {
-            generator().writeBinary(BinaryUtils.copyBytesFrom(bytes));
+            generator.writeBinary(BinaryUtils.copyBytesFrom(bytes));
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -201,7 +187,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeValue(Instant instant) {
         try {
-            generator().writeNumber(DateUtils.formatUnixTimestampInstant(instant));
+            generator.writeNumber(DateUtils.formatUnixTimestampInstant(instant));
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -210,7 +196,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeValue(BigDecimal value) {
         try {
-            generator().writeString(value.toString());
+            generator.writeString(value.toString());
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -219,7 +205,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeValue(BigInteger value) {
         try {
-            generator().writeNumber(value);
+            generator.writeNumber(value);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -228,7 +214,7 @@ public class JsonWriter implements SdkAutoCloseable {
 
     public JsonWriter writeNumber(String number) {
         try {
-            generator().writeNumber(number);
+            generator.writeNumber(number);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -241,7 +227,7 @@ public class JsonWriter implements SdkAutoCloseable {
      */
     public void close() {
         try {
-            generator().close();
+            generator.close();
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -263,7 +249,7 @@ public class JsonWriter implements SdkAutoCloseable {
      * A builder for configuring and creating {@link JsonWriter}. Created via {@link #builder()}.
      */
     public static final class Builder {
-        private Supplier<JsonFactory> jsonFactory;
+        private JsonFactory jsonFactory;
 
         private Builder() {
         }
@@ -275,9 +261,9 @@ public class JsonWriter implements SdkAutoCloseable {
          * <p>It's highly recommended us use a shared {@code JsonFactory} where possible, so they should be stored statically:
          * http://wiki.fasterxml.com/JacksonBestPracticesPerformance
          *
-         * <p>By default, this is {@link #DEFAULT_JSON_FACTORY}.
+         * <p>By default, this is {@link JsonNodeParser#DEFAULT_JSON_FACTORY}.
          */
-        public JsonWriter.Builder jsonFactory(Supplier<JsonFactory> jsonFactory) {
+        public JsonWriter.Builder jsonFactory(JsonFactory jsonFactory) {
             this.jsonFactory = jsonFactory;
             return this;
         }
