@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkSpaces",
+    "contributor": "",
+    "description": "Increased the character limit of the login message from 600 to 850 characters."
+}
