@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Transfer Family",
-    "contributor": "",
-    "description": "AWS Transfer Family now accepts ECDSA keys for server host keys"
-}

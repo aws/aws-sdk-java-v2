@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lightsail",
-    "contributor": "",
-    "description": "This release adds support to include inactive database bundles in the response of the GetRelationalDatabaseBundles request."
-}
