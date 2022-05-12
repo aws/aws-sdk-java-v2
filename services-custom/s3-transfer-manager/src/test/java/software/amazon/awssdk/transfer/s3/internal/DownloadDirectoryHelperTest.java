@@ -39,6 +39,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.EncodingType;
@@ -115,13 +117,14 @@ public class DownloadDirectoryHelperTest {
             "key2"));
     }
 
-    @Test
-    void invalidKey_shouldThrowException() throws Exception {
-        assertExceptionThrownForInvalidKeys("../key1");
-        assertExceptionThrownForInvalidKeys("/../key1");
-        assertExceptionThrownForInvalidKeys("blah/../../object.dat");
-        assertExceptionThrownForInvalidKeys("blah/../object/../../blah/another/object.dat");
-        assertExceptionThrownForInvalidKeys("../{directory-name}-2/object.dat");
+    @ParameterizedTest
+    @ValueSource(strings = {"/blah",
+                            "../blah/object.dat",
+                            "blah/../../object.dat",
+                            "blah/../object/../../blah/another/object.dat",
+                            "../{directory-name}-2/object.dat"})
+    void invalidKey_shouldThrowException(String testingString) throws Exception {
+        assertExceptionThrownForInvalidKeys(testingString);
     }
 
     private void assertExceptionThrownForInvalidKeys(String key) throws IOException {
