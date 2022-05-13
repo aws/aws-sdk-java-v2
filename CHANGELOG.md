@@ -1,3 +1,8 @@
+# __2.17.191__ __2022-05-13__
+## __Amazon Managed Grafana__
+  - ### Features
+    - This release adds APIs for creating and deleting API keys in an Amazon Managed Grafana workspace.
+
 # __2.17.190__ __2022-05-12__
 ## __AWS IoT__
   - ### Features
