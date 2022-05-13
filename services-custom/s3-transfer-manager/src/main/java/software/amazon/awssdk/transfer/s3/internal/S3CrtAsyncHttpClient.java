@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.transfer.s3.internal.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
-import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -39,7 +38,6 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * An implementation of {@link SdkAsyncHttpClient} that uses an CRT S3 HTTP client {@link S3Client} to communicate with S3.
@@ -147,9 +145,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             encodedPath = "/";
         }
 
-        String encodedQueryString = SdkHttpUtils.encodeAndFlattenQueryParameters(sdkRequest.rawQueryParameters())
-                                                .map(value -> "?" + value)
-                                                .orElse("");
+        String encodedQueryString = sdkRequest.encodedQueryParameters()
+                                              .map(value -> "?" + value)
+                                              .orElse("");
 
         HttpHeader[] crtHeaderArray = createHttpHeaderList(uri, asyncRequest).toArray(new HttpHeader[0]);
 
@@ -256,19 +254,19 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         List<HttpHeader> crtHeaderList = new ArrayList<>();
 
         // Set Host Header if needed
-        if (isNullOrEmpty(sdkRequest.headers().get(Header.HOST))) {
+        if (!sdkRequest.firstMatchingHeader(Header.HOST).isPresent()) {
             crtHeaderList.add(new HttpHeader(Header.HOST, uri.getHost()));
         }
 
         // Set Content-Length if needed
         Optional<Long> contentLength = asyncRequest.requestContentPublisher().contentLength();
-        if (isNullOrEmpty(sdkRequest.headers().get(Header.CONTENT_LENGTH)) && contentLength.isPresent()) {
+        if (!sdkRequest.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent() && contentLength.isPresent()) {
             crtHeaderList.add(new HttpHeader(Header.CONTENT_LENGTH, Long.toString(contentLength.get())));
         }
 
         // Add the rest of the Headers
-        sdkRequest.headers().forEach((key, value) -> value.stream().map(val -> new HttpHeader(key, val))
-                                                          .forEach(crtHeaderList::add));
+        sdkRequest.forEachHeader((key, value) -> value.stream().map(val -> new HttpHeader(key, val))
+                                                      .forEach(crtHeaderList::add));
 
         return crtHeaderList;
     }

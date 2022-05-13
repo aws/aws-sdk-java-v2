@@ -160,11 +160,11 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
             // Preserve endpoint prefix for endpoint-overridden non-ARN-based requests
             return request;
         } else if (isDualStackEnabled) {
-            String newEndpointPrefix = String.format("%s.%s", ENDPOINT_PREFIX, "dualstack");
-            return request.copy(r -> r.host(request.host().replace(ENDPOINT_PREFIX, newEndpointPrefix)));
+            String newEndpointPrefix = ENDPOINT_PREFIX + "." + "dualstack";
+            return request.copy(r -> r.host(StringUtils.replace(request.host(), ENDPOINT_PREFIX, newEndpointPrefix)));
         } else if (isFipsEnabledInClient) {
-            String newEndpointPrefix = String.format("%s-%s", ENDPOINT_PREFIX, "fips");
-            return request.copy(r -> r.host(request.host().replace(ENDPOINT_PREFIX, newEndpointPrefix)));
+            String newEndpointPrefix = ENDPOINT_PREFIX + "-" + "fips";
+            return request.copy(r -> r.host(StringUtils.replace(request.host(), ENDPOINT_PREFIX, newEndpointPrefix)));
         } else {
             return request;
         }
@@ -212,11 +212,11 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
 
     private String removeFipsIfNeeded(String region) {
         if (region.startsWith("fips-")) {
-            return region.replace("fips-", "");
+            return StringUtils.replace(region, "fips-", "");
         }
 
         if (region.endsWith("-fips")) {
-            return region.replace("-fips", "");
+            return StringUtils.replace(region, "-fips", "");
         }
         return region;
     }

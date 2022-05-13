@@ -1,3 +1,275 @@
+# __2.17.191__ __2022-05-13__
+## __Amazon Managed Grafana__
+  - ### Features
+    - This release adds APIs for creating and deleting API keys in an Amazon Managed Grafana workspace.
+
+# __2.17.190__ __2022-05-12__
+## __AWS IoT__
+  - ### Features
+    - Documentation update for China region ListMetricValues for IoT
+
+## __AWS Lambda__
+  - ### Features
+    - Lambda releases NodeJs 16 managed runtime to be available in all commercial regions.
+
+## __AWS Outposts__
+  - ### Features
+    - Documentation updates for AWS Outposts.
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Adding support for dynamic SSM Runbook parameter values. Updating validation pattern for engagements. Adding ConflictException to UpdateReplicationSet API contract.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family now accepts ECDSA keys for server host keys
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now provides a data source connector for Jira. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-jira.html
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release introduces a target type Gateway Load Balancer Endpoint for mirrored traffic. Customers can now specify GatewayLoadBalancerEndpoint option during the creation of a traffic mirror target.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Documentation-only updates for IVS Chat API Reference.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support to include inactive database bundles in the response of the GetRelationalDatabaseBundles request.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Increased the character limit of the login message from 600 to 850 characters.
+
+## __FinSpace Public API__
+  - ### Features
+    - We've now deprecated CreateSnapshot permission for creating a data view, instead use CreateDataView permission.
+
+# __2.17.189__ __2022-05-11__
+## __AWS Secrets Manager__
+  - ### Features
+    - Doc only update for Secrets Manager that fixes several customer-reported issues.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release updates AWS PrivateLink APIs to support IPv6 for PrivateLink Services and Endpoints of type 'Interface'.
+
+# __2.17.188__ __2022-05-10__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Documentation updates for Compute Optimizer
+
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - AWS Migration Hub Refactor Spaces documentation only update to fix a formatting issue.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Bump `aws-crt` version from `0.16.1` to `0.16.7`
+
+  - ### Bugfixes
+    - DynamoDBEnhanced - Fix handling attribute names with special characters including `/`
+
+## __Amazon EMR__
+  - ### Features
+    - This release updates the Amazon EMR ModifyInstanceGroups API to support "MERGE" type cluster reconfiguration. Also, added the ability to specify a particular Amazon Linux release for all nodes in a cluster launch request.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for using NitroTPM and UEFI Secure Boot on EC2 instances.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds BOTTLEROCKET_ARM_64_NVIDIA and BOTTLEROCKET_x86_64_NVIDIA AMI types to EKS managed nodegroups
+
+## __S3 Transfer Manager (Developer Preview)__
+  - ### Bugfixes
+    - Fixed a bug in `S3TransferManager#uploadDirectory` and `S3TransferManager#downloadDirectory` where failedUploads or failedDownloads did not contain all failed transfers
+    - Fixed cancellation logic in `S3TransferManager#downloadDirectory`
+
+# __2.17.187__ __2022-05-09__
+## __AWS Cloud Control API__
+  - ### Features
+    - SDK release for Cloud Control API to include paginators for Python SDK.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - Fixed an error in the DescribeEngagement example for AWS Incident Manager.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - Add detail message inside GetExperimentResults API response to indicate experiment result availability
+
+# __2.17.186__ __2022-05-06__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - This release adds Dvb Dash 2014 as an available profile option for Dash Origin Endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for Security Hub API reference
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add new state values for IPAMs, IPAM Scopes, and IPAM Pools.
+
+## __Amazon Location Service__
+  - ### Features
+    - Amazon Location Service now includes a MaxResults parameter for ListGeofences requests.
+
+## __Amazon Redshift__
+  - ### Features
+    - Introduces new field 'LoadSampleData' in CreateCluster operation. Customers can now specify 'LoadSampleData' option during creation of a cluster, which results in loading of sample data in the cluster that is created.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Various documentation improvements.
+
+# __2.17.185__ __2022-05-05__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports a new ObjectTags Task API option that can be used to control whether Object Tags are transferred.
+
+## __AWS IoT__
+  - ### Features
+    - AWS IoT Jobs now allows you to create up to 100,000 active continuous and snapshot jobs by using concurrency control.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - AWS Kendra now supports hierarchical facets for a query. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/filtering.html
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 I4i instances are powered by 3rd generation Intel Xeon Scalable processors and feature up to 30 TB of local AWS Nitro SSD storage
+
+# __2.17.184__ __2022-05-04__
+## __AWS Backup__
+  - ### Features
+    - Adds support to 2 new filters about job complete time for 3 list jobs APIs in AWS Backup
+
+## __AWS IoT Secure Tunneling__
+  - ### Features
+    - This release introduces a new API RotateTunnelAccessToken that allow revoking the existing tokens and generate new tokens
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Documentation updates for Lightsail
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release adds the TargetMaps parameter in SSM State Manager API.
+
+# __2.17.183__ __2022-05-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for allocating Dedicated Hosts on AWS Outposts. The AllocateHosts API now accepts an OutpostArn request parameter, and the DescribeHosts API now includes an OutpostArn response parameter.
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - Add support for multiple image feature related APIs for configuring image generation and notification of a video stream. Add "GET_IMAGES" to the list of supported API names for the GetDataEndpoint API.
+
+## __Amazon Kinesis Video Streams Archived Media__
+  - ### Features
+    - Add support for GetImages API for retrieving images from a video stream
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Autopilot adds new metrics for all candidate models generated by Autopilot experiments; RStudio on SageMaker now allows users to bring your own development environment in a custom image.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation only update for doc bug fixes for the S3 API docs.
+
+# __2.17.182__ __2022-05-02__
+## __AWS Organizations__
+  - ### Features
+    - This release adds the INVALID_PAYMENT_INSTRUMENT as a fail reason and an error message.
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds a new API called ListAssets to the Outposts SDK, which lists the hardware assets in an Outpost.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Synthetics__
+  - ### Features
+    - CloudWatch Synthetics has introduced a new feature to provide customers with an option to delete the underlying resources that Synthetics canary creates when the user chooses to delete the canary.
+
+# __2.17.181__ __2022-04-29__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK nows supports creation of Dolby Vision profile 8.1, the ability to generate black frames of video, and introduces audio-only DASH and CMAF support.
+
+## __AWS WAFV2__
+  - ### Features
+    - You can now inspect all request headers and all cookies. You can now specify how to handle oversize body contents in your rules that inspect the body.
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - Amazon CodeGuru Reviewer now supports suppressing recommendations from being generated on specific files and directories.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Feature - Adds support for Internet Protocol Version 6 (IPv6) on RDS database instances.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Update the StartChangeRequestExecution, adding TargetMaps to the Runbook parameter
+
+# __2.17.180__ __2022-04-28__
+## __AWS Audit Manager__
+  - ### Features
+    - This release adds documentation updates for Audit Manager. We provided examples of how to use the Custom_ prefix for the keywordValue attribute. We also provided more details about the DeleteAssessmentReport operation.
+
+## __AWS Network Firewall__
+  - ### Features
+    - AWS Network Firewall adds support for stateful threat signature AWS managed rule groups.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release introduces an API for changing the current agent status of a user in Connect.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support to query the public key and creation date of EC2 Key Pairs. Additionally, the format (pem or ppk) of a key pair can be specified when creating a new key pair.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Documentation update for API description.
+
+## __Braket__
+  - ### Features
+    - This release enables Braket Hybrid Jobs with Embedded Simulators to have multiple instances.
+
+## __S3 Transfer Manager (Develper Preview)__
+  - ### Features
+    - Add `DownloadDirectoryRequest.Builder#downloadFileRequestTransformer` and `DownloadDirectoryRequest.Builder#listObjectsRequestTranformer` to allow users to modify requests during directory downloads.
+
 # __2.17.179__ __2022-04-27__
 ## __AWS Amplify__
   - ### Features

@@ -1,0 +1,18 @@
+{
+    "version": "2.17.189",
+    "date": "2022-05-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Secrets Manager",
+            "contributor": "",
+            "description": "Doc only update for Secrets Manager that fixes several customer-reported issues."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release updates AWS PrivateLink APIs to support IPv6 for PrivateLink Services and Endpoints of type 'Interface'."
+        }
+    ]
+}
