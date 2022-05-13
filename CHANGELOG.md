@@ -1,3 +1,53 @@
+# __2.17.191__ __2022-05-13__
+## __Amazon Managed Grafana__
+  - ### Features
+    - This release adds APIs for creating and deleting API keys in an Amazon Managed Grafana workspace.
+
+# __2.17.190__ __2022-05-12__
+## __AWS IoT__
+  - ### Features
+    - Documentation update for China region ListMetricValues for IoT
+
+## __AWS Lambda__
+  - ### Features
+    - Lambda releases NodeJs 16 managed runtime to be available in all commercial regions.
+
+## __AWS Outposts__
+  - ### Features
+    - Documentation updates for AWS Outposts.
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Adding support for dynamic SSM Runbook parameter values. Updating validation pattern for engagements. Adding ConflictException to UpdateReplicationSet API contract.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family now accepts ECDSA keys for server host keys
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now provides a data source connector for Jira. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-jira.html
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release introduces a target type Gateway Load Balancer Endpoint for mirrored traffic. Customers can now specify GatewayLoadBalancerEndpoint option during the creation of a traffic mirror target.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Documentation-only updates for IVS Chat API Reference.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support to include inactive database bundles in the response of the GetRelationalDatabaseBundles request.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Increased the character limit of the login message from 600 to 850 characters.
+
+## __FinSpace Public API__
+  - ### Features
+    - We've now deprecated CreateSnapshot permission for creating a data view, instead use CreateDataView permission.
+
 # __2.17.189__ __2022-05-11__
 ## __AWS Secrets Manager__
   - ### Features
