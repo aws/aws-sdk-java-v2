@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Bump CRT version to 0.16.8"
+}
