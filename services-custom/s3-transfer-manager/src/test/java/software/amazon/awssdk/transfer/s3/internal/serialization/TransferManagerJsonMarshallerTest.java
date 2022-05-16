@@ -29,44 +29,48 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
+import software.amazon.awssdk.utils.DateUtils;
 
 class TransferManagerJsonMarshallerTest {
 
     @ParameterizedTest
     @MethodSource("marshallingValues")
-    void serialize_ShouldWorkForAllSupportedTypes(Object o, TransferManagerJsonMarshaller<Object> marshaller)  {
+    void serialize_ShouldWorkForAllSupportedTypes(Object o, TransferManagerJsonMarshaller<Object> marshaller, String expected)  {
         JsonWriter writer = JsonWriter.create();
         writer.writeStartObject();
         marshaller.marshall(o, writer, "param");
         writer.writeEndObject();
         String serializedResult = new String(writer.getBytes(), StandardCharsets.UTF_8);
-        if (o == null) {
-            assertThat(serializedResult).isEqualTo("{}");
-        } else {
-            assertThat(serializedResult.contains(o.toString()));
-        }
+        assertThat(serializedResult).contains(expected);
     }
 
     private static Stream<Arguments> marshallingValues() {
-        return Stream.of(Arguments.of("String", TransferManagerJsonMarshaller.STRING),
-                         Arguments.of((short) 10, TransferManagerJsonMarshaller.SHORT),
-                         Arguments.of(100, TransferManagerJsonMarshaller.INTEGER),
-                         Arguments.of(100L, TransferManagerJsonMarshaller.LONG),
-                         Arguments.of(Instant.now(), TransferManagerJsonMarshaller.INSTANT),
-                         Arguments.of(null, TransferManagerJsonMarshaller.NULL),
-                         Arguments.of(12.34f, TransferManagerJsonMarshaller.FLOAT),
-                         Arguments.of(12.34d, TransferManagerJsonMarshaller.DOUBLE),
-                         Arguments.of(new BigDecimal(34), TransferManagerJsonMarshaller.BIG_DECIMAL),
-                         Arguments.of(true, TransferManagerJsonMarshaller.BOOLEAN),
+        return Stream.of(Arguments.of("String", TransferManagerJsonMarshaller.STRING, "String"),
+                         Arguments.of((short) 10, TransferManagerJsonMarshaller.SHORT, Short.toString((short) 10)),
+                         Arguments.of(100, TransferManagerJsonMarshaller.INTEGER, Integer.toString(100)),
+                         Arguments.of(100L, TransferManagerJsonMarshaller.LONG, Long.toString(100L)),
+                         Arguments.of(DateUtils.parseIso8601Date("2022-03-08T10:15:30Z"), TransferManagerJsonMarshaller.INSTANT,
+                                      "1646734530.000"),
+                         Arguments.of(null, TransferManagerJsonMarshaller.NULL, "{}"),
+                         Arguments.of(12.34f, TransferManagerJsonMarshaller.FLOAT, Float.toString(12.34f)),
+                         Arguments.of(12.34d, TransferManagerJsonMarshaller.DOUBLE, Double.toString(12.34d)),
+                         Arguments.of(new BigDecimal(34), TransferManagerJsonMarshaller.BIG_DECIMAL, (new BigDecimal(34)).toString()),
+                         Arguments.of(true, TransferManagerJsonMarshaller.BOOLEAN, "true"),
                          Arguments.of(SdkBytes.fromString("String", StandardCharsets.UTF_8),
-                                      TransferManagerJsonMarshaller.SDK_BYTES),
-                         Arguments.of(Arrays.asList(100, 45), TransferManagerJsonMarshaller.LIST),
-                         Arguments.of(Arrays.asList("100", "45"), TransferManagerJsonMarshaller.LIST),
-                         Arguments.of(Collections.singletonMap("key", "value"), TransferManagerJsonMarshaller.MAP),
+                                      TransferManagerJsonMarshaller.SDK_BYTES, "U3RyaW5n"),
+                         Arguments.of(Arrays.asList(100, 45), TransferManagerJsonMarshaller.LIST, "[100,45]"),
+                         Arguments.of(Arrays.asList("100", "45"), TransferManagerJsonMarshaller.LIST, "[\"100\",\"45\"]"),
+                         Arguments.of(Collections.singletonMap("key", "value"), TransferManagerJsonMarshaller.MAP,
+                                      "{\"key\":\"value\"}"),
                          Arguments.of(new HashMap<String, Long>() {{
                              put("key1", 100L);
                              put("key2", 200L);
-                         }}, TransferManagerJsonMarshaller.MAP));
+                         }}, TransferManagerJsonMarshaller.MAP, "{\"key1\":100,\"key2\":200}")
+        );
+    }
+
+    private static String serializedValue(String paramValue) {
+        return String.format("{\"param\":%s}", paramValue);
     }
 
 }

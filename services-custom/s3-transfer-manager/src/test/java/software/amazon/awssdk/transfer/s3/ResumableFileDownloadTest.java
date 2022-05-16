@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.utils.DateUtils.parseIso8601Date;
 
 import com.google.common.jimfs.Jimfs;
 import java.io.ByteArrayOutputStream;
@@ -34,6 +35,9 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
 class ResumableFileDownloadTest {
+
+    private static final Instant DATE1 = parseIso8601Date("2022-05-13T21:55:52.529Z");
+    private static final Instant DATE2 = parseIso8601Date("2022-05-15T21:50:11.308Z");
 
     private static FileSystem jimfs;
     private static ResumableFileDownload standardDownloadObject;
@@ -123,11 +127,11 @@ class ResumableFileDownloadTest {
                                     .downloadFileRequest(r -> r.getObjectRequest(b -> b.bucket("BUCKET")
                                                                                  .key("KEY")
                                                                                  .partNumber(1)
-                                                                                 .ifModifiedSince(Instant.now()))
+                                                                                 .ifModifiedSince(DATE1))
                                                                .destination(path))
                                     .bytesTransferred(1000L)
-                                    .fileLastModified(Instant.now())
-                                    .s3ObjectLastModified(Instant.now())
+                                    .fileLastModified(DATE1)
+                                    .s3ObjectLastModified(DATE2)
                                     .totalSizeInBytes(2000L)
                                     .build();
     }

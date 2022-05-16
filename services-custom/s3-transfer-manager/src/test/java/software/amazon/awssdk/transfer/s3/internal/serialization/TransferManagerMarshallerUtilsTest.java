@@ -38,8 +38,8 @@ class TransferManagerMarshallerUtilsTest {
     @MethodSource("marshallingValues")
     void getMarshallerByType(Object o, MarshallingType<Object> type, TransferManagerJsonMarshaller<?> expectedMarshaller)  {
         TransferManagerJsonMarshaller<Object> marshaller = TransferManagerMarshallingUtils.getMarshaller(type, o);
-        assertThat(marshaller).isNotNull();
-        assertThat(marshaller).isEqualTo(expectedMarshaller);
+        assertThat(marshaller).isNotNull()
+                              .isEqualTo(expectedMarshaller);
     }
 
     @ParameterizedTest

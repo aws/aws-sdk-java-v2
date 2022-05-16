@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocols.jsoncore;
 
 import static software.amazon.awssdk.protocols.jsoncore.JsonNodeParser.DEFAULT_JSON_FACTORY;
+import static software.amazon.awssdk.utils.DateUtils.formatUnixTimestampInstant;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,7 +28,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonGenerator;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.utils.DateUtils;
+import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -60,171 +61,82 @@ public class JsonWriter implements SdkAutoCloseable {
     }
 
     public JsonWriter writeStartArray() {
-        try {
-            generator.writeStartArray();
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(generator::writeStartArray);
     }
 
     public JsonWriter writeEndArray() {
-        try {
-            generator.writeEndArray();
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(generator::writeEndArray);
     }
 
     public JsonWriter writeNull() {
-        try {
-            generator.writeNull();
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(generator::writeEndArray);
     }
 
     public JsonWriter writeStartObject() {
-        try {
-            generator.writeStartObject();
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(generator::writeStartObject);
     }
 
     public JsonWriter writeEndObject() {
-        try {
-            generator.writeEndObject();
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(generator::writeEndObject);
     }
 
     public JsonWriter writeFieldName(String fieldName) {
-        try {
-            generator.writeFieldName(fieldName);
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(() -> generator.writeFieldName(fieldName));
     }
 
     public JsonWriter writeValue(String val) {
-        try {
-            generator.writeString(val);
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(() -> generator.writeString(val));
     }
 
     public JsonWriter writeValue(boolean bool) {
-        try {
-            generator.writeBoolean(bool);
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(() -> generator.writeBoolean(bool));
     }
 
     public JsonWriter writeValue(long val) {
-        try {
-            generator.writeNumber(val);
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(() -> generator.writeNumber(val));
     }
 
     public JsonWriter writeValue(double val) {
-        try {
-            generator.writeNumber(val);
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(() -> generator.writeNumber(val));
     }
 
     public JsonWriter writeValue(float val) {
-        try {
-            generator.writeNumber(val);
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(() -> generator.writeNumber(val));
     }
 
     public JsonWriter writeValue(short val) {
-        try {
-            generator.writeNumber(val);
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(() -> generator.writeNumber(val));
     }
 
     public JsonWriter writeValue(int val) {
-        try {
-            generator.writeNumber(val);
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(() -> generator.writeNumber(val));
     }
 
     public JsonWriter writeValue(ByteBuffer bytes) {
-        try {
-            generator.writeBinary(BinaryUtils.copyBytesFrom(bytes));
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(() -> generator.writeBinary(BinaryUtils.copyBytesFrom(bytes)));
     }
 
     public JsonWriter writeValue(Instant instant) {
-        try {
-            generator.writeNumber(DateUtils.formatUnixTimestampInstant(instant));
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(() -> generator.writeNumber(formatUnixTimestampInstant(instant)));
     }
 
     public JsonWriter writeValue(BigDecimal value) {
-        try {
-            generator.writeString(value.toString());
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(() -> generator.writeString(value.toString()));
     }
 
     public JsonWriter writeValue(BigInteger value) {
-        try {
-            generator.writeNumber(value);
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(() -> generator.writeNumber(value));
     }
 
     public JsonWriter writeNumber(String number) {
-        try {
-            generator.writeNumber(number);
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
+        return unsafeWrite(() -> generator.writeNumber(number));
     }
 
     /**
      * Closes the generator and flushes to write. Must be called when finished writing JSON
      * content.
      */
+    @Override
     public void close() {
         try {
             generator.close();
@@ -243,6 +155,15 @@ public class JsonWriter implements SdkAutoCloseable {
     public byte[] getBytes() {
         close();
         return baos.toByteArray();
+    }
+
+    private JsonWriter unsafeWrite(FunctionalUtils.UnsafeRunnable r) {
+        try {
+            r.run();
+        } catch (Exception e) {
+            throw new JsonGenerationException(e);
+        }
+        return this;
     }
 
     /**

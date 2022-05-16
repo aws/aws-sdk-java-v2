@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal.serialization;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.utils.DateUtils.parseIso8601Date;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -42,12 +43,12 @@ import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
-import software.amazon.awssdk.utils.DateUtils;
 
 class ResumableFileDownloadSerializerTest {
 
     private static final Path PATH = RandomTempFile.randomUncreatedFile().toPath();
-
+    private static final Instant DATE1 = parseIso8601Date("2022-05-13T21:55:52.529Z");
+    private static final Instant DATE2 = parseIso8601Date("2022-05-15T21:50:11.308Z");
     private static final Map<String, GetObjectRequest> GET_OBJECT_REQUESTS;
 
     static {
@@ -58,7 +59,7 @@ class ResumableFileDownloadSerializerTest {
                                                   .bucket("BUCKET")
                                                   .key("KEY")
                                                   .partNumber(1)
-                                                  .ifModifiedSince(DateUtils.parseIso8601Date("2020-01-01T12:10:30Z"))
+                                                  .ifModifiedSince(parseIso8601Date("2020-01-01T12:10:30Z"))
                                                   .checksumMode(ChecksumMode.ENABLED)
                                                   .requestPayer(RequestPayer.REQUESTER)
                                                   .build());
@@ -81,9 +82,9 @@ class ResumableFileDownloadSerializerTest {
                                  .downloadFileRequest(d -> d.destination(Paths.get("test/request"))
                                                             .getObjectRequest(GET_OBJECT_REQUESTS.get("ALL_TYPES")))
                                  .bytesTransferred(1000L)
-                                 .fileLastModified(DateUtils.parseIso8601Date("2022-03-08T10:15:30Z"))
+                                 .fileLastModified(parseIso8601Date("2022-03-08T10:15:30Z"))
                                  .totalSizeInBytes(5000L)
-                                 .s3ObjectLastModified(DateUtils.parseIso8601Date("2022-03-10T08:21:00Z"))
+                                 .s3ObjectLastModified(parseIso8601Date("2022-03-10T08:21:00Z"))
                                  .build();
 
         byte[] serializedDownload = ResumableFileDownloadSerializer.toJson(download);
@@ -148,8 +149,7 @@ class ResumableFileDownloadSerializerTest {
     private static List<ResumableFileDownload> differentGetObjects() {
         return GET_OBJECT_REQUESTS.values()
                                   .stream()
-                                  .map(request -> resumableFileDownload(1000L, null, Instant.now(), null,
-                                                                        downloadRequest(PATH, request)))
+                                  .map(request -> resumableFileDownload(1000L, null, DATE1, null, downloadRequest(PATH, request)))
                                   .collect(Collectors.toList());
     }
 
@@ -158,9 +158,9 @@ class ResumableFileDownloadSerializerTest {
         return Arrays.asList(
             resumableFileDownload(null, null, null, null, request),
             resumableFileDownload(1000L, null, null, null, request),
-            resumableFileDownload(1000L, null, Instant.now(), null, request),
-            resumableFileDownload(1000L, 2000L, Instant.now(), Instant.now(), request),
-            resumableFileDownload(Long.MAX_VALUE, Long.MAX_VALUE, Instant.now(), Instant.now(), request)
+            resumableFileDownload(1000L, null, DATE1, null, request),
+            resumableFileDownload(1000L, 2000L, DATE1, DATE2, request),
+            resumableFileDownload(Long.MAX_VALUE, Long.MAX_VALUE, DATE1, DATE2, request)
         );
     }
 

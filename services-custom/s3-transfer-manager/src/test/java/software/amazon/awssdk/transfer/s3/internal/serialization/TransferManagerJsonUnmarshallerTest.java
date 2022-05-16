@@ -24,7 +24,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.internal.NullJsonNode;
 import software.amazon.awssdk.protocols.jsoncore.internal.NumberJsonNode;
