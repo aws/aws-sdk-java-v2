@@ -400,8 +400,6 @@ public class SsoOidcTokenProviderTest {
 
     }
 
-    // TODO : Need to fix this test case with separate PR.
-    @Disabled("Will raise separate PR to fix this as lattest changes by https://github.com/aws/aws-sdk-java-v2/pull/3160 caused this issue\n")
     @Test
     public void token_is_retrieved_automatically_when_prefetch_time_is_set() throws InterruptedException {
         Instant closeToExpireTime = Instant.now().plus(Duration.ofMillis(3));
@@ -415,8 +413,8 @@ public class SsoOidcTokenProviderTest {
 
         when(ssoOidcClient.createToken(any(CreateTokenRequest.class)))
             .thenReturn(getDefaultServiceResponse().accessToken("tokenGreaterThanStaleButLessThanPrefetch").expiresIn(200)
-            .build())
-            .thenReturn(getDefaultServiceResponse().accessToken("tokenVeryHighExpiry").expiresIn(2000).build());
+                                                   .build())
+            .thenReturn(getDefaultServiceResponse().accessToken("tokenVeryHighExpiry").expiresIn(20000).build());
 
 
         SsoOidcTokenProvider tokenProvider = getDefaultSsoOidcTokenProviderBuilder()
@@ -425,26 +423,16 @@ public class SsoOidcTokenProviderTest {
             .prefetchTime(Duration.ofSeconds(300))
             .build();
 
-        verify(ssoOidcClient, never()).createToken(any(CreateTokenRequest.class));
-
+        Thread.sleep(100);
+        verify(ssoOidcClient, times(1)).createToken(any(CreateTokenRequest.class));
         SdkToken sdkToken = tokenProvider.resolveToken();
-        verify(ssoOidcClient, atMost(1)).createToken(any(CreateTokenRequest.class));
-
         assertThat(sdkToken.token()).isEqualTo("tokenGreaterThanStaleButLessThanPrefetch");
 
-        SdkToken secondSdkToken = tokenProvider.resolveToken();
-        // Time for async refresh thread.
-        Thread.sleep(1000);
-        verify(ssoOidcClient, atLeast(2)).createToken(any(CreateTokenRequest.class));
-        verify(ssoOidcClient, atLeast(1)).createToken(any(CreateTokenRequest.class));
-        assertThat(secondSdkToken.token()).isEqualTo("tokenGreaterThanStaleButLessThanPrefetch");
-
-
-        Thread.sleep(1000);
-        SdkToken thirdSdkToken = tokenProvider.resolveToken();
-        verify(ssoOidcClient, atMost(2)).createToken(any(CreateTokenRequest.class));
-        assertThat(thirdSdkToken.token()).isEqualTo("tokenVeryHighExpiry");
-
+        Thread.sleep(100);
+        // Sleep to make sure Async prefetch thread gets picked up and it calls createToken to get new token.
+        verify(ssoOidcClient, times(2)).createToken(any(CreateTokenRequest.class));
+        SdkToken highExpiryDateToken = tokenProvider.resolveToken();
+        assertThat(highExpiryDateToken.token()).isEqualTo("tokenVeryHighExpiry");
     }
 
     private CreateTokenResponse someOne(CreateTokenResponse.Builder builder, String tokenGreaterThanStaleButLessThanPrefetch,
