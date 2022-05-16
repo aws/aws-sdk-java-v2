@@ -1,0 +1,54 @@
+{
+    "version": "2.17.192",
+    "date": "2022-05-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "contributor": "",
+            "description": "Updated the descriptions for the ListAcceptedPortfolioShares API description and the PortfolioShareType parameters."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "contributor": "",
+            "description": "Documentation updates for Amazon Rekognition."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Web",
+            "contributor": "",
+            "description": "Amazon WorkSpaces Web now supports Administrator timeout control"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "contributor": "",
+            "description": "Documentation updates for AWS Security Token Service."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resilience Hub",
+            "contributor": "",
+            "description": "In this release, we are introducing support for Amazon Elastic Container Service, Amazon Route 53, AWS Elastic Disaster Recovery, AWS Backup in addition to the existing supported Services. This release also supports Terraform file input from S3 and scheduling daily assessments"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Bump CRT version to 0.16.8"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Introduced a new error (TooLongCSPInResponseHeadersPolicy) that is returned when the value of the Content-Security-Policy header in a response headers policy exceeds the maximum allowed length."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Application Discovery Service",
+            "contributor": "",
+            "description": "Add Migration Evaluator Collector details to the GetDiscoverySummary API response"
+        }
+    ]
+}
