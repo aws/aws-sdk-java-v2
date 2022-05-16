@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Application Discovery Service",
-    "contributor": "",
-    "description": "Add Migration Evaluator Collector details to the GetDiscoverySummary API response"
-}

@@ -1,3 +1,36 @@
+# __2.17.192__ __2022-05-16__
+## __AWS Application Discovery Service__
+  - ### Features
+    - Add Migration Evaluator Collector details to the GetDiscoverySummary API response
+
+## __AWS Resilience Hub__
+  - ### Features
+    - In this release, we are introducing support for Amazon Elastic Container Service, Amazon Route 53, AWS Elastic Disaster Recovery, AWS Backup in addition to the existing supported Services. This release also supports Terraform file input from S3 and scheduling daily assessments
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Bump CRT version to 0.16.8
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for AWS Security Token Service.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Updated the descriptions for the ListAcceptedPortfolioShares API description and the PortfolioShareType parameters.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Introduced a new error (TooLongCSPInResponseHeadersPolicy) that is returned when the value of the Content-Security-Policy header in a response headers policy exceeds the maximum allowed length.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Documentation updates for Amazon Rekognition.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Amazon WorkSpaces Web now supports Administrator timeout control
+
 # __2.17.191__ __2022-05-13__
 ## __Amazon Managed Grafana__
   - ### Features
