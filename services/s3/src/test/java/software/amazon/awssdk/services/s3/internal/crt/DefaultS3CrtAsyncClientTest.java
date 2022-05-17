@@ -16,34 +16,14 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
-@RunWith(MockitoJUnitRunner.class)
 public class DefaultS3CrtAsyncClientTest {
-    @Mock
-    private SdkAsyncHttpClient mockHttpClient;
-
-    @Mock
-    private S3AsyncClient mockS3AsyncClient;
-
-    private DefaultS3CrtAsyncClient s3CrtAsyncClient;
-
-    @Before
-    public void methodSetup() {
-        s3CrtAsyncClient = new DefaultS3CrtAsyncClient(mockHttpClient,
-                                                       mockS3AsyncClient);
-    }
 
     @Test
     public void requestSignerOverrideProvided_shouldThrowException() {
@@ -56,12 +36,5 @@ public class DefaultS3CrtAsyncClientTest {
                 b -> b.bucket("bucket").key("key").overrideConfiguration(o -> o.signer(AwsS3V4Signer.create())),
                 AsyncRequestBody.fromString("foobar")).join()).hasCauseInstanceOf(UnsupportedOperationException.class);
         }
-    }
-
-    @Test
-    public void closeS3Client_shouldCloseUnderlyingResources() {
-        s3CrtAsyncClient.close();
-        verify(mockHttpClient).close();
-        verify(mockS3AsyncClient).close();
     }
 }

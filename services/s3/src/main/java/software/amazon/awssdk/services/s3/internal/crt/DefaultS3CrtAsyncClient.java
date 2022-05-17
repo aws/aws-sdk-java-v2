@@ -20,7 +20,6 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -33,38 +32,18 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
 
 @SdkInternalApi
-public final class DefaultS3CrtAsyncClient extends AbstractS3CrtAsyncClient {
-    private final SdkAsyncHttpClient s3CrtAsyncHttpClient;
-    private final S3AsyncClient s3AsyncClient;
+public final class DefaultS3CrtAsyncClient extends AbstractS3AsyncClient implements S3CrtAsyncClient {
 
     private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
-
-        this.s3CrtAsyncHttpClient = S3CrtAsyncHttpClient.builder()
-                                                        .targetThroughputInGbps(builder.targetThroughputInGbps())
-                                                        .minimumPartSizeInBytes(builder.minimumPartSizeInBytes())
-                                                        .maxConcurrency(builder.maxConcurrency)
-                                                        .region(builder.region)
-                                                        .endpointOverride(builder.endpointOverride)
-                                                        .credentialsProvider(builder.credentialsProvider)
-                                                        .build();
-
-        this.s3AsyncClient = initializeS3AsyncClient(builder);
+        super(initializeS3AsyncClient(builder));
     }
 
-    @SdkTestInternalApi
-    DefaultS3CrtAsyncClient(SdkAsyncHttpClient s3CrtAsyncHttpClient,
-                            S3AsyncClient s3AsyncClient) {
-        this.s3CrtAsyncHttpClient = s3CrtAsyncHttpClient;
-        this.s3AsyncClient = s3AsyncClient;
-    }
-
-    private S3AsyncClient initializeS3AsyncClient(DefaultS3CrtClientBuilder builder) {
+    private static S3AsyncClient initializeS3AsyncClient(DefaultS3CrtClientBuilder builder) {
         return S3AsyncClient.builder()
                             // Disable checksum, retry policy and signer because they are handled in crt
                             .serviceConfiguration(S3Configuration.builder()
@@ -78,24 +57,23 @@ public final class DefaultS3CrtAsyncClient extends AbstractS3CrtAsyncClient {
                                                          .retryPolicy(RetryPolicy.none())
                                                          .addExecutionInterceptor(new ValidateRequestInterceptor())
                                                          .addExecutionInterceptor(new AttachHttpAttributesExecutionInterceptor()))
-                            .httpClient(s3CrtAsyncHttpClient)
+                            .httpClientBuilder(initializeS3CrtAsyncHttpClient(builder))
                             .build();
+    }
+
+    private static S3CrtAsyncHttpClient.Builder initializeS3CrtAsyncHttpClient(DefaultS3CrtClientBuilder builder) {
+        return S3CrtAsyncHttpClient.builder()
+                                   .targetThroughputInGbps(builder.targetThroughputInGbps())
+                                   .minimumPartSizeInBytes(builder.minimumPartSizeInBytes())
+                                   .maxConcurrency(builder.maxConcurrency)
+                                   .region(builder.region)
+                                   .endpointOverride(builder.endpointOverride)
+                                   .credentialsProvider(builder.credentialsProvider);
     }
 
     @Override
     public String serviceName() {
         return SERVICE_NAME;
-    }
-
-    @Override
-    public void close() {
-        s3CrtAsyncHttpClient.close();
-        s3AsyncClient.close();
-    }
-
-    @Override
-    S3AsyncClient s3AsyncClient() {
-        return s3AsyncClient;
     }
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {

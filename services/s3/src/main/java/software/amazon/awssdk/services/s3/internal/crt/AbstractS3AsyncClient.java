@@ -216,591 +216,608 @@ import software.amazon.awssdk.services.s3.paginators.ListPartsPublisher;
 import software.amazon.awssdk.services.s3.waiters.S3AsyncWaiter;
 
 @SdkInternalApi
-public abstract class AbstractS3CrtAsyncClient implements S3CrtAsyncClient {
-    abstract S3AsyncClient s3AsyncClient();
+public abstract class AbstractS3AsyncClient implements S3AsyncClient {
+
+    private final S3AsyncClient delegate;
+
+    AbstractS3AsyncClient(S3AsyncClient delegate) {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public void close() {
+        delegate.close();
+    }
 
     @Override
     public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
-        return s3AsyncClient().putObject(putObjectRequest, requestBody);
+        return delegate.putObject(putObjectRequest, requestBody);
     }
 
     @Override
     public CompletableFuture<PutObjectResponse> putObject(Consumer<PutObjectRequest.Builder> putObjectRequest,
                                                           AsyncRequestBody requestBody) {
-        return s3AsyncClient().putObject(putObjectRequest, requestBody);
+        return delegate.putObject(putObjectRequest, requestBody);
     }
 
     @Override
     public CompletableFuture<ListObjectsV2Response> listObjectsV2(ListObjectsV2Request listObjectsV2Request) {
-        return s3AsyncClient().listObjectsV2(listObjectsV2Request);
+        return delegate.listObjectsV2(listObjectsV2Request);
     }
 
     @Override
     public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
-        return s3AsyncClient().copyObject(copyObjectRequest);
+        return delegate.copyObject(copyObjectRequest);
     }
 
     @Override
     public CompletableFuture<HeadObjectResponse> headObject(HeadObjectRequest headObjectRequest) {
-        return s3AsyncClient().headObject(headObjectRequest);
+        return delegate.headObject(headObjectRequest);
     }
 
     @Override
     public CompletableFuture<AbortMultipartUploadResponse> abortMultipartUpload(
         AbortMultipartUploadRequest abortMultipartUploadRequest) {
-        return s3AsyncClient().abortMultipartUpload(abortMultipartUploadRequest);
+        return delegate.abortMultipartUpload(abortMultipartUploadRequest);
     }
 
     @Override
     public CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(
         CompleteMultipartUploadRequest completeMultipartUploadRequest) {
-        return s3AsyncClient().completeMultipartUpload(completeMultipartUploadRequest);
+        return delegate.completeMultipartUpload(completeMultipartUploadRequest);
     }
 
     @Override
     public CompletableFuture<CreateBucketResponse> createBucket(CreateBucketRequest createBucketRequest) {
-        return s3AsyncClient().createBucket(createBucketRequest);
+        return delegate.createBucket(createBucketRequest);
     }
 
     @Override
     public CompletableFuture<CreateMultipartUploadResponse> createMultipartUpload(
         CreateMultipartUploadRequest createMultipartUploadRequest) {
-        return s3AsyncClient().createMultipartUpload(createMultipartUploadRequest);
+        return delegate.createMultipartUpload(createMultipartUploadRequest);
     }
 
     @Override
     public CompletableFuture<DeleteBucketResponse> deleteBucket(DeleteBucketRequest deleteBucketRequest) {
-        return s3AsyncClient().deleteBucket(deleteBucketRequest);
+        return delegate.deleteBucket(deleteBucketRequest);
     }
 
     @Override
     public CompletableFuture<DeleteBucketAnalyticsConfigurationResponse> deleteBucketAnalyticsConfiguration(
         DeleteBucketAnalyticsConfigurationRequest deleteBucketAnalyticsConfigurationRequest) {
-        return s3AsyncClient().deleteBucketAnalyticsConfiguration(deleteBucketAnalyticsConfigurationRequest);
+        return delegate.deleteBucketAnalyticsConfiguration(deleteBucketAnalyticsConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<DeleteBucketCorsResponse> deleteBucketCors(DeleteBucketCorsRequest deleteBucketCorsRequest) {
-        return s3AsyncClient().deleteBucketCors(deleteBucketCorsRequest);
+        return delegate.deleteBucketCors(deleteBucketCorsRequest);
     }
 
     @Override
     public CompletableFuture<DeleteBucketEncryptionResponse> deleteBucketEncryption(
         DeleteBucketEncryptionRequest deleteBucketEncryptionRequest) {
-        return s3AsyncClient().deleteBucketEncryption(deleteBucketEncryptionRequest);
+        return delegate.deleteBucketEncryption(deleteBucketEncryptionRequest);
     }
 
     @Override
     public CompletableFuture<DeleteBucketIntelligentTieringConfigurationResponse> deleteBucketIntelligentTieringConfiguration(
         DeleteBucketIntelligentTieringConfigurationRequest deleteBucketIntelligentTieringConfigurationRequest) {
-        return s3AsyncClient().deleteBucketIntelligentTieringConfiguration(deleteBucketIntelligentTieringConfigurationRequest);
+        return delegate.deleteBucketIntelligentTieringConfiguration(deleteBucketIntelligentTieringConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<DeleteBucketInventoryConfigurationResponse> deleteBucketInventoryConfiguration(
         DeleteBucketInventoryConfigurationRequest deleteBucketInventoryConfigurationRequest) {
-        return s3AsyncClient().deleteBucketInventoryConfiguration(deleteBucketInventoryConfigurationRequest);
+        return delegate.deleteBucketInventoryConfiguration(deleteBucketInventoryConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<DeleteBucketLifecycleResponse> deleteBucketLifecycle(
         DeleteBucketLifecycleRequest deleteBucketLifecycleRequest) {
-        return s3AsyncClient().deleteBucketLifecycle(deleteBucketLifecycleRequest);
+        return delegate.deleteBucketLifecycle(deleteBucketLifecycleRequest);
     }
 
     @Override
     public CompletableFuture<DeleteBucketMetricsConfigurationResponse> deleteBucketMetricsConfiguration(
         DeleteBucketMetricsConfigurationRequest deleteBucketMetricsConfigurationRequest) {
-        return s3AsyncClient().deleteBucketMetricsConfiguration(deleteBucketMetricsConfigurationRequest);
+        return delegate.deleteBucketMetricsConfiguration(deleteBucketMetricsConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<DeleteBucketOwnershipControlsResponse> deleteBucketOwnershipControls(
         DeleteBucketOwnershipControlsRequest deleteBucketOwnershipControlsRequest) {
-        return s3AsyncClient().deleteBucketOwnershipControls(deleteBucketOwnershipControlsRequest);
+        return delegate.deleteBucketOwnershipControls(deleteBucketOwnershipControlsRequest);
     }
 
     @Override
     public CompletableFuture<DeleteBucketPolicyResponse> deleteBucketPolicy(DeleteBucketPolicyRequest deleteBucketPolicyRequest) {
-        return s3AsyncClient().deleteBucketPolicy(deleteBucketPolicyRequest);
+        return delegate.deleteBucketPolicy(deleteBucketPolicyRequest);
     }
 
     @Override
     public CompletableFuture<DeleteBucketReplicationResponse> deleteBucketReplication(
         DeleteBucketReplicationRequest deleteBucketReplicationRequest) {
-        return s3AsyncClient().deleteBucketReplication(deleteBucketReplicationRequest);
+        return delegate.deleteBucketReplication(deleteBucketReplicationRequest);
     }
 
     @Override
     public CompletableFuture<DeleteBucketTaggingResponse> deleteBucketTagging(
         DeleteBucketTaggingRequest deleteBucketTaggingRequest) {
-        return s3AsyncClient().deleteBucketTagging(deleteBucketTaggingRequest);
+        return delegate.deleteBucketTagging(deleteBucketTaggingRequest);
     }
 
     @Override
     public CompletableFuture<DeleteBucketWebsiteResponse> deleteBucketWebsite(
         DeleteBucketWebsiteRequest deleteBucketWebsiteRequest) {
-        return s3AsyncClient().deleteBucketWebsite(deleteBucketWebsiteRequest);
+        return delegate.deleteBucketWebsite(deleteBucketWebsiteRequest);
     }
 
     @Override
     public CompletableFuture<DeleteObjectResponse> deleteObject(DeleteObjectRequest deleteObjectRequest) {
-        return s3AsyncClient().deleteObject(deleteObjectRequest);
+        return delegate.deleteObject(deleteObjectRequest);
     }
 
     @Override
     public CompletableFuture<DeleteObjectTaggingResponse> deleteObjectTagging(
         DeleteObjectTaggingRequest deleteObjectTaggingRequest) {
-        return s3AsyncClient().deleteObjectTagging(deleteObjectTaggingRequest);
+        return delegate.deleteObjectTagging(deleteObjectTaggingRequest);
     }
 
     @Override
     public CompletableFuture<DeleteObjectsResponse> deleteObjects(DeleteObjectsRequest deleteObjectsRequest) {
-        return s3AsyncClient().deleteObjects(deleteObjectsRequest);
+        return delegate.deleteObjects(deleteObjectsRequest);
     }
 
     @Override
     public CompletableFuture<DeletePublicAccessBlockResponse> deletePublicAccessBlock(
         DeletePublicAccessBlockRequest deletePublicAccessBlockRequest) {
-        return s3AsyncClient().deletePublicAccessBlock(deletePublicAccessBlockRequest);
+        return delegate.deletePublicAccessBlock(deletePublicAccessBlockRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketAccelerateConfigurationResponse> getBucketAccelerateConfiguration(
         GetBucketAccelerateConfigurationRequest getBucketAccelerateConfigurationRequest) {
-        return s3AsyncClient().getBucketAccelerateConfiguration(getBucketAccelerateConfigurationRequest);
+        return delegate.getBucketAccelerateConfiguration(getBucketAccelerateConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketAclResponse> getBucketAcl(GetBucketAclRequest getBucketAclRequest) {
-        return s3AsyncClient().getBucketAcl(getBucketAclRequest);
+        return delegate.getBucketAcl(getBucketAclRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketAnalyticsConfigurationResponse> getBucketAnalyticsConfiguration(
         GetBucketAnalyticsConfigurationRequest getBucketAnalyticsConfigurationRequest) {
-        return s3AsyncClient().getBucketAnalyticsConfiguration(getBucketAnalyticsConfigurationRequest);
+        return delegate.getBucketAnalyticsConfiguration(getBucketAnalyticsConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketCorsResponse> getBucketCors(GetBucketCorsRequest getBucketCorsRequest) {
-        return s3AsyncClient().getBucketCors(getBucketCorsRequest);
+        return delegate.getBucketCors(getBucketCorsRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketEncryptionResponse> getBucketEncryption(
         GetBucketEncryptionRequest getBucketEncryptionRequest) {
-        return s3AsyncClient().getBucketEncryption(getBucketEncryptionRequest);
+        return delegate.getBucketEncryption(getBucketEncryptionRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketIntelligentTieringConfigurationResponse> getBucketIntelligentTieringConfiguration(
         GetBucketIntelligentTieringConfigurationRequest getBucketIntelligentTieringConfigurationRequest) {
-        return s3AsyncClient().getBucketIntelligentTieringConfiguration(getBucketIntelligentTieringConfigurationRequest);
+        return delegate.getBucketIntelligentTieringConfiguration(getBucketIntelligentTieringConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketInventoryConfigurationResponse> getBucketInventoryConfiguration(
         GetBucketInventoryConfigurationRequest getBucketInventoryConfigurationRequest) {
-        return s3AsyncClient().getBucketInventoryConfiguration(getBucketInventoryConfigurationRequest);
+        return delegate.getBucketInventoryConfiguration(getBucketInventoryConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketLifecycleConfigurationResponse> getBucketLifecycleConfiguration(
         GetBucketLifecycleConfigurationRequest getBucketLifecycleConfigurationRequest) {
-        return s3AsyncClient().getBucketLifecycleConfiguration(getBucketLifecycleConfigurationRequest);
+        return delegate.getBucketLifecycleConfiguration(getBucketLifecycleConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketLocationResponse> getBucketLocation(GetBucketLocationRequest getBucketLocationRequest) {
-        return s3AsyncClient().getBucketLocation(getBucketLocationRequest);
+        return delegate.getBucketLocation(getBucketLocationRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketLoggingResponse> getBucketLogging(GetBucketLoggingRequest getBucketLoggingRequest) {
-        return s3AsyncClient().getBucketLogging(getBucketLoggingRequest);
+        return delegate.getBucketLogging(getBucketLoggingRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketMetricsConfigurationResponse> getBucketMetricsConfiguration(
         GetBucketMetricsConfigurationRequest getBucketMetricsConfigurationRequest) {
-        return s3AsyncClient().getBucketMetricsConfiguration(getBucketMetricsConfigurationRequest);
+        return delegate.getBucketMetricsConfiguration(getBucketMetricsConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketNotificationConfigurationResponse> getBucketNotificationConfiguration(
         GetBucketNotificationConfigurationRequest getBucketNotificationConfigurationRequest) {
-        return s3AsyncClient().getBucketNotificationConfiguration(getBucketNotificationConfigurationRequest);
+        return delegate.getBucketNotificationConfiguration(getBucketNotificationConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketOwnershipControlsResponse> getBucketOwnershipControls(
         GetBucketOwnershipControlsRequest getBucketOwnershipControlsRequest) {
-        return s3AsyncClient().getBucketOwnershipControls(getBucketOwnershipControlsRequest);
+        return delegate.getBucketOwnershipControls(getBucketOwnershipControlsRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketPolicyResponse> getBucketPolicy(GetBucketPolicyRequest getBucketPolicyRequest) {
-        return s3AsyncClient().getBucketPolicy(getBucketPolicyRequest);
+        return delegate.getBucketPolicy(getBucketPolicyRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketPolicyStatusResponse> getBucketPolicyStatus(
         GetBucketPolicyStatusRequest getBucketPolicyStatusRequest) {
-        return s3AsyncClient().getBucketPolicyStatus(getBucketPolicyStatusRequest);
+        return delegate.getBucketPolicyStatus(getBucketPolicyStatusRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketReplicationResponse> getBucketReplication(
         GetBucketReplicationRequest getBucketReplicationRequest) {
-        return s3AsyncClient().getBucketReplication(getBucketReplicationRequest);
+        return delegate.getBucketReplication(getBucketReplicationRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketRequestPaymentResponse> getBucketRequestPayment(
         GetBucketRequestPaymentRequest getBucketRequestPaymentRequest) {
-        return s3AsyncClient().getBucketRequestPayment(getBucketRequestPaymentRequest);
+        return delegate.getBucketRequestPayment(getBucketRequestPaymentRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketTaggingResponse> getBucketTagging(GetBucketTaggingRequest getBucketTaggingRequest) {
-        return s3AsyncClient().getBucketTagging(getBucketTaggingRequest);
+        return delegate.getBucketTagging(getBucketTaggingRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketVersioningResponse> getBucketVersioning(
         GetBucketVersioningRequest getBucketVersioningRequest) {
-        return s3AsyncClient().getBucketVersioning(getBucketVersioningRequest);
+        return delegate.getBucketVersioning(getBucketVersioningRequest);
     }
 
     @Override
     public CompletableFuture<GetBucketWebsiteResponse> getBucketWebsite(GetBucketWebsiteRequest getBucketWebsiteRequest) {
-        return s3AsyncClient().getBucketWebsite(getBucketWebsiteRequest);
+        return delegate.getBucketWebsite(getBucketWebsiteRequest);
+    }
+
+    @Override
+    public <ReturnT> CompletableFuture<ReturnT> getObject(
+        GetObjectRequest getObjectRequest,
+        AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
+        return delegate.getObject(getObjectRequest, asyncResponseTransformer);
     }
 
     @Override
     public CompletableFuture<GetObjectResponse> getObject(GetObjectRequest getObjectRequest, Path destinationPath) {
-        return s3AsyncClient().getObject(getObjectRequest, destinationPath);
+        return delegate.getObject(getObjectRequest, destinationPath);
     }
 
     @Override
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         Consumer<GetObjectRequest.Builder> getObjectRequest,
         AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
-        return s3AsyncClient().getObject(getObjectRequest, asyncResponseTransformer);
+        return delegate.getObject(getObjectRequest, asyncResponseTransformer);
     }
 
     @Override
     public CompletableFuture<GetObjectAclResponse> getObjectAcl(GetObjectAclRequest getObjectAclRequest) {
-        return s3AsyncClient().getObjectAcl(getObjectAclRequest);
+        return delegate.getObjectAcl(getObjectAclRequest);
     }
 
     @Override
     public CompletableFuture<GetObjectAttributesResponse> getObjectAttributes(
         GetObjectAttributesRequest getObjectAttributesRequest) {
-        return s3AsyncClient().getObjectAttributes(getObjectAttributesRequest);
+        return delegate.getObjectAttributes(getObjectAttributesRequest);
     }
 
     @Override
     public CompletableFuture<GetObjectLegalHoldResponse> getObjectLegalHold(GetObjectLegalHoldRequest getObjectLegalHoldRequest) {
-        return s3AsyncClient().getObjectLegalHold(getObjectLegalHoldRequest);
+        return delegate.getObjectLegalHold(getObjectLegalHoldRequest);
     }
 
     @Override
     public CompletableFuture<GetObjectLockConfigurationResponse> getObjectLockConfiguration(
         GetObjectLockConfigurationRequest getObjectLockConfigurationRequest) {
-        return s3AsyncClient().getObjectLockConfiguration(getObjectLockConfigurationRequest);
+        return delegate.getObjectLockConfiguration(getObjectLockConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<GetObjectRetentionResponse> getObjectRetention(GetObjectRetentionRequest getObjectRetentionRequest) {
-        return s3AsyncClient().getObjectRetention(getObjectRetentionRequest);
+        return delegate.getObjectRetention(getObjectRetentionRequest);
     }
 
     @Override
     public CompletableFuture<GetObjectTaggingResponse> getObjectTagging(GetObjectTaggingRequest getObjectTaggingRequest) {
-        return s3AsyncClient().getObjectTagging(getObjectTaggingRequest);
+        return delegate.getObjectTagging(getObjectTaggingRequest);
     }
 
     @Override
     public <ReturnT> CompletableFuture<ReturnT> getObjectTorrent(
         GetObjectTorrentRequest getObjectTorrentRequest,
         AsyncResponseTransformer<GetObjectTorrentResponse, ReturnT> asyncResponseTransformer) {
-        return s3AsyncClient().getObjectTorrent(getObjectTorrentRequest, asyncResponseTransformer);
+        return delegate.getObjectTorrent(getObjectTorrentRequest, asyncResponseTransformer);
     }
 
     @Override
     public CompletableFuture<GetObjectTorrentResponse> getObjectTorrent(GetObjectTorrentRequest getObjectTorrentRequest,
                                                                         Path destinationPath) {
-        return s3AsyncClient().getObjectTorrent(getObjectTorrentRequest, destinationPath);
+        return delegate.getObjectTorrent(getObjectTorrentRequest, destinationPath);
     }
 
     @Override
     public CompletableFuture<GetPublicAccessBlockResponse> getPublicAccessBlock(
         GetPublicAccessBlockRequest getPublicAccessBlockRequest) {
-        return s3AsyncClient().getPublicAccessBlock(getPublicAccessBlockRequest);
+        return delegate.getPublicAccessBlock(getPublicAccessBlockRequest);
     }
 
     @Override
     public CompletableFuture<HeadBucketResponse> headBucket(HeadBucketRequest headBucketRequest) {
-        return s3AsyncClient().headBucket(headBucketRequest);
+        return delegate.headBucket(headBucketRequest);
     }
 
     @Override
     public CompletableFuture<ListBucketAnalyticsConfigurationsResponse> listBucketAnalyticsConfigurations(
         ListBucketAnalyticsConfigurationsRequest listBucketAnalyticsConfigurationsRequest) {
-        return s3AsyncClient().listBucketAnalyticsConfigurations(listBucketAnalyticsConfigurationsRequest);
+        return delegate.listBucketAnalyticsConfigurations(listBucketAnalyticsConfigurationsRequest);
     }
 
     @Override
     public CompletableFuture<ListBucketIntelligentTieringConfigurationsResponse> listBucketIntelligentTieringConfigurations(
         ListBucketIntelligentTieringConfigurationsRequest listBucketIntelligentTieringConfigurationsRequest) {
-        return s3AsyncClient().listBucketIntelligentTieringConfigurations(listBucketIntelligentTieringConfigurationsRequest);
+        return delegate.listBucketIntelligentTieringConfigurations(listBucketIntelligentTieringConfigurationsRequest);
     }
 
     @Override
     public CompletableFuture<ListBucketInventoryConfigurationsResponse> listBucketInventoryConfigurations(
         ListBucketInventoryConfigurationsRequest listBucketInventoryConfigurationsRequest) {
-        return s3AsyncClient().listBucketInventoryConfigurations(listBucketInventoryConfigurationsRequest);
+        return delegate.listBucketInventoryConfigurations(listBucketInventoryConfigurationsRequest);
     }
 
     @Override
     public CompletableFuture<ListBucketMetricsConfigurationsResponse> listBucketMetricsConfigurations(
         ListBucketMetricsConfigurationsRequest listBucketMetricsConfigurationsRequest) {
-        return s3AsyncClient().listBucketMetricsConfigurations(listBucketMetricsConfigurationsRequest);
+        return delegate.listBucketMetricsConfigurations(listBucketMetricsConfigurationsRequest);
     }
 
     @Override
     public CompletableFuture<ListBucketsResponse> listBuckets(ListBucketsRequest listBucketsRequest) {
-        return s3AsyncClient().listBuckets(listBucketsRequest);
+        return delegate.listBuckets(listBucketsRequest);
     }
 
     @Override
     public CompletableFuture<ListBucketsResponse> listBuckets() {
-        return s3AsyncClient().listBuckets();
+        return delegate.listBuckets();
     }
 
     @Override
     public CompletableFuture<ListMultipartUploadsResponse> listMultipartUploads(
         ListMultipartUploadsRequest listMultipartUploadsRequest) {
-        return s3AsyncClient().listMultipartUploads(listMultipartUploadsRequest);
+        return delegate.listMultipartUploads(listMultipartUploadsRequest);
     }
 
     @Override
     public ListMultipartUploadsPublisher listMultipartUploadsPaginator(ListMultipartUploadsRequest listMultipartUploadsRequest) {
-        return s3AsyncClient().listMultipartUploadsPaginator(listMultipartUploadsRequest);
+        return delegate.listMultipartUploadsPaginator(listMultipartUploadsRequest);
     }
 
     @Override
     public CompletableFuture<ListObjectVersionsResponse> listObjectVersions(ListObjectVersionsRequest listObjectVersionsRequest) {
-        return s3AsyncClient().listObjectVersions(listObjectVersionsRequest);
+        return delegate.listObjectVersions(listObjectVersionsRequest);
     }
 
     @Override
     public ListObjectVersionsPublisher listObjectVersionsPaginator(ListObjectVersionsRequest listObjectVersionsRequest) {
-        return s3AsyncClient().listObjectVersionsPaginator(listObjectVersionsRequest);
+        return delegate.listObjectVersionsPaginator(listObjectVersionsRequest);
     }
 
     @Override
     public CompletableFuture<ListObjectsResponse> listObjects(ListObjectsRequest listObjectsRequest) {
-        return s3AsyncClient().listObjects(listObjectsRequest);
+        return delegate.listObjects(listObjectsRequest);
     }
 
     @Override
     public ListObjectsV2Publisher listObjectsV2Paginator(ListObjectsV2Request listObjectsV2Request) {
-        return s3AsyncClient().listObjectsV2Paginator(listObjectsV2Request);
+        return delegate.listObjectsV2Paginator(listObjectsV2Request);
     }
 
     @Override
     public CompletableFuture<ListPartsResponse> listParts(ListPartsRequest listPartsRequest) {
-        return s3AsyncClient().listParts(listPartsRequest);
+        return delegate.listParts(listPartsRequest);
     }
 
     @Override
     public ListPartsPublisher listPartsPaginator(ListPartsRequest listPartsRequest) {
-        return s3AsyncClient().listPartsPaginator(listPartsRequest);
+        return delegate.listPartsPaginator(listPartsRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketAccelerateConfigurationResponse> putBucketAccelerateConfiguration(
         PutBucketAccelerateConfigurationRequest putBucketAccelerateConfigurationRequest) {
-        return s3AsyncClient().putBucketAccelerateConfiguration(putBucketAccelerateConfigurationRequest);
+        return delegate.putBucketAccelerateConfiguration(putBucketAccelerateConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketAclResponse> putBucketAcl(PutBucketAclRequest putBucketAclRequest) {
-        return s3AsyncClient().putBucketAcl(putBucketAclRequest);
+        return delegate.putBucketAcl(putBucketAclRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketAnalyticsConfigurationResponse> putBucketAnalyticsConfiguration(
         PutBucketAnalyticsConfigurationRequest putBucketAnalyticsConfigurationRequest) {
-        return s3AsyncClient().putBucketAnalyticsConfiguration(putBucketAnalyticsConfigurationRequest);
+        return delegate.putBucketAnalyticsConfiguration(putBucketAnalyticsConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketCorsResponse> putBucketCors(PutBucketCorsRequest putBucketCorsRequest) {
-        return s3AsyncClient().putBucketCors(putBucketCorsRequest);
+        return delegate.putBucketCors(putBucketCorsRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketEncryptionResponse> putBucketEncryption(
         PutBucketEncryptionRequest putBucketEncryptionRequest) {
-        return s3AsyncClient().putBucketEncryption(putBucketEncryptionRequest);
+        return delegate.putBucketEncryption(putBucketEncryptionRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketIntelligentTieringConfigurationResponse> putBucketIntelligentTieringConfiguration(
         PutBucketIntelligentTieringConfigurationRequest putBucketIntelligentTieringConfigurationRequest) {
-        return s3AsyncClient().putBucketIntelligentTieringConfiguration(putBucketIntelligentTieringConfigurationRequest);
+        return delegate.putBucketIntelligentTieringConfiguration(putBucketIntelligentTieringConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketInventoryConfigurationResponse> putBucketInventoryConfiguration(
         PutBucketInventoryConfigurationRequest putBucketInventoryConfigurationRequest) {
-        return s3AsyncClient().putBucketInventoryConfiguration(putBucketInventoryConfigurationRequest);
+        return delegate.putBucketInventoryConfiguration(putBucketInventoryConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketLifecycleConfigurationResponse> putBucketLifecycleConfiguration(
         PutBucketLifecycleConfigurationRequest putBucketLifecycleConfigurationRequest) {
-        return s3AsyncClient().putBucketLifecycleConfiguration(putBucketLifecycleConfigurationRequest);
+        return delegate.putBucketLifecycleConfiguration(putBucketLifecycleConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketLoggingResponse> putBucketLogging(PutBucketLoggingRequest putBucketLoggingRequest) {
-        return s3AsyncClient().putBucketLogging(putBucketLoggingRequest);
+        return delegate.putBucketLogging(putBucketLoggingRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketMetricsConfigurationResponse> putBucketMetricsConfiguration(
         PutBucketMetricsConfigurationRequest putBucketMetricsConfigurationRequest) {
-        return s3AsyncClient().putBucketMetricsConfiguration(putBucketMetricsConfigurationRequest);
+        return delegate.putBucketMetricsConfiguration(putBucketMetricsConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketNotificationConfigurationResponse> putBucketNotificationConfiguration(
         PutBucketNotificationConfigurationRequest putBucketNotificationConfigurationRequest) {
-        return s3AsyncClient().putBucketNotificationConfiguration(putBucketNotificationConfigurationRequest);
+        return delegate.putBucketNotificationConfiguration(putBucketNotificationConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketOwnershipControlsResponse> putBucketOwnershipControls(
         PutBucketOwnershipControlsRequest putBucketOwnershipControlsRequest) {
-        return s3AsyncClient().putBucketOwnershipControls(putBucketOwnershipControlsRequest);
+        return delegate.putBucketOwnershipControls(putBucketOwnershipControlsRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketPolicyResponse> putBucketPolicy(PutBucketPolicyRequest putBucketPolicyRequest) {
-        return s3AsyncClient().putBucketPolicy(putBucketPolicyRequest);
+        return delegate.putBucketPolicy(putBucketPolicyRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketReplicationResponse> putBucketReplication(
         PutBucketReplicationRequest putBucketReplicationRequest) {
-        return s3AsyncClient().putBucketReplication(putBucketReplicationRequest);
+        return delegate.putBucketReplication(putBucketReplicationRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketRequestPaymentResponse> putBucketRequestPayment(
         PutBucketRequestPaymentRequest putBucketRequestPaymentRequest) {
-        return s3AsyncClient().putBucketRequestPayment(putBucketRequestPaymentRequest);
+        return delegate.putBucketRequestPayment(putBucketRequestPaymentRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketTaggingResponse> putBucketTagging(PutBucketTaggingRequest putBucketTaggingRequest) {
-        return s3AsyncClient().putBucketTagging(putBucketTaggingRequest);
+        return delegate.putBucketTagging(putBucketTaggingRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketVersioningResponse> putBucketVersioning(
         PutBucketVersioningRequest putBucketVersioningRequest) {
-        return s3AsyncClient().putBucketVersioning(putBucketVersioningRequest);
+        return delegate.putBucketVersioning(putBucketVersioningRequest);
     }
 
     @Override
     public CompletableFuture<PutBucketWebsiteResponse> putBucketWebsite(PutBucketWebsiteRequest putBucketWebsiteRequest) {
-        return s3AsyncClient().putBucketWebsite(putBucketWebsiteRequest);
+        return delegate.putBucketWebsite(putBucketWebsiteRequest);
     }
 
     @Override
     public CompletableFuture<PutObjectAclResponse> putObjectAcl(PutObjectAclRequest putObjectAclRequest) {
-        return s3AsyncClient().putObjectAcl(putObjectAclRequest);
+        return delegate.putObjectAcl(putObjectAclRequest);
     }
 
     @Override
     public CompletableFuture<PutObjectLegalHoldResponse> putObjectLegalHold(PutObjectLegalHoldRequest putObjectLegalHoldRequest) {
-        return s3AsyncClient().putObjectLegalHold(putObjectLegalHoldRequest);
+        return delegate.putObjectLegalHold(putObjectLegalHoldRequest);
     }
 
     @Override
     public CompletableFuture<PutObjectLockConfigurationResponse> putObjectLockConfiguration(
         PutObjectLockConfigurationRequest putObjectLockConfigurationRequest) {
-        return s3AsyncClient().putObjectLockConfiguration(putObjectLockConfigurationRequest);
+        return delegate.putObjectLockConfiguration(putObjectLockConfigurationRequest);
     }
 
     @Override
     public CompletableFuture<PutObjectRetentionResponse> putObjectRetention(PutObjectRetentionRequest putObjectRetentionRequest) {
-        return s3AsyncClient().putObjectRetention(putObjectRetentionRequest);
+        return delegate.putObjectRetention(putObjectRetentionRequest);
     }
 
     @Override
     public CompletableFuture<PutObjectTaggingResponse> putObjectTagging(PutObjectTaggingRequest putObjectTaggingRequest) {
-        return s3AsyncClient().putObjectTagging(putObjectTaggingRequest);
+        return delegate.putObjectTagging(putObjectTaggingRequest);
     }
 
     @Override
     public CompletableFuture<PutPublicAccessBlockResponse> putPublicAccessBlock(
         PutPublicAccessBlockRequest putPublicAccessBlockRequest) {
-        return s3AsyncClient().putPublicAccessBlock(putPublicAccessBlockRequest);
+        return delegate.putPublicAccessBlock(putPublicAccessBlockRequest);
     }
 
     @Override
     public CompletableFuture<RestoreObjectResponse> restoreObject(RestoreObjectRequest restoreObjectRequest) {
-        return s3AsyncClient().restoreObject(restoreObjectRequest);
+        return delegate.restoreObject(restoreObjectRequest);
     }
 
     @Override
     public CompletableFuture<Void> selectObjectContent(SelectObjectContentRequest selectObjectContentRequest,
                                                        SelectObjectContentResponseHandler asyncResponseHandler) {
-        return s3AsyncClient().selectObjectContent(selectObjectContentRequest, asyncResponseHandler);
+        return delegate.selectObjectContent(selectObjectContentRequest, asyncResponseHandler);
     }
 
     @Override
     public CompletableFuture<UploadPartResponse> uploadPart(UploadPartRequest uploadPartRequest, AsyncRequestBody requestBody) {
-        return s3AsyncClient().uploadPart(uploadPartRequest, requestBody);
+        return delegate.uploadPart(uploadPartRequest, requestBody);
     }
 
     @Override
     public CompletableFuture<UploadPartResponse> uploadPart(UploadPartRequest uploadPartRequest, Path sourcePath) {
-        return s3AsyncClient().uploadPart(uploadPartRequest, sourcePath);
+        return delegate.uploadPart(uploadPartRequest, sourcePath);
     }
 
     @Override
     public CompletableFuture<UploadPartCopyResponse> uploadPartCopy(UploadPartCopyRequest uploadPartCopyRequest) {
-        return s3AsyncClient().uploadPartCopy(uploadPartCopyRequest);
+        return delegate.uploadPartCopy(uploadPartCopyRequest);
     }
 
     @Override
     public CompletableFuture<WriteGetObjectResponseResponse> writeGetObjectResponse(
         WriteGetObjectResponseRequest writeGetObjectResponseRequest, AsyncRequestBody requestBody) {
-        return s3AsyncClient().writeGetObjectResponse(writeGetObjectResponseRequest, requestBody);
+        return delegate.writeGetObjectResponse(writeGetObjectResponseRequest, requestBody);
     }
 
     @Override
     public CompletableFuture<WriteGetObjectResponseResponse> writeGetObjectResponse(
         WriteGetObjectResponseRequest writeGetObjectResponseRequest, Path sourcePath) {
-        return s3AsyncClient().writeGetObjectResponse(writeGetObjectResponseRequest, sourcePath);
+        return delegate.writeGetObjectResponse(writeGetObjectResponseRequest, sourcePath);
     }
 
     @Override
     public S3Utilities utilities() {
-        return s3AsyncClient().utilities();
+        return delegate.utilities();
     }
 
     @Override
     public S3AsyncWaiter waiter() {
-        return s3AsyncClient().waiter();
+        return delegate.waiter();
     }
 
 }
