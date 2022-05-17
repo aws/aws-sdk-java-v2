@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3;
+package software.amazon.awssdk.services.s3.crt;
 
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
@@ -35,10 +35,13 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
 import software.amazon.awssdk.testutils.RandomTempFile;
-import software.amazon.awssdk.transfer.s3.internal.S3CrtAsyncClient;
-import software.amazon.awssdk.transfer.s3.util.ChecksumUtils;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
     private static final String TEST_BUCKET = temporaryBucketName(S3CrtClientPutObjectIntegrationTest.class);
@@ -56,7 +59,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
 
         s3Crt = S3CrtAsyncClient.builder()
-                                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
                                 .region(S3IntegrationTestBase.DEFAULT_REGION)
                                 .build();
     }
@@ -66,7 +69,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
         S3IntegrationTestBase.deleteBucketAndAllContents(TEST_BUCKET);
         Files.delete(testFile.toPath());
         s3Crt.close();
-        S3IntegrationTestBase.cleanUp();
+        CrtResource.waitForNoResources();
     }
 
     @Test
