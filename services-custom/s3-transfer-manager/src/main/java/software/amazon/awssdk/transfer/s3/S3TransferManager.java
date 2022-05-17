@@ -142,8 +142,12 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * // Pause the download
      * ResumableFileDownload resumableFileDownload = download.pause();
      *
+     * //Optionally, persist the download object
+     * resumableFileDownload.writeToFile(file);
+     * ResumableFileDownload resumableFileDownload2 = ResumableFileDownload.fromFile(file);
+     *
      * // Resume the download
-     * FileDownload resumedDownload = tm.resumeDownloadFile(resumableFileDownload);
+     * FileDownload resumedDownload = tm.resumeDownloadFile(resumableFileDownload2);
      *
      * // Wait for the transfer to complete
      * resumedDownload.completionFuture().join();
