@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
-import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
-
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
@@ -28,6 +28,7 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlDomParser;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
+import software.amazon.awssdk.utils.LookaheadInputStream;
 
 /**
  * Static methods to assist with parsing the response of AWS XML requests.
@@ -45,23 +46,28 @@ public final class XmlResponseParserUtils {
      * @return A parsed XML document or an empty XML document if no payload/contents were found in the response.
      */
     public static XmlElement parse(SdkPojo sdkPojo, SdkHttpFullResponse response) {
-
         try {
             Optional<AbortableInputStream> responseContent = response.content();
 
-            // In some cases the responseContent is present but empty, so when we are not expecting a body we should
-            // not attempt to parse it even if the body appears to be present.
-            if ((!response.isSuccessful() || hasPayloadMembers(sdkPojo)) && responseContent.isPresent() &&
-                    !contentLengthZero(response) && !getBlobTypePayloadMemberToUnmarshal(sdkPojo).isPresent()) {
-                return XmlDomParser.parse(responseContent.get());
-            } else {
+            if (!responseContent.isPresent() ||
+                (response.isSuccessful() && !hasPayloadMembers(sdkPojo)) ||
+                getBlobTypePayloadMemberToUnmarshal(sdkPojo).isPresent()) {
                 return XmlElement.empty();
             }
+
+            // Make sure there is content in the stream before passing it to the parser.
+            LookaheadInputStream content = new LookaheadInputStream(responseContent.get());
+            if (content.peek() == -1) {
+                return XmlElement.empty();
+            }
+
+            return XmlDomParser.parse(content);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         } catch (RuntimeException e) {
             if (response.isSuccessful()) {
                 throw e;
             }
-
             return XmlElement.empty();
         }
     }
@@ -85,10 +91,4 @@ public final class XmlResponseParserUtils {
         return sdkPojo.sdkFields().stream()
                       .anyMatch(f -> f.location() == MarshallLocation.PAYLOAD);
     }
-
-    private static boolean contentLengthZero(SdkHttpFullResponse response) {
-        return response.firstMatchingHeader(CONTENT_LENGTH).map(l -> Long.parseLong(l) == 0).orElse(false);
-    }
-
-
 }

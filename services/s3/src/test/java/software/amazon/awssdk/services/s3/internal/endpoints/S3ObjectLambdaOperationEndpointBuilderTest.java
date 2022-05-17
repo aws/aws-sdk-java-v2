@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.s3.internal.endpoints;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.net.URI;
 import org.junit.Rule;
 import org.junit.Test;

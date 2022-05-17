@@ -23,7 +23,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.internal.util.RegionScope;
+import software.amazon.awssdk.regions.RegionScope;
 
 /**
  * AWS-specific signing attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and

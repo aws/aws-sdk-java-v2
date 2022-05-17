@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.model.service;
 
 import java.util.List;
+import software.amazon.awssdk.codegen.checksum.HttpChecksum;
 import software.amazon.awssdk.codegen.model.intermediate.EndpointDiscovery;
 
 public class Operation {
@@ -23,6 +24,8 @@ public class Operation {
     private String name;
 
     private boolean deprecated;
+
+    private String deprecatedMessage;
 
     private Http http;
 
@@ -46,6 +49,8 @@ public class Operation {
 
     private boolean httpChecksumRequired;
 
+    private HttpChecksum httpChecksum;
+
     public String getName() {
         return name;
     }
@@ -65,6 +70,14 @@ public class Operation {
 
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
+    }
+
+    public String getDeprecatedMessage() {
+        return deprecatedMessage;
+    }
+
+    public void setDeprecatedMessage(String deprecatedMessage) {
+        this.deprecatedMessage = deprecatedMessage;
     }
 
     public Http getHttp() {
@@ -163,5 +176,13 @@ public class Operation {
 
     public void setHttpChecksumRequired(boolean httpChecksumRequired) {
         this.httpChecksumRequired = httpChecksumRequired;
+    }
+
+    public HttpChecksum getHttpChecksum() {
+        return httpChecksum;
+    }
+
+    public void setHttpChecksum(HttpChecksum httpChecksum) {
+        this.httpChecksum = httpChecksum;
     }
 }

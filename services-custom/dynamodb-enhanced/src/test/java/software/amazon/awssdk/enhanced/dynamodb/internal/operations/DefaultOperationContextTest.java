@@ -15,11 +15,11 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 
 public class DefaultOperationContextTest {

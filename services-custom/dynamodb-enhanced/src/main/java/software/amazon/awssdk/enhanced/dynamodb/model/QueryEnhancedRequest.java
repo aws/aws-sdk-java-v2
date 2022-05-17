@@ -23,7 +23,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -41,6 +43,7 @@ import software.amazon.awssdk.utils.Validate;
  * All other parameters are optional.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class QueryEnhancedRequest {
 
     private final QueryConditional queryConditional;
@@ -199,6 +202,7 @@ public final class QueryEnhancedRequest {
      * <p>
      * A valid builder must set the {@link #queryConditional} parameter. Other parameters are optional.
      */
+    @NotThreadSafe
     public static final class Builder {
         private QueryConditional queryConditional;
         private Map<String, AttributeValue> exclusiveStartKey;

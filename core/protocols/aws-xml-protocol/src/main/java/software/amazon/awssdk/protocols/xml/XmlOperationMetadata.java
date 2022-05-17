@@ -28,6 +28,13 @@ public final class XmlOperationMetadata {
 
     private boolean hasStreamingSuccessResponse;
 
+    public XmlOperationMetadata() {
+    }
+
+    private XmlOperationMetadata(Builder b) {
+        this.hasStreamingSuccessResponse = b.hasStreamingSuccessResponse;
+    }
+
     public boolean isHasStreamingSuccessResponse() {
         return hasStreamingSuccessResponse;
     }
@@ -35,6 +42,23 @@ public final class XmlOperationMetadata {
     public XmlOperationMetadata withHasStreamingSuccessResponse(boolean hasStreamingSuccessResponse) {
         this.hasStreamingSuccessResponse = hasStreamingSuccessResponse;
         return this;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private boolean hasStreamingSuccessResponse;
+
+        public Builder hasStreamingSuccessResponse(boolean hasStreamingSuccessResponse) {
+            this.hasStreamingSuccessResponse = hasStreamingSuccessResponse;
+            return this;
+        }
+
+        public XmlOperationMetadata build() {
+            return new XmlOperationMetadata(this);
+        }
     }
 
 }

@@ -18,13 +18,14 @@ package software.amazon.awssdk.services.polly.internal.presigner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -49,7 +50,7 @@ public class DefaultPollyPresignerTest {
 
     private AwsCredentialsProvider credentialsProvider;
 
-    @Before
+    @BeforeEach
     public void methodSetup() {
         credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
     }

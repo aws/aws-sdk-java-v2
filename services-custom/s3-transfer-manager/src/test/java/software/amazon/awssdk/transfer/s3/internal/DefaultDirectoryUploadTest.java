@@ -16,15 +16,14 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.Test;
-import software.amazon.awssdk.transfer.s3.UploadRequest;
+import org.junit.jupiter.api.Test;
 
-public class DefaultDirectoryUploadTest {
+class DefaultDirectoryUploadTest {
 
     @Test
-    public void equals_hashcode() {
-        EqualsVerifier.forClass(UploadRequest.class)
-                      .withNonnullFields("putObjectRequest", "requestBody")
+    void equals_hashcode() {
+        EqualsVerifier.forClass(DefaultDirectoryUpload.class)
+                      .withNonnullFields("completionFuture")
                       .verify();
     }
 

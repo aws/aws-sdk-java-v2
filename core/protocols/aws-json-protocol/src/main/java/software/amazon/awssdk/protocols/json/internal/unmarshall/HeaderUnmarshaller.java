@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
-import static java.util.stream.Collectors.toList;
-
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
@@ -26,7 +24,6 @@ import software.amazon.awssdk.core.traits.JsonValueTrait;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Header unmarshallers for all the simple types we support.
@@ -44,9 +41,8 @@ final class HeaderUnmarshaller {
     public static final JsonUnmarshaller<Float> FLOAT = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_FLOAT);
 
     // Only supports string value type
-    public static final JsonUnmarshaller<List<?>> LIST = (context, jsonContent, field) -> {
-        return SdkHttpUtils.allMatchingHeaders(context.response().headers(), field.locationName()).collect(toList());
-    };
+    public static final JsonUnmarshaller<List<?>> LIST =
+        (context, jsonContent, field) -> context.response().matchingHeaders(field.locationName());
 
     private HeaderUnmarshaller() {
     }

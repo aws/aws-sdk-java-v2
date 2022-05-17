@@ -27,8 +27,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.utils.CollectionUtils;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Modifies an HTTP request by moving query parameters to the body under the following conditions:
@@ -63,13 +61,13 @@ public final class QueryParametersToBodyInterceptor implements ExecutionIntercep
 
     private boolean shouldPutParamsInBody(SdkHttpFullRequest input) {
         return input.method() == SdkHttpMethod.POST &&
-                !input.contentStreamProvider().isPresent() &&
-                !CollectionUtils.isNullOrEmpty(input.rawQueryParameters());
+               !input.contentStreamProvider().isPresent() &&
+               input.numRawQueryParameters() > 0;
     }
 
     private SdkHttpRequest changeQueryParametersToFormData(SdkHttpFullRequest input) {
-        byte[] params = SdkHttpUtils.encodeAndFlattenFormData(input.rawQueryParameters()).orElse("")
-                .getBytes(StandardCharsets.UTF_8);
+        byte[] params = input.encodedQueryParametersAsFormData().orElse("")
+                             .getBytes(StandardCharsets.UTF_8);
 
         return input.toBuilder().clearQueryParameters()
                 .contentStreamProvider(() -> new ByteArrayInputStream(params))

@@ -177,7 +177,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Lists the instance types for the specified Outpost.</p>"
+      "documentation":"<p>Gets the instance types for the specified Outpost.</p>"
     },
     "GetSite":{
       "name":"GetSite",
@@ -211,6 +211,22 @@
       ],
       "documentation":"<p> Gets the site address. </p>"
     },
+    "ListAssets":{
+      "name":"ListAssets",
+      "http":{
+        "method":"GET",
+        "requestUri":"/outposts/{OutpostId}/assets"
+      },
+      "input":{"shape":"ListAssetsInput"},
+      "output":{"shape":"ListAssetsOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"NotFoundException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p> Lists the hardware assets in an Outpost. If you are using Dedicated Hosts on Amazon Web Services Outposts, you can filter your request by host ID to return a list of hardware assets that allocate resources for Dedicated Hosts. </p>"
+    },
     "ListCatalogItems":{
       "name":"ListCatalogItems",
       "http":{
@@ -224,7 +240,7 @@
         {"shape":"NotFoundException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Use to create a list of every item in the catalog. Add filters to your request to return a more specific list of results. Use filters to match an item class, storage option, or EC2 family. </p> <p>If you specify multiple filters, the filters are joined with an <code>AND</code>, and the request returns only results that match all of the specified filters.</p>"
+      "documentation":"<p>Lists the items in the catalog. Add filters to your request to return a more specific list of results. Use filters to match an item class, storage option, or EC2 family. </p> <p>If you specify multiple filters, the filters are joined with an <code>AND</code>, and the request returns only results that match all of the specified filters.</p>"
     },
     "ListOrders":{
       "name":"ListOrders",
@@ -240,7 +256,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Create a list of the Outpost orders for your Amazon Web Services account. You can filter your request by Outpost to return a more specific list of results. </p>"
+      "documentation":"<p>Lists the Outpost orders for your Amazon Web Services account. You can filter your request by Outpost to return a more specific list of results. </p>"
     },
     "ListOutposts":{
       "name":"ListOutposts",
@@ -255,7 +271,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Create a list of the Outposts for your Amazon Web Services account. Add filters to your request to return a more specific list of results. Use filters to match an Outpost lifecycle status, Availability Zone (<code>us-east-1a</code>), and AZ ID (<code>use1-az1</code>). </p> <p>If you specify multiple filters, the filters are joined with an <code>AND</code>, and the request returns only results that match all of the specified filters.</p>"
+      "documentation":"<p>Lists the Outposts for your Amazon Web Services account. Add filters to your request to return a more specific list of results. Use filters to match an Outpost lifecycle status, Availability Zone (<code>us-east-1a</code>), and AZ ID (<code>use1-az1</code>). </p> <p>If you specify multiple filters, the filters are joined with an <code>AND</code>, and the request returns only results that match all of the specified filters.</p>"
     },
     "ListSites":{
       "name":"ListSites",
@@ -270,7 +286,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Lists the sites for your Amazon Web Services account.</p>"
+      "documentation":"<p>Lists the Outpost sites for your Amazon Web Services account. Add operating address filters to your request to return a more specific list of results. Use filters to match site city, country code, or state/region of the operating address. </p> <p>If you specify multiple filters, the filters are joined with an <code>AND</code>, and the request returns only results that match all of the specified filters.</p>"
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -490,6 +506,42 @@
       "max":1011,
       "pattern":"^(arn:aws([a-z-]+)?:outposts:[a-z\\d-]+:\\d{12}:([a-z\\d-]+)/)[a-z]{2,8}-[a-f0-9]{17}$"
     },
+    "AssetId":{
+      "type":"string",
+      "max":100,
+      "min":1,
+      "pattern":"^(\\w+)$"
+    },
+    "AssetInfo":{
+      "type":"structure",
+      "members":{
+        "AssetId":{
+          "shape":"AssetId",
+          "documentation":"<p> The ID of the asset. </p>"
+        },
+        "RackId":{
+          "shape":"RackId",
+          "documentation":"<p> The rack ID of the asset. </p>"
+        },
+        "AssetType":{
+          "shape":"AssetType",
+          "documentation":"<p> The type of the asset. </p>"
+        },
+        "ComputeAttributes":{
+          "shape":"ComputeAttributes",
+          "documentation":"<p> Information about compute hardware assets. </p>"
+        }
+      },
+      "documentation":"<p> Information about hardware assets. </p>"
+    },
+    "AssetListDefinition":{
+      "type":"list",
+      "member":{"shape":"AssetInfo"}
+    },
+    "AssetType":{
+      "type":"string",
+      "enum":["COMPUTE"]
+    },
     "AvailabilityZone":{
       "type":"string",
       "documentation":"<p>The Availability Zone.</p>",
@@ -603,6 +655,20 @@
       "min":1,
       "pattern":"^\\S[\\S ]*$"
     },
+    "CityList":{
+      "type":"list",
+      "member":{"shape":"City"}
+    },
+    "ComputeAttributes":{
+      "type":"structure",
+      "members":{
+        "HostId":{
+          "shape":"HostId",
+          "documentation":"<p> The host ID of any Dedicated Hosts on the asset. </p>"
+        }
+      },
+      "documentation":"<p> Information about compute hardware assets. </p>"
+    },
     "ConflictException":{
       "type":"structure",
       "members":{
@@ -637,6 +703,10 @@
       "max":2,
       "min":2,
       "pattern":"^[A-Z]{2}$"
+    },
+    "CountryCodeList":{
+      "type":"list",
+      "member":{"shape":"CountryCode"}
     },
     "CreateOrderInput":{
       "type":"structure",
@@ -684,7 +754,7 @@
         "Description":{"shape":"OutpostDescription"},
         "SiteId":{
           "shape":"SiteId",
-          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p>"
+          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p> <note> <p>In requests, Amazon Web Services Outposts accepts the Amazon Resource Name (ARN) or an ID for Outposts and sites throughout the Outposts Query API. To address backwards compatibility, the parameter names <code>OutpostID</code> or <code>SiteID</code> remain in use. Despite the parameter name, you can make the request with an ARN.</p> </note>"
         },
         "AvailabilityZone":{"shape":"AvailabilityZone"},
         "AvailabilityZoneId":{"shape":"AvailabilityZoneId"},
@@ -744,7 +814,7 @@
       "members":{
         "OutpostId":{
           "shape":"OutpostId",
-          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the Outpost. </p>",
+          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the Outpost. </p> <note> <p>In requests, Amazon Web Services Outposts accepts the Amazon Resource Name (ARN) or an ID for Outposts and sites throughout the Outposts Query API. To address backwards compatibility, the parameter names <code>OutpostID</code> or <code>SiteID</code> remain in use. Despite the parameter name, you can make the request with an ARN.</p> </note>",
           "location":"uri",
           "locationName":"OutpostId"
         }
@@ -761,7 +831,7 @@
       "members":{
         "SiteId":{
           "shape":"SiteId",
-          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p>",
+          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p> <note> <p>In requests, Amazon Web Services Outposts accepts the Amazon Resource Name (ARN) or an ID for Outposts and sites throughout the Outposts Query API. To address backwards compatibility, the parameter names <code>OutpostID</code> or <code>SiteID</code> remain in use. Despite the parameter name, you can make the request with an ARN.</p> </note>",
           "location":"uri",
           "locationName":"SiteId"
         }
@@ -868,7 +938,7 @@
       "members":{
         "OutpostId":{
           "shape":"OutpostId",
-          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the Outpost. </p>",
+          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the Outpost. </p> <note> <p>In requests, Amazon Web Services Outposts accepts the Amazon Resource Name (ARN) or an ID for Outposts and sites throughout the Outposts Query API. To address backwards compatibility, the parameter names <code>OutpostID</code> or <code>SiteID</code> remain in use. Despite the parameter name, you can make the request with an ARN.</p> </note>",
           "location":"uri",
           "locationName":"OutpostId"
         }
@@ -880,7 +950,7 @@
       "members":{
         "OutpostId":{
           "shape":"OutpostId",
-          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the Outpost. </p>",
+          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the Outpost. </p> <note> <p>In requests, Amazon Web Services Outposts accepts the Amazon Resource Name (ARN) or an ID for Outposts and sites throughout the Outposts Query API. To address backwards compatibility, the parameter names <code>OutpostID</code> or <code>SiteID</code> remain in use. Despite the parameter name, you can make the request with an ARN.</p> </note>",
           "location":"uri",
           "locationName":"OutpostId"
         },
@@ -903,7 +973,7 @@
         "NextToken":{"shape":"Token"},
         "OutpostId":{
           "shape":"OutpostId",
-          "documentation":"<p> The ID of the Outpost. </p>"
+          "documentation":"<p> The ID of the Outpost. </p> <note> <p>In requests, Amazon Web Services Outposts accepts the Amazon Resource Name (ARN) or an ID for Outposts and sites throughout the Outposts Query API. To address backwards compatibility, the parameter names <code>OutpostID</code> or <code>SiteID</code> remain in use. Despite the parameter name, you can make the request with an ARN.</p> </note>"
         },
         "OutpostArn":{"shape":"OutpostArn"}
       }
@@ -923,7 +993,7 @@
       "members":{
         "SiteId":{
           "shape":"SiteId",
-          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p>",
+          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p> <note> <p>In requests, Amazon Web Services Outposts accepts the Amazon Resource Name (ARN) or an ID for Outposts and sites throughout the Outposts Query API. To address backwards compatibility, the parameter names <code>OutpostID</code> or <code>SiteID</code> remain in use. Despite the parameter name, you can make the request with an ARN.</p> </note>",
           "location":"uri",
           "locationName":"SiteId"
         },
@@ -955,7 +1025,7 @@
       "members":{
         "SiteId":{
           "shape":"SiteId",
-          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p>",
+          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p> <note> <p>In requests, Amazon Web Services Outposts accepts the Amazon Resource Name (ARN) or an ID for Outposts and sites throughout the Outposts Query API. To address backwards compatibility, the parameter names <code>OutpostID</code> or <code>SiteID</code> remain in use. Despite the parameter name, you can make the request with an ARN.</p> </note>",
           "location":"uri",
           "locationName":"SiteId"
         }
@@ -966,6 +1036,16 @@
       "members":{
         "Site":{"shape":"Site"}
       }
+    },
+    "HostId":{
+      "type":"string",
+      "max":50,
+      "min":1,
+      "pattern":"^[A-Za-z0-9-]*$"
+    },
+    "HostIdList":{
+      "type":"list",
+      "member":{"shape":"HostId"}
     },
     "ISO8601Timestamp":{"type":"timestamp"},
     "InstanceType":{
@@ -1078,6 +1158,44 @@
       "type":"map",
       "key":{"shape":"LineItemStatus"},
       "value":{"shape":"LineItemQuantity"}
+    },
+    "ListAssetsInput":{
+      "type":"structure",
+      "required":["OutpostIdentifier"],
+      "members":{
+        "OutpostIdentifier":{
+          "shape":"OutpostIdentifier",
+          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the Outpost. </p>",
+          "location":"uri",
+          "locationName":"OutpostId"
+        },
+        "HostIdFilter":{
+          "shape":"HostIdList",
+          "documentation":"<p> A filter for the host ID of Dedicated Hosts on the Outpost. </p> <p>Filter values are case sensitive. If you specify multiple values for a filter, the values are joined with an <code>OR</code>, and the request returns all results that match any of the specified values.</p>",
+          "location":"querystring",
+          "locationName":"HostIdFilter"
+        },
+        "MaxResults":{
+          "shape":"MaxResults1000",
+          "location":"querystring",
+          "locationName":"MaxResults"
+        },
+        "NextToken":{
+          "shape":"Token",
+          "location":"querystring",
+          "locationName":"NextToken"
+        }
+      }
+    },
+    "ListAssetsOutput":{
+      "type":"structure",
+      "members":{
+        "Assets":{
+          "shape":"AssetListDefinition",
+          "documentation":"<p> Information about hardware assets. </p>"
+        },
+        "NextToken":{"shape":"Token"}
+      }
     },
     "ListCatalogItemsInput":{
       "type":"structure",
@@ -1205,6 +1323,24 @@
           "shape":"MaxResults1000",
           "location":"querystring",
           "locationName":"MaxResults"
+        },
+        "OperatingAddressCountryCodeFilter":{
+          "shape":"CountryCodeList",
+          "documentation":"<p> A filter for the country code of the Outpost site. </p> <p>Filter values are case sensitive. If you specify multiple values for a filter, the values are joined with an <code>OR</code>, and the request returns all results that match any of the specified values.</p>",
+          "location":"querystring",
+          "locationName":"OperatingAddressCountryCodeFilter"
+        },
+        "OperatingAddressStateOrRegionFilter":{
+          "shape":"StateOrRegionList",
+          "documentation":"<p> A filter for the state/region of the Outpost site. </p> <p>Filter values are case sensitive. If you specify multiple values for a filter, the values are joined with an <code>OR</code>, and the request returns all results that match any of the specified values.</p>",
+          "location":"querystring",
+          "locationName":"OperatingAddressStateOrRegionFilter"
+        },
+        "OperatingAddressCityFilter":{
+          "shape":"CityList",
+          "documentation":"<p> A filter for the city of the Outpost site. </p> <p>Filter values are case sensitive. If you specify multiple values for a filter, the values are joined with an <code>OR</code>, and the request returns all results that match any of the specified values.</p>",
+          "location":"querystring",
+          "locationName":"OperatingAddressCityFilter"
         }
       }
     },
@@ -1510,6 +1646,12 @@
       ]
     },
     "Quantity":{"type":"string"},
+    "RackId":{
+      "type":"string",
+      "max":20,
+      "min":5,
+      "pattern":"^[\\S \\n]+$"
+    },
     "RackPhysicalProperties":{
       "type":"structure",
       "members":{
@@ -1649,6 +1791,10 @@
       "min":1,
       "pattern":"^\\S[\\S ]*$"
     },
+    "StateOrRegionList":{
+      "type":"list",
+      "member":{"shape":"StateOrRegion"}
+    },
     "String":{
       "type":"string",
       "max":1000,
@@ -1765,7 +1911,7 @@
       "members":{
         "OutpostId":{
           "shape":"OutpostId",
-          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the Outpost. </p>",
+          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the Outpost. </p> <note> <p>In requests, Amazon Web Services Outposts accepts the Amazon Resource Name (ARN) or an ID for Outposts and sites throughout the Outposts Query API. To address backwards compatibility, the parameter names <code>OutpostID</code> or <code>SiteID</code> remain in use. Despite the parameter name, you can make the request with an ARN.</p> </note>",
           "location":"uri",
           "locationName":"OutpostId"
         },
@@ -1793,7 +1939,7 @@
       "members":{
         "SiteId":{
           "shape":"SiteId",
-          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p>",
+          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p> <note> <p>In requests, Amazon Web Services Outposts accepts the Amazon Resource Name (ARN) or an ID for Outposts and sites throughout the Outposts Query API. To address backwards compatibility, the parameter names <code>OutpostID</code> or <code>SiteID</code> remain in use. Despite the parameter name, you can make the request with an ARN.</p> </note>",
           "location":"uri",
           "locationName":"SiteId"
         },
@@ -1826,7 +1972,7 @@
       "members":{
         "SiteId":{
           "shape":"SiteId",
-          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p>",
+          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p> <note> <p>In requests, Amazon Web Services Outposts accepts the Amazon Resource Name (ARN) or an ID for Outposts and sites throughout the Outposts Query API. To address backwards compatibility, the parameter names <code>OutpostID</code> or <code>SiteID</code> remain in use. Despite the parameter name, you can make the request with an ARN.</p> </note>",
           "location":"uri",
           "locationName":"SiteId"
         },
@@ -1850,7 +1996,7 @@
       "members":{
         "SiteId":{
           "shape":"SiteId",
-          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p>",
+          "documentation":"<p> The ID or the Amazon Resource Name (ARN) of the site. </p> <note> <p>In requests, Amazon Web Services Outposts accepts the Amazon Resource Name (ARN) or an ID for Outposts and sites throughout the Outposts Query API. To address backwards compatibility, the parameter names <code>OutpostID</code> or <code>SiteID</code> remain in use. Despite the parameter name, you can make the request with an ARN.</p> </note>",
           "location":"uri",
           "locationName":"SiteId"
         },

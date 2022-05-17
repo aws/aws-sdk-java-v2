@@ -17,7 +17,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
@@ -30,22 +30,21 @@ import com.google.common.jimfs.Jimfs;
 import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ThreadLocalRandom;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.DrainingSubscriber;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -68,10 +67,11 @@ public class S3TransferManagerListenerTest {
     private S3TransferManager tm;
     private long contentLength;
 
-    @Before
+    @BeforeEach
     public void methodSetup() {
         s3Crt = mock(S3CrtAsyncClient.class);
-        tm = new DefaultS3TransferManager(s3Crt, mock(UploadDirectoryHelper.class), mock(TransferManagerConfiguration.class));
+        tm = new DefaultS3TransferManager(s3Crt, mock(UploadDirectoryHelper.class), mock(TransferManagerConfiguration.class),
+                                          mock(DownloadDirectoryHelper.class));
         contentLength = 1024L;
         when(s3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
             .thenAnswer(drainPutRequestBody());
@@ -79,7 +79,7 @@ public class S3TransferManagerListenerTest {
             .thenAnswer(randomGetResponseBody(contentLength));
     }
 
-    @After
+    @AfterEach
     public void methodTeardown() {
         tm.close();
     }
@@ -267,23 +267,24 @@ public class S3TransferManagerListenerTest {
         UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
                                                                .putObjectRequest(r -> r.bucket("bucket")
                                                                                        .key("key"))
-                                                               .source(Paths.get("/some/nonexistent/path"))
+                                                               .source(path)
                                                                .overrideConfiguration(b -> b.addListener(listener))
                                                                .build();
+        SdkClientException sdkClientException = SdkClientException.create("");
+        when(s3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
+            .thenThrow(sdkClientException);
         FileUpload fileUpload = tm.uploadFile(uploadFileRequest);
 
         CompletableFuture<CompletedFileUpload> future = fileUpload.completionFuture();
         assertThatThrownBy(future::join)
             .isInstanceOf(CompletionException.class)
-            .hasCauseInstanceOf(NoSuchFileException.class);
+            .hasCause(sdkClientException);
 
         ArgumentCaptor<TransferListener.Context.TransferInitiated> captor1 =
             ArgumentCaptor.forClass(TransferListener.Context.TransferInitiated.class);
         verify(listener, timeout(1000).times(1)).transferInitiated(captor1.capture());
         TransferListener.Context.TransferInitiated ctx1 = captor1.getValue();
         assertThat(ctx1.request()).isSameAs(uploadFileRequest);
-        // transferSize is not known since file did not exist
-        assertThat(ctx1.progressSnapshot().transferSizeInBytes()).isNotPresent();
         assertThat(ctx1.progressSnapshot().bytesTransferred()).isZero();
 
         ArgumentCaptor<TransferListener.Context.TransferFailed> captor2 =
@@ -291,9 +292,8 @@ public class S3TransferManagerListenerTest {
         verify(listener, timeout(1000).times(1)).transferFailed(captor2.capture());
         TransferListener.Context.TransferFailed ctx2 = captor2.getValue();
         assertThat(ctx2.request()).isSameAs(uploadFileRequest);
-        assertThat(ctx2.progressSnapshot().transferSizeInBytes()).isNotPresent();
         assertThat(ctx2.progressSnapshot().bytesTransferred()).isZero();
-        assertThat(ctx2.exception()).isInstanceOf(NoSuchFileException.class);
+        assertThat(ctx2.exception()).isEqualTo(sdkClientException);
 
         verifyNoMoreInteractions(listener);
     }
@@ -333,7 +333,7 @@ public class S3TransferManagerListenerTest {
 
     private static Answer<CompletableFuture<PutObjectResponse>> drainPutRequestBody() {
         return invocationOnMock -> {
-            AsyncRequestBody requestBody = invocationOnMock.getArgumentAt(1, AsyncRequestBody.class);
+            AsyncRequestBody requestBody = invocationOnMock.getArgument(1, AsyncRequestBody.class);
             CompletableFuture<PutObjectResponse> cf = new CompletableFuture<>();
             requestBody.subscribe(new DrainingSubscriber<ByteBuffer>() {
                 @Override
@@ -353,7 +353,7 @@ public class S3TransferManagerListenerTest {
     private static Answer<CompletableFuture<GetObjectResponse>> randomGetResponseBody(long contentLength) {
         return invocationOnMock -> {
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
-                invocationOnMock.getArgumentAt(1, AsyncResponseTransformer.class);
+                invocationOnMock.getArgument(1, AsyncResponseTransformer.class);
             CompletableFuture<GetObjectResponse> cf = responseTransformer.prepare();
             responseTransformer.onResponse(GetObjectResponse.builder()
                                                             .contentLength(contentLength)

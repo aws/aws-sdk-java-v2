@@ -15,10 +15,13 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
-import static java.util.stream.Collectors.toList;
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PUBLIC;
 import static software.amazon.awssdk.codegen.poet.model.DeprecationUtils.checkDeprecated;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -26,11 +29,14 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -38,6 +44,9 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 
 /**
@@ -73,7 +82,7 @@ class ModelBuilderSpecs {
     public TypeSpec builderInterface() {
         TypeSpec.Builder builder = TypeSpec.interfaceBuilder(builderInterfaceName())
                 .addSuperinterfaces(builderSuperInterfaces())
-                .addModifiers(Modifier.PUBLIC);
+                .addModifiers(PUBLIC);
 
         shapeModel.getNonStreamingMembers()
                   .forEach(m -> {
@@ -93,7 +102,7 @@ class ModelBuilderSpecs {
                     .returns(builderInterfaceName())
                     .addAnnotation(Override.class)
                     .addParameter(AwsRequestOverrideConfiguration.class, "overrideConfiguration")
-                    .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                    .addModifiers(PUBLIC, Modifier.ABSTRACT)
                     .build());
 
             builder.addMethod(MethodSpec.methodBuilder("overrideConfiguration")
@@ -101,7 +110,7 @@ class ModelBuilderSpecs {
                     .returns(builderInterfaceName())
                     .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfiguration.Builder.class),
                             "builderConsumer")
-                    .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                    .addModifiers(PUBLIC, Modifier.ABSTRACT)
                     .build());
         }
 
@@ -132,6 +141,11 @@ class ModelBuilderSpecs {
         builderClassBuilder.addMethods(accessors());
         builderClassBuilder.addMethod(buildMethod());
         builderClassBuilder.addMethod(sdkFieldsMethod());
+
+        if (shapeModel.isUnion()) {
+            builderClassBuilder.addMethod(handleUnionValueChangeMethod());
+        }
+
         return builderClassBuilder.build();
     }
 
@@ -148,7 +162,7 @@ class ModelBuilderSpecs {
         ParameterizedTypeName sdkFieldType = ParameterizedTypeName.get(ClassName.get(SdkField.class),
                                                                        WildcardTypeName.subtypeOf(ClassName.get(Object.class)));
         return MethodSpec.methodBuilder("sdkFields")
-                         .addModifiers(Modifier.PUBLIC)
+                         .addModifiers(PUBLIC)
                          .addAnnotation(Override.class)
                          .returns(ParameterizedTypeName.get(ClassName.get(List.class), sdkFieldType))
                          .addCode("return SDK_FIELDS;")
@@ -168,20 +182,32 @@ class ModelBuilderSpecs {
     }
 
     private List<FieldSpec> fields() {
-        List<FieldSpec> fields = shapeModel.getNonStreamingMembers().stream()
-                .map(m -> {
-                    FieldSpec fieldSpec = typeProvider.asField(m, Modifier.PRIVATE);
-                    if (m.isList()) {
-                        fieldSpec = fieldSpec.toBuilder()
-                                .initializer("$T.getInstance()", DefaultSdkAutoConstructList.class)
-                                .build();
-                    } else if (m.isMap()) {
-                        fieldSpec = fieldSpec.toBuilder()
-                                .initializer("$T.getInstance()", DefaultSdkAutoConstructMap.class)
-                                .build();
-                    }
-                    return fieldSpec;
-                }).collect(toList());
+        List<FieldSpec> fields = new ArrayList<>();
+
+        for (MemberModel member : shapeModel.getNonStreamingMembers()) {
+            FieldSpec fieldSpec = typeProvider.asField(member, Modifier.PRIVATE);
+            if (member.isList()) {
+                fieldSpec = fieldSpec.toBuilder()
+                                     .initializer("$T.getInstance()", DefaultSdkAutoConstructList.class)
+                                     .build();
+            } else if (member.isMap()) {
+                fieldSpec = fieldSpec.toBuilder()
+                                     .initializer("$T.getInstance()", DefaultSdkAutoConstructMap.class)
+                                     .build();
+            }
+
+            fields.add(fieldSpec);
+        }
+
+        if (shapeModel.isUnion()) {
+            ClassName unionType = shapeModelSpec.className().nestedClass("Type");
+            fields.add(FieldSpec.builder(unionType, "type", PRIVATE)
+                                .initializer("$T.UNKNOWN_TO_SDK_VERSION", unionType)
+                                .build());
+            fields.add(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(Set.class), unionType), "setTypes", PRIVATE)
+                                .initializer("$T.noneOf($T.class)", EnumSet.class, unionType)
+                                .build());
+        }
 
         return fields;
     }
@@ -230,7 +256,7 @@ class ModelBuilderSpecs {
                     .addAnnotation(Override.class)
                     .returns(builderInterfaceName())
                     .addParameter(AwsRequestOverrideConfiguration.class, "overrideConfiguration")
-                    .addModifiers(Modifier.PUBLIC)
+                    .addModifiers(PUBLIC)
                     .addStatement("super.overrideConfiguration(overrideConfiguration)")
                     .addStatement("return this")
                     .build());
@@ -240,7 +266,7 @@ class ModelBuilderSpecs {
                     .returns(builderInterfaceName())
                     .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfiguration.Builder.class),
                             "builderConsumer")
-                    .addModifiers(Modifier.PUBLIC)
+                    .addModifiers(PUBLIC)
                     .addStatement("super.overrideConfiguration(builderConsumer)")
                     .addStatement("return this")
                     .build());
@@ -252,7 +278,7 @@ class ModelBuilderSpecs {
     private MethodSpec buildMethod() {
         return MethodSpec.methodBuilder("build")
                 .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
+                .addModifiers(PUBLIC)
                 .returns(classToBuild())
                 .addStatement("return new $T(this)", classToBuild())
                 .build();
@@ -290,5 +316,53 @@ class ModelBuilderSpecs {
         superInterfaces.add(ParameterizedTypeName.get(ClassName.get(CopyableBuilder.class),
                 classToBuild().nestedClass("Builder"), classToBuild()));
         return superInterfaces;
+    }
+
+    public TypeSpec unionTypeClass() {
+        Validate.isTrue(shapeModel.isUnion(), "%s was not a union.", shapeModel.getShapeName());
+
+        TypeSpec.Builder type = TypeSpec.enumBuilder("Type")
+                                        .addJavadoc("@see $L#type()", shapeModel.getShapeName())
+                                        .addModifiers(PUBLIC);
+
+        for (MemberModel member : shapeModel.getMembers()) {
+            type.addEnumConstant(member.getUnionEnumTypeName());
+        }
+
+        type.addEnumConstant("UNKNOWN_TO_SDK_VERSION");
+
+        return type.build();
+    }
+
+    private MethodSpec handleUnionValueChangeMethod() {
+        CodeBlock body =
+            CodeBlock.builder()
+                     .beginControlFlow("if (this.type == type || oldValue == newValue)")
+                     .addStatement("return")
+                     .endControlFlow()
+                     .beginControlFlow("if (newValue == null || newValue instanceof $T || newValue instanceof $T)",
+                                       SdkAutoConstructList.class, SdkAutoConstructMap.class)
+                     .addStatement("setTypes.remove(type)")
+                     .nextControlFlow("else if (oldValue == null || oldValue instanceof $T || oldValue instanceof $T)",
+                                      SdkAutoConstructList.class, SdkAutoConstructMap.class)
+                     .addStatement("setTypes.add(type)")
+                     .endControlFlow()
+                     .beginControlFlow("if (setTypes.size() == 1)")
+                     .addStatement("this.type = setTypes.iterator().next()")
+                     .nextControlFlow("else if (setTypes.isEmpty())")
+                     .addStatement("this.type = Type.UNKNOWN_TO_SDK_VERSION")
+                     .nextControlFlow("else")
+                     .addStatement("this.type = null")
+                     .endControlFlow()
+                     .build();
+
+        return MethodSpec.methodBuilder("handleUnionValueChange")
+                         .addModifiers(PRIVATE, FINAL)
+                         .returns(void.class)
+                         .addParameter(shapeModelSpec.className().nestedClass("Type"), "type")
+                         .addParameter(Object.class, "oldValue")
+                         .addParameter(Object.class, "newValue")
+                         .addCode(body)
+                         .build();
     }
 }

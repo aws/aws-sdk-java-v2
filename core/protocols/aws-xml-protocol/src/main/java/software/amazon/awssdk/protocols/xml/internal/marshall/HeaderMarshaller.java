@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
+import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public final class HeaderMarshaller {
@@ -78,9 +79,16 @@ public final class HeaderMarshaller {
             }
             SdkField memberFieldInfo = sdkField.getRequiredTrait(ListTrait.class).memberFieldInfo();
             for (Object listValue : list) {
+                if (shouldSkipElement(listValue)) {
+                    continue;
+                }
                 XmlMarshaller marshaller = context.marshallerRegistry().getMarshaller(MarshallLocation.HEADER, listValue);
                 marshaller.marshall(listValue, context, paramName, memberFieldInfo);
             }
+        }
+
+        private boolean shouldSkipElement(Object element) {
+            return element instanceof String && StringUtils.isBlank((String) element);
         }
 
         @Override

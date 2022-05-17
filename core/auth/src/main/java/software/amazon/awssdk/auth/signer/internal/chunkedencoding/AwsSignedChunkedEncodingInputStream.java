@@ -19,9 +19,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.core.internal.io.AwsChunkedEncodingInputStream;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * A wrapper of InputStream that implements chunked encoding.
@@ -39,8 +42,7 @@ public final class AwsSignedChunkedEncodingInputStream extends AwsChunkedEncodin
 
     private static final String CRLF = "\r\n";
     private static final String CHUNK_SIGNATURE_HEADER = ";chunk-signature=";
-    private static final byte[] FINAL_CHUNK = new byte[0];
-
+    private static final String CHECKSUM_SIGNATURE_HEADER = "x-amz-trailer-signature:";
     private String previousChunkSignature;
     private String headerSignature;
     private final AwsChunkSigner chunkSigner;
@@ -59,11 +61,12 @@ public final class AwsSignedChunkedEncodingInputStream extends AwsChunkedEncodin
      * @param config          The configuration allows the user to customize chunk size and buffer size.
      *                        See {@link AwsChunkedEncodingConfig} for default values.
      */
-    private AwsSignedChunkedEncodingInputStream(InputStream in,
+    private AwsSignedChunkedEncodingInputStream(InputStream in, SdkChecksum sdkChecksum,
+                                                String checksumHeaderForTrailer,
                                                 String headerSignature,
                                                 AwsChunkSigner chunkSigner,
                                                 AwsChunkedEncodingConfig config) {
-        super(in, config);
+        super(in, sdkChecksum, checksumHeaderForTrailer, config);
         this.chunkSigner = chunkSigner;
         this.previousChunkSignature = headerSignature;
         this.headerSignature = headerSignature;
@@ -98,12 +101,20 @@ public final class AwsSignedChunkedEncodingInputStream extends AwsChunkedEncodin
             return this;
         }
 
+
         public AwsSignedChunkedEncodingInputStream build() {
-            return new AwsSignedChunkedEncodingInputStream(this.inputStream(),
+
+            return new AwsSignedChunkedEncodingInputStream(this.inputStream, this.sdkChecksum, this.checksumHeaderForTrailer,
                                                            this.headerSignature,
-                                                           this.awsChunkSigner,
-                                                           this.chunkedEncodingConfig());
+                                                           this.awsChunkSigner, this.awsChunkedEncodingConfig);
         }
+    }
+
+    public static long calculateStreamContentLength(long originalLength,
+                                                    int signatureLength,
+                                                    AwsChunkedEncodingConfig config) {
+        return calculateStreamContentLength(originalLength, signatureLength, config, false);
+
     }
 
     /**
@@ -116,31 +127,35 @@ public final class AwsSignedChunkedEncodingInputStream extends AwsChunkedEncodin
      */
     public static long calculateStreamContentLength(long originalLength,
                                                     int signatureLength,
-                                                    AwsChunkedEncodingConfig config) {
+                                                    AwsChunkedEncodingConfig config,
+                                                    boolean isTrailingChecksumCalculated) {
         if (originalLength < 0) {
             throw new IllegalArgumentException("Nonnegative content length expected.");
         }
         int chunkSize = config.chunkSize();
         long maxSizeChunks = originalLength / chunkSize;
         long remainingBytes = originalLength % chunkSize;
-        return maxSizeChunks * calculateSignedChunkLength(chunkSize, signatureLength)
-                + (remainingBytes > 0 ? calculateSignedChunkLength(remainingBytes, signatureLength) : 0)
-                + calculateSignedChunkLength(0, signatureLength);
+        return maxSizeChunks * calculateSignedChunkLength(chunkSize, signatureLength, false)
+                + (remainingBytes > 0 ? calculateSignedChunkLength(remainingBytes, signatureLength, false) : 0)
+                + calculateSignedChunkLength(0, signatureLength, isTrailingChecksumCalculated);
     }
 
-    private static long calculateSignedChunkLength(long chunkDataSize, int signatureLength) {
+    private static long calculateSignedChunkLength(long chunkDataSize, int signatureLength, boolean isTrailingCarriageReturn) {
         return Long.toHexString(chunkDataSize).length()
-                + CHUNK_SIGNATURE_HEADER.length()
-                + signatureLength
-                + CRLF.length()
-                + chunkDataSize
-                + CRLF.length();
+               + CHUNK_SIGNATURE_HEADER.length()
+               + signatureLength
+               + CRLF.length()
+               + chunkDataSize
+               + (isTrailingCarriageReturn ?  0 : CRLF.length());
+        //For Trailing checksum we do not want additional CRLF as the checksum is appended after CRLF.
     }
+
 
     private byte[] createSignedChunk(byte[] chunkData) {
         try {
             byte[] header = createSignedChunkHeader(chunkData);
-            byte[] trailer = CRLF.getBytes(StandardCharsets.UTF_8);
+            byte[] trailer = isTrailingTerminated ? CRLF.getBytes(StandardCharsets.UTF_8)
+                                                  : "".getBytes(StandardCharsets.UTF_8);
             byte[] signedChunk = new byte[header.length + chunkData.length + trailer.length];
             System.arraycopy(header, 0, signedChunk, 0, header.length);
             System.arraycopy(chunkData, 0, signedChunk, header.length, chunkData.length);
@@ -176,6 +191,46 @@ public final class AwsSignedChunkedEncodingInputStream extends AwsChunkedEncodin
     @Override
     protected byte[] createChunk(byte[] chunkData) {
         return createSignedChunk(chunkData);
+    }
+
+    @Override
+    protected byte[] createChecksumChunkHeader() {
+        StringBuilder chunkHeader = new StringBuilder();
+        chunkHeader.append(checksumHeaderForTrailer)
+                   .append(HEADER_COLON_SEPARATOR)
+                   .append(BinaryUtils.toBase64(calculatedChecksum))
+                   .append(CRLF)
+                   .append(createSignedChecksumChunk());
+        return chunkHeader.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    private String createSignedChecksumChunk() {
+        StringBuilder chunkHeader = new StringBuilder();
+        //signChecksumChunk
+        String chunkSignature =
+            chunkSigner.signChecksumChunk(calculatedChecksum, previousChunkSignature,
+                                                            checksumHeaderForTrailer);
+        previousChunkSignature = chunkSignature;
+        chunkHeader.append(CHECKSUM_SIGNATURE_HEADER)
+                   .append(chunkSignature)
+                   .append(CRLF);
+        return chunkHeader.toString();
+    }
+
+    public static int calculateChecksumContentLength(Algorithm algorithm, String headerName, int signatureLength) {
+        int originalLength = algorithm.base64EncodedLength();
+        return (headerName.length()
+                + HEADER_COLON_SEPARATOR.length()
+                + originalLength
+                + CRLF.length()
+                + calculateSignedChecksumChunkLength(signatureLength)
+                + CRLF.length());
+    }
+
+    private static int calculateSignedChecksumChunkLength(int signatureLength) {
+        return CHECKSUM_SIGNATURE_HEADER.length()
+               + signatureLength
+               + CRLF.length();
     }
 
     @Override

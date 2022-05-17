@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Update behaviors that can be applied to individual attributes. This behavior will only apply to 'update' operations
@@ -25,6 +26,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * applied.
  */
 @SdkPublicApi
+@ThreadSafe
 public enum UpdateBehavior {
     /**
      * Always overwrite with the new value if one is provided, or remove any existing value if a null value is

@@ -265,6 +265,9 @@ public class StabilityTestRunner {
     }
 
     private static boolean isIOExceptionOrHasIOCause(Throwable throwable) {
+        if (throwable == null) {
+            return false;
+        }
         return throwable instanceof IOException || throwable.getCause() instanceof IOException;
     }
 

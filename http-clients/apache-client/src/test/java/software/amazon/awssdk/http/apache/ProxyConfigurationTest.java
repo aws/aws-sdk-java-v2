@@ -20,18 +20,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ProxyConfigurationTest {
 
-    @Before
+    @BeforeEach
     public void setup() {
         clearProxyProperties();
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanup() {
         clearProxyProperties();
     }
@@ -103,6 +103,18 @@ public class ProxyConfigurationTest {
         assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHosts);
         assertThat(config.host()).isEqualTo("foo.com");
         assertThat(config.username()).isEqualTo("user");
+    }
+
+    @Test
+    public void testProxyConfigurationWithoutNonProxyHosts_toBuilder_shouldNotThrowNPE() {
+        ProxyConfiguration proxyConfiguration =
+            ProxyConfiguration.builder()
+                              .endpoint(URI.create("http://localhost:4321"))
+                              .username("username")
+                              .password("password")
+                              .build();
+
+        assertThat(proxyConfiguration.toBuilder()).isNotNull();
     }
 
     private static void clearProxyProperties() {

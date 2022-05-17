@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.async.SdkPublisher;
 
 /**
@@ -39,7 +40,7 @@ import software.amazon.awssdk.core.async.SdkPublisher;
  * <pre>
  * {@code
  *
- * PagePublisher<<MyItem> publisher = mappedTable.scan();
+ * PagePublisher<MyItem> publisher = mappedTable.scan();
  * publisher.items().subscribe(item -> System.out.println(item));
  * }
  * </pre>
@@ -47,6 +48,7 @@ import software.amazon.awssdk.core.async.SdkPublisher;
  * @param <T> The modelled type of the object in a page.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface PagePublisher<T> extends SdkPublisher<Page<T>> {
 
     /**

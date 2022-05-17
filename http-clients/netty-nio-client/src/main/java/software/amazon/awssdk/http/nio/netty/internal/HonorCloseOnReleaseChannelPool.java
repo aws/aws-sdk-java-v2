@@ -22,7 +22,7 @@ import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
  * Wrap a channel pool so that {@link ChannelAttributeKey#CLOSE_ON_RELEASE} is honored when a channel is released to the
@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public class HonorCloseOnReleaseChannelPool implements ChannelPool {
-    private static final Logger log = Logger.loggerFor(HonorCloseOnReleaseChannelPool.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(HonorCloseOnReleaseChannelPool.class);
     private final ChannelPool delegatePool;
 
     public HonorCloseOnReleaseChannelPool(ChannelPool delegatePool) {
@@ -61,7 +61,7 @@ public class HonorCloseOnReleaseChannelPool implements ChannelPool {
             boolean shouldCloseOnRelease = Boolean.TRUE.equals(channel.attr(ChannelAttributeKey.CLOSE_ON_RELEASE).get());
 
             if (shouldCloseOnRelease && channel.isOpen() && !channel.eventLoop().isShuttingDown()) {
-                log.debug(() -> "Closing connection (" + channel.id() + "), instead of releasing it.");
+                log.debug(channel, () -> "Closing connection (" + channel.id() + "), instead of releasing it.");
                 channel.close();
             }
 

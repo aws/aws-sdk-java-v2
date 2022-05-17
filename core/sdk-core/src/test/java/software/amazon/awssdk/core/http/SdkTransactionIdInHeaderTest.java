@@ -27,9 +27,7 @@ import static org.junit.Assert.fail;
 import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-
 import org.junit.Test;
-
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;

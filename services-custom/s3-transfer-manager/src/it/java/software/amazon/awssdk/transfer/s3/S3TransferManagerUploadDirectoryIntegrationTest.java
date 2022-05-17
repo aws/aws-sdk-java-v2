@@ -25,28 +25,30 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.utils.Logger;
 
 public class S3TransferManagerUploadDirectoryIntegrationTest extends S3IntegrationTestBase {
     private static final Logger log = Logger.loggerFor(S3TransferManagerUploadDirectoryIntegrationTest.class);
-    private static final String TEST_BUCKET = temporaryBucketName(S3TransferManagerUploadIntegrationTest.class);
+    private static final String TEST_BUCKET = temporaryBucketName(S3TransferManagerUploadDirectoryIntegrationTest.class);
 
     private static S3TransferManager tm;
     private static Path directory;
     private static S3Client s3Client;
     private static String randomString;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(TEST_BUCKET);
@@ -64,7 +66,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
                            .build();
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() {
         try {
             FileUtils.cleanUpTestDirectory(directory);
@@ -84,7 +86,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     }
 
     @Test
-    public void uploadDirectory_filesSentCorrectly() {
+    void uploadDirectory_filesSentCorrectly() {
         String prefix = "yolo";
         DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(directory)
                                                                           .bucket(TEST_BUCKET)
@@ -103,7 +105,19 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     }
 
     @Test
-    public void uploadDirectory_withDelimiter_filesSentCorrectly() {
+    void uploadDirectory_nonExistsBucket_shouldAddFailedRequest() {
+        String prefix = "yolo";
+        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(directory)
+                                                                   .bucket("nonExistingTestBucket" + UUID.randomUUID())
+                                                                   .prefix(prefix)
+                                                                   .overrideConfiguration(o -> o.recursive(true)));
+        CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
+        assertThat(completedDirectoryUpload.failedTransfers()).hasSize(3).allSatisfy(f ->
+            assertThat(f.exception()).isInstanceOf(NoSuchBucketException.class));
+    }
+
+    @Test
+    void uploadDirectory_withDelimiter_filesSentCorrectly() {
         String prefix = "hello";
         String delimiter = "0";
         DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(directory)
@@ -126,7 +140,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     }
 
     @Test
-    public void uploadDirectory_withRequestTransformer_usesRequestTransformer() throws Exception {
+    void uploadDirectory_withRequestTransformer_usesRequestTransformer() throws Exception {
         String prefix = "requestTransformerTest";
         Path newSourceForEachUpload = Paths.get(directory.toString(), "bar.txt");
 

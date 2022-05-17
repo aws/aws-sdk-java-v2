@@ -15,10 +15,9 @@
 
 package software.amazon.awssdk.core.client;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,11 +26,10 @@ import static org.testng.Assert.fail;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -78,7 +76,7 @@ public class AsyncClientHandlerExceptionTest {
 
     private ClientExecutionParams<SdkRequest, SdkResponse> executionParams;
 
-    @Before
+    @BeforeEach
     public void methodSetup() throws Exception {
         executionParams = new ClientExecutionParams<SdkRequest, SdkResponse>()
                 .withInput(request)
@@ -102,7 +100,7 @@ public class AsyncClientHandlerExceptionTest {
                 .thenReturn(VoidSdkResponse.builder().build());
 
         when(asyncHttpClient.execute(any(AsyncExecuteRequest.class))).thenAnswer((Answer<CompletableFuture<Void>>) invocationOnMock -> {
-            SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class).responseHandler();
+            SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgument(0, AsyncExecuteRequest.class).responseHandler();
             handler.onHeaders(SdkHttpFullResponse.builder()
                     .statusCode(200)
                     .build());
@@ -112,7 +110,7 @@ public class AsyncClientHandlerExceptionTest {
     }
 
     @Test
-    public void marshallerThrowsReportedThroughFuture() throws ExecutionException, InterruptedException {
+    public void marshallerThrowsReportedThroughFuture() throws Exception {
         final SdkClientException e = SdkClientException.create("Could not marshall");
         when(marshaller.marshall(any(SdkRequest.class))).thenThrow(e);
         doVerify(() -> clientHandler.execute(executionParams), e);

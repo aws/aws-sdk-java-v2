@@ -18,7 +18,11 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2Stream;
+import io.netty.util.concurrent.Future;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Http2Metric;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -37,6 +41,12 @@ public class NettyRequestMetrics {
      */
     public static boolean metricsAreEnabled(MetricCollector metricCollector) {
         return metricCollector != null && !(metricCollector instanceof NoOpMetricCollector);
+    }
+
+    public static void ifMetricsAreEnabled(MetricCollector metrics, Consumer<MetricCollector> metricsConsumer) {
+        if (metricsAreEnabled(metrics)) {
+            metricsConsumer.accept(metrics);
+        }
     }
 
     /**
@@ -72,5 +82,16 @@ public class NettyRequestMetrics {
                                      http2Connection.local().flowController().windowSize(stream));
         metricCollector.reportMetric(Http2Metric.REMOTE_STREAM_WINDOW_SIZE_IN_BYTES,
                                      http2Connection.remote().flowController().windowSize(stream));
+    }
+
+    /**
+     * Measure the time taken for a {@link Future} to complete. Does NOT differentiate between success/failure.
+     */
+    public static void measureTimeTaken(Future<?> future, Consumer<Duration> onDone) {
+        Instant start = Instant.now();
+        future.addListener(f -> {
+            Duration elapsed = Duration.between(start, Instant.now());
+            onDone.accept(elapsed);
+        });
     }
 }

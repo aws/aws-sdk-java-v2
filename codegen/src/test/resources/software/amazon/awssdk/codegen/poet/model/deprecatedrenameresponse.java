@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -187,7 +186,6 @@ public final class DeprecatedRenameResponse extends JsonProtocolTestsResponse im
         }
 
         @Override
-        @Transient
         public final Builder originalNameNoDeprecation(String originalNameNoDeprecation) {
             this.originalNameNoDeprecation = originalNameNoDeprecation;
             return this;
@@ -202,7 +200,6 @@ public final class DeprecatedRenameResponse extends JsonProtocolTestsResponse im
         }
 
         @Override
-        @Transient
         public final Builder originalNameDeprecated(String originalNameDeprecated) {
             this.originalNameDeprecated = originalNameDeprecated;
             return this;

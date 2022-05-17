@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
@@ -59,6 +59,8 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
      */
     private final Path path;
 
+    private final long fileLength;
+
     /**
      * Size (in bytes) of ByteBuffer chunks read from the file and delivered to the subscriber.
      */
@@ -67,15 +69,12 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     private FileAsyncRequestBody(DefaultBuilder builder) {
         this.path = builder.path;
         this.chunkSizeInBytes = builder.chunkSizeInBytes == null ? DEFAULT_CHUNK_SIZE : builder.chunkSizeInBytes;
+        this.fileLength = invokeSafely(() -> Files.size(path));
     }
 
     @Override
     public Optional<Long> contentLength() {
-        try {
-            return Optional.of(Files.size(path));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return Optional.of(fileLength);
     }
 
     @Override
@@ -260,32 +259,37 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             inputChannel.read(buffer, position.get(), buffer, new CompletionHandler<Integer, ByteBuffer>() {
                 @Override
                 public void completed(Integer result, ByteBuffer attachment) {
-                    if (result > 0) {
-                        attachment.flip();
+                    try {
+                        if (result > 0) {
+                            attachment.flip();
 
-                        int readBytes = attachment.remaining();
-                        position.addAndGet(readBytes);
-                        remainingBytes.addAndGet(-readBytes);
+                            int readBytes = attachment.remaining();
+                            position.addAndGet(readBytes);
+                            remainingBytes.addAndGet(-readBytes);
 
-                        signalOnNext(attachment);
+                            signalOnNext(attachment);
 
-                        if (remainingBytes.get() == 0) {
+                            if (remainingBytes.get() == 0) {
+                                closeFile();
+                                signalOnComplete();
+                            }
+
+                            synchronized (lock) {
+                                // If we have more permits, queue up another read.
+                                if (--outstandingDemand > 0) {
+                                    readData();
+                                } else {
+                                    readInProgress = false;
+                                }
+                            }
+                        } else {
+                            // Reached the end of the file, notify the subscriber and cleanup
                             closeFile();
                             signalOnComplete();
                         }
-
-                        synchronized (lock) {
-                            // If we have more permits, queue up another read.
-                            if (--outstandingDemand > 0) {
-                                readData();
-                            } else {
-                                readInProgress = false;
-                            }
-                        }
-                    } else {
-                        // Reached the end of the file, notify the subscriber and cleanup
+                    } catch (Throwable throwable) {
                         closeFile();
-                        signalOnComplete();
+                        signalOnError(throwable);
                     }
                 }
 

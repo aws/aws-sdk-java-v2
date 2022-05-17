@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
 import java.util.Calendar;
@@ -33,12 +34,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerUtils;
+import software.amazon.awssdk.auth.signer.internal.SignerConstant;
+import software.amazon.awssdk.auth.signer.params.SignerChecksumParams;
 import software.amazon.awssdk.auth.signer.internal.SignerTestUtils;
+import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 
@@ -48,27 +52,43 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 @RunWith(MockitoJUnitRunner.class)
 public class Aws4SignerTest {
 
+    private static final String AWS_4_HMAC_SHA_256_AUTHORIZATION = "AWS4-HMAC-SHA256 Credential=access/19810216/us-east-1/demo/aws4_request, ";
+    private static final String SIGNER_HEADER_WITH_CHECKSUMS_IN_HEADER = "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amzn-header-crc, ";
+    private static final String SIGNER_HEADER_WITH_CHECKSUMS_IN_TRAILER = "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-trailer, ";
+
     private Aws4Signer signer = Aws4Signer.create();
 
     @Mock
     private Clock signingOverrideClock;
 
+    SdkHttpFullRequest.Builder request;
+
+    AwsBasicCredentials credentials;
+
     @Before
     public void setupCase() {
         mockClock();
+        credentials = AwsBasicCredentials.create("access", "secret");
+        request = SdkHttpFullRequest.builder()
+                .contentStreamProvider(() -> new ByteArrayInputStream("abc".getBytes()))
+                .method(SdkHttpMethod.POST)
+                .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                .putHeader("x-amz-archive-description", "test  test")
+                .encodedPath("/")
+                .uri(URI.create("http://demo.us-east-1.amazonaws.com"));
     }
 
     @Test
     public void testSigning() throws Exception {
         final String expectedAuthorizationHeaderWithoutSha256Header =
-                "AWS4-HMAC-SHA256 Credential=access/19810216/us-east-1/demo/aws4_request, " +
-                "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
-                "Signature=77fe7c02927966018667f21d1dc3dfad9057e58401cbb9ed64f1b7868288e35a";
+            AWS_4_HMAC_SHA_256_AUTHORIZATION +
+            "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
+            "Signature=77fe7c02927966018667f21d1dc3dfad9057e58401cbb9ed64f1b7868288e35a";
 
         final String expectedAuthorizationHeaderWithSha256Header =
-                "AWS4-HMAC-SHA256 Credential=access/19810216/us-east-1/demo/aws4_request, " +
-                "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-sha256, " +
-                "Signature=e73e20539446307a5dc71252dbd5b97e861f1d1267456abda3ebd8d57e519951";
+            AWS_4_HMAC_SHA_256_AUTHORIZATION +
+            "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-sha256, " +
+            "Signature=e73e20539446307a5dc71252dbd5b97e861f1d1267456abda3ebd8d57e519951";
 
 
         AwsBasicCredentials credentials = AwsBasicCredentials.create("access", "secret");
@@ -92,9 +112,9 @@ public class Aws4SignerTest {
     @Test
     public void queryParamsWithNullValuesAreStillSignedWithTrailingEquals() throws Exception {
         final String expectedAuthorizationHeaderWithoutSha256Header =
-                "AWS4-HMAC-SHA256 Credential=access/19810216/us-east-1/demo/aws4_request, " +
-                "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
-                "Signature=c45a3ff1f028e83017f3812c06b4440f0b3240264258f6e18cd683b816990ba4";
+            AWS_4_HMAC_SHA_256_AUTHORIZATION  +
+            "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
+            "Signature=c45a3ff1f028e83017f3812c06b4440f0b3240264258f6e18cd683b816990ba4";
 
         AwsBasicCredentials credentials = AwsBasicCredentials.create("access", "secret");
         // Test request without 'x-amz-sha256' header
@@ -102,8 +122,7 @@ public class Aws4SignerTest {
 
         SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials,
                                                                 "demo", signingOverrideClock, "us-east-1");
-        assertThat(signed.firstMatchingHeader("Authorization"))
-                .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
+        assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorizationHeaderWithoutSha256Header);
     }
 
     @Test
@@ -242,5 +261,124 @@ public class Aws4SignerTest {
         String dateStamp = Aws4SignerUtils.formatDateStamp(now.getTime());
         String old = getOldDateStamp(now);
         assertEquals(old, dateStamp);
+    }
+    @Test
+    public void signing_with_Crc32Checksum_WithOut_x_amz_sha25_header() throws Exception {
+        //Note here x_amz_sha25_header is not present in SignedHeaders
+        String expectedAuthorization = AWS_4_HMAC_SHA_256_AUTHORIZATION + SIGNER_HEADER_WITH_CHECKSUMS_IN_HEADER
+                                       + "Signature=c1804802dc623d1689e7d0a7f9f5caee3588cc8d3df4495425129dbd52965d1f";
+
+        final SignerChecksumParams signerChecksumParams = SignerChecksumParams.builder()
+                                                                              .algorithm(Algorithm.CRC32)
+                                                                              .checksumHeaderName("x-amzn-header-crc")
+                                                                              .isStreamingRequest(false)
+                .build();
+        SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.contentStreamProvider(
+                () -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes(StandardCharsets.UTF_8))
+                ).build(), credentials,
+                "demo", signingOverrideClock, "us-east-1", signerChecksumParams);
+        assertThat(signed.firstMatchingHeader("x-amzn-header-crc").get()).contains("oL+a/g==");
+        assertThat(signed.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)).isNotPresent();
+        assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
+    }
+
+    @Test
+    public void signing_with_Crc32Checksum_with_streaming_input_request() throws Exception {
+        //Note here x_amz_sha25_header is not present in SignedHeaders
+        String expectedAuthorization = AWS_4_HMAC_SHA_256_AUTHORIZATION + SIGNER_HEADER_WITH_CHECKSUMS_IN_HEADER
+                                       + "Signature=c1804802dc623d1689e7d0a7f9f5caee3588cc8d3df4495425129dbd52965d1f";
+        final SignerChecksumParams signerChecksumParams = SignerChecksumParams.builder()
+                                                                              .algorithm(Algorithm.CRC32)
+                                                                              .checksumHeaderName("x-amzn-header-crc")
+                                                                              .isStreamingRequest(true)
+                                                                              .build();
+        SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.contentStreamProvider(
+                                                                    () -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes(StandardCharsets.UTF_8))
+                                                                ).build(), credentials,
+                                                                "demo", signingOverrideClock, "us-east-1", signerChecksumParams);
+        assertThat(signed.firstMatchingHeader("x-amzn-header-crc").get()).contains("oL+a/g==");
+        assertThat(signed.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)).isNotPresent();
+        assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
+    }
+
+
+    @Test
+    public void signing_with_Crc32Checksum_with_x_amz_sha25_header_preset() throws Exception {
+        //Note here x_amz_sha25_header is  present in SignedHeaders, we make sure checksum is calculated even in this case.
+        String expectedAuthorization = AWS_4_HMAC_SHA_256_AUTHORIZATION
+            + "SignedHeaders=host;x-amz-archive-description;x-amz-content-sha256;x-amz-date;x-amzn-header-crc, "
+            + "Signature=bc931232666f226854cdd9c9962dc03d791cf4024f5ca032fab996c1d15e4a5d";
+        final SignerChecksumParams signerChecksumParams = SignerChecksumParams.builder()
+                                                                              .algorithm(Algorithm.CRC32)
+                                                                              .checksumHeaderName("x-amzn-header-crc")
+                                                                              .isStreamingRequest(true).build();
+        request = generateBasicRequest();
+        // presetting of the header
+        request.putHeader(SignerConstant.X_AMZ_CONTENT_SHA256, "required");
+        SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials,
+                "demo", signingOverrideClock, "us-east-1", signerChecksumParams);
+        assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
+        assertThat(signed.firstMatchingHeader("x-amzn-header-crc").get()).contains("oL+a/g==");
+        assertThat(signed.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)).isPresent();
+    }
+
+    @Test
+    public void signing_with_NoHttpChecksum_As_No_impact_on_Signature() throws Exception {
+        //Note here x_amz_sha25_header is not present in SignedHeaders
+        String expectedAuthorization =
+            AWS_4_HMAC_SHA_256_AUTHORIZATION +
+            "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
+            "Signature=77fe7c02927966018667f21d1dc3dfad9057e58401cbb9ed64f1b7868288e35a";
+        SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.contentStreamProvider(
+                () -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes(StandardCharsets.UTF_8))
+                ).build(), credentials,
+                "demo", signingOverrideClock, "us-east-1", null);
+        assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
+        assertThat(signed.firstMatchingHeader("x-amzn-header-crc")).isNotPresent();
+    }
+
+    @Test
+    public void signing_with_Crc32Checksum_with_header_already_present() throws Exception {
+
+        String expectedAuthorization = AWS_4_HMAC_SHA_256_AUTHORIZATION + SIGNER_HEADER_WITH_CHECKSUMS_IN_HEADER
+                                       + "Signature=f6fad563460f2ac50fe2ab5f5f5d77a787e357897ac6e9bb116ff12d30f45589";
+
+        final SignerChecksumParams signerChecksumParams = SignerChecksumParams.builder()
+                                                                              .algorithm(Algorithm.CRC32)
+                                                                              .checksumHeaderName("x-amzn-header-crc")
+                                                                              .isStreamingRequest(false)
+                                                                              .build();
+        SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.contentStreamProvider(
+                                                                    () -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes(StandardCharsets.UTF_8))
+                                                                )
+                                                       .appendHeader("x-amzn-header-crc", "preCalculatedChecksum")
+                                                                               .build(), credentials,
+                                                                "demo", signingOverrideClock, "us-east-1", signerChecksumParams);
+        assertThat(signed.firstMatchingHeader("x-amzn-header-crc")).hasValue("preCalculatedChecksum");
+        assertThat(signed.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)).isNotPresent();
+        assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
+    }
+
+    @Test
+    public void signing_with_Crc32Checksum_with__trailer_header_already_present() throws Exception {
+        String expectedAuthorization = AWS_4_HMAC_SHA_256_AUTHORIZATION + SIGNER_HEADER_WITH_CHECKSUMS_IN_TRAILER
+                                       + "Signature=3436c4bc175d31e87a591802e64756cebf2d1c6c2054d26ca3dc91bdd3de303e";
+
+        final SignerChecksumParams signerChecksumParams = SignerChecksumParams.builder()
+                                                                              .algorithm(Algorithm.CRC32)
+                                                                              .checksumHeaderName("x-amzn-header-crc")
+                                                                              .isStreamingRequest(false)
+                                                                              .build();
+        SdkHttpFullRequest signed = SignerTestUtils.signRequest(
+            signer, request.contentStreamProvider(() -> new ByteArrayInputStream(("{\"TableName"
+                                                                                  + "\": "
+                                                                                  + "\"foo\"}").getBytes(StandardCharsets.UTF_8)))
+                           .appendHeader("x-amz-trailer", "x-amzn-header-crc")
+                           .build(), credentials,
+            "demo", signingOverrideClock, "us-east-1", signerChecksumParams);
+        assertThat(signed.firstMatchingHeader("x-amzn-header-crc")).isNotPresent();
+        assertThat(signed.firstMatchingHeader("x-amz-trailer")).contains("x-amzn-header-crc");
+        assertThat(signed.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)).isNotPresent();
+        assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
     }
 }

@@ -50,12 +50,16 @@ public class OrderedWriteChannelHandlerContext extends DelegatingChannelHandlerC
 
     @Override
     public ChannelFuture writeAndFlush(Object msg) {
-        return doInOrder(promise -> super.writeAndFlush(msg, promise));
+        return doInOrder(promise -> {
+            super.writeAndFlush(msg, promise);
+        });
     }
 
     @Override
     public ChannelFuture writeAndFlush(Object msg, ChannelPromise promise) {
-        doInOrder(() -> super.writeAndFlush(msg, promise));
+        doInOrder(() -> {
+            super.writeAndFlush(msg, promise);
+        });
         return promise;
     }
 

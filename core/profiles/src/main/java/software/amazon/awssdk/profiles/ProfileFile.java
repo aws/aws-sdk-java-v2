@@ -59,7 +59,7 @@ public final class ProfileFile {
     private ProfileFile(Map<String, Map<String, String>> rawProfiles) {
         Validate.paramNotNull(rawProfiles, "rawProfiles");
 
-        this.profiles = Collections.unmodifiableMap(convertToProfilesMap(rawProfiles));
+        this.profiles = convertToProfilesMap(rawProfiles);
     }
 
     /**
@@ -107,7 +107,7 @@ public final class ProfileFile {
      * @return An unmodifiable collection of the profiles in this file, keyed by profile name.
      */
     public Map<String, Profile> profiles() {
-        return profiles;
+        return Collections.unmodifiableMap(profiles);
     }
 
     @Override

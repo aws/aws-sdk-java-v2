@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDbEnhancedLogger.BEAN_LOGGER;
+
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -37,6 +40,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -96,9 +100,12 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPrese
  * Creating an {@link BeanTableSchema} is a moderately expensive operation, and should be performed sparingly. This is
  * usually done once at application startup.
  *
+ * If this table schema is not behaving as you expect, enable debug logging for 'software.amazon.awssdk.enhanced.dynamodb.beans'.
+ *
  * @param <T> The type of object that this {@link TableSchema} maps to.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableSchema<T>> {
     private static final String ATTRIBUTE_TAG_STATIC_SUPPLIER_NAME = "attributeTagFor";
 
@@ -122,6 +129,7 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
     }
 
     private static <T> BeanTableSchema<T> create(Class<T> beanClass, MetaTableSchemaCache metaTableSchemaCache) {
+        debugLog(beanClass, () -> "Creating bean schema");
         // Fetch or create a new reference to this yet-to-be-created TableSchema in the cache
         MetaTableSchema<T> metaTableSchema = metaTableSchemaCache.getOrCreate(beanClass);
 
@@ -158,7 +166,8 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         DynamoDbBean dynamoDbBean = beanClass.getAnnotation(DynamoDbBean.class);
 
         if (dynamoDbBean == null) {
-            throw new IllegalArgumentException("A DynamoDb bean class must be annotated with @DynamoDbBean");
+            throw new IllegalArgumentException("A DynamoDb bean class must be annotated with @DynamoDbBean, but " +
+                                               beanClass.getTypeName() + " was not.");
         }
 
         BeanInfo beanInfo;
@@ -174,12 +183,12 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         StaticTableSchema.Builder<T> builder = StaticTableSchema.builder(beanClass)
                                                                 .newItemSupplier(newObjectSupplier);
 
-        builder.attributeConverterProviders(createConverterProvidersFromAnnotation(dynamoDbBean));
+        builder.attributeConverterProviders(createConverterProvidersFromAnnotation(beanClass, dynamoDbBean));
 
         List<StaticAttribute<T, ?>> attributes = new ArrayList<>();
 
         Arrays.stream(beanInfo.getPropertyDescriptors())
-              .filter(BeanTableSchema::isMappableProperty)
+              .filter(p -> isMappableProperty(beanClass, p))
               .forEach(propertyDescriptor -> {
                   DynamoDbFlatten dynamoDbFlatten = getPropertyAnnotation(propertyDescriptor, DynamoDbFlatten.class);
 
@@ -221,12 +230,14 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                                      .build();
     }
 
-    private static List<AttributeConverterProvider> createConverterProvidersFromAnnotation(DynamoDbBean dynamoDbBean) {
+    private static List<AttributeConverterProvider> createConverterProvidersFromAnnotation(Class<?> beanClass,
+                                                                                           DynamoDbBean dynamoDbBean) {
         Class<? extends AttributeConverterProvider>[] providerClasses = dynamoDbBean.converterProviders();
 
         return Arrays.stream(providerClasses)
-                .map(c -> (AttributeConverterProvider) newObjectSupplierForClass(c).get())
-                .collect(Collectors.toList());
+                     .peek(c -> debugLog(beanClass, () -> "Adding Converter: " + c.getTypeName()))
+                     .map(c -> (AttributeConverterProvider) newObjectSupplierForClass(c).get())
+                     .collect(Collectors.toList());
     }
 
     private static <T> StaticAttribute.Builder<T, ?> staticAttributeBuilder(PropertyDescriptor propertyDescriptor,
@@ -358,7 +369,9 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
 
     private static <R> Supplier<R> newObjectSupplierForClass(Class<R> clazz) {
         try {
-            return ObjectConstructor.create(clazz, clazz.getConstructor());
+            Constructor<R> constructor = clazz.getConstructor();
+            debugLog(clazz, () -> "Constructor: " + constructor);
+            return ObjectConstructor.create(clazz, constructor);
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException(
                 String.format("Class '%s' appears to have no default constructor thus cannot be used with the " +
@@ -368,12 +381,14 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
 
     private static <T, R> Function<T, R> getterForProperty(PropertyDescriptor propertyDescriptor, Class<T> beanClass) {
         Method readMethod = propertyDescriptor.getReadMethod();
+        debugLog(beanClass, () -> "Property " + propertyDescriptor.getDisplayName() + " read method: " + readMethod);
         return BeanAttributeGetter.create(beanClass, readMethod);
     }
 
     private static <T, R> BiConsumer<T, R> setterForProperty(PropertyDescriptor propertyDescriptor,
                                                              Class<T> beanClass) {
         Method writeMethod = propertyDescriptor.getWriteMethod();
+        debugLog(beanClass, () -> "Property " + propertyDescriptor.getDisplayName() + " write method: " + writeMethod);
         return BeanAttributeSetter.create(beanClass, writeMethod);
     }
 
@@ -386,10 +401,27 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         return propertyDescriptor.getName();
     }
 
-    private static boolean isMappableProperty(PropertyDescriptor propertyDescriptor) {
-        return propertyDescriptor.getReadMethod() != null
-            && propertyDescriptor.getWriteMethod() != null
-            && getPropertyAnnotation(propertyDescriptor, DynamoDbIgnore.class) == null;
+    private static boolean isMappableProperty(Class<?> beanClass, PropertyDescriptor propertyDescriptor) {
+
+        if (propertyDescriptor.getReadMethod() == null) {
+            debugLog(beanClass, () -> "Ignoring bean property " + propertyDescriptor.getDisplayName() + " because it has no "
+                                      + "read (get/is) method.");
+            return false;
+        }
+
+        if (propertyDescriptor.getWriteMethod() == null) {
+            debugLog(beanClass, () -> "Ignoring bean property " + propertyDescriptor.getDisplayName() + " because it has no "
+                                      + "write (set) method.");
+            return false;
+        }
+
+        if (getPropertyAnnotation(propertyDescriptor, DynamoDbIgnore.class) != null) {
+            debugLog(beanClass, () -> "Ignoring bean property " + propertyDescriptor.getDisplayName() + " because it has "
+                                      + "@DynamoDbIgnore.");
+            return false;
+        }
+
+        return true;
     }
 
     private static <R extends Annotation> R getPropertyAnnotation(PropertyDescriptor propertyDescriptor,
@@ -401,6 +433,9 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
             return getterAnnotation;
         }
 
+        // TODO: It's a common mistake that superclasses might have annotations that the child classes do not inherit, but the
+        // customer expects them to be inherited. We should either allow inheriting those annotations, allow specifying an
+        // annotation to inherit them, or log when this situation happens.
         return setterAnnotation;
     }
 
@@ -408,6 +443,10 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         return Stream.concat(Arrays.stream(propertyDescriptor.getReadMethod().getAnnotations()),
                              Arrays.stream(propertyDescriptor.getWriteMethod().getAnnotations()))
                      .collect(Collectors.toList());
+    }
+
+    private static void debugLog(Class<?> beanClass, Supplier<String> logMessage) {
+        BEAN_LOGGER.debug(() -> beanClass.getTypeName() + " - " + logMessage.get());
     }
 }
 

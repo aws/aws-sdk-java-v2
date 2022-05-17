@@ -22,9 +22,12 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.transfer.s3.internal.DefaultS3TransferManager;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
@@ -86,7 +89,11 @@ import software.amazon.awssdk.utils.Validate;
 public interface S3TransferManager extends SdkAutoCloseable {
 
     /**
-     * Download an object identified by the bucket and key from S3 to the given file.
+     * Download an object identified by the bucket and key from S3 to a local file. For non-file-based downloads, you may use
+     * {@link #download(DownloadRequest)} instead.
+     * <p>
+     *  The SDK will create a new file if the provided one doesn't exist, otherwise replace the existing file. In the
+     *  event of an error, the SDK will NOT attempt to delete the file, leaving it as-is.
      * <p>
      * <b>Usage Example:</b>
      * <pre>
@@ -118,7 +125,57 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}.
+     * Resumes a downloadFile operation. This download operation uses the same configuration as the original download. Any data
+     * already fetched will be skipped, and only the remaining data is retrieved from Amazon S3. If it is determined that the S3
+     * object to download or the file has be modified since the last pause, the SDK will download the object from the beginning
+     * as if it is a new {@link DownloadFileRequest} and replace the existing file.
+     *
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * // Initiate the transfer
+     * FileDownload download =
+     *     tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
+     *                           .destination(Paths.get("myFile.txt")));
+     *
+     * // Pause the download
+     * ResumableFileDownload resumableFileDownload = download.pause();
+     *
+     * //Optionally, persist the download object
+     * resumableFileDownload.writeToFile(file);
+     * ResumableFileDownload resumableFileDownload2 = ResumableFileDownload.fromFile(file);
+     *
+     * // Resume the download
+     * FileDownload resumedDownload = tm.resumeDownloadFile(resumableFileDownload2);
+     *
+     * // Wait for the transfer to complete
+     * resumedDownload.completionFuture().join();
+     * }
+     * </pre>
+     *
+     * @param resumableFileDownload the download to resume.
+     * @return A new {@code FileDownload} object to use to check the state of the download.
+     * @see #downloadFile(DownloadFileRequest)
+     * @see FileDownload#pause()
+     */
+    default FileDownload resumeDownloadFile(ResumableFileDownload resumableFileDownload) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link ResumableFileDownload} builder, avoiding the need to
+     * create one manually via {@link ResumableFileDownload#builder()}.
+     *
+     * @see #resumeDownloadFile(ResumableFileDownload)
+     */
+    default FileDownload resumeDownloadFile(Consumer<ResumableFileDownload.Builder> resumableFileDownload) {
+        return resumeDownloadFile(ResumableFileDownload.builder().applyMutation(resumableFileDownload).build());
+    }
+
+    /**
+     * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}. For 
+     * downloading to a file, you may use {@link #downloadFile(DownloadFileRequest)} instead.
      * <p>
      * <b>Usage Example (this example buffers the entire object in memory and is not suitable for large objects):</b>
      * <pre>
@@ -155,7 +212,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Upload a file to S3.
+     * Upload a local file to an object in S3. For non-file-based uploads, you may use {@link #upload(UploadRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
      * <pre>
@@ -186,7 +243,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Upload an {@link AsyncRequestBody} to S3.
+     * Upload the given {@link AsyncRequestBody} to an object in S3. For file-based uploads, you may use
+     * {@link #uploadFile(UploadFileRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
      * <pre>
@@ -227,7 +285,32 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * at request level via {@link UploadDirectoryRequest.Builder#overrideConfiguration(UploadDirectoryOverrideConfiguration)} or
      * client level via {@link S3TransferManager.Builder#transferConfiguration(S3TransferManagerOverrideConfiguration)} Note
      * that request-level configuration takes precedence over client-level configuration.
-     *
+     * <p>
+     * By default, the prefix is an empty string and the delimiter is {@code "/"}. Assume you have a local
+     * directory "/test" with the following structure:
+     * <pre>
+     *   {@code
+     *      |- test
+     *         |- sample.jpg
+     *         |- photos
+     *             |- 2022
+     *                 |- January
+     *                     |- sample.jpg
+     *                 |- February
+     *                     |- sample1.jpg
+     *                     |- sample2.jpg
+     *                     |- sample3.jpg
+     *   }
+     * </pre>
+     * Give a request to upload directory "/test" to an S3 bucket, the target bucket will have the following
+     * S3 objects:
+     * <ul>
+     *     <li>sample.jpg</li>
+     *     <li>photos/2022/January/sample.jpg</li>
+     *     <li>photos/2022/February/sample1.jpg</li>
+     *     <li>photos/2022/February/sample2.jpg</li>
+     *     <li>photos/2022/February/sample3.jpg</li>
+     * </ul>
      * <p>
      * The returned {@link CompletableFuture} only completes exceptionally if the request cannot be attempted as a whole (the
      * source directory provided does not exist for example). The future completes successfully for partial successful
@@ -236,7 +319,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * even when the future completes successfully.
      *
      * <p>
-     * The current user must have read access to all directories and files
+     * The current user must have read access to all directories and files.
      *
      * <p>
      * <b>Usage Example:</b>
@@ -274,6 +357,130 @@ public interface S3TransferManager extends SdkAutoCloseable {
     default DirectoryUpload uploadDirectory(Consumer<UploadDirectoryRequest.Builder> requestBuilder) {
         Validate.paramNotNull(requestBuilder, "requestBuilder");
         return uploadDirectory(UploadDirectoryRequest.builder().applyMutation(requestBuilder).build());
+    }
+
+    /**
+     * Download all objects under a specific prefix and bucket to the provided directory. By default, all objects in the entire
+     * bucket will be downloaded.
+     *
+     * <p>
+     * The downloaded directory structure will match with the provided S3 virtual bucket.
+     * For example, assume that you have the following keys in your bucket:
+     * <ul>
+     *     <li>sample.jpg</li>
+     *     <li>photos/2022/January/sample.jpg</li>
+     *     <li>photos/2022/February/sample1.jpg</li>
+     *     <li>photos/2022/February/sample2.jpg</li>
+     *     <li>photos/2022/February/sample3.jpg</li>
+     * </ul>
+     * Give a request to download the bucket to a destination with path of "/test", the downloaded directory would look like this
+     *
+     * <pre>
+     *   {@code
+     *      |- test
+     *         |- sample.jpg
+     *         |- photos
+     *             |- 2022
+     *                 |- January
+     *                     |- sample.jpg
+     *                 |- February
+     *                     |- sample1.jpg
+     *                     |- sample2.jpg
+     *                     |- sample3.jpg
+     *   }
+     * </pre>
+     * <p>
+     * The returned {@link CompletableFuture} only completes exceptionally if the request cannot be attempted as a whole (the
+     * downloadDirectoryRequest is invalid for example). The future completes successfully for partial successful
+     * requests, i.e., there might be failed downloads in a successfully completed response. As a result, you should check for
+     * errors in the response via {@link CompletedDirectoryDownload#failedTransfers()} even when the future completes
+     * successfully.
+     *
+     * <p>
+     * The SDK will create the destination directory if it does not already exist. If a specific file
+     * already exists, the existing content will be replaced with the corresponding S3 object content.
+     *
+     * <p>
+     * The current user must have write access to all directories and files
+     *
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * DirectoryDownload directoryDownload =
+     *       transferManager.downloadDirectory(DownloadDirectoryRequest.builder()
+     *                                                                 .destinationDirectory(Paths.get("."))
+     *                                                                 .bucket("bucket")
+     *                                                                 .prefix("prefix")
+     *                                                                 .build());
+     * // Wait for the transfer to complete
+     * CompletedDirectoryDownload completedDirectoryDownload = directoryDownload.completionFuture().join();
+     *
+     * // Print out the failed downloads
+     * completedDirectoryDownload.failedTransfers().forEach(System.out::println);
+     *
+     * }
+     * </pre>
+     *
+     * @param downloadDirectoryRequest the download directory request
+     * @see #downloadDirectory(Consumer)
+     */
+    default DirectoryDownload downloadDirectory(DownloadDirectoryRequest downloadDirectoryRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link DownloadDirectoryRequest} builder, avoiding the need to
+     * create one manually via {@link DownloadDirectoryRequest#builder()}.
+     *
+     * @see #downloadDirectory(DownloadDirectoryRequest)
+     */
+    default DirectoryDownload downloadDirectory(Consumer<DownloadDirectoryRequest.Builder> requestBuilder) {
+        Validate.paramNotNull(requestBuilder, "requestBuilder");
+        return downloadDirectory(DownloadDirectoryRequest.builder().applyMutation(requestBuilder).build());
+    }
+
+    /**
+     * Creates a copy of an object that is already stored in S3.
+     * <p>
+     * Under the hood, {@link S3TransferManager} will intelligently use plain {@link CopyObjectRequest}s for smaller objects, or
+     * multiple parallel {@link UploadPartCopyRequest}s for larger objects.
+     * <p>
+     * While this API supports {@link TransferListener}s, they will not receive {@code bytesTransferred} callback-updates due to
+     * the way the {@link CopyObjectRequest} API behaves. When copying an object, S3 performs the byte copying on your behalf
+     * while keeping the connection alive. The progress of the copy is not known until it fully completes and S3 sends a response
+     * describing the outcome.
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * Copy copy = tm.copy(c -> c
+     *     .copyObjectRequest(r -> r
+     *         .sourceBucket(BUCKET)
+     *         .sourceKey(ORIGINAL_OBJ)
+     *         .destinationBucket(BUCKET)
+     *         .destinationKey(COPIED_OBJ)));
+     * // Wait for the transfer to complete
+     * CompletedCopy completedCopy = copy.completionFuture().join();
+     * }
+     * </pre>
+     *
+     * @param copyRequest the copy request, containing a {@link CopyObjectRequest}
+     * @return A {@link Copy} that can be used to track the ongoing transfer
+     * @see #copy(Consumer)
+     */
+    default Copy copy(CopyRequest copyRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link CopyRequest} builder, avoiding the need to create one
+     * manually via {@link CopyRequest#builder()}.
+     *
+     * @see #copy(CopyRequest)
+     */
+    default Copy copy(Consumer<CopyRequest.Builder> copyRequestBuilder) {
+        return copy(CopyRequest.builder().applyMutation(copyRequestBuilder).build());
     }
 
     /**

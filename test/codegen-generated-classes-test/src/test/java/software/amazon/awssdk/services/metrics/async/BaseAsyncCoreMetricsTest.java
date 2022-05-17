@@ -31,7 +31,7 @@ import java.util.function.Supplier;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
@@ -138,7 +138,7 @@ public abstract class BaseAsyncCoreMetricsTest {
      */
     void addDelayIfNeeded() {
         try {
-            Thread.sleep(200);
+            Thread.sleep(1000);
         } catch (InterruptedException ie) {
             ie.printStackTrace();
         }

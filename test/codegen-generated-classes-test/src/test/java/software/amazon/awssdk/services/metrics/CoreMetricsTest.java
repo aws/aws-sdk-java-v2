@@ -16,10 +16,10 @@
 package software.amazon.awssdk.services.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
@@ -35,7 +35,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -142,7 +142,7 @@ public class CoreMetricsTest {
         client.allTypes(r -> r.overrideConfiguration(o -> o.addMetricPublisher(requestMetricPublisher)));
 
         verify(requestMetricPublisher).publish(any(MetricCollection.class));
-        verifyZeroInteractions(mockPublisher);
+        verifyNoMoreInteractions(mockPublisher);
     }
 
     @Test
@@ -156,7 +156,7 @@ public class CoreMetricsTest {
         List<SimpleStruct> resultingItems = iterable.items().stream().collect(Collectors.toList());
 
         verify(requestMetricPublisher).publish(any(MetricCollection.class));
-        verifyZeroInteractions(mockPublisher);
+        verifyNoMoreInteractions(mockPublisher);
     }
 
     @Test

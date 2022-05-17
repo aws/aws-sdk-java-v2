@@ -238,6 +238,26 @@ public class ObjectTaggingIntegrationTest extends S3IntegrationTestBase {
         assertThat(getTaggingResult.size()).isEqualTo(0);
     }
 
+    @Test
+    public void testEmptyTagging_shouldNotThrowException() {
+        Tagging tags = Tagging.builder().build();
+
+        String key = makeNewKey();
+        s3.putObject(PutObjectRequest.builder()
+                                     .bucket(BUCKET)
+                                     .key(key)
+                                     .tagging(tags)
+                                     .build(), RequestBody.empty());
+
+        List<Tag> getTaggingResult = s3.getObjectTagging(GetObjectTaggingRequest.builder()
+                                                                                .bucket(BUCKET)
+                                                                                .key(key)
+                                                                                .build())
+                                       .tagSet();
+
+        assertThat(getTaggingResult.size()).isEqualTo(0);
+    }
+
     private String makeNewKey() {
         return KEY_PREFIX + System.currentTimeMillis();
     }

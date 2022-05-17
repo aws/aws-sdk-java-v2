@@ -191,7 +191,7 @@ public class UploadDirectoryHelperParameterizedTest {
 
         List<String> keys =
             actualRequests.stream().map(u -> u.putObjectRequest().key())
-                                 .collect(Collectors.toList());
+                          .collect(Collectors.toList());
 
         assertThat(keys.size()).isEqualTo(5);
         assertThat(keys).containsOnly("bar.txt", "foo/1.txt", "foo/2.txt", "symlink/2.txt", "symlink2");
@@ -292,9 +292,9 @@ public class UploadDirectoryHelperParameterizedTest {
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
         DirectoryUpload uploadDirectory = uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                                                             .overrideConfiguration(o -> o.followSymbolicLinks(true))
-                                                                                                             .sourceDirectory(Paths.get(directory.toString(), "symlink"))
-                                                                                                             .bucket("bucket").build());
+                                                                                                      .overrideConfiguration(o -> o.followSymbolicLinks(true))
+                                                                                                      .sourceDirectory(Paths.get(directory.toString(), "symlink"))
+                                                                                                      .bucket("bucket").build());
 
         uploadDirectory.completionFuture().join();
 
@@ -312,9 +312,9 @@ public class UploadDirectoryHelperParameterizedTest {
 
     private DefaultFileUpload completedUpload() {
         return new DefaultFileUpload(CompletableFuture.completedFuture(CompletedFileUpload.builder()
-                                                                                      .response(PutObjectResponse.builder().build())
-                                                                                      .build()),
-                                 new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build()));
+                                                                                          .response(PutObjectResponse.builder().build())
+                                                                                          .build()),
+                                     new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build()));
     }
 
     private Path createTestDirectory() throws IOException {
@@ -379,8 +379,8 @@ public class UploadDirectoryHelperParameterizedTest {
         Files.createDirectory(jimfs.getPath(directoryName + "/foo"));
 
         Files.write(jimfs.getPath(directoryName, "bar.txt"), "bar".getBytes(StandardCharsets.UTF_8));
-        Files.write(jimfs.getPath(directoryName, "foo/1.txt"), "1".getBytes(StandardCharsets.UTF_8));
-        Files.write(jimfs.getPath(directoryName, "foo/2.txt"), "2".getBytes(StandardCharsets.UTF_8));
+        Files.write(jimfs.getPath(directoryName, "foo", "1.txt"), "1".getBytes(StandardCharsets.UTF_8));
+        Files.write(jimfs.getPath(directoryName, "foo", "2.txt"), "2".getBytes(StandardCharsets.UTF_8));
         return directory;
     }
 }

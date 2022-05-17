@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.protocol.tests;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 
 import java.util.concurrent.ExecutorService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;

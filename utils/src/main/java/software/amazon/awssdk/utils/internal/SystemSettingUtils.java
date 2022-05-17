@@ -73,14 +73,19 @@ public final class SystemSettingUtils {
     /**
      * Attempt to load this setting from the environment variables.
      */
-    private static Optional<String> resolveEnvironmentVariable(SystemSetting setting) {
+    public static Optional<String> resolveEnvironmentVariable(SystemSetting setting) {
+        return resolveEnvironmentVariable(setting.environmentVariable());
+    }
+
+    /**
+     * Attempt to load a key from the environment variables.
+     */
+    public static Optional<String> resolveEnvironmentVariable(String key) {
         try {
-            // CHECKSTYLE:OFF - This is the only place we're allowed to use System.getenv
-            return Optional.ofNullable(setting.environmentVariable()).map(System::getenv);
-            // CHECKSTYLE:ON
+            return Optional.ofNullable(key).map(SystemSettingUtilsTestBackdoor::getEnvironmentVariable);
         } catch (SecurityException e) {
             LOG.debug("Unable to load the environment variable '{}' because the security manager did not allow the SDK" +
-                      " to read this system property. This setting will be assumed to be null", setting.environmentVariable(), e);
+                      " to read this system property. This setting will be assumed to be null", key, e);
             return Optional.empty();
         }
     }

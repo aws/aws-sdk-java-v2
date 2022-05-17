@@ -14,11 +14,15 @@
  */
 package software.amazon.awssdk.http.urlconnection;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 import org.junit.After;
+import org.junit.Test;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientTestSuite;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -39,6 +43,11 @@ public final class UrlConnectionHttpClientWireMockTest extends SdkHttpClientTest
         }
 
         return builder.buildWithDefaults(attributeMap.build());
+    }
+
+    @Override
+    public void connectionsAreNotReusedOn5xxErrors() {
+        // We cannot support this because the URL connection client doesn't allow us to disable connection reuse
     }
 
     @After

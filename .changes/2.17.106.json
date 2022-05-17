@@ -1,0 +1,54 @@
+{
+    "version": "2.17.106",
+    "date": "2022-01-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AmazonMWAA",
+            "contributor": "",
+            "description": "This release adds a \"Source\" field that provides the initiator of an update, such as due to an automated patch from AWS or due to modification via Console or API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "This release adds support for filler slate when updating MediaTailor channels that use the linear playback mode."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "contributor": "",
+            "description": "Amazon OpenSearch Service adds support for Fine Grained Access Control for existing domains running Elasticsearch version 6.7 and above"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Service",
+            "contributor": "",
+            "description": "Amazon OpenSearch Service adds support for Fine Grained Access Control for existing domains running Elasticsearch version 6.7 and above"
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "contributor": "",
+            "description": "AppSync: AWS AppSync now supports configurable batching sizes for AWS Lambda resolvers, Direct AWS Lambda resolvers and pipeline functions"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release introduces On-Demand Capacity Reservation support for Cluster Placement Groups, adds Tags on instance Metadata, and includes documentation updates for Amazon EC2."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Wireless",
+            "contributor": "",
+            "description": "Downlink Queue Management feature provides APIs for customers to manage the queued messages destined to device inside AWS IoT Core for LoRaWAN. Customer can view, delete or purge the queued message(s). It allows customer to preempt the queued messages and let more urgent messages go through."
+        }
+    ]
+}

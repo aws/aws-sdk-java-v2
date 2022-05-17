@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.HttpMetric.CONCURRENCY_ACQUIRE_DURATION;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.CHANNEL_DIAGNOSTICS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTION_ID_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.IN_USE;
@@ -22,7 +24,9 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.LAST_HTTP_CONTENT_RECEIVED_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
-import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.CLOSED_CHANNEL_MESSAGE;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_CONTENT_LENGTH;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_DATA_READ;
+import static software.amazon.awssdk.http.nio.netty.internal.NettyRequestMetrics.measureTimeTaken;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -36,22 +40,19 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import io.netty.util.Attribute;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
@@ -90,9 +91,18 @@ public final class NettyRequestExecutor {
     public CompletableFuture<Void> execute() {
         Promise<Channel> channelFuture = context.eventLoopGroup().next().newPromise();
         executeFuture = createExecutionFuture(channelFuture);
-        context.channelPool().acquire(channelFuture);
+        acquireChannel(channelFuture);
         channelFuture.addListener((GenericFutureListener) this::makeRequestListener);
         return executeFuture;
+    }
+
+    private void acquireChannel(Promise<Channel> channelFuture) {
+        NettyRequestMetrics.ifMetricsAreEnabled(context.metricCollector(), metrics -> {
+            measureTimeTaken(channelFuture, duration -> {
+                metrics.reportMetric(CONCURRENCY_ACQUIRE_DURATION, duration);
+            });
+        });
+        context.channelPool().acquire(channelFuture);
     }
 
     /**
@@ -121,8 +131,9 @@ public final class NettyRequestExecutor {
                 Channel ch = channelPromise.getNow();
                 try {
                     ch.eventLoop().submit(() -> {
-                        if (ch.attr(IN_USE).get()) {
-                            ch.pipeline().fireExceptionCaught(new FutureCancelledException(executionId, t));
+                        Attribute<Long> executionIdKey = ch.attr(EXECUTION_ID_KEY);
+                        if (ch.attr(IN_USE) != null && ch.attr(IN_USE).get() && executionIdKey != null) {
+                            ch.pipeline().fireExceptionCaught(new FutureCancelledException(this.executionId, t));
                         } else {
                             ch.close().addListener(closeFuture -> context.channelPool().release(ch));
                         }
@@ -165,9 +176,13 @@ public final class NettyRequestExecutor {
         if (channelFuture.isSuccess()) {
             channel = channelFuture.getNow();
             NettyUtils.doInEventLoop(channel.eventLoop(), () -> {
-                configureChannel();
-                if (tryConfigurePipeline()) {
+                try {
+                    configureChannel();
+                    configurePipeline();
                     makeRequest();
+                } catch (Throwable t) {
+                    closeAndRelease(channel);
+                    handleFailure(channel, () -> "Failed to initiate request to " + endpoint(), t);
                 }
             });
         } else {
@@ -181,11 +196,13 @@ public final class NettyRequestExecutor {
         channel.attr(REQUEST_CONTEXT_KEY).set(context);
         channel.attr(RESPONSE_COMPLETE_KEY).set(false);
         channel.attr(LAST_HTTP_CONTENT_RECEIVED_KEY).set(false);
-        channel.attr(IN_USE).set(true);
+        channel.attr(RESPONSE_CONTENT_LENGTH).set(null);
+        channel.attr(RESPONSE_DATA_READ).set(null);
+        channel.attr(CHANNEL_DIAGNOSTICS).get().incrementRequestCount();
         channel.config().setOption(ChannelOption.AUTO_READ, false);
     }
 
-    private boolean tryConfigurePipeline() {
+    private void configurePipeline() throws IOException {
         Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
         ChannelPipeline pipeline = channel.pipeline();
 
@@ -200,10 +217,7 @@ public final class NettyRequestExecutor {
                 requestAdapter = REQUEST_ADAPTER_HTTP1_1;
                 break;
             default:
-                String errorMsg = "Unknown protocol: " + protocol;
-                closeAndRelease(channel);
-                handleFailure(channel, () -> errorMsg, new RuntimeException(errorMsg));
-                return false;
+                throw new IOException("Unknown protocol: " + protocol);
         }
 
         pipeline.addLast(LastHttpContentHandler.create());
@@ -217,13 +231,8 @@ public final class NettyRequestExecutor {
         // handler (which will monitor for it going inactive from now on).
         // Make sure it's active here, or the request will never complete: https://github.com/aws/aws-sdk-java-v2/issues/1207
         if (!channel.isActive()) {
-            String errorMessage = "Channel was closed before it could be written to.";
-            closeAndRelease(channel);
-            handleFailure(channel, () -> errorMessage, new IOException(errorMessage));
-            return false;
+            throw new IOException(NettyUtils.closedChannelMessage(channel));
         }
-
-        return true;
     }
 
     private void makeRequest() {
@@ -298,78 +307,9 @@ public final class NettyRequestExecutor {
 
     private void handleFailure(Channel channel, Supplier<String> msgSupplier, Throwable cause) {
         log.debug(channel, msgSupplier, cause);
-        cause = decorateException(cause);
+        cause = NettyUtils.decorateException(channel, cause);
         context.handler().onError(cause);
         executeFuture.completeExceptionally(cause);
-    }
-
-    private Throwable decorateException(Throwable originalCause) {
-        if (isAcquireTimeoutException(originalCause)) {
-            return new Throwable(getMessageForAcquireTimeoutException(), originalCause);
-        } else if (isTooManyPendingAcquiresException(originalCause)) {
-            return new Throwable(getMessageForTooManyAcquireOperationsError(), originalCause);
-        } else if (originalCause instanceof ReadTimeoutException) {
-            return new IOException("Read timed out", originalCause);
-        } else if (originalCause instanceof WriteTimeoutException) {
-            return new IOException("Write timed out", originalCause);
-        } else if (originalCause instanceof ClosedChannelException) {
-            return new IOException(CLOSED_CHANNEL_MESSAGE, originalCause);
-        }
-
-        return originalCause;
-    }
-
-    private boolean isAcquireTimeoutException(Throwable originalCause) {
-        String message = originalCause.getMessage();
-        return originalCause instanceof TimeoutException &&
-                message != null &&
-                message.contains("Acquire operation took longer");
-    }
-
-    private boolean isTooManyPendingAcquiresException(Throwable originalCause) {
-        String message = originalCause.getMessage();
-        return originalCause instanceof IllegalStateException &&
-               message != null &&
-               originalCause.getMessage().contains("Too many outstanding acquire operations");
-    }
-
-    private String getMessageForAcquireTimeoutException() {
-        return "Acquire operation took longer than the configured maximum time. This indicates that a request cannot get a "
-                + "connection from the pool within the specified maximum time. This can be due to high request rate.\n"
-
-                + "Consider taking any of the following actions to mitigate the issue: increase max connections, "
-                + "increase acquire timeout, or slowing the request rate.\n"
-
-                + "Increasing the max connections can increase client throughput (unless the network interface is already "
-                + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
-                + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
-                + "further increase your connection count, increasing the acquire timeout gives extra time for requests to "
-                + "acquire a connection before timing out. If the connections doesn't free up, the subsequent requests "
-                + "will still timeout.\n"
-
-                + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
-                + "traffic bursts cannot overload the client, being more efficient with the number of times you need to "
-                + "call AWS, or by increasing the number of hosts sending requests.";
-    }
-
-    private String getMessageForTooManyAcquireOperationsError() {
-        return "Maximum pending connection acquisitions exceeded. The request rate is too high for the client to keep up.\n"
-
-                + "Consider taking any of the following actions to mitigate the issue: increase max connections, "
-                + "increase max pending acquire count, decrease pool lease timeout, or slowing the request rate.\n"
-
-                + "Increasing the max connections can increase client throughput (unless the network interface is already "
-                + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
-                + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
-                + "further increase your connection count, increasing the pending acquire count allows extra requests to be "
-                + "buffered by the client, but can cause additional request latency and higher memory usage. If your request"
-                + " latency or memory usage is already too high, decreasing the lease timeout will allow requests to fail "
-                + "more quickly, reducing the number of pending connection acquisitions, but likely won't decrease the total "
-                + "number of failed requests.\n"
-
-                + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
-                + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
-                + "AWS, or by increasing the number of hosts sending requests.";
     }
 
     /**

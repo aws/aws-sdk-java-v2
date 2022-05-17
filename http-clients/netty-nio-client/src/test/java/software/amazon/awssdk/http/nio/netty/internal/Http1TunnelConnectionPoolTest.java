@@ -16,9 +16,8 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -54,7 +53,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 
 /**
@@ -102,9 +101,6 @@ public class Http1TunnelConnectionPoolTest {
         Future<Channel> channelFuture = GROUP.next().newSucceededFuture(mockChannel);
         when(delegatePool.acquire(any(Promise.class))).thenReturn(channelFuture);
 
-        when(mockCtx.channel()).thenReturn(mockChannel);
-        when(mockCtx.pipeline()).thenReturn(mockPipeline);
-
         when(mockChannel.attr(eq(TUNNEL_ESTABLISHED_KEY))).thenReturn(mockAttr);
         when(mockChannel.id()).thenReturn(mockId);
         when(mockChannel.pipeline()).thenReturn(mockPipeline);
@@ -125,7 +121,7 @@ public class Http1TunnelConnectionPoolTest {
 
         tunnelPool.acquire().awaitUninterruptibly();
 
-        verify(mockPipeline, never()).addLast(anyObject());
+        verify(mockPipeline, never()).addLast(any());
     }
 
     @Test(timeout = 1000)

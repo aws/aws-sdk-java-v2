@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.sharedeventstream.model;
 
-import java.beans.Transient;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
@@ -187,7 +186,6 @@ public class GetRandomPersonResponse extends SharedEventStreamResponse implement
         }
 
         @Override
-        @Transient
         public final Builder name(String name) {
             this.name = name;
             return this;
@@ -202,7 +200,6 @@ public class GetRandomPersonResponse extends SharedEventStreamResponse implement
         }
 
         @Override
-        @Transient
         public final Builder birthday(Instant birthday) {
             this.birthday = birthday;
             return this;

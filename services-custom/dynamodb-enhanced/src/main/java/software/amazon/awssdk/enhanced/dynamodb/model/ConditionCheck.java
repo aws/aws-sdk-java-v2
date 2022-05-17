@@ -17,7 +17,9 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -39,6 +41,7 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
  * @param <T> The type of the modelled object.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
     private final Key key;
     private final Expression conditionExpression;
@@ -161,6 +164,7 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
      * <p>
      * A valid builder must define both a {@link Key} and an {@link Expression}.
      */
+    @NotThreadSafe
     public static final class Builder  {
         private Key key;
         private Expression conditionExpression;

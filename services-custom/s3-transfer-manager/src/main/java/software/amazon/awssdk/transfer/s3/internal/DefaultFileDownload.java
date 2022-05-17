@@ -15,31 +15,88 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import java.io.File;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.FileDownload;
+import software.amazon.awssdk.transfer.s3.ResumableFileDownload;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultFileDownload implements FileDownload {
-
+    private static final Logger log = Logger.loggerFor(FileDownload.class);
     private final CompletableFuture<CompletedFileDownload> completionFuture;
-    private final TransferProgress progress;
+    private final CompletableFuture<TransferProgress> progressFuture;
+    private final CompletableFuture<DownloadFileRequest> requestFuture;
+    private volatile ResumableFileDownload resumableFileDownload;
+    private final Object lock = new Object();
 
-    DefaultFileDownload(CompletableFuture<CompletedFileDownload> completionFuture,
-                               TransferProgress progress) {
-        this.completionFuture = completionFuture;
-        this.progress = progress;
+    DefaultFileDownload(CompletableFuture<CompletedFileDownload> completedFileDownloadFuture,
+                        CompletableFuture<TransferProgress> progressFuture,
+                        CompletableFuture<DownloadFileRequest> requestFuture) {
+        this.completionFuture = Validate.paramNotNull(completedFileDownloadFuture, "completedFileDownloadFuture");
+        this.progressFuture = Validate.paramNotNull(progressFuture, "progressFuture");
+        this.requestFuture = Validate.paramNotNull(requestFuture, "requestFuture");
     }
 
     @Override
     public TransferProgress progress() {
-        return progress;
+        return progressFuture.isDone() ? progressFuture.join() :
+               new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build());
     }
 
+    @Override
+    public ResumableFileDownload pause() {
+        log.debug(() -> "Start to pause ");
+        if (resumableFileDownload == null) {
+            synchronized (lock) {
+                if (resumableFileDownload == null) {
+                    completionFuture.cancel(true);
+
+                    if (!requestFuture.isDone() || !progressFuture.isDone()) {
+                        throw SdkClientException.create("DownloadFileRequest is unknown, not able to pause. This is likely "
+                                                        + "because you are trying to pause a resumed download request that "
+                                                        + "hasn't started yet. Please try later");
+                    }
+                    DownloadFileRequest request = requestFuture.join();
+                    TransferProgress progress = progressFuture.join();
+
+                    Instant s3objectLastModified = null;
+                    Long totalBytesTransferred = null;
+                    TransferProgressSnapshot snapshot = progress.snapshot();
+                    if (snapshot.sdkResponse().isPresent() && snapshot.sdkResponse().get() instanceof GetObjectResponse) {
+                        GetObjectResponse getObjectResponse = (GetObjectResponse) snapshot.sdkResponse().get();
+                        s3objectLastModified = getObjectResponse.lastModified();
+                        totalBytesTransferred = getObjectResponse.contentLength();
+                    }
+                    File destination = request.destination().toFile();
+                    long length = destination.length();
+                    Instant fileLastModified = Instant.ofEpochMilli(destination.lastModified());
+                    resumableFileDownload = ResumableFileDownload.builder()
+                                                                 .downloadFileRequest(request)
+                                                                 .s3ObjectLastModified(s3objectLastModified)
+                                                                 .fileLastModified(fileLastModified)
+                                                                 .bytesTransferred(length)
+                                                                 .totalSizeInBytes(totalBytesTransferred)
+                                                                 .build();
+                }
+
+            }
+        }
+        return resumableFileDownload;
+    }
 
     @Override
     public CompletableFuture<CompletedFileDownload> completionFuture() {
@@ -60,13 +117,19 @@ public final class DefaultFileDownload implements FileDownload {
         if (!Objects.equals(completionFuture, that.completionFuture)) {
             return false;
         }
-        return Objects.equals(progress, that.progress);
+
+        if (!Objects.equals(requestFuture, that.requestFuture)) {
+            return false;
+        }
+
+        return Objects.equals(progressFuture, that.progressFuture);
     }
 
     @Override
     public int hashCode() {
         int result = completionFuture != null ? completionFuture.hashCode() : 0;
-        result = 31 * result + (progress != null ? progress.hashCode() : 0);
+        result = 31 * result + (requestFuture != null ? requestFuture.hashCode() : 0);
+        result = 31 * result + (progressFuture != null ? progressFuture.hashCode() : 0);
         return result;
     }
 
@@ -74,7 +137,8 @@ public final class DefaultFileDownload implements FileDownload {
     public String toString() {
         return ToString.builder("DefaultFileDownload")
                        .add("completionFuture", completionFuture)
-                       .add("progress", progress)
+                       .add("progress", progressFuture)
+                       .add("request", requestFuture)
                        .build();
     }
 }

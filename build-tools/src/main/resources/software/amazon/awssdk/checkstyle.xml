@@ -345,8 +345,18 @@
         <module name="Regexp">
           <property name="format" value="System\s*(\.|::)\s*(getenv|getProperty)"/>
           <property name="illegalPattern" value="true"/>
-          <property name="message" value="Use SystemSetting instead of System.getenv and System.getProperty"/>
+          <property name="message" value="NEVER use System.getenv or System.getProperty. Create and use a
+          SystemSetting, instead."/>
           <property name="ignoreComments" value="true"/>
+        </module>
+
+        <module name="Regexp">
+            <property name="format" value="SystemSetting\s*(\.|::)\s*getStringValueFromEnvironmentVariable"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="Are you being naughty and not creating a SystemSetting? Don't you know that
+            your customers want both system properties AND environment variables? Are you REALLY sure you want to use
+            this and not support a system property?"/>
+            <property name="ignoreComments" value="true"/>
         </module>
 
         <!-- Checks that we don't implement AutoCloseable/Closeable -->
@@ -408,12 +418,30 @@
 
         <module name="software.amazon.awssdk.buildtools.checkstyle.SdkIllegalImportCheck">
             <property name="classNameToCheck" value="StaticTableSchema"/>
-            <property name="illegalPkgs" value="java.lang.reflect"/>
+            <property name="illegalPkgs" value="java.lang.reflect.*"/>
         </module>
 
         <module name="software.amazon.awssdk.buildtools.checkstyle.SdkIllegalImportCheck">
             <property name="classNameToCheck" value="StaticImmutableTableSchema"/>
-            <property name="illegalPkgs" value="java.lang.reflect"/>
+            <property name="illegalPkgs" value="java.lang.reflect.*"/>
+        </module>
+
+        <module name="software.amazon.awssdk.buildtools.checkstyle.SdkIllegalImportCheck">
+            <property name="classNameToCheck" value=".*"/>
+            <property name="packageToCheck" value="software.amazon.awssdk.http.nio.netty" />
+            <property name="illegalPkgs" value="software.amazon.awssdk.utils.Logger,org.slf4j.Logger"/>
+        </module>
+        
+        <module name="software.amazon.awssdk.buildtools.checkstyle.NonJavaBaseModuleCheck">
+            <!--
+            codegen: Allowed to use classes from java.compiler, because poet requires them.
+            aws-query-protocol: Allowed to use classes from java.xml for XML parsing.
+            protocol-tests-core: Allows to use classes from java.xml for XML assertions.
+            dynamodb-enhanced: Allowed to use classes from java.beans for bean processing.
+            release-scripts: Allowed to use classes from java.xml for XML writing.
+            sdk-benchmarks: Allowed to use classes from javax.servlet.http for benchmark servlets.
+            -->
+            <property name="legalPackages" value="software.amazon.awssdk.codegen:javax.lang.model, software.amazon.awssdk.codegen:javax.lang.model.element, software.amazon.awssdk.codegen:javax.lang.model.type, software.amazon.awssdk.protocols.query:javax.xml.stream, software.amazon.awssdk.protocols.query:javax.xml.stream.events, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.parsers, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform.dom, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform.stream, software.amazon.awssdk.enhanced.dynamodb.mapper:java.beans, software.amazon.awssdk.release:javax.xml, software.amazon.awssdk.release:javax.xml.parsers, software.amazon.awssdk.release:javax.xml.transform, software.amazon.awssdk.release:javax.xml.xpath, software.amazon.awssdk.release:javax.xml.transform.dom, software.amazon.awssdk.release:javax.xml.transform.stream, software.amazon.awssdk.benchmark:javax.servlet.http"/>
         </module>
     </module>
 

@@ -124,6 +124,9 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     /**
      * The maximum amount of time that a TLS handshake is allowed to take from the time the CLIENT HELLO
      * message is sent to the time the client and server have fully negotiated ciphers and exchanged keys.
+     *
+     * <p>
+     * If not specified, the default value will be the same as the resolved {@link #CONNECTION_TIMEOUT}.
      */
     public static final SdkHttpConfigurationOption<Duration> TLS_NEGOTIATION_TIMEOUT =
         new SdkHttpConfigurationOption<>("TlsNegotiationTimeout", Duration.class);
@@ -134,7 +137,10 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     private static final Duration DEFAULT_CONNECTION_ACQUIRE_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration DEFAULT_CONNECTION_MAX_IDLE_TIMEOUT = Duration.ofSeconds(60);
     private static final Duration DEFAULT_CONNECTION_TIME_TO_LIVE = Duration.ZERO;
-    private static final Duration DEFAULT_TLS_HANDSHAKE_TIMEOUT = Duration.ofSeconds(10);
+    /**
+     * 5 seconds = 3 seconds (RTO for 2 packets loss) + 2 seconds (startup latency and RTT buffer)
+     */
+    private static final Duration DEFAULT_TLS_NEGOTIATION_TIMEOUT = Duration.ofSeconds(5);
     private static final Boolean DEFAULT_REAP_IDLE_CONNECTIONS = Boolean.TRUE;
     private static final int DEFAULT_MAX_CONNECTIONS = 50;
     private static final int DEFAULT_MAX_CONNECTION_ACQUIRES = 10_000;
@@ -162,7 +168,7 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(TCP_KEEPALIVE, DEFAULT_TCP_KEEPALIVE)
             .put(TLS_KEY_MANAGERS_PROVIDER, DEFAULT_TLS_KEY_MANAGERS_PROVIDER)
             .put(TLS_TRUST_MANAGERS_PROVIDER, DEFAULT_TLS_TRUST_MANAGERS_PROVIDER)
-            .put(TLS_NEGOTIATION_TIMEOUT, DEFAULT_TLS_HANDSHAKE_TIMEOUT)
+            .put(TLS_NEGOTIATION_TIMEOUT, DEFAULT_TLS_NEGOTIATION_TIMEOUT)
             .build();
 
     private final String name;

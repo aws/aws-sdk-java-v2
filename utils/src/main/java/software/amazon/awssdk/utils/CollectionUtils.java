@@ -81,7 +81,7 @@ public final class CollectionUtils {
      * desired.
      */
     public static <T, U> Map<T, List<U>> deepCopyMap(Map<T, ? extends List<U>> map) {
-        return deepCopyMap(map, () -> new LinkedHashMap<>());
+        return deepCopyMap(map, () -> new LinkedHashMap<>(map.size()));
     }
 
     /**

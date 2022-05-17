@@ -22,6 +22,7 @@ import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.MethodSpec;
 import java.util.List;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
+import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.utils.StringUtils;
 
 public final class DeprecationUtils {
@@ -44,6 +45,24 @@ public final class DeprecationUtils {
             builder.addJavadoc(LF + "@deprecated");
             if (StringUtils.isNotBlank(member.getDeprecatedMessage())) {
                 builder.addJavadoc(" $L", member.getDeprecatedMessage());
+            }
+        }
+        return builder.build();
+    }
+
+    /**
+     * If a given operation is modeled as deprecated, add the {@link Deprecated} annotation to the method and, if the method
+     * already has existing Javadoc, append a section with the {@code @deprecated} tag.
+     */
+    public static MethodSpec checkDeprecated(OperationModel operation, MethodSpec method) {
+        if (!operation.isDeprecated() || method.annotations.contains(DEPRECATED)) {
+            return method;
+        }
+        MethodSpec.Builder builder = method.toBuilder().addAnnotation(DEPRECATED);
+        if (!method.javadoc.isEmpty()) {
+            builder.addJavadoc(LF + "@deprecated");
+            if (StringUtils.isNotBlank(operation.getDeprecatedMessage())) {
+                builder.addJavadoc(" $L", operation.getDeprecatedMessage());
             }
         }
         return builder.build();

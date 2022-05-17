@@ -15,7 +15,20 @@
 
 package software.amazon.awssdk.services.neptune.internal;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Clock;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -32,16 +45,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.neptune.model.CopyDbClusterSnapshotRequest;
 import software.amazon.awssdk.services.neptune.model.NeptuneRequest;
 import software.amazon.awssdk.services.neptune.transform.CopyDbClusterSnapshotRequestMarshaller;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.Clock;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
 
 /**
  * Unit Tests for {@link RdsPresignInterceptor}

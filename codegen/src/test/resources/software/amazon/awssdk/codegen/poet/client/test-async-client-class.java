@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHand
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
@@ -66,6 +68,8 @@ import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyIn
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputRequest;
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputResponse;
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputResponseHandler;
+import software.amazon.awssdk.services.json.model.GetOperationWithChecksumRequest;
+import software.amazon.awssdk.services.json.model.GetOperationWithChecksumResponse;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
 import software.amazon.awssdk.services.json.model.InputEventStream;
@@ -79,6 +83,8 @@ import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKe
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse;
+import software.amazon.awssdk.services.json.model.PutOperationWithChecksumRequest;
+import software.amazon.awssdk.services.json.model.PutOperationWithChecksumResponse;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingInputOutputOperationRequest;
@@ -95,17 +101,20 @@ import software.amazon.awssdk.services.json.transform.APostOperationWithOutputRe
 import software.amazon.awssdk.services.json.transform.EventStreamOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.EventStreamOperationWithOnlyInputRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.EventStreamOperationWithOnlyOutputRequestMarshaller;
+import software.amazon.awssdk.services.json.transform.GetOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.InputEventMarshaller;
 import software.amazon.awssdk.services.json.transform.InputEventTwoMarshaller;
 import software.amazon.awssdk.services.json.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithResultKeyRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithoutResultKeyRequestMarshaller;
+import software.amazon.awssdk.services.json.transform.PutOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingInputOutputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingOutputOperationRequestMarshaller;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.HostnameValidator;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Internal implementation of {@link JsonAsyncClient}.
@@ -508,6 +517,68 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     }
 
     /**
+     * Invokes the GetOperationWithChecksum operation asynchronously.
+     *
+     * @param getOperationWithChecksumRequest
+     * @return A Java Future containing the result of the GetOperationWithChecksum operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.GetOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public CompletableFuture<GetOperationWithChecksumResponse> getOperationWithChecksum(
+        GetOperationWithChecksumRequest getOperationWithChecksumRequest) {
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getOperationWithChecksumRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetOperationWithChecksum");
+            JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
+                                                                           .isPayloadJson(true).build();
+
+            HttpResponseHandler<GetOperationWithChecksumResponse> responseHandler = protocolFactory.createResponseHandler(
+                operationMetadata, GetOperationWithChecksumResponse::builder);
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
+                                                                                                       operationMetadata);
+
+            CompletableFuture<GetOperationWithChecksumResponse> executeFuture = clientHandler
+                .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
+                             .withOperationName("GetOperationWithChecksum")
+                             .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory))
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .putExecutionAttribute(
+                                 SdkInternalExecutionAttribute.HTTP_CHECKSUM,
+                                 HttpChecksum.builder().requestChecksumRequired(true)
+                                             .requestAlgorithm(getOperationWithChecksumRequest.checksumAlgorithmAsString())
+                                             .isRequestStreaming(false).build()).withInput(getOperationWithChecksumRequest));
+
+            CompletableFuture<GetOperationWithChecksumResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
+            return executeFuture;
+        } catch (Throwable t) {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
+
+    /**
      * <p>
      * Performs a post operation to the query service and has no output
      * </p>
@@ -893,6 +964,108 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     }
 
     /**
+     * Invokes the PutOperationWithChecksum operation asynchronously.
+     *
+     * @param putOperationWithChecksumRequest
+     * @param requestBody
+     *        Functional interface that can be implemented to produce the request content in a non-blocking manner. The
+     *        size of the content is expected to be known up front. See {@link AsyncRequestBody} for specific details on
+     *        implementing this interface as well as links to precanned implementations for common scenarios like
+     *        uploading from a file. The service documentation for the request content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '
+     * @param asyncResponseTransformer
+     *        The response transformer for processing the streaming response in a non-blocking manner. See
+     *        {@link AsyncResponseTransformer} for details on how this callback should be implemented and for links to
+     *        precanned implementations for common scenarios like downloading to a file. The service documentation for
+     *        the response content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '.
+     * @return A future to the transformed result of the AsyncResponseTransformer.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PutOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PutOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public <ReturnT> CompletableFuture<ReturnT> putOperationWithChecksum(
+        PutOperationWithChecksumRequest putOperationWithChecksumRequest, AsyncRequestBody requestBody,
+        AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> asyncResponseTransformer) {
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, putOperationWithChecksumRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PutOperationWithChecksum");
+            Pair<AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT>, CompletableFuture<Void>> pair = AsyncResponseTransformerUtils
+                .wrapWithEndOfStreamFuture(asyncResponseTransformer);
+            asyncResponseTransformer = pair.left();
+            CompletableFuture<Void> endOfStreamFuture = pair.right();
+            if (!isSignerOverridden(clientConfiguration)) {
+                putOperationWithChecksumRequest = applySignerOverride(putOperationWithChecksumRequest, AsyncAws4Signer.create());
+            }
+            JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
+                                                                           .isPayloadJson(false).build();
+
+            HttpResponseHandler<PutOperationWithChecksumResponse> responseHandler = protocolFactory.createResponseHandler(
+                operationMetadata, PutOperationWithChecksumResponse::builder);
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
+                                                                                                       operationMetadata);
+
+            CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
+                new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
+                    .withOperationName("PutOperationWithChecksum")
+                    .withMarshaller(
+                        AsyncStreamingRequestMarshaller.builder()
+                                                       .delegateMarshaller(new PutOperationWithChecksumRequestMarshaller(protocolFactory))
+                                                       .asyncRequestBody(requestBody).build())
+                    .withResponseHandler(responseHandler)
+                    .withErrorResponseHandler(errorResponseHandler)
+                    .withMetricCollector(apiCallMetricCollector)
+                    .withAsyncRequestBody(requestBody)
+                    .putExecutionAttribute(
+                        SdkInternalExecutionAttribute.HTTP_CHECKSUM,
+                        HttpChecksum.builder().requestChecksumRequired(false)
+                                    .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
+                                    .responseAlgorithms("CRC32C", "CRC32", "SHA1", "SHA256").isRequestStreaming(true)
+                                    .build()).withInput(putOperationWithChecksumRequest), asyncResponseTransformer);
+            AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
+            CompletableFuture<ReturnT> whenCompleted = executeFuture.whenComplete((r, e) -> {
+                if (e != null) {
+                    runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
+                                   () -> finalAsyncResponseTransformer.exceptionOccurred(e));
+                }
+                endOfStreamFuture.whenComplete((r2, e2) -> {
+                    metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                });
+            });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
+            return executeFuture;
+        } catch (Throwable t) {
+            AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
+            runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
+                           () -> finalAsyncResponseTransformer.exceptionOccurred(t));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
+
+    /**
      * Some operation with a streaming input
      *
      * @param streamingInputOperationRequest
@@ -998,6 +1171,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOutputOperation");
+            Pair<AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair =
+                AsyncResponseTransformerUtils.wrapWithEndOfStreamFuture(asyncResponseTransformer);
+            asyncResponseTransformer = pair.left();
+            CompletableFuture<Void> endOfStreamFuture = pair.right();
             streamingInputOutputOperationRequest = applySignerOverride(streamingInputOutputOperationRequest,
                     Aws4UnsignedPayloadSigner.create());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
@@ -1021,18 +1198,22 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                             .withMetricCollector(apiCallMetricCollector).withAsyncRequestBody(requestBody)
                             .withInput(streamingInputOutputOperationRequest), asyncResponseTransformer);
+            AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             CompletableFuture<ReturnT> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                            () -> asyncResponseTransformer.exceptionOccurred(e));
+                            () -> finalAsyncResponseTransformer.exceptionOccurred(e));
                 }
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                endOfStreamFuture.whenComplete((r2, e2) -> {
+                    metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                });
             });
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
+            AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                    () -> asyncResponseTransformer.exceptionOccurred(t));
+                           () -> finalAsyncResponseTransformer.exceptionOccurred(t));
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -1073,6 +1254,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
+            Pair<AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair =
+                AsyncResponseTransformerUtils.wrapWithEndOfStreamFuture(asyncResponseTransformer);
+            asyncResponseTransformer = pair.left();
+            CompletableFuture<Void> endOfStreamFuture = pair.right();
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
                     .isPayloadJson(false).build();
 
@@ -1089,18 +1274,22 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                             .withMetricCollector(apiCallMetricCollector).withInput(streamingOutputOperationRequest),
                     asyncResponseTransformer);
+            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             CompletableFuture<ReturnT> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                            () -> asyncResponseTransformer.exceptionOccurred(e));
+                            () -> finalAsyncResponseTransformer.exceptionOccurred(e));
                 }
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                endOfStreamFuture.whenComplete((r2, e2) -> {
+                    metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                });
             });
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
+            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                    () -> asyncResponseTransformer.exceptionOccurred(t));
+                           () -> finalAsyncResponseTransformer.exceptionOccurred(t));
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }

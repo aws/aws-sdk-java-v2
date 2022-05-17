@@ -28,7 +28,7 @@
         {"shape":"TooManyTagsError"},
         {"shape":"TooManyUpdates"}
       ],
-      "documentation":"<p>Adds or overwrites one or more tags for the specified resource. Tags are metadata that you can assign to your documents, managed nodes, maintenance windows, Parameter Store parameters, and patch baselines. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment. Each tag consists of a key and an optional value, both of which you define. For example, you could define a set of tags for your account's managed nodes that helps you track each node's owner and stack level. For example:</p> <ul> <li> <p> <code>Key=Owner,Value=DbAdmin</code> </p> </li> <li> <p> <code>Key=Owner,Value=SysAdmin</code> </p> </li> <li> <p> <code>Key=Owner,Value=Dev</code> </p> </li> <li> <p> <code>Key=Stack,Value=Production</code> </p> </li> <li> <p> <code>Key=Stack,Value=Pre-Production</code> </p> </li> <li> <p> <code>Key=Stack,Value=Test</code> </p> </li> </ul> <p>Each resource can have a maximum of 50 tags.</p> <p>We recommend that you devise a set of tag keys that meets your needs for each resource type. Using a consistent set of tag keys makes it easier for you to manage your resources. You can search and filter the resources based on the tags you add. Tags don't have any semantic meaning to and are interpreted strictly as a string of characters. </p> <p>For more information about using tags with Amazon Elastic Compute Cloud (Amazon EC2) instances, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html\">Tagging your Amazon EC2 resources</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Adds or overwrites one or more tags for the specified resource. Tags are metadata that you can assign to your automations, documents, managed nodes, maintenance windows, Parameter Store parameters, and patch baselines. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment. Each tag consists of a key and an optional value, both of which you define. For example, you could define a set of tags for your account's managed nodes that helps you track each node's owner and stack level. For example:</p> <ul> <li> <p> <code>Key=Owner,Value=DbAdmin</code> </p> </li> <li> <p> <code>Key=Owner,Value=SysAdmin</code> </p> </li> <li> <p> <code>Key=Owner,Value=Dev</code> </p> </li> <li> <p> <code>Key=Stack,Value=Production</code> </p> </li> <li> <p> <code>Key=Stack,Value=Pre-Production</code> </p> </li> <li> <p> <code>Key=Stack,Value=Test</code> </p> </li> </ul> <p>Most resources can have a maximum of 50 tags. Automations can have a maximum of 5 tags.</p> <p>We recommend that you devise a set of tag keys that meets your needs for each resource type. Using a consistent set of tag keys makes it easier for you to manage your resources. You can search and filter the resources based on the tags you add. Tags don't have any semantic meaning to and are interpreted strictly as a string of characters.</p> <p>For more information about using tags with Amazon Elastic Compute Cloud (Amazon EC2) instances, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html\">Tagging your Amazon EC2 resources</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "AssociateOpsItemRelatedItem":{
       "name":"AssociateOpsItemRelatedItem",
@@ -110,7 +110,8 @@
         {"shape":"InvalidOutputLocation"},
         {"shape":"InvalidParameters"},
         {"shape":"InvalidTarget"},
-        {"shape":"InvalidSchedule"}
+        {"shape":"InvalidSchedule"},
+        {"shape":"InvalidTargetMaps"}
       ],
       "documentation":"<p>A State Manager association defines the state that you want to maintain on your managed nodes. For example, an association can specify that anti-virus software must be installed and running on your managed nodes, or that certain ports must be closed. For static targets, the association specifies a schedule for when the configuration is reapplied. For dynamic targets, such as an Amazon Web Services resource group or an Amazon Web Services autoscaling group, State Manager, a capability of Amazon Web Services Systems Manager applies the configuration when new managed nodes are added to the group. The association also specifies actions to take when applying the configuration. For example, an association for anti-virus software might run once a day. If the software isn't installed, then State Manager installs it. If the software is installed, but the service isn't running, then the association might instruct State Manager to start the service. </p>"
     },
@@ -133,7 +134,8 @@
         {"shape":"UnsupportedPlatformType"},
         {"shape":"InvalidOutputLocation"},
         {"shape":"InvalidTarget"},
-        {"shape":"InvalidSchedule"}
+        {"shape":"InvalidSchedule"},
+        {"shape":"InvalidTargetMaps"}
       ],
       "documentation":"<p>Associates the specified Amazon Web Services Systems Manager document (SSM document) with the specified managed nodes or targets.</p> <p>When you associate a document with one or more managed nodes using IDs or tags, Amazon Web Services Systems Manager Agent (SSM Agent) running on the managed node processes the document and configures the node as specified.</p> <p>If you associate a document with a managed node that already has an associated document, the system returns the AssociationAlreadyExists exception.</p>"
     },
@@ -1133,7 +1135,7 @@
         {"shape":"DoesNotExistException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Lists the tasks in a maintenance window.</p> <note> <p>For maintenance window tasks without a specified target, you can't supply values for <code>--max-errors</code> and <code>--max-concurrency</code>. Instead, the system inserts a placeholder value of <code>1</code>, which may be reported in the response to this command. These values don't affect the running of your task and can be ignored.</p> </note>"
+      "documentation":"<p>Retrieves the details of a maintenance window task.</p> <note> <p>For maintenance window tasks without a specified target, you can't supply values for <code>--max-errors</code> and <code>--max-concurrency</code>. Instead, the system inserts a placeholder value of <code>1</code>, which may be reported in the response to this command. These values don't affect the running of your task and can be ignored.</p> </note> <p>To retrieve a list of tasks in a maintenance window, instead use the <a>DescribeMaintenanceWindowTasks</a> command.</p>"
     },
     "GetOpsItem":{
       "name":"GetOpsItem",
@@ -1879,10 +1881,9 @@
       "input":{"shape":"TerminateSessionRequest"},
       "output":{"shape":"TerminateSessionResponse"},
       "errors":[
-        {"shape":"DoesNotExistException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Permanently ends a session and closes the data connection between the Session Manager client and SSM Agent on the managed node. A terminated session isn't be resumed.</p>"
+      "documentation":"<p>Permanently ends a session and closes the data connection between the Session Manager client and SSM Agent on the managed node. A terminated session can't be resumed.</p>"
     },
     "UnlabelParameterVersion":{
       "name":"UnlabelParameterVersion",
@@ -1920,9 +1921,10 @@
         {"shape":"InvalidDocument"},
         {"shape":"InvalidTarget"},
         {"shape":"InvalidAssociationVersion"},
-        {"shape":"AssociationVersionLimitExceeded"}
+        {"shape":"AssociationVersionLimitExceeded"},
+        {"shape":"InvalidTargetMaps"}
       ],
-      "documentation":"<p>Updates an association. You can update the association name and version, the document version, schedule, parameters, and Amazon Simple Storage Service (Amazon S3) output. </p> <p>In order to call this API operation, your Identity and Access Management (IAM) user account, group, or role must be configured with permission to call the <a>DescribeAssociation</a> API operation. If you don't have permission to call <code>DescribeAssociation</code>, then you receive the following error: <code>An error occurred (AccessDeniedException) when calling the UpdateAssociation operation: User: &lt;user_arn&gt; isn't authorized to perform: ssm:DescribeAssociation on resource: &lt;resource_arn&gt;</code> </p> <important> <p>When you update an association, the association immediately runs against the specified targets.</p> </important>"
+      "documentation":"<p>Updates an association. You can update the association name and version, the document version, schedule, parameters, and Amazon Simple Storage Service (Amazon S3) output. When you call <code>UpdateAssociation</code>, the system removes all optional parameters from the request and overwrites the association with null values for those parameters. This is by design. You must specify all optional parameters in the call, even if you are not changing the parameters. This includes the <code>Name</code> parameter. Before calling this API action, we recommend that you call the <a>DescribeAssociation</a> API operation and make a note of all optional parameters required for your <code>UpdateAssociation</code> call.</p> <p>In order to call this API operation, your Identity and Access Management (IAM) user account, group, or role must be configured with permission to call the <a>DescribeAssociation</a> API operation. If you don't have permission to call <code>DescribeAssociation</code>, then you receive the following error: <code>An error occurred (AccessDeniedException) when calling the UpdateAssociation operation: User: &lt;user_arn&gt; isn't authorized to perform: ssm:DescribeAssociation on resource: &lt;resource_arn&gt;</code> </p> <important> <p>When you update an association, the association immediately runs against the specified targets. You can add the <code>ApplyOnlyAtCronInterval</code> parameter to run the association during the next schedule run.</p> </important>"
     },
     "UpdateAssociationStatus":{
       "name":"UpdateAssociationStatus",
@@ -1978,7 +1980,7 @@
         {"shape":"InvalidDocumentVersion"},
         {"shape":"InvalidDocumentSchemaVersion"}
       ],
-      "documentation":"<p>Set the default version of a document. </p>"
+      "documentation":"<p>Set the default version of a document. </p> <note> <p>If you change a document version for a State Manager association, Systems Manager immediately runs the association unless you previously specifed the <code>apply-only-at-cron-interval</code> parameter.</p> </note>"
     },
     "UpdateDocumentMetadata":{
       "name":"UpdateDocumentMetadata",
@@ -2160,7 +2162,7 @@
     "AccountSharingInfoList":{
       "type":"list",
       "member":{"shape":"AccountSharingInfo"},
-      "documentation":"<p>A list of of Amazon Web Services accounts where the current document is shared and the version shared with each account.</p>"
+      "documentation":"<p>A list of Amazon Web Services accounts where the current document is shared and the version shared with each account.</p>"
     },
     "Accounts":{
       "type":"list",
@@ -2246,7 +2248,7 @@
         },
         "ResourceId":{
           "shape":"ResourceId",
-          "documentation":"<p>The resource ID you want to tag.</p> <p>Use the ID of the resource. Here are some examples:</p> <p> <code>MaintenanceWindow</code>: <code>mw-012345abcde</code> </p> <p> <code>PatchBaseline</code>: <code>pb-012345abcde</code> </p> <p> <code>OpsMetadata</code> object: <code>ResourceID</code> for tagging is created from the Amazon Resource Name (ARN) for the object. Specifically, <code>ResourceID</code> is created from the strings that come after the word <code>opsmetadata</code> in the ARN. For example, an OpsMetadata object with an ARN of <code>arn:aws:ssm:us-east-2:1234567890:opsmetadata/aws/ssm/MyGroup/appmanager</code> has a <code>ResourceID</code> of either <code>aws/ssm/MyGroup/appmanager</code> or <code>/aws/ssm/MyGroup/appmanager</code>.</p> <p>For the <code>Document</code> and <code>Parameter</code> values, use the name of the resource.</p> <p> <code>ManagedInstance</code>: <code>mi-012345abcde</code> </p> <note> <p>The <code>ManagedInstance</code> type for this API operation is only for on-premises managed nodes. You must specify the name of the managed node in the following format: <code>mi-<i>ID_number</i> </code>. For example, <code>mi-1a2b3c4d5e6f</code>.</p> </note>"
+          "documentation":"<p>The resource ID you want to tag.</p> <p>Use the ID of the resource. Here are some examples:</p> <p> <code>MaintenanceWindow</code>: <code>mw-012345abcde</code> </p> <p> <code>PatchBaseline</code>: <code>pb-012345abcde</code> </p> <p> <code>Automation</code>: <code>example-c160-4567-8519-012345abcde</code> </p> <p> <code>OpsMetadata</code> object: <code>ResourceID</code> for tagging is created from the Amazon Resource Name (ARN) for the object. Specifically, <code>ResourceID</code> is created from the strings that come after the word <code>opsmetadata</code> in the ARN. For example, an OpsMetadata object with an ARN of <code>arn:aws:ssm:us-east-2:1234567890:opsmetadata/aws/ssm/MyGroup/appmanager</code> has a <code>ResourceID</code> of either <code>aws/ssm/MyGroup/appmanager</code> or <code>/aws/ssm/MyGroup/appmanager</code>.</p> <p>For the <code>Document</code> and <code>Parameter</code> values, use the name of the resource.</p> <p> <code>ManagedInstance</code>: <code>mi-012345abcde</code> </p> <note> <p>The <code>ManagedInstance</code> type for this API operation is only for on-premises managed nodes. You must specify the name of the managed node in the following format: <code>mi-<i>ID_number</i> </code>. For example, <code>mi-1a2b3c4d5e6f</code>.</p> </note>"
         },
         "Tags":{
           "shape":"TagList",
@@ -2347,7 +2349,7 @@
         },
         "DocumentVersion":{
           "shape":"DocumentVersion",
-          "documentation":"<p>The version of the document used in the association.</p>"
+          "documentation":"<p>The version of the document used in the association. If you change a document version for a State Manager association, Systems Manager immediately runs the association unless you previously specifed the <code>apply-only-at-cron-interval</code> parameter.</p> <important> <p>State Manager doesn't support running associations that use a new version of a document if that document is shared from another account. State Manager always runs the <code>default</code> version of a document if shared from another account, even though the Systems Manager console shows that a new version was processed. If you want to run an association using a new version of a document shared form another account, you must set the document version to <code>default</code>.</p> </important>"
         },
         "Targets":{
           "shape":"Targets",
@@ -2368,6 +2370,16 @@
         "AssociationName":{
           "shape":"AssociationName",
           "documentation":"<p>The association name.</p>"
+        },
+        "ScheduleOffset":{
+          "shape":"ScheduleOffset",
+          "documentation":"<p>Number of days to wait after the scheduled day to run an association.</p>",
+          "box":true
+        },
+        "TargetMaps":{
+          "shape":"TargetMaps",
+          "documentation":"<p>A key-value mapping of document parameters to target resources. Both Targets and TargetMaps can't be specified together.</p>",
+          "box":true
         }
       },
       "documentation":"<p>Describes an association of a Amazon Web Services Systems Manager document (SSM document) and a managed node.</p>"
@@ -2487,6 +2499,16 @@
         "TargetLocations":{
           "shape":"TargetLocations",
           "documentation":"<p>The combination of Amazon Web Services Regions and Amazon Web Services accounts where you want to run the association.</p>"
+        },
+        "ScheduleOffset":{
+          "shape":"ScheduleOffset",
+          "documentation":"<p>Number of days to wait after the scheduled day to run an association.</p>",
+          "box":true
+        },
+        "TargetMaps":{
+          "shape":"TargetMaps",
+          "documentation":"<p>A key-value mapping of document parameters to target resources. Both Targets and TargetMaps can't be specified together.</p>",
+          "box":true
         }
       },
       "documentation":"<p>Describes the parameters for a document.</p>"
@@ -2900,6 +2922,16 @@
         "TargetLocations":{
           "shape":"TargetLocations",
           "documentation":"<p>The combination of Amazon Web Services Regions and Amazon Web Services accounts where you wanted to run the association when this association version was created.</p>"
+        },
+        "ScheduleOffset":{
+          "shape":"ScheduleOffset",
+          "documentation":"<p>Number of days to wait after the scheduled day to run an association.</p>",
+          "box":true
+        },
+        "TargetMaps":{
+          "shape":"TargetMaps",
+          "documentation":"<p>A key-value mapping of document parameters to target resources. Both Targets and TargetMaps can't be specified together.</p>",
+          "box":true
         }
       },
       "documentation":"<p>Information about the association version.</p>"
@@ -3562,6 +3594,22 @@
         }
       }
     },
+    "Category":{
+      "type":"string",
+      "max":128
+    },
+    "CategoryEnumList":{
+      "type":"list",
+      "member":{"shape":"Category"},
+      "max":3,
+      "min":0
+    },
+    "CategoryList":{
+      "type":"list",
+      "member":{"shape":"Category"},
+      "max":3,
+      "min":0
+    },
     "ChangeDetailsValue":{
       "type":"string",
       "max":32768,
@@ -3642,7 +3690,7 @@
         },
         "StatusDetails":{
           "shape":"StatusDetails",
-          "documentation":"<p>A detailed status of the command execution. <code>StatusDetails</code> includes more information than <code>Status</code> because it includes states resulting from error and concurrency control parameters. <code>StatusDetails</code> can show different results than Status. For more information about these statuses, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html\">Understanding command statuses</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. StatusDetails can be one of the following values:</p> <ul> <li> <p>Pending: The command hasn't been sent to any managed nodes.</p> </li> <li> <p>In Progress: The command has been sent to at least one managed node but hasn't reached a final state on all managed nodes.</p> </li> <li> <p>Success: The command successfully ran on all invocations. This is a terminal state.</p> </li> <li> <p>Delivery Timed Out: The value of MaxErrors or more command invocations shows a status of Delivery Timed Out. This is a terminal state.</p> </li> <li> <p>Execution Timed Out: The value of MaxErrors or more command invocations shows a status of Execution Timed Out. This is a terminal state.</p> </li> <li> <p>Failed: The value of MaxErrors or more command invocations shows a status of Failed. This is a terminal state.</p> </li> <li> <p>Incomplete: The command was attempted on all managed nodes and one or more invocations doesn't have a value of Success but not enough invocations failed for the status to be Failed. This is a terminal state.</p> </li> <li> <p>Canceled: The command was terminated before it was completed. This is a terminal state.</p> </li> <li> <p>Rate Exceeded: The number of managed nodes targeted by the command exceeded the account limit for pending invocations. The system has canceled the command before running it on any managed node. This is a terminal state.</p> </li> </ul>"
+          "documentation":"<p>A detailed status of the command execution. <code>StatusDetails</code> includes more information than <code>Status</code> because it includes states resulting from error and concurrency control parameters. <code>StatusDetails</code> can show different results than Status. For more information about these statuses, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html\">Understanding command statuses</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. StatusDetails can be one of the following values:</p> <ul> <li> <p>Pending: The command hasn't been sent to any managed nodes.</p> </li> <li> <p>In Progress: The command has been sent to at least one managed node but hasn't reached a final state on all managed nodes.</p> </li> <li> <p>Success: The command successfully ran on all invocations. This is a terminal state.</p> </li> <li> <p>Delivery Timed Out: The value of MaxErrors or more command invocations shows a status of Delivery Timed Out. This is a terminal state.</p> </li> <li> <p>Execution Timed Out: The value of MaxErrors or more command invocations shows a status of Execution Timed Out. This is a terminal state.</p> </li> <li> <p>Failed: The value of MaxErrors or more command invocations shows a status of Failed. This is a terminal state.</p> </li> <li> <p>Incomplete: The command was attempted on all managed nodes and one or more invocations doesn't have a value of Success but not enough invocations failed for the status to be Failed. This is a terminal state.</p> </li> <li> <p>Cancelled: The command was terminated before it was completed. This is a terminal state.</p> </li> <li> <p>Rate Exceeded: The number of managed nodes targeted by the command exceeded the account limit for pending invocations. The system has canceled the command before running it on any managed node. This is a terminal state.</p> </li> </ul>"
         },
         "OutputS3Region":{
           "shape":"S3Region",
@@ -3670,7 +3718,7 @@
         },
         "CompletedCount":{
           "shape":"CompletedCount",
-          "documentation":"<p>The number of targets for which the command invocation reached a terminal state. Terminal states include the following: Success, Failed, Execution Timed Out, Delivery Timed Out, Canceled, Terminated, or Undeliverable.</p>"
+          "documentation":"<p>The number of targets for which the command invocation reached a terminal state. Terminal states include the following: Success, Failed, Execution Timed Out, Delivery Timed Out, Cancelled, Terminated, or Undeliverable.</p>"
         },
         "ErrorCount":{
           "shape":"ErrorCount",
@@ -3780,7 +3828,7 @@
         },
         "StatusDetails":{
           "shape":"StatusDetails",
-          "documentation":"<p>A detailed status of the command execution for each invocation (each managed node targeted by the command). StatusDetails includes more information than Status because it includes states resulting from error and concurrency control parameters. StatusDetails can show different results than Status. For more information about these statuses, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html\">Understanding command statuses</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. StatusDetails can be one of the following values:</p> <ul> <li> <p>Pending: The command hasn't been sent to the managed node.</p> </li> <li> <p>In Progress: The command has been sent to the managed node but hasn't reached a terminal state.</p> </li> <li> <p>Success: The execution of the command or plugin was successfully completed. This is a terminal state.</p> </li> <li> <p>Delivery Timed Out: The command wasn't delivered to the managed node before the delivery timeout expired. Delivery timeouts don't count against the parent command's <code>MaxErrors</code> limit, but they do contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Execution Timed Out: Command execution started on the managed node, but the execution wasn't complete before the execution timeout expired. Execution timeouts count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Failed: The command wasn't successful on the managed node. For a plugin, this indicates that the result code wasn't zero. For a command invocation, this indicates that the result code for one or more plugins wasn't zero. Invocation failures count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Canceled: The command was terminated before it was completed. This is a terminal state.</p> </li> <li> <p>Undeliverable: The command can't be delivered to the managed node. The managed node might not exist or might not be responding. Undeliverable invocations don't count against the parent command's MaxErrors limit and don't contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Terminated: The parent command exceeded its MaxErrors limit and subsequent command invocations were canceled by the system. This is a terminal state.</p> </li> </ul>"
+          "documentation":"<p>A detailed status of the command execution for each invocation (each managed node targeted by the command). StatusDetails includes more information than Status because it includes states resulting from error and concurrency control parameters. StatusDetails can show different results than Status. For more information about these statuses, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html\">Understanding command statuses</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. StatusDetails can be one of the following values:</p> <ul> <li> <p>Pending: The command hasn't been sent to the managed node.</p> </li> <li> <p>In Progress: The command has been sent to the managed node but hasn't reached a terminal state.</p> </li> <li> <p>Success: The execution of the command or plugin was successfully completed. This is a terminal state.</p> </li> <li> <p>Delivery Timed Out: The command wasn't delivered to the managed node before the delivery timeout expired. Delivery timeouts don't count against the parent command's <code>MaxErrors</code> limit, but they do contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Execution Timed Out: Command execution started on the managed node, but the execution wasn't complete before the execution timeout expired. Execution timeouts count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Failed: The command wasn't successful on the managed node. For a plugin, this indicates that the result code wasn't zero. For a command invocation, this indicates that the result code for one or more plugins wasn't zero. Invocation failures count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Cancelled: The command was terminated before it was completed. This is a terminal state.</p> </li> <li> <p>Undeliverable: The command can't be delivered to the managed node. The managed node might not exist or might not be responding. Undeliverable invocations don't count against the parent command's MaxErrors limit and don't contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Terminated: The parent command exceeded its MaxErrors limit and subsequent command invocations were canceled by the system. This is a terminal state.</p> </li> </ul>"
         },
         "TraceOutput":{
           "shape":"InvocationTraceOutput",
@@ -3852,7 +3900,7 @@
         },
         "StatusDetails":{
           "shape":"StatusDetails",
-          "documentation":"<p>A detailed status of the plugin execution. <code>StatusDetails</code> includes more information than Status because it includes states resulting from error and concurrency control parameters. StatusDetails can show different results than Status. For more information about these statuses, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html\">Understanding command statuses</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. StatusDetails can be one of the following values:</p> <ul> <li> <p>Pending: The command hasn't been sent to the managed node.</p> </li> <li> <p>In Progress: The command has been sent to the managed node but hasn't reached a terminal state.</p> </li> <li> <p>Success: The execution of the command or plugin was successfully completed. This is a terminal state.</p> </li> <li> <p>Delivery Timed Out: The command wasn't delivered to the managed node before the delivery timeout expired. Delivery timeouts don't count against the parent command's <code>MaxErrors</code> limit, but they do contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Execution Timed Out: Command execution started on the managed node, but the execution wasn't complete before the execution timeout expired. Execution timeouts count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Failed: The command wasn't successful on the managed node. For a plugin, this indicates that the result code wasn't zero. For a command invocation, this indicates that the result code for one or more plugins wasn't zero. Invocation failures count against the MaxErrors limit of the parent command. This is a terminal state.</p> </li> <li> <p>Canceled: The command was terminated before it was completed. This is a terminal state.</p> </li> <li> <p>Undeliverable: The command can't be delivered to the managed node. The managed node might not exist, or it might not be responding. Undeliverable invocations don't count against the parent command's MaxErrors limit, and they don't contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Terminated: The parent command exceeded its MaxErrors limit and subsequent command invocations were canceled by the system. This is a terminal state.</p> </li> </ul>"
+          "documentation":"<p>A detailed status of the plugin execution. <code>StatusDetails</code> includes more information than Status because it includes states resulting from error and concurrency control parameters. StatusDetails can show different results than Status. For more information about these statuses, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html\">Understanding command statuses</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. StatusDetails can be one of the following values:</p> <ul> <li> <p>Pending: The command hasn't been sent to the managed node.</p> </li> <li> <p>In Progress: The command has been sent to the managed node but hasn't reached a terminal state.</p> </li> <li> <p>Success: The execution of the command or plugin was successfully completed. This is a terminal state.</p> </li> <li> <p>Delivery Timed Out: The command wasn't delivered to the managed node before the delivery timeout expired. Delivery timeouts don't count against the parent command's <code>MaxErrors</code> limit, but they do contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Execution Timed Out: Command execution started on the managed node, but the execution wasn't complete before the execution timeout expired. Execution timeouts count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Failed: The command wasn't successful on the managed node. For a plugin, this indicates that the result code wasn't zero. For a command invocation, this indicates that the result code for one or more plugins wasn't zero. Invocation failures count against the MaxErrors limit of the parent command. This is a terminal state.</p> </li> <li> <p>Cancelled: The command was terminated before it was completed. This is a terminal state.</p> </li> <li> <p>Undeliverable: The command can't be delivered to the managed node. The managed node might not exist, or it might not be responding. Undeliverable invocations don't count against the parent command's MaxErrors limit, and they don't contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Terminated: The parent command exceeded its MaxErrors limit and subsequent command invocations were canceled by the system. This is a terminal state.</p> </li> </ul>"
         },
         "ResponseCode":{
           "shape":"ResponseCode",
@@ -4339,6 +4387,16 @@
         "TargetLocations":{
           "shape":"TargetLocations",
           "documentation":"<p>Use this action to create an association in multiple Regions and multiple accounts.</p>"
+        },
+        "ScheduleOffset":{
+          "shape":"ScheduleOffset",
+          "documentation":"<p>Number of days to wait after the scheduled day to run an association.</p>",
+          "box":true
+        },
+        "TargetMaps":{
+          "shape":"TargetMaps",
+          "documentation":"<p>A key-value mapping of document parameters to target resources. Both Targets and TargetMaps can't be specified together.</p>",
+          "box":true
         }
       },
       "documentation":"<p>Describes the association of a Amazon Web Services Systems Manager document (SSM document) and a managed node.</p>"
@@ -4366,7 +4424,7 @@
         },
         "DocumentVersion":{
           "shape":"DocumentVersion",
-          "documentation":"<p>The document version you want to associate with the target(s). Can be a specific version or the default version.</p>"
+          "documentation":"<p>The document version you want to associate with the target(s). Can be a specific version or the default version.</p> <important> <p>State Manager doesn't support running associations that use a new version of a document if that document is shared from another account. State Manager always runs the <code>default</code> version of a document if shared from another account, even though the Systems Manager console shows that a new version was processed. If you want to run an association using a new version of a document shared form another account, you must set the document version to <code>default</code>.</p> </important>"
         },
         "InstanceId":{
           "shape":"InstanceId",
@@ -4423,6 +4481,16 @@
         "TargetLocations":{
           "shape":"TargetLocations",
           "documentation":"<p>A location is a combination of Amazon Web Services Regions and Amazon Web Services accounts where you want to run the association. Use this action to create an association in multiple Regions and multiple accounts.</p>"
+        },
+        "ScheduleOffset":{
+          "shape":"ScheduleOffset",
+          "documentation":"<p>Number of days to wait after the scheduled day to run an association. For example, if you specified a cron schedule of <code>cron(0 0 ? * THU#2 *)</code>, you could specify an offset of 3 to run the association each Sunday after the second Thursday of the month. For more information about cron schedules for associations, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/reference-cron-and-rate-expressions.html\">Reference: Cron and rate expressions for Systems Manager</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. </p> <note> <p>To use offsets, you must specify the <code>ApplyOnlyAtCronInterval</code> parameter. This option tells the system not to run an association immediately after you create it. </p> </note>",
+          "box":true
+        },
+        "TargetMaps":{
+          "shape":"TargetMaps",
+          "documentation":"<p>A key-value mapping of document parameters to target resources. Both Targets and TargetMaps can't be specified together.</p>",
+          "box":true
         }
       }
     },
@@ -4468,7 +4536,7 @@
         },
         "DocumentType":{
           "shape":"DocumentType",
-          "documentation":"<p>The type of document to create.</p>"
+          "documentation":"<p>The type of document to create.</p> <note> <p>The <code>DeploymentStrategy</code> document type is an internal-use-only document type reserved for AppConfig.</p> </note>"
         },
         "DocumentFormat":{
           "shape":"DocumentFormat",
@@ -6403,7 +6471,7 @@
         },
         "PlatformTypes":{
           "shape":"PlatformTypeList",
-          "documentation":"<p>The list of OS platforms compatible with this SSM document. </p>"
+          "documentation":"<p>The list of operating system (OS) platforms compatible with this SSM document. </p>"
         },
         "DocumentType":{
           "shape":"DocumentType",
@@ -6460,9 +6528,17 @@
         "ReviewStatus":{
           "shape":"ReviewStatus",
           "documentation":"<p>The current status of the review.</p>"
+        },
+        "Category":{
+          "shape":"CategoryList",
+          "documentation":"<p>The classification of a document to help you identify and categorize its use.</p>"
+        },
+        "CategoryEnum":{
+          "shape":"CategoryEnumList",
+          "documentation":"<p>The value that identifies a document's category.</p>"
         }
       },
-      "documentation":"<p>Describes a Amazon Web Services Systems Manager document (SSM document). </p>"
+      "documentation":"<p>Describes an Amazon Web Services Systems Manager document (SSM document). </p>"
     },
     "DocumentDisplayName":{
       "type":"string",
@@ -6606,7 +6682,7 @@
           "documentation":"<p>The value for the filter key.</p>"
         }
       },
-      "documentation":"<p>One or more filters. Use a filter to return a more specific list of documents.</p> <p>For keys, you can specify one or more tags that have been applied to a document. </p> <p>You can also use Amazon Web Services-provided keys, some of which have specific allowed values. These keys and their associated values are as follows:</p> <dl> <dt>DocumentType</dt> <dd> <ul> <li> <p> <code>ApplicationConfiguration</code> </p> </li> <li> <p> <code>ApplicationConfigurationSchema</code> </p> </li> <li> <p> <code>Automation</code> </p> </li> <li> <p> <code>ChangeCalendar</code> </p> </li> <li> <p> <code>Command</code> </p> </li> <li> <p> <code>DeploymentStrategy</code> </p> </li> <li> <p> <code>Package</code> </p> </li> <li> <p> <code>Policy</code> </p> </li> <li> <p> <code>Session</code> </p> </li> </ul> </dd> <dt>Owner</dt> <dd> <p>Note that only one <code>Owner</code> can be specified in a request. For example: <code>Key=Owner,Values=Self</code>.</p> <ul> <li> <p> <code>Amazon</code> </p> </li> <li> <p> <code>Private</code> </p> </li> <li> <p> <code>Public</code> </p> </li> <li> <p> <code>Self</code> </p> </li> <li> <p> <code>ThirdParty</code> </p> </li> </ul> </dd> <dt>PlatformTypes</dt> <dd> <ul> <li> <p> <code>Linux</code> </p> </li> <li> <p> <code>Windows</code> </p> </li> </ul> </dd> </dl> <p> <code>Name</code> is another Amazon Web Services-provided key. If you use <code>Name</code> as a key, you can use a name prefix to return a list of documents. For example, in the Amazon Web Services CLI, to return a list of all documents that begin with <code>Te</code>, run the following command:</p> <p> <code>aws ssm list-documents --filters Key=Name,Values=Te</code> </p> <p>You can also use the <code>TargetType</code> Amazon Web Services-provided key. For a list of valid resource type values that can be used with this key, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html\">Amazon Web Services resource and property types reference</a> in the <i>CloudFormation User Guide</i>.</p> <p>If you specify more than two keys, only documents that are identified by all the tags are returned in the results. If you specify more than two values for a key, documents that are identified by any of the values are returned in the results.</p> <p>To specify a custom key-value pair, use the format <code>Key=tag:tagName,Values=valueName</code>.</p> <p>For example, if you created a key called region and are using the Amazon Web Services CLI to call the <code>list-documents</code> command: </p> <p> <code>aws ssm list-documents --filters Key=tag:region,Values=east,west Key=Owner,Values=Self</code> </p>"
+      "documentation":"<p>One or more filters. Use a filter to return a more specific list of documents.</p> <p>For keys, you can specify one or more tags that have been applied to a document. </p> <p>You can also use Amazon Web Services-provided keys, some of which have specific allowed values. These keys and their associated values are as follows:</p> <dl> <dt>DocumentType</dt> <dd> <ul> <li> <p> <code>ApplicationConfiguration</code> </p> </li> <li> <p> <code>ApplicationConfigurationSchema</code> </p> </li> <li> <p> <code>Automation</code> </p> </li> <li> <p> <code>ChangeCalendar</code> </p> </li> <li> <p> <code>Command</code> </p> </li> <li> <p> <code>Package</code> </p> </li> <li> <p> <code>Policy</code> </p> </li> <li> <p> <code>Session</code> </p> </li> </ul> </dd> <dt>Owner</dt> <dd> <p>Note that only one <code>Owner</code> can be specified in a request. For example: <code>Key=Owner,Values=Self</code>.</p> <ul> <li> <p> <code>Amazon</code> </p> </li> <li> <p> <code>Private</code> </p> </li> <li> <p> <code>Public</code> </p> </li> <li> <p> <code>Self</code> </p> </li> <li> <p> <code>ThirdParty</code> </p> </li> </ul> </dd> <dt>PlatformTypes</dt> <dd> <ul> <li> <p> <code>Linux</code> </p> </li> <li> <p> <code>Windows</code> </p> </li> </ul> </dd> </dl> <p> <code>Name</code> is another Amazon Web Services-provided key. If you use <code>Name</code> as a key, you can use a name prefix to return a list of documents. For example, in the Amazon Web Services CLI, to return a list of all documents that begin with <code>Te</code>, run the following command:</p> <p> <code>aws ssm list-documents --filters Key=Name,Values=Te</code> </p> <p>You can also use the <code>TargetType</code> Amazon Web Services-provided key. For a list of valid resource type values that can be used with this key, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html\">Amazon Web Services resource and property types reference</a> in the <i>CloudFormation User Guide</i>.</p> <p>If you specify more than two keys, only documents that are identified by all the tags are returned in the results. If you specify more than two values for a key, documents that are identified by any of the values are returned in the results.</p> <p>To specify a custom key-value pair, use the format <code>Key=tag:tagName,Values=valueName</code>.</p> <p>For example, if you created a key called region and are using the Amazon Web Services CLI to call the <code>list-documents</code> command: </p> <p> <code>aws ssm list-documents --filters Key=tag:region,Values=east,west Key=Owner,Values=Self</code> </p>"
     },
     "DocumentKeyValuesFilterKey":{
       "type":"string",
@@ -7110,7 +7186,7 @@
         },
         "PluginName":{
           "shape":"CommandPluginName",
-          "documentation":"<p>The name of the plugin for which you want detailed results. If the document contains only one plugin, you can omit the name and details for that plugin. If the document contains more than one plugin, you must specify the name of the plugin for which you want to view details.</p> <p>Plugin names are also referred to as <i>step names</i> in Systems Manager documents (SSM documents). For example, <code>aws:RunShellScript</code> is a plugin.</p> <p>To find the <code>PluginName</code>, check the document content and find the name of the plugin. Alternatively, use <a>ListCommandInvocations</a> with the <code>CommandId</code> and <code>Details</code> parameters. The <code>PluginName</code> is the <code>Name</code> attribute of the <code>CommandPlugin</code> object in the <code>CommandPlugins</code> list.</p>"
+          "documentation":"<p>The name of the step for which you want detailed results. If the document contains only one step, you can omit the name and details for that step. If the document contains more than one step, you must specify the name of the step for which you want to view details. Be sure to specify the name of the step, not the name of a plugin like <code>aws:RunShellScript</code>.</p> <p>To find the <code>PluginName</code>, check the document content and find the name of the step you want details for. Alternatively, use <a>ListCommandInvocations</a> with the <code>CommandId</code> and <code>Details</code> parameters. The <code>PluginName</code> is the <code>Name</code> attribute of the <code>CommandPlugin</code> object in the <code>CommandPlugins</code> list.</p>"
         }
       }
     },
@@ -7163,7 +7239,7 @@
         },
         "StatusDetails":{
           "shape":"StatusDetails",
-          "documentation":"<p>A detailed status of the command execution for an invocation. <code>StatusDetails</code> includes more information than <code>Status</code> because it includes states resulting from error and concurrency control parameters. <code>StatusDetails</code> can show different results than <code>Status</code>. For more information about these statuses, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html\">Understanding command statuses</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. <code>StatusDetails</code> can be one of the following values:</p> <ul> <li> <p>Pending: The command hasn't been sent to the managed node.</p> </li> <li> <p>In Progress: The command has been sent to the managed node but hasn't reached a terminal state.</p> </li> <li> <p>Delayed: The system attempted to send the command to the target, but the target wasn't available. The managed node might not be available because of network issues, because the node was stopped, or for similar reasons. The system will try to send the command again.</p> </li> <li> <p>Success: The command or plugin ran successfully. This is a terminal state.</p> </li> <li> <p>Delivery Timed Out: The command wasn't delivered to the managed node before the delivery timeout expired. Delivery timeouts don't count against the parent command's <code>MaxErrors</code> limit, but they do contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Execution Timed Out: The command started to run on the managed node, but the execution wasn't complete before the timeout expired. Execution timeouts count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Failed: The command wasn't run successfully on the managed node. For a plugin, this indicates that the result code wasn't zero. For a command invocation, this indicates that the result code for one or more plugins wasn't zero. Invocation failures count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Canceled: The command was terminated before it was completed. This is a terminal state.</p> </li> <li> <p>Undeliverable: The command can't be delivered to the managed node. The node might not exist or might not be responding. Undeliverable invocations don't count against the parent command's <code>MaxErrors</code> limit and don't contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Terminated: The parent command exceeded its <code>MaxErrors</code> limit and subsequent command invocations were canceled by the system. This is a terminal state.</p> </li> </ul>"
+          "documentation":"<p>A detailed status of the command execution for an invocation. <code>StatusDetails</code> includes more information than <code>Status</code> because it includes states resulting from error and concurrency control parameters. <code>StatusDetails</code> can show different results than <code>Status</code>. For more information about these statuses, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html\">Understanding command statuses</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. <code>StatusDetails</code> can be one of the following values:</p> <ul> <li> <p>Pending: The command hasn't been sent to the managed node.</p> </li> <li> <p>In Progress: The command has been sent to the managed node but hasn't reached a terminal state.</p> </li> <li> <p>Delayed: The system attempted to send the command to the target, but the target wasn't available. The managed node might not be available because of network issues, because the node was stopped, or for similar reasons. The system will try to send the command again.</p> </li> <li> <p>Success: The command or plugin ran successfully. This is a terminal state.</p> </li> <li> <p>Delivery Timed Out: The command wasn't delivered to the managed node before the delivery timeout expired. Delivery timeouts don't count against the parent command's <code>MaxErrors</code> limit, but they do contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Execution Timed Out: The command started to run on the managed node, but the execution wasn't complete before the timeout expired. Execution timeouts count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Failed: The command wasn't run successfully on the managed node. For a plugin, this indicates that the result code wasn't zero. For a command invocation, this indicates that the result code for one or more plugins wasn't zero. Invocation failures count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Cancelled: The command was terminated before it was completed. This is a terminal state.</p> </li> <li> <p>Undeliverable: The command can't be delivered to the managed node. The node might not exist or might not be responding. Undeliverable invocations don't count against the parent command's <code>MaxErrors</code> limit and don't contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Terminated: The parent command exceeded its <code>MaxErrors</code> limit and subsequent command invocations were canceled by the system. This is a terminal state.</p> </li> </ul>"
         },
         "StandardOutputContent":{
           "shape":"StandardOutputContent",
@@ -7959,7 +8035,7 @@
       "members":{
         "Path":{
           "shape":"PSParameterName",
-          "documentation":"<p>The hierarchy for the parameter. Hierarchies start with a forward slash (/). The hierachy is the parameter name except the last part of the parameter. For the API call to succeeed, the last part of the parameter name can't be in the path. A parameter name hierarchy can have a maximum of 15 levels. Here is an example of a hierarchy: <code>/Finance/Prod/IAD/WinServ2016/license33 </code> </p>"
+          "documentation":"<p>The hierarchy for the parameter. Hierarchies start with a forward slash (/). The hierarchy is the parameter name except the last part of the parameter. For the API call to succeed, the last part of the parameter name can't be in the path. A parameter name hierarchy can have a maximum of 15 levels. Here is an example of a hierarchy: <code>/Finance/Prod/IAD/WinServ2016/license33 </code> </p>"
         },
         "Recursive":{
           "shape":"Boolean",
@@ -8037,7 +8113,7 @@
         },
         "OperatingSystem":{
           "shape":"OperatingSystem",
-          "documentation":"<p>Returns he operating system rule specified for patch groups using the patch baseline.</p>"
+          "documentation":"<p>Returns the operating system rule specified for patch groups using the patch baseline.</p>"
         }
       }
     },
@@ -9071,6 +9147,14 @@
         "Message":{"shape":"String"}
       },
       "documentation":"<p>The target isn't valid or doesn't exist. It might not be configured for Systems Manager or you might not have permission to perform the operation.</p>",
+      "exception":true
+    },
+    "InvalidTargetMaps":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>TargetMap parameter isn't valid.</p>",
       "exception":true
     },
     "InvalidTypeNameException":{
@@ -10730,11 +10814,11 @@
         },
         "MaxConcurrency":{
           "shape":"MaxConcurrency",
-          "documentation":"<p>The maximum number of targets this task can be run for, in parallel.</p>"
+          "documentation":"<p>The maximum number of targets this task can be run for, in parallel.</p> <note> <p>Although this element is listed as \"Required: No\", a value can be omitted only when you are registering or updating a <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/maintenance-windows-targetless-tasks.html\">targetless task</a> You must provide a value in all other cases.</p> <p>For maintenance window tasks without a target specified, you can't supply a value for this option. Instead, the system inserts a placeholder value of <code>1</code>. This value doesn't affect the running of your task.</p> </note>"
         },
         "MaxErrors":{
           "shape":"MaxErrors",
-          "documentation":"<p>The maximum number of errors allowed before this task stops being scheduled.</p>"
+          "documentation":"<p>The maximum number of errors allowed before this task stops being scheduled.</p> <note> <p>Although this element is listed as \"Required: No\", a value can be omitted only when you are registering or updating a <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/maintenance-windows-targetless-tasks.html\">targetless task</a> You must provide a value in all other cases.</p> <p>For maintenance window tasks without a target specified, you can't supply a value for this option. Instead, the system inserts a placeholder value of <code>1</code>. This value doesn't affect the running of your task.</p> </note>"
         },
         "Name":{
           "shape":"MaintenanceWindowName",
@@ -11040,7 +11124,8 @@
         "ORACLE_LINUX",
         "DEBIAN",
         "MACOS",
-        "RASPBIAN"
+        "RASPBIAN",
+        "ROCKY_LINUX"
       ]
     },
     "OpsAggregator":{
@@ -12037,11 +12122,11 @@
         },
         "Type":{
           "shape":"ParameterType",
-          "documentation":"<p>The type of parameter. Valid values include the following: <code>String</code>, <code>StringList</code>, and <code>SecureString</code>.</p>"
+          "documentation":"<p>The type of parameter. Valid values include the following: <code>String</code>, <code>StringList</code>, and <code>SecureString</code>.</p> <note> <p>If type is <code>StringList</code>, the system returns a comma-separated string with no spaces between commas in the <code>Value</code> field.</p> </note>"
         },
         "Value":{
           "shape":"PSParameterValue",
-          "documentation":"<p>The parameter value.</p>"
+          "documentation":"<p>The parameter value.</p> <note> <p>If type is <code>StringList</code>, the system returns a comma-separated string with no spaces between commas in the <code>Value</code> field.</p> </note>"
         },
         "Version":{
           "shape":"PSParameterVersion",
@@ -12159,7 +12244,7 @@
         },
         "PolicyType":{
           "shape":"String",
-          "documentation":"<p>The type of policy. Parameter Store, a capablility of Amazon Web Services Systems Manager, supports the following policy types: Expiration, ExpirationNotification, and NoChangeNotification. </p>"
+          "documentation":"<p>The type of policy. Parameter Store, a capability of Amazon Web Services Systems Manager, supports the following policy types: Expiration, ExpirationNotification, and NoChangeNotification. </p>"
         },
         "PolicyStatus":{
           "shape":"String",
@@ -12606,7 +12691,7 @@
         },
         "Severity":{
           "shape":"PatchSeverity",
-          "documentation":"<p>The severity of the patchsuch as <code>Critical</code>, <code>Important</code>, and <code>Moderate</code>.</p>"
+          "documentation":"<p>The severity of the patch such as <code>Critical</code>, <code>Important</code>, and <code>Moderate</code>.</p>"
         },
         "State":{
           "shape":"PatchComplianceDataState",
@@ -13129,7 +13214,7 @@
       "members":{
         "Name":{
           "shape":"PSParameterName",
-          "documentation":"<p>The fully qualified name of the parameter that you want to add to the system. The fully qualified name includes the complete hierarchy of the parameter path and name. For parameters in a hierarchy, you must include a leading forward slash character (/) when you create or reference a parameter. For example: <code>/Dev/DBServer/MySQL/db-string13</code> </p> <p>Naming Constraints:</p> <ul> <li> <p>Parameter names are case sensitive.</p> </li> <li> <p>A parameter name must be unique within an Amazon Web Services Region</p> </li> <li> <p>A parameter name can't be prefixed with \"<code>aws</code>\" or \"<code>ssm</code>\" (case-insensitive).</p> </li> <li> <p>Parameter names can include only the following symbols and letters: <code>a-zA-Z0-9_.-</code> </p> <p>In addition, the slash character ( / ) is used to delineate hierarchies in parameter names. For example: <code>/Dev/Production/East/Project-ABC/MyParameter</code> </p> </li> <li> <p>A parameter name can't include spaces.</p> </li> <li> <p>Parameter hierarchies are limited to a maximum depth of fifteen levels.</p> </li> </ul> <p>For additional information about valid values for parameter names, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-su-create.html\">Creating Systems Manager parameters</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> <note> <p>The maximum length constraint listed below includes capacity for additional system attributes that aren't part of the name. The maximum length for a parameter name, including the full length of the parameter ARN, is 1011 characters. For example, the length of the following parameter name is 65 characters, not 20 characters:</p> <p> <code>arn:aws:ssm:us-east-2:111122223333:parameter/ExampleParameterName</code> </p> </note>"
+          "documentation":"<p>The fully qualified name of the parameter that you want to add to the system. The fully qualified name includes the complete hierarchy of the parameter path and name. For parameters in a hierarchy, you must include a leading forward slash character (/) when you create or reference a parameter. For example: <code>/Dev/DBServer/MySQL/db-string13</code> </p> <p>Naming Constraints:</p> <ul> <li> <p>Parameter names are case sensitive.</p> </li> <li> <p>A parameter name must be unique within an Amazon Web Services Region</p> </li> <li> <p>A parameter name can't be prefixed with \"<code>aws</code>\" or \"<code>ssm</code>\" (case-insensitive).</p> </li> <li> <p>Parameter names can include only the following symbols and letters: <code>a-zA-Z0-9_.-</code> </p> <p>In addition, the slash character ( / ) is used to delineate hierarchies in parameter names. For example: <code>/Dev/Production/East/Project-ABC/MyParameter</code> </p> </li> <li> <p>A parameter name can't include spaces.</p> </li> <li> <p>Parameter hierarchies are limited to a maximum depth of fifteen levels.</p> </li> </ul> <p>For additional information about valid values for parameter names, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-su-create.html\">Creating Systems Manager parameters</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> <note> <p>The maximum length constraint of 2048 characters listed below includes 1037 characters reserved for internal use by Systems Manager. The maximum length for a parameter name that you create is 1011 characters. This includes the characters in the ARN that precede the name you specify, such as <code>arn:aws:ssm:us-east-2:111122223333:parameter/</code>.</p> </note>"
         },
         "Description":{
           "shape":"ParameterDescription",
@@ -13170,7 +13255,7 @@
         },
         "DataType":{
           "shape":"ParameterDataType",
-          "documentation":"<p>The data type for a <code>String</code> parameter. Supported data types include plain text and Amazon Machine Image (AMI) IDs.</p> <p> <b>The following data type values are supported.</b> </p> <ul> <li> <p> <code>text</code> </p> </li> <li> <p> <code>aws:ec2:image</code> </p> </li> </ul> <p>When you create a <code>String</code> parameter and specify <code>aws:ec2:image</code>, Amazon Web Services Systems Manager validates the parameter value is in the required format, such as <code>ami-12345abcdeEXAMPLE</code>, and that the specified AMI is available in your Amazon Web Services account. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-ec2-aliases.html\">Native parameter support for Amazon Machine Image (AMI) IDs</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>"
+          "documentation":"<p>The data type for a <code>String</code> parameter. Supported data types include plain text and Amazon Machine Image (AMI) IDs.</p> <p> <b>The following data type values are supported.</b> </p> <ul> <li> <p> <code>text</code> </p> </li> <li> <p> <code>aws:ec2:image</code> </p> </li> <li> <p> <code>aws:ssm:integration</code> </p> </li> </ul> <p>When you create a <code>String</code> parameter and specify <code>aws:ec2:image</code>, Amazon Web Services Systems Manager validates the parameter value is in the required format, such as <code>ami-12345abcdeEXAMPLE</code>, and that the specified AMI is available in your Amazon Web Services account. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-ec2-aliases.html\">Native parameter support for Amazon Machine Image (AMI) IDs</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>"
         }
       }
     },
@@ -13342,12 +13427,12 @@
         },
         "MaxConcurrency":{
           "shape":"MaxConcurrency",
-          "documentation":"<p>The maximum number of targets this task can be run for in parallel.</p> <note> <p>For maintenance window tasks without a target specified, you can't supply a value for this option. Instead, the system inserts a placeholder value of <code>1</code>. This value doesn't affect the running of your task.</p> </note>",
+          "documentation":"<p>The maximum number of targets this task can be run for, in parallel.</p> <note> <p>Although this element is listed as \"Required: No\", a value can be omitted only when you are registering or updating a <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/maintenance-windows-targetless-tasks.html\">targetless task</a> You must provide a value in all other cases.</p> <p>For maintenance window tasks without a target specified, you can't supply a value for this option. Instead, the system inserts a placeholder value of <code>1</code>. This value doesn't affect the running of your task.</p> </note>",
           "box":true
         },
         "MaxErrors":{
           "shape":"MaxErrors",
-          "documentation":"<p>The maximum number of errors allowed before this task stops being scheduled.</p> <note> <p>For maintenance window tasks without a target specified, you can't supply a value for this option. Instead, the system inserts a placeholder value of <code>1</code>. This value doesn't affect the running of your task.</p> </note>",
+          "documentation":"<p>The maximum number of errors allowed before this task stops being scheduled.</p> <note> <p>Although this element is listed as \"Required: No\", a value can be omitted only when you are registering or updating a <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/maintenance-windows-targetless-tasks.html\">targetless task</a> You must provide a value in all other cases.</p> <p>For maintenance window tasks without a target specified, you can't supply a value for this option. Instead, the system inserts a placeholder value of <code>1</code>. This value doesn't affect the running of your task.</p> </note>",
           "box":true
         },
         "LoggingInfo":{
@@ -13457,7 +13542,7 @@
         },
         "ResourceId":{
           "shape":"ResourceId",
-          "documentation":"<p>The ID of the resource from which you want to remove tags. For example:</p> <p>ManagedInstance: mi-012345abcde</p> <p>MaintenanceWindow: mw-012345abcde</p> <p>PatchBaseline: pb-012345abcde</p> <p>OpsMetadata object: <code>ResourceID</code> for tagging is created from the Amazon Resource Name (ARN) for the object. Specifically, <code>ResourceID</code> is created from the strings that come after the word <code>opsmetadata</code> in the ARN. For example, an OpsMetadata object with an ARN of <code>arn:aws:ssm:us-east-2:1234567890:opsmetadata/aws/ssm/MyGroup/appmanager</code> has a <code>ResourceID</code> of either <code>aws/ssm/MyGroup/appmanager</code> or <code>/aws/ssm/MyGroup/appmanager</code>.</p> <p>For the Document and Parameter values, use the name of the resource.</p> <note> <p>The <code>ManagedInstance</code> type for this API operation is only for on-premises managed nodes. Specify the name of the managed node in the following format: mi-ID_number. For example, mi-1a2b3c4d5e6f.</p> </note>"
+          "documentation":"<p>The ID of the resource from which you want to remove tags. For example:</p> <p>ManagedInstance: mi-012345abcde</p> <p>MaintenanceWindow: mw-012345abcde</p> <p> <code>Automation</code>: <code>example-c160-4567-8519-012345abcde</code> </p> <p>PatchBaseline: pb-012345abcde</p> <p>OpsMetadata object: <code>ResourceID</code> for tagging is created from the Amazon Resource Name (ARN) for the object. Specifically, <code>ResourceID</code> is created from the strings that come after the word <code>opsmetadata</code> in the ARN. For example, an OpsMetadata object with an ARN of <code>arn:aws:ssm:us-east-2:1234567890:opsmetadata/aws/ssm/MyGroup/appmanager</code> has a <code>ResourceID</code> of either <code>aws/ssm/MyGroup/appmanager</code> or <code>/aws/ssm/MyGroup/appmanager</code>.</p> <p>For the Document and Parameter values, use the name of the resource.</p> <note> <p>The <code>ManagedInstance</code> type for this API operation is only for on-premises managed nodes. Specify the name of the managed node in the following format: mi-ID_number. For example, mi-1a2b3c4d5e6f.</p> </note>"
         },
         "TagKeys":{
           "shape":"KeyList",
@@ -13885,7 +13970,8 @@
         "Parameter",
         "PatchBaseline",
         "OpsItem",
-        "OpsMetadata"
+        "OpsMetadata",
+        "Automation"
       ]
     },
     "ResponseCode":{"type":"integer"},
@@ -13995,6 +14081,10 @@
           "shape":"Targets",
           "documentation":"<p>A key-value mapping to target resources that the runbook operation performs tasks on. Required if you specify <code>TargetParameterName</code>.</p>"
         },
+        "TargetMaps":{
+          "shape":"TargetMaps",
+          "documentation":"<p>A key-value mapping of runbook parameters to target resources. Both Targets and TargetMaps can't be specified together.</p>"
+        },
         "MaxConcurrency":{
           "shape":"MaxConcurrency",
           "documentation":"<p>The <code>MaxConcurrency</code> value specified by the user when the operation started, indicating the maximum number of resources that the runbook operation can run on at the same time.</p>"
@@ -14062,6 +14152,11 @@
     "ScheduleExpression":{
       "type":"string",
       "max":256,
+      "min":1
+    },
+    "ScheduleOffset":{
+      "type":"integer",
+      "max":6,
       "min":1
     },
     "ScheduledWindowExecution":{
@@ -14573,7 +14668,7 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>Optional metadata that you assign to a resource. You can specify a maximum of five tags for an automation. Tags enable you to categorize a resource in different ways, such as by purpose, owner, or environment. For example, you might want to tag an automation to identify an environment or operating system. In this case, you could specify the following key-value pairs:</p> <ul> <li> <p> <code>Key=environment,Value=test</code> </p> </li> <li> <p> <code>Key=OS,Value=Windows</code> </p> </li> </ul> <note> <p>To add tags to an existing patch baseline, use the <a>AddTagsToResource</a> operation.</p> </note>"
+          "documentation":"<p>Optional metadata that you assign to a resource. You can specify a maximum of five tags for an automation. Tags enable you to categorize a resource in different ways, such as by purpose, owner, or environment. For example, you might want to tag an automation to identify an environment or operating system. In this case, you could specify the following key-value pairs:</p> <ul> <li> <p> <code>Key=environment,Value=test</code> </p> </li> <li> <p> <code>Key=OS,Value=Windows</code> </p> </li> </ul> <note> <p>To add tags to an existing automation, use the <a>AddTagsToResource</a> operation.</p> </note>"
         }
       }
     },
@@ -14667,7 +14762,7 @@
         },
         "Parameters":{
           "shape":"SessionManagerParameters",
-          "documentation":"<p>Reserved for future use.</p>"
+          "documentation":"<p>The values you want to specify for the parameters defined in the Session document.</p>"
         }
       }
     },
@@ -15227,7 +15322,7 @@
         },
         "DocumentVersion":{
           "shape":"DocumentVersion",
-          "documentation":"<p>The document version you want update for the association. </p>"
+          "documentation":"<p>The document version you want update for the association. </p> <important> <p>State Manager doesn't support running associations that use a new version of a document if that document is shared from another account. State Manager always runs the <code>default</code> version of a document if shared from another account, even though the Systems Manager console shows that a new version was processed. If you want to run an association using a new version of a document shared form another account, you must set the document version to <code>default</code>.</p> </important>"
         },
         "ScheduleExpression":{
           "shape":"ScheduleExpression",
@@ -15275,7 +15370,7 @@
         },
         "ApplyOnlyAtCronInterval":{
           "shape":"ApplyOnlyAtCronInterval",
-          "documentation":"<p>By default, when you update an association, the system runs it immediately after it is updated and then according to the schedule you specified. Specify this option if you don't want an association to run immediately after you update it. This parameter isn't supported for rate expressions.</p> <p>Also, if you specified this option when you created the association, you can reset it. To do so, specify the <code>no-apply-only-at-cron-interval</code> parameter when you update the association from the command line. This parameter forces the association to run immediately after updating it and according to the interval specified.</p>"
+          "documentation":"<p>By default, when you update an association, the system runs it immediately after it is updated and then according to the schedule you specified. Specify this option if you don't want an association to run immediately after you update it. This parameter isn't supported for rate expressions.</p> <p>If you chose this option when you created an association and later you edit that association or you make changes to the SSM document on which that association is based (by using the Documents page in the console), State Manager applies the association at the next specified cron interval. For example, if you chose the <code>Latest</code> version of an SSM document when you created an association and you edit the association by choosing a different document version on the Documents page, State Manager applies the association at the next specified cron interval if you previously selected this option. If this option wasn't selected, State Manager immediately runs the association.</p> <p>You can reset this option. To do so, specify the <code>no-apply-only-at-cron-interval</code> parameter when you update the association from the command line. This parameter forces the association to run immediately after updating it and according to the interval specified.</p>"
         },
         "CalendarNames":{
           "shape":"CalendarNameOrARNList",
@@ -15284,6 +15379,16 @@
         "TargetLocations":{
           "shape":"TargetLocations",
           "documentation":"<p>A location is a combination of Amazon Web Services Regions and Amazon Web Services accounts where you want to run the association. Use this action to update an association in multiple Regions and multiple accounts.</p>"
+        },
+        "ScheduleOffset":{
+          "shape":"ScheduleOffset",
+          "documentation":"<p>Number of days to wait after the scheduled day to run an association. For example, if you specified a cron schedule of <code>cron(0 0 ? * THU#2 *)</code>, you could specify an offset of 3 to run the association each Sunday after the second Thursday of the month. For more information about cron schedules for associations, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/reference-cron-and-rate-expressions.html\">Reference: Cron and rate expressions for Systems Manager</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. </p> <note> <p>To use offsets, you must specify the <code>ApplyOnlyAtCronInterval</code> parameter. This option tells the system not to run an association immediately after you create it. </p> </note>",
+          "box":true
+        },
+        "TargetMaps":{
+          "shape":"TargetMaps",
+          "documentation":"<p>A key-value mapping of document parameters to target resources. Both Targets and TargetMaps can't be specified together.</p>",
+          "box":true
         }
       }
     },
@@ -15408,7 +15513,7 @@
         },
         "DocumentVersion":{
           "shape":"DocumentVersion",
-          "documentation":"<p>The version of the document that you want to update. Currently, Systems Manager supports updating only the latest version of the document. You can specify the version number of the latest version or use the <code>$LATEST</code> variable.</p>"
+          "documentation":"<p>The version of the document that you want to update. Currently, Systems Manager supports updating only the latest version of the document. You can specify the version number of the latest version or use the <code>$LATEST</code> variable.</p> <note> <p>If you change a document version for a State Manager association, Systems Manager immediately runs the association unless you previously specifed the <code>apply-only-at-cron-interval</code> parameter.</p> </note>"
         },
         "DocumentFormat":{
           "shape":"DocumentFormat",
@@ -15447,7 +15552,7 @@
         },
         "StartDate":{
           "shape":"MaintenanceWindowStringDateTime",
-          "documentation":"<p>The time zone that the scheduled maintenance window executions are based on, in Internet Assigned Numbers Authority (IANA) format. For example: \"America/Los_Angeles\", \"UTC\", or \"Asia/Seoul\". For more information, see the <a href=\"https://www.iana.org/time-zones\">Time Zone Database</a> on the IANA website.</p>"
+          "documentation":"<p>The date and time, in ISO-8601 Extended format, for when you want the maintenance window to become active. <code>StartDate</code> allows you to delay activation of the maintenance window until the specified future date.</p>"
         },
         "EndDate":{
           "shape":"MaintenanceWindowStringDateTime",
@@ -15656,11 +15761,11 @@
         },
         "MaxConcurrency":{
           "shape":"MaxConcurrency",
-          "documentation":"<p>The new <code>MaxConcurrency</code> value you want to specify. <code>MaxConcurrency</code> is the number of targets that are allowed to run this task in parallel.</p> <note> <p>For maintenance window tasks without a target specified, you can't supply a value for this option. Instead, the system inserts a placeholder value of <code>1</code>, which may be reported in the response to this command. This value doesn't affect the running of your task and can be ignored.</p> </note>"
+          "documentation":"<p>The new <code>MaxConcurrency</code> value you want to specify. <code>MaxConcurrency</code> is the number of targets that are allowed to run this task, in parallel.</p> <note> <p>Although this element is listed as \"Required: No\", a value can be omitted only when you are registering or updating a <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/maintenance-windows-targetless-tasks.html\">targetless task</a> You must provide a value in all other cases.</p> <p>For maintenance window tasks without a target specified, you can't supply a value for this option. Instead, the system inserts a placeholder value of <code>1</code>. This value doesn't affect the running of your task.</p> </note>"
         },
         "MaxErrors":{
           "shape":"MaxErrors",
-          "documentation":"<p>The new <code>MaxErrors</code> value to specify. <code>MaxErrors</code> is the maximum number of errors that are allowed before the task stops being scheduled.</p> <note> <p>For maintenance window tasks without a target specified, you can't supply a value for this option. Instead, the system inserts a placeholder value of <code>1</code>, which may be reported in the response to this command. This value doesn't affect the running of your task and can be ignored.</p> </note>"
+          "documentation":"<p>The new <code>MaxErrors</code> value to specify. <code>MaxErrors</code> is the maximum number of errors that are allowed before the task stops being scheduled.</p> <note> <p>Although this element is listed as \"Required: No\", a value can be omitted only when you are registering or updating a <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/maintenance-windows-targetless-tasks.html\">targetless task</a> You must provide a value in all other cases.</p> <p>For maintenance window tasks without a target specified, you can't supply a value for this option. Instead, the system inserts a placeholder value of <code>1</code>. This value doesn't affect the running of your task.</p> </note>"
         },
         "LoggingInfo":{
           "shape":"LoggingInfo",
@@ -15847,7 +15952,7 @@
       "members":{
         "OpsMetadataArn":{
           "shape":"OpsMetadataArn",
-          "documentation":"<p>The Amazon Resoure Name (ARN) of the OpsMetadata Object to update.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the OpsMetadata Object to update.</p>"
         },
         "MetadataToUpdate":{
           "shape":"MetadataMap",
@@ -16052,5 +16157,5 @@
       "pattern":"^[0-9]{1,6}(\\.[0-9]{1,6}){2,3}$"
     }
   },
-  "documentation":"<p>Amazon Web Services Systems Manager is a collection of capabilities that helps you automate management tasks such as collecting system inventory, applying operating system (OS) patches, automating the creation of Amazon Machine Images (AMIs), and configuring operating systems (OSs) and applications at scale. Systems Manager lets you remotely and securely manage the configuration of your managed nodes. A <i>managed node</i> is any Amazon Elastic Compute Cloud (Amazon EC2) instance, edge device, or on-premises server or virtual machine (VM) that has been configured for Systems Manager. </p> <note> <p>With support for IoT Greengrass Version 2 devices, the phrase <i>managed instance</i> has been changed to <i>managed node</i> in most of the Systems Manager documentation. The Systems Manager console, API calls, error messages, and SSM documents still use the term instance.</p> </note> <p>This reference is intended to be used with the <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/\">Amazon Web Services Systems Manager User Guide</a>.</p> <p>To get started, verify prerequisites and configure managed nodes. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up.html\">Setting up Amazon Web Services Systems Manager</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> <p class=\"title\"> <b>Related resources</b> </p> <ul> <li> <p>For information about how to use a Query API, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/making-api-requests.html\">Making API requests</a>. </p> </li> <li> <p>For information about other API operations you can perform on EC2 instances, see the <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/\">Amazon EC2 API Reference</a>.</p> </li> <li> <p>For information about AppConfig, a capability of Systems Manager, see the <a href=\"https://docs.aws.amazon.com/appconfig/latest/userguide/\">AppConfig User Guide</a> and the <a href=\"https://docs.aws.amazon.com/appconfig/2019-10-09/APIReference/\">AppConfig API Reference</a>.</p> </li> <li> <p>For information about Incident Manager, a capability of Systems Manager, see the <a href=\"https://docs.aws.amazon.com/incident-manager/latest/userguide/\">Incident Manager User Guide</a> and the <a href=\"https://docs.aws.amazon.com/incident-manager/latest/APIReference/\">Incident Manager API Reference</a>.</p> </li> </ul>"
+  "documentation":"<p>Amazon Web Services Systems Manager is a collection of capabilities that helps you automate management tasks such as collecting system inventory, applying operating system (OS) patches, automating the creation of Amazon Machine Images (AMIs), and configuring operating systems (OSs) and applications at scale. Systems Manager lets you remotely and securely manage the configuration of your managed nodes. A <i>managed node</i> is any Amazon Elastic Compute Cloud (Amazon EC2) instance, edge device, or on-premises server or virtual machine (VM) that has been configured for Systems Manager. </p> <note> <p>With support for IoT Greengrass core devices, the phrase <i>managed instance</i> has been changed to <i>managed node</i> in most of the Systems Manager documentation. The Systems Manager console, API calls, error messages, and SSM documents still use the term <i>instance</i>.</p> </note> <p>This reference is intended to be used with the <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/\">Amazon Web Services Systems Manager User Guide</a>.</p> <p>To get started, verify prerequisites and configure managed nodes. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up.html\">Setting up Amazon Web Services Systems Manager</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> <p class=\"title\"> <b>Related resources</b> </p> <ul> <li> <p>For information about how to use a Query API, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/making-api-requests.html\">Making API requests</a>. </p> </li> <li> <p>For information about other API operations you can perform on EC2 instances, see the <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/\">Amazon EC2 API Reference</a>.</p> </li> <li> <p>For information about AppConfig, a capability of Systems Manager, see the <a href=\"https://docs.aws.amazon.com/appconfig/latest/userguide/\">AppConfig User Guide</a> and the <a href=\"https://docs.aws.amazon.com/appconfig/2019-10-09/APIReference/\">AppConfig API Reference</a>.</p> </li> <li> <p>For information about Incident Manager, a capability of Systems Manager, see the <a href=\"https://docs.aws.amazon.com/incident-manager/latest/userguide/\">Incident Manager User Guide</a> and the <a href=\"https://docs.aws.amazon.com/incident-manager/latest/APIReference/\">Incident Manager API Reference</a>.</p> </li> </ul>"
 }

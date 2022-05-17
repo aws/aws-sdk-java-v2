@@ -15,9 +15,10 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
@@ -43,7 +44,7 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
  */
 public class S3IntegrationTestBase extends AwsTestBase {
 
-    protected static final Region DEFAULT_REGION = Region.US_WEST_2;
+    protected static final Region DEFAULT_REGION = Region.US_WEST_1;
     /**
      * The S3 client for all tests to use.
      */
@@ -55,14 +56,15 @@ public class S3IntegrationTestBase extends AwsTestBase {
      * Loads the AWS account info for the integration tests and creates an S3
      * client for tests to use.
      */
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
+        Log.initLoggingToStdout(Log.LogLevel.Warn);
         System.setProperty("aws.crt.debugnative", "true");
         s3 = s3ClientBuilder().build();
         s3Async = s3AsyncClientBuilder().build();
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanUp() {
         CrtResource.waitForNoResources();
     }
@@ -81,6 +83,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
 
     protected static void createBucket(String bucketName) {
         createBucket(bucketName, 0);
+        s3.waiter().waitUntilBucketExists(b -> b.bucket(bucketName));
     }
 
     private static void createBucket(String bucketName, int retryCount) {
@@ -90,7 +93,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
                                    .bucket(bucketName)
                                    .createBucketConfiguration(
                                        CreateBucketConfiguration.builder()
-                                                                .locationConstraint(BucketLocationConstraint.US_WEST_2)
+                                                                .locationConstraint(BucketLocationConstraint.US_WEST_1)
                                                                 .build())
                                    .build());
         } catch (S3Exception e) {

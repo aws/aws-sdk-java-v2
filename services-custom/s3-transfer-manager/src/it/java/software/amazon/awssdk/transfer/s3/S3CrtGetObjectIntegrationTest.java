@@ -26,12 +26,11 @@ import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -47,7 +46,7 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
     private static File file;
     private static ExecutorService executorService;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         S3IntegrationTestBase.createBucket(BUCKET);
         crtClient = S3CrtAsyncClient.builder()
@@ -62,7 +61,7 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
         executorService = Executors.newFixedThreadPool(2);
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanup() {
         crtClient.close();
         S3IntegrationTestBase.deleteBucketAndAllContents(BUCKET);
@@ -71,7 +70,7 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void getObject_toFiles() throws IOException {
+    void getObject_toFiles() throws IOException {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
 
         GetObjectResponse response =
@@ -81,35 +80,17 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void getObject_toBytes() throws IOException {
+    void getObject_toBytes() throws IOException {
         byte[] bytes =
             crtClient.getObject(b -> b.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join().asByteArray();
         assertThat(bytes).isEqualTo(Files.readAllBytes(file.toPath()));
     }
 
     @Test
-    public void getObject_customResponseTransformer() {
+    void getObject_customResponseTransformer() {
         crtClient.getObject(b -> b.bucket(BUCKET).key(KEY),
                             new TestResponseTransformer()).join();
 
-    }
-
-    @Test
-    public void getObject_customExecutors_fileDownloadCorrectly() throws IOException {
-        Path path = RandomTempFile.randomUncreatedFile().toPath();
-
-        try (S3CrtAsyncClient s3Client =
-                 S3CrtAsyncClient.builder()
-                                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                 .region(DEFAULT_REGION)
-                                 .asyncConfiguration(b -> b.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
-                                                                           executorService))
-                                 .build()) {
-            GetObjectResponse response =
-                s3Client.getObject(b -> b.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toFile(path)).join();
-
-            assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
-        }
     }
 
     private static final class TestResponseTransformer implements AsyncResponseTransformer<GetObjectResponse, Void> {

@@ -21,12 +21,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.TestEnvironment;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
+import software.amazon.awssdk.utils.FunctionalUtils;
 
 /**
  * TCK verification test for {@link FileAsyncRequestBody}.
@@ -64,10 +67,16 @@ public class FileAsyncRequestPublisherTckTest extends org.reactivestreams.tck.Pu
     @Override
     public Publisher<ByteBuffer> createFailedPublisher() {
         // tests properly failing on non existing files:
-        return FileAsyncRequestBody.builder()
-                .chunkSizeInBytes(CHUNK_SIZE)
-                .path(rootDir.resolve("does-not-exist"))
-                .build();
+        Path path = rootDir.resolve("createFailedPublisher" + UUID.randomUUID());
+
+        FunctionalUtils.invokeSafely(() -> Files.write(path, "test".getBytes(StandardCharsets.UTF_8)));
+        FileAsyncRequestBody fileAsyncRequestBody = FileAsyncRequestBody.builder()
+                                                         .chunkSizeInBytes(CHUNK_SIZE)
+                                                         .path(path)
+                                                         .build();
+
+        FunctionalUtils.invokeSafely(() -> Files.delete(path));
+        return fileAsyncRequestBody;
     }
 
     private Path fileOfNChunks(long nChunks) {

@@ -16,11 +16,13 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * A metadata class that stores information about a key attribute
  */
 @SdkPublicApi
+@ThreadSafe
 public interface KeyAttributeMetadata {
     /**
      * The name of the key attribute

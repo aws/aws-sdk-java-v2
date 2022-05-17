@@ -127,6 +127,19 @@
         "xmlNamespace":{"uri":"https://restxml/"}
       },
       "output":{"shape":"RestXmlTypesOutput"}
+    },
+    "EventStreamOperation": {
+      "name": "EventStreamOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/eventStreamOperation"
+      },
+      "input": {
+        "shape": "EventStreamOperationRequest"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
     }
   },
   "shapes":{
@@ -613,6 +626,61 @@
       "value":{"shape":"MetadataValue"}
     },
     "MetadataKey":{"type":"string"},
-    "MetadataValue":{"type":"string"}
+    "MetadataValue":{"type":"string"},
+    "EventStreamOperationRequest": {
+      "type": "structure",
+      "members": {
+      }
+    },
+    "EventStreamOutput": {
+      "type": "structure",
+      "required": [
+        "EventStream"
+      ],
+      "members": {
+        "HeaderMember": {
+          "shape": "String",
+          "location": "header",
+          "locationName": "Header-Member"
+        },
+        "EventStream": {
+          "shape": "EventStream"
+        }
+      }
+    },
+    "EventStream": {
+      "type": "structure",
+      "members": {
+        "EventPayloadEvent": {
+          "shape": "EventPayloadEvent"
+        },
+        "NonEventPayloadEvent": {
+          "shape": "NonEventPayloadEvent"
+        },
+        "SecondEventPayloadEvent": {
+          "shape": "EventPayloadEvent"
+        }
+      },
+      "eventstream": true
+    },
+    "EventPayloadEvent": {
+      "type": "structure",
+      "members": {
+        "Foo": {
+          "shape": "String",
+          "eventpayload": true
+        }
+      },
+      "event": true
+    },
+    "NonEventPayloadEvent": {
+      "type": "structure",
+      "members": {
+        "Bar": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    }
   }
 }

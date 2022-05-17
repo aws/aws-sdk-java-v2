@@ -1,0 +1,48 @@
+{
+    "version": "2.17.151",
+    "date": "2022-03-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon S3 on Outposts",
+            "contributor": "",
+            "description": "S3 on Outposts is releasing a new API, ListSharedEndpoints, that lists all endpoints associated with S3 on Outpost, that has been shared by Resource Access Manager (RAM)."
+        },
+        {
+            "type": "feature",
+            "category": "AWSBillingConductor",
+            "contributor": "",
+            "description": "This is the initial SDK release for AWS Billing Conductor. The AWS Billing Conductor is a customizable billing service, allowing you to customize your billing data to match your desired business structure."
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager (Preview)",
+            "contributor": "",
+            "description": "Fixed the bug in the transfer manager where files were downloaded sequentially in downloadDirectory. See [#3092](https://github.com/aws/aws-sdk-java-v2/issues/3092)"
+        },
+        {
+            "type": "feature",
+            "category": "AmplifyBackend",
+            "contributor": "",
+            "description": "Adding the ability to customize Cognito verification messages for email and SMS in CreateBackendAuth and UpdateBackendAuth. Adding deprecation documentation for ForgotPassword in CreateBackendAuth and UpdateBackendAuth"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "contributor": "",
+            "description": "AWS Certificate Manager (ACM) Private Certificate Authority (CA) now supports customizable certificate subject names and extensions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager Incident Manager",
+            "contributor": "",
+            "description": "Removed incorrect validation pattern for IncidentRecordSource.invokedBy"
+        }
+    ]
+}

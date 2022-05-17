@@ -81,6 +81,45 @@
         "shape": "StructureWithStreamingMember"
       },
       "documentation": "Some operation with a streaming output"
+    },
+    "EventStreamOperation": {
+      "name": "EventStreamOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/eventStreamOperation"
+      },
+      "input": {
+        "shape": "EventStreamOperationRequest"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
+    },
+    "PutOperationWithChecksum":{
+      "name":"PutOperationWithChecksum",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ChecksumStructureWithStreaming"},
+      "output":{"shape":"ChecksumStructureWithStreaming"},
+      "httpChecksum" : {
+        "requestValidationModeMember": "ChecksumMode",
+        "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
+      }
+    },
+    "GetOperationWithChecksum":{
+      "name":"GetOperationWithChecksum",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ChecksumStructure"},
+      "output":{"shape":"ChecksumStructure"},
+      "httpChecksum" : {
+        "requestChecksumRequired": true,
+        "requestAlgorithmMember": "ChecksumAlgorithm"
+      }
     }
   },
   "shapes": {
@@ -162,6 +201,9 @@
       },
       "documentation": "<p>A shape with nested sub-members"
     },
+    "String": {
+      "type": "string"
+    },
     "subMember": {
       "type": "string",
       "max": 63,
@@ -187,6 +229,113 @@
         }
       },
       "payload": "StreamingMember"
+    },
+    "ChecksumAlgorithm":{
+      "type":"string",
+      "enum":[
+        "CRC32",
+        "CRC32C",
+        "SHA1",
+        "SHA256"
+      ]
+    },
+    "ChecksumMode":{
+      "type":"string",
+      "enum":["ENABLED"]
+    },
+    "ChecksumStructureWithStreaming":{
+      "type":"structure",
+      "members":{
+        "Body":{
+          "shape":"Body",
+          "documentation":"<p>Object data.</p>",
+          "streaming":true
+        },
+        "ChecksumMode":{
+          "shape":"ChecksumMode",
+          "location":"header",
+          "locationName":"x-amz-checksum-mode"
+        },
+        "ChecksumAlgorithm":{
+          "shape":"ChecksumAlgorithm",
+          "location":"header",
+          "locationName":"x-amz-checksum-algorithm"
+        }
+      },
+      "payload":"Body"
+    },
+    "Body":{"type":"blob"},
+    "ChecksumStructure":{
+      "type":"structure",
+      "members":{
+        "stringMember":{"shape":"subMember"},
+        "ChecksumMode":{
+          "shape":"ChecksumMode",
+          "location":"header",
+          "locationName":"x-amz-checksum-mode"
+        },
+        "ChecksumAlgorithm":{
+          "shape":"ChecksumAlgorithm",
+          "location":"header",
+          "locationName":"x-amz-checksum-algorithm"
+        }
+      },
+      "payload":"stringMember"
+    },
+    "EventStreamOperationRequest": {
+      "type": "structure",
+      "members": {
+      }
+    },
+    "EventStreamOutput": {
+      "type": "structure",
+      "required": [
+        "EventStream"
+      ],
+      "members": {
+        "HeaderMember": {
+          "shape": "String",
+          "location": "header",
+          "locationName": "Header-Member"
+        },
+        "EventStream": {
+          "shape": "EventStream"
+        }
+      }
+    },
+    "EventStream": {
+      "type": "structure",
+      "members": {
+        "EventPayloadEvent": {
+          "shape": "EventPayloadEvent"
+        },
+        "NonEventPayloadEvent": {
+          "shape": "NonEventPayloadEvent"
+        },
+        "SecondEventPayloadEvent": {
+          "shape": "EventPayloadEvent"
+        }
+      },
+      "eventstream": true
+    },
+    "EventPayloadEvent": {
+      "type": "structure",
+      "members": {
+        "Foo": {
+          "shape": "String",
+          "eventpayload": true
+        }
+      },
+      "event": true
+    },
+    "NonEventPayloadEvent": {
+      "type": "structure",
+      "members": {
+        "Bar": {
+          "shape": "String"
+        }
+      },
+      "event": true
     }
   },
   "documentation": "A service that is implemented using the xml protocol"

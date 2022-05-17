@@ -19,12 +19,12 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static software.amazon.awssdk.profiles.ProfileFileSystemSetting.AWS_CONFIG_FILE;
 
 import java.util.Optional;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
@@ -39,7 +39,7 @@ import software.amazon.awssdk.utils.StringInputStream;
 public class ProfileUseArnRegionProviderTest {
     private ProfileUseArnRegionProvider provider = ProfileUseArnRegionProvider.create();
 
-    @After
+    @AfterEach
     public void clearSystemProperty() {
         System.clearProperty(AWS_CONFIG_FILE.property());
     }

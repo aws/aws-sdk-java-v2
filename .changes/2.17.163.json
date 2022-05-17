@@ -1,0 +1,30 @@
+{
+    "version": "2.17.163",
+    "date": "2022-04-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "contributor": "",
+            "description": "This release adds ProvisioningArtifictOutputKeys to DescribeProvisioningParameters to reference the outputs of a Provisioned Product and deprecates ProvisioningArtifactOutputs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Proton",
+            "contributor": "",
+            "description": "SDK release to support tagging for AWS Proton Repository resource"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Server Migration Service",
+            "contributor": "",
+            "description": "Revised product update notice for SMS console deprecation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "AWS IoT - AWS IoT Device Defender adds support to list metric datapoints collected for IoT devices through the ListMetricValues API"
+        }
+    ]
+}

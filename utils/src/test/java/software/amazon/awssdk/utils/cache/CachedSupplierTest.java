@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.utils.cache;
 
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.Closeable;
@@ -29,10 +31,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Validate the functionality of {@link CachedSupplier}.
@@ -53,7 +54,7 @@ public class CachedSupplierTest {
     /**
      * Create an executor service for async testing.
      */
-    @Before
+    @BeforeEach
     public void setup() {
         executorService = Executors.newFixedThreadPool(50);
         allExecutions = new ArrayList<>();
@@ -62,7 +63,7 @@ public class CachedSupplierTest {
     /**
      * Shut down the executor service when we're done.
      */
-    @After
+    @AfterEach
     public void shutdown() {
         executorService.shutdown();
     }
@@ -121,7 +122,7 @@ public class CachedSupplierTest {
          * time if the "gets" never actually start.
          */
         public void waitForGetsToHaveStarted(int numExpectedGets) {
-            Assert.assertTrue(invokeSafely(() -> startedGetPermits.tryAcquire(numExpectedGets, 10, TimeUnit.SECONDS)));
+            assertTrue(invokeSafely(() -> startedGetPermits.tryAcquire(numExpectedGets, 10, TimeUnit.SECONDS)));
         }
 
         /**
@@ -129,7 +130,7 @@ public class CachedSupplierTest {
          * time if the "gets" never finish.
          */
         public void waitForGetsToHaveFinished(int numExpectedGets) {
-            Assert.assertTrue(invokeSafely(() -> finishedGetPermits.tryAcquire(numExpectedGets, 10, TimeUnit.SECONDS)));
+            assertTrue(invokeSafely(() -> finishedGetPermits.tryAcquire(numExpectedGets, 10, TimeUnit.SECONDS)));
         }
 
         /**
@@ -235,6 +236,24 @@ public class CachedSupplierTest {
 
             // Make sure only one "get" has actually happened (the async get is currently waiting to be released).
             waitingSupplier.waitForGetsToHaveFinished(1);
+        }
+    }
+
+    @Test
+    public void nonBlockingPrefetchStrategyRefreshesInBackground() {
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
+             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
+                                                                   .prefetchStrategy(new NonBlocking("test-%s"))
+                                                                   .build()) {
+            waitingSupplier.permits.release(1);
+
+            // Ensure an async "get" happens even without a call to the cached supplier.
+            waitingSupplier.waitForGetsToHaveStarted(1);
+
+            // Ensure an async "get" finishes even without a call to the cached supplier.
+            waitingSupplier.waitForGetsToHaveFinished(1);
+
+            assertThat(cachedSupplier.get()).isNotNull();
         }
     }
 

@@ -167,6 +167,7 @@
             <Class name="software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser"/>
             <Class name="software.amazon.awssdk.testutils.service.AwsIntegrationTestBase"/>
             <Class name="software.amazon.awssdk.protocol.asserts.marshalling.XmlAsserts" />
+            <Class name="software.amazon.awssdk.testutils.FileUtils"/>
         </Or>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
     </Match>
@@ -223,5 +224,19 @@
         <Class name="software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired"/>
         <Method name="create"/>
         <Bug pattern="ISC_INSTANTIATE_STATIC_CLASS"/>
+    </Match>
+
+    <!-- This is very buggy https://github.com/spotbugs/spotbugs/issues/1539 -->
+    <Match>
+        <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE" />
+    </Match>
+
+    <!-- Uses these methods legitimately. -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.http.SdkHttpHeaders"/>
+            <Class name="software.amazon.awssdk.http.SdkHttpRequest"/>
+        </Or>
+        <Bug pattern="SDK_BAD_METHOD_CALL"/>
     </Match>
 </FindBugsFilter>

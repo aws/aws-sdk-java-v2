@@ -26,7 +26,6 @@ import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 

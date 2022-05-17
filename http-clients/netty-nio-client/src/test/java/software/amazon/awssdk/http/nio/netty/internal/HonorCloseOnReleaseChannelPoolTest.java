@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.netty.channel.Channel;
@@ -25,7 +25,7 @@ import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.Times;
 

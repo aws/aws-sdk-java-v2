@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -29,25 +30,21 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.common.FatalStartupException;
 import com.github.tomakehurst.wiremock.http.RequestMethod;
-import com.github.tomakehurst.wiremock.http.trafficlistener.WiremockNetworkTrafficListener;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.Socket;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 
@@ -145,6 +142,30 @@ public abstract class SdkHttpClientTestSuite {
     }
 
     @Test
+    public void connectionsAreNotReusedOn5xxErrors() throws Exception {
+        int initialOpenedConnections = CONNECTION_COUNTER.openedConnections();
+
+        SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
+        httpClientOptions.trustAll(true);
+        SdkHttpClient client = createSdkHttpClient(httpClientOptions);
+
+        stubForMockRequest(503);
+
+        for (int i = 0; i < 5; i++) {
+            SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+            HttpExecuteResponse response =
+                client.prepareRequest(HttpExecuteRequest.builder()
+                                                        .request(req)
+                                                        .contentStreamProvider(req.contentStreamProvider().orElse(null))
+                                                        .build())
+                      .call();
+            response.responseBody().ifPresent(IoUtils::drainInputStream);
+        }
+
+        assertThat(CONNECTION_COUNTER.openedConnections()).isEqualTo(initialOpenedConnections + 5);
+    }
+
+    @Test
     public void testCustomTlsTrustManager() throws Exception {
         WireMockServer selfSignedServer = HttpTestUtils.createSelfSignedServer();
 
@@ -238,7 +259,7 @@ public abstract class SdkHttpClientTestSuite {
                                                                            .withHeader("User-Agent", equalTo("hello-world!"));
 
         if (method == SdkHttpMethod.HEAD) {
-            patternBuilder.withRequestBody(equalTo(""));
+            patternBuilder.withRequestBody(absent());
         } else {
             patternBuilder.withRequestBody(equalTo("Body"));
         }
@@ -332,28 +353,4 @@ public abstract class SdkHttpClientTestSuite {
         throw new RuntimeException("Unable to setup WireMock rule");
     }
 
-    private static class ConnectionCountingTrafficListener implements WiremockNetworkTrafficListener {
-        private final AtomicInteger openedConnections = new AtomicInteger(0);
-
-        @Override
-        public void opened(Socket socket) {
-            openedConnections.incrementAndGet();
-        }
-
-        @Override
-        public void incoming(Socket socket, ByteBuffer bytes) {
-        }
-
-        @Override
-        public void outgoing(Socket socket, ByteBuffer bytes) {
-        }
-
-        @Override
-        public void closed(Socket socket) {
-        }
-
-        public int openedConnections() {
-            return openedConnections.get();
-        }
-    }
 }

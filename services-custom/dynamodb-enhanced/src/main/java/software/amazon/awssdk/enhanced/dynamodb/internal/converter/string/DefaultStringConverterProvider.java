@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
@@ -161,6 +162,7 @@ public class DefaultStringConverterProvider implements StringConverterProvider {
     /**
      * A builder for configuring and creating {@link DefaultStringConverterProvider}s.
      */
+    @NotThreadSafe
     public static class Builder {
         private List<StringConverter<?>> converters = new ArrayList<>();
 

@@ -50,9 +50,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
+import software.amazon.awssdk.http.EmptyPublisher;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -60,7 +61,6 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
-import software.amazon.awssdk.http.EmptyPublisher;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -70,7 +70,7 @@ public class ResponseCompletionTest {
     private SdkAsyncHttpClient netty;
     private Server server;
 
-    @After
+    @AfterEach
     public void teardown() throws InterruptedException {
         if (server != null) {
             server.shutdown();

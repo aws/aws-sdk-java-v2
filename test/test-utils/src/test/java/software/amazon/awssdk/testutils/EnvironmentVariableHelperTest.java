@@ -17,55 +17,27 @@ package software.amazon.awssdk.testutils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.junit.AfterClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
+import software.amazon.awssdk.utils.SystemSetting;
 
-@RunWith(Enclosed.class)
 public class EnvironmentVariableHelperTest {
-
-    private static Map<String, String> environmentVariables = new HashMap<>(System.getenv());
-
-    @AfterClass
-    public static void ensureCleanup() {
-        assertThat(System.getenv()).hasSameSizeAs(environmentVariables).containsAllEntriesOf(environmentVariables);
-    }
-
-    public static class Normal {
-        @Test
-        public void testCanUseStaticRun() {
-            assertThat(System.getenv("hello")).isEqualTo(null);
-            EnvironmentVariableHelper.run(helper -> {
-                helper.set("hello", "world");
-                assertThat(System.getenv("hello")).isEqualTo("world");
-            });
-            assertThat(System.getenv("hello")).isEqualTo(null);
-        }
-
-        @Test
-        public void testCanManuallyReset() {
-            EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
-            assertThat(System.getenv("hello")).isEqualTo(null);
+    @Test
+    public void testCanUseStaticRun() {
+        assertThat(SystemSetting.getStringValueFromEnvironmentVariable("hello")).isEmpty();
+        EnvironmentVariableHelper.run(helper -> {
             helper.set("hello", "world");
-            assertThat(System.getenv("hello")).isEqualTo("world");
-            helper.reset();
-            assertThat(System.getenv("hello")).isEqualTo(null);
-        }
+            assertThat(SystemSetting.getStringValueFromEnvironmentVariable("hello")).hasValue("world");
+        });
+        assertThat(SystemSetting.getStringValueFromEnvironmentVariable("hello")).isEmpty();
     }
 
-    public static class AsRule {
-
-        @Rule
-        public EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
-
-        @Test
-        public void helperAsRuleIsResetAfterEachUse() {
-            helper.set("yo yo yo", "blah");
-        }
-
+    @Test
+    public void testCanManuallyReset() {
+        EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
+        assertThat(SystemSetting.getStringValueFromEnvironmentVariable("hello")).isEmpty();
+        helper.set("hello", "world");
+        assertThat(SystemSetting.getStringValueFromEnvironmentVariable("hello")).hasValue("world");
+        helper.reset();
+        assertThat(SystemSetting.getStringValueFromEnvironmentVariable("hello")).isEmpty();
     }
 }

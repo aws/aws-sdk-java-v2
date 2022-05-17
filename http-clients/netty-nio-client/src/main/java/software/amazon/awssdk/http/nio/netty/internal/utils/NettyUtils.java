@@ -15,25 +15,35 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.CHANNEL_DIAGNOSTICS;
+
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.timeout.ReadTimeoutException;
+import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.SucceededFuture;
+import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.ChannelDiagnostics;
+import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
@@ -43,17 +53,104 @@ public final class NettyUtils {
      */
     public static final SucceededFuture<?> SUCCEEDED_FUTURE = new SucceededFuture<>(null, null);
 
-    // TODO: add a link to the guide on how to diagnose this error here once it's available
-    public static final String CLOSED_CHANNEL_MESSAGE = "The channel was closed. This may have been done by the client (e.g. "
-                                                        + "because the request was aborted), " +
-                                                        "by the service (e.g. because there was a handshake error, the request "
-                                                        + "took too long, or the client tried to write on a read-only socket), " +
-                                                        "or by an intermediary party (e.g. because the channel was idle for too"
-                                                        + " long).";
-
     private static final Logger log = Logger.loggerFor(NettyUtils.class);
 
     private NettyUtils() {
+    }
+
+    public static Throwable decorateException(Channel channel, Throwable originalCause) {
+        if (isAcquireTimeoutException(originalCause)) {
+            return new Throwable(getMessageForAcquireTimeoutException(), originalCause);
+        } else if (isTooManyPendingAcquiresException(originalCause)) {
+            return new Throwable(getMessageForTooManyAcquireOperationsError(), originalCause);
+        } else if (originalCause instanceof ReadTimeoutException) {
+            return new IOException("Read timed out", originalCause);
+        } else if (originalCause instanceof WriteTimeoutException) {
+            return new IOException("Write timed out", originalCause);
+        } else if (originalCause instanceof ClosedChannelException || isConnectionResetException(originalCause)) {
+            return new IOException(NettyUtils.closedChannelMessage(channel), originalCause);
+        }
+
+        return originalCause;
+    }
+
+    private static boolean isConnectionResetException(Throwable originalCause) {
+        return originalCause instanceof IOException && originalCause.getMessage().contains("Connection reset by peer");
+    }
+
+    private static boolean isAcquireTimeoutException(Throwable originalCause) {
+        String message = originalCause.getMessage();
+        return originalCause instanceof TimeoutException &&
+               message != null &&
+               message.contains("Acquire operation took longer");
+    }
+
+    private static boolean isTooManyPendingAcquiresException(Throwable originalCause) {
+        String message = originalCause.getMessage();
+        return originalCause instanceof IllegalStateException &&
+               message != null &&
+               originalCause.getMessage().contains("Too many outstanding acquire operations");
+    }
+
+    private static String getMessageForAcquireTimeoutException() {
+        return "Acquire operation took longer than the configured maximum time. This indicates that a request cannot get a "
+               + "connection from the pool within the specified maximum time. This can be due to high request rate.\n"
+
+               + "Consider taking any of the following actions to mitigate the issue: increase max connections, "
+               + "increase acquire timeout, or slowing the request rate.\n"
+
+               + "Increasing the max connections can increase client throughput (unless the network interface is already "
+               + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
+               + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
+               + "further increase your connection count, increasing the acquire timeout gives extra time for requests to "
+               + "acquire a connection before timing out. If the connections doesn't free up, the subsequent requests "
+               + "will still timeout.\n"
+
+               + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
+               + "traffic bursts cannot overload the client, being more efficient with the number of times you need to "
+               + "call AWS, or by increasing the number of hosts sending requests.";
+    }
+
+    private static String getMessageForTooManyAcquireOperationsError() {
+        return "Maximum pending connection acquisitions exceeded. The request rate is too high for the client to keep up.\n"
+
+               + "Consider taking any of the following actions to mitigate the issue: increase max connections, "
+               + "increase max pending acquire count, decrease pool lease timeout, or slowing the request rate.\n"
+
+               + "Increasing the max connections can increase client throughput (unless the network interface is already "
+               + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
+               + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
+               + "further increase your connection count, increasing the pending acquire count allows extra requests to be "
+               + "buffered by the client, but can cause additional request latency and higher memory usage. If your request"
+               + " latency or memory usage is already too high, decreasing the lease timeout will allow requests to fail "
+               + "more quickly, reducing the number of pending connection acquisitions, but likely won't decrease the total "
+               + "number of failed requests.\n"
+
+               + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
+               + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
+               + "AWS, or by increasing the number of hosts sending requests.";
+    }
+
+    public static String closedChannelMessage(Channel channel) {
+        ChannelDiagnostics channelDiagnostics = channel.attr(CHANNEL_DIAGNOSTICS).get();
+        ChannelDiagnostics parentChannelDiagnostics = channel.parent() != null ? channel.parent().attr(CHANNEL_DIAGNOSTICS).get()
+                                                                               : null;
+
+        StringBuilder error = new StringBuilder();
+        error.append("The connection was closed during the request. The request will usually succeed on a retry, but if it does"
+                     + " not: consider disabling any proxies you have configured, enabling debug logging, or performing a TCP"
+                     + " dump to identify the root cause. If this is a streaming operation, validate that data is being read or"
+                     + " written in a timely manner.");
+
+        if (channelDiagnostics != null) {
+            error.append(" Channel Information: ").append(channelDiagnostics);
+
+            if (parentChannelDiagnostics != null) {
+                error.append(" Parent Channel Information: ").append(parentChannelDiagnostics);
+            }
+        }
+
+        return error.toString();
     }
 
     /**
@@ -199,7 +296,7 @@ public final class NettyUtils {
     /**
      * @return a new {@link SslHandler} with ssl engine configured
      */
-    public static SslHandler newSslHandler(SslContext sslContext, ByteBufAllocator alloc,  String peerHost, int peerPort,
+    public static SslHandler newSslHandler(SslContext sslContext, ByteBufAllocator alloc, String peerHost, int peerPort,
                                            Duration handshakeTimeout) {
         // Need to provide host and port to enable SNI
         // https://github.com/netty/netty/issues/3801#issuecomment-104274440
@@ -237,8 +334,12 @@ public final class NettyUtils {
     public static <T> GenericFutureListener<Future<T>> consumeOrPropagate(Promise<?> destination, Consumer<T> onSuccess) {
         return f -> {
             if (f.isSuccess()) {
-                T result = f.getNow();
-                onSuccess.accept(result);
+                try {
+                    T result = f.getNow();
+                    onSuccess.accept(result);
+                } catch (Throwable t) {
+                    destination.tryFailure(t);
+                }
             } else if (f.isCancelled()) {
                 destination.cancel(false);
             } else {
@@ -258,12 +359,24 @@ public final class NettyUtils {
     public static <T> GenericFutureListener<Future<T>> runOrPropagate(Promise<?> destination, Runnable onSuccess) {
         return f -> {
             if (f.isSuccess()) {
-                onSuccess.run();
+                try {
+                    onSuccess.run();
+                } catch (Throwable t) {
+                    destination.tryFailure(t);
+                }
             } else if (f.isCancelled()) {
                 destination.cancel(false);
             } else {
                 destination.tryFailure(f.cause());
             }
         };
+    }
+
+    public static void runAndLogError(NettyClientLogger log, String errorMsg, FunctionalUtils.UnsafeRunnable runnable) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            log.error(null, () -> errorMsg, e);
+        }
     }
 }

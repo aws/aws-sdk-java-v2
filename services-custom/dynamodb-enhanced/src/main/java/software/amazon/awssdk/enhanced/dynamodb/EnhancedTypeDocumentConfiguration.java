@@ -16,7 +16,9 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -24,6 +26,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * Configuration for {@link EnhancedType} of document type
  */
 @SdkPublicApi
+@ThreadSafe
 public final class EnhancedTypeDocumentConfiguration implements ToCopyableBuilder<EnhancedTypeDocumentConfiguration.Builder,
     EnhancedTypeDocumentConfiguration> {
     private final boolean preserveEmptyObject;
@@ -82,6 +85,7 @@ public final class EnhancedTypeDocumentConfiguration implements ToCopyableBuilde
         return new Builder();
     }
 
+    @NotThreadSafe
     public static final class Builder implements CopyableBuilder<Builder, EnhancedTypeDocumentConfiguration> {
         private Boolean preserveEmptyObject;
         private Boolean ignoreNulls;

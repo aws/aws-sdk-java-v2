@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.model.intermediate;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.codegen.checksum.HttpChecksum;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.OperationDocs;
@@ -31,6 +32,8 @@ public class OperationModel extends DocumentationModel {
     private String operationName;
 
     private boolean deprecated;
+
+    private String deprecatedMessage;
 
     private VariableModel input;
 
@@ -64,6 +67,8 @@ public class OperationModel extends DocumentationModel {
 
     private boolean httpChecksumRequired;
 
+    private HttpChecksum httpChecksum;
+
     public String getOperationName() {
         return operationName;
     }
@@ -82,6 +87,14 @@ public class OperationModel extends DocumentationModel {
 
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
+    }
+
+    public String getDeprecatedMessage() {
+        return deprecatedMessage;
+    }
+
+    public void setDeprecatedMessage(String deprecatedMessage) {
+        this.deprecatedMessage = deprecatedMessage;
     }
 
     public String getDocs(IntermediateModel model,
@@ -281,5 +294,13 @@ public class OperationModel extends DocumentationModel {
 
     public void setHttpChecksumRequired(boolean httpChecksumRequired) {
         this.httpChecksumRequired = httpChecksumRequired;
+    }
+
+    public HttpChecksum getHttpChecksum() {
+        return httpChecksum;
+    }
+
+    public void setHttpChecksum(HttpChecksum httpChecksum) {
+        this.httpChecksum = httpChecksum;
     }
 }

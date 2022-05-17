@@ -23,13 +23,24 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MINUTES;
+import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
@@ -70,7 +81,7 @@ public class InstanceProfileCredentialsProviderTest {
     public void resolveCredentials_metadataLookupDisabled_throws() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property(), "true");
         thrown.expect(SdkClientException.class);
-        thrown.expectMessage("Loading credentials from local endpoint is disabled");
+        thrown.expectMessage("IMDS credentials have been disabled");
         try {
             InstanceProfileCredentialsProvider.builder().build().resolveCredentials();
         } finally {
@@ -169,7 +180,7 @@ public class InstanceProfileCredentialsProviderTest {
     @Test
     public void resolveCredentials_queriesTokenResource_400Error_throws() {
         thrown.expect(SdkClientException.class);
-        thrown.expectMessage("token");
+        thrown.expectMessage("Failed to load credentials from IMDS");
 
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(400).withBody("oops")));
 
@@ -240,6 +251,164 @@ public class InstanceProfileCredentialsProviderTest {
             mockMetadataEndpoint.verify(0, RequestPatternBuilder.allRequests());
         } finally {
             mockMetadataEndpoint_2.stop();
+        }
+    }
+
+    @Test
+    public void resolveCredentials_doesNotFailIfImdsReturnsExpiredCredentials() {
+        String credentialsResponse =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now().minus(Duration.ofHours(1))) + '"'
+            + "}";
+
+        stubCredentialsResponse(aResponse().withBody(credentialsResponse));
+
+        AwsCredentials credentials = InstanceProfileCredentialsProvider.builder().build().resolveCredentials();
+
+        assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+    }
+
+    @Test
+    public void resolveCredentials_onlyCallsImdsOnceEvenWithExpiredCredentials() {
+        String credentialsResponse =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now().minus(Duration.ofHours(1))) + '"'
+            + "}";
+
+        stubCredentialsResponse(aResponse().withBody(credentialsResponse));
+
+        AwsCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.builder().build();
+
+        credentialsProvider.resolveCredentials();
+
+        int requestCountAfterOneRefresh = mockMetadataEndpoint.countRequestsMatching(RequestPattern.everything()).getCount();
+
+        credentialsProvider.resolveCredentials();
+        credentialsProvider.resolveCredentials();
+
+        int requestCountAfterThreeRefreshes = mockMetadataEndpoint.countRequestsMatching(RequestPattern.everything()).getCount();
+
+        assertThat(requestCountAfterThreeRefreshes).isEqualTo(requestCountAfterOneRefresh);
+    }
+
+    @Test
+    public void resolveCredentials_failsIfImdsReturns500OnFirstCall() {
+        String errorMessage = "XXXXX";
+        String credentialsResponse =
+            "{"
+            + "\"code\": \"InternalServiceException\","
+            + "\"message\": \"" + errorMessage + "\""
+            + "}";
+
+        stubCredentialsResponse(aResponse().withStatus(500)
+                                           .withBody(credentialsResponse));
+
+        assertThatThrownBy(InstanceProfileCredentialsProvider.builder().build()::resolveCredentials)
+            .isInstanceOf(SdkClientException.class)
+            .hasRootCauseMessage(errorMessage);
+    }
+
+    @Test
+    public void resolveCredentials_usesCacheIfImdsFailsOnSecondCall() {
+        AdjustableClock clock = new AdjustableClock();
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
+        String successfulCredentialsResponse =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now()) + '"'
+            + "}";
+
+        // Set the time to the past, so that the cache expiration time is still is in the past, and then prime the cache
+        clock.time = Instant.now().minus(24, HOURS);
+        stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse));
+        AwsCredentials credentialsBefore = credentialsProvider.resolveCredentials();
+
+        // Travel to the present time take down IMDS, so we can see if we use the cached credentials
+        clock.time = Instant.now();
+        stubCredentialsResponse(aResponse().withStatus(500));
+        AwsCredentials credentialsAfter = credentialsProvider.resolveCredentials();
+
+        assertThat(credentialsBefore).isEqualTo(credentialsAfter);
+    }
+
+    @Test
+    public void resolveCredentials_callsImdsIfCredentialsWithin5MinutesOfExpiration() {
+        AdjustableClock clock = new AdjustableClock();
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
+        Instant now = Instant.now();
+        String successfulCredentialsResponse1 =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now) + '"'
+            + "}";
+
+        String successfulCredentialsResponse2 =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY2\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now.plus(6, HOURS)) + '"'
+            + "}";
+
+        // Set the time to the past and call IMDS to prime the cache
+        clock.time = now.minus(24, HOURS);
+        stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
+        AwsCredentials credentials24HoursAgo = credentialsProvider.resolveCredentials();
+
+        // Set the time to 3 minutes before expiration, and fail to call IMDS
+        clock.time = now.minus(3, MINUTES);
+        stubCredentialsResponse(aResponse().withStatus(500));
+        AwsCredentials credentials3MinutesAgo = credentialsProvider.resolveCredentials();
+
+        // Set the time to 10 seconds before expiration, and verify that we still call IMDS to try to get credentials in at the
+        // last moment before expiration
+        clock.time = now.minus(10, SECONDS);
+        stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
+        AwsCredentials credentials10SecondsAgo = credentialsProvider.resolveCredentials();
+
+        assertThat(credentials24HoursAgo).isEqualTo(credentials3MinutesAgo);
+        assertThat(credentials24HoursAgo.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(credentials10SecondsAgo.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
+    }
+
+    private AwsCredentialsProvider credentialsProviderWithClock(Clock clock) {
+        InstanceProfileCredentialsProvider.BuilderImpl builder =
+            (InstanceProfileCredentialsProvider.BuilderImpl) InstanceProfileCredentialsProvider.builder();
+        builder.clock(clock);
+        return builder.build();
+    }
+
+    private void stubCredentialsResponse(ResponseDefinitionBuilder responseDefinitionBuilder) {
+        mockMetadataEndpoint.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                                         .willReturn(aResponse().withBody("some-token")));
+        mockMetadataEndpoint.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH))
+                                         .willReturn(aResponse().withBody("some-profile")));
+        mockMetadataEndpoint.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile"))
+                                         .willReturn(responseDefinitionBuilder));
+    }
+
+    private static class AdjustableClock extends Clock {
+        private Instant time;
+
+        @Override
+        public ZoneId getZone() {
+            return ZoneOffset.UTC;
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Instant instant() {
+            return time;
         }
     }
 }

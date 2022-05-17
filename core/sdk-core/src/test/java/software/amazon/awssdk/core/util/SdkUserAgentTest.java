@@ -16,11 +16,10 @@
 package software.amazon.awssdk.core.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Arrays;
-import org.junit.Test;
-import software.amazon.awssdk.core.util.SdkUserAgent;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 
 public class SdkUserAgentTest {

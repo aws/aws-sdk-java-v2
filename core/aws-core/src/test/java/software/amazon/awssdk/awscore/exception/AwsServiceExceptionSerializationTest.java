@@ -19,23 +19,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.time.Duration;
-import java.util.Collections;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.testutils.InputStreamUtils;
-import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class AwsServiceExceptionSerializationTest {
 
     @Test
-    public void serializeServiceException() throws IOException, ClassNotFoundException {
+    public void serializeServiceException() throws Exception {
         AwsServiceException expectedException = createException();
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -65,7 +61,6 @@ public class AwsServiceExceptionSerializationTest {
         SdkHttpResponse httpResponse = SdkHttpFullResponse.builder()
                                                           .statusCode(403)
                                                           .statusText("SomeText")
-                                                          .putHeader("sample", "value")
                                                           .content(contentStream)
                                                           .build();
 

@@ -18,8 +18,8 @@ package software.amazon.awssdk.http.nio.netty.fault;
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 import static software.amazon.awssdk.http.HttpTestUtils.sendGetRequest;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -45,9 +45,9 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
@@ -63,7 +63,7 @@ public class H2ServerErrorTest {
     private SdkAsyncHttpClient netty;
     private Server server;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         server = new Server();
         server.init();
@@ -74,7 +74,7 @@ public class H2ServerErrorTest {
                                        .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
     }
 
-    @After
+    @AfterEach
     public void teardown() throws InterruptedException {
         if (server != null) {
             server.shutdown();
@@ -98,11 +98,15 @@ public class H2ServerErrorTest {
     }
 
     @Test
-    public void serviceReturn200_newRequestShouldReuseNewConnection() {
+    public void serviceReturn200_newRequestShouldReuseExistingConnection() throws Exception {
         server.return500OnFirstRequest = false;
         CompletableFuture<?> firstRequest = sendGetRequest(server.port(), netty);
         firstRequest.join();
-
+        
+        // The request-complete-future does not await the channel-release-future
+        // Wait a small amount to allow the channel release to complete
+        Thread.sleep(100);
+        
         sendGetRequest(server.port(), netty).join();
         assertThat(server.h2ConnectionCount.get()).isEqualTo(1);
     }

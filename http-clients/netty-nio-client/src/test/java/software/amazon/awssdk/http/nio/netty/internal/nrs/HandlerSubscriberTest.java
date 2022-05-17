@@ -36,9 +36,9 @@ import io.netty.util.internal.ObjectUtil;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscription;
 
 /**
@@ -54,7 +54,7 @@ public class HandlerSubscriberTest {
     private CustomEmbeddedEventLoop eventLoop;
     private HandlerSubscriber<HttpContent> handler;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         channel = new CustomEmbeddedChannel();
         eventLoop = new CustomEmbeddedEventLoop();
@@ -64,7 +64,7 @@ public class HandlerSubscriberTest {
         channel.pipeline().addLast(handler);
     }
 
-    @After
+    @AfterEach
     public void teardown() {
         channel.close();
     }
@@ -108,6 +108,9 @@ public class HandlerSubscriberTest {
     }
 
     private  static class CustomEmbeddedChannel extends EmbeddedChannel {
+
+        public volatile CustomEmbeddedEventLoop loop;
+        
         private CustomEmbeddedChannel() {
             super(false, false);
         }
@@ -115,6 +118,11 @@ public class HandlerSubscriberTest {
         @Override
         protected boolean isCompatible(EventLoop loop) {
             return loop instanceof CustomEmbeddedEventLoop;
+        }
+
+        @Override
+        public void runPendingTasks() {
+            loop.runTasks();
         }
     }
 
@@ -186,6 +194,7 @@ public class HandlerSubscriberTest {
 
         @Override
         public ChannelFuture register(Channel channel) {
+            ((CustomEmbeddedChannel) channel).loop = this;
             return register(new DefaultChannelPromise(channel, this));
         }
 

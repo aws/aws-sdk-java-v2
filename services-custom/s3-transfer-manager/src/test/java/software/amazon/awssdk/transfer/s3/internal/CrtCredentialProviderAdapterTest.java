@@ -20,7 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -30,6 +30,7 @@ import software.amazon.awssdk.auth.credentials.HttpCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public class CrtCredentialProviderAdapterTest {
 
@@ -65,7 +66,7 @@ public class CrtCredentialProviderAdapterTest {
 
     @Test
     public void crtCredentials_provideAwsCredentials_shouldInvokeResolveAndClose() {
-        HttpCredentialsProvider awsCredentialsProvider = Mockito.mock(HttpCredentialsProvider.class);
+        AwsCredentialsProvider awsCredentialsProvider = Mockito.mock(HttpCredentialsProvider.class);
         AwsCredentials credentials = new AwsCredentials() {
             @Override
             public String accessKeyId() {
@@ -88,6 +89,6 @@ public class CrtCredentialProviderAdapterTest {
         verify(awsCredentialsProvider).resolveCredentials();
 
         adapter.close();
-        verify(awsCredentialsProvider).close();
+        verify((SdkAutoCloseable) awsCredentialsProvider).close();
     }
 }

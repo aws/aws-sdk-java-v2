@@ -17,7 +17,6 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -33,7 +32,6 @@ import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.ErrorCodeParser;
 import software.amazon.awssdk.protocols.json.JsonContent;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Unmarshaller for AWS specific error responses. All errors are unmarshalled into a subtype of
@@ -84,8 +82,8 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         // Status code and request id are sdk level fields
         exception.message(errorMessage);
         exception.statusCode(statusCode(response, modeledExceptionMetadata));
-        exception.requestId(getRequestIdFromHeaders(response.headers()));
-        exception.extendedRequestId(getExtendedRequestIdFromHeaders(response.headers()));
+        exception.requestId(response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADERS).orElse(null));
+        exception.extendedRequestId(response.firstMatchingHeader(X_AMZ_ID_2_HEADER).orElse(null));
         return exception.build();
     }
 
@@ -131,14 +129,6 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
 
         errorDetails.errorMessage(errorMessage);
         return errorDetails.build();
-    }
-
-    private String getRequestIdFromHeaders(Map<String, List<String>> headers) {
-        return SdkHttpUtils.firstMatchingHeaderFromCollection(headers, X_AMZN_REQUEST_ID_HEADERS).orElse(null);
-    }
-
-    private String getExtendedRequestIdFromHeaders(Map<String, List<String>> headers) {
-        return SdkHttpUtils.firstMatchingHeader(headers, X_AMZ_ID_2_HEADER).orElse(null);
     }
 
     public static Builder builder() {

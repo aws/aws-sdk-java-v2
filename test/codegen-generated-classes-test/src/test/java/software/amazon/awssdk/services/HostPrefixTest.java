@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -43,7 +43,7 @@ public class HostPrefixTest {
 
     private ProtocolRestJsonAsyncClient asyncClient;
 
-    @Before
+    @BeforeEach
     public void setupClient() {
         mockHttpClient = new MockSyncHttpClient();
         mockAsyncClient = new MockAsyncHttpClient();
@@ -66,10 +66,12 @@ public class HostPrefixTest {
     @Test
     public void invalidHostPrefix_shouldThrowException() {
         assertThatThrownBy(() -> client.operationWithHostPrefix(b -> b.stringMember("123#")))
-            .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("must only contain alphanumeric characters and "
-                                                                               + "dashes");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("The provided operationWithHostPrefixRequest is not valid: the 'StringMember' component must "
+                                  + "match the pattern \"[A-Za-z0-9\\-]+\".");
 
-        assertThatThrownBy(() -> asyncClient.operationWithHostPrefix(b -> b.stringMember("123#")).join()).hasCauseInstanceOf(IllegalArgumentException.class).hasMessageContaining("must only contain alphanumeric characters and dashes");
+        assertThatThrownBy(() -> asyncClient.operationWithHostPrefix(b -> b.stringMember("123#")).join())
+            .hasCauseInstanceOf(IllegalArgumentException.class).hasMessageContaining("The provided operationWithHostPrefixRequest is not valid: the 'StringMember' component must match the pattern \"[A-Za-z0-9\\-]+\".");
     }
 
     @Test

@@ -229,7 +229,8 @@
         {"shape":"InvalidRequestException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ServiceUnavailableException"}
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"LimitExceededException"}
       ],
       "documentation":"<p>Cancels a job.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">CancelJob</a> action.</p>"
     },
@@ -2658,6 +2659,22 @@
       ],
       "documentation":"<p>Returns a list of managed job templates.</p>"
     },
+    "ListMetricValues":{
+      "name":"ListMetricValues",
+      "http":{
+        "method":"GET",
+        "requestUri":"/metric-values"
+      },
+      "input":{"shape":"ListMetricValuesRequest"},
+      "output":{"shape":"ListMetricValuesResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalFailureException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Lists the values reported for an IoT Device Defender metric (device-side metric, cloud-side metric, or custom metric) by the given thing during the specified time period.</p>"
+    },
     "ListMitigationActions":{
       "name":"ListMitigationActions",
       "http":{
@@ -4338,7 +4355,7 @@
           "documentation":"<p>The list of groups to which you want to add the things that triggered the mitigation action. You can add a thing to a maximum of 10 groups, but you can't add a thing to more than one group in the same hierarchy.</p>"
         },
         "overrideDynamicGroups":{
-          "shape":"OverrideDynamicGroups",
+          "shape":"NullableBoolean",
           "documentation":"<p>Specifies if this mitigation action can move the things that triggered the mitigation action even if they are part of one or more dynamic thing groups.</p>"
         }
       },
@@ -5547,6 +5564,7 @@
     },
     "Boolean":{"type":"boolean"},
     "BooleanKey":{"type":"boolean"},
+    "BooleanWrapperObject":{"type":"boolean"},
     "Bucket":{
       "type":"structure",
       "members":{
@@ -6431,17 +6449,17 @@
       "members":{
         "metricName":{
           "shape":"MetricName",
-          "documentation":"<p> The name of the custom metric. This will be used in the metric report submitted from the device/thing. Shouldn't begin with <code>aws:</code>. Cannot be updated once defined.</p>",
+          "documentation":"<p> The name of the custom metric. This will be used in the metric report submitted from the device/thing. The name can't begin with <code>aws:</code>. You can't change the name after you define it.</p>",
           "location":"uri",
           "locationName":"metricName"
         },
         "displayName":{
           "shape":"CustomMetricDisplayName",
-          "documentation":"<p> Field represents a friendly name in the console for the custom metric; it doesn't have to be unique. Don't use this name as the metric identifier in the device metric report. Can be updated once defined.</p>"
+          "documentation":"<p> The friendly name in the console for the custom metric. This name doesn't have to be unique. Don't use this name as the metric identifier in the device metric report. You can update the friendly name after you define it.</p>"
         },
         "metricType":{
           "shape":"CustomMetricType",
-          "documentation":"<p> The type of the custom metric. Types include <code>string-list</code>, <code>ip-address-list</code>, <code>number-list</code>, and <code>number</code>. </p>"
+          "documentation":"<p> The type of the custom metric. </p> <important> <p>The type <code>number</code> only takes a single metric value as an input, but when you submit the metrics value in the DeviceMetrics report, you must pass it as an array with a single value.</p> </important>"
         },
         "tags":{
           "shape":"TagList",
@@ -6463,7 +6481,7 @@
         },
         "metricArn":{
           "shape":"CustomMetricArn",
-          "documentation":"<p> The Amazon Resource Number (ARN) of the custom metric, e.g. <code>arn:<i>aws-partition</i>:iot:<i>region</i>:<i>accountId</i>:custommetric/<i>metricName</i> </code> </p>"
+          "documentation":"<p> The Amazon Resource Number (ARN) of the custom metric. For example, <code>arn:<i>aws-partition</i>:iot:<i>region</i>:<i>accountId</i>:custommetric/<i>metricName</i> </code> </p>"
         }
       }
     },
@@ -6729,7 +6747,7 @@
         },
         "targetSelection":{
           "shape":"TargetSelection",
-          "documentation":"<p>Specifies whether the job will continue to run (CONTINUOUS), or will be complete after all those things specified as targets have completed the job (SNAPSHOT). If continuous, the job may also be run on a thing when a change is detected in a target. For example, a job will run on a thing when the thing is added to a target group, even after the job was completed by all things originally in the group.</p>"
+          "documentation":"<p>Specifies whether the job will continue to run (CONTINUOUS), or will be complete after all those things specified as targets have completed the job (SNAPSHOT). If continuous, the job may also be run on a thing when a change is detected in a target. For example, a job will run on a thing when the thing is added to a target group, even after the job was completed by all things originally in the group.</p> <note> <p>We recommend that you use continuous jobs instead of snapshot jobs for dynamic thing group targets. By using continuous jobs, devices that join the group receive the job execution even after the job has been created.</p> </note>"
         },
         "jobExecutionsRolloutConfig":{
           "shape":"JobExecutionsRolloutConfig",
@@ -6737,7 +6755,7 @@
         },
         "abortConfig":{
           "shape":"AbortConfig",
-          "documentation":"<p>Allows you to create criteria to abort a job.</p>"
+          "documentation":"<p>Allows you to create the criteria to abort a job.</p>"
         },
         "timeoutConfig":{
           "shape":"TimeoutConfig",
@@ -6755,9 +6773,13 @@
           "shape":"JobTemplateArn",
           "documentation":"<p>The ARN of the job template used to create the job.</p>"
         },
+        "jobExecutionsRetryConfig":{
+          "shape":"JobExecutionsRetryConfig",
+          "documentation":"<p>Allows you to create the criteria to retry a job.</p>"
+        },
         "documentParameters":{
           "shape":"ParameterMap",
-          "documentation":"<p>Parameters of a managed template that you can specify to create the job document.</p>"
+          "documentation":"<p>Parameters of an Amazon Web Services managed template that you can specify to create the job document.</p> <note> <p> <code>documentParameters</code> can only be used when creating jobs from Amazon Web Services managed templates. This parameter can't be used with custom job templates or to create jobs from them.</p> </note>"
         }
       }
     },
@@ -6814,6 +6836,10 @@
         "tags":{
           "shape":"TagList",
           "documentation":"<p>Metadata that can be used to manage the job template.</p>"
+        },
+        "jobExecutionsRetryConfig":{
+          "shape":"JobExecutionsRetryConfig",
+          "documentation":"<p>Allows you to create the criteria to retry a job.</p>"
         }
       }
     },
@@ -7242,7 +7268,7 @@
         },
         "credentialDurationSeconds":{
           "shape":"CredentialDurationSeconds",
-          "documentation":"<p>How long (in seconds) the credentials will be valid. The default value is 3,600 seconds.</p>"
+          "documentation":"<p>How long (in seconds) the credentials will be valid. The default value is 3,600 seconds.</p> <p>This value must be less than or equal to the maximum session duration of the IAM role that the role alias references.</p>"
         },
         "tags":{
           "shape":"TagList",
@@ -7601,11 +7627,11 @@
         },
         "hashAlgorithm":{
           "shape":"HashAlgorithm",
-          "documentation":"<p>The hash algorithm used to code sign the file.</p>"
+          "documentation":"<p>The hash algorithm used to code sign the file. You can use a string as the algorithm name if the target over-the-air (OTA) update devices are able to verify the signature that was generated using the same signature algorithm. For example, FreeRTOS uses <code>SHA256</code> or <code>SHA1</code>, so you can pass either of them based on which was used for generating the signature.</p>"
         },
         "signatureAlgorithm":{
           "shape":"SignatureAlgorithm",
-          "documentation":"<p>The signature algorithm used to code sign the file.</p>"
+          "documentation":"<p>The signature algorithm used to code sign the file. You can use a string as the algorithm name if the target over-the-air (OTA) update devices are able to verify the signature that was generated using the same signature algorithm. For example, FreeRTOS uses <code>ECDSA</code> or <code>RSA</code>, so you can pass either of them based on which was used for generating the signature.</p>"
         }
       },
       "documentation":"<p>Describes a custom method used to code sign a file.</p>"
@@ -8606,7 +8632,7 @@
         },
         "metricType":{
           "shape":"CustomMetricType",
-          "documentation":"<p> The type of the custom metric. Types include <code>string-list</code>, <code>ip-address-list</code>, <code>number-list</code>, and <code>number</code>. </p>"
+          "documentation":"<p> The type of the custom metric. </p> <important> <p>The type <code>number</code> only takes a single metric value as an input, but while submitting the metrics value in the DeviceMetrics report, it must be passed as an array with a single value.</p> </important>"
         },
         "displayName":{
           "shape":"CustomMetricDisplayName",
@@ -8996,7 +9022,11 @@
         "presignedUrlConfig":{"shape":"PresignedUrlConfig"},
         "jobExecutionsRolloutConfig":{"shape":"JobExecutionsRolloutConfig"},
         "abortConfig":{"shape":"AbortConfig"},
-        "timeoutConfig":{"shape":"TimeoutConfig"}
+        "timeoutConfig":{"shape":"TimeoutConfig"},
+        "jobExecutionsRetryConfig":{
+          "shape":"JobExecutionsRetryConfig",
+          "documentation":"<p>The configuration that determines how many retries are allowed for each failure type for a job.</p>"
+        }
       }
     },
     "DescribeManagedJobTemplateRequest":{
@@ -9042,7 +9072,7 @@
         },
         "documentParameters":{
           "shape":"DocumentParameters",
-          "documentation":"<p>A map of key-value pairs that you can use as guidance to specify the inputs for creating a job from a managed template.</p>"
+          "documentation":"<p>A map of key-value pairs that you can use as guidance to specify the inputs for creating a job from a managed template.</p> <note> <p> <code>documentParameters</code> can only be used when creating jobs from Amazon Web Services managed templates. This parameter can't be used with custom job templates or to create jobs from them.</p> </note>"
         },
         "document":{
           "shape":"JobDocument",
@@ -9919,7 +9949,7 @@
           "documentation":"<p>Specifies whether a pattern that needs to be replaced in a managed template job document schema is optional or required.</p>"
         }
       },
-      "documentation":"<p>A map of key-value pairs containing the patterns that need to be replaced in a managed template job document schema. You can use the description of each key as a guidance to specify the inputs during runtime when creating a job.</p>"
+      "documentation":"<p>A map of key-value pairs containing the patterns that need to be replaced in a managed template job document schema. You can use the description of each key as a guidance to specify the inputs during runtime when creating a job.</p> <note> <p> <code>documentParameters</code> can only be used when creating jobs from Amazon Web Services managed templates. This parameter can't be used with custom job templates or to create jobs from them.</p> </note>"
     },
     "DocumentParameters":{
       "type":"list",
@@ -11289,7 +11319,7 @@
         },
         "targetSelection":{
           "shape":"TargetSelection",
-          "documentation":"<p>Specifies whether the job will continue to run (CONTINUOUS), or will be complete after all those things specified as targets have completed the job (SNAPSHOT). If continuous, the job may also be run on a thing when a change is detected in a target. For example, a job will run on a device when the thing representing the device is added to a target group, even after the job was completed by all things originally in the group. </p>"
+          "documentation":"<p>Specifies whether the job will continue to run (CONTINUOUS), or will be complete after all those things specified as targets have completed the job (SNAPSHOT). If continuous, the job may also be run on a thing when a change is detected in a target. For example, a job will run on a device when the thing representing the device is added to a target group, even after the job was completed by all things originally in the group. </p> <note> <p>We recommend that you use continuous jobs instead of snapshot jobs for dynamic thing group targets. By using continuous jobs, devices that join the group receive the job execution even after the job has been created.</p> </note>"
         },
         "status":{
           "shape":"JobStatus",
@@ -11355,10 +11385,15 @@
           "shape":"JobTemplateArn",
           "documentation":"<p>The ARN of the job template used to create the job.</p>"
         },
+        "jobExecutionsRetryConfig":{
+          "shape":"JobExecutionsRetryConfig",
+          "documentation":"<p>The configuration for the criteria to retry the job.</p>"
+        },
         "documentParameters":{
           "shape":"ParameterMap",
-          "documentation":"<p>A key-value map that pairs the patterns that need to be replaced in a managed template job document schema. You can use the description of each key as a guidance to specify the inputs during runtime when creating a job.</p>"
-        }
+          "documentation":"<p>A key-value map that pairs the patterns that need to be replaced in a managed template job document schema. You can use the description of each key as a guidance to specify the inputs during runtime when creating a job.</p> <note> <p> <code>documentParameters</code> can only be used when creating jobs from Amazon Web Services managed templates. This parameter can't be used with custom job templates or to create jobs from them.</p> </note>"
+        },
+        "isConcurrent":{"shape":"BooleanWrapperObject"}
       },
       "documentation":"<p>The <code>Job</code> object contains details about a job.</p>"
     },
@@ -11481,6 +11516,10 @@
         "executionNumber":{
           "shape":"ExecutionNumber",
           "documentation":"<p>A string (consisting of the digits \"0\" through \"9\") which identifies this particular job execution on this particular device. It can be used later in commands which return or update job execution information.</p>"
+        },
+        "retryAttempt":{
+          "shape":"RetryAttempt",
+          "documentation":"<p>The number that indicates how many retry attempts have been completed for this job on this device.</p>"
         }
       },
       "documentation":"<p>The job execution summary.</p>"
@@ -11520,6 +11559,17 @@
     "JobExecutionSummaryForThingList":{
       "type":"list",
       "member":{"shape":"JobExecutionSummaryForThing"}
+    },
+    "JobExecutionsRetryConfig":{
+      "type":"structure",
+      "required":["criteriaList"],
+      "members":{
+        "criteriaList":{
+          "shape":"RetryCriteriaList",
+          "documentation":"<p>The list of criteria that determines how many retries are allowed for each failure type for a job.</p>"
+        }
+      },
+      "documentation":"<p>The configuration that determines how many retries are allowed for each failure type for a job.</p>"
     },
     "JobExecutionsRolloutConfig":{
       "type":"structure",
@@ -11609,7 +11659,7 @@
         },
         "targetSelection":{
           "shape":"TargetSelection",
-          "documentation":"<p>Specifies whether the job will continue to run (CONTINUOUS), or will be complete after all those things specified as targets have completed the job (SNAPSHOT). If continuous, the job may also be run on a thing when a change is detected in a target. For example, a job will run on a thing when the thing is added to a target group, even after the job was completed by all things originally in the group.</p>"
+          "documentation":"<p>Specifies whether the job will continue to run (CONTINUOUS), or will be complete after all those things specified as targets have completed the job (SNAPSHOT). If continuous, the job may also be run on a thing when a change is detected in a target. For example, a job will run on a thing when the thing is added to a target group, even after the job was completed by all things originally in the group.</p> <note> <p>We recommend that you use continuous jobs instead of snapshot jobs for dynamic thing group targets. By using continuous jobs, devices that join the group receive the job execution even after the job has been created.</p> </note>"
         },
         "status":{
           "shape":"JobStatus",
@@ -11626,7 +11676,8 @@
         "completedAt":{
           "shape":"DateType",
           "documentation":"<p>The time, in seconds since the epoch, when the job completed.</p>"
-        }
+        },
+        "isConcurrent":{"shape":"BooleanWrapperObject"}
       },
       "documentation":"<p>The job summary.</p>"
     },
@@ -12683,6 +12734,12 @@
           "documentation":"<p>The token to retrieve the next set of results.</p>",
           "location":"querystring",
           "locationName":"nextToken"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The unique identifier you assigned to this job when it was created.</p>",
+          "location":"querystring",
+          "locationName":"jobId"
         }
       }
     },
@@ -12740,7 +12797,7 @@
         },
         "targetSelection":{
           "shape":"TargetSelection",
-          "documentation":"<p>Specifies whether the job will continue to run (CONTINUOUS), or will be complete after all those things specified as targets have completed the job (SNAPSHOT). If continuous, the job may also be run on a thing when a change is detected in a target. For example, a job will run on a thing when the thing is added to a target group, even after the job was completed by all things originally in the group. </p>",
+          "documentation":"<p>Specifies whether the job will continue to run (CONTINUOUS), or will be complete after all those things specified as targets have completed the job (SNAPSHOT). If continuous, the job may also be run on a thing when a change is detected in a target. For example, a job will run on a thing when the thing is added to a target group, even after the job was completed by all things originally in the group. </p> <note> <p>We recommend that you use continuous jobs instead of snapshot jobs for dynamic thing group targets. By using continuous jobs, devices that join the group receive the job execution even after the job has been created.</p> </note>",
           "location":"querystring",
           "locationName":"targetSelection"
         },
@@ -12822,6 +12879,78 @@
         "nextToken":{
           "shape":"NextToken",
           "documentation":"<p>The token to retrieve the next set of results.</p>"
+        }
+      }
+    },
+    "ListMetricValuesRequest":{
+      "type":"structure",
+      "required":[
+        "thingName",
+        "metricName",
+        "startTime",
+        "endTime"
+      ],
+      "members":{
+        "thingName":{
+          "shape":"DeviceDefenderThingName",
+          "documentation":"<p>The name of the thing for which security profile metric values are returned.</p>",
+          "location":"querystring",
+          "locationName":"thingName"
+        },
+        "metricName":{
+          "shape":"BehaviorMetric",
+          "documentation":"<p>The name of the security profile metric for which values are returned.</p>",
+          "location":"querystring",
+          "locationName":"metricName"
+        },
+        "dimensionName":{
+          "shape":"DimensionName",
+          "documentation":"<p>The dimension name.</p>",
+          "location":"querystring",
+          "locationName":"dimensionName"
+        },
+        "dimensionValueOperator":{
+          "shape":"DimensionValueOperator",
+          "documentation":"<p>The dimension value operator.</p>",
+          "location":"querystring",
+          "locationName":"dimensionValueOperator"
+        },
+        "startTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start of the time period for which metric values are returned.</p>",
+          "location":"querystring",
+          "locationName":"startTime"
+        },
+        "endTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end of the time period for which metric values are returned.</p>",
+          "location":"querystring",
+          "locationName":"endTime"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to return at one time.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next set of results.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        }
+      }
+    },
+    "ListMetricValuesResponse":{
+      "type":"structure",
+      "members":{
+        "metricDatumList":{
+          "shape":"MetricDatumList",
+          "documentation":"<p>The data the thing reports for the metric during the specified time period.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token that can be used to retrieve the next set of results, or <code>null</code> if there are no additional results.</p>"
         }
       }
     },
@@ -14105,7 +14234,10 @@
       "type":"string",
       "enum":[
         "DEFAULT",
-        "THING_GROUP"
+        "THING_GROUP",
+        "CLIENT_ID",
+        "SOURCE_IP",
+        "PRINCIPAL_ID"
       ]
     },
     "LoggingOptionsPayload":{
@@ -14225,6 +14357,24 @@
     "MessageId":{
       "type":"string",
       "max":128
+    },
+    "MetricDatum":{
+      "type":"structure",
+      "members":{
+        "timestamp":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time the metric value was reported.</p>"
+        },
+        "value":{
+          "shape":"MetricValue",
+          "documentation":"<p>The value reported for the metric.</p>"
+        }
+      },
+      "documentation":"<p>A metric.</p>"
+    },
+    "MetricDatumList":{
+      "type":"list",
+      "member":{"shape":"MetricDatum"}
     },
     "MetricDimension":{
       "type":"structure",
@@ -14508,6 +14658,11 @@
     "NumberList":{
       "type":"list",
       "member":{"shape":"Number"}
+    },
+    "NumberOfRetries":{
+      "type":"integer",
+      "max":10,
+      "min":0
     },
     "NumberOfThings":{
       "type":"integer",
@@ -15185,7 +15340,7 @@
         },
         "setAsActive":{
           "shape":"SetAsActive",
-          "documentation":"<p>A boolean value that specifies if the CA certificate is set to active.</p>",
+          "documentation":"<p>A boolean value that specifies if the CA certificate is set to active.</p> <p>Valid values: <code>ACTIVE | INACTIVE</code> </p>",
           "location":"querystring",
           "locationName":"setAsActive"
         },
@@ -15234,14 +15389,14 @@
         },
         "setAsActive":{
           "shape":"SetAsActiveFlag",
-          "documentation":"<p>A boolean value that specifies if the certificate is set to active.</p>",
+          "documentation":"<p>A boolean value that specifies if the certificate is set to active.</p> <p>Valid values: <code>ACTIVE | INACTIVE</code> </p>",
           "deprecated":true,
           "location":"querystring",
           "locationName":"setAsActive"
         },
         "status":{
           "shape":"CertificateStatus",
-          "documentation":"<p>The status of the register certificate request.</p>"
+          "documentation":"<p>The status of the register certificate request. Valid values that you can use include <code>ACTIVE</code>, <code>INACTIVE</code>, and <code>REVOKED</code>.</p>"
         }
       },
       "documentation":"<p>The input to the RegisterCertificate operation.</p>"
@@ -15637,6 +15792,39 @@
     "Resources":{
       "type":"list",
       "member":{"shape":"Resource"}
+    },
+    "RetryAttempt":{"type":"integer"},
+    "RetryCriteria":{
+      "type":"structure",
+      "required":[
+        "failureType",
+        "numberOfRetries"
+      ],
+      "members":{
+        "failureType":{
+          "shape":"RetryableFailureType",
+          "documentation":"<p>The type of job execution failures that can initiate a job retry.</p>"
+        },
+        "numberOfRetries":{
+          "shape":"NumberOfRetries",
+          "documentation":"<p>The number of retries allowed for a failure type for the job.</p>"
+        }
+      },
+      "documentation":"<p>The criteria that determines how many retries are allowed for each failure type for a job.</p>"
+    },
+    "RetryCriteriaList":{
+      "type":"list",
+      "member":{"shape":"RetryCriteria"},
+      "max":2,
+      "min":1
+    },
+    "RetryableFailureType":{
+      "type":"string",
+      "enum":[
+        "FAILED",
+        "TIMED_OUT",
+        "ALL"
+      ]
     },
     "RoleAlias":{
       "type":"string",
@@ -17977,7 +18165,7 @@
         },
         "metricType":{
           "shape":"CustomMetricType",
-          "documentation":"<p> The type of the custom metric. Types include <code>string-list</code>, <code>ip-address-list</code>, <code>number-list</code>, and <code>number</code>. </p>"
+          "documentation":"<p> The type of the custom metric. </p> <important> <p>The type <code>number</code> only takes a single metric value as an input, but while submitting the metrics value in the DeviceMetrics report, it must be passed as an array with a single value.</p> </important>"
         },
         "displayName":{
           "shape":"CustomMetricDisplayName",
@@ -18251,6 +18439,10 @@
           "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is in public preview.</p> </note>",
           "location":"querystring",
           "locationName":"namespaceId"
+        },
+        "jobExecutionsRetryConfig":{
+          "shape":"JobExecutionsRetryConfig",
+          "documentation":"<p>Allows you to create the criteria to retry a job.</p>"
         }
       }
     },
@@ -18344,7 +18536,7 @@
         },
         "credentialDurationSeconds":{
           "shape":"CredentialDurationSeconds",
-          "documentation":"<p>The number of seconds the credential will be valid.</p>"
+          "documentation":"<p>The number of seconds the credential will be valid.</p> <p>This value must be less than or equal to the maximum session duration of the IAM role that the role alias references.</p>"
         }
       }
     },
@@ -18719,7 +18911,7 @@
     "VerificationStateDescription":{
       "type":"string",
       "max":1000,
-      "pattern":"[\\p{Graph}\\x20]*"
+      "pattern":"[^\\p{Cntrl}]*"
     },
     "Version":{"type":"long"},
     "VersionConflictException":{

@@ -20,7 +20,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 
 /**
@@ -31,6 +33,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
  * organized into one {@link WriteBatch} object per accessed table.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class BatchWriteItemEnhancedRequest {
 
     private final List<WriteBatch> writeBatches;
@@ -86,6 +89,7 @@ public final class BatchWriteItemEnhancedRequest {
     /**
      * A builder that is used to create a request with the desired parameters.
      */
+    @NotThreadSafe
     public static final class Builder {
         private List<WriteBatch> writeBatches;
 

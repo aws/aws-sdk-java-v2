@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.JavaSystemSetting;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Utility class for accessing AWS SDK versioning information.
@@ -43,6 +44,19 @@ public final class SdkUserAgent {
     private static final Logger log = LoggerFactory.getLogger(SdkUserAgent.class);
     private static final String UNKNOWN = "unknown";
     private static volatile SdkUserAgent instance;
+
+    private static final String[] USER_AGENT_SEARCH = {
+        "{platform}",
+        "{version}",
+        "{os.name}",
+        "{os.version}",
+        "{java.vm.name}",
+        "{java.vm.version}",
+        "{java.version}",
+        "{java.vendor}",
+        "{additional.languages}",
+        "{language.and.region}"
+    };
 
     /** User Agent info. */
     private String userAgent;
@@ -83,30 +97,25 @@ public final class SdkUserAgent {
 
     @SdkTestInternalApi
     String getUserAgent() {
-
-        String ua = UA_STRING;
-
-        ua = ua
-                .replace("{platform}", "java")
-                .replace("{version}", VersionInfo.SDK_VERSION)
-                .replace("{os.name}", sanitizeInput(JavaSystemSetting.OS_NAME.getStringValue().orElse(null)))
-                .replace("{os.version}", sanitizeInput(JavaSystemSetting.OS_VERSION.getStringValue().orElse(null)))
-                .replace("{java.vm.name}", sanitizeInput(JavaSystemSetting.JAVA_VM_NAME.getStringValue().orElse(null)))
-                .replace("{java.vm.version}", sanitizeInput(JavaSystemSetting.JAVA_VM_VERSION.getStringValue().orElse(null)))
-                .replace("{java.version}", sanitizeInput(JavaSystemSetting.JAVA_VERSION.getStringValue().orElse(null)))
-                .replace("{java.vendor}", sanitizeInput(JavaSystemSetting.JAVA_VENDOR.getStringValue().orElse(null)))
-                .replace("{additional.languages}", getAdditionalJvmLanguages());
-
         Optional<String> language = JavaSystemSetting.USER_LANGUAGE.getStringValue();
         Optional<String> region = JavaSystemSetting.USER_REGION.getStringValue();
-
         String languageAndRegion = "";
         if (language.isPresent() && region.isPresent()) {
             languageAndRegion = " (" + sanitizeInput(language.get()) + "_" + sanitizeInput(region.get()) + ")";
         }
-        ua = ua.replace("{language.and.region}", languageAndRegion);
 
-        return ua;
+        return StringUtils.replaceEach(UA_STRING, USER_AGENT_SEARCH, new String[] {
+            "java",
+            VersionInfo.SDK_VERSION,
+            sanitizeInput(JavaSystemSetting.OS_NAME.getStringValue().orElse(null)),
+            sanitizeInput(JavaSystemSetting.OS_VERSION.getStringValue().orElse(null)),
+            sanitizeInput(JavaSystemSetting.JAVA_VM_NAME.getStringValue().orElse(null)),
+            sanitizeInput(JavaSystemSetting.JAVA_VM_VERSION.getStringValue().orElse(null)),
+            sanitizeInput(JavaSystemSetting.JAVA_VERSION.getStringValue().orElse(null)),
+            sanitizeInput(JavaSystemSetting.JAVA_VENDOR.getStringValue().orElse(null)),
+            getAdditionalJvmLanguages(),
+            languageAndRegion,
+        });
     }
 
     /**

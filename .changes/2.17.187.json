@@ -1,0 +1,30 @@
+{
+    "version": "2.17.187",
+    "date": "2022-05-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Evidently",
+            "contributor": "",
+            "description": "Add detail message inside GetExperimentResults API response to indicate experiment result availability"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud Control API",
+            "contributor": "",
+            "description": "SDK release for Cloud Control API to include paginators for Python SDK."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager Incident Manager Contacts",
+            "contributor": "",
+            "description": "Fixed an error in the DescribeEngagement example for AWS Incident Manager."
+        }
+    ]
+}

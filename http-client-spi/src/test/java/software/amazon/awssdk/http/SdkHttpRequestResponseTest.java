@@ -23,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -31,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Verify that {@link DefaultSdkHttpFullRequest} and {@link DefaultSdkHttpFullResponse} properly fulfill the contracts in their
@@ -43,18 +42,6 @@ public class SdkHttpRequestResponseTest {
         assertThat(validRequest().contentStreamProvider()).isNotPresent();
         assertThat(validResponse().content()).isNotPresent();
         assertThat(validResponse().statusText()).isNotPresent();
-    }
-
-    @Test
-    public void mapsAreNotCopiedWhenRoundTrippedToBuilderWithoutModification() {
-        SdkHttpFullRequest request = validRequestWithMaps();
-        SdkHttpFullRequest request2 = request.toBuilder().build();
-        assertThat(request2.headers()).isSameAs(request.headers());
-        assertThat(request2.rawQueryParameters()).isSameAs(request.rawQueryParameters());
-
-        SdkHttpResponse response = validResponseWithMaps();
-        SdkHttpResponse response2 = response.toBuilder().build();
-        assertThat(response2.headers()).isSameAs(response.headers());
     }
 
     @Test

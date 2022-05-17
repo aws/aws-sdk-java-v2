@@ -294,6 +294,7 @@ public class ChainExtensionTest {
         DefaultDynamoDbExtensionContext.Builder context =
             DefaultDynamoDbExtensionContext.builder()
                                            .tableMetadata(FakeItem.getTableMetadata())
+                                           .tableSchema(FakeItem.getTableSchema())
                                            .operationContext(PRIMARY_CONTEXT)
                                            .items(fakeItems.get(i));
         if (operationName != null) {

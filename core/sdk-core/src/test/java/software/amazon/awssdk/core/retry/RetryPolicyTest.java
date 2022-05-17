@@ -24,7 +24,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.retry.backoff.EqualJitterBackoffStrategy;
 import software.amazon.awssdk.core.retry.backoff.FullJitterBackoffStrategy;

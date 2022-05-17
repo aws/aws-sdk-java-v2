@@ -35,7 +35,6 @@ import static org.apache.commons.lang3.StringUtils.reverse;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -43,9 +42,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 import org.assertj.core.api.Condition;
 import org.junit.AfterClass;
@@ -54,14 +51,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
-import software.amazon.awssdk.utils.AttributeMap;
 
 public class NettyNioAsyncHttpClientDefaultWireMockTest {
 
@@ -149,7 +144,7 @@ public class NettyNioAsyncHttpClientDefaultWireMockTest {
     }
 
     @Test
-    public void requestContentOnlyEqualToContentLengthHeaderFromProvider() throws InterruptedException, ExecutionException, TimeoutException, IOException {
+    public void requestContentOnlyEqualToContentLengthHeaderFromProvider() throws Exception {
         final String content = randomAlphabetic(32);
         final String streamContent = content + reverse(content);
         stubFor(any(urlEqualTo("/echo?reversed=true"))

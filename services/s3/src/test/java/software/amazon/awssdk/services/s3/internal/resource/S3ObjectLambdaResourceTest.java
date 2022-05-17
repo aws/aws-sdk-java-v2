@@ -16,10 +16,10 @@
 package software.amazon.awssdk.services.s3.internal.resource;
 
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.junit.Rule;
 import org.junit.Test;

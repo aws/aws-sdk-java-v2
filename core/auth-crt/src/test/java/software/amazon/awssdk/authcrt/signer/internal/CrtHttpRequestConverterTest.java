@@ -23,8 +23,8 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
@@ -36,7 +36,7 @@ public class CrtHttpRequestConverterTest {
 
     CrtHttpRequestConverter converter;
 
-    @Before
+    @BeforeEach
     public void setup() {
         converter = new CrtHttpRequestConverter();
     }

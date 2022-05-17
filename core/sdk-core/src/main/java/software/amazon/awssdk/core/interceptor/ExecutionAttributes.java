@@ -18,8 +18,10 @@ package software.amazon.awssdk.core.interceptor;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -36,7 +38,7 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
     private final Map<ExecutionAttribute<?>, Object> attributes;
 
     public ExecutionAttributes() {
-        this.attributes = new HashMap<>();
+        this.attributes = new HashMap<>(32);
     }
 
     protected ExecutionAttributes(Map<? extends ExecutionAttribute<?>, ?> attributes) {
@@ -57,6 +59,14 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
      */
     public Map<ExecutionAttribute<?>, Object> getAttributes() {
         return Collections.unmodifiableMap(attributes);
+    }
+
+    /**
+     * Retrieve the Optional current value of the provided attribute in this collection of attributes.
+     * This will return Optional Value.
+     */
+    public <U> Optional<U> getOptionalAttribute(ExecutionAttribute<U> attribute) {
+        return Optional.ofNullable((U) attributes.get(attribute));
     }
 
     /**
@@ -124,6 +134,13 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
     @Override
     public int hashCode() {
         return attributes != null ? attributes.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("ExecutionAttributes")
+                       .add("attributes", attributes.keySet())
+                       .build();
     }
 
     public static ExecutionAttributes unmodifiableExecutionAttributes(ExecutionAttributes attributes) {

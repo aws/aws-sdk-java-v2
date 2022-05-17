@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.utils;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
@@ -31,10 +32,10 @@ public final class UserHomeDirectoryUtils {
     public static String userHomeDirectory() {
         // To match the logic of the CLI we have to consult environment variables directly.
         // CHECKSTYLE:OFF
-        String home = System.getenv("HOME");
+        Optional<String> home = SystemSetting.getStringValueFromEnvironmentVariable("HOME");
 
-        if (home != null) {
-            return home;
+        if (home.isPresent()) {
+            return home.get();
         }
 
         boolean isWindows = JavaSystemSetting.OS_NAME.getStringValue()
@@ -42,17 +43,17 @@ public final class UserHomeDirectoryUtils {
                                                      .orElse(false);
 
         if (isWindows) {
-            String userProfile = System.getenv("USERPROFILE");
+            Optional<String> userProfile = SystemSetting.getStringValueFromEnvironmentVariable("USERPROFILE");
 
-            if (userProfile != null) {
-                return userProfile;
+            if (userProfile.isPresent()) {
+                return userProfile.get();
             }
 
-            String homeDrive = System.getenv("HOMEDRIVE");
-            String homePath = System.getenv("HOMEPATH");
+            Optional<String> homeDrive = SystemSetting.getStringValueFromEnvironmentVariable("HOMEDRIVE");
+            Optional<String> homePath = SystemSetting.getStringValueFromEnvironmentVariable("HOMEPATH");
 
-            if (homeDrive != null && homePath != null) {
-                return homeDrive + homePath;
+            if (homeDrive.isPresent() && homePath.isPresent()) {
+                return homeDrive.get() + homePath.get();
             }
         }
 

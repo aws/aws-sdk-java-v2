@@ -27,15 +27,12 @@ import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils
 import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.superSlowResponseHandler;
 import static utils.HttpTestUtils.testClientBuilder;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;

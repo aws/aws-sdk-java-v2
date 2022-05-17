@@ -17,7 +17,9 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -35,6 +37,7 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetric
  * A valid request object must contain a primary {@link Key} to reference the item to delete.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class DeleteItemEnhancedRequest {
 
     private final Key key;
@@ -148,6 +151,7 @@ public final class DeleteItemEnhancedRequest {
      * <p>
      * <b>Note</b>: A valid request builder must define a {@link Key}.
      */
+    @NotThreadSafe
     public static final class Builder {
         private Key key;
         private Expression conditionExpression;

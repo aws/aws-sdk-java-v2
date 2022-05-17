@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.services.route53;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -25,9 +25,9 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.services.route53.internal.Route53IdInterceptor;
 import software.amazon.awssdk.services.route53.model.ActivateKeySigningKeyResponse;
 import software.amazon.awssdk.services.route53.model.ChangeInfo;
-import software.amazon.awssdk.services.route53.model.CreateKeySigningKeyResponse;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneRequest;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneResponse;
+import software.amazon.awssdk.services.route53.model.CreateKeySigningKeyResponse;
 import software.amazon.awssdk.services.route53.model.CreateReusableDelegationSetResponse;
 import software.amazon.awssdk.services.route53.model.DeactivateKeySigningKeyResponse;
 import software.amazon.awssdk.services.route53.model.DelegationSet;

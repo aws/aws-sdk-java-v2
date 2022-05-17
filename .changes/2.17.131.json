@@ -1,0 +1,66 @@
+{
+    "version": "2.17.131",
+    "date": "2022-02-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Assorted ticket fixes and updates for AWS Systems Manager."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO Async HTTP Client",
+            "contributor": "",
+            "description": "Fixed an issue in Netty async http client where NPE was thrown when the execution got cancelled before executionId was attached to the channel."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Support for optimistic locking in UpdateTable"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Budgets",
+            "contributor": "",
+            "description": "Adds support for auto-adjusting budgets, a new budget method alongside fixed and planned. Auto-adjusting budgets introduces new metadata to configure a budget limit baseline using a historical lookback average or current period forecast."
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "A couple of minor refactoring on the S3TransferManager. 1. `CompletedDirectoryUpload#failedTransfers` now returns `List<FailedFileUpload>` instead of `Collection<FailedFileUpload>`. 2. `UploadDirectoryOverrideConfiguration#uploadFileRequestTransformer` now returns `Consumer<UploadFileRequest.Builder>` instead of `Optional<Consumer<UploadFileRequest.Builder>>` it will be no-op if no uploadFileRequestTransformer is provided"
+        },
+        {
+            "type": "removal",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Removed codegen-resources from service jars, which reduces SDK artifact size."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation updates for EC2."
+        },
+        {
+            "type": "feature",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Implement downloadDirectory API in the S3TransferManager"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add support for setting the default `RegionScope` used by the Sigv4a signer implementations. If the region scope to use is not supplied to the signing methods, the signers will default to this scope first and then the normal signing region."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "AWS Cost Anomaly Detection now supports SNS FIFO topic subscribers."
+        }
+    ]
+}

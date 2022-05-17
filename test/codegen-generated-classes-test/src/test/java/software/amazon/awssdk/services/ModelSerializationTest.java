@@ -29,7 +29,9 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.IOException;
 import java.time.Instant;
-import org.junit.Test;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.BaseType;
@@ -46,6 +48,14 @@ public class ModelSerializationTest {
     @Test
     public void jacksonSerializationWorksForEmptyRequestObjects() throws IOException {
         validateJacksonSerialization(AllTypesRequest.builder().build());
+    }
+
+    @Test
+    public void jacksonSerialization_mapWithNullValue_shouldWork() throws IOException {
+        Map<String, SimpleStruct> mapOfStringToStruct = new HashMap<>();
+        mapOfStringToStruct.put("test1", null);
+        mapOfStringToStruct.put("test2", null);
+        validateJacksonSerialization(AllTypesRequest.builder().mapOfStringToStruct(mapOfStringToStruct).build());
     }
 
     @Test

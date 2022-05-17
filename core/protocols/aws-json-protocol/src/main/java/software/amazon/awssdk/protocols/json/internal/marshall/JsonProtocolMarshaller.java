@@ -241,7 +241,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         // content-type is determined based on the body of the stream
         // TODO: !request.headers().containsKey(CONTENT_TYPE) does not work because request is created from line 77
         // and not from the original request
-        if (!request.headers().containsKey(CONTENT_TYPE) && !hasEvent) {
+        if (!request.firstMatchingHeader(CONTENT_TYPE).isPresent() && !hasEvent) {
             if (hasEventStreamingInput) {
                 AwsJsonProtocol protocol = protocolMetadata.protocol();
                 if (protocol == AwsJsonProtocol.AWS_JSON) {
@@ -254,7 +254,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 }
                 request.removeHeader(CONTENT_LENGTH);
                 request.putHeader(TRANSFER_ENCODING, CHUNKED);
-            } else if (contentType != null && !hasStreamingInput && request.headers().containsKey(CONTENT_LENGTH)) {
+            } else if (contentType != null && !hasStreamingInput && request.firstMatchingHeader(CONTENT_LENGTH).isPresent()) {
                 request.putHeader(CONTENT_TYPE, contentType);
             }
         }

@@ -124,6 +124,21 @@
       ],
       "documentation":"<p>Returns a list of resource metadata for a given list of crawler names. After calling the <code>ListCrawlers</code> operation, you can call this operation to access the data to which you have been granted permissions. This operation supports all IAM permissions, including permission conditions that uses tags.</p>"
     },
+    "BatchGetCustomEntityTypes":{
+      "name":"BatchGetCustomEntityTypes",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"BatchGetCustomEntityTypesRequest"},
+      "output":{"shape":"BatchGetCustomEntityTypesResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"}
+      ],
+      "documentation":"<p>Retrieves the details for the custom patterns specified by a list of names.</p>"
+    },
     "BatchGetDevEndpoints":{
       "name":"BatchGetDevEndpoints",
       "http":{
@@ -251,6 +266,24 @@
       ],
       "documentation":"<p>Cancels (stops) a task run. Machine learning task runs are asynchronous tasks that Glue runs on your behalf as part of various machine learning workflows. You can cancel a machine learning task run at any time by calling <code>CancelMLTaskRun</code> with a task run's parent transform's <code>TransformID</code> and the task run's <code>TaskRunId</code>. </p>"
     },
+    "CancelStatement":{
+      "name":"CancelStatement",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CancelStatementRequest"},
+      "output":{"shape":"CancelStatementResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"IllegalSessionStateException"}
+      ],
+      "documentation":"<p>Cancels the statement..</p>"
+    },
     "CheckSchemaVersionValidity":{
       "name":"CheckSchemaVersionValidity",
       "http":{
@@ -330,6 +363,25 @@
         {"shape":"ResourceNumberLimitExceededException"}
       ],
       "documentation":"<p>Creates a new crawler with specified targets, role, configuration, and optional schedule. At least one crawl target must be specified, in the <code>s3Targets</code> field, the <code>jdbcTargets</code> field, or the <code>DynamoDBTargets</code> field.</p>"
+    },
+    "CreateCustomEntityType":{
+      "name":"CreateCustomEntityType",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateCustomEntityTypeRequest"},
+      "output":{"shape":"CreateCustomEntityTypeResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"AlreadyExistsException"},
+        {"shape":"IdempotentParameterMismatchException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"ResourceNumberLimitExceededException"}
+      ],
+      "documentation":"<p>Creates a custom pattern that is used to detect sensitive data across the columns and rows of your structured data.</p> <p>Each custom pattern you create specifies a regular expression and an optional list of context words. If no context words are passed only a regular expression is checked.</p>"
     },
     "CreateDatabase":{
       "name":"CreateDatabase",
@@ -459,6 +511,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"AlreadyExistsException"},
         {"shape":"ResourceNumberLimitExceededException"},
+        {"shape":"ConcurrentModificationException"},
         {"shape":"InternalServiceException"}
       ],
       "documentation":"<p>Creates a new registry which may be used to hold a collection of schemas.</p>"
@@ -477,6 +530,7 @@
         {"shape":"EntityNotFoundException"},
         {"shape":"AlreadyExistsException"},
         {"shape":"ResourceNumberLimitExceededException"},
+        {"shape":"ConcurrentModificationException"},
         {"shape":"InternalServiceException"}
       ],
       "documentation":"<p>Creates a new schema set and registers the schema definition. Returns an error if the schema set already exists without actually registering the version.</p> <p>When the schema set is created, a version checkpoint will be set to the first version. Compatibility mode \"DISABLED\" restricts any additional schema versions from being added after the first schema version. For all other compatibility modes, validation of compatibility settings will be applied only from the second version onwards when the <code>RegisterSchemaVersion</code> API is used.</p> <p>When this API is called without a <code>RegistryId</code>, this will create an entry for a \"default-registry\" in the registry database tables, if it is not already present.</p>"
@@ -512,6 +566,26 @@
         {"shape":"ResourceNumberLimitExceededException"}
       ],
       "documentation":"<p>Creates a new security configuration. A security configuration is a set of security properties that can be used by Glue. You can use a security configuration to encrypt data at rest. For information about using security configurations in Glue, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html\">Encrypting Data Written by Crawlers, Jobs, and Development Endpoints</a>.</p>"
+    },
+    "CreateSession":{
+      "name":"CreateSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateSessionRequest"},
+      "output":{"shape":"CreateSessionResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"IdempotentParameterMismatchException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"ValidationException"},
+        {"shape":"AlreadyExistsException"},
+        {"shape":"ResourceNumberLimitExceededException"}
+      ],
+      "documentation":"<p>Creates a new session.</p>"
     },
     "CreateTable":{
       "name":"CreateTable",
@@ -683,6 +757,23 @@
         {"shape":"OperationTimeoutException"}
       ],
       "documentation":"<p>Removes a specified crawler from the Glue Data Catalog, unless the crawler state is <code>RUNNING</code>.</p>"
+    },
+    "DeleteCustomEntityType":{
+      "name":"DeleteCustomEntityType",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteCustomEntityTypeRequest"},
+      "output":{"shape":"DeleteCustomEntityTypeResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"}
+      ],
+      "documentation":"<p>Deletes a custom pattern by specifying its name.</p>"
     },
     "DeleteDatabase":{
       "name":"DeleteDatabase",
@@ -862,6 +953,24 @@
         {"shape":"OperationTimeoutException"}
       ],
       "documentation":"<p>Deletes a specified security configuration.</p>"
+    },
+    "DeleteSession":{
+      "name":"DeleteSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteSessionRequest"},
+      "output":{"shape":"DeleteSessionResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"IllegalSessionStateException"},
+        {"shape":"ConcurrentModificationException"}
+      ],
+      "documentation":"<p>Deletes the session.</p>"
     },
     "DeleteTable":{
       "name":"DeleteTable",
@@ -1138,6 +1247,23 @@
         {"shape":"OperationTimeoutException"}
       ],
       "documentation":"<p>Retrieves metadata for all crawlers defined in the customer account.</p>"
+    },
+    "GetCustomEntityType":{
+      "name":"GetCustomEntityType",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetCustomEntityTypeRequest"},
+      "output":{"shape":"GetCustomEntityTypeResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"}
+      ],
+      "documentation":"<p>Retrieves the details of a custom pattern by specifying its name.</p>"
     },
     "GetDataCatalogEncryptionSettings":{
       "name":"GetDataCatalogEncryptionSettings",
@@ -1607,6 +1733,41 @@
       ],
       "documentation":"<p>Retrieves a list of all security configurations.</p>"
     },
+    "GetSession":{
+      "name":"GetSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetSessionRequest"},
+      "output":{"shape":"GetSessionResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InvalidInputException"}
+      ],
+      "documentation":"<p>Retrieves the session.</p>"
+    },
+    "GetStatement":{
+      "name":"GetStatement",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetStatementRequest"},
+      "output":{"shape":"GetStatementResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"IllegalSessionStateException"}
+      ],
+      "documentation":"<p>Retrieves the statement.</p>"
+    },
     "GetTable":{
       "name":"GetTable",
       "http":{
@@ -1723,6 +1884,57 @@
         {"shape":"OperationTimeoutException"}
       ],
       "documentation":"<p>Gets all the triggers associated with a job.</p>"
+    },
+    "GetUnfilteredPartitionMetadata":{
+      "name":"GetUnfilteredPartitionMetadata",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetUnfilteredPartitionMetadataRequest"},
+      "output":{"shape":"GetUnfilteredPartitionMetadataResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"GlueEncryptionException"},
+        {"shape":"PermissionTypeMismatchException"}
+      ]
+    },
+    "GetUnfilteredPartitionsMetadata":{
+      "name":"GetUnfilteredPartitionsMetadata",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetUnfilteredPartitionsMetadataRequest"},
+      "output":{"shape":"GetUnfilteredPartitionsMetadataResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"GlueEncryptionException"},
+        {"shape":"PermissionTypeMismatchException"}
+      ]
+    },
+    "GetUnfilteredTableMetadata":{
+      "name":"GetUnfilteredTableMetadata",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetUnfilteredTableMetadataRequest"},
+      "output":{"shape":"GetUnfilteredTableMetadataResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"GlueEncryptionException"},
+        {"shape":"PermissionTypeMismatchException"}
+      ]
     },
     "GetUserDefinedFunction":{
       "name":"GetUserDefinedFunction",
@@ -1864,6 +2076,21 @@
       ],
       "documentation":"<p>Retrieves the names of all crawler resources in this Amazon Web Services account, or the resources with the specified tag. This operation allows you to see which resources are available in your account, and their names.</p> <p>This operation takes the optional <code>Tags</code> field, which you can use as a filter on the response so that tagged resources can be retrieved as a group. If you choose to use tags filtering, only resources with the tag are retrieved.</p>"
     },
+    "ListCustomEntityTypes":{
+      "name":"ListCustomEntityTypes",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListCustomEntityTypesRequest"},
+      "output":{"shape":"ListCustomEntityTypesResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"}
+      ],
+      "documentation":"<p>Lists all the custom patterns that have been created.</p>"
+    },
     "ListDevEndpoints":{
       "name":"ListDevEndpoints",
       "http":{
@@ -1958,6 +2185,40 @@
         {"shape":"InternalServiceException"}
       ],
       "documentation":"<p>Returns a list of schemas with minimal details. Schemas in Deleting status will not be included in the results. Empty results will be returned if there are no schemas available.</p> <p>When the <code>RegistryId</code> is not provided, all the schemas across registries will be part of the API response.</p>"
+    },
+    "ListSessions":{
+      "name":"ListSessions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListSessionsRequest"},
+      "output":{"shape":"ListSessionsResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"}
+      ],
+      "documentation":"<p>Retrieve a session..</p>"
+    },
+    "ListStatements":{
+      "name":"ListStatements",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListStatementsRequest"},
+      "output":{"shape":"ListStatementsResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"IllegalSessionStateException"}
+      ],
+      "documentation":"<p>Lists statements for the session.</p>"
     },
     "ListTriggers":{
       "name":"ListTriggers",
@@ -2139,6 +2400,26 @@
         {"shape":"IllegalWorkflowStateException"}
       ],
       "documentation":"<p>Restarts selected nodes of a previous partially completed workflow run and resumes the workflow run. The selected nodes and all nodes that are downstream from the selected nodes are run.</p>"
+    },
+    "RunStatement":{
+      "name":"RunStatement",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RunStatementRequest"},
+      "output":{"shape":"RunStatementResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNumberLimitExceededException"},
+        {"shape":"IllegalSessionStateException"}
+      ],
+      "documentation":"<p>Executes the statement.</p>"
     },
     "SearchTables":{
       "name":"SearchTables",
@@ -2358,6 +2639,24 @@
         {"shape":"OperationTimeoutException"}
       ],
       "documentation":"<p>Sets the schedule state of the specified crawler to <code>NOT_SCHEDULED</code>, but does not stop the crawler if it is already running.</p>"
+    },
+    "StopSession":{
+      "name":"StopSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StopSessionRequest"},
+      "output":{"shape":"StopSessionResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"IllegalSessionStateException"},
+        {"shape":"ConcurrentModificationException"}
+      ],
+      "documentation":"<p>Stops the session.</p>"
     },
     "StopTrigger":{
       "name":"StopTrigger",
@@ -2748,6 +3047,11 @@
       "documentation":"<p>Access to a resource was denied.</p>",
       "exception":true
     },
+    "AccountId":{
+      "type":"string",
+      "max":12,
+      "min":0
+    },
     "Action":{
       "type":"structure",
       "members":{
@@ -2799,6 +3103,33 @@
       "exception":true
     },
     "AttemptCount":{"type":"integer"},
+    "AuditColumnNamesList":{
+      "type":"list",
+      "member":{"shape":"ColumnNameString"}
+    },
+    "AuditContext":{
+      "type":"structure",
+      "members":{
+        "AdditionalAuditContext":{
+          "shape":"AuditContextString",
+          "documentation":"<p>The context for the audit..</p>"
+        },
+        "RequestedColumns":{
+          "shape":"AuditColumnNamesList",
+          "documentation":"<p>The requested columns for audit.</p>"
+        },
+        "AllColumnsRequested":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>All columns request for audit.</p>"
+        }
+      },
+      "documentation":"<p>A structure containing information for audit.</p>"
+    },
+    "AuditContextString":{
+      "type":"string",
+      "max":2048,
+      "min":0
+    },
     "BackfillError":{
       "type":"structure",
       "members":{
@@ -3072,6 +3403,29 @@
         "CrawlersNotFound":{
           "shape":"CrawlerNameList",
           "documentation":"<p>A list of names of crawlers that were not found.</p>"
+        }
+      }
+    },
+    "BatchGetCustomEntityTypesRequest":{
+      "type":"structure",
+      "required":["Names"],
+      "members":{
+        "Names":{
+          "shape":"CustomEntityTypeNames",
+          "documentation":"<p>A list of names of the custom patterns that you want to retrieve.</p>"
+        }
+      }
+    },
+    "BatchGetCustomEntityTypesResponse":{
+      "type":"structure",
+      "members":{
+        "CustomEntityTypes":{
+          "shape":"CustomEntityTypes",
+          "documentation":"<p>A list of <code>CustomEntityType</code> objects representing the custom patterns that have been created.</p>"
+        },
+        "CustomEntityTypesNotFound":{
+          "shape":"CustomEntityTypeNames",
+          "documentation":"<p>A list of the names of custom patterns that were not found.</p>"
         }
       }
     },
@@ -3616,6 +3970,32 @@
         }
       }
     },
+    "CancelStatementRequest":{
+      "type":"structure",
+      "required":[
+        "SessionId",
+        "Id"
+      ],
+      "members":{
+        "SessionId":{
+          "shape":"NameString",
+          "documentation":"<p>The Session ID of the statement to be cancelled.</p>"
+        },
+        "Id":{
+          "shape":"IntegerValue",
+          "documentation":"<p>The ID of the statement to be cancelled.</p>"
+        },
+        "RequestOrigin":{
+          "shape":"OrchestrationNameString",
+          "documentation":"<p>The origin of the request to cancel the statement.</p>"
+        }
+      }
+    },
+    "CancelStatementResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "CatalogEncryptionMode":{
       "type":"string",
       "enum":[
@@ -3694,6 +4074,10 @@
         "Tables":{
           "shape":"CatalogTablesList",
           "documentation":"<p>A list of the tables to be synchronized.</p>"
+        },
+        "ConnectionName":{
+          "shape":"ConnectionName",
+          "documentation":"<p>The name of the connection for an Amazon S3-backed Data Catalog table to be a target of the crawl when using a <code>Catalog</code> connection type paired with a <code>NETWORK</code> Connection type.</p>"
         }
       },
       "documentation":"<p>Specifies an Glue Data Catalog target.</p>"
@@ -3711,7 +4095,7 @@
       "members":{
         "DataFormat":{
           "shape":"DataFormat",
-          "documentation":"<p>The data format of the schema definition. Currently <code>AVRO</code> and <code>JSON</code> are supported.</p>"
+          "documentation":"<p>The data format of the schema definition. Currently <code>AVRO</code>, <code>JSON</code> and <code>PROTOBUF</code> are supported.</p>"
         },
         "SchemaDefinition":{
           "shape":"SchemaDefinitionString",
@@ -3940,6 +4324,17 @@
       "max":1024,
       "min":1,
       "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\t]*"
+    },
+    "ColumnRowFilter":{
+      "type":"structure",
+      "members":{
+        "ColumnName":{"shape":"NameString"},
+        "RowFilterExpression":{"shape":"PredicateString"}
+      }
+    },
+    "ColumnRowFilterList":{
+      "type":"list",
+      "member":{"shape":"ColumnRowFilter"}
     },
     "ColumnStatistics":{
       "type":"structure",
@@ -4339,6 +4734,12 @@
       },
       "documentation":"<p>Specifies the connections used by a job.</p>"
     },
+    "ContextWords":{
+      "type":"list",
+      "member":{"shape":"NameString"},
+      "max":20,
+      "min":1
+    },
     "Crawl":{
       "type":"structure",
       "members":{
@@ -4461,6 +4862,10 @@
         "CrawlerSecurityConfiguration":{
           "shape":"CrawlerSecurityConfiguration",
           "documentation":"<p>The name of the <code>SecurityConfiguration</code> structure to be used by this crawler.</p>"
+        },
+        "LakeFormationConfiguration":{
+          "shape":"LakeFormationConfiguration",
+          "documentation":"<p>Specifies whether the crawler should use AWS Lake Formation credentials for the crawler instead of the IAM role credentials.</p>"
         }
       },
       "documentation":"<p>Specifies a crawler program that examines a data source and uses classifiers to try to determine its schema. If successful, the crawler records metadata concerning the data source in the Glue Data Catalog.</p>"
@@ -4603,6 +5008,10 @@
         "CatalogTargets":{
           "shape":"CatalogTargetList",
           "documentation":"<p>Specifies Glue Data Catalog targets.</p>"
+        },
+        "DeltaTargets":{
+          "shape":"DeltaTargetList",
+          "documentation":"<p>Specifies Delta data store targets.</p>"
         }
       },
       "documentation":"<p>Specifies data stores to crawl.</p>"
@@ -4742,6 +5151,7 @@
           "shape":"LineageConfiguration",
           "documentation":"<p>Specifies data lineage configuration settings for the crawler.</p>"
         },
+        "LakeFormationConfiguration":{"shape":"LakeFormationConfiguration"},
         "Configuration":{
           "shape":"CrawlerConfiguration",
           "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html\">Configuring a Crawler</a>.</p>"
@@ -4795,6 +5205,36 @@
         }
       },
       "documentation":"<p>Specifies a custom CSV classifier for <code>CreateClassifier</code> to create.</p>"
+    },
+    "CreateCustomEntityTypeRequest":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "RegexString"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>A name for the custom pattern that allows it to be retrieved or deleted later. This name must be unique per Amazon Web Services account.</p>"
+        },
+        "RegexString":{
+          "shape":"NameString",
+          "documentation":"<p>A regular expression string that is used for detecting sensitive data in a custom pattern.</p>"
+        },
+        "ContextWords":{
+          "shape":"ContextWords",
+          "documentation":"<p>A list of context words. If none of these context words are found within the vicinity of the regular expression the data will not be detected as sensitive data.</p> <p>If no context words are passed only a regular expression is checked.</p>"
+        }
+      }
+    },
+    "CreateCustomEntityTypeResponse":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the custom pattern you created.</p>"
+        }
+      }
     },
     "CreateDatabaseRequest":{
       "type":"structure",
@@ -5297,7 +5737,7 @@
         },
         "DataFormat":{
           "shape":"DataFormat",
-          "documentation":"<p>The data format of the schema definition. Currently <code>AVRO</code> and <code>JSON</code> are supported.</p>"
+          "documentation":"<p>The data format of the schema definition. Currently <code>AVRO</code>, <code>JSON</code> and <code>PROTOBUF</code> are supported.</p>"
         },
         "Compatibility":{
           "shape":"Compatibility",
@@ -5342,7 +5782,7 @@
         },
         "DataFormat":{
           "shape":"DataFormat",
-          "documentation":"<p>The data format of the schema definition. Currently <code>AVRO</code> and <code>JSON</code> are supported.</p>"
+          "documentation":"<p>The data format of the schema definition. Currently <code>AVRO</code>, <code>JSON</code> and <code>PROTOBUF</code> are supported.</p>"
         },
         "Compatibility":{
           "shape":"Compatibility",
@@ -5435,6 +5875,86 @@
         "CreatedTimestamp":{
           "shape":"TimestampValue",
           "documentation":"<p>The time at which the new security configuration was created.</p>"
+        }
+      }
+    },
+    "CreateSessionRequest":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "Role",
+        "Command"
+      ],
+      "members":{
+        "Id":{
+          "shape":"NameString",
+          "documentation":"<p>The ID of the session request. </p>"
+        },
+        "Description":{
+          "shape":"DescriptionString",
+          "documentation":"<p>The description of the session. </p>"
+        },
+        "Role":{
+          "shape":"OrchestrationRoleArn",
+          "documentation":"<p>The IAM Role ARN </p>"
+        },
+        "Command":{
+          "shape":"SessionCommand",
+          "documentation":"<p>The <code>SessionCommand</code> that runs the job. </p>"
+        },
+        "Timeout":{
+          "shape":"Timeout",
+          "documentation":"<p>The number of seconds before request times out. </p>"
+        },
+        "IdleTimeout":{
+          "shape":"Timeout",
+          "documentation":"<p>The number of seconds when idle before request times out. </p>"
+        },
+        "DefaultArguments":{
+          "shape":"OrchestrationArgumentsMap",
+          "documentation":"<p>A map array of key-value pairs. Max is 75 pairs. </p>"
+        },
+        "Connections":{
+          "shape":"ConnectionsList",
+          "documentation":"<p>The number of connections to use for the session. </p>"
+        },
+        "MaxCapacity":{
+          "shape":"NullableDouble",
+          "documentation":"<p>The number of AWS Glue data processing units (DPUs) that can be allocated when the job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB memory. </p>"
+        },
+        "NumberOfWorkers":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The number of workers to use for the session. </p>"
+        },
+        "WorkerType":{
+          "shape":"WorkerType",
+          "documentation":"<p>The Worker Type. Can be one of G.1X, G.2X, Standard </p>"
+        },
+        "SecurityConfiguration":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the SecurityConfiguration structure to be used with the session </p>"
+        },
+        "GlueVersion":{
+          "shape":"GlueVersionString",
+          "documentation":"<p>The Glue version determines the versions of Apache Spark and Python that AWS Glue supports. The GlueVersion must be greater than 2.0. </p>"
+        },
+        "Tags":{
+          "shape":"TagsMap",
+          "documentation":"<p>The map of key value pairs (tags) belonging to the session.</p>"
+        },
+        "RequestOrigin":{
+          "shape":"OrchestrationNameString",
+          "documentation":"<p>The origin of the request. </p>"
+        }
+      },
+      "documentation":"<p>Request to create a new session.</p>"
+    },
+    "CreateSessionResponse":{
+      "type":"structure",
+      "members":{
+        "Session":{
+          "shape":"Session",
+          "documentation":"<p>Returns the session object in the response.</p>"
         }
       }
     },
@@ -5687,6 +6207,38 @@
       "min":1,
       "pattern":"[^\\r\\n]"
     },
+    "CustomEntityType":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "RegexString"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>A name for the custom pattern that allows it to be retrieved or deleted later. This name must be unique per Amazon Web Services account.</p>"
+        },
+        "RegexString":{
+          "shape":"NameString",
+          "documentation":"<p>A regular expression string that is used for detecting sensitive data in a custom pattern.</p>"
+        },
+        "ContextWords":{
+          "shape":"ContextWords",
+          "documentation":"<p>A list of context words. If none of these context words are found within the vicinity of the regular expression the data will not be detected as sensitive data.</p> <p>If no context words are passed only a regular expression is checked.</p>"
+        }
+      },
+      "documentation":"<p>An object representing a custom pattern for detecting sensitive data across the columns and rows of your structured data.</p>"
+    },
+    "CustomEntityTypeNames":{
+      "type":"list",
+      "member":{"shape":"NameString"},
+      "max":50,
+      "min":1
+    },
+    "CustomEntityTypes":{
+      "type":"list",
+      "member":{"shape":"CustomEntityType"}
+    },
     "CustomPatterns":{
       "type":"string",
       "max":16000,
@@ -5719,7 +6271,8 @@
       "type":"string",
       "enum":[
         "AVRO",
-        "JSON"
+        "JSON",
+        "PROTOBUF"
       ]
     },
     "DataLakePrincipal":{
@@ -6045,6 +6598,25 @@
       "members":{
       }
     },
+    "DeleteCustomEntityTypeRequest":{
+      "type":"structure",
+      "required":["Name"],
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the custom pattern that you want to delete.</p>"
+        }
+      }
+    },
+    "DeleteCustomEntityTypeResponse":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the custom pattern you deleted.</p>"
+        }
+      }
+    },
     "DeleteDatabaseRequest":{
       "type":"structure",
       "required":["Name"],
@@ -6292,6 +6864,29 @@
       "members":{
       }
     },
+    "DeleteSessionRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"NameString",
+          "documentation":"<p>The ID of the session to be deleted.</p>"
+        },
+        "RequestOrigin":{
+          "shape":"OrchestrationNameString",
+          "documentation":"<p>The name of the origin of the delete session request.</p>"
+        }
+      }
+    },
+    "DeleteSessionResponse":{
+      "type":"structure",
+      "members":{
+        "Id":{
+          "shape":"NameString",
+          "documentation":"<p>Returns the ID of the deleted session.</p>"
+        }
+      }
+    },
     "DeleteTableRequest":{
       "type":"structure",
       "required":[
@@ -6416,6 +7011,28 @@
           "documentation":"<p>Name of the workflow specified in input.</p>"
         }
       }
+    },
+    "DeltaTarget":{
+      "type":"structure",
+      "members":{
+        "DeltaTables":{
+          "shape":"PathList",
+          "documentation":"<p>A list of the Amazon S3 paths to the Delta tables.</p>"
+        },
+        "ConnectionName":{
+          "shape":"ConnectionName",
+          "documentation":"<p>The name of the connection to use to connect to the Delta table target.</p>"
+        },
+        "WriteManifest":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Specifies whether to write the manifest files to the Delta table path.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a Delta data store to crawl one or more Delta tables.</p>"
+    },
+    "DeltaTargetList":{
+      "type":"list",
+      "member":{"shape":"DeltaTarget"}
     },
     "DescriptionString":{
       "type":"string",
@@ -6590,6 +7207,7 @@
       },
       "documentation":"<p>Defines column statistics supported for floating-point number data columns.</p>"
     },
+    "DoubleValue":{"type":"double"},
     "DynamoDBTarget":{
       "type":"structure",
       "members":{
@@ -7263,6 +7881,33 @@
         "NextToken":{
           "shape":"Token",
           "documentation":"<p>A continuation token, if the returned list has not reached the end of those defined in this customer account.</p>"
+        }
+      }
+    },
+    "GetCustomEntityTypeRequest":{
+      "type":"structure",
+      "required":["Name"],
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the custom pattern that you want to retrieve.</p>"
+        }
+      }
+    },
+    "GetCustomEntityTypeResponse":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the custom pattern that you retrieved.</p>"
+        },
+        "RegexString":{
+          "shape":"NameString",
+          "documentation":"<p>A regular expression string that is used for detecting sensitive data in a custom pattern.</p>"
+        },
+        "ContextWords":{
+          "shape":"ContextWords",
+          "documentation":"<p>A list of context words if specified when you created the custom pattern. If none of these context words are found within the vicinity of the regular expression the data will not be detected as sensitive data.</p>"
         }
       }
     },
@@ -8103,7 +8748,7 @@
         },
         "DataFormat":{
           "shape":"DataFormat",
-          "documentation":"<p>The data format of the schema definition. Currently only <code>AVRO</code> and <code>JSON</code> are supported.</p>"
+          "documentation":"<p>The data format of the schema definition. Currently <code>AVRO</code>, <code>JSON</code> and <code>PROTOBUF</code> are supported.</p>"
         },
         "Status":{
           "shape":"SchemaVersionStatus",
@@ -8150,7 +8795,7 @@
         },
         "DataFormat":{
           "shape":"DataFormat",
-          "documentation":"<p>The data format of the schema definition. Currently <code>AVRO</code> and <code>JSON</code> are supported.</p>"
+          "documentation":"<p>The data format of the schema definition. Currently <code>AVRO</code>, <code>JSON</code> and <code>PROTOBUF</code> are supported.</p>"
         },
         "Compatibility":{
           "shape":"Compatibility",
@@ -8212,7 +8857,7 @@
         },
         "DataFormat":{
           "shape":"DataFormat",
-          "documentation":"<p>The data format of the schema definition. Currently <code>AVRO</code> and <code>JSON</code> are supported.</p>"
+          "documentation":"<p>The data format of the schema definition. Currently <code>AVRO</code>, <code>JSON</code> and <code>PROTOBUF</code> are supported.</p>"
         },
         "SchemaArn":{
           "shape":"GlueResourceArn",
@@ -8310,6 +8955,59 @@
         "NextToken":{
           "shape":"GenericString",
           "documentation":"<p>A continuation token, if there are more security configurations to return.</p>"
+        }
+      }
+    },
+    "GetSessionRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"NameString",
+          "documentation":"<p>The ID of the session. </p>"
+        },
+        "RequestOrigin":{
+          "shape":"OrchestrationNameString",
+          "documentation":"<p>The origin of the request. </p>"
+        }
+      }
+    },
+    "GetSessionResponse":{
+      "type":"structure",
+      "members":{
+        "Session":{
+          "shape":"Session",
+          "documentation":"<p>The session object is returned in the response.</p>"
+        }
+      }
+    },
+    "GetStatementRequest":{
+      "type":"structure",
+      "required":[
+        "SessionId",
+        "Id"
+      ],
+      "members":{
+        "SessionId":{
+          "shape":"NameString",
+          "documentation":"<p>The Session ID of the statement.</p>"
+        },
+        "Id":{
+          "shape":"IntegerValue",
+          "documentation":"<p>The Id of the statement.</p>"
+        },
+        "RequestOrigin":{
+          "shape":"OrchestrationNameString",
+          "documentation":"<p>The origin of the request.</p>"
+        }
+      }
+    },
+    "GetStatementResponse":{
+      "type":"structure",
+      "members":{
+        "Statement":{
+          "shape":"Statement",
+          "documentation":"<p>Returns the statement.</p>"
         }
       }
     },
@@ -8546,6 +9244,84 @@
         }
       }
     },
+    "GetUnfilteredPartitionMetadataRequest":{
+      "type":"structure",
+      "required":[
+        "CatalogId",
+        "DatabaseName",
+        "TableName",
+        "PartitionValues",
+        "SupportedPermissionTypes"
+      ],
+      "members":{
+        "CatalogId":{"shape":"CatalogIdString"},
+        "DatabaseName":{"shape":"NameString"},
+        "TableName":{"shape":"NameString"},
+        "PartitionValues":{"shape":"ValueStringList"},
+        "AuditContext":{"shape":"AuditContext"},
+        "SupportedPermissionTypes":{"shape":"PermissionTypeList"}
+      }
+    },
+    "GetUnfilteredPartitionMetadataResponse":{
+      "type":"structure",
+      "members":{
+        "Partition":{"shape":"Partition"},
+        "AuthorizedColumns":{"shape":"NameStringList"},
+        "IsRegisteredWithLakeFormation":{"shape":"Boolean"}
+      }
+    },
+    "GetUnfilteredPartitionsMetadataRequest":{
+      "type":"structure",
+      "required":[
+        "CatalogId",
+        "DatabaseName",
+        "TableName",
+        "SupportedPermissionTypes"
+      ],
+      "members":{
+        "CatalogId":{"shape":"CatalogIdString"},
+        "DatabaseName":{"shape":"NameString"},
+        "TableName":{"shape":"NameString"},
+        "Expression":{"shape":"PredicateString"},
+        "AuditContext":{"shape":"AuditContext"},
+        "SupportedPermissionTypes":{"shape":"PermissionTypeList"},
+        "NextToken":{"shape":"Token"},
+        "Segment":{"shape":"Segment"},
+        "MaxResults":{"shape":"PageSize"}
+      }
+    },
+    "GetUnfilteredPartitionsMetadataResponse":{
+      "type":"structure",
+      "members":{
+        "UnfilteredPartitions":{"shape":"UnfilteredPartitionList"},
+        "NextToken":{"shape":"Token"}
+      }
+    },
+    "GetUnfilteredTableMetadataRequest":{
+      "type":"structure",
+      "required":[
+        "CatalogId",
+        "DatabaseName",
+        "Name",
+        "SupportedPermissionTypes"
+      ],
+      "members":{
+        "CatalogId":{"shape":"CatalogIdString"},
+        "DatabaseName":{"shape":"NameString"},
+        "Name":{"shape":"NameString"},
+        "AuditContext":{"shape":"AuditContext"},
+        "SupportedPermissionTypes":{"shape":"PermissionTypeList"}
+      }
+    },
+    "GetUnfilteredTableMetadataResponse":{
+      "type":"structure",
+      "members":{
+        "Table":{"shape":"Table"},
+        "AuthorizedColumns":{"shape":"NameStringList"},
+        "IsRegisteredWithLakeFormation":{"shape":"Boolean"},
+        "CellFilters":{"shape":"ColumnRowFilterList"}
+      }
+    },
     "GetUserDefinedFunctionRequest":{
       "type":"structure",
       "required":[
@@ -8734,7 +9510,7 @@
       "members":{
         "Message":{
           "shape":"MessageString",
-          "documentation":"<p>A message describing the problem.</p>"
+          "documentation":"<p>The message describing the problem.</p>"
         }
       },
       "documentation":"<p>An encryption operation failed.</p>",
@@ -8766,7 +9542,7 @@
       "type":"string",
       "max":10240,
       "min":1,
-      "pattern":"arn:aws:glue:.*"
+      "pattern":"arn:(aws|aws-us-gov|aws-cn):glue:.*"
     },
     "GlueTable":{
       "type":"structure",
@@ -8879,6 +9655,17 @@
       "members":{
         "Message":{"shape":"MessageString"}
       },
+      "exception":true
+    },
+    "IllegalSessionStateException":{
+      "type":"structure",
+      "members":{
+        "Message":{
+          "shape":"MessageString",
+          "documentation":"<p>A message describing the problem.</p>"
+        }
+      },
+      "documentation":"<p>The session is in an invalid state to perform a requested operation.</p>",
       "exception":true
     },
     "IllegalWorkflowStateException":{
@@ -9256,6 +10043,10 @@
         "GlueVersion":{
           "shape":"GlueVersionString",
           "documentation":"<p>Glue version determines the versions of Apache Spark and Python that Glue supports. The Python version indicates the version supported for jobs of type Spark. </p> <p>For more information about the available Glue versions and corresponding Spark and Python versions, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-job.html\">Glue version</a> in the developer guide.</p> <p>Jobs that are created without specifying a Glue version default to Glue 0.9.</p>"
+        },
+        "DPUSeconds":{
+          "shape":"NullableDouble",
+          "documentation":"<p>This field populates only when an Auto Scaling job run completes, and represents the total time each executor ran during the lifecycle of a job run in seconds, multiplied by a DPU factor (1 for <code>G.1X</code> and 2 for <code>G.2X</code> workers). This value may be different than the <code>executionEngineRuntime</code> * <code>MaxCapacity</code> as in the case of Auto Scaling jobs, as the number of executors running at a given time may be less than the <code>MaxCapacity</code>. Therefore, it is possible that the value of <code>DPUSeconds</code> is less than <code>executionEngineRuntime</code> * <code>MaxCapacity</code>.</p>"
         }
       },
       "documentation":"<p>Contains information about a job run.</p>"
@@ -9433,6 +10224,20 @@
       },
       "documentation":"<p>Specifies configuration properties for a labeling set generation task run.</p>"
     },
+    "LakeFormationConfiguration":{
+      "type":"structure",
+      "members":{
+        "UseLakeFormationCredentials":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Specifies whether to use AWS Lake Formation credentials for the crawler instead of the IAM role credentials.</p>"
+        },
+        "AccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>Required for cross account crawls. For same account crawls as the target data, this can be left as null.</p>"
+        }
+      },
+      "documentation":"<p>Specifies AWS Lake Formation configuration settings for the crawler.</p>"
+    },
     "Language":{
       "type":"string",
       "enum":[
@@ -9572,6 +10377,32 @@
         "NextToken":{
           "shape":"Token",
           "documentation":"<p>A continuation token, if the returned list does not contain the last metric available.</p>"
+        }
+      }
+    },
+    "ListCustomEntityTypesRequest":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>A paginated token to offset the results.</p>"
+        },
+        "MaxResults":{
+          "shape":"PageSize",
+          "documentation":"<p>The maximum number of results to return.</p>"
+        }
+      }
+    },
+    "ListCustomEntityTypesResponse":{
+      "type":"structure",
+      "members":{
+        "CustomEntityTypes":{
+          "shape":"CustomEntityTypes",
+          "documentation":"<p>A list of <code>CustomEntityType</code> objects representing custom patterns.</p>"
+        },
+        "NextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>A pagination token, if more results are available.</p>"
         }
       }
     },
@@ -9761,6 +10592,69 @@
         }
       }
     },
+    "ListSessionsRequest":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"OrchestrationToken",
+          "documentation":"<p>The token for the next set of results, or null if there are no more result. </p>"
+        },
+        "MaxResults":{
+          "shape":"PageSize",
+          "documentation":"<p>The maximum number of results. </p>"
+        },
+        "Tags":{
+          "shape":"TagsMap",
+          "documentation":"<p>Tags belonging to the session. </p>"
+        },
+        "RequestOrigin":{
+          "shape":"OrchestrationNameString",
+          "documentation":"<p>The origin of the request. </p>"
+        }
+      }
+    },
+    "ListSessionsResponse":{
+      "type":"structure",
+      "members":{
+        "Ids":{
+          "shape":"SessionIdList",
+          "documentation":"<p>Returns the Id of the session. </p>"
+        },
+        "Sessions":{
+          "shape":"SessionList",
+          "documentation":"<p>Returns the session object. </p>"
+        },
+        "NextToken":{
+          "shape":"OrchestrationToken",
+          "documentation":"<p>The token for the next set of results, or null if there are no more result. </p>"
+        }
+      }
+    },
+    "ListStatementsRequest":{
+      "type":"structure",
+      "required":["SessionId"],
+      "members":{
+        "SessionId":{
+          "shape":"NameString",
+          "documentation":"<p>The Session ID of the statements.</p>"
+        },
+        "RequestOrigin":{
+          "shape":"OrchestrationNameString",
+          "documentation":"<p>The origin of the request to list statements.</p>"
+        },
+        "NextToken":{"shape":"OrchestrationToken"}
+      }
+    },
+    "ListStatementsResponse":{
+      "type":"structure",
+      "members":{
+        "Statements":{
+          "shape":"StatementList",
+          "documentation":"<p>Returns the list of statements.</p>"
+        },
+        "NextToken":{"shape":"OrchestrationToken"}
+      }
+    },
     "ListTriggersRequest":{
       "type":"structure",
       "members":{
@@ -9849,6 +10743,10 @@
       "max":2056,
       "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
     },
+    "LocationStringList":{
+      "type":"list",
+      "member":{"shape":"LocationString"}
+    },
     "LogGroup":{
       "type":"string",
       "max":512,
@@ -9899,6 +10797,7 @@
       },
       "documentation":"<p>Defines column statistics supported for integer data columns.</p>"
     },
+    "LongValue":{"type":"long"},
     "MLTransform":{
       "type":"structure",
       "members":{
@@ -10269,6 +11168,19 @@
       "documentation":"<p>The operation timed out.</p>",
       "exception":true
     },
+    "OrchestrationArgumentsMap":{
+      "type":"map",
+      "key":{"shape":"OrchestrationNameString"},
+      "value":{"shape":"OrchestrationArgumentsValue"},
+      "max":75,
+      "min":0
+    },
+    "OrchestrationArgumentsValue":{
+      "type":"string",
+      "max":4096,
+      "min":0,
+      "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
+    },
     "OrchestrationIAMRoleArn":{
       "type":"string",
       "max":1024,
@@ -10281,15 +11193,29 @@
       "min":1,
       "pattern":"[\\.\\-_A-Za-z0-9]+"
     },
+    "OrchestrationRoleArn":{
+      "type":"string",
+      "max":2048,
+      "min":20,
+      "pattern":"arn:aws[^:]*:iam::[0-9]*:role/.+"
+    },
     "OrchestrationS3Location":{
       "type":"string",
       "max":8192,
       "min":1,
       "pattern":"^s3://([^/]+)/([^/]+/)*([^/]+)$"
     },
+    "OrchestrationStatementCodeString":{
+      "type":"string",
+      "max":68000
+    },
     "OrchestrationStringList":{
       "type":"list",
       "member":{"shape":"GenericString"}
+    },
+    "OrchestrationToken":{
+      "type":"string",
+      "max":400000
     },
     "Order":{
       "type":"structure",
@@ -10540,6 +11466,26 @@
       "type":"list",
       "member":{"shape":"Permission"}
     },
+    "PermissionType":{
+      "type":"string",
+      "enum":[
+        "COLUMN_PERMISSION",
+        "CELL_FILTER_PERMISSION"
+      ]
+    },
+    "PermissionTypeList":{
+      "type":"list",
+      "member":{"shape":"PermissionType"},
+      "max":255,
+      "min":1
+    },
+    "PermissionTypeMismatchException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"MessageString"}
+      },
+      "exception":true
+    },
     "PhysicalConnectionRequirements":{
       "type":"structure",
       "members":{
@@ -10560,7 +11506,6 @@
     },
     "PolicyJsonString":{
       "type":"string",
-      "max":10240,
       "min":2
     },
     "Predecessor":{
@@ -11140,6 +12085,36 @@
     "RoleString":{"type":"string"},
     "RowTag":{"type":"string"},
     "RunId":{"type":"string"},
+    "RunStatementRequest":{
+      "type":"structure",
+      "required":[
+        "SessionId",
+        "Code"
+      ],
+      "members":{
+        "SessionId":{
+          "shape":"NameString",
+          "documentation":"<p>The Session Id of the statement to be run.</p>"
+        },
+        "Code":{
+          "shape":"OrchestrationStatementCodeString",
+          "documentation":"<p>The statement code to be run.</p>"
+        },
+        "RequestOrigin":{
+          "shape":"OrchestrationNameString",
+          "documentation":"<p>The origin of the request.</p>"
+        }
+      }
+    },
+    "RunStatementResponse":{
+      "type":"structure",
+      "members":{
+        "Id":{
+          "shape":"IntegerValue",
+          "documentation":"<p>Returns the Id of the statement that was run.</p>"
+        }
+      }
+    },
     "S3Encryption":{
       "type":"structure",
       "members":{
@@ -11478,7 +12453,10 @@
         "DELETING"
       ]
     },
-    "ScriptLocationString":{"type":"string"},
+    "ScriptLocationString":{
+      "type":"string",
+      "max":400000
+    },
     "SearchPropertyPredicates":{
       "type":"list",
       "member":{"shape":"PropertyPredicate"}
@@ -11592,6 +12570,97 @@
         }
       },
       "documentation":"<p>Information about a serialization/deserialization program (SerDe) that serves as an extractor and loader.</p>"
+    },
+    "Session":{
+      "type":"structure",
+      "members":{
+        "Id":{
+          "shape":"NameString",
+          "documentation":"<p>The ID of the session.</p>"
+        },
+        "CreatedOn":{
+          "shape":"TimestampValue",
+          "documentation":"<p>The time and date when the session was created.</p>"
+        },
+        "Status":{
+          "shape":"SessionStatus",
+          "documentation":"<p>The session status. </p>"
+        },
+        "ErrorMessage":{
+          "shape":"DescriptionString",
+          "documentation":"<p>The error message displayed during the session.</p>"
+        },
+        "Description":{
+          "shape":"DescriptionString",
+          "documentation":"<p>The description of the session.</p>"
+        },
+        "Role":{
+          "shape":"OrchestrationRoleArn",
+          "documentation":"<p>The name or Amazon Resource Name (ARN) of the IAM role associated with the Session.</p>"
+        },
+        "Command":{
+          "shape":"SessionCommand",
+          "documentation":"<p>The command object.See SessionCommand.</p>"
+        },
+        "DefaultArguments":{
+          "shape":"OrchestrationArgumentsMap",
+          "documentation":"<p>A map array of key-value pairs. Max is 75 pairs. </p>"
+        },
+        "Connections":{
+          "shape":"ConnectionsList",
+          "documentation":"<p>The number of connections used for the session.</p>"
+        },
+        "Progress":{
+          "shape":"DoubleValue",
+          "documentation":"<p>The code execution progress of the session.</p>"
+        },
+        "MaxCapacity":{
+          "shape":"NullableDouble",
+          "documentation":"<p>The number of AWS Glue data processing units (DPUs) that can be allocated when the job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB memory. </p>"
+        },
+        "SecurityConfiguration":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the SecurityConfiguration structure to be used with the session.</p>"
+        },
+        "GlueVersion":{
+          "shape":"GlueVersionString",
+          "documentation":"<p>The Glue version determines the versions of Apache Spark and Python that AWS Glue supports. The GlueVersion must be greater than 2.0.</p>"
+        }
+      },
+      "documentation":"<p>The period in which a remote Spark runtime environment is running.</p>"
+    },
+    "SessionCommand":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>Specifies the name of the SessionCommand.Can be 'glueetl' or 'gluestreaming'.</p>"
+        },
+        "PythonVersion":{
+          "shape":"PythonVersionString",
+          "documentation":"<p>Specifies the Python version. The Python version indicates the version supported for jobs of type Spark.</p>"
+        }
+      },
+      "documentation":"<p>The <code>SessionCommand</code> that runs the job.</p>"
+    },
+    "SessionIdList":{
+      "type":"list",
+      "member":{"shape":"NameString"}
+    },
+    "SessionList":{
+      "type":"list",
+      "member":{"shape":"Session"}
+    },
+    "SessionStatus":{
+      "type":"string",
+      "enum":[
+        "PROVISIONING",
+        "READY",
+        "FAILED",
+        "TIMEOUT",
+        "STOPPING",
+        "STOPPED"
+      ]
     },
     "SkewedInfo":{
       "type":"structure",
@@ -11889,6 +12958,10 @@
         "Name":{
           "shape":"NameString",
           "documentation":"<p>The name of the workflow to start.</p>"
+        },
+        "RunProperties":{
+          "shape":"WorkflowRunProperties",
+          "documentation":"<p>The workflow run properties for the new workflow run.</p>"
         }
       }
     },
@@ -11914,6 +12987,95 @@
         }
       },
       "documentation":"<p>The batch condition that started the workflow run. Either the number of events in the batch size arrived, in which case the BatchSize member is non-zero, or the batch window expired, in which case the BatchWindow member is non-zero.</p>"
+    },
+    "Statement":{
+      "type":"structure",
+      "members":{
+        "Id":{
+          "shape":"IntegerValue",
+          "documentation":"<p>The ID of the statement.</p>"
+        },
+        "Code":{
+          "shape":"GenericString",
+          "documentation":"<p>The execution code of the statement.</p>"
+        },
+        "State":{
+          "shape":"StatementState",
+          "documentation":"<p>The state while request is actioned.</p>"
+        },
+        "Output":{
+          "shape":"StatementOutput",
+          "documentation":"<p>The output in JSON.</p>"
+        },
+        "Progress":{
+          "shape":"DoubleValue",
+          "documentation":"<p>The code execution progress.</p>"
+        },
+        "StartedOn":{
+          "shape":"LongValue",
+          "documentation":"<p>The unix time and date that the job definition was started.</p>"
+        },
+        "CompletedOn":{
+          "shape":"LongValue",
+          "documentation":"<p>The unix time and date that the job definition was completed.</p>"
+        }
+      },
+      "documentation":"<p>The statement or request for a particular action to occur in a session.</p>"
+    },
+    "StatementList":{
+      "type":"list",
+      "member":{"shape":"Statement"}
+    },
+    "StatementOutput":{
+      "type":"structure",
+      "members":{
+        "Data":{
+          "shape":"StatementOutputData",
+          "documentation":"<p>The code execution output.</p>"
+        },
+        "ExecutionCount":{
+          "shape":"IntegerValue",
+          "documentation":"<p>The execution count of the output.</p>"
+        },
+        "Status":{
+          "shape":"StatementState",
+          "documentation":"<p>The status of the code execution output.</p>"
+        },
+        "ErrorName":{
+          "shape":"GenericString",
+          "documentation":"<p>The name of the error in the output.</p>"
+        },
+        "ErrorValue":{
+          "shape":"GenericString",
+          "documentation":"<p>The error value of the output.</p>"
+        },
+        "Traceback":{
+          "shape":"OrchestrationStringList",
+          "documentation":"<p>The traceback of the output.</p>"
+        }
+      },
+      "documentation":"<p>The code execution output in JSON format.</p>"
+    },
+    "StatementOutputData":{
+      "type":"structure",
+      "members":{
+        "TextPlain":{
+          "shape":"GenericString",
+          "documentation":"<p>The code execution output in text format.</p>"
+        }
+      },
+      "documentation":"<p>The code execution output in JSON format.</p>"
+    },
+    "StatementState":{
+      "type":"string",
+      "enum":[
+        "WAITING",
+        "RUNNING",
+        "AVAILABLE",
+        "CANCELLING",
+        "CANCELLED",
+        "ERROR"
+      ]
     },
     "StopCrawlerRequest":{
       "type":"structure",
@@ -11943,6 +13105,29 @@
     "StopCrawlerScheduleResponse":{
       "type":"structure",
       "members":{
+      }
+    },
+    "StopSessionRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"NameString",
+          "documentation":"<p>The ID of the session to be stopped.</p>"
+        },
+        "RequestOrigin":{
+          "shape":"OrchestrationNameString",
+          "documentation":"<p>The origin of the request.</p>"
+        }
+      }
+    },
+    "StopSessionResponse":{
+      "type":"structure",
+      "members":{
+        "Id":{
+          "shape":"NameString",
+          "documentation":"<p>Returns the Id of the stopped session.</p>"
+        }
       }
     },
     "StopTriggerRequest":{
@@ -11997,6 +13182,7 @@
           "shape":"LocationString",
           "documentation":"<p>The physical location of the table. By default, this takes the form of the warehouse location, followed by the database location in the warehouse, followed by the table name.</p>"
         },
+        "AdditionalLocations":{"shape":"LocationStringList"},
         "InputFormat":{
           "shape":"FormatString",
           "documentation":"<p>The input format: <code>SequenceFileInputFormat</code> (binary), or <code>TextInputFormat</code>, or a custom format.</p>"
@@ -12155,7 +13341,8 @@
         "CatalogId":{
           "shape":"CatalogIdString",
           "documentation":"<p>The ID of the Data Catalog in which the table resides.</p>"
-        }
+        },
+        "VersionId":{"shape":"VersionString"}
       },
       "documentation":"<p>Represents a collection of related data organized in columns and rows.</p>"
     },
@@ -12766,6 +13953,18 @@
       "min":1,
       "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
     },
+    "UnfilteredPartition":{
+      "type":"structure",
+      "members":{
+        "Partition":{"shape":"Partition"},
+        "AuthorizedColumns":{"shape":"NameStringList"},
+        "IsRegisteredWithLakeFormation":{"shape":"Boolean"}
+      }
+    },
+    "UnfilteredPartitionList":{
+      "type":"list",
+      "member":{"shape":"UnfilteredPartition"}
+    },
     "UntagResourceRequest":{
       "type":"structure",
       "required":[
@@ -13006,6 +14205,7 @@
           "shape":"LineageConfiguration",
           "documentation":"<p>Specifies data lineage configuration settings for the crawler.</p>"
         },
+        "LakeFormationConfiguration":{"shape":"LakeFormationConfiguration"},
         "Configuration":{
           "shape":"CrawlerConfiguration",
           "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html\">Configuring a Crawler</a>.</p>"
@@ -13398,7 +14598,8 @@
         "TransactionId":{
           "shape":"TransactionIdString",
           "documentation":"<p>The transaction ID at which to update the table contents. </p>"
-        }
+        },
+        "VersionId":{"shape":"VersionString"}
       }
     },
     "UpdateTableResponse":{

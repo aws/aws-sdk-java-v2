@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.runtime.transform;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpFullRequest;

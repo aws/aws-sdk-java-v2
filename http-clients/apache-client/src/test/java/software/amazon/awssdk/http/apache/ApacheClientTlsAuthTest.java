@@ -25,6 +25,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE;
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE_PASSWORD;
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE_TYPE;
+
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.io.IOException;
 import java.net.SocketException;

@@ -18,6 +18,7 @@ package software.amazon.awssdk.awscore.exception;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.StringJoiner;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.internal.AwsErrorCode;
 import software.amazon.awssdk.awscore.internal.AwsStatusCode;
@@ -62,11 +63,14 @@ public class AwsServiceException extends SdkServiceException {
     @Override
     public String getMessage() {
         if (awsErrorDetails != null) {
-            return awsErrorDetails().errorMessage() +
-                    " (Service: " + awsErrorDetails().serviceName() +
-                    ", Status Code: " + statusCode() +
-                    ", Request ID: " + requestId() +
-                    ", Extended Request ID: " + extendedRequestId() + ")";
+            StringJoiner details = new StringJoiner(", ", "(", ")");
+            details.add("Service: " + awsErrorDetails().serviceName());
+            details.add("Status Code: " + statusCode());
+            details.add("Request ID: " + requestId());
+            if (extendedRequestId() != null) {
+                details.add("Extended Request ID: " + extendedRequestId());
+            }
+            return awsErrorDetails().errorMessage() + " " + details;
         }
 
         return super.getMessage();

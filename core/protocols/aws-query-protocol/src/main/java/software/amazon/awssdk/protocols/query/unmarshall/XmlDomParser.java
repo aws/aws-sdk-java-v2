@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.protocols.query.unmarshall;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -27,6 +28,7 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.utils.LookaheadInputStream;
 
 /**
  * Parses an XML document into a simple DOM like structure, {@link XmlElement}.
@@ -40,15 +42,20 @@ public final class XmlDomParser {
     }
 
     public static XmlElement parse(InputStream inputStream) {
+        LookaheadInputStream stream = new LookaheadInputStream(inputStream);
         try {
-            XMLEventReader reader = FACTORY.get().createXMLEventReader(inputStream);
+            if (stream.peek() == -1) {
+                return XmlElement.empty();
+            }
+
+            XMLEventReader reader = FACTORY.get().createXMLEventReader(stream);
             XMLEvent nextEvent;
             // Skip ahead to the first start element
             do {
                 nextEvent = reader.nextEvent();
             } while (reader.hasNext() && !nextEvent.isStartElement());
             return parseElement(nextEvent.asStartElement(), reader);
-        } catch (XMLStreamException e) {
+        } catch (IOException | XMLStreamException e) {
             throw SdkClientException.create("Could not parse XML response.", e);
         }
     }

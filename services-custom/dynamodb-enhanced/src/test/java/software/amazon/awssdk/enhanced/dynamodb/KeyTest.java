@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;

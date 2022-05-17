@@ -21,14 +21,14 @@ import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.Conv
 
 import java.nio.ByteBuffer;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ByteArrayAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ByteBufferAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.SdkBytesAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.SetAttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ByteBufferAttributeConverter;
 
 public class BinaryAttributeConvertersTest {
     @Test

@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.AtomicCounterTag;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTa
  * characteristics or features, such as primary or secondary keys in your {@link StaticTableSchema} definitions.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class StaticAttributeTags {
     private static final StaticAttributeTag PRIMARY_PARTITION_KEY_SINGLETON =
         new KeyAttributeTag((tableMetadataBuilder, attribute) ->

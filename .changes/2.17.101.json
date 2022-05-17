@@ -1,0 +1,114 @@
+{
+    "version": "2.17.101",
+    "date": "2021-12-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Location Service",
+            "contributor": "",
+            "description": "Making PricingPlan optional as part of create resource API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "AWS DataSync now supports FSx Lustre Locations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Added new resource details objects to ASFF, including resources for Firewall, and RuleGroup, FirewallPolicy Added additional details for AutoScalingGroup, LaunchConfiguration, and S3 buckets."
+        },
+        {
+            "type": "feature",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "If `tlsNegotiationTimeout` is not configured, it will be set to the resolved `connectionTimeout`. By default, `tlsNegotiationTimeout` is now 2s instead of 10s"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated SDK default configurations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DevOps Guru",
+            "contributor": "",
+            "description": "Adds Tags support to DescribeOrganizationResourceCollectionHealth"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds a new ContentType field in AutoMLChannel for SageMaker CreateAutoMLJob InputDataConfig."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "This release adds API support for managed Redshift datashares. Customers can now interact with a Redshift datashare that is managed by a different service, such as AWS Data Exchange."
+        },
+        {
+            "type": "feature",
+            "category": "Metrics",
+            "contributor": "",
+            "description": "Add pretty-format support to LoggingMetricPublisher"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "This release adds support for importing and exporting VM Images as part of the Image Creation workflow via EC2 VM Import/Export."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon API Gateway",
+            "contributor": "",
+            "description": "Documentation updates for Amazon API Gateway"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "This release adds an optional parameter, ObjectTypeNames to the PutIntegration API to support multiple object types per integration option. Besides, this release introduces Standard Order Objects which contain data from third party systems and each order object belongs to a specific profile."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Forecast Service",
+            "contributor": "",
+            "description": "Adds ForecastDimensions field to the DescribeAutoPredictorResponse"
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace Public API",
+            "contributor": "",
+            "description": "Make dataset description optional and allow s3 export for dataviews"
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Ensure in-use channels are not incorrectly closed"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Introduce a defaults mode configuration that determines how certain default configuration options are resolved in the SDK. See `DefaultsMode` for more information."
+        },
+        {
+            "type": "feature",
+            "category": "Apache HTTP Client",
+            "contributor": "",
+            "description": "Add \"ConcurrencyAcquireDuration\" metric for apache-client"
+        }
+    ]
+}

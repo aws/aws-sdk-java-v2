@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.protocolrestjson.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 

@@ -20,7 +20,7 @@
     <parent>
         <artifactId>aws-sdk-java-pom</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.17.99-SNAPSHOT</version>
+        <version>2.17.193-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -141,9 +141,8 @@
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
-                <artifactId>netty-transport-native-epoll</artifactId>
+                <artifactId>netty-transport-classes-epoll</artifactId>
                 <version>${netty.version}</version>
-                <classifier>linux-x86_64</classifier>
             </dependency>
             <dependency>
                 <artifactId>org.eclipse.jdt.core</artifactId>
@@ -253,15 +252,24 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>log4j</groupId>
-                <artifactId>log4j</artifactId>
+                <!-- Log4j2 API -->
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
                 <version>${log4j.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-log4j12</artifactId>
-                <version>${slf4j.version}</version>
+                <!-- Log4j2 Core -->
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <!-- Bind SLF4J to Log4j2 -->
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${log4j.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -284,7 +292,7 @@
             </dependency>
             <dependency>
                 <groupId>com.github.tomakehurst</groupId>
-                <artifactId>wiremock</artifactId>
+                <artifactId>wiremock-jre8</artifactId>
                 <version>${wiremock.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -396,10 +404,70 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-servlet</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-servlets</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-webapp</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-proxy</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-alpn</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-alpn-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-alpn-java-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-alpn-openjdk8-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-alpn-java-client</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-alpn-openjdk8-client</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty.http2</groupId>
+                <artifactId>http2-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-utils</artifactId>
                 <version>3.0.24</version>
-        </dependency>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

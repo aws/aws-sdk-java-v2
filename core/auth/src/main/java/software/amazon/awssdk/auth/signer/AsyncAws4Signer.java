@@ -20,9 +20,11 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.auth.signer.internal.BaseAws4Signer;
+import software.amazon.awssdk.auth.signer.internal.ContentChecksum;
 import software.amazon.awssdk.auth.signer.internal.DigestComputingSubscriber;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.AsyncSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -52,7 +54,10 @@ public final class AsyncAws4Signer extends BaseAws4Signer implements AsyncSigner
             return CompletableFuture.completedFuture(request);
         }
 
-        DigestComputingSubscriber bodyDigester = DigestComputingSubscriber.forSha256();
+        SdkChecksum sdkChecksum = createSdkChecksumFromParams(signingParams);
+        DigestComputingSubscriber bodyDigester = sdkChecksum != null
+                ? DigestComputingSubscriber.forSha256(sdkChecksum)
+                : DigestComputingSubscriber.forSha256();
 
         requestBody.subscribe(bodyDigester);
 
@@ -63,7 +68,8 @@ public final class AsyncAws4Signer extends BaseAws4Signer implements AsyncSigner
 
             Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signingParams);
 
-            SdkHttpFullRequest.Builder builder = doSign(request, requestParams, signingParams, digestHex);
+            SdkHttpFullRequest.Builder builder = doSign(request, requestParams, signingParams,
+                                                        new ContentChecksum(digestHex, sdkChecksum));
 
             return builder.build();
         });
@@ -71,7 +77,15 @@ public final class AsyncAws4Signer extends BaseAws4Signer implements AsyncSigner
         return CompletableFutureUtils.forwardExceptionTo(signedReqFuture, digestBytes);
     }
 
+    private SdkChecksum createSdkChecksumFromParams(Aws4SignerParams signingParams) {
+        if (signingParams.checksumParams() != null) {
+            return SdkChecksum.forAlgorithm(signingParams.checksumParams().algorithm());
+        }
+        return null;
+    }
+
     public static AsyncAws4Signer create() {
         return new AsyncAws4Signer();
     }
+
 }

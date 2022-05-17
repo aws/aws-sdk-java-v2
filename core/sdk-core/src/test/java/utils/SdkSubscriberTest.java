@@ -20,7 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
 import software.amazon.awssdk.core.pagination.async.PaginatedItemsPublisher;
@@ -40,7 +40,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -60,7 +60,7 @@ public class SdkSubscriberTest {
         doReturn(CompletableFuture.completedFuture(1))
                 .when(asyncPageFetcher).nextPage(null);
         doReturn(false)
-                .when(asyncPageFetcher).hasNextPage(anyObject());
+                .when(asyncPageFetcher).hasNextPage(any());
     }
 
     @Test
@@ -154,7 +154,7 @@ public class SdkSubscriberTest {
         executorService.awaitTermination(300, TimeUnit.MILLISECONDS);
         Mockito.verify(mockSubscriber, times(limitFactor)).onNext(anyInt());
         Mockito.verify(mockSubscriber).onComplete();
-        Mockito.verify(mockSubscriber).onSubscribe(anyObject());
-        Mockito.verify(mockSubscriber, never()).onError(anyObject());
+        Mockito.verify(mockSubscriber).onSubscribe(any());
+        Mockito.verify(mockSubscriber, never()).onError(any());
     }
 }

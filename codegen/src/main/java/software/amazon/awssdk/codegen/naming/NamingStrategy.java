@@ -148,6 +148,14 @@ public interface NamingStrategy {
     String getSdkFieldFieldName(MemberModel memberModel);
 
     /**
+     * Returns the name of the provided member as if it will be included in an enum (as in, when the parent shape is a union
+     * and we need to create an enum with each member name in it).
+     *
+     * @param memberModel Member to generate the union enum type name for.
+     */
+    String getUnionEnumTypeName(MemberModel memberModel);
+
+    /**
      * Names a method that would check for existence of the member in the response.
      *
      * @param memberName The member name to get the method name for.

@@ -293,7 +293,6 @@ abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMess
             });
 
         } else if (out.message instanceof StreamedHttpMessage) {
-
             StreamedHttpMessage streamed = (StreamedHttpMessage) out.message;
             HandlerSubscriber<HttpContent> subscriber = new HandlerSubscriber<HttpContent>(ctx.executor()) {
                 @Override

@@ -19,6 +19,7 @@ import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.util.function.Supplier;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
@@ -139,6 +140,28 @@ public final class Logger {
     }
 
     /**
+     * Determines if the provided log-level is enabled.
+     * @param logLevel the SLF4J log level enum
+     * @return whether that level is enabled
+     */
+    public boolean isLoggingLevelEnabled(Level logLevel) {
+        switch (logLevel) {
+            case TRACE:
+                return log.isTraceEnabled();
+            case DEBUG:
+                return log.isDebugEnabled();
+            case INFO:
+                return log.isInfoEnabled();
+            case WARN:
+                return log.isWarnEnabled();
+            case ERROR:
+                return log.isErrorEnabled();
+            default:
+                throw new IllegalStateException("Unsupported log level: " + logLevel);
+        }
+    }
+
+    /**
      * Determines if the log-level passed is enabled
      * @param logLevel a string representation of the log level, e.g. "debug"
      * @return whether or not that level is enable
@@ -158,6 +181,34 @@ public final class Logger {
                 return log.isWarnEnabled();
             default:
                 throw new IllegalArgumentException("Unknown log level: " + lowerLogLevel);
+        }
+    }
+
+    /**
+     * Log a message at the given log level (if it is enabled).
+     *
+     * @param logLevel the SLF4J log level
+     * @param msg      supplier for the log message
+     */
+    public void log(Level logLevel, Supplier<String> msg) {
+        switch (logLevel) {
+            case TRACE:
+                trace(msg);
+                break;
+            case DEBUG:
+                debug(msg);
+                break;
+            case INFO:
+                info(msg);
+                break;
+            case WARN:
+                warn(msg);
+                break;
+            case ERROR:
+                error(msg);
+                break;
+            default:
+                throw new IllegalStateException("Unsupported log level: " + logLevel);
         }
     }
 

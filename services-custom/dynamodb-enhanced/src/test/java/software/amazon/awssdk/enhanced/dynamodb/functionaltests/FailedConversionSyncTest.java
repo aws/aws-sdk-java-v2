@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import java.util.Iterator;
 import org.junit.After;
 import org.junit.Before;
@@ -29,10 +31,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeEnum;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeEnumRecord;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeEnumShortenedRecord;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
-import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class FailedConversionSyncTest extends LocalDynamoDbSyncTestBase {
     private static final TableSchema<FakeEnumRecord> TABLE_SCHEMA = TableSchema.fromClass(FakeEnumRecord.class);

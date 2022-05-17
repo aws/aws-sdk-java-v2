@@ -19,11 +19,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.net.URI;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

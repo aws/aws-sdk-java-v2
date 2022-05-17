@@ -94,7 +94,7 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
             return request;
         }
 
-        if (request.rawQueryParameters().containsKey(PARAM_PRESIGNED_URL)) {
+        if (request.firstMatchingRawQueryParameter(PARAM_PRESIGNED_URL).isPresent()) {
             return request;
         }
 

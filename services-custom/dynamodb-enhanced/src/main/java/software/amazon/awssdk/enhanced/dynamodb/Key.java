@@ -21,7 +21,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -36,6 +38,7 @@ import software.amazon.awssdk.utils.Validate;
  * The names of the keys themselves are not part of this object.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class Key {
     private final AttributeValue partitionValue;
     private final AttributeValue sortValue;
@@ -111,6 +114,7 @@ public final class Key {
     /**
      * Builder for {@link Key}
      */
+    @NotThreadSafe
     public static final class Builder {
         private AttributeValue partitionValue;
         private AttributeValue sortValue;

@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.crt.CrtResource;
 
@@ -63,6 +63,6 @@ public class S3NativeClientConfigurationTest {
                                                                                .build();
 
         configuration.close();
-        Mockito.verifyZeroInteractions(executorService);
+        Mockito.verifyNoMoreInteractions(executorService);
     }
 }

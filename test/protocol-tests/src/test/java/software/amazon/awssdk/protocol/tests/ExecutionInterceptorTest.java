@@ -25,7 +25,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -40,7 +40,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -104,7 +103,7 @@ public class ExecutionInterceptorTest {
 
     @Test
     public void async_success_allInterceptorMethodsCalled()
-            throws ExecutionException, InterruptedException, TimeoutException {
+        throws Exception {
         // Given
         ExecutionInterceptor interceptor = mock(MessageUpdatingInterceptor.class, CALLS_REAL_METHODS);
         ProtocolRestJsonAsyncClient client = asyncClient(interceptor);
@@ -139,7 +138,7 @@ public class ExecutionInterceptorTest {
 
     @Test
     public void async_streamingInput_success_allInterceptorMethodsCalled()
-            throws ExecutionException, InterruptedException, TimeoutException, IOException {
+        throws Exception {
         // Given
         ExecutionInterceptor interceptor = mock(NoOpInterceptor.class, CALLS_REAL_METHODS);
         ProtocolRestJsonAsyncClient client = asyncClient(interceptor);
@@ -185,7 +184,7 @@ public class ExecutionInterceptorTest {
 
     @Test
     public void async_streamingOutput_success_allInterceptorMethodsCalled()
-            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        throws Exception {
         // Given
         ExecutionInterceptor interceptor = mock(NoOpInterceptor.class, CALLS_REAL_METHODS);
         ProtocolRestJsonAsyncClient client = asyncClient(interceptor);
@@ -215,7 +214,7 @@ public class ExecutionInterceptorTest {
     }
 
     @Test
-    public void async_serviceException_failureInterceptorMethodsCalled() throws ExecutionException, InterruptedException {
+    public void async_serviceException_failureInterceptorMethodsCalled() throws Exception {
         // Given
         ExecutionInterceptor interceptor = mock(MessageUpdatingInterceptor.class, CALLS_REAL_METHODS);
         ProtocolRestJsonAsyncClient client = asyncClient(interceptor);

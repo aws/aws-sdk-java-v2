@@ -47,6 +47,13 @@ public interface SdkClientBuilder<B extends SdkClientBuilder<B, C>, C> extends S
     }
 
     /**
+     * Retrieve the current override configuration. This allows further overrides across calls. Can be modified by first
+     * converting to a builder with {@link ClientOverrideConfiguration#toBuilder()}.
+     * @return The existing override configuration for the builder.
+     */
+    ClientOverrideConfiguration overrideConfiguration();
+
+    /**
      * Configure the endpoint with which the SDK should communicate.
      */
     B endpointOverride(URI endpointOverride);
