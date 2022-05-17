@@ -1,0 +1,24 @@
+{
+    "version": "2.17.193",
+    "date": "2022-05-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "Add HMAC best practice tip, annual rotation of AWS managed keys."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "This release adds a new optional parameter called codeGenNodeConfiguration to CRUD job APIs that allows users to manage visual jobs via APIs. The updated CreateJob and UpdateJob will create jobs that can be viewed in Glue Studio as a visual graph. GetJob can be used to get codeGenNodeConfiguration."
+        },
+        {
+            "type": "feature",
+            "category": "S3 Transfer Manager (Developer Preview)",
+            "contributor": "",
+            "description": "Add serialization capability to ResumableFileDownload, allowing users to persist paused downloads"
+        }
+    ]
+}

@@ -1,3 +1,16 @@
+# __2.17.193__ __2022-05-17__
+## __AWS Glue__
+  - ### Features
+    - This release adds a new optional parameter called codeGenNodeConfiguration to CRUD job APIs that allows users to manage visual jobs via APIs. The updated CreateJob and UpdateJob will create jobs that can be viewed in Glue Studio as a visual graph. GetJob can be used to get codeGenNodeConfiguration.
+
+## __AWS Key Management Service__
+  - ### Features
+    - Add HMAC best practice tip, annual rotation of AWS managed keys.
+
+## __S3 Transfer Manager (Developer Preview)__
+  - ### Features
+    - Add serialization capability to ResumableFileDownload, allowing users to persist paused downloads
+
 # __2.17.192__ __2022-05-16__
 ## __AWS Application Discovery Service__
   - ### Features
