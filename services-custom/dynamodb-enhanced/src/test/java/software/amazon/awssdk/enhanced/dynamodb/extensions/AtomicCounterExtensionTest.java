@@ -21,6 +21,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.junit.Test;
@@ -88,10 +89,12 @@ public class AtomicCounterExtensionTest {
 
         assertThat(result.transformedItem()).isNull();
         assertThat(result.updateExpression()).isNotNull();
-        assertThat(result.updateExpression().setActions()).hasSize(2);
 
-        verifyAction(result.updateExpression().setActions().get(0), "customCounter", "5", "5");
-        verifyAction(result.updateExpression().setActions().get(1), "defaultCounter", "-1", "1");
+        List<SetAction> setActions = result.updateExpression().setActions();
+        assertThat(setActions).hasSize(2);
+
+        verifyAction(setActions, "customCounter", "5", "5");
+        verifyAction(setActions, "defaultCounter", "-1", "1");
     }
 
     @Test
@@ -170,8 +173,13 @@ public class AtomicCounterExtensionTest {
         assertThat(result).isEqualTo(ReadModification.builder().build());
     }
 
-    private void verifyAction(SetAction action, String attributeName, String expectedStart, String expectedDelta) {
-        assertThat(action.path()).isEqualTo(String.format("#AMZN_MAPPED_%s", attributeName));
+    private void verifyAction(List<SetAction> actions, String attributeName, String expectedStart, String expectedDelta) {
+        String expectedPath = String.format("#AMZN_MAPPED_%s", attributeName);
+        SetAction action = actions.stream()
+                                  .filter(a -> a.path().equals(expectedPath))
+                                  .findFirst()
+                                  .orElseThrow(() -> new IllegalStateException("Failed to find expected action"));
+
         assertThat(action.value()).isEqualTo(String.format("if_not_exists(#AMZN_MAPPED_%1$s, :AMZN_MAPPED_%1$s_Start) + "
                                                            + ":AMZN_MAPPED_%1$s_Delta", attributeName));
 
