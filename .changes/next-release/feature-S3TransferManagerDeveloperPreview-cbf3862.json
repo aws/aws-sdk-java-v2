@@ -1,6 +1,0 @@
-{
-    "category": "S3 Transfer Manager (Developer Preview)", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Add serialization capability to ResumableFileDownload, allowing users to persist paused downloads"
-}

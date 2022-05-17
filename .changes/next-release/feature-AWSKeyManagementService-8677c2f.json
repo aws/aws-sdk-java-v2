@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Key Management Service",
-    "contributor": "",
-    "description": "Add HMAC best practice tip, annual rotation of AWS managed keys."
-}
