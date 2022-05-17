@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3.internal;
+package software.amazon.awssdk.services.s3.internal.crt;
 
 
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
@@ -33,7 +33,6 @@ import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
-import software.amazon.awssdk.transfer.s3.SizeConstant;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
@@ -42,7 +41,7 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
  */
 @SdkInternalApi
 public class S3NativeClientConfiguration implements SdkAutoCloseable {
-    private static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * SizeConstant.MB;
+    private static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
     private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 5;
     private final String signingRegion;
     private final ClientBootstrap clientBootstrap;
