@@ -20,6 +20,7 @@ import static java.util.Collections.singletonList;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
+import static software.amazon.awssdk.codegen.poet.PoetExtensions.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
@@ -420,7 +421,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
         return poetExtensions.getModelClass(shapeModel.getShapeName());
     }
 
-    private MethodSpec utilitiesMethod() {
+    @Override
+    protected MethodSpec utilitiesMethod() {
         UtilitiesMethod config = model.getCustomizationConfig().getUtilitiesMethod();
         ClassName returnType = PoetUtils.classNameFromFqcn(config.getReturnType());
         String instanceClass = config.getInstanceType();

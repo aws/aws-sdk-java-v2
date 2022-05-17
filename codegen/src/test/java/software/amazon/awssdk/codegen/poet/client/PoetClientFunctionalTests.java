@@ -38,6 +38,13 @@ public class PoetClientFunctionalTests {
     }
 
     @Test
+    public void abstractAsyncClientClass() throws Exception {
+        AbstractAsyncClientDecoratorClass asyncClientDecoratorAbstractClass =
+            new AbstractAsyncClientDecoratorClass(ClientTestModels.restJsonServiceModels());
+        assertThat(asyncClientDecoratorAbstractClass, generatesTo("test-abstract-async-client-class.java"));
+    }
+
+    @Test
     public void simpleMethodsIntegClass() throws Exception {
         ClientSimpleMethodsIntegrationTests simpleMethodsClass = new ClientSimpleMethodsIntegrationTests(
             ClientTestModels.restJsonServiceModels());

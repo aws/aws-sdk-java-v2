@@ -19,6 +19,8 @@ import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_DESTINATION_PATH_PARAM_NAME;
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_SOURCE_PATH_PARAM_NAME;
+import static software.amazon.awssdk.codegen.poet.PoetExtensions.SYNC_STREAMING_INPUT_PARAM;
+import static software.amazon.awssdk.codegen.poet.PoetExtensions.SYNC_STREAMING_OUTPUT_PARAM;
 import static software.amazon.awssdk.codegen.poet.client.AsyncClientInterface.STREAMING_TYPE_VARIABLE;
 
 import com.squareup.javapoet.ClassName;
@@ -301,13 +303,13 @@ public final class SyncClientInterface implements ClassSpec {
 
     private static void streamingMethod(MethodSpec.Builder methodBuilder, OperationModel opModel, TypeName responseType) {
         if (opModel.hasStreamingInput()) {
-            methodBuilder.addParameter(ClassName.get(RequestBody.class), "requestBody");
+            methodBuilder.addParameter(ClassName.get(RequestBody.class), SYNC_STREAMING_INPUT_PARAM);
         }
         if (opModel.hasStreamingOutput()) {
             methodBuilder.addTypeVariable(STREAMING_TYPE_VARIABLE);
             ParameterizedTypeName streamingResponseHandlerType = ParameterizedTypeName
                     .get(ClassName.get(ResponseTransformer.class), responseType, STREAMING_TYPE_VARIABLE);
-            methodBuilder.addParameter(streamingResponseHandlerType, "responseTransformer");
+            methodBuilder.addParameter(streamingResponseHandlerType, SYNC_STREAMING_OUTPUT_PARAM);
         }
     }
 

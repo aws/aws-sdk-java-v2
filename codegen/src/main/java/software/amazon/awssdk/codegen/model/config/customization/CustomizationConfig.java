@@ -196,7 +196,10 @@ public class CustomizationConfig {
     
     private RetryMode defaultRetryMode;
 
-
+    /**
+     * Whether to generate an abstract decorator class that delegates to the async service client
+     */
+    private boolean asyncClientDecoratorClass;
 
     private CustomizationConfig() {
     }
@@ -501,5 +504,13 @@ public class CustomizationConfig {
 
     public void setServiceConfig(ServiceConfig serviceConfig) {
         this.serviceConfig = serviceConfig;
+    }
+
+    public boolean isAsyncClientDecoratorClass() {
+        return asyncClientDecoratorClass;
+    }
+
+    public void setAsyncClientDecoratorClass(boolean asyncClientDecoratorClass) {
+        this.asyncClientDecoratorClass = asyncClientDecoratorClass;
     }
 }
