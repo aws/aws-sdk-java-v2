@@ -1,6 +1,0 @@
-{
-    "category": "Amazon DynamoDB Enhanced Client", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Introducing the UpdateExpression API in the enhanced client and the capability to use update expressions in the extension framework. Additionally, the new AtomicCounterExtension utilizes this feature to provide atomic counter support for users through tagging and annotations."
-}

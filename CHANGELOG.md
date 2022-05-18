@@ -1,3 +1,36 @@
+# __2.17.194__ __2022-05-18__
+## __AWS App Mesh__
+  - ### Features
+    - This release updates the existing Create and Update APIs for meshes and virtual nodes by adding a new IP preference field. This new IP preference field can be used to control the IP versions being used with the mesh and allows for IPv6 support within App Mesh.
+
+## __AWS Batch__
+  - ### Features
+    - Documentation updates for AWS Batch.
+
+## __AWS IoT Events Data__
+  - ### Features
+    - Introducing new API for deleting detectors: BatchDeleteDetector.
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - This release adds the new DeleteDeployment API operation that you can use to delete deployment resources. This release also adds support for discontinued AWS-provided components, so AWS can communicate when a component has any issues that you should consider before you deploy it.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family now supports SetStat server configuration option, which provides the ability to ignore SetStat command issued by file transfer clients, enabling customers to upload files without any errors.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Introducing the UpdateExpression API in the enhanced client and the capability to use update expressions in the extension framework. Additionally, the new AtomicCounterExtension utilizes this feature to provide atomic counter support for users through tagging and annotations.
+
+## __Amazon QuickSight__
+  - ### Features
+    - API UpdatePublicSharingSettings enables IAM admins to enable/disable account level setting for public access of dashboards. When enabled, owners/co-owners for dashboards can enable public access on their dashboards. These dashboards can only be accessed through share link or embedding.
+
 # __2.17.193__ __2022-05-17__
 ## __AWS Glue__
   - ### Features
