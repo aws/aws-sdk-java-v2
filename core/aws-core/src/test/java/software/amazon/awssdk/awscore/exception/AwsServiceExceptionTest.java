@@ -16,6 +16,8 @@
 package software.amazon.awssdk.awscore.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.awscore.internal.AwsErrorCode.THROTTLING_ERROR_CODES;
+import static software.amazon.awssdk.awscore.internal.AwsErrorCode.RETRYABLE_ERROR_CODES;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -53,6 +55,40 @@ public class AwsServiceExceptionTest {
     }
 
     @Test
+    public void nonThrottlingErrorsAreIdentifiedCorrectly() {
+        for (String errorCode : RETRYABLE_ERROR_CODES) {
+            assertNotThrottling(errorCode, 0);
+        }
+    }
+
+    @Test
+    public void throttlingErrorsAreIdentifiedCorrectly() {
+        assertThrottling("", 429); // base class invocation
+
+        for (String errorCode : THROTTLING_ERROR_CODES) {
+            assertThrottling(errorCode, 0);
+        }
+    }
+
+    @Test
+    public void nonRetryableErrorsAreIdentifiedCorrectly() {
+        assertNotRetryable("", 400);
+    }
+
+    @Test
+    public void retryableErrorsAreIdentifiedCorrectly() {
+        assertRetryable("", 500); // non-exhaustive base class invocation
+
+        for (String errorCode : RETRYABLE_ERROR_CODES) {
+            assertRetryable(errorCode, 0);
+        }
+
+        for (String errorCode : THROTTLING_ERROR_CODES) {
+            assertRetryable(errorCode, 0);
+        }
+    }
+
+    @Test
     public void exceptionMessage_withExtendedRequestId() {
         AwsServiceException e = AwsServiceException.builder()
                                                    .awsErrorDetails(AwsErrorDetails.builder()
@@ -82,7 +118,7 @@ public class AwsServiceExceptionTest {
         assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId)");
     }
 
-    public void assertSkewed(int clientSideTimeOffset,
+    private void assertSkewed(int clientSideTimeOffset,
                              String errorCode,
                              int statusCode,
                              Instant serverDate) {
@@ -91,7 +127,7 @@ public class AwsServiceExceptionTest {
         assertThat(exception.isClockSkewException()).isTrue();
     }
 
-    public void assertNotSkewed(int clientSideTimeOffset,
+    private void assertNotSkewed(int clientSideTimeOffset,
                                 String errorCode,
                                 int statusCode,
                                 Instant serverDate) {
@@ -100,7 +136,31 @@ public class AwsServiceExceptionTest {
         assertThat(exception.isClockSkewException()).isFalse();
     }
 
-    private AwsServiceException exception(int clientSideTimeOffset, String errorCode, int statusCode, String serverDate) {
+    private void assertThrottling(String errorCode, int statusCode) {
+        AwsServiceException exception = exception(0, errorCode, statusCode, DateUtils.formatRfc1123Date(unskewedDate));
+
+        assertThat(exception.isThrottlingException()).isTrue();
+    }
+
+    private void assertNotThrottling(String errorCode, int statusCode) {
+        AwsServiceException exception = exception(0, errorCode, statusCode, DateUtils.formatRfc1123Date(unskewedDate));
+
+        assertThat(exception.isThrottlingException()).isFalse();
+    }
+
+    private void assertRetryable(String errorCode, int statusCode) {
+        AwsServiceException exception = exception(0, errorCode, statusCode, DateUtils.formatRfc1123Date(unskewedDate));
+
+        assertThat(exception.retryable()).isTrue();
+    }
+
+    private void assertNotRetryable(String errorCode, int statusCode) {
+        AwsServiceException exception = exception(0, errorCode, statusCode, DateUtils.formatRfc1123Date(unskewedDate));
+
+        assertThat(exception.retryable()).isFalse();
+    }
+
+    private static AwsServiceException exception(int clientSideTimeOffset, String errorCode, int statusCode, String serverDate) {
         SdkHttpResponse httpResponse =
                 SdkHttpFullResponse.builder()
                                    .statusCode(statusCode)

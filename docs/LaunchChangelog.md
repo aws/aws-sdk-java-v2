@@ -324,12 +324,15 @@ In 2.0, the following changes have been made related to exceptions:
 1. `com.amazonaws.SdkBaseException` and `com.amazonaws.AmazonClientException` changes:
     1. These classes have combined and replaced with `software.amazon.awssdk.core.exception.SdkException`.
     2. `AmazonClientException.isRetryable` is now `SdkException.retryable`.
+       1. `SdkException.retryable` now returns `false` instead of `true`. Note that this method can be overridden by subclasses.
 2. `com.amazonaws.SdkClientException` changes:
     1. This class has been replaced with `software.amazon.awssdk.core.exception.SdkClientException`.
     2. This class now extends `software.amazon.awssdk.core.exception.SdkException`.
 3. `com.amazonaws.AmazonServiceException` changes:
     1. This class has been replaced with `software.amazon.awssdk.awscore.exception.AwsServiceException`.
+       1. `AwsServiceException.retryable` overrides `SdkServiceException.retryable` and returns `true` when `SdkServiceException.retryable` returns `true` or `AwsServiceException.awsErrorDetails().errorCode` is in `software.amazon.awssdk.awscore.internal.AwsErrorCode.RETRYABLE_ERROR_CODES` or `software.amazon.awssdk.awscore.internal.AwsErrorCode.THROTTLING_ERROR_CODES`. Note that this method can be overridden by subclasses.
     2. This class now extends `software.amazon.awssdk.core.exception.SdkServiceException`, a new exception type that extends `software.amazon.awssdk.core.exception.SdkException`.
+       1. `SdkServiceException.retryable` overrides `SdkException.retryable` and returns `true` when `SdkServiceException.isThrottlingException` returns `true` or the response status code is in `software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting.RETRYABLE_STATUS_CODES`. Note that this method can be overridden by subclasses.
     3. `AmazonServiceException.getRequestId` is now `SdkServiceException.requestId`.
     4. `AmazonServiceException.getServiceName` is now `AwsServiceException.awsErrorDetails().serviceName`.
     5. `AmazonServiceException.getErrorCode` is now `AwsServiceException.awsErrorDetails().errorCode`.

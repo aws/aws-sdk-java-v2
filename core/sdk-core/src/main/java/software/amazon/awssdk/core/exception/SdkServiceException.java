@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.exception;
 
+import static software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting.RETRYABLE_STATUS_CODES;
+
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -89,6 +91,16 @@ public class SdkServiceException extends SdkException implements SdkPojo {
      */
     public boolean isThrottlingException() {
         return statusCode == HttpStatusCode.THROTTLING;
+    }
+
+    /**
+     * Specifies whether or not an exception can be expected to succeed on a retry.
+     *
+     * @return true if the status code is 429, 500, 502, 503 or 504. Otherwise false.
+     */
+    @Override
+    public boolean retryable() {
+        return RETRYABLE_STATUS_CODES.contains(statusCode) || isThrottlingException();
     }
 
     /**
