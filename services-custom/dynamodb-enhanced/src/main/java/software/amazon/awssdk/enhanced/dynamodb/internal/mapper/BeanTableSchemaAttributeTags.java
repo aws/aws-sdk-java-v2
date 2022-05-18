@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbAtomicCounter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags;
@@ -56,5 +57,9 @@ public final class BeanTableSchemaAttributeTags {
 
     public static StaticAttributeTag attributeTagFor(DynamoDbUpdateBehavior annotation) {
         return StaticAttributeTags.updateBehavior(annotation.value());
+    }
+
+    public static StaticAttributeTag attributeTagFor(DynamoDbAtomicCounter annotation) {
+        return StaticAttributeTags.atomicCounter(annotation.delta(), annotation.startValue());
     }
 }
