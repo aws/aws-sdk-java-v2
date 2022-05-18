@@ -25,7 +25,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 /**
  * Extension and convenience methods to Poet that use the intermediate model.
  */
-public class PoetExtensions {
+public class PoetExtension {
 
     public static final String ASYNC_STREAMING_INPUT_PARAM = "requestBody";
     public static final String ASYNC_STREAMING_OUTPUT_PARAM = "asyncResponseTransformer";
@@ -36,7 +36,7 @@ public class PoetExtensions {
 
     private final IntermediateModel model;
 
-    public PoetExtensions(IntermediateModel model) {
+    public PoetExtension(IntermediateModel model) {
         this.model = model;
     }
 

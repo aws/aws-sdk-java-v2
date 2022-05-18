@@ -27,7 +27,7 @@ import software.amazon.awssdk.awscore.eventstream.DefaultEventStreamResponseHand
 import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandlerFromBuilder;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 /**
@@ -35,7 +35,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
  */
 public class EventStreamResponseHandlerBuilderImplSpec extends EventStreamResponseHandlerBuilderInterfaceSpec {
 
-    private final PoetExtensions poetExt;
+    private final PoetExtension poetExt;
     private final OperationModel operationModel;
     private final ClassName responseHandlerType;
     private final ClassName responseHandlerBuilderType;

@@ -16,9 +16,9 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static java.util.stream.Collectors.toList;
-import static software.amazon.awssdk.codegen.poet.PoetExtensions.ASYNC_STREAMING_INPUT_PARAM;
-import static software.amazon.awssdk.codegen.poet.PoetExtensions.EVENT_PUBLISHER_PARAM_NAME;
-import static software.amazon.awssdk.codegen.poet.PoetExtensions.EVENT_RESPONSE_HANDLER_PARAM_NAME;
+import static software.amazon.awssdk.codegen.poet.PoetExtension.ASYNC_STREAMING_INPUT_PARAM;
+import static software.amazon.awssdk.codegen.poet.PoetExtension.EVENT_PUBLISHER_PARAM_NAME;
+import static software.amazon.awssdk.codegen.poet.PoetExtension.EVENT_RESPONSE_HANDLER_PARAM_NAME;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -46,7 +46,7 @@ import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.DeprecationUtils;
@@ -65,7 +65,7 @@ public class AsyncClientInterface implements ClassSpec {
     protected final ClassName className;
     protected final String clientPackageName;
     private final String modelPackage;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
 
     public AsyncClientInterface(IntermediateModel model) {
         this.modelPackage = model.getMetadata().getFullModelPackageName();
@@ -73,7 +73,7 @@ public class AsyncClientInterface implements ClassSpec {
         this.model = model;
         this.className = ClassName.get(model.getMetadata().getFullClientPackageName(),
                                        model.getMetadata().getAsyncInterface());
-        this.poetExtensions = new PoetExtensions(model);
+        this.poetExtensions = new PoetExtension(model);
     }
 
     @Override
@@ -459,7 +459,7 @@ public class AsyncClientInterface implements ClassSpec {
                                                .addModifiers(Modifier.PUBLIC)
                                                .addJavadoc("Creates an instance of {@link $T} object with the "
                                                            + "configuration set on this client.", returnType);
-       return utilitiesOperationBody(builder).build();
+        return utilitiesOperationBody(builder).build();
     }
 
     protected MethodSpec.Builder utilitiesOperationBody(MethodSpec.Builder builder) {
@@ -470,7 +470,8 @@ public class AsyncClientInterface implements ClassSpec {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("waiter")
                                               .addModifiers(Modifier.PUBLIC)
                                               .returns(poetExtensions.getAsyncWaiterInterface())
-                                              .addJavadoc(WaiterDocs.waiterMethodInClient(poetExtensions.getAsyncWaiterInterface()));
+                                              .addJavadoc(WaiterDocs.waiterMethodInClient(
+                                                  poetExtensions.getAsyncWaiterInterface()));
 
         return waiterOperationBody(builder).build();
     }

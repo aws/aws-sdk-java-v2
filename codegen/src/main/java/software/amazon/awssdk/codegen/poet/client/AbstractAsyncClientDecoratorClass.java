@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.codegen.poet.client;
 
-import static software.amazon.awssdk.codegen.poet.PoetExtensions.ASYNC_STREAMING_INPUT_PARAM;
-import static software.amazon.awssdk.codegen.poet.PoetExtensions.ASYNC_STREAMING_OUTPUT_PARAM;
-import static software.amazon.awssdk.codegen.poet.PoetExtensions.EVENT_PUBLISHER_PARAM_NAME;
-import static software.amazon.awssdk.codegen.poet.PoetExtensions.EVENT_RESPONSE_HANDLER_PARAM_NAME;
+import static software.amazon.awssdk.codegen.poet.PoetExtension.ASYNC_STREAMING_INPUT_PARAM;
+import static software.amazon.awssdk.codegen.poet.PoetExtension.ASYNC_STREAMING_OUTPUT_PARAM;
+import static software.amazon.awssdk.codegen.poet.PoetExtension.EVENT_PUBLISHER_PARAM_NAME;
+import static software.amazon.awssdk.codegen.poet.PoetExtension.EVENT_RESPONSE_HANDLER_PARAM_NAME;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -29,24 +29,22 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 
-public class AbstractAsyncClientDecoratorClass extends AsyncClientInterface{
+public class AbstractAsyncClientDecoratorClass extends AsyncClientInterface {
 
     private final IntermediateModel model;
     private final ClassName className;
-    private final String clientPackageName;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
 
     public AbstractAsyncClientDecoratorClass(IntermediateModel model) {
         super(model);
-        this.clientPackageName = model.getMetadata().getFullInternalPackageName();
         this.model = model;
         this.className = ClassName.get(model.getMetadata().getFullInternalPackageName(),
-                                                    "Abstract" +  model.getMetadata().getAsyncInterface());
-        this.poetExtensions = new PoetExtensions(model);
+                                       "Abstract" + model.getMetadata().getAsyncInterface());
+        this.poetExtensions = new PoetExtension(model);
     }
 
     @Override
@@ -78,10 +76,10 @@ public class AbstractAsyncClientDecoratorClass extends AsyncClientInterface{
 
     private MethodSpec constructor(ClassName interfaceClass) {
         return MethodSpec.constructorBuilder()
-                                   .addModifiers(Modifier.PUBLIC)
-                                   .addParameter(interfaceClass, "delegate")
-                                   .addStatement("this.delegate = delegate")
-                                   .build();
+                         .addModifiers(Modifier.PUBLIC)
+                         .addParameter(interfaceClass, "delegate")
+                         .addStatement("this.delegate = delegate")
+                         .build();
     }
 
     @Override

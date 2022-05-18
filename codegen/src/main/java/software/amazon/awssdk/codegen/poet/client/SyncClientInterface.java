@@ -19,8 +19,8 @@ import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_DESTINATION_PATH_PARAM_NAME;
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_SOURCE_PATH_PARAM_NAME;
-import static software.amazon.awssdk.codegen.poet.PoetExtensions.SYNC_STREAMING_INPUT_PARAM;
-import static software.amazon.awssdk.codegen.poet.PoetExtensions.SYNC_STREAMING_OUTPUT_PARAM;
+import static software.amazon.awssdk.codegen.poet.PoetExtension.SYNC_STREAMING_INPUT_PARAM;
+import static software.amazon.awssdk.codegen.poet.PoetExtension.SYNC_STREAMING_OUTPUT_PARAM;
 import static software.amazon.awssdk.codegen.poet.client.AsyncClientInterface.STREAMING_TYPE_VARIABLE;
 
 import com.squareup.javapoet.ClassName;
@@ -48,7 +48,7 @@ import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.model.DeprecationUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
@@ -67,13 +67,13 @@ public final class SyncClientInterface implements ClassSpec {
     private final IntermediateModel model;
     private final ClassName className;
     private final String clientPackageName;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
 
     public SyncClientInterface(IntermediateModel model) {
         this.model = model;
         this.clientPackageName = model.getMetadata().getFullClientPackageName();
         this.className = ClassName.get(clientPackageName, model.getMetadata().getSyncInterface());
-        this.poetExtensions = new PoetExtensions(model);
+        this.poetExtensions = new PoetExtension(model);
     }
 
     @Override

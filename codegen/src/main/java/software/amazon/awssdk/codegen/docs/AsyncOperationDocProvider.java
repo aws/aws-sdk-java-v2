@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.codegen.docs;
 
-import static software.amazon.awssdk.codegen.poet.PoetExtensions.ASYNC_STREAMING_INPUT_PARAM;
-import static software.amazon.awssdk.codegen.poet.PoetExtensions.ASYNC_STREAMING_OUTPUT_PARAM;
+import static software.amazon.awssdk.codegen.poet.PoetExtension.ASYNC_STREAMING_INPUT_PARAM;
+import static software.amazon.awssdk.codegen.poet.PoetExtension.ASYNC_STREAMING_OUTPUT_PARAM;
 
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;

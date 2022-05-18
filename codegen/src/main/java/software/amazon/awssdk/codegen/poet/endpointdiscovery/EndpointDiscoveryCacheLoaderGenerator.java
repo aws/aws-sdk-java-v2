@@ -35,7 +35,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryCacheLoader;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryEndpoint;
@@ -47,7 +47,7 @@ public class EndpointDiscoveryCacheLoaderGenerator implements ClassSpec {
     private static final String CLIENT_FIELD = "client";
 
     private final IntermediateModel model;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
 
     public EndpointDiscoveryCacheLoaderGenerator(GeneratorTaskParams generatorTaskParams) {
         this.model = generatorTaskParams.getModel();

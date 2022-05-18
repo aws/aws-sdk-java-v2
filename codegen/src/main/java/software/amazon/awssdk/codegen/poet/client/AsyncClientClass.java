@@ -20,7 +20,7 @@ import static java.util.Collections.singletonList;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
-import static software.amazon.awssdk.codegen.poet.PoetExtensions.EVENT_PUBLISHER_PARAM_NAME;
+import static software.amazon.awssdk.codegen.poet.PoetExtension.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
@@ -59,7 +59,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
@@ -86,7 +86,7 @@ import software.amazon.awssdk.utils.Pair;
 
 public final class AsyncClientClass extends AsyncClientInterface {
     private final IntermediateModel model;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
 

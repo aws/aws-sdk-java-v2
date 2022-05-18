@@ -24,16 +24,16 @@ import java.util.Optional;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 
 public class ServiceModelCopiers {
     private final IntermediateModel intermediateModel;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
     private final TypeProvider typeProvider;
 
     public ServiceModelCopiers(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
-        this.poetExtensions = new PoetExtensions(intermediateModel);
+        this.poetExtensions = new PoetExtension(intermediateModel);
         this.typeProvider = new TypeProvider(intermediateModel);
     }
 
