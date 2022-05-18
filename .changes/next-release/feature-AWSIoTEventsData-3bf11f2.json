@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Events Data",
+    "contributor": "",
+    "description": "Introducing new API for deleting detectors: BatchDeleteDetector."
+}
