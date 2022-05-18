@@ -15,18 +15,16 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.readAndTransformSingleItem;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.operationExpression;
+import static software.amazon.awssdk.utils.CollectionUtils.filterMap;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -34,13 +32,12 @@ import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
-import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
-import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTag;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
+import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionConverter;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -49,22 +46,13 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.Update;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Either;
 
 @SdkInternalApi
 public class UpdateItemOperation<T>
     implements TableOperation<T, UpdateItemRequest, UpdateItemResponse, UpdateItemEnhancedResponse<T>>,
                TransactableWriteOperation<T> {
-
-    private static final Function<String, String> EXPRESSION_VALUE_KEY_MAPPER =
-        key -> ":AMZN_MAPPED_" + EnhancedClientUtils.cleanAttributeName(key);
-
-    private static final Function<String, String> EXPRESSION_KEY_MAPPER =
-        key -> "#AMZN_MAPPED_" + EnhancedClientUtils.cleanAttributeName(key);
-
-    private static final Function<String, String> CONDITIONAL_UPDATE_MAPPER =
-        key -> "if_not_exists(" + EXPRESSION_KEY_MAPPER.apply(key) + ", " +
-                EXPRESSION_VALUE_KEY_MAPPER.apply(key) + ")";
 
     private final Either<UpdateItemEnhancedRequest<T>, TransactUpdateItemEnhancedRequest<T>> request;
 
@@ -122,24 +110,35 @@ public class UpdateItemOperation<T>
 
         Collection<String> primaryKeys = tableSchema.tableMetadata().primaryKeys();
 
-        Map<String, AttributeValue> keyAttributeValues = itemMap.entrySet().stream()
-            .filter(entry -> primaryKeys.contains(entry.getKey()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<String, AttributeValue> keyAttributes = filterMap(itemMap, entry -> primaryKeys.contains(entry.getKey()));
+        Map<String, AttributeValue> nonKeyAttributes = filterMap(itemMap, entry -> !primaryKeys.contains(entry.getKey()));
+
+        Expression updateExpression = generateUpdateExpressionIfExist(tableMetadata, transformation, nonKeyAttributes);
+        Expression conditionExpression = generateConditionExpressionIfExist(transformation, request);
+
+        Map<String, String> expressionNames = coalesceExpressionNames(updateExpression, conditionExpression);
+        Map<String, AttributeValue> expressionValues = coalesceExpressionValues(updateExpression, conditionExpression);
 
         UpdateItemRequest.Builder requestBuilder = UpdateItemRequest.builder()
             .tableName(operationContext.tableName())
-            .key(keyAttributeValues)
+            .key(keyAttributes)
             .returnValues(ReturnValue.ALL_NEW);
-
-        Map<String, AttributeValue> filteredAttributeValues = itemMap.entrySet().stream()
-            .filter(entry -> !primaryKeys.contains(entry.getKey()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         if (request.left().isPresent()) {
             addPlainUpdateItemParameters(requestBuilder, request.left().get());
         }
-
-        requestBuilder = addExpressionsIfExist(transformation, filteredAttributeValues, requestBuilder, tableMetadata);
+        if (updateExpression != null) {
+            requestBuilder.updateExpression(updateExpression.expression());
+        }
+        if (conditionExpression != null) {
+            requestBuilder.conditionExpression(conditionExpression.expression());
+        }
+        if (CollectionUtils.isNotEmpty(expressionNames)) {
+            requestBuilder = requestBuilder.expressionAttributeNames(expressionNames);
+        }
+        if (CollectionUtils.isNotEmpty(expressionValues)) {
+            requestBuilder = requestBuilder.expressionAttributeValues(expressionValues);
+        }
 
         return requestBuilder.build();
     }
@@ -201,114 +200,51 @@ public class UpdateItemOperation<T>
                                 .build();
     }
 
-    private static Expression generateUpdateExpression(Map<String, AttributeValue> attributeValuesToUpdate,
-                                                       TableMetadata tableMetadata) {
-        // Sort the updates into 'SET' or 'REMOVE' based on null value
-        List<String> updateSetActions = new ArrayList<>();
-        List<String> updateRemoveActions = new ArrayList<>();
-
-        attributeValuesToUpdate.forEach((key, value) -> {
-            if (!isNullAttributeValue(value)) {
-                UpdateBehavior updateBehavior = UpdateBehaviorTag.resolveForAttribute(key, tableMetadata);
-                updateSetActions.add(EXPRESSION_KEY_MAPPER.apply(key) + " = " +
-                        updateExpressionMapperForBehavior(updateBehavior).apply(key));
+    /**
+     * Retrieves the UpdateExpression from extensions if existing, and then creates an UpdateExpression for the request POJO
+     * if there are attributes to be updated (most likely). If both exist, they are merged and the code generates a final
+     * Expression that represent the result.
+     */
+    private Expression generateUpdateExpressionIfExist(TableMetadata tableMetadata,
+                                                       WriteModification transformation,
+                                                       Map<String, AttributeValue> attributes) {
+        UpdateExpression updateExpression = null;
+        if (transformation != null && transformation.updateExpression() != null) {
+            updateExpression = transformation.updateExpression();
+        }
+        if (!attributes.isEmpty()) {
+            List<String> nonRemoveAttributes = UpdateExpressionConverter.findAttributeNames(updateExpression);
+            UpdateExpression operationUpdateExpression = operationExpression(attributes, tableMetadata, nonRemoveAttributes);
+            if (updateExpression == null) {
+                updateExpression = operationUpdateExpression;
             } else {
-                updateRemoveActions.add(EXPRESSION_KEY_MAPPER.apply(key));
+                updateExpression = UpdateExpression.mergeExpressions(updateExpression, operationUpdateExpression);
             }
-        });
-
-        // Combine the expressions
-        List<String> updateActions = new ArrayList<>();
-
-        if (!updateSetActions.isEmpty()) {
-            updateActions.add("SET " + String.join(", ", updateSetActions));
         }
-
-        if (!updateRemoveActions.isEmpty()) {
-            updateActions.add("REMOVE " + String.join(", ", updateRemoveActions));
-        }
-
-        String updateExpression = String.join(" ", updateActions);
-
-        Map<String, AttributeValue> expressionAttributeValues =
-            attributeValuesToUpdate.entrySet()
-                                   .stream()
-                                   .filter(entry -> !isNullAttributeValue(entry.getValue()))
-                                   .collect(Collectors.toMap(
-                                       entry -> EXPRESSION_VALUE_KEY_MAPPER.apply(entry.getKey()),
-                                       Map.Entry::getValue));
-
-        Map<String, String> expressionAttributeNames =
-            attributeValuesToUpdate.keySet()
-                                   .stream()
-                                   .collect(Collectors.toMap(EXPRESSION_KEY_MAPPER, key -> key));
-
-        return Expression.builder()
-                         .expression(updateExpression)
-                         .expressionValues(Collections.unmodifiableMap(expressionAttributeValues))
-                         .expressionNames(expressionAttributeNames)
-                         .build();
+        return UpdateExpressionConverter.toExpression(updateExpression);
     }
 
-    private static Function<String, String> updateExpressionMapperForBehavior(UpdateBehavior updateBehavior) {
-        switch (updateBehavior) {
-            case WRITE_ALWAYS:
-                return EXPRESSION_VALUE_KEY_MAPPER;
-            case WRITE_IF_NOT_EXISTS:
-                return CONDITIONAL_UPDATE_MAPPER;
-            default:
-                throw new IllegalArgumentException("Unsupported update behavior '" + updateBehavior + "'");
-        }
-    }
+    /**
+     * Retrieves the ConditionExpression from extensions if existing, and retrieves the ConditionExpression from the request
+     * if existing. If both exist, they are merged.
+     */
+    private Expression generateConditionExpressionIfExist(
+            WriteModification transformation,
+            Either<UpdateItemEnhancedRequest<T>, TransactUpdateItemEnhancedRequest<T>> request) {
 
-    private UpdateItemRequest.Builder addExpressionsIfExist(WriteModification transformation,
-                                                            Map<String, AttributeValue> filteredAttributeValues,
-                                                            UpdateItemRequest.Builder requestBuilder,
-                                                            TableMetadata tableMetadata) {
-        Map<String, String> expressionNames = null;
-        Map<String, AttributeValue> expressionValues = null;
-        String conditionExpressionString = null;
+        Expression conditionExpression = null;
 
-        /* Add update expression for transformed non-key attributes if applicable */
-        if (!filteredAttributeValues.isEmpty()) {
-            Expression fullUpdateExpression = generateUpdateExpression(filteredAttributeValues, tableMetadata);
-            expressionNames = fullUpdateExpression.expressionNames();
-            expressionValues = fullUpdateExpression.expressionValues();
-            requestBuilder = requestBuilder.updateExpression(fullUpdateExpression.expression());
-        }
-
-        /* Merge in conditional expression from extension WriteModification if applicable */
         if (transformation != null && transformation.additionalConditionalExpression() != null) {
-            expressionNames =
-                Expression.joinNames(expressionNames,
-                                     transformation.additionalConditionalExpression().expressionNames());
-            expressionValues =
-                Expression.joinValues(expressionValues,
-                                      transformation.additionalConditionalExpression().expressionValues());
-            conditionExpressionString = transformation.additionalConditionalExpression().expression();
+            conditionExpression = transformation.additionalConditionalExpression();
         }
 
-        /* Merge in conditional expression from specified 'conditionExpression' if applicable */
-        Expression conditionExpression = request.map(r -> Optional.ofNullable(r.conditionExpression()),
-                                                     r -> Optional.ofNullable(r.conditionExpression()))
-                                                .orElse(null);
-        if (conditionExpression != null) {
-            expressionNames = Expression.joinNames(expressionNames, conditionExpression.expressionNames());
-            expressionValues = Expression.joinValues(expressionValues, conditionExpression.expressionValues());
-            conditionExpressionString = Expression.joinExpressions(conditionExpressionString,
-                                                                   conditionExpression.expression(), " AND ");
+        Expression operationConditionExpression = request.map(r -> Optional.ofNullable(r.conditionExpression()),
+                                                              r -> Optional.ofNullable(r.conditionExpression()))
+                                                         .orElse(null);
+        if (operationConditionExpression != null) {
+            conditionExpression = operationConditionExpression.and(conditionExpression);
         }
-
-        // Avoiding adding empty collections that the low level SDK will propagate to DynamoDb where it causes error.
-        if (expressionNames != null && !expressionNames.isEmpty()) {
-            requestBuilder = requestBuilder.expressionAttributeNames(expressionNames);
-        }
-
-        if (expressionValues != null && !expressionValues.isEmpty()) {
-            requestBuilder = requestBuilder.expressionAttributeValues(expressionValues);
-        }
-
-        return requestBuilder.conditionExpression(conditionExpressionString);
+        return conditionExpression;
     }
 
     private UpdateItemRequest.Builder addPlainUpdateItemParameters(UpdateItemRequest.Builder requestBuilder,
@@ -316,5 +252,27 @@ public class UpdateItemOperation<T>
         requestBuilder = requestBuilder.returnConsumedCapacity(enhancedRequest.returnConsumedCapacityAsString());
         requestBuilder = requestBuilder.returnItemCollectionMetrics(enhancedRequest.returnItemCollectionMetricsAsString());
         return requestBuilder;
+    }
+
+    private static Map<String, String> coalesceExpressionNames(Expression firstExpression, Expression secondExpression) {
+        Map<String, String> expressionNames = null;
+        if (firstExpression != null && !CollectionUtils.isNullOrEmpty(firstExpression.expressionNames())) {
+            expressionNames = firstExpression.expressionNames();
+        }
+        if (secondExpression != null && !CollectionUtils.isNullOrEmpty(secondExpression.expressionNames())) {
+            expressionNames = Expression.joinNames(expressionNames, secondExpression.expressionNames());
+        }
+        return expressionNames;
+    }
+
+    private static Map<String, AttributeValue> coalesceExpressionValues(Expression firstExpression, Expression secondExpression) {
+        Map<String, AttributeValue> expressionValues = null;
+        if (firstExpression != null && !CollectionUtils.isNullOrEmpty(firstExpression.expressionValues())) {
+            expressionValues = firstExpression.expressionValues();
+        }
+        if (secondExpression != null && !CollectionUtils.isNullOrEmpty(secondExpression.expressionValues())) {
+            expressionValues = Expression.joinValues(expressionValues, secondExpression.expressionValues());
+        }
+        return expressionValues;
     }
 }
