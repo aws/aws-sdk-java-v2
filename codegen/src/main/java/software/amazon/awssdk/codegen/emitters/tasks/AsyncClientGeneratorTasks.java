@@ -22,9 +22,9 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.poet.builder.AsyncClientBuilderClass;
 import software.amazon.awssdk.codegen.poet.builder.AsyncClientBuilderInterface;
-import software.amazon.awssdk.codegen.poet.client.AbstractAsyncClientDecoratorClass;
 import software.amazon.awssdk.codegen.poet.client.AsyncClientClass;
 import software.amazon.awssdk.codegen.poet.client.AsyncClientInterface;
+import software.amazon.awssdk.codegen.poet.client.DelegatingAsyncClientClass;
 import software.amazon.awssdk.codegen.poet.endpointdiscovery.EndpointDiscoveryAsyncCacheLoaderGenerator;
 
 public class AsyncClientGeneratorTasks extends BaseGeneratorTasks {
@@ -47,7 +47,7 @@ public class AsyncClientGeneratorTasks extends BaseGeneratorTasks {
             generatorTasks.add(createEndpointDiscoveryCacheLoaderTask());
         }
 
-        if (model.getCustomizationConfig().isAsyncClientDecoratorClass()) {
+        if (model.getCustomizationConfig().isDelegateAsyncClientClass()) {
             generatorTasks.add(createDecoratorClientClassTask());
         }
 
@@ -59,7 +59,7 @@ public class AsyncClientGeneratorTasks extends BaseGeneratorTasks {
     }
 
     private GeneratorTask createDecoratorClientClassTask() throws IOException {
-        return createPoetGeneratorTask(new AbstractAsyncClientDecoratorClass(model));
+        return createPoetGeneratorTask(new DelegatingAsyncClientClass(model));
     }
 
     private GeneratorTask createClientBuilderTask() throws IOException {

@@ -16,9 +16,9 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static java.util.stream.Collectors.toList;
-import static software.amazon.awssdk.codegen.poet.PoetExtension.ASYNC_STREAMING_INPUT_PARAM;
-import static software.amazon.awssdk.codegen.poet.PoetExtension.EVENT_PUBLISHER_PARAM_NAME;
-import static software.amazon.awssdk.codegen.poet.PoetExtension.EVENT_RESPONSE_HANDLER_PARAM_NAME;
+import static software.amazon.awssdk.codegen.internal.Constant.ASYNC_STREAMING_INPUT_PARAM;
+import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
+import static software.amazon.awssdk.codegen.internal.Constant.EVENT_RESPONSE_HANDLER_PARAM_NAME;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;

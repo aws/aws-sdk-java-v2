@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.codegen.poet.client;
 
-import static software.amazon.awssdk.codegen.poet.PoetExtension.ASYNC_STREAMING_INPUT_PARAM;
-import static software.amazon.awssdk.codegen.poet.PoetExtension.ASYNC_STREAMING_OUTPUT_PARAM;
-import static software.amazon.awssdk.codegen.poet.PoetExtension.EVENT_PUBLISHER_PARAM_NAME;
-import static software.amazon.awssdk.codegen.poet.PoetExtension.EVENT_RESPONSE_HANDLER_PARAM_NAME;
+import static software.amazon.awssdk.codegen.internal.Constant.ASYNC_STREAMING_INPUT_PARAM;
+import static software.amazon.awssdk.codegen.internal.Constant.ASYNC_STREAMING_OUTPUT_PARAM;
+import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
+import static software.amazon.awssdk.codegen.internal.Constant.EVENT_RESPONSE_HANDLER_PARAM_NAME;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -33,17 +33,17 @@ import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 
-public class AbstractAsyncClientDecoratorClass extends AsyncClientInterface {
+public class DelegatingAsyncClientClass extends AsyncClientInterface {
 
     private final IntermediateModel model;
     private final ClassName className;
     private final PoetExtension poetExtensions;
 
-    public AbstractAsyncClientDecoratorClass(IntermediateModel model) {
+    public DelegatingAsyncClientClass(IntermediateModel model) {
         super(model);
         this.model = model;
         this.className = ClassName.get(model.getMetadata().getFullInternalPackageName(),
-                                       "Abstract" + model.getMetadata().getAsyncInterface());
+                                       "Delegating" + model.getMetadata().getAsyncInterface());
         this.poetExtensions = new PoetExtension(model);
     }
 

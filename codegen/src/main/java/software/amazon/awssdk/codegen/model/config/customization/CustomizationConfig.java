@@ -199,7 +199,7 @@ public class CustomizationConfig {
     /**
      * Whether to generate an abstract decorator class that delegates to the async service client
      */
-    private boolean asyncClientDecoratorClass;
+    private boolean delegateAsyncClientClass;
 
     private CustomizationConfig() {
     }
@@ -506,11 +506,11 @@ public class CustomizationConfig {
         this.serviceConfig = serviceConfig;
     }
 
-    public boolean isAsyncClientDecoratorClass() {
-        return asyncClientDecoratorClass;
+    public boolean isDelegateAsyncClientClass() {
+        return delegateAsyncClientClass;
     }
 
-    public void setAsyncClientDecoratorClass(boolean asyncClientDecoratorClass) {
-        this.asyncClientDecoratorClass = asyncClientDecoratorClass;
+    public void setDelegateAsyncClientClass(boolean delegateAsyncClientClass) {
+        this.delegateAsyncClientClass = delegateAsyncClientClass;
     }
 }

@@ -38,9 +38,9 @@ public class PoetClientFunctionalTests {
     }
 
     @Test
-    public void abstractAsyncClientClass() throws Exception {
-        AbstractAsyncClientDecoratorClass asyncClientDecoratorAbstractClass =
-            new AbstractAsyncClientDecoratorClass(ClientTestModels.restJsonServiceModels());
+    public void delegatingAsyncClientClass() throws Exception {
+        DelegatingAsyncClientClass asyncClientDecoratorAbstractClass =
+            new DelegatingAsyncClientClass(ClientTestModels.restJsonServiceModels());
         assertThat(asyncClientDecoratorAbstractClass, generatesTo("test-abstract-async-client-class.java"));
     }
 
