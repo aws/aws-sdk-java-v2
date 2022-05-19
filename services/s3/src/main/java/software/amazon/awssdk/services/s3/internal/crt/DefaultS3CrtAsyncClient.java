@@ -35,9 +35,10 @@ import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.internal.DelegatingS3AsyncClient;
 
 @SdkInternalApi
-public final class DefaultS3CrtAsyncClient extends AbstractS3AsyncClient implements S3CrtAsyncClient {
+public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
 
     private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         super(initializeS3AsyncClient(builder));

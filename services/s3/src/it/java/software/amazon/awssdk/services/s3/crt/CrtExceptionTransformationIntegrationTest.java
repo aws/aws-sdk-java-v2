@@ -21,6 +21,7 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -74,7 +75,7 @@ public class CrtExceptionTransformationIntegrationTest extends S3IntegrationTest
     @Test
     public void getObjectNoSuchBucket() throws IOException {
         String randomBaseDirectory = Files.createTempDirectory(getClass().getSimpleName()).toString();
-        assertThatThrownBy(() -> s3Crt.getObject(GetObjectRequest.builder().bucket("nonExistingTestBucket").key(KEY).build(),
+        assertThatThrownBy(() -> s3Crt.getObject(GetObjectRequest.builder().bucket("nonExistingTestBucket" + UUID.randomUUID()).key(KEY).build(),
                 Paths.get(randomBaseDirectory).resolve("testFile")).get())
                 .hasCauseInstanceOf(NoSuchBucketException.class)
                 .hasMessageContaining("software.amazon.awssdk.services.s3.model.NoSuchBucketException: The specified bucket does not exist");
@@ -93,7 +94,7 @@ public class CrtExceptionTransformationIntegrationTest extends S3IntegrationTest
     public void putObjectNoSuchBucket() throws IOException {
 
         String randomBaseDirectory = Files.createTempDirectory(getClass().getSimpleName()).toString();
-        assertThatThrownBy(() -> s3Crt.getObject(GetObjectRequest.builder().bucket("nonExistingTestBucket").key(KEY).build(),
+        assertThatThrownBy(() -> s3Crt.getObject(GetObjectRequest.builder().bucket("nonExistingTestBucket" + UUID.randomUUID()).key(KEY).build(),
                 Paths.get(randomBaseDirectory).resolve("testFile")).get())
                 .hasCauseInstanceOf(NoSuchBucketException.class)
                 .hasMessageContaining("software.amazon.awssdk.services.s3.model.NoSuchBucketException: The specified bucket does not exist");

@@ -27,7 +27,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.eventstream.EventTypeEnumSpec;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
@@ -35,12 +35,12 @@ import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 public final class EventStreamSpecHelper {
     private final ShapeModel eventStream;
     private final IntermediateModel intermediateModel;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
 
     public EventStreamSpecHelper(ShapeModel eventStream, IntermediateModel intermediateModel) {
         this.eventStream = eventStream;
         this.intermediateModel = intermediateModel;
-        this.poetExtensions = new PoetExtensions(intermediateModel);
+        this.poetExtensions = new PoetExtension(intermediateModel);
     }
 
     public String visitMethodName(MemberModel event) {

@@ -52,7 +52,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.Acceptor;
 import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
@@ -75,7 +75,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
     private final Map<String, WaiterDefinition> waiters;
     private final ClassName waiterClassName;
     private final JmesPathAcceptorGenerator jmesPathAcceptorGenerator;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
 
     public BaseWaiterClassSpec(IntermediateModel model, ClassName waiterClassName) {
         this.model = model;
@@ -83,7 +83,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         this.waiters = model.getWaiters();
         this.waiterClassName = waiterClassName;
         this.jmesPathAcceptorGenerator = new JmesPathAcceptorGenerator(waitersRuntimeClass());
-        this.poetExtensions = new PoetExtensions(model);
+        this.poetExtensions = new PoetExtension(model);
     }
 
     @Override
@@ -387,7 +387,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                          .returns(getWaiterResponseType(opModel));
     }
 
-    static MethodSpec applyWaitersUserAgentMethod(PoetExtensions poetExtensions, IntermediateModel model) {
+    static MethodSpec applyWaitersUserAgentMethod(PoetExtension poetExtensions, IntermediateModel model) {
 
         TypeVariableName typeVariableName =
             TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));
