@@ -1,3 +1,16 @@
+# __2.17.195__ __2022-05-19__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - In this release we added SnsFormat to SNSConfiguration to support human readable alert.
+
+## __GameSparks__
+  - ### Features
+    - This release adds an optional DeploymentResult field in the responses of GetStageDeploymentIntegrationTests and ListStageDeploymentIntegrationTests APIs.
+
 # __2.17.194__ __2022-05-18__
 ## __AWS App Mesh__
   - ### Features
