@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "GameSparks",
+    "contributor": "",
+    "description": "This release adds an optional DeploymentResult field in the responses of GetStageDeploymentIntegrationTests and ListStageDeploymentIntegrationTests APIs."
+}
