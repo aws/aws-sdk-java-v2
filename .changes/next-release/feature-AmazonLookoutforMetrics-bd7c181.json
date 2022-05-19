@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lookout for Metrics",
+    "contributor": "",
+    "description": "In this release we added SnsFormat to SNSConfiguration to support human readable alert."
+}
