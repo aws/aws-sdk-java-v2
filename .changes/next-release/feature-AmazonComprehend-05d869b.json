@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Comprehend",
-    "contributor": "",
-    "description": "Comprehend releases 14 new entity types for DetectPiiEntities and ContainsPiiEntities APIs."
-}
