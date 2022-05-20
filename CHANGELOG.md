@@ -1,3 +1,12 @@
+# __2.17.196__ __2022-05-20__
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Doc-only update to publish the new valid values for log retention
+
+## __Amazon Comprehend__
+  - ### Features
+    - Comprehend releases 14 new entity types for DetectPiiEntities and ContainsPiiEntities APIs.
+
 # __2.17.195__ __2022-05-19__
 ## __AWS SDK for Java v2__
   - ### Features
