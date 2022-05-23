@@ -1,3 +1,20 @@
+# __2.17.197__ __2022-05-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Added support for encryption in transit for Memcached clusters. Customers can now launch Memcached cluster with encryption in transit enabled when using Memcached version 1.6.12 or later.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - New APIs for Monitor that help you understand how your predictors perform over time.
+
+## __Amazon Personalize__
+  - ### Features
+    - Adding modelMetrics as part of DescribeRecommender API response for Personalize.
+
 # __2.17.196__ __2022-05-20__
 ## __Amazon CloudWatch Logs__
   - ### Features

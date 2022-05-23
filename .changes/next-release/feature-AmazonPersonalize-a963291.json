@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Personalize",
-    "contributor": "",
-    "description": "Adding modelMetrics as part of DescribeRecommender API response for Personalize."
-}
