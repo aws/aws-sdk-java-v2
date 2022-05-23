@@ -67,6 +67,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withCredentialsProvider(s3NativeClientConfiguration.credentialsProvider())
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
                                  .withPartSize(s3NativeClientConfiguration.partSizeBytes())
+                                 .withComputeContentMd5(true)
                                  .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps());
         this.crtS3Client = new S3Client(s3ClientOptions);
     }
