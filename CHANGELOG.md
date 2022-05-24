@@ -1,3 +1,29 @@
+# __2.17.198__ __2022-05-24__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for rules that constrain Automatic-ABR rendition selection when generating ABR package ladders.
+
+## __AWS Network Manager__
+  - ### Features
+    - This release adds Multi Account API support for a TGW Global Network, to enable and disable AWSServiceAccess with AwsOrganizations for Network Manager service and dependency CloudFormation StackSets service.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Bump CRT version to 0.16.10, which contains M1 support [#2942](https://github.com/aws/aws-sdk-java-v2/issues/2942)
+    - Updated service endpoint metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Amazon Cognito now supports requiring attribute verification (ex. email and phone number) before update.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Stop Protection feature enables customers to protect their instances from accidental stop actions.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Doc-only update. For MessageReviewHandler structure, added timeout period in the description of the fallbackResult field
+
 # __2.17.197__ __2022-05-23__
 ## __AWS SDK for Java v2__
   - ### Features
