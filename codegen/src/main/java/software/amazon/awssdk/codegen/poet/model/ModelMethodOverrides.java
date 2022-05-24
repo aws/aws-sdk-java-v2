@@ -24,7 +24,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetCollectors;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.utils.ToString;
 
 /**
@@ -32,9 +32,9 @@ import software.amazon.awssdk.utils.ToString;
  */
 public class ModelMethodOverrides {
     private final ClassName className;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
 
-    public ModelMethodOverrides(ClassName className, PoetExtensions poetExtensions) {
+    public ModelMethodOverrides(ClassName className, PoetExtension poetExtensions) {
         this.className = className;
         this.poetExtensions = poetExtensions;
     }

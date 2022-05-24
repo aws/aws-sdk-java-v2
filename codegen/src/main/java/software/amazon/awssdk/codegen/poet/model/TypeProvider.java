@@ -34,7 +34,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.document.Document;
 
@@ -43,11 +43,11 @@ import software.amazon.awssdk.core.document.Document;
  */
 public class TypeProvider {
     private final IntermediateModel intermediateModel;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
 
     public TypeProvider(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
-        this.poetExtensions = new PoetExtensions(this.intermediateModel);
+        this.poetExtensions = new PoetExtension(this.intermediateModel);
     }
 
     public ClassName listImplClassName() {

@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.model.TypeProvider.TypeNameOptions;
 import software.amazon.awssdk.core.SdkBytes;
@@ -36,11 +36,11 @@ import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 
 public final class BeanGetterHelper {
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
     private final ServiceModelCopiers copiers;
     private final TypeProvider typeProvider;
 
-    public BeanGetterHelper(PoetExtensions poetExtensions, ServiceModelCopiers copiers, TypeProvider typeProvider) {
+    public BeanGetterHelper(PoetExtension poetExtensions, ServiceModelCopiers copiers, TypeProvider typeProvider) {
         this.poetExtensions = poetExtensions;
         this.copiers = copiers;
         this.typeProvider = typeProvider;

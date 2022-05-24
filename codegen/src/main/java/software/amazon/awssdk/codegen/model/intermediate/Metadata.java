@@ -678,4 +678,8 @@ public class Metadata {
     public String getFullWaitersInternalPackageName() {
         return joinPackageNames(getFullWaitersPackageName(), "internal");
     }
+
+    public String getFullInternalPackageName() {
+        return joinPackageNames(getFullClientPackageName(), "internal");
+    }
 }

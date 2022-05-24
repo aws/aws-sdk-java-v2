@@ -35,7 +35,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.service.XmlNamespace;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
@@ -58,14 +58,14 @@ class ShapeModelSpec {
 
     private final ShapeModel shapeModel;
     private final TypeProvider typeProvider;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
     private final NamingStrategy namingStrategy;
     private final CustomizationConfig customizationConfig;
     private final IntermediateModel model;
 
     ShapeModelSpec(ShapeModel shapeModel,
                    TypeProvider typeProvider,
-                   PoetExtensions poetExtensions,
+                   PoetExtension poetExtensions,
                    IntermediateModel model) {
         this.shapeModel = shapeModel;
         this.typeProvider = typeProvider;

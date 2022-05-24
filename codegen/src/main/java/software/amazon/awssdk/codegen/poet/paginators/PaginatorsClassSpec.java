@@ -32,7 +32,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.model.TypeProvider;
 import software.amazon.awssdk.core.util.PaginatorUtils;
 
@@ -51,7 +51,7 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
     protected final IntermediateModel model;
     protected final String c2jOperationName;
     protected final PaginatorDefinition paginatorDefinition;
-    protected final PoetExtensions poetExtensions;
+    protected final PoetExtension poetExtensions;
     protected final TypeProvider typeProvider;
     protected final OperationModel operationModel;
     protected final PaginationDocs paginationDocs;
@@ -60,7 +60,7 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
         this.model = model;
         this.c2jOperationName = c2jOperationName;
         this.paginatorDefinition = paginatorDefinition;
-        this.poetExtensions = new PoetExtensions(model);
+        this.poetExtensions = new PoetExtension(model);
         this.typeProvider = new TypeProvider(model);
         this.operationModel = model.getOperation(c2jOperationName);
         this.paginationDocs = new PaginationDocs(model, operationModel, paginatorDefinition);

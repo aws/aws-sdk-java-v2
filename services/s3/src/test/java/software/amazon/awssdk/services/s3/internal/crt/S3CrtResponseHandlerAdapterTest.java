@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3.internal;
+package software.amazon.awssdk.services.s3.internal.crt;
 
 
 import static org.assertj.core.api.Assertions.assertThat;

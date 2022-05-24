@@ -19,13 +19,13 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 
 public class WaiterClassSpec extends BaseWaiterClassSpec {
 
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
     private final ClassName className;
     private final String modelPackage;
     private final ClassName clientClassName;
@@ -33,7 +33,7 @@ public class WaiterClassSpec extends BaseWaiterClassSpec {
     public WaiterClassSpec(IntermediateModel model) {
         super(model, ClassName.get(Waiter.class));
         this.modelPackage = model.getMetadata().getFullModelPackageName();
-        this.poetExtensions = new PoetExtensions(model);
+        this.poetExtensions = new PoetExtension(model);
         this.className = poetExtensions.getSyncWaiterClass();
         this.clientClassName = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
     }
