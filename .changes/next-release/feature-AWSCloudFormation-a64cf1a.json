@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudFormation",
+    "contributor": "",
+    "description": "Add a new parameter statusReason to DescribeStackSetOperation output for additional details"
+}
