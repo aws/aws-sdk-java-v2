@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3;
+package software.amazon.awssdk.services.s3.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
@@ -31,12 +31,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
+import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
-import software.amazon.awssdk.transfer.s3.internal.S3CrtAsyncClient;
 import software.amazon.awssdk.utils.Md5Utils;
 
 public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
@@ -47,7 +49,8 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
     private static ExecutorService executorService;
 
     @BeforeAll
-    public static void setup() throws IOException {
+    public static void setup() throws Exception {
+        S3IntegrationTestBase.setUp();
         S3IntegrationTestBase.createBucket(BUCKET);
         crtClient = S3CrtAsyncClient.builder()
                                     .region(S3IntegrationTestBase.DEFAULT_REGION)
@@ -66,7 +69,7 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
         crtClient.close();
         S3IntegrationTestBase.deleteBucketAndAllContents(BUCKET);
         executorService.shutdown();
-        S3IntegrationTestBase.cleanUp();
+        CrtResource.waitForNoResources();
     }
 
     @Test

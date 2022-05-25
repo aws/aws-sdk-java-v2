@@ -92,6 +92,13 @@ public final class Constant {
 
     public static final String APPROVED_SIMPLE_METHOD_VERBS = "(get|list|describe|lookup|batchGet).*";
 
+    public static final String ASYNC_STREAMING_INPUT_PARAM = "requestBody";
+    public static final String ASYNC_STREAMING_OUTPUT_PARAM = "asyncResponseTransformer";
+    public static final String SYNC_STREAMING_INPUT_PARAM = "requestBody";
+    public static final String SYNC_STREAMING_OUTPUT_PARAM = "responseTransformer";
+    public static final String EVENT_PUBLISHER_PARAM_NAME = "requestStream";
+    public static final String EVENT_RESPONSE_HANDLER_PARAM_NAME = "asyncResponseHandler";
+
     private Constant() {
     }
 }

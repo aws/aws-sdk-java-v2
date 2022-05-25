@@ -34,7 +34,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.model.TypeProvider.TypeNameOptions;
 import software.amazon.awssdk.core.SdkBytes;
 
@@ -42,7 +42,7 @@ import software.amazon.awssdk.core.SdkBytes;
  * Abstract implementation of {@link MemberSetters} to share common functionality.
  */
 abstract class AbstractMemberSetters implements MemberSetters {
-    protected final PoetExtensions poetExtensions;
+    protected final PoetExtension poetExtensions;
     private final ShapeModel shapeModel;
     private final MemberModel memberModel;
     private final TypeProvider typeProvider;
@@ -56,7 +56,7 @@ abstract class AbstractMemberSetters implements MemberSetters {
         this.memberModel = memberModel;
         this.typeProvider = typeProvider;
         this.serviceModelCopiers = new ServiceModelCopiers(intermediateModel);
-        this.poetExtensions = new PoetExtensions(intermediateModel);
+        this.poetExtensions = new PoetExtension(intermediateModel);
     }
 
     protected MethodSpec.Builder fluentAbstractSetterDeclaration(ParameterSpec parameter, TypeName returnType) {

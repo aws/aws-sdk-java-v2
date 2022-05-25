@@ -44,7 +44,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.Ec2ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
@@ -68,7 +68,7 @@ import software.amazon.awssdk.utils.Logger;
 public class SyncClientClass implements ClassSpec {
 
     private final IntermediateModel model;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
 
@@ -333,7 +333,7 @@ public class SyncClientClass implements ClassSpec {
                          .build();
     }
 
-    static ProtocolSpec getProtocolSpecs(PoetExtensions poetExtensions, IntermediateModel model) {
+    static ProtocolSpec getProtocolSpecs(PoetExtension poetExtensions, IntermediateModel model) {
         Protocol protocol = model.getMetadata().getProtocol();
         switch (protocol) {
             case QUERY:
