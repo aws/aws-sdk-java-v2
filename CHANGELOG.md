@@ -1,3 +1,40 @@
+# __2.17.199__ __2022-05-25__
+## __AWS App Runner__
+  - ### Features
+    - Documentation-only update added for CodeConfiguration.
+
+## __AWS CloudFormation__
+  - ### Features
+    - Add a new parameter statusReason to DescribeStackSetOperation output for additional details
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds root squash support to FSx for Lustre to restrict root level access from clients by mapping root users to a less-privileged user/group with limited permissions.
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - Adding AthenaSourceConfig for MetricSet APIs to support Athena as a data source.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Autopilot adds support for manually selecting features from the input dataset using the CreateAutoMLJob API.
+
+## __Amazon Voice ID__
+  - ### Features
+    - VoiceID will now automatically expire Speakers if they haven't been accessed for Enrollment, Re-enrollment or Successful Auth for three years. The Speaker APIs now return a "LastAccessedAt" time for Speakers, and the EvaluateSession API returns "SPEAKER_EXPIRED" Auth Decision for EXPIRED Speakers.
+
 # __2.17.198__ __2022-05-24__
 ## __AWS Elemental MediaConvert__
   - ### Features
