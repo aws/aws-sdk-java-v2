@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon FSx",
+    "contributor": "",
+    "description": "This release adds root squash support to FSx for Lustre to restrict root level access from clients by mapping root users to a less-privileged user/group with limited permissions."
+}
