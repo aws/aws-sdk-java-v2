@@ -1,3 +1,24 @@
+# __2.17.201__ __2022-05-27__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports TLS encryption in transit, file system policies and access points for EFS locations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Appflow__
+  - ### Features
+    - Adding the following features/changes: Parquet output that preserves typing from the source connector, Failed executions threshold before deactivation for scheduled flows, increasing max size of access and refresh token from 2048 to 4096
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Notebook Instances now allows configuration of Instance Metadata Service version and Amazon SageMaker Studio now supports G5 instance types.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds support for Amazon EMR Serverless, a serverless runtime environment that simplifies running analytics applications using the latest open source frameworks such as Apache Spark and Apache Hive.
+
 # __2.17.200__ __2022-05-26__
 ## __AWS SDK for Java v2__
   - ### Features
