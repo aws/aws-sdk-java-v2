@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 public class PartitionServiceMetadataTest {
 
     private static final List<String> AWS_PARTITION_GLOBAL_SERVICES = Arrays.asList(
-            "budgets", "cloudfront", "iam", "route53", "shield", "waf", "health");
+            "budgets", "cloudfront", "iam", "route53", "shield", "waf");
 
     private static final List<String> AWS_PARTITION_REGIONALIZED_SERVICES = Arrays.asList(
             "acm", "apigateway", "application-autoscaling", "appstream2", "autoscaling", "batch",
@@ -32,7 +32,7 @@ public class PartitionServiceMetadataTest {
             "codepipeline", "cognito-identity", "cognito-idp", "cognito-sync", "config", "cur", "data.iot",
             "datapipeline", "directconnect", "dms", "ds", "dynamodb", "ec2", "ecs", "elasticache",
             "elasticbeanstalk", "elasticfilesystem", "elasticloadbalancing", "elasticmapreduce", "elastictranscoder",
-            "email", "es", "events", "firehose", "gamelift", "glacier", "inspector",
+            "email", "es", "events", "firehose", "gamelift", "glacier", "health", "inspector",
             "iot", "kinesis", "kinesisanalytics", "kms", "lambda", "lightsail", "logs", "machinelearning",
             "marketplacecommerceanalytics", "metering.marketplace", "mobileanalytics", "monitoring", "opsworks",
             "opsworks-cm", "pinpoint", "polly", "rds", "redshift", "rekognition", "route53domains", "s3",
