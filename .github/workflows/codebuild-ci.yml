@@ -9,7 +9,7 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  jdk8-build:
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -21,23 +21,51 @@ jobs:
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
           project-name: aws-sdk-java-v2
+  jdk11-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
       - name: Run JDK11 build
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
           project-name: aws-sdk-java-v2-JDK11
+  jdk17-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
       - name: Run JDK17 build
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
           project-name: aws-sdk-java-v2-JDK17
+  windows-jdk8-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
       - name: Run JDK8 windows build
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
           project-name: aws-sdk-java-v2-JDK8-windows
+  native-image-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
       - name: Run native image test
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
           project-name: aws-sdk-java-v2-native-image-test
-      - name: Run sonar
-        uses: aws-actions/aws-codebuild-run-build@v1
-        with:
-          project-name: aws-sdk-java-v2-sonar
