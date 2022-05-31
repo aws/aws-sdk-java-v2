@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 
 class AccessorsFactory {
 
@@ -35,7 +35,7 @@ class AccessorsFactory {
     AccessorsFactory(ShapeModel shapeModel,
                      IntermediateModel intermediateModel,
                      TypeProvider typeProvider,
-                     PoetExtensions poetExtensions) {
+                     PoetExtension poetExtensions) {
         this.shapeModel = shapeModel;
         this.typeProvider = typeProvider;
         this.intermediateModel = intermediateModel;

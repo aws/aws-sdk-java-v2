@@ -13,20 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3.internal;
+package software.amazon.awssdk.services.s3.internal.crt;
 
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
-import static software.amazon.awssdk.transfer.s3.internal.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 
 import java.net.URI;
-import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -35,48 +32,19 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
-import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.internal.DelegatingS3AsyncClient;
 
 @SdkInternalApi
-public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
-    private final SdkAsyncHttpClient s3CrtAsyncHttpClient;
-    private final S3AsyncClient s3AsyncClient;
+public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
 
     private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
-        this.s3CrtAsyncHttpClient = S3CrtAsyncHttpClient.builder()
-                                                        .targetThroughputInGbps(builder.targetThroughputInGbps())
-                                                        .minimumPartSizeInBytes(builder.minimumPartSizeInBytes())
-                                                        .maxConcurrency(builder.maxConcurrency)
-                                                        .region(builder.region)
-                                                        .endpointOverride(builder.endpointOverride)
-                                                        .credentialsProvider(builder.credentialsProvider)
-                                                        .build();
-
-        this.s3AsyncClient = initializeS3AsyncClient(builder);
+        super(initializeS3AsyncClient(builder));
     }
 
-    @SdkTestInternalApi
-    DefaultS3CrtAsyncClient(SdkAsyncHttpClient s3CrtAsyncHttpClient,
-                            S3AsyncClient s3AsyncClient) {
-        this.s3CrtAsyncHttpClient = s3CrtAsyncHttpClient;
-
-        this.s3AsyncClient = s3AsyncClient;
-    }
-
-    private S3AsyncClient initializeS3AsyncClient(DefaultS3CrtClientBuilder builder) {
+    private static S3AsyncClient initializeS3AsyncClient(DefaultS3CrtClientBuilder builder) {
         return S3AsyncClient.builder()
                             // Disable checksum, retry policy and signer because they are handled in crt
                             .serviceConfiguration(S3Configuration.builder()
@@ -88,65 +56,25 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                             .overrideConfiguration(o -> o.putAdvancedOption(SdkAdvancedClientOption.SIGNER,
                                                                             new NoOpSigner())
                                                          .retryPolicy(RetryPolicy.none())
+                                                         .addExecutionInterceptor(new ValidateRequestInterceptor())
                                                          .addExecutionInterceptor(new AttachHttpAttributesExecutionInterceptor()))
-                            .httpClient(s3CrtAsyncHttpClient)
+                            .httpClientBuilder(initializeS3CrtAsyncHttpClient(builder))
                             .build();
     }
 
-    @Override
-    public <ReturnT> CompletableFuture<ReturnT> getObject(
-        GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
-        validateOverrideConfiguration(getObjectRequest);
-        return s3AsyncClient.getObject(getObjectRequest, asyncResponseTransformer);
-    }
-
-    @Override
-    public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
-        validateOverrideConfiguration(putObjectRequest);
-        return s3AsyncClient.putObject(putObjectRequest, requestBody);
-    }
-
-    @Override
-    public CompletableFuture<ListObjectsV2Response> listObjectsV2(ListObjectsV2Request listObjectsV2Request) {
-        return s3AsyncClient.listObjectsV2(listObjectsV2Request);
-    }
-
-    @Override
-    public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
-        validateOverrideConfiguration(copyObjectRequest);
-        return s3AsyncClient.copyObject(copyObjectRequest);
-    }
-
-    @Override
-    public CompletableFuture<HeadObjectResponse> headObject(HeadObjectRequest headObjectRequest) {
-        validateOverrideConfiguration(headObjectRequest);
-        return s3AsyncClient.headObject(headObjectRequest);
+    private static S3CrtAsyncHttpClient.Builder initializeS3CrtAsyncHttpClient(DefaultS3CrtClientBuilder builder) {
+        return S3CrtAsyncHttpClient.builder()
+                                   .targetThroughputInGbps(builder.targetThroughputInGbps())
+                                   .minimumPartSizeInBytes(builder.minimumPartSizeInBytes())
+                                   .maxConcurrency(builder.maxConcurrency)
+                                   .region(builder.region)
+                                   .endpointOverride(builder.endpointOverride)
+                                   .credentialsProvider(builder.credentialsProvider);
     }
 
     @Override
     public String serviceName() {
         return SERVICE_NAME;
-    }
-
-    @Override
-    public void close() {
-        s3CrtAsyncHttpClient.close();
-        s3AsyncClient.close();
-    }
-
-    private static void validateOverrideConfiguration(AwsRequest request) {
-
-        if (request.overrideConfiguration().isPresent()) {
-            AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration().get();
-            if (overrideConfiguration.signer().isPresent()) {
-                throw new UnsupportedOperationException("Request-level signer override is not supported");
-            }
-
-            // TODO: support request-level credential override
-            if (overrideConfiguration.credentialsProvider().isPresent()) {
-                throw new UnsupportedOperationException("Request-level credentials override is not supported");
-            }
-        }
     }
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
@@ -236,6 +164,31 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
 
             executionAttributes.putAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES,
                                              attributes);
+        }
+    }
+
+    private static final class ValidateRequestInterceptor implements ExecutionInterceptor {
+        @Override
+        public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
+            validateOverrideConfiguration(context.request());
+        }
+
+        private static void validateOverrideConfiguration(SdkRequest request) {
+            if (!(request instanceof AwsRequest)) {
+                return;
+            }
+            if (request.overrideConfiguration().isPresent()) {
+                AwsRequestOverrideConfiguration overrideConfiguration =
+                    (AwsRequestOverrideConfiguration) request.overrideConfiguration().get();
+                if (overrideConfiguration.signer().isPresent()) {
+                    throw new UnsupportedOperationException("Request-level signer override is not supported");
+                }
+
+                // TODO: support request-level credential override
+                if (overrideConfiguration.credentialsProvider().isPresent()) {
+                    throw new UnsupportedOperationException("Request-level credentials override is not supported");
+                }
+            }
         }
     }
 }

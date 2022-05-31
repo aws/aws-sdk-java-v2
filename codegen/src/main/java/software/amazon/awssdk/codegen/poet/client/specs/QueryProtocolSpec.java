@@ -27,7 +27,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -38,10 +38,10 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class QueryProtocolSpec implements ProtocolSpec {
 
-    protected final PoetExtensions poetExtensions;
+    protected final PoetExtension poetExtensions;
     protected final IntermediateModel intermediateModel;
 
-    public QueryProtocolSpec(IntermediateModel intermediateModel, PoetExtensions poetExtensions) {
+    public QueryProtocolSpec(IntermediateModel intermediateModel, PoetExtension poetExtensions) {
         this.intermediateModel = intermediateModel;
         this.poetExtensions = poetExtensions;
     }

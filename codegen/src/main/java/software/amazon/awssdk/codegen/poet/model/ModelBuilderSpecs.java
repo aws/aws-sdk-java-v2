@@ -39,7 +39,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
@@ -56,7 +56,7 @@ class ModelBuilderSpecs {
     private final IntermediateModel intermediateModel;
     private final ShapeModel shapeModel;
     private final TypeProvider typeProvider;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
     private final AccessorsFactory accessorsFactory;
     private final ShapeModelSpec shapeModelSpec;
 
@@ -66,7 +66,7 @@ class ModelBuilderSpecs {
         this.intermediateModel = intermediateModel;
         this.shapeModel = shapeModel;
         this.typeProvider = typeProvider;
-        this.poetExtensions = new PoetExtensions(this.intermediateModel);
+        this.poetExtensions = new PoetExtension(this.intermediateModel);
         this.accessorsFactory = new AccessorsFactory(this.shapeModel, this.intermediateModel, this.typeProvider, poetExtensions);
         this.shapeModelSpec = new ShapeModelSpec(shapeModel, typeProvider, poetExtensions, intermediateModel);
     }

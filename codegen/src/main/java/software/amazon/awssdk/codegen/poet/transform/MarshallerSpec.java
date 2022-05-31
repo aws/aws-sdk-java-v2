@@ -27,7 +27,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.transform.protocols.EventStreamJsonMarshallerSpec;
 import software.amazon.awssdk.codegen.poet.transform.protocols.JsonMarshallerSpec;
@@ -57,7 +57,7 @@ public class MarshallerSpec implements ClassSpec {
         this.baseMashallerName = ClassName.get(Marshaller.class);
         this.httpRequestName = ClassName.get(SdkHttpFullRequest.class);
         this.requestName = ClassName.get(modelPackage, shapeModel.getShapeName());
-        this.className = new PoetExtensions(intermediateModel).getRequestTransformClass(shapeModel.getShapeName() + "Marshaller");
+        this.className = new PoetExtension(intermediateModel).getRequestTransformClass(shapeModel.getShapeName() + "Marshaller");
         this.requestClassName = ClassName.get(modelPackage, shapeModel.getShapeName());
         this.protocolSpec = getProtocolSpecs(intermediateModel.getMetadata().getProtocol());
     }

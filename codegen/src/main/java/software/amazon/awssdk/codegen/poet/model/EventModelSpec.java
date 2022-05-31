@@ -33,7 +33,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 
@@ -41,7 +41,7 @@ public final class EventModelSpec implements ClassSpec {
     private final MemberModel eventModel;
     private final ShapeModel eventStream;
     private final IntermediateModel intermediateModel;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
     private final ShapeModelSpec baseShapeModelSpec;
     private final TypeProvider typeProvider;
     private final EventStreamSpecHelper eventStreamSpecHelper;
@@ -51,7 +51,7 @@ public final class EventModelSpec implements ClassSpec {
         this.eventModel = eventModel;
         this.eventStream = eventStream;
         this.intermediateModel = intermediateModel;
-        this.poetExtensions = new PoetExtensions(intermediateModel);
+        this.poetExtensions = new PoetExtension(intermediateModel);
         this.baseShapeModelSpec = new ShapeModelSpec(eventModel.getShape(), new TypeProvider(intermediateModel),
                 poetExtensions, intermediateModel);
         this.typeProvider = new TypeProvider(intermediateModel);

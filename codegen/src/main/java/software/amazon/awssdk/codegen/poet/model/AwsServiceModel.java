@@ -54,7 +54,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.TypeProvider.TypeNameOptions;
@@ -71,7 +71,7 @@ public class AwsServiceModel implements ClassSpec {
 
     private final IntermediateModel intermediateModel;
     private final ShapeModel shapeModel;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
     private final TypeProvider typeProvider;
     private final ShapeModelSpec shapeModelSpec;
     private final ModelBuilderSpecs modelBuilderSpecs;
@@ -81,7 +81,7 @@ public class AwsServiceModel implements ClassSpec {
     public AwsServiceModel(IntermediateModel intermediateModel, ShapeModel shapeModel) {
         this.intermediateModel = intermediateModel;
         this.shapeModel = shapeModel;
-        this.poetExtensions = new PoetExtensions(intermediateModel);
+        this.poetExtensions = new PoetExtension(intermediateModel);
         this.typeProvider = new TypeProvider(intermediateModel);
         this.shapeModelSpec = new ShapeModelSpec(this.shapeModel,
                                                  typeProvider,

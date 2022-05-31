@@ -24,7 +24,7 @@ import java.util.List;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 
 public class EventModelBuilderSpecs {
     private final ClassName eventClassName;
@@ -34,7 +34,7 @@ public class EventModelBuilderSpecs {
                                   TypeProvider typeProvider) {
         this.eventClassName = eventClassName;
         this.shapeModelSpec = new ShapeModelSpec(eventModel.getShape(), typeProvider,
-                new PoetExtensions(intermediateModel), intermediateModel);
+                                                 new PoetExtension(intermediateModel), intermediateModel);
     }
 
     public ClassName builderInterfaceName() {
