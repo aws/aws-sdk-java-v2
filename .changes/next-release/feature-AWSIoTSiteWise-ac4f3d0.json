@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT SiteWise",
-    "contributor": "",
-    "description": "This release adds the following new optional field to the IoT SiteWise asset resource: assetDescription."
-}

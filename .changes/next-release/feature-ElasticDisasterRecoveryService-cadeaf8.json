@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Disaster Recovery Service",
-    "contributor": "",
-    "description": "Changed existing APIs and added new APIs to accommodate using multiple AWS accounts with AWS Elastic Disaster Recovery."
-}
