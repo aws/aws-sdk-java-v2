@@ -1,0 +1,48 @@
+{
+    "version": "2.17.202",
+    "date": "2022-05-31",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Elastic Disaster Recovery Service",
+            "contributor": "",
+            "description": "Changed existing APIs and added new APIs to accommodate using multiple AWS accounts with AWS Elastic Disaster Recovery."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Amazon Cognito now supports IP Address propagation for all unauthenticated APIs (e.g. SignUp, ForgotPassword)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker Notebook Instances now support Jupyter Lab 3."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "Amazon Transcribe now supports automatic language identification for multi-lingual audio in batch mode."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Metrics",
+            "contributor": "",
+            "description": "Adding backtest mode to detectors using the Cloudwatch data source."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "This release adds the following new optional field to the IoT SiteWise asset resource: assetDescription."
+        }
+    ]
+}
