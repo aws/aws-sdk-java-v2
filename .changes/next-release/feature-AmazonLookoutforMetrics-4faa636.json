@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lookout for Metrics",
+    "contributor": "",
+    "description": "Adding backtest mode to detectors using the Cloudwatch data source."
+}
