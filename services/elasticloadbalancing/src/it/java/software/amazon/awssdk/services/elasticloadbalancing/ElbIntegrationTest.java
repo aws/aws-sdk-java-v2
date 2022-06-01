@@ -188,51 +188,51 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
     /**
      * Tests the ELB operations that require a real EC2 instance.
      */
-    @Test
-    public void testLoadBalancerInstanceOperations() throws Exception {
-        String ebs_hvm_ami_id = findEbsBackedPublicHvmAmiId();
-
-        // Start up an EC2 instance to register with our LB
-        RunInstancesRequest runInstancesRequest = RunInstancesRequest.builder()
-                .placement(
-                        Placement.builder()
-                                .availabilityZone(AVAILABILITY_ZONE_1).build())
-                .imageId(ebs_hvm_ami_id).minCount(1).maxCount(1).build();
-        instanceId = ec2.runInstances(runInstancesRequest)
-                        .instances().get(0).instanceId();
-
-        Waiter.run(() -> ec2.describeInstances(b -> b.instanceIds(instanceId)))
-              .until(r -> InstanceStateName.RUNNING.equals(r.reservations().get(0).instances().get(0).state().name()))
-              .ignoringException(Ec2Exception.class)
-              .orFailAfter(Duration.ofMinutes(10));
-
-        // Register it with our load balancer
-        List<Instance> instances = elb.registerInstancesWithLoadBalancer(
-                RegisterInstancesWithLoadBalancerRequest.builder().instances(
-                        Instance.builder().instanceId(instanceId).build())
-                                                              .loadBalancerName(loadBalancerName).build()).instances();
-        assertEquals(1, instances.size());
-        assertEquals(instanceId, instances.get(0).instanceId());
-
-        // Describe it's health
-        List<InstanceState> instanceStates = elb.describeInstanceHealth(
-                DescribeInstanceHealthRequest.builder().instances(
-                        Instance.builder().instanceId(instanceId).build())
-                                                   .loadBalancerName(loadBalancerName).build())
-                                                .instanceStates();
-        assertEquals(1, instanceStates.size());
-        assertThat(instanceStates.get(0).description(), not(isEmptyOrNullString()));
-        assertEquals(instanceId, instanceStates.get(0).instanceId());
-        assertThat(instanceStates.get(0).reasonCode(), not(isEmptyOrNullString()));
-        assertThat(instanceStates.get(0).state(), not(isEmptyOrNullString()));
-
-        // Deregister it
-        instances = elb.deregisterInstancesFromLoadBalancer(
-                DeregisterInstancesFromLoadBalancerRequest.builder().instances(
-                        Instance.builder().instanceId(instanceId).build())
-                                                                .loadBalancerName(loadBalancerName).build()).instances();
-        assertEquals(0, instances.size());
-    }
+    // @Test
+    // public void testLoadBalancerInstanceOperations() throws Exception {
+    //     String ebs_hvm_ami_id = findEbsBackedPublicHvmAmiId();
+    //
+    //     // Start up an EC2 instance to register with our LB
+    //     RunInstancesRequest runInstancesRequest = RunInstancesRequest.builder()
+    //             .placement(
+    //                     Placement.builder()
+    //                             .availabilityZone(AVAILABILITY_ZONE_1).build())
+    //             .imageId(ebs_hvm_ami_id).minCount(1).maxCount(1).build();
+    //     instanceId = ec2.runInstances(runInstancesRequest)
+    //                     .instances().get(0).instanceId();
+    //
+    //     Waiter.run(() -> ec2.describeInstances(b -> b.instanceIds(instanceId)))
+    //           .until(r -> InstanceStateName.RUNNING.equals(r.reservations().get(0).instances().get(0).state().name()))
+    //           .ignoringException(Ec2Exception.class)
+    //           .orFailAfter(Duration.ofMinutes(10));
+    //
+    //     // Register it with our load balancer
+    //     List<Instance> instances = elb.registerInstancesWithLoadBalancer(
+    //             RegisterInstancesWithLoadBalancerRequest.builder().instances(
+    //                     Instance.builder().instanceId(instanceId).build())
+    //                                                           .loadBalancerName(loadBalancerName).build()).instances();
+    //     assertEquals(1, instances.size());
+    //     assertEquals(instanceId, instances.get(0).instanceId());
+    //
+    //     // Describe it's health
+    //     List<InstanceState> instanceStates = elb.describeInstanceHealth(
+    //             DescribeInstanceHealthRequest.builder().instances(
+    //                     Instance.builder().instanceId(instanceId).build())
+    //                                                .loadBalancerName(loadBalancerName).build())
+    //                                             .instanceStates();
+    //     assertEquals(1, instanceStates.size());
+    //     assertThat(instanceStates.get(0).description(), not(isEmptyOrNullString()));
+    //     assertEquals(instanceId, instanceStates.get(0).instanceId());
+    //     assertThat(instanceStates.get(0).reasonCode(), not(isEmptyOrNullString()));
+    //     assertThat(instanceStates.get(0).state(), not(isEmptyOrNullString()));
+    //
+    //     // Deregister it
+    //     instances = elb.deregisterInstancesFromLoadBalancer(
+    //             DeregisterInstancesFromLoadBalancerRequest.builder().instances(
+    //                     Instance.builder().instanceId(instanceId).build())
+    //                                                             .loadBalancerName(loadBalancerName).build()).instances();
+    //     assertEquals(0, instances.size());
+    // }
 
     /**
      * Tests that the ELB client can call the basic load balancer operations (no
