@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Backup Gateway",
+    "contributor": "",
+    "description": "Adds GetGateway and UpdateGatewaySoftwareNow API and adds hypervisor name to UpdateHypervisor API"
+}
