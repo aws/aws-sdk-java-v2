@@ -1,0 +1,30 @@
+{
+    "version": "2.17.203",
+    "date": "2022-06-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Backup Gateway",
+            "contributor": "",
+            "description": "Adds GetGateway and UpdateGatewaySoftwareNow API and adds hypervisor name to UpdateHypervisor API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Forecast Service",
+            "contributor": "",
+            "description": "Added Format field to Import and Export APIs in Amazon Forecast. Added TimeSeriesSelector to Create Forecast API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Add new APIs to support Route 53 IP Based Routing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Meetings",
+            "contributor": "",
+            "description": "Adds support for centrally controlling each participant's ability to send and receive audio, video and screen share within a WebRTC session. Attendee capabilities can be specified when the attendee is created and updated during the session with the new BatchUpdateAttendeeCapabilitiesExcept API."
+        }
+    ]
+}
