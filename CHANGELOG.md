@@ -1,3 +1,20 @@
+# __2.17.203__ __2022-06-01__
+## __AWS Backup Gateway__
+  - ### Features
+    - Adds GetGateway and UpdateGatewaySoftwareNow API and adds hypervisor name to UpdateHypervisor API
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Adds support for centrally controlling each participant's ability to send and receive audio, video and screen share within a WebRTC session. Attendee capabilities can be specified when the attendee is created and updated during the session with the new BatchUpdateAttendeeCapabilitiesExcept API.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - Added Format field to Import and Export APIs in Amazon Forecast. Added TimeSeriesSelector to Create Forecast API.
+
+## __Amazon Route 53__
+  - ### Features
+    - Add new APIs to support Route 53 IP Based Routing
+
 # __2.17.202__ __2022-05-31__
 ## __AWS IoT SiteWise__
   - ### Features
