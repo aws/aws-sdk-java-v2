@@ -1,3 +1,91 @@
+# __2.17.203__ __2022-06-01__
+## __AWS Backup Gateway__
+  - ### Features
+    - Adds GetGateway and UpdateGatewaySoftwareNow API and adds hypervisor name to UpdateHypervisor API
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Adds support for centrally controlling each participant's ability to send and receive audio, video and screen share within a WebRTC session. Attendee capabilities can be specified when the attendee is created and updated during the session with the new BatchUpdateAttendeeCapabilitiesExcept API.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - Added Format field to Import and Export APIs in Amazon Forecast. Added TimeSeriesSelector to Create Forecast API.
+
+## __Amazon Route 53__
+  - ### Features
+    - Add new APIs to support Route 53 IP Based Routing
+
+# __2.17.202__ __2022-05-31__
+## __AWS IoT SiteWise__
+  - ### Features
+    - This release adds the following new optional field to the IoT SiteWise asset resource: assetDescription.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Amazon Cognito now supports IP Address propagation for all unauthenticated APIs (e.g. SignUp, ForgotPassword).
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - Adding backtest mode to detectors using the Cloudwatch data source.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Notebook Instances now support Jupyter Lab 3.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports automatic language identification for multi-lingual audio in batch mode.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Changed existing APIs and added new APIs to accommodate using multiple AWS accounts with AWS Elastic Disaster Recovery.
+
+# __2.17.201__ __2022-05-27__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports TLS encryption in transit, file system policies and access points for EFS locations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Appflow__
+  - ### Features
+    - Adding the following features/changes: Parquet output that preserves typing from the source connector, Failed executions threshold before deactivation for scheduled flows, increasing max size of access and refresh token from 2048 to 4096
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Notebook Instances now allows configuration of Instance Metadata Service version and Amazon SageMaker Studio now supports G5 instance types.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds support for Amazon EMR Serverless, a serverless runtime environment that simplifies running analytics applications using the latest open source frameworks such as Apache Spark and Apache Hive.
+
+# __2.17.200__ __2022-05-26__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - C7g instances, powered by the latest generation AWS Graviton3 processors, provide the best price performance in Amazon EC2 for compute-intensive workloads.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - Introduced a new field in Auto Predictor as Time Alignment Boundary. It helps in aligning the timestamps generated during Forecast exports
+
+## __Amazon Lightsail__
+  - ### Features
+    - Amazon Lightsail now supports the ability to configure a Lightsail Container Service to pull images from Amazon ECR private repositories in your account.
+
+## __EMR Serverless Web Service__
+  - ### Features
+    - This release adds support for Amazon EMR Serverless, a serverless runtime environment that simplifies running analytics applications using the latest open source frameworks such as Apache Spark and Apache Hive.
+
 # __2.17.199__ __2022-05-25__
 ## __AWS App Runner__
   - ### Features
