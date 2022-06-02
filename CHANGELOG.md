@@ -1,3 +1,28 @@
+# __2.17.204__ __2022-06-02__
+## __AWS Proton__
+  - ### Features
+    - Add new "Components" API to enable users to Create, Delete and Update AWS Proton components.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now provides a data source connector for GitHub. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-github.html
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - Provide Account Level onboarding support through CFN/CLI
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds the following features: 1) New APIs to manage (create, list, update) task template resources, 2) Updates to startTaskContact API to support task templates, and 3) new TransferContact API to programmatically transfer in-progress tasks via a contact flow.
+
+## __Amazon Voice ID__
+  - ### Features
+    - Added a new attribute ServerSideEncryptionUpdateDetails to Domain and DomainSummary.
+
+## __CodeArtifact__
+  - ### Features
+    - Documentation updates for CodeArtifact
+
 # __2.17.203__ __2022-06-01__
 ## __AWS Backup Gateway__
   - ### Features
