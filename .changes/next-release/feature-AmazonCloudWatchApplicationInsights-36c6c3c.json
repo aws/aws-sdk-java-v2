@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Application Insights",
-    "contributor": "",
-    "description": "Provide Account Level onboarding support through CFN/CLI"
-}

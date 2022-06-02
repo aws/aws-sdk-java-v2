@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Voice ID",
-    "contributor": "",
-    "description": "Added a new attribute ServerSideEncryptionUpdateDetails to Domain and DomainSummary."
-}
