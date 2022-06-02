@@ -400,6 +400,7 @@ public final class DownloadDirectoryRequest
             this.filter = request.filter;
             this.downloadFileRequestTransformer = request.downloadFileRequestTransformer;
             this.listObjectsRequestTransformer = request.listObjectsRequestTransformer;
+            this.delimiter = request.delimiter;
         }
 
         @Override

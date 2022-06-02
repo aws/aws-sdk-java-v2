@@ -67,7 +67,7 @@ public final class FullJitterBackoffStrategy implements BackoffStrategy,
 
     @Override
     public Builder toBuilder() {
-        return builder().baseDelay(baseDelay).maxBackoffTime(maxBackoffTime);
+        return new BuilderImpl(this);
     }
 
     public static Builder builder() {
@@ -93,6 +93,11 @@ public final class FullJitterBackoffStrategy implements BackoffStrategy,
         private Duration maxBackoffTime;
 
         private BuilderImpl() {
+        }
+
+        private BuilderImpl(FullJitterBackoffStrategy strategy) {
+            this.baseDelay = strategy.baseDelay;
+            this.maxBackoffTime = strategy.maxBackoffTime;
         }
 
         @Override

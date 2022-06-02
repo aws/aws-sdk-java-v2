@@ -51,7 +51,7 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
     /**
      * The STS client that should be used for periodically updating the session credentials in the background.
      */
-    private final StsClient stsClient;
+    final StsClient stsClient;
 
     /**
      * The session cache that will update the credentials asynchronously in the background when they get close to expiring.
