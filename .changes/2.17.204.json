@@ -1,0 +1,42 @@
+{
+    "version": "2.17.204",
+    "date": "2022-06-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds the following features: 1) New APIs to manage (create, list, update) task template resources, 2) Updates to startTaskContact API to support task templates, and 3) new TransferContact API to programmatically transfer in-progress tasks via a contact flow."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Application Insights",
+            "contributor": "",
+            "description": "Provide Account Level onboarding support through CFN/CLI"
+        },
+        {
+            "type": "feature",
+            "category": "CodeArtifact",
+            "contributor": "",
+            "description": "Documentation updates for CodeArtifact"
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "Amazon Kendra now provides a data source connector for GitHub. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-github.html"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Proton",
+            "contributor": "",
+            "description": "Add new \"Components\" API to enable users to Create, Delete and Update AWS Proton components."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Voice ID",
+            "contributor": "",
+            "description": "Added a new attribute ServerSideEncryptionUpdateDetails to Domain and DomainSummary."
+        }
+    ]
+}
