@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Proton",
+    "contributor": "",
+    "description": "Add new \"Components\" API to enable users to Create, Delete and Update AWS Proton components."
+}
