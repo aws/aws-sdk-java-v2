@@ -69,3 +69,23 @@ jobs:
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
           project-name: aws-sdk-java-v2-native-image-test
+  sonar-cloud-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+      - name: Run sonar-cloud analysis
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-sonar
+          env-vars-for-codebuild: |
+            PR,
+            BRANCH,
+            BASE
+        env:
+          PR: ${{ github.event.number }}
+          BRANCH: ${{ github.head_ref || 'master'}}
+          BASE: ${{ github.base_ref }}
