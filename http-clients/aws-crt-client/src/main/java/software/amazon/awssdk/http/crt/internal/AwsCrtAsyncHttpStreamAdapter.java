@@ -19,13 +19,12 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CRT;
-import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
-import software.amazon.awssdk.crt.http.HttpStream;
-import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
+import software.amazon.awssdk.crt.http.HttpStreamBase;
+import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -36,10 +35,9 @@ import software.amazon.awssdk.utils.Validate;
  * Implements the CrtHttpStreamHandler API and converts CRT callbacks into calls to SDK AsyncExecuteRequest methods
  */
 @SdkInternalApi
-public final class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHandler, HttpRequestBodyStream {
+public final class AwsCrtAsyncHttpStreamAdapter implements HttpRequestBodyStream, HttpStreamBaseResponseHandler {
     private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpStreamAdapter.class);
 
-    private final HttpClientConnection connection;
     private final CompletableFuture<Void> responseComplete;
     private final AsyncExecuteRequest sdkRequest;
     private final SdkHttpResponse.Builder respBuilder = SdkHttpResponse.builder();
@@ -47,9 +45,8 @@ public final class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHan
     private final AwsCrtRequestBodySubscriber requestBodySubscriber;
     private AwsCrtResponseBodyPublisher respBodyPublisher = null;
 
-    public AwsCrtAsyncHttpStreamAdapter(HttpClientConnection connection, CompletableFuture<Void> responseComplete,
+    public AwsCrtAsyncHttpStreamAdapter(CompletableFuture<Void> responseComplete,
                                         AsyncExecuteRequest sdkRequest, int windowSize) {
-        this.connection = Validate.notNull(connection, "HttpConnection is null");
         this.responseComplete = Validate.notNull(responseComplete, "reqComplete Future is null");
         this.sdkRequest = Validate.notNull(sdkRequest, "AsyncExecuteRequest Future is null");
         this.windowSize = Validate.isPositive(windowSize, "windowSize is <= 0");
@@ -58,14 +55,14 @@ public final class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHan
         sdkRequest.requestContentPublisher().subscribe(requestBodySubscriber);
     }
 
-    private void initRespBodyPublisherIfNeeded(HttpStream stream) {
+    private void initRespBodyPublisherIfNeeded(HttpStreamBase stream) {
         if (respBodyPublisher == null) {
-            respBodyPublisher = new AwsCrtResponseBodyPublisher(connection, stream, responseComplete, windowSize);
+            respBodyPublisher = new AwsCrtResponseBodyPublisher(stream, responseComplete, windowSize);
         }
     }
 
     @Override
-    public void onResponseHeaders(HttpStream stream, int responseStatusCode, int blockType, HttpHeader[] nextHeaders) {
+    public void onResponseHeaders(HttpStreamBase stream, int responseStatusCode, int blockType, HttpHeader[] nextHeaders) {
         initRespBodyPublisherIfNeeded(stream);
 
         for (HttpHeader h : nextHeaders) {
@@ -74,7 +71,7 @@ public final class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHan
     }
 
     @Override
-    public void onResponseHeadersDone(HttpStream stream, int headerType) {
+    public void onResponseHeadersDone(HttpStreamBase stream, int headerType) {
         if (headerType == HttpHeaderBlock.MAIN.getValue()) {
             initRespBodyPublisherIfNeeded(stream);
 
@@ -85,7 +82,7 @@ public final class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHan
     }
 
     @Override
-    public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
+    public int onResponseBody(HttpStreamBase stream, byte[] bodyBytesIn) {
         initRespBodyPublisherIfNeeded(stream);
 
         respBodyPublisher.queueBuffer(bodyBytesIn);
@@ -101,11 +98,11 @@ public final class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHan
     }
 
     @Override
-    public void onResponseComplete(HttpStream stream, int errorCode) {
+    public void onResponseComplete(HttpStreamBase stream, int errorCode) {
         initRespBodyPublisherIfNeeded(stream);
 
         if (HttpStatusFamily.of(respBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
-            connection.shutdown();
+            stream.close();
         }
 
         if (errorCode == CRT.AWS_CRT_SUCCESS) {
@@ -134,4 +131,5 @@ public final class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHan
     public boolean sendRequestBody(ByteBuffer bodyBytesOut) {
         return requestBodySubscriber.transferRequestBody(bodyBytesOut);
     }
+
 }

@@ -27,15 +27,16 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
-import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
+import software.amazon.awssdk.crt.http.HttpStreamManagerOptions;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -47,8 +48,8 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An implementation of {@link SdkAsyncHttpClient} that uses the AWS Common Runtime (CRT) Http Client to communicate with
- * Http Web Services. This client is asynchronous and uses non-blocking IO.
+ * An implementation of {@link SdkAsyncHttpClient} that uses the AWS Common Runtime (CRT) Http Client to communicate with Http Web
+ * Services. This client is asynchronous and uses non-blocking IO.
  *
  * <p>This can be created via {@link #builder()}</p>
  *
@@ -62,7 +63,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
     private static final int DEFAULT_STREAM_WINDOW_SIZE = 16 * 1024 * 1024; // 16 MB
 
-    private final Map<URI, HttpClientConnectionManager> connectionPools = new ConcurrentHashMap<>();
+    private final Map<URI, HttpStreamManager> connectionPools = new ConcurrentHashMap<>();
     private final LinkedList<CrtResource> ownedSubResources = new LinkedList<>();
     private final ClientBootstrap bootstrap;
     private final SocketOptions socketOptions;
@@ -73,30 +74,35 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final int readBufferSize;
     private final int maxConnectionsPerEndpoint;
     private boolean isClosed = false;
+    private final Protocol protocol;
 
     private AwsCrtAsyncHttpClient(DefaultBuilder builder, AttributeMap config) {
         int maxConns = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
-
         Validate.isPositive(maxConns, "maxConns");
         Validate.notNull(builder.cipherPreference, "cipherPreference");
         Validate.isPositive(builder.readBufferSize, "readBufferSize");
 
-        try (ClientBootstrap clientBootstrap = new ClientBootstrap(null, null);
-             SocketOptions clientSocketOptions = new SocketOptions();
-             TlsContextOptions clientTlsContextOptions = TlsContextOptions.createDefaultClient() // NOSONAR
-                     .withCipherPreference(builder.cipherPreference)
-                     .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
-             TlsContext clientTlsContext = new TlsContext(clientTlsContextOptions)) {
+        ClientBootstrap clientBootstrap = new ClientBootstrap(null, null);
+        SocketOptions clientSocketOptions = new SocketOptions();
+        TlsContextOptions clientTlsContextOptions = TlsContextOptions.createDefaultClient() // NOSONAR
+                                                                     .withCipherPreference(builder.cipherPreference)
+                                                                     .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
 
-            this.bootstrap = registerOwnedResource(clientBootstrap);
-            this.socketOptions = registerOwnedResource(clientSocketOptions);
-            this.tlsContext = registerOwnedResource(clientTlsContext);
-            this.readBufferSize = builder.readBufferSize;
-            this.maxConnectionsPerEndpoint = maxConns;
-            this.monitoringOptions = revolveHttpMonitoringOptions(builder.connectionHealthChecksConfiguration);
-            this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
-            this.proxyOptions = buildProxyOptions(builder.proxyConfiguration);
+        protocol = config.get(SdkHttpConfigurationOption.PROTOCOL);
+        if (protocol == Protocol.HTTP2) {
+            clientTlsContextOptions.withAlpnList("h2");
         }
+
+        TlsContext clientTlsContext = new TlsContext(clientTlsContextOptions);
+
+        this.bootstrap = registerOwnedResource(clientBootstrap);
+        this.socketOptions = registerOwnedResource(clientSocketOptions);
+        this.tlsContext = registerOwnedResource(clientTlsContext);
+        this.readBufferSize = builder.readBufferSize;
+        this.maxConnectionsPerEndpoint = maxConns;
+        this.monitoringOptions = revolveHttpMonitoringOptions(builder.connectionHealthChecksConfiguration);
+        this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
+        this.proxyOptions = buildProxyOptions(builder.proxyConfiguration);
     }
 
     private HttpMonitoringOptions revolveHttpMonitoringOptions(ConnectionHealthChecksConfiguration config) {
@@ -140,12 +146,11 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
      * Marks a Native CrtResource as owned by the current Java Object.
      *
      * @param subresource The Resource to own.
-     * @param <T> The CrtResource Type
+     * @param <T>         The CrtResource Type
      * @return The CrtResource passed in
      */
     private <T extends CrtResource> T registerOwnedResource(T subresource) {
         if (subresource != null) {
-            subresource.addRef();
             ownedSubResources.push(subresource);
         }
         return subresource;
@@ -169,22 +174,20 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         return AWS_COMMON_RUNTIME;
     }
 
-    private HttpClientConnectionManager createConnectionPool(URI uri) {
+    private HttpStreamManager createConnectionPool(URI uri) {
         log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxConnectionsPerEndpoint);
 
-        HttpClientConnectionManagerOptions options = new HttpClientConnectionManagerOptions()
-                .withClientBootstrap(bootstrap)
-                .withSocketOptions(socketOptions)
-                .withTlsContext(tlsContext)
-                .withUri(uri)
-                .withWindowSize(readBufferSize)
-                .withMaxConnections(maxConnectionsPerEndpoint)
-                .withManualWindowManagement(true)
-                .withProxyOptions(proxyOptions)
-                .withMonitoringOptions(monitoringOptions)
-                .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds);
+        HttpStreamManagerOptions options = new HttpStreamManagerOptions()
+            .withClientBootstrap(bootstrap)
+            .withSocketOptions(socketOptions)
+            .withTlsContext(tlsContext)
+            .withUri(uri)
+            .withMaxConnections(maxConnectionsPerEndpoint)
+            .withManualWindowManagement(true)
+            .withProxyOptions(proxyOptions)
+            .withMonitoringOptions(monitoringOptions);
 
-        return HttpClientConnectionManager.create(options);
+        return HttpStreamManager.create(options);
     }
 
     /*
@@ -202,14 +205,14 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
      * existing pool.  If we add all of execute() to the scope, we include, at minimum a JNI call to the native
      * pool implementation.
      */
-    private HttpClientConnectionManager getOrCreateConnectionPool(URI uri) {
+    private HttpStreamManager getOrCreateConnectionPool(URI uri) {
         synchronized (this) {
             if (isClosed) {
                 throw new IllegalStateException("Client is closed. No more requests can be made with this client.");
             }
 
-            HttpClientConnectionManager connPool = connectionPools.computeIfAbsent(uri, this::createConnectionPool);
-            connPool.addRef();
+            HttpStreamManager connPool = connectionPools.computeIfAbsent(uri, this::createConnectionPool);
+            //connPool.addRef();
             return connPool;
         }
     }
@@ -232,14 +235,14 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * we have a pool and no one can destroy it underneath us until we've finished submitting the
          * request)
          */
-        try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(asyncRequest.request().getUri())) {
+        try (HttpStreamManager crtConnPool = getOrCreateConnectionPool(asyncRequest.request().getUri())) {
             CrtRequestContext context = CrtRequestContext.builder()
                                                          .crtConnPool(crtConnPool)
                                                          .readBufferSize(readBufferSize)
                                                          .request(asyncRequest)
                                                          .build();
 
-            return new CrtRequestExecutor().execute(context);
+            return new CrtRequestExecutor().execute(context, protocol);
         }
     }
 
@@ -266,6 +269,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         /**
          * The Maximum number of allowed concurrent requests. For HTTP/1.1 this is the same as max connections.
+         *
          * @param maxConcurrency maximum concurrency per endpoint
          * @return The builder of the method chaining.
          */
@@ -273,15 +277,15 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         /**
          * The AWS CRT TlsCipherPreference to use for this Client
+         *
          * @param tlsCipherPreference The AWS Common Runtime TlsCipherPreference
          * @return The builder of the method chaining.
          */
         Builder tlsCipherPreference(TlsCipherPreference tlsCipherPreference);
 
         /**
-         * Configures the number of unread bytes that can be buffered in the
-         * client before we stop reading from the underlying TCP socket and wait for the Subscriber
-         * to read more data.
+         * Configures the number of unread bytes that can be buffered in the client before we stop reading from the underlying TCP
+         * socket and wait for the Subscriber to read more data.
          *
          * @param readBufferSize The number of bytes that can be buffered
          * @return The builder of the method chaining.
@@ -290,6 +294,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         /**
          * Sets the http proxy configuration to use for this client.
+         *
          * @param proxyConfiguration The http proxy configuration to use
          * @return The builder of the method chaining.
          */
@@ -307,9 +312,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * Configure the health checks for for all connections established by this client.
          *
          * <p>
-         * eg: you can set a throughput threshold for the a connection to be considered healthy.
-         * If the connection falls below this threshold for a configurable amount of time,
-         * then the connection is considered unhealthy and will be shut down.
+         * eg: you can set a throughput threshold for the a connection to be considered healthy. If the connection falls below
+         * this threshold for a configurable amount of time, then the connection is considered unhealthy and will be shut down.
          *
          * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
@@ -320,9 +324,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * A convenience method to configure the health checks for for all connections established by this client.
          *
          * <p>
-         * eg: you can set a throughput threshold for the a connection to be considered healthy.
-         * If the connection falls below this threshold for a configurable amount of time,
-         * then the connection is considered unhealthy and will be shut down.
+         * eg: you can set a throughput threshold for the a connection to be considered healthy. If the connection falls below
+         * this threshold for a configurable amount of time, then the connection is considered unhealthy and will be shut down.
          *
          * @param healthChecksConfigurationBuilder The health checks config builder to use
          * @return The builder of the method chaining.
@@ -338,8 +341,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     /**
-     * Factory that allows more advanced configuration of the AWS CRT HTTP implementation. Use {@link #builder()} to
-     * configure and construct an immutable instance of the factory.
+     * Factory that allows more advanced configuration of the AWS CRT HTTP implementation. Use {@link #builder()} to configure and
+     * construct an immutable instance of the factory.
      */
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
@@ -360,8 +363,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         @Override
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             return new AwsCrtAsyncHttpClient(this, standardOptions.build()
-                                                           .merge(serviceDefaults)
-                                                           .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
+                                                                  .merge(serviceDefaults)
+                                                                  .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
 
         @Override
@@ -401,7 +404,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         @Override
         public Builder connectionHealthChecksConfiguration(Consumer<ConnectionHealthChecksConfiguration.Builder>
-                                                                       configurationBuilder) {
+                                                               configurationBuilder) {
             ConnectionHealthChecksConfiguration.Builder builder = ConnectionHealthChecksConfiguration.builder();
             configurationBuilder.accept(builder);
             return connectionHealthChecksConfiguration(builder.build());

@@ -29,21 +29,19 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.crt.http.HttpClientConnection;
-import software.amazon.awssdk.crt.http.HttpStream;
+import software.amazon.awssdk.crt.http.HttpStreamBase;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Adapts an AWS Common Runtime Response Body stream from CrtHttpStreamHandler to a Publisher<ByteBuffer>
+ * Adapts an AWS Common Runtime Response Body stream from CrtHttpStreamHandler to a {@link Publisher<ByteBuffer>}
  */
 @SdkInternalApi
 public final class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
     private static final Logger log = Logger.loggerFor(AwsCrtResponseBodyPublisher.class);
     private static final LongUnaryOperator DECREMENT_IF_GREATER_THAN_ZERO = x -> ((x > 0) ? (x - 1) : (x));
 
-    private final HttpClientConnection connection;
-    private final HttpStream stream;
+    private final HttpStreamBase stream;
     private final CompletableFuture<Void> responseComplete;
     private final AtomicLong outstandingRequests = new AtomicLong(0);
     private final int windowSize;
@@ -58,15 +56,14 @@ public final class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> 
     private final AtomicReference<Throwable> error = new AtomicReference<>(null);
 
     /**
-     * Adapts a streaming AWS CRT Http Response Body to a Publisher<ByteBuffer>
+     * Adapts a streaming AWS CRT Http Response Body to a {@link Publisher<ByteBuffer>}
      * @param stream The AWS CRT Http Stream for this Response
      * @param windowSize The max allowed bytes to be queued. The sum of the sizes of all queued ByteBuffers should
      *                   never exceed this value.
      */
-    public AwsCrtResponseBodyPublisher(HttpClientConnection connection, HttpStream stream,
+    public AwsCrtResponseBodyPublisher(HttpStreamBase stream,
                                        CompletableFuture<Void> responseComplete, int windowSize) {
-        this.connection = Validate.notNull(connection, "HttpConnection must not be null");
-        this.stream = Validate.notNull(stream, "Stream must not be null");
+        this.stream = Validate.notNull(stream, "stream must not be null");
         this.responseComplete = Validate.notNull(responseComplete, "ResponseComplete future must not be null");
         this.windowSize = Validate.isPositive(windowSize, "windowSize must be > 0");
     }
@@ -169,7 +166,6 @@ public final class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> 
 
         if (!alreadyReleased) {
             stream.close();
-            connection.close();
         }
     }
 

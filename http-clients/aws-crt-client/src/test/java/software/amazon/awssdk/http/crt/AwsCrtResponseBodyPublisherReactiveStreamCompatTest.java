@@ -39,7 +39,7 @@ public class AwsCrtResponseBodyPublisherReactiveStreamCompatTest extends Publish
     public Publisher<ByteBuffer> createPublisher(long elements) {
         HttpClientConnection connection = mock(HttpClientConnection.class);
         HttpStream stream = mock(HttpStream.class);
-        AwsCrtResponseBodyPublisher bodyPublisher = new AwsCrtResponseBodyPublisher(connection, stream, new CompletableFuture<>(), Integer.MAX_VALUE);
+        AwsCrtResponseBodyPublisher bodyPublisher = new AwsCrtResponseBodyPublisher(stream, new CompletableFuture<>(), Integer.MAX_VALUE);
 
         for (long i = 0; i < elements; i++) {
             bodyPublisher.queueBuffer(UUID.randomUUID().toString().getBytes());

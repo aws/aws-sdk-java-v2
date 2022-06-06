@@ -41,6 +41,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
@@ -71,8 +72,9 @@ public class TranscribeStreamingIntegrationTest {
         client = TranscribeStreamingAsyncClient.builder()
                                                .region(Region.US_EAST_1)
                                                .overrideConfiguration(b -> b.addExecutionInterceptor(new VerifyHeaderInterceptor())
-                                               .addMetricPublisher(mockPublisher))
+                                                                            .addMetricPublisher(mockPublisher))
                                                .credentialsProvider(getCredentials())
+                                               .httpClientBuilder(AwsCrtAsyncHttpClient.builder())
                                                .build();
     }
 

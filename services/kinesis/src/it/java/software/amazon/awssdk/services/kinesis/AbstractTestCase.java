@@ -22,6 +22,7 @@ import java.net.URI;
 import java.util.Properties;
 import org.junit.BeforeClass;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
@@ -35,7 +36,10 @@ public class AbstractTestCase extends AwsTestBase {
         KinesisClientBuilder builder = KinesisClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
         setEndpoint(builder);
         client = builder.build();
-        asyncClient = KinesisAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        asyncClient = KinesisAsyncClient.builder()
+                                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+            .httpClientBuilder(AwsCrtAsyncHttpClient.builder())
+                                        .build();
     }
 
     private static void setEndpoint(KinesisClientBuilder builder) throws IOException {
