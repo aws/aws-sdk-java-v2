@@ -135,11 +135,6 @@
                 <version>${reactive-streams.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.typesafe.netty</groupId>
-                <artifactId>netty-reactive-streams-http</artifactId>
-                <version>${netty-reactive-streams-http.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-classes-epoll</artifactId>
                 <version>${netty.version}</version>

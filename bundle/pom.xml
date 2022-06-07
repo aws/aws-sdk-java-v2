@@ -69,7 +69,6 @@
                             <includes>
                                 <include>com.fasterxml.jackson.jr:*</include>
                                 <include>io.netty:*</include>
-                                <include>com.typesafe.netty:*</include>
                                 <include>org.apache.httpcomponents:*</include>
                                 <include>org.reactivestreams:*</include>
                                 <include>org.slf4j:*</include>
@@ -87,10 +86,6 @@
                             <relocation>
                                 <pattern>io.netty</pattern>
                                 <shadedPattern>software.amazon.awssdk.thirdparty.io.netty</shadedPattern>
-                            </relocation>
-                            <relocation>
-                                <pattern>com.typesafe</pattern>
-                                <shadedPattern>software.amazon.awssdk.thirdparty.com.typesafe</shadedPattern>
                             </relocation>
                             <relocation>
                                 <pattern>org.slf4j</pattern>
