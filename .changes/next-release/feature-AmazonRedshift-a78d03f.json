@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Redshift",
-    "contributor": "",
-    "description": "Adds new API GetClusterCredentialsWithIAM to return temporary credentials."
-}

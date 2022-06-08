@@ -1,3 +1,35 @@
+# __2.17.207__ __2022-06-08__
+## __AWS Database Migration Service__
+  - ### Features
+    - This release adds DMS Fleet Advisor APIs and exposes functionality for DMS Fleet Advisor. It adds functionality to create and modify fleet advisor instances, and to collect and analyze information about the local data infrastructure.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Removals
+    - Remove the `netty-reactive-streams-http` depdendency. It is unused after [#1629](https://github.com/aws/aws-sdk-java-v2/issues/1629), and we have no plans to use the upstream version in the future.
+
+## __AWSMainframeModernization__
+  - ### Features
+    - AWS Mainframe Modernization service is a managed mainframe service and set of tools for planning, migrating, modernizing, and running mainframe workloads on AWS
+
+## __Amazon Neptune__
+  - ### Features
+    - This release adds support for Neptune to be configured as a global database, with a primary DB cluster in one region, and up to five secondary DB clusters in other regions.
+
+## __Amazon Redshift__
+  - ### Features
+    - Adds new API GetClusterCredentialsWithIAM to return temporary credentials.
+
+## __Redshift Serverless__
+  - ### Features
+    - Add new API operations for Amazon Redshift Serverless, a new way of using Amazon Redshift without needing to manually manage provisioned clusters. The new operations let you interact with Redshift Serverless resources, such as create snapshots, list VPC endpoints, delete resource policies, and more.
+
 # __2.17.206__ __2022-06-07__
 ## __AWS Audit Manager__
   - ### Features
