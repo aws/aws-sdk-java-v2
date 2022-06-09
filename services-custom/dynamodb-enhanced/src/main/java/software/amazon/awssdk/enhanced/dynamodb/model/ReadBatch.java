@@ -20,7 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
@@ -37,6 +39,7 @@ import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
  * A valid request object should contain one or more primary keys.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class ReadBatch {
     private final String tableName;
     private final KeysAndAttributes keysAndAttributes;
@@ -107,6 +110,7 @@ public final class ReadBatch {
      *
      * @param <T> the type that items in this table map to
      */
+    @NotThreadSafe
     public interface Builder<T> {
 
         /**
@@ -205,6 +209,7 @@ public final class ReadBatch {
         }
     }
 
+    @NotThreadSafe
     private static final class BuilderImpl<T> implements Builder<T> {
         private MappedTableResource<T> mappedTableResource;
         private List<GetItemEnhancedRequest> requests = new ArrayList<>();

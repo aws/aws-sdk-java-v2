@@ -21,6 +21,8 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -66,8 +68,10 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
 
     @Test
     void upload_file_SentCorrectly() throws IOException {
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("x-amz-meta-foobar", "FOO BAR");
         FileUpload fileUpload =
-            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET).key(TEST_KEY))
+            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET).key(TEST_KEY).metadata(metadata))
                                 .source(testFile.toPath())
                                 .overrideConfiguration(o -> o.addListener(LoggingTransferListener.create()))
                                 .build());
@@ -82,6 +86,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         assertThat(ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath())))
                 .isEqualTo(ChecksumUtils.computeCheckSum(obj));
         assertThat(obj.response().responseMetadata().requestId()).isNotNull();
+        assertThat(obj.response().metadata()).containsEntry("foobar", "FOO BAR");
     }
 
     @Test

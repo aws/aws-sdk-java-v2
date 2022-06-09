@@ -32,7 +32,7 @@ public final class AcceptJsonInterceptor implements ExecutionInterceptor {
         // See the same fix in V1:
         // https://github.com/aws/aws-sdk-java/blob/cd2275c07df8656033bfa9baa665354bfb17a6bf/aws-java-sdk-api-gateway/src/main/java/com/amazonaws/services/apigateway/internal/AcceptJsonRequestHandler.java#L29
         SdkHttpRequest httpRequest = context.httpRequest();
-        if (!httpRequest.headers().containsKey("Accept")) {
+        if (!httpRequest.firstMatchingHeader("Accept").isPresent()) {
             return httpRequest
                     .toBuilder()
                     .putHeader("Accept", "application/json")

@@ -20,7 +20,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -45,6 +47,7 @@ import software.amazon.awssdk.utils.Validate;
  * </ul>
  */
 @SdkPublicApi
+@ThreadSafe
 public final class NestedAttributeName {
 
     private final List<String> elements;
@@ -147,6 +150,7 @@ public final class NestedAttributeName {
     /**
      * A builder for {@link NestedAttributeName}.
      */
+    @NotThreadSafe
     public static class Builder {
         private List<String> elements = null;
 

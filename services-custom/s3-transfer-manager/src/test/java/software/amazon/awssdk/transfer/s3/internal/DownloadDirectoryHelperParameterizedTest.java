@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -40,6 +41,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
@@ -71,8 +73,8 @@ public class DownloadDirectoryHelperParameterizedTest {
         singleDownloadFunction = mock(Function.class);
         listObjectsHelper = mock(ListObjectsHelper.class);
         downloadDirectoryHelper = new DownloadDirectoryHelper(TransferManagerConfiguration.builder().build(),
-                                                              singleDownloadFunction,
-                                                              listObjectsHelper);
+                                                              listObjectsHelper,
+                                                              singleDownloadFunction);
     }
 
     @ParameterizedTest
@@ -142,7 +144,10 @@ public class DownloadDirectoryHelperParameterizedTest {
         return new DefaultFileDownload(CompletableFuture.completedFuture(CompletedFileDownload.builder()
                                                                                               .response(GetObjectResponse.builder().build())
                                                                                               .build()),
-                                       new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build()));
+                                       CompletableFuture.completedFuture(new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build())),
+                                       CompletableFuture.completedFuture(DownloadFileRequest.builder().getObjectRequest(GetObjectRequest.builder().build())
+                                                                   .destination(Paths.get("."))
+                                                                                  .build()));
     }
 
     private static void verifyDestinationPathForSingleDownload(FileSystem jimfs, String delimiter, String[] keys,

@@ -16,18 +16,22 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.List;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Shared interface components for {@link DynamoDbEnhancedClient} and {@link DynamoDbEnhancedAsyncClient}. Any common
  * methods implemented by both of those classes or their builders are declared here.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface DynamoDbEnhancedResource {
     /**
      * Shared interface components for the builders of {@link DynamoDbEnhancedClient} and
      * {@link DynamoDbEnhancedAsyncClient}
      */
+    @NotThreadSafe
     interface Builder {
         /**
          * Specifies the extensions to load with the enhanced client. The extensions will be loaded in the strict order

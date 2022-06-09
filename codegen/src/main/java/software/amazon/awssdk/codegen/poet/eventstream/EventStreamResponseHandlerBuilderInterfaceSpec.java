@@ -27,7 +27,7 @@ import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandler;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 /**
@@ -35,12 +35,12 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
  */
 public class EventStreamResponseHandlerBuilderInterfaceSpec implements ClassSpec {
 
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
     private final OperationModel opModel;
     private final ClassName responsePojoType;
     private final ClassName responseHandlerType;
 
-    public EventStreamResponseHandlerBuilderInterfaceSpec(PoetExtensions poetExt, OperationModel operationModel) {
+    public EventStreamResponseHandlerBuilderInterfaceSpec(PoetExtension poetExt, OperationModel operationModel) {
         this.poetExtensions = poetExt;
         this.opModel = operationModel;
         this.responsePojoType = poetExt.responsePojoType(operationModel);

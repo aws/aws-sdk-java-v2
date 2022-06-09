@@ -22,7 +22,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
@@ -45,6 +47,7 @@ import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
  *
  */
 @SdkPublicApi
+@ThreadSafe
 public final class BatchWriteResult {
     private final Map<String, List<WriteRequest>> unprocessedRequests;
 
@@ -108,6 +111,7 @@ public final class BatchWriteResult {
     /**
      * A builder that is used to create a result with the desired parameters.
      */
+    @NotThreadSafe
     public static final class Builder {
         private Map<String, List<WriteRequest>> unprocessedRequests;
 

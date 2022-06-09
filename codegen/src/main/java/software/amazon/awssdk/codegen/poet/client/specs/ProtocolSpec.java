@@ -31,7 +31,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.service.AuthType;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
@@ -67,7 +67,7 @@ public interface ProtocolSpec {
         return new ArrayList<>();
     }
 
-    default List<CodeBlock> registerModeledExceptions(IntermediateModel model, PoetExtensions poetExtensions) {
+    default List<CodeBlock> registerModeledExceptions(IntermediateModel model, PoetExtension poetExtensions) {
         return model.getShapes().values().stream()
                     .filter(s -> s.getShapeType() == ShapeType.Exception)
                     .map(e -> CodeBlock.builder()
@@ -161,7 +161,7 @@ public interface ProtocolSpec {
 
     }
 
-    default TypeName executeFutureValueType(OperationModel opModel, PoetExtensions poetExtensions) {
+    default TypeName executeFutureValueType(OperationModel opModel, PoetExtension poetExtensions) {
         if (opModel.hasEventStreamOutput()) {
             return ClassName.get(Void.class);
         } else if (opModel.hasStreamingOutput()) {
@@ -176,7 +176,7 @@ public interface ProtocolSpec {
      *
      * @param opModel Operation to get response type for.
      */
-    default TypeName getPojoResponseType(OperationModel opModel, PoetExtensions poetExtensions) {
+    default TypeName getPojoResponseType(OperationModel opModel, PoetExtension poetExtensions) {
         return poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
     }
 

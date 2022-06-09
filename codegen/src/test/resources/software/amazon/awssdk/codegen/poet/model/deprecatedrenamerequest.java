@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.beans.Transient;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -216,7 +215,6 @@ public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest impl
         }
 
         @Override
-        @Transient
         public final Builder newNameNoDeprecation(String newNameNoDeprecation) {
             this.newNameNoDeprecation = newNameNoDeprecation;
             return this;
@@ -239,14 +237,12 @@ public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest impl
         }
 
         @Override
-        @Transient
         public final Builder newName(String newName) {
             this.newName = newName;
             return this;
         }
 
         @Override
-        @Transient
         public final Builder originalNameDeprecated(String newName) {
             this.newName = newName;
             return this;

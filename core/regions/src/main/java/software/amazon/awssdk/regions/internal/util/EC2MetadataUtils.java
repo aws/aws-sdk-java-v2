@@ -66,7 +66,6 @@ import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
  * href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AESDG-chapter-instancedata.html">Amazon
  * EC2 User Guide: Instance Metadata</a>
  */
-//TODO: cleanup
 @SdkInternalApi
 public final class EC2MetadataUtils {
     private static final JsonNodeParser JSON_PARSER = JsonNode.parser();

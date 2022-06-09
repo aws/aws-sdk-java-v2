@@ -22,6 +22,7 @@ import software.amazon.awssdk.transfer.s3.CompletedCopy;
 import software.amazon.awssdk.transfer.s3.Copy;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultCopy implements Copy {
@@ -30,8 +31,8 @@ public final class DefaultCopy implements Copy {
     private final TransferProgress progress;
 
     DefaultCopy(CompletableFuture<CompletedCopy> completionFuture, TransferProgress progress) {
-        this.completionFuture = completionFuture;
-        this.progress = progress;
+        this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
+        this.progress = Validate.paramNotNull(progress, "progress");
     }
 
     @Override

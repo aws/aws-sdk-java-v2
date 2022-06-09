@@ -26,7 +26,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 
@@ -34,14 +34,14 @@ import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
  * Spec for generated visitor interface.
  */
 class EventStreamVisitorInterfaceSpec implements ClassSpec {
-    private final PoetExtensions poetExt;
+    private final PoetExtension poetExt;
     private final IntermediateModel intermediateModel;
     private final OperationModel operationModel;
     private final ShapeModel eventStreamShape;
     private final ClassName eventStreamBaseClass;
     private final EventStreamSpecHelper eventStreamSpecHelper;
 
-    EventStreamVisitorInterfaceSpec(IntermediateModel intermediateModel, PoetExtensions poetExt, OperationModel operationModel) {
+    EventStreamVisitorInterfaceSpec(IntermediateModel intermediateModel, PoetExtension poetExt, OperationModel operationModel) {
         this.poetExt = poetExt;
         this.intermediateModel = intermediateModel;
         this.operationModel = operationModel;

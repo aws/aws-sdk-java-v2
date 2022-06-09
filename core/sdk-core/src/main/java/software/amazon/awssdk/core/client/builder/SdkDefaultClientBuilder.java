@@ -26,16 +26,20 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITION
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_ATTEMPT_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CLIENT_TYPE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CLIENT_USER_AGENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.INTERNAL_USER_AGENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SIGNER_OVERRIDDEN;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.SYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE;
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
@@ -65,6 +69,7 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.internal.interceptor.AsyncRequestBodyHttpChecksumTrailerInterceptor;
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumInHeaderInterceptor;
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumRequiredInterceptor;
@@ -294,11 +299,22 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * Finalize global configuration from the default-applied configuration.
      */
     private SdkClientConfiguration finalizeConfiguration(SdkClientConfiguration config) {
+        RetryPolicy retryPolicy = resolveRetryPolicy(config);
         return config.toBuilder()
                      .option(SCHEDULED_EXECUTOR_SERVICE, resolveScheduledExecutorService())
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
-                     .option(RETRY_POLICY, resolveRetryPolicy(config))
+                     .option(RETRY_POLICY, retryPolicy)
+                     .option(CLIENT_USER_AGENT, resolveClientUserAgent(config, retryPolicy))
                      .build();
+    }
+
+    private String resolveClientUserAgent(SdkClientConfiguration config, RetryPolicy retryPolicy) {
+        return ApplyUserAgentStage.resolveClientUserAgent(config.option(USER_AGENT_PREFIX),
+                                                          config.option(INTERNAL_USER_AGENT),
+                                                          config.option(CLIENT_TYPE),
+                                                          config.option(SYNC_HTTP_CLIENT),
+                                                          config.option(ASYNC_HTTP_CLIENT),
+                                                          retryPolicy);
     }
 
     private RetryPolicy resolveRetryPolicy(SdkClientConfiguration config) {

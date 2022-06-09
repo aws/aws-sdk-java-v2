@@ -16,7 +16,9 @@
 package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
 import java.util.Map;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -24,6 +26,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * be completely substituted in place of the item that was actually read.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class ReadModification {
     private final Map<String, AttributeValue> transformedItem;
 
@@ -58,6 +61,7 @@ public final class ReadModification {
         return transformedItem != null ? transformedItem.hashCode() : 0;
     }
 
+    @NotThreadSafe
     public static final class Builder {
         private Map<String, AttributeValue> transformedItem;
 

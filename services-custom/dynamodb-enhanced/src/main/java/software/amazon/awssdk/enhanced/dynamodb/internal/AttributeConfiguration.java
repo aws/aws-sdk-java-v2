@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal;
 
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -42,6 +43,7 @@ public final class AttributeConfiguration {
         return new Builder();
     }
 
+    @NotThreadSafe
     public static final class Builder {
         private boolean preserveEmptyObject;
         private boolean ignoreNulls;

@@ -19,12 +19,14 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.utils.StringUtils.isEmpty;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -37,6 +39,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -177,7 +180,7 @@ public final class SdkHttpUtils {
      * can be used as the query string in a URL. The result is not prepended with "?".
      */
     public static Optional<String> encodeAndFlattenQueryParameters(Map<String, List<String>> rawQueryParameters) {
-        return flattenQueryParameters(encodeQueryParameters(rawQueryParameters));
+        return encodeAndFlatten(rawQueryParameters, SdkHttpUtils::urlEncode);
     }
 
     /**
@@ -185,7 +188,34 @@ public final class SdkHttpUtils {
      * can be used as the body of a form data request.
      */
     public static Optional<String> encodeAndFlattenFormData(Map<String, List<String>> rawFormData) {
-        return flattenQueryParameters(encodeFormData(rawFormData));
+        return encodeAndFlatten(rawFormData, SdkHttpUtils::formDataEncode);
+    }
+
+    private static Optional<String> encodeAndFlatten(Map<String, List<String>> data, UnaryOperator<String> encoder) {
+        Validate.notNull(data, "Map must not be null.");
+
+        if (data.isEmpty()) {
+            return Optional.empty();
+        }
+
+        StringBuilder queryString = new StringBuilder();
+        data.forEach((key, values) -> {
+            String encodedKey = encoder.apply(key);
+
+            if (values != null) {
+                values.forEach(value -> {
+                    if (queryString.length() > 0) {
+                        queryString.append('&');
+                    }
+                    queryString.append(encodedKey);
+                    if (value != null) {
+                        queryString.append('=').append(encoder.apply(value));
+                    }
+                });
+            }
+        });
+
+        return Optional.of(queryString.toString());
     }
 
     /**
@@ -198,15 +228,30 @@ public final class SdkHttpUtils {
         }
 
         StringBuilder result = new StringBuilder();
+        flattenQueryParameters(result, toFlatten);
+        return Optional.of(result.toString());
+    }
 
+    /**
+     * Flatten the provided query parameters into a string that can be used as the query string in a URL. The result is not
+     * prepended with "?". This is useful when you have already-encoded query parameters you wish to flatten.
+     */
+    public static void flattenQueryParameters(StringBuilder result, Map<String, List<String>> toFlatten) {
+        if (toFlatten.isEmpty()) {
+            return;
+        }
+
+        boolean first = true;
         for (Entry<String, List<String>> encodedQueryParameter : toFlatten.entrySet()) {
             String key = encodedQueryParameter.getKey();
 
             List<String> values = Optional.ofNullable(encodedQueryParameter.getValue()).orElseGet(Collections::emptyList);
 
             for (String value : values) {
-                if (result.length() > 0) {
+                if (!first) {
                     result.append('&');
+                } else {
+                    first = false;
                 }
                 result.append(key);
                 if (value != null) {
@@ -215,7 +260,6 @@ public final class SdkHttpUtils {
                 }
             }
         }
-        return Optional.of(result.toString());
     }
 
     /**
@@ -275,7 +319,9 @@ public final class SdkHttpUtils {
      * @param headers The headers to search.
      * @param header The header to search for (case insensitively).
      * @return A stream providing the values for the headers that matched the requested header.
+     * @deprecated Use {@code SdkHttpHeaders#matchingHeaders}
      */
+    @Deprecated
     public static Stream<String> allMatchingHeaders(Map<String, List<String>> headers, String header) {
         return headers.entrySet().stream()
                       .filter(e -> e.getKey().equalsIgnoreCase(header))
@@ -288,7 +334,9 @@ public final class SdkHttpUtils {
      * @param headersToSearch The headers to search.
      * @param headersToFind The headers to search for (case insensitively).
      * @return A stream providing the values for the headers that matched the requested header.
+     * @deprecated Use {@code SdkHttpHeaders#matchingHeaders}
      */
+    @Deprecated
     public static Stream<String> allMatchingHeadersFromCollection(Map<String, List<String>> headersToSearch,
                                                                   Collection<String> headersToFind) {
         return headersToSearch.entrySet().stream()
@@ -306,9 +354,18 @@ public final class SdkHttpUtils {
      * @param headers The headers to search.
      * @param header The header to search for (case insensitively).
      * @return The first header that matched the requested one, or empty if one was not found.
+     * @deprecated Use {@code SdkHttpHeaders#firstMatchingHeader}
      */
+    @Deprecated
     public static Optional<String> firstMatchingHeader(Map<String, List<String>> headers, String header) {
-        return allMatchingHeaders(headers, header).findFirst();
+        for (Entry<String, List<String>> headerEntry : headers.entrySet()) {
+            if (headerEntry.getKey().equalsIgnoreCase(header) &&
+                headerEntry.getValue() != null &&
+                !headerEntry.getValue().isEmpty()) {
+                return Optional.of(headerEntry.getValue().get(0));
+            }
+        }
+        return Optional.empty();
     }
 
     /**
@@ -318,10 +375,22 @@ public final class SdkHttpUtils {
      * @param headersToSearch The headers to search.
      * @param headersToFind The header to search for (case insensitively).
      * @return The first header that matched a requested one, or empty if one was not found.
+     * @deprecated Use {@code SdkHttpHeaders#firstMatchingHeader}
      */
+    @Deprecated
     public static Optional<String> firstMatchingHeaderFromCollection(Map<String, List<String>> headersToSearch,
                                                                      Collection<String> headersToFind) {
-        return allMatchingHeadersFromCollection(headersToSearch, headersToFind).findFirst();
+        for (Entry<String, List<String>> headerEntry : headersToSearch.entrySet()) {
+            for (String headerToFind : headersToFind) {
+                if (headerEntry.getKey().equalsIgnoreCase(headerToFind) &&
+                    headerEntry.getValue() != null &&
+                    !headerEntry.getValue().isEmpty()) {
+                    return Optional.of(headerEntry.getValue().get(0));
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 
     public static boolean isSingleHeader(String h) {
@@ -354,5 +423,22 @@ public final class SdkHttpUtils {
         results.add(StringUtils.trimToEmpty(result.toString()));
         return results;
     }
+
+    /**
+     * Returns the Java system property for nonProxyHosts as set of Strings.
+     * See http://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html
+     */
+    public static Set<String> parseNonProxyHostsProperty() {
+        String systemNonProxyHosts = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
+
+        if (systemNonProxyHosts != null && !isEmpty(systemNonProxyHosts)) {
+            return Arrays.stream(systemNonProxyHosts.split("\\|"))
+                         .map(String::toLowerCase)
+                         .map(s -> StringUtils.replace(s, "*", ".*?"))
+                         .collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
+    }
+
 
 }

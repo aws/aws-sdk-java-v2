@@ -15,10 +15,11 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.AtomicCounterExtension;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.ChainExtension;
 
@@ -30,8 +31,11 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.ChainExtensi
 public final class ExtensionResolver {
     private static final DynamoDbEnhancedClientExtension DEFAULT_VERSIONED_RECORD_EXTENSION =
         VersionedRecordExtension.builder().build();
+    private static final DynamoDbEnhancedClientExtension DEFAULT_ATOMIC_COUNTER_EXTENSION =
+        AtomicCounterExtension.builder().build();
+
     private static final List<DynamoDbEnhancedClientExtension> DEFAULT_EXTENSIONS =
-        Collections.singletonList(DEFAULT_VERSIONED_RECORD_EXTENSION);
+        Arrays.asList(DEFAULT_VERSIONED_RECORD_EXTENSION, DEFAULT_ATOMIC_COUNTER_EXTENSION);
 
     private ExtensionResolver() {
     }

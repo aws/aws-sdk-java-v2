@@ -1,0 +1,81 @@
+Parameters:
+  GitHubOrg:
+    Type: String
+    Default: "aws"
+    Description: The GitHub organization to use for the repository.
+  GitHubRepositoryName:
+    Description: The name of the GitHub repository to create the role template in and to use for the CodeBuild.
+    Type: String
+    Default: "aws-sdk-java-v2"
+  OIDCProviderArn:
+    Description: Arn for the GitHub OIDC Provider.
+    Default: ""
+    Type: String
+  OidcRoleRoleName:
+    Description: Name of the role to use for the OIDC provider.
+    Default: "aws-sdk-for-java-v2-ci-role"
+    Type: String
+
+
+Conditions:
+  CreateOIDCProvider: !Equals
+    - !Ref OIDCProviderArn
+    - ""
+
+Resources:
+  OidcRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref OidcRoleRoleName
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRoleWithWebIdentity
+            Principal:
+              Federated: !If
+                - CreateOIDCProvider
+                - !Ref GithubOidc
+                - !Ref OIDCProviderArn
+            Condition:
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOrg}/${GitHubRepositoryName}:*
+      Policies:
+        - PolicyName: !Sub "${AWS::StackName}-OIDC-Policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                Resource:
+                  - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2
+                  - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-JDK11
+                  - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-JDK17
+                  - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-JDK8-windows
+                  - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-native-image-test
+                  - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-sonar
+              - Effect: Allow
+                Action:
+                  - logs:GetLogEvents
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2:*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-JDK11:*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-JDK17:*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-JDK8-windows:*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-native-image-test:*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-sonar:*
+
+  GithubOidc:
+    Type: AWS::IAM::OIDCProvider
+    Condition: CreateOIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+      ThumbprintList:
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+
+Outputs:
+  OidcRole:
+    Value: !GetAtt OidcRole.Arn

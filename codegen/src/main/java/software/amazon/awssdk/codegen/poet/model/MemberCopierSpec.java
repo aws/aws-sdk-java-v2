@@ -34,7 +34,7 @@ import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
 import software.amazon.awssdk.codegen.poet.model.TypeProvider.TypeNameOptions;
@@ -47,7 +47,7 @@ class MemberCopierSpec implements ClassSpec {
     private final MemberModel memberModel;
     private final ServiceModelCopiers serviceModelCopiers;
     private final TypeProvider typeProvider;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
 
     private enum EnumTransform {
         /** Copy enums as strings */
@@ -67,7 +67,7 @@ class MemberCopierSpec implements ClassSpec {
     MemberCopierSpec(MemberModel memberModel,
                      ServiceModelCopiers serviceModelCopiers,
                      TypeProvider typeProvider,
-                     PoetExtensions poetExtensions) {
+                     PoetExtension poetExtensions) {
         this.memberModel = memberModel;
         this.serviceModelCopiers = serviceModelCopiers;
         this.typeProvider = typeProvider;
@@ -245,12 +245,14 @@ class MemberCopierSpec implements ClassSpec {
                 case BUILDER_TO_BUILDABLE:
                     String buildableOutput = variableSource.getNew("member");
                     TypeName buildableOutputType = typeName(inputMember, false, false, builderTransform, enumTransform);
-                    code.add("$T $N = $N.build();", buildableOutputType, buildableOutput, inputVariableName);
+                    code.add("$T $N = $N == null ? null : $N.build();", buildableOutputType, buildableOutput, inputVariableName,
+                             inputVariableName);
                     return buildableOutput;
                 case BUILDABLE_TO_BUILDER:
                     String builderOutput = variableSource.getNew("member");
                     TypeName builderOutputType = typeName(inputMember, false, false, builderTransform, enumTransform);
-                    code.add("$T $N = $N.toBuilder();", builderOutputType, builderOutput, inputVariableName);
+                    code.add("$T $N = $N == null ? null : $N.toBuilder();", builderOutputType, builderOutput, inputVariableName,
+                             inputVariableName);
                     return builderOutput;
                 default:
                     throw new IllegalStateException();

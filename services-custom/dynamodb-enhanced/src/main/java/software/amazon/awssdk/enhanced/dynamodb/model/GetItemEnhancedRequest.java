@@ -16,7 +16,9 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -28,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
  * A valid request object must contain a primary {@link Key} to reference the item to get.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class GetItemEnhancedRequest {
 
     private final Key key;
@@ -96,6 +99,7 @@ public final class GetItemEnhancedRequest {
      * <p>
      * <b>Note</b>: A valid request builder must define a {@link Key}.
      */
+    @NotThreadSafe
     public static final class Builder {
         private Key key;
         private Boolean consistentRead;

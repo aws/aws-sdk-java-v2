@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.protocolrestxml.model;
 
-import java.beans.Transient;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -213,8 +212,8 @@ public final class TestXmlNamespaceRequest extends ProtocolRestXmlRequest implem
         /**
          * Sets the value of the XmlNamespaceMember property for this object.
          *
-         * This is a convenience that creates an instance of the {@link XmlNamespaceMember.Builder} avoiding the need to
-         * create one manually via {@link XmlNamespaceMember#builder()}.
+         * This is a convenience method that creates an instance of the {@link XmlNamespaceMember.Builder} avoiding the
+         * need to create one manually via {@link XmlNamespaceMember#builder()}.
          *
          * When the {@link Consumer} completes, {@link XmlNamespaceMember.Builder#build()} is called immediately and its
          * result is passed to {@link #xmlNamespaceMember(XmlNamespaceMember)}.
@@ -261,7 +260,6 @@ public final class TestXmlNamespaceRequest extends ProtocolRestXmlRequest implem
         }
 
         @Override
-        @Transient
         public final Builder stringMember(String stringMember) {
             this.stringMember = stringMember;
             return this;
@@ -276,7 +274,6 @@ public final class TestXmlNamespaceRequest extends ProtocolRestXmlRequest implem
         }
 
         @Override
-        @Transient
         public final Builder integerMember(Integer integerMember) {
             this.integerMember = integerMember;
             return this;
@@ -291,7 +288,6 @@ public final class TestXmlNamespaceRequest extends ProtocolRestXmlRequest implem
         }
 
         @Override
-        @Transient
         public final Builder xmlNamespaceMember(XmlNamespaceMember xmlNamespaceMember) {
             this.xmlNamespaceMember = xmlNamespaceMember;
             return this;

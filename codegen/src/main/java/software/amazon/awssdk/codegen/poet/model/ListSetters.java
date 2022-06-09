@@ -32,12 +32,12 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.utils.Validate;
 
 class ListSetters extends AbstractMemberSetters {
     private final TypeProvider typeProvider;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
 
     ListSetters(IntermediateModel intermediateModel,
                        ShapeModel shapeModel,
@@ -45,7 +45,7 @@ class ListSetters extends AbstractMemberSetters {
                        TypeProvider typeProvider) {
         super(intermediateModel, shapeModel, memberModel, typeProvider);
         this.typeProvider = typeProvider;
-        this.poetExtensions = new PoetExtensions(intermediateModel);
+        this.poetExtensions = new PoetExtension(intermediateModel);
     }
 
     @Override

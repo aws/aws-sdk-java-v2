@@ -15,16 +15,13 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
-import java.util.Optional;
+import static software.amazon.awssdk.awscore.util.SignerOverrideUtils.overrideSignerIfNotOverridden;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
-import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.services.s3.internal.signing.S3SigningUtils;
 import software.amazon.awssdk.services.s3.model.S3Request;
 
@@ -34,36 +31,8 @@ public final class SignerOverrideInterceptor implements ExecutionInterceptor {
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
         return S3SigningUtils.internalSignerOverride((S3Request) context.request())
-                             .map(signer -> setRequestOverrideSignerIfNotExist(context.request(), signer, executionAttributes))
+                             .map(signer -> overrideSignerIfNotOverridden(context.request(), executionAttributes, signer))
                              .orElseGet(context::request);
     }
 
-    private SdkRequest setRequestOverrideSignerIfNotExist(SdkRequest request, Signer signer,
-                                                          ExecutionAttributes executionAttributes) {
-        if (existsOverrideSigner(request, executionAttributes)) {
-            return request;
-        }
-        return setOverrideSigner(request, signer);
-    }
-
-    private boolean existsOverrideSigner(SdkRequest request, ExecutionAttributes executionAttributes) {
-        Optional<Boolean> isClientSignerOverridden = Optional.ofNullable(
-            executionAttributes.getAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN));
-        Optional<Signer> requestSigner = request.overrideConfiguration()
-                                                .flatMap(RequestOverrideConfiguration::signer);
-        return isClientSignerOverridden.isPresent() || requestSigner.isPresent();
-    }
-
-    private SdkRequest setOverrideSigner(SdkRequest request, Signer signer) {
-        return request.overrideConfiguration()
-                      .flatMap(config -> config.signer()
-                                               .map(existingOverrideSigner -> request))
-                      .orElseGet(() -> createNewRequest(request, signer));
-    }
-
-    private SdkRequest createNewRequest(SdkRequest request, Signer signer) {
-        return ((AwsRequest) request).toBuilder()
-                                     .overrideConfiguration(c -> c.signer(signer))
-                                     .build();
-    }
 }

@@ -90,16 +90,19 @@ public class ExecutionInterceptorChain {
             SdkHttpRequest interceptorResult = interceptor.modifyHttpRequest(result, executionAttributes);
             validateInterceptorResult(result.httpRequest(), interceptorResult, interceptor, "modifyHttpRequest");
 
-            result = applySdkHttpFullRequestHack(result);
+            InterceptorContext.Builder builder = result.toBuilder();
 
-            result = result.copy(b -> b.httpRequest(interceptorResult)
-                                       .asyncRequestBody(asyncRequestBody)
-                                       .requestBody(requestBody));
+            applySdkHttpFullRequestHack(result, builder);
+
+            result = builder.httpRequest(interceptorResult)
+                            .asyncRequestBody(asyncRequestBody)
+                            .requestBody(requestBody)
+                            .build();
         }
         return result;
     }
 
-    private InterceptorContext applySdkHttpFullRequestHack(InterceptorContext context) {
+    private void applySdkHttpFullRequestHack(InterceptorContext context, InterceptorContext.Builder builder) {
         // Someone thought it would be a great idea to allow interceptors to return SdkHttpFullRequest to modify the payload
         // instead of using the modifyPayload method. This is for backwards-compatibility with those interceptors.
         // TODO: Update interceptors to use the proper payload-modifying method so that this code path is only used for older
@@ -108,13 +111,13 @@ public class ExecutionInterceptorChain {
         SdkHttpFullRequest sdkHttpFullRequest = (SdkHttpFullRequest) context.httpRequest();
 
         if (context.requestBody().isPresent()) {
-            return context;
+            return;
         }
 
         Optional<ContentStreamProvider> contentStreamProvider = sdkHttpFullRequest.contentStreamProvider();
 
         if (!contentStreamProvider.isPresent()) {
-            return context;
+            return;
         }
 
         long contentLength = Long.parseLong(sdkHttpFullRequest.firstMatchingHeader("Content-Length").orElse("0"));
@@ -122,7 +125,7 @@ public class ExecutionInterceptorChain {
         RequestBody requestBody = RequestBody.fromContentProvider(contentStreamProvider.get(),
                                                                   contentLength,
                                                                   contentType);
-        return context.toBuilder().requestBody(requestBody).build();
+        builder.requestBody(requestBody);
     }
 
     public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {

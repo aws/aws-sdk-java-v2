@@ -117,8 +117,8 @@ public final class CombinedResponseAsyncHttpResponseHandler<OutputT>
 
     private static SdkHttpFullResponse toFullResponse(SdkHttpResponse response) {
         SdkHttpFullResponse.Builder builder = SdkHttpFullResponse.builder()
-                                                                 .statusCode(response.statusCode())
-                                                                 .headers(response.headers());
+                                                                 .statusCode(response.statusCode());
+        response.forEachHeader(builder::putHeader);
         response.statusText().ifPresent(builder::statusText);
         return builder.build();
     }
