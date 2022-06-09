@@ -1,3 +1,8 @@
+# __2.17.208__ __2022-06-09__
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Adds support for live transcription in AWS GovCloud (US) Regions.
+
 # __2.17.207__ __2022-06-08__
 ## __AWS Database Migration Service__
   - ### Features
