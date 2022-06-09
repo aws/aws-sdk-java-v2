@@ -40,6 +40,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
@@ -68,6 +69,7 @@ public class TranscribeStreamingIntegrationTest {
 
     @BeforeClass
     public static void setup() {
+        Log.initLoggingToStdout(Log.LogLevel.Trace);
         mockPublisher = mock(MetricPublisher.class);
         client = TranscribeStreamingAsyncClient.builder()
                                                .region(Region.US_EAST_1)

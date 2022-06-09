@@ -212,7 +212,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             }
 
             HttpStreamManager connPool = connectionPools.computeIfAbsent(uri, this::createConnectionPool);
-            //connPool.addRef();
             return connPool;
         }
     }
@@ -235,15 +234,14 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * we have a pool and no one can destroy it underneath us until we've finished submitting the
          * request)
          */
-        try (HttpStreamManager crtConnPool = getOrCreateConnectionPool(asyncRequest.request().getUri())) {
-            CrtRequestContext context = CrtRequestContext.builder()
-                                                         .crtConnPool(crtConnPool)
-                                                         .readBufferSize(readBufferSize)
-                                                         .request(asyncRequest)
-                                                         .build();
+        HttpStreamManager crtConnPool = getOrCreateConnectionPool(asyncRequest.request().getUri());
+        CrtRequestContext context = CrtRequestContext.builder()
+                                                     .crtConnPool(crtConnPool)
+                                                     .readBufferSize(readBufferSize)
+                                                     .request(asyncRequest)
+                                                     .build();
 
-            return new CrtRequestExecutor().execute(context, protocol);
-        }
+        return new CrtRequestExecutor().execute(context, protocol);
     }
 
     @Override
