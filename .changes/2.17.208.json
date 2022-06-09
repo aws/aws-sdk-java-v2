@@ -1,0 +1,12 @@
+{
+    "version": "2.17.208",
+    "date": "2022-06-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Meetings",
+            "contributor": "",
+            "description": "Adds support for live transcription in AWS GovCloud (US) Regions."
+        }
+    ]
+}
