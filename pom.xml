@@ -574,6 +574,7 @@
                         <excludes>
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
+                            <exclude>software.amazon.awssdk.regions.*</exclude>
 
                             <!-- Modified when making HttpCredentialsProvider a public API -->
                             <exclude>software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider</exclude>
