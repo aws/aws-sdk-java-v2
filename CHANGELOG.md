@@ -1,3 +1,16 @@
+# __2.17.209__ __2022-06-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS STS__
+  - ### Features
+    - Adding New WebIdentityTokenFileCredentialsProvider in sts that accepts STSClient
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - Documentation updates for Amazon Fraud Detector (AWSHawksNest)
+
 # __2.17.208__ __2022-06-09__
 ## __Amazon Chime SDK Meetings__
   - ### Features
@@ -30,10 +43,6 @@
 ## __Amazon Redshift__
   - ### Features
     - Adds new API GetClusterCredentialsWithIAM to return temporary credentials.
-
-## __Redshift Serverless__
-  - ### Features
-    - Add new API operations for Amazon Redshift Serverless, a new way of using Amazon Redshift without needing to manually manage provisioned clusters. The new operations let you interact with Redshift Serverless resources, such as create snapshots, list VPC endpoints, delete resource policies, and more.
 
 # __2.17.206__ __2022-06-07__
 ## __AWS Audit Manager__
