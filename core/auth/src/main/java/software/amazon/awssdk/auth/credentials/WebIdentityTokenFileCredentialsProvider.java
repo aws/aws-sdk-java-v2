@@ -29,8 +29,17 @@ import software.amazon.awssdk.utils.ToString;
 /**
  * A credential provider that will read web identity token file path, aws role arn
  * and aws session name from system properties or environment variables for using
- * web identity token credentials with STS. Use of this credentials provider requires
- * the 'sts' module to be on the classpath.
+ * web identity token credentials with STS.
+ * <p>
+ *     Use of this credentials provider requires the 'sts' module to be on the classpath.
+ * </p>
+ * <p>
+ * StsWebIdentityTokenFileCredentialsProvider in sts package can be used instead of this class if any one of following is required
+ *<ul>
+ *     <li>Pass a custom StsClient to the provider. </li>
+ *     <li>Periodically update credentials </li>
+ *</ul>
+ * @see AwsCredentialsProvider
  */
 @SdkPublicApi
 public class WebIdentityTokenFileCredentialsProvider implements AwsCredentialsProvider {
