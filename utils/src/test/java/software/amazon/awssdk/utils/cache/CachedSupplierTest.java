@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.utils.cache;
 
+import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.Closeable;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -243,17 +245,47 @@ public class CachedSupplierTest {
     public void nonBlockingPrefetchStrategyRefreshesInBackground() {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
-                                                                   .prefetchStrategy(new NonBlocking("test-%s"))
+                                                                   .prefetchStrategy(new NonBlocking("test-%s",
+                                                                                                     Duration.ofSeconds(1)))
                                                                    .build()) {
-            waitingSupplier.permits.release(1);
+            waitingSupplier.permits.release(2);
+            cachedSupplier.get();
 
-            // Ensure an async "get" happens even without a call to the cached supplier.
-            waitingSupplier.waitForGetsToHaveStarted(1);
-
-            // Ensure an async "get" finishes even without a call to the cached supplier.
-            waitingSupplier.waitForGetsToHaveFinished(1);
+            // Ensure two "get"s happens even though we only made one call to the cached supplier.
+            waitingSupplier.waitForGetsToHaveStarted(2);
 
             assertThat(cachedSupplier.get()).isNotNull();
+        }
+    }
+
+    @Test
+    public void nonBlockingPrefetchStrategyBackgroundRefreshesHitCache() throws InterruptedException {
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), future());
+             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
+                                                                   .prefetchStrategy(new NonBlocking("test-%s",
+                                                                                                     Duration.ofMillis(1)))
+                                                                   .build()) {
+            waitingSupplier.permits.release(5);
+            cachedSupplier.get();
+
+            Thread.sleep(1_000);
+
+            assertThat(waitingSupplier.permits.availablePermits()).isEqualTo(4); // Only 1 call to supplier
+        }
+    }
+
+    @Test
+    public void nonBlockingPrefetchStrategyDoesNotRefreshUntilItIsCalled() throws InterruptedException {
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
+             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
+                                                                   .prefetchStrategy(new NonBlocking("test-%s",
+                                                                                                     Duration.ofMillis(1)))
+                                                                   .build()) {
+            waitingSupplier.startedGetPermits.release();
+
+            Thread.sleep(1_000);
+
+            assertThat(waitingSupplier.startedGetPermits.availablePermits()).isEqualTo(1);
         }
     }
 
@@ -300,7 +332,7 @@ public class CachedSupplierTest {
     }
 
     private Instant past() {
-        return Instant.now().minusSeconds(1);
+        return now().minusSeconds(1);
     }
 
     private Instant future() {

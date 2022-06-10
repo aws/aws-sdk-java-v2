@@ -18,6 +18,7 @@ package software.amazon.awssdk.utils.cache;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -57,6 +58,11 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     private final PrefetchStrategy prefetchStrategy;
 
     /**
+     * Whether the {@link #prefetchStrategy} has been initialized via {@link PrefetchStrategy#initializeCachedSupplier}.
+     */
+    private final AtomicBoolean prefetchStrategyInitialized = new AtomicBoolean(false);
+
+    /**
      * The value currently stored in this cache.
      */
     private volatile RefreshResult<T> cachedValue = RefreshResult.builder((T) null)
@@ -72,9 +78,6 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     private CachedSupplier(Builder<T> builder) {
         this.valueSupplier = Validate.notNull(builder.supplier, "builder.supplier");
         this.prefetchStrategy = Validate.notNull(builder.prefetchStrategy, "builder.prefetchStrategy");
-
-        // Because we pass 'this', ensure this is always the last line in the constructor.
-        this.prefetchStrategy.initializeCachedSupplier(this);
     }
 
     /**
@@ -137,6 +140,11 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
             try {
                 // Make sure the value was not refreshed while we waited for the lock.
                 if (cacheIsStale() || shouldInitiateCachePrefetch()) {
+
+                    if (prefetchStrategyInitialized.compareAndSet(false, true)) {
+                        prefetchStrategy.initializeCachedSupplier(this);
+                    }
+
                     // It wasn't, call the supplier to update it.
                     cachedValue = valueSupplier.get();
                 }
