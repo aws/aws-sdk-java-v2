@@ -38,7 +38,7 @@ public class AbstractTestCase extends AwsTestBase {
         client = builder.build();
         asyncClient = KinesisAsyncClient.builder()
                                         .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-            .httpClientBuilder(AwsCrtAsyncHttpClient.builder())
+                                        .httpClientBuilder(AwsCrtAsyncHttpClient.builder())
                                         .build();
     }
 

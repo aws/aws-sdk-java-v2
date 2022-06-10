@@ -54,8 +54,8 @@ public final class CrtRequestExecutor {
             executionContext.crtConnPool().acquireStream(crtRequest, crtToSdkAdapter);
 
         httpClientConnectionCompletableFuture.whenComplete((crtConn, throwable) -> {
-            log.error(() -> "An exception occurred when making the request", throwable);
             if (throwable != null) {
+                log.error(() -> "An exception occurred when making the request", throwable);
                 handleFailure(new IOException("An exception occurred when acquiring the stream", throwable),
                               requestFuture,
                               asyncRequest.responseHandler());
@@ -132,8 +132,7 @@ public final class CrtRequestExecutor {
     private static List<HttpHeader> createHttp2HeaderList(URI uri, AsyncExecuteRequest asyncRequest,
                                                           String path) {
         SdkHttpRequest sdkRequest = asyncRequest.request();
-        // worst case we may add 3 more headers here
-        List<HttpHeader> crtHeaderList = new ArrayList<>(sdkRequest.numHeaders() + 3);
+        List<HttpHeader> crtHeaderList = new ArrayList<>();
         crtHeaderList.add(new HttpHeader(":method", sdkRequest.method().name()));
         crtHeaderList.add(new HttpHeader(":path", path));
         crtHeaderList.add(new HttpHeader(":scheme", uri.getScheme()));
@@ -141,12 +140,10 @@ public final class CrtRequestExecutor {
 
         Optional<Long> contentLength = asyncRequest.requestContentPublisher().contentLength();
         if (!sdkRequest.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent() && contentLength.isPresent()) {
-            crtHeaderList.add(new HttpHeader(Header.CONTENT_LENGTH, Long.toString(contentLength.get())));
+            crtHeaderList.add(new HttpHeader(Header.CONTENT_LENGTH.toLowerCase(), Long.toString(contentLength.get())));
         }
 
-        sdkRequest.forEachHeader((key, value) -> {
-            value.stream().map(val -> new HttpHeader(key, val)).forEach(crtHeaderList::add);
-        });
+        sdkRequest.forEachHeader((key, value) -> value.stream().map(val -> new HttpHeader(key.toLowerCase(), val)).forEach(crtHeaderList::add));
 
         return crtHeaderList;
     }

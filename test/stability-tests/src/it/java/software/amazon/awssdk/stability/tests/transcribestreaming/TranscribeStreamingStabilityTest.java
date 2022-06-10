@@ -16,7 +16,6 @@
 package software.amazon.awssdk.stability.tests.transcribestreaming;
 
 import java.io.InputStream;
-import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
 import org.junit.jupiter.api.AfterAll;
@@ -24,7 +23,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.services.transcribestreaming.TranscribeStreamingAsyncClient;
 import software.amazon.awssdk.services.transcribestreaming.model.AudioStream;
 import software.amazon.awssdk.services.transcribestreaming.model.LanguageCode;
@@ -52,9 +51,7 @@ public class TranscribeStreamingStabilityTest extends AwsTestBase {
     public static void setup() {
         transcribeStreamingClient = TranscribeStreamingAsyncClient.builder()
                                                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                                  .httpClientBuilder(NettyNioAsyncHttpClient.builder()
-                                                                                                            .connectionAcquisitionTimeout(Duration.ofSeconds(30))
-                                                                                                            .maxConcurrency(CONCURRENCY))
+                                                                  .httpClientBuilder(AwsCrtAsyncHttpClient.builder())
                                                                   .build();
 
         audioFileInputStream = getInputStream();

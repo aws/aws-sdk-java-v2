@@ -33,7 +33,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.awssdk.services.kinesis.model.ConsumerStatus;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
@@ -84,7 +84,7 @@ public class KinesisStabilityTest extends AwsTestBase {
         producedData = new ArrayList<>();
         asyncClient = KinesisAsyncClient.builder()
                                         .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                        .httpClientBuilder(NettyNioAsyncHttpClient.builder().maxConcurrency(MAX_CONCURRENCY))
+                                        .httpClientBuilder(AwsCrtAsyncHttpClient.builder())
                                         .build();
 
         asyncClient.createStream(r -> r.streamName(streamName)
@@ -172,9 +172,9 @@ public class KinesisStabilityTest extends AwsTestBase {
     private List<CompletableFuture<?>> generateSubscribeToShardFutures() {
         List<CompletableFuture<?>> completableFutures = new ArrayList<>();
         for (int i = 0; i < CONSUMER_COUNT; i++) {
-            final int consumerIndex = i;
+            int consumerIndex = i;
             for (int j = 0; j < SHARD_COUNT; j++) {
-                final int shardIndex = j;
+                int shardIndex = j;
                 TestSubscribeToShardResponseHandler responseHandler =
                     new TestSubscribeToShardResponseHandler(consumerIndex, shardIndex);
                 CompletableFuture<Void> completableFuture =

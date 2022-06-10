@@ -39,6 +39,7 @@ import io.netty.handler.codec.http2.Http2FrameCodecBuilder;
 import io.netty.handler.codec.http2.Http2FrameLogger;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2MultiplexHandler;
+import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
@@ -46,6 +47,7 @@ import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
+import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -75,7 +77,8 @@ public class H2Test {
         server = new Server();
         server.init();
         crt = AwsCrtAsyncHttpClient.builder()
-                                   .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true)
+                                   .buildWithDefaults(AttributeMap.builder()
+                                                                  .put(TRUST_ALL_CERTIFICATES, true)
                                                                   .put(PROTOCOL, Protocol.HTTP2)
                                                                   .build());
     }
@@ -110,6 +113,7 @@ public class H2Test {
         void init() throws Exception {
             SelfSignedCertificate ssc = new SelfSignedCertificate();
             sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey())
+                                      .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
                                       .sslProvider(SslProvider.JDK)
                                       .applicationProtocolConfig(new ApplicationProtocolConfig(
                                           ApplicationProtocolConfig.Protocol.ALPN,
