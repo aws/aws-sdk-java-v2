@@ -230,4 +230,13 @@
     <Match>
         <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE" />
     </Match>
+
+    <!-- Uses these methods legitimately. -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.http.SdkHttpHeaders"/>
+            <Class name="software.amazon.awssdk.http.SdkHttpRequest"/>
+        </Or>
+        <Bug pattern="SDK_BAD_METHOD_CALL"/>
+    </Match>
 </FindBugsFilter>

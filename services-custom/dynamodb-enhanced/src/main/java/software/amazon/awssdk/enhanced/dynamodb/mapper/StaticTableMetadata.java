@@ -249,6 +249,24 @@ public final class StaticTableMetadata implements TableMetadata {
         }
 
         /**
+         * Adds map of custom objects to the custom metadata, keyed by a string.
+         * If a map is already present then it will merge the new map with the existing map.
+         *
+         * @param key     a string key that will be used to retrieve the custom metadata
+         * @param objectMap Map of objects that will be stored in the custom metadata map
+         */
+        public Builder addCustomMetadataObject(String key, Map<Object, Object> objectMap) {
+            Object collectionInMetadata = customMetadata.get(key);
+            Object customObjectToPut = collectionInMetadata != null
+                                       ? Stream.concat(((Map<Object, Object>) collectionInMetadata).entrySet().stream(),
+                                                       objectMap.entrySet().stream())
+                                               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                                       : objectMap;
+            customMetadata.put(key, customObjectToPut);
+            return this;
+        }
+
+        /**
          * Adds information about a partition key associated with a specific index.
          * @param indexName the name of the index to associate the partition key with
          * @param attributeName the name of the attribute that represents the partition key
@@ -342,6 +360,8 @@ public final class StaticTableMetadata implements TableMetadata {
         private void mergeCustomMetaDataObject(String key, Object object) {
             if (object instanceof Collection) {
                 this.addCustomMetadataObject(key, (Collection<Object>) object);
+            } else if (object instanceof Map) {
+                this.addCustomMetadataObject(key, (Map<Object, Object>) object);
             } else {
                 this.addCustomMetadataObject(key, object);
             }

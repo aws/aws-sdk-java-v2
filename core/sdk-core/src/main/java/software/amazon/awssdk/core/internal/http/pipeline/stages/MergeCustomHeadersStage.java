@@ -15,11 +15,8 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -44,29 +41,23 @@ public class MergeCustomHeadersStage implements MutableRequestToRequestPipeline 
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
             throws Exception {
-        return request.headers(mergeHeaders(request.headers(),
-                                            config.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS),
-                                            adaptHeaders(context.requestConfig().headers())));
+        addOverrideHeaders(request,
+                           config.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS),
+                           context.requestConfig().headers());
+        return request;
     }
 
     @SafeVarargs
-    private final Map<String, List<String>> mergeHeaders(Map<String, List<String>>... headers) {
-        Map<String, List<String>> result = new LinkedHashMap<>();
-        for (Map<String, List<String>> header : headers) {
-            header.forEach((headerName, headerValues) -> {
-                List<String> resultHeaderValues = result.computeIfAbsent(headerName, ignored -> new ArrayList<>());
+    private final void addOverrideHeaders(SdkHttpFullRequest.Builder request,
+                                          Map<String, List<String>>... overrideHeaders) {
+        for (Map<String, List<String>> overrideHeader : overrideHeaders) {
+            overrideHeader.forEach((headerName, headerValues) -> {
                 if (SdkHttpUtils.isSingleHeader(headerName)) {
-                    resultHeaderValues.clear();
+                    request.removeHeader(headerName);
                 }
-                resultHeaderValues.addAll(headerValues);
+                headerValues.forEach(v -> request.appendHeader(headerName, v));
             });
         }
-        return result;
-    }
 
-    private Map<String, List<String>> adaptHeaders(Map<String, List<String>> toConvert) {
-        Map<String, List<String>> adapted = new TreeMap<>();
-        toConvert.forEach((name, value) -> adapted.put(name, new ArrayList<>(value)));
-        return adapted;
     }
 }

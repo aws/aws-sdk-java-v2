@@ -72,7 +72,7 @@ public final class AwsXmlResponseTransformer<T extends AwsResponse>
         metadata.put(AWS_REQUEST_ID,
                      response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER).orElse(null));
 
-        response.headers().forEach((key, value) -> metadata.put(key, value.get(0)));
+        response.forEachHeader((key, value) -> metadata.put(key, value.get(0)));
         return DefaultAwsResponseMetadata.create(metadata);
     }
 }

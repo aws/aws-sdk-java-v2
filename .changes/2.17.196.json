@@ -1,0 +1,18 @@
+{
+    "version": "2.17.196",
+    "date": "2022-05-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Comprehend",
+            "contributor": "",
+            "description": "Comprehend releases 14 new entity types for DetectPiiEntities and ContainsPiiEntities APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "Doc-only update to publish the new valid values for log retention"
+        }
+    ]
+}

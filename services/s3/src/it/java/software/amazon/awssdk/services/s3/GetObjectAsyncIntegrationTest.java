@@ -25,10 +25,13 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.ResponsePublisher;
@@ -43,6 +46,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.utils.Md5Utils;
 
 public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
 
@@ -84,6 +88,37 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
         } finally {
             assertEquals(Long.valueOf(path.toFile().length()), response.contentLength());
             path.toFile().delete();
+        }
+    }
+
+    @Test
+    public void toFile_replaceExisting_shouldReplace() throws Exception {
+        File fileToWrite = RandomTempFile.createTempFile("temp", UUID.randomUUID().toString());
+        Files.write(fileToWrite.toPath(), RandomStringUtils.random(1024).getBytes(StandardCharsets.UTF_8));
+        GetObjectResponse response = null;
+        try {
+            AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
+                AsyncResponseTransformer.toFile(fileToWrite, FileTransformerConfiguration.defaultCreateOrReplaceExisting());
+            s3Async.getObject(getObjectRequest, transformer).join();
+        } finally {
+            assertThat(Md5Utils.md5AsBase64(fileToWrite)).isEqualTo(Md5Utils.md5AsBase64(file));
+            fileToWrite.delete();
+        }
+    }
+
+    @Test
+    public void toFile_appendExisting_shouldAppend() throws Exception {
+        File fileToWrite = RandomTempFile.createTempFile("temp", UUID.randomUUID().toString());
+        byte[] bytes = RandomStringUtils.random(1024).getBytes(StandardCharsets.UTF_8);
+        Files.write(fileToWrite.toPath(), bytes);
+        GetObjectResponse response = null;
+        try {
+            AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
+                AsyncResponseTransformer.toFile(fileToWrite, FileTransformerConfiguration.defaultCreateOrAppend());
+            response = s3Async.getObject(getObjectRequest, transformer).join();
+        } finally {
+            assertThat(fileToWrite.length()).isEqualTo(file.length() + bytes.length);
+            fileToWrite.delete();
         }
     }
 

@@ -26,7 +26,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 /**
@@ -35,7 +35,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 public class EventStreamResponseHandlerSpec implements ClassSpec {
 
     private final IntermediateModel intermediateModel;
-    private final PoetExtensions poetExt;
+    private final PoetExtension poetExt;
     private final OperationModel operationModel;
     private final String apiName;
     private final ClassName responsePojoType;

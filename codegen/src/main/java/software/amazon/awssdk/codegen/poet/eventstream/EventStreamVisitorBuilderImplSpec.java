@@ -29,7 +29,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 
@@ -38,7 +38,7 @@ import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
  */
 public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilderInterfaceSpec {
     private final IntermediateModel intermediateModel;
-    private final PoetExtensions poetExt;
+    private final PoetExtension poetExt;
     private final OperationModel opModel;
     private final ClassName visitorType;
     private final ClassName visitorBuilderType;

@@ -122,8 +122,7 @@ public class Aws4SignerTest {
 
         SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials,
                                                                 "demo", signingOverrideClock, "us-east-1");
-        assertThat(signed.firstMatchingHeader("Authorization"))
-                .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
+        assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorizationHeaderWithoutSha256Header);
     }
 
     @Test

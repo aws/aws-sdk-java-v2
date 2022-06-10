@@ -33,7 +33,7 @@ import software.amazon.awssdk.codegen.model.config.customization.S3ArnableFieldC
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
@@ -50,7 +50,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
     private final IntermediateModel model;
 
     public XmlProtocolSpec(IntermediateModel model,
-                           PoetExtensions poetExtensions) {
+                           PoetExtension poetExtensions) {
         super(model, poetExtensions);
         this.model = model;
     }

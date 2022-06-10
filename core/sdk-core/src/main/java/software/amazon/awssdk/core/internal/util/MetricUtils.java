@@ -29,7 +29,6 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.Pair;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Utility methods for working with metrics.
@@ -69,8 +68,9 @@ public final class MetricUtils {
     public static void collectHttpMetrics(MetricCollector metricCollector, SdkHttpFullResponse httpResponse) {
         if (metricCollector != null && !(metricCollector instanceof NoOpMetricCollector) && httpResponse != null) {
             metricCollector.reportMetric(HttpMetric.HTTP_STATUS_CODE, httpResponse.statusCode());
-            SdkHttpUtils.allMatchingHeadersFromCollection(httpResponse.headers(), X_AMZN_REQUEST_ID_HEADERS)
-                        .forEach(v -> metricCollector.reportMetric(CoreMetric.AWS_REQUEST_ID, v));
+            X_AMZN_REQUEST_ID_HEADERS.forEach(h -> {
+                httpResponse.firstMatchingHeader(h).ifPresent(v -> metricCollector.reportMetric(CoreMetric.AWS_REQUEST_ID, v));
+            });
             httpResponse.firstMatchingHeader(X_AMZ_ID_2_HEADER)
                         .ifPresent(v -> metricCollector.reportMetric(CoreMetric.AWS_EXTENDED_REQUEST_ID, v));
         }

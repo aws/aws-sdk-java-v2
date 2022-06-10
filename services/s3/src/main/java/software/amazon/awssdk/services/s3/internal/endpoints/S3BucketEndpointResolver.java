@@ -31,6 +31,7 @@ import software.amazon.awssdk.regions.RegionMetadata;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.BucketUtils;
 import software.amazon.awssdk.services.s3.internal.ConfiguredS3SdkHttpRequest;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Returns a new configured HTTP request with a resolved endpoint with either virtual addressing or path style access.
@@ -38,7 +39,6 @@ import software.amazon.awssdk.services.s3.internal.ConfiguredS3SdkHttpRequest;
  */
 @SdkInternalApi
 public final class S3BucketEndpointResolver implements S3EndpointResolver {
-
     private S3BucketEndpointResolver() {
     }
 
@@ -110,8 +110,8 @@ public final class S3BucketEndpointResolver implements S3EndpointResolver {
      */
     private static void changeToDnsEndpoint(SdkHttpRequest.Builder mutableRequest, String bucketName) {
         if (mutableRequest.host().startsWith("s3")) {
-            String newHost = mutableRequest.host().replaceFirst("s3", bucketName + "." + "s3");
-            String newPath = mutableRequest.encodedPath().replaceFirst("/" + bucketName, "");
+            String newHost = StringUtils.replaceOnce(mutableRequest.host(), "s3", bucketName + "." + "s3");
+            String newPath = StringUtils.replaceOnce(mutableRequest.encodedPath(), "/" + bucketName, "");
             mutableRequest.host(newHost).encodedPath(newPath);
         }
     }

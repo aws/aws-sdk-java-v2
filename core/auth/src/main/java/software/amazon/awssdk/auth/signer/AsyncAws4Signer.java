@@ -69,7 +69,7 @@ public final class AsyncAws4Signer extends BaseAws4Signer implements AsyncSigner
             Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signingParams);
 
             SdkHttpFullRequest.Builder builder = doSign(request, requestParams, signingParams,
-                    new ContentChecksum(digestHex, sdkChecksum));
+                                                        new ContentChecksum(digestHex, sdkChecksum));
 
             return builder.build();
         });

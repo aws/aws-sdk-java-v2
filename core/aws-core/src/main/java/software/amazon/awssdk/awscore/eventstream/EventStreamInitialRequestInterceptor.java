@@ -71,7 +71,9 @@ public class EventStreamInitialRequestInterceptor implements ExecutionIntercepto
          * latter.
          */
         byte[] payload = getInitialRequestPayload(context);
-        String contentType = context.httpRequest().headers().get(CONTENT_TYPE).get(0);
+        String contentType = context.httpRequest()
+                                    .firstMatchingHeader(CONTENT_TYPE)
+                                    .orElseThrow(() -> new IllegalStateException(CONTENT_TYPE + " header not defined."));
 
         Map<String, HeaderValue> initialRequestEventHeaders = new HashMap<>();
         initialRequestEventHeaders.put(":message-type", HeaderValue.fromString("event"));

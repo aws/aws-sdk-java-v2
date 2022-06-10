@@ -31,7 +31,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
 import software.amazon.awssdk.core.waiters.AsyncWaiter;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
@@ -39,7 +39,7 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 public class AsyncWaiterClassSpec extends BaseWaiterClassSpec {
 
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
     private final ClassName className;
     private final IntermediateModel model;
     private final String modelPackage;
@@ -48,7 +48,7 @@ public class AsyncWaiterClassSpec extends BaseWaiterClassSpec {
         super(model, ClassName.get(AsyncWaiter.class));
         this.model = model;
         this.modelPackage = model.getMetadata().getFullModelPackageName();
-        this.poetExtensions = new PoetExtensions(model);
+        this.poetExtensions = new PoetExtension(model);
         this.className = poetExtensions.getAsyncWaiterClass();
     }
 

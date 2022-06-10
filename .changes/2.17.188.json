@@ -1,0 +1,60 @@
+{
+    "version": "2.17.188",
+    "date": "2022-05-10",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager (Developer Preview)",
+            "contributor": "",
+            "description": "Fixed cancellation logic in `S3TransferManager#downloadDirectory`"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Added support for using NitroTPM and UEFI Secure Boot on EC2 instances."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Adds BOTTLEROCKET_ARM_64_NVIDIA and BOTTLEROCKET_x86_64_NVIDIA AMI types to EKS managed nodegroups"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "DynamoDBEnhanced - Fix handling attribute names with special characters including `/`"
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager (Developer Preview)",
+            "contributor": "",
+            "description": "Fixed a bug in `S3TransferManager#uploadDirectory` and `S3TransferManager#downloadDirectory` where failedUploads or failedDownloads did not contain all failed transfers"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Compute Optimizer",
+            "contributor": "",
+            "description": "Documentation updates for Compute Optimizer"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "This release updates the Amazon EMR ModifyInstanceGroups API to support \"MERGE\" type cluster reconfiguration. Also, added the ability to specify a particular Amazon Linux release for all nodes in a cluster launch request."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub Refactor Spaces",
+            "contributor": "",
+            "description": "AWS Migration Hub Refactor Spaces documentation only update to fix a formatting issue."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Bump `aws-crt` version from `0.16.1` to `0.16.7`"
+        }
+    ]
+}
