@@ -70,7 +70,7 @@ public class ProfileTokenProviderTest {
         ProfileTokenProvider provider =
             ProfileTokenProvider.builder().profileFile(() -> file).profileName("default").build();
 
-        assertThatThrownBy(provider::resolveToken).hasMessageContaining("not configured for");
+        assertThatThrownBy(provider::resolveToken).hasMessageContaining("does not have sso_session property");
     }
 
     private ProfileFile profileFile(String string) {

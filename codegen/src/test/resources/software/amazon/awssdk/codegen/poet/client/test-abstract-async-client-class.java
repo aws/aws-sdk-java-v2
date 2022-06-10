@@ -12,6 +12,8 @@ import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputResponse;
+import software.amazon.awssdk.services.json.model.BearerAuthOperationRequest;
+import software.amazon.awssdk.services.json.model.BearerAuthOperationResponse;
 import software.amazon.awssdk.services.json.model.EventStreamOperationRequest;
 import software.amazon.awssdk.services.json.model.EventStreamOperationResponseHandler;
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyInputRequest;
@@ -105,6 +107,31 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     public CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
         APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
         return delegate.aPostOperationWithOutput(aPostOperationWithOutputRequest);
+    }
+
+    /**
+     * Invokes the BearerAuthOperation operation asynchronously.
+     *
+     * @param bearerAuthOperationRequest
+     * @return A Java Future containing the result of the BearerAuthOperation operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.BearerAuthOperation
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/BearerAuthOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public CompletableFuture<BearerAuthOperationResponse> bearerAuthOperation(
+        BearerAuthOperationRequest bearerAuthOperationRequest) {
+        return delegate.bearerAuthOperation(bearerAuthOperationRequest);
     }
 
     /**
