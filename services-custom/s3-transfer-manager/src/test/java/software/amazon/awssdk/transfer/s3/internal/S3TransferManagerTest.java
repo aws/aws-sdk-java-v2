@@ -19,9 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterEach;
@@ -46,6 +48,7 @@ import software.amazon.awssdk.transfer.s3.CopyRequest;
 import software.amazon.awssdk.transfer.s3.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.S3TransferManagerOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.UploadFileRequest;
 
@@ -55,6 +58,10 @@ class S3TransferManagerTest {
     private UploadDirectoryHelper uploadDirectoryHelper;
     private DownloadDirectoryHelper downloadDirectoryHelper;
     private TransferManagerConfiguration configuration;
+
+
+
+    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
 
     @BeforeEach
     public void methodSetup() {
@@ -332,8 +339,16 @@ class S3TransferManagerTest {
     void close_shouldCloseUnderlyingResources() {
         S3TransferManager transferManager = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryHelper, configuration, downloadDirectoryHelper);
         transferManager.close();
-        verify(mockS3Crt).close();
+        verify(mockS3Crt, times(0)).close();
         verify(configuration).close();
+    }
+
+    @Test
+    void close_shouldNotCloseCloseS3AsyncClientPassedInBuilder_when_transferManagerClosed() {
+        S3TransferManager transferManager =
+            DefaultS3TransferManager.builder().s3AsyncClient(mockS3Crt).transferConfiguration(S3TransferManagerOverrideConfiguration.builder().build()).build();
+        transferManager.close();
+        verify(mockS3Crt, times(0)).close();
     }
 
     @Test
@@ -372,5 +387,4 @@ class S3TransferManagerTest {
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("must not be null");
     }
-
 }

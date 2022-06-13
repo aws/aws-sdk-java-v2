@@ -40,6 +40,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -87,9 +88,10 @@ public class S3TransferManagerUploadDirectoryUnicodeIntegrationTest extends S3In
         S3IntegrationTestBase.setUp();
         createBucket(TEST_BUCKET);
         tm = S3TransferManager.builder()
-                              .s3ClientConfiguration(b -> b.credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                           .region(DEFAULT_REGION)
-                                                           .maxConcurrency(100))
+                              .s3AsyncClient(S3CrtAsyncClient.builder()
+                                                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                             .region(DEFAULT_REGION)
+                                                             .build())
                               .build();
         s3Client = S3Client.builder()
                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(DEFAULT_REGION)

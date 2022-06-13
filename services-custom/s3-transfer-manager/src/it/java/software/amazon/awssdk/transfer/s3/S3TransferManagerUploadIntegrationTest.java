@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
@@ -51,11 +52,13 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
 
         tm = S3TransferManager.builder()
-                              .s3ClientConfiguration(b -> b.credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                           .region(DEFAULT_REGION)
-                                                           .maxConcurrency(100))
+                              .s3AsyncClient(
+                                  S3CrtAsyncClient.builder()
+                                                  .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                  .region(DEFAULT_REGION)
+                                                  .maxConcurrency(100)
+                                                  .build())
                               .build();
-
     }
 
     @AfterAll
@@ -66,7 +69,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         S3IntegrationTestBase.cleanUp();
     }
 
-    @Test
+   @Test
     void upload_file_SentCorrectly() throws IOException {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("x-amz-meta-foobar", "FOO BAR");

@@ -33,6 +33,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Object;
@@ -56,10 +57,10 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
         directory = createLocalTestDirectory();
 
         tm = S3TransferManager.builder()
-                              .s3ClientConfiguration(b -> b.credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                           .region(DEFAULT_REGION)
-                                                           .maxConcurrency(100))
-                              .build();
+                              .s3AsyncClient(S3AsyncClient.builder()
+                                                          .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                          .region(DEFAULT_REGION)
+                                                          .build()).build();
 
         s3Client = S3Client.builder()
                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(DEFAULT_REGION)

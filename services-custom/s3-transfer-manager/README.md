@@ -31,13 +31,15 @@ S3TransferManager tm = S3TransferManager.create();
 
 If you wish to configure settings, we recommend using the builder instead:
 
+
 ```java
 S3TransferManager tm =
     S3TransferManager.builder()
-                     .s3ClientConfiguration(b -> b.credentialsProvider(credentialProvider)
-                                                  .region(Region.US_WEST_2)
-                                                  .targetThroughputInGbps(20.0)
-                                                  .minimumPartSizeInBytes(8 * MB))
+                     .s3AsyncClient(S3CrtAsyncClient.builder()
+                                                    .credentialsProvider(credentialProvider)
+                                                    .region(Region.US_WEST_2)
+                                                    .targetThroughputInGbps(20.0)
+                                                    .minimumPartSizeInBytes(8 * MB))
                      .build();
 ```
 

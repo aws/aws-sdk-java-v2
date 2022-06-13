@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.ResponsePublisher;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -54,8 +55,9 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
                                      .key(KEY)
                                      .build(), file.toPath());
         tm = S3TransferManager.builder()
-                              .s3ClientConfiguration(b -> b.region(DEFAULT_REGION)
-                                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN))
+                              .s3AsyncClient(S3CrtAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                             .region(DEFAULT_REGION)
+                                                             .build())
                               .build();
     }
 
