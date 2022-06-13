@@ -1,3 +1,12 @@
+# __2.17.210__ __2022-06-13__
+## __AWS Outposts__
+  - ### Features
+    - This release adds API operations AWS uses to install Outpost servers.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Do not start periodically refreshing async credential providers until they have been used at least once.
+
 # __2.17.209__ __2022-06-10__
 ## __AWS SDK for Java v2__
   - ### Features
