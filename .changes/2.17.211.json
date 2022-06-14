@@ -1,0 +1,24 @@
+{
+    "version": "2.17.211",
+    "date": "2022-06-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Budgets",
+            "contributor": "",
+            "description": "Add a budgets ThrottlingException. Update the CostFilters value pattern."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "AWS Elemental MediaConvert SDK has added support for rules that constrain Automatic-ABR rendition selection when generating ABR package ladders."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Metrics",
+            "contributor": "",
+            "description": "Adding filters to Alert and adding new UpdateAlert API."
+        }
+    ]
+}

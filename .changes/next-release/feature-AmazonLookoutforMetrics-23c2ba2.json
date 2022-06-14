@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lookout for Metrics",
-    "contributor": "",
-    "description": "Adding filters to Alert and adding new UpdateAlert API."
-}

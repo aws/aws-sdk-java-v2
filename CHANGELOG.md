@@ -1,3 +1,16 @@
+# __2.17.211__ __2022-06-14__
+## __AWS Budgets__
+  - ### Features
+    - Add a budgets ThrottlingException. Update the CostFilters value pattern.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for rules that constrain Automatic-ABR rendition selection when generating ABR package ladders.
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - Adding filters to Alert and adding new UpdateAlert API.
+
 # __2.17.210__ __2022-06-13__
 ## __AWS Outposts__
   - ### Features

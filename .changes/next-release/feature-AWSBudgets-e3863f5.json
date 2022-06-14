@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Budgets",
-    "contributor": "",
-    "description": "Add a budgets ThrottlingException. Update the CostFilters value pattern."
-}
