@@ -1,3 +1,20 @@
+# __2.17.212__ __2022-06-15__
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - This release adds a new API ListAttributeGroupsForApplication that returns associated attribute groups of an application. In addition, the UpdateApplication and UpdateAttributeGroup APIs will not allow users to update the 'Name' attribute.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Adds finding fields available from GuardDuty Console. Adds FreeTrial related operations. Deprecates the use of various APIs related to Master Accounts and Replace them with Administrator Accounts.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added new field "reason" to OperationNotSupportedException. Receiving this exception in the DeregisterWorkspaceDirectory API will now return a reason giving more context on the failure.
+
+## __FinSpace Public API__
+  - ### Features
+    - This release adds a new set of APIs, GetPermissionGroup, DisassociateUserFromPermissionGroup, AssociateUserToPermissionGroup, ListPermissionGroupsByUser, ListUsersByPermissionGroup.
+
 # __2.17.211__ __2022-06-14__
 ## __AWS Budgets__
   - ### Features
