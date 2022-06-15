@@ -161,6 +161,11 @@ public class CustomizationConfig {
     private UtilitiesMethod utilitiesMethod;
 
     /**
+     * Config to generate a additional Builder methods in the client interface.
+     */
+    private List<AdditionalBuilderMethod> additionalBuilderMethods;
+
+    /**
      * Force generation of deprecated client builder method 'enableEndpointDiscovery'. Only services that already had
      * this method when it was deprecated require this flag to be set.
      */
@@ -423,6 +428,15 @@ public class CustomizationConfig {
 
     public void setUtilitiesMethod(UtilitiesMethod utilitiesMethod) {
         this.utilitiesMethod = utilitiesMethod;
+    }
+
+
+    public List<AdditionalBuilderMethod> getAdditionalBuilderMethods() {
+        return additionalBuilderMethods;
+    }
+
+    public void setAdditionalBuilderMethods(List<AdditionalBuilderMethod> additionalBuilderMethods) {
+        this.additionalBuilderMethods = additionalBuilderMethods;
     }
 
     public boolean isEnableEndpointDiscoveryMethodRequired() {

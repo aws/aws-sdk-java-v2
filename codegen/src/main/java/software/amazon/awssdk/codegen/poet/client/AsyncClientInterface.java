@@ -42,6 +42,7 @@ import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.docs.WaiterDocs;
+import software.amazon.awssdk.codegen.model.config.customization.AdditionalBuilderMethod;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -56,6 +57,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.regions.ServiceMetadataProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.utils.Validate;
 
 public class AsyncClientInterface implements ClassSpec {
 
@@ -105,6 +107,13 @@ public class AsyncClientInterface implements ClassSpec {
 
         if (model.getCustomizationConfig().getUtilitiesMethod() != null) {
             result.addMethod(utilitiesMethod());
+        }
+
+        List<AdditionalBuilderMethod> additionaBuilders = model.getCustomizationConfig().getAdditionalBuilderMethods();
+        if (additionaBuilders != null && !additionaBuilders.isEmpty()) {
+            additionaBuilders.stream()
+                             .filter(builder -> software.amazon.awssdk.core.ClientType.ASYNC.equals(builder.getClientTypeEnum()))
+                             .forEach(builders -> result.addMethod(additionalBuilders(builders)));
         }
 
         if (model.hasWaiters()) {
@@ -460,6 +469,24 @@ public class AsyncClientInterface implements ClassSpec {
                                                .addJavadoc("Creates an instance of {@link $T} object with the "
                                                            + "configuration set on this client.", returnType);
         return utilitiesOperationBody(builder).build();
+    }
+
+    private MethodSpec additionalBuilders(AdditionalBuilderMethod additionalMethod) {
+
+        String methodName = Validate.paramNotNull(additionalMethod.getMethodName(), "methodName");
+        ClassName returnType = PoetUtils.classNameFromFqcn(
+            Validate.paramNotNull(additionalMethod.getReturnType(), "returnType"));
+        ClassName instanceType = PoetUtils.classNameFromFqcn(
+            Validate.paramNotNull(additionalMethod.getInstanceType(), "instanceType"));
+
+        MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
+                                               .returns(returnType)
+                                               .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
+                                               .addJavadoc("Create a builder that can be used to configure "
+                                                           + "and create a {@link $T}", instanceType)
+                                               .addStatement("return $T.builder()", instanceType);
+
+        return builder.build();
     }
 
     protected MethodSpec.Builder utilitiesOperationBody(MethodSpec.Builder builder) {
