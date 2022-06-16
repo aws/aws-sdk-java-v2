@@ -1,3 +1,24 @@
+# __2.17.213__ __2022-06-16__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added Threats field for security findings. Added new resource details for ECS Container, ECS Task, RDS SecurityGroup, Kinesis Stream, EC2 TransitGateway, EFS AccessPoint, CloudFormation Stack, CloudWatch Alarm, VPC Peering Connection and WAF Rules
+
+## __Redshift Data API Service__
+  - ### Features
+    - This release adds a new --workgroup-name field to operations that connect to an endpoint. Customers can now execute queries against their serverless workgroups.
+
+## __Redshift Serverless__
+  - ### Features
+    - Add new API operations for Amazon Redshift Serverless, a new way of using Amazon Redshift without needing to manually manage provisioned clusters. The new operations let you interact with Redshift Serverless resources, such as create snapshots, list VPC endpoints, delete resource policies, and more.
+
 # __2.17.212__ __2022-06-15__
 ## __AWS Service Catalog App Registry__
   - ### Features
