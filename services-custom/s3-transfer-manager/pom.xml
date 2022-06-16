@@ -88,11 +88,6 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>auth</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-core</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>

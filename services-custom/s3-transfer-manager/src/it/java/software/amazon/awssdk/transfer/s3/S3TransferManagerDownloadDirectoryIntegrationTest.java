@@ -35,6 +35,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.ComparisonFailure;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.utils.Logger;
 
@@ -57,9 +58,11 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         sourceDirectory = createLocalTestDirectory();
 
         tm = S3TransferManager.builder()
-                              .s3ClientConfiguration(b -> b.credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                           .region(DEFAULT_REGION)
-                                                           .maxConcurrency(100))
+                              .s3AsyncClient(S3CrtAsyncClient.builder()
+                                                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                             .region(DEFAULT_REGION)
+                                                             .maxConcurrency(100)
+                                                             .build())
                               .build();
 
         tm.uploadDirectory(u -> u.sourceDirectory(sourceDirectory).bucket(TEST_BUCKET)).completionFuture().join();

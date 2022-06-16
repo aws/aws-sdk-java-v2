@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 
@@ -45,10 +46,10 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
         S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
         tm = S3TransferManager.builder()
-                              .s3ClientConfiguration(c -> c
-                                  .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                  .region(DEFAULT_REGION)
-                                  .maxConcurrency(100))
+            .s3AsyncClient(S3CrtAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                               .region(DEFAULT_REGION)
+                               .maxConcurrency(100)
+                                           .build())
                               .build();
     }
 
