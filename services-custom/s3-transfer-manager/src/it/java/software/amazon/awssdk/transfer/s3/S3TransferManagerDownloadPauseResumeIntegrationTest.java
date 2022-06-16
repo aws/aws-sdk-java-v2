@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -59,10 +60,12 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
                                      .bucket(BUCKET)
                                      .key(KEY)
                                      .build(), sourceFile.toPath());
-        tm = S3TransferManager.builder()
-                              .s3ClientConfiguration(b -> b.region(DEFAULT_REGION)
-                                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN))
-                              .build();
+        tm =
+            S3TransferManager.builder().s3AsyncClient(S3AsyncClient.builder()
+                                                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                                   .region(DEFAULT_REGION)
+                                                                   .build())
+                             .build();
     }
 
     @AfterAll

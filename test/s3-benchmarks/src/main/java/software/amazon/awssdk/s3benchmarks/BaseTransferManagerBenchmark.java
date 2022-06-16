@@ -60,8 +60,9 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
         s3Sync = S3Client.builder()
                          .build();
         transferManager = S3TransferManager.builder()
-                                           .s3ClientConfiguration(b -> b.targetThroughputInGbps(config.targetThroughput())
-                                           .minimumPartSizeInBytes(partSizeInMb))
+                                           .s3AsyncClient(S3CrtAsyncClient.builder()
+                                                                          .targetThroughputInGbps(config.targetThroughput())
+                                                                          .minimumPartSizeInBytes(partSizeInMb).build())
                                            .build();
         bucket = config.bucket();
         key = config.key();

@@ -22,6 +22,8 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -45,10 +47,11 @@ import software.amazon.awssdk.utils.Validate;
  * // If you wish to configure settings, we recommend using the builder instead
  * S3TransferManager tm =
  *     S3TransferManager.builder()
- *                      .s3ClientConfiguration(b -> b.credentialsProvider(credentialProvider)
- *                                                   .region(Region.US_WEST_2)
- *                                                   .targetThroughputInGbps(20.0)
- *                                                   .minimumPartSizeInBytes(8 * MB))
+ *                      .s3AsyncClient(S3CrtAsyncClient.builder()
+ *                                                     .credentialsProvider(credentialProvider)
+ *                                                     .region(Region.US_WEST_2)
+ *                                                     .targetThroughputInGbps(20.0)
+ *                                                     .minimumPartSizeInBytes(8 * MB))
  *                      .build();
  *
  * // Upload a file to S3
@@ -503,33 +506,16 @@ public interface S3TransferManager extends SdkAutoCloseable {
     interface Builder {
 
         /**
-         * Configuration values for the low level S3 client. The {@link S3TransferManager} already provides sensible
-         * defaults. All values are optional.
-         *
-         * @param configuration the configuration to use
-         * @return Returns a reference to this object so that method calls can be chained together.
-         * @see #s3ClientConfiguration(Consumer)
-         */
-        Builder s3ClientConfiguration(S3ClientConfiguration configuration);
-
-        /**
-         * Configuration values for the low level S3 client. The {@link S3TransferManager} already provides sensible
-         * defaults. All values are optional.
-         *
+         * Low level S3 client that implements {@link S3AsyncClient}.The {@link S3TransferManager} already provides sensible
+         * default client. As of now only {@link S3CrtAsyncClient} supports concurrent execution of Transfer manager operations.
          * <p>
-         * This is a convenience method that creates an instance of the {@link S3ClientConfiguration} builder avoiding the
-         * need to create one manually via {@link S3ClientConfiguration#builder()}.
-         *
-         * @param configuration the configuration to use
+         *    Note : The provided S3AsyncClient will not be closed when the transfer manager is closed.
+         *    This s3AsyncClient must be closed by the caller when it is ready to be disposed.
+         * @param s3AsyncClient Implementation of {@link S3AsyncClient}
          * @return Returns a reference to this object so that method calls can be chained together.
-         * @see #s3ClientConfiguration(S3ClientConfiguration)
          */
-        default Builder s3ClientConfiguration(Consumer<S3ClientConfiguration.Builder> configuration) {
-            S3ClientConfiguration.Builder builder = S3ClientConfiguration.builder();
-            configuration.accept(builder);
-            s3ClientConfiguration(builder.build());
-            return this;
-        }
+
+        Builder s3AsyncClient(S3AsyncClient s3AsyncClient);
 
         /**
          * Configuration settings for how {@link S3TransferManager} should process the request. The
@@ -567,5 +553,6 @@ public interface S3TransferManager extends SdkAutoCloseable {
          * @return an instance of {@link S3TransferManager}
          */
         S3TransferManager build();
+
     }
 }
