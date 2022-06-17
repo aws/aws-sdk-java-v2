@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonConnectCampaignService",
-    "contributor": "",
-    "description": "Added Amazon Connect high volume outbound communications SDK."
-}
