@@ -33,6 +33,7 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -52,10 +53,10 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
         S3IntegrationTestBase.createBucket(BUCKET);
-        crtClient = S3CrtAsyncClient.builder()
-                                    .region(S3IntegrationTestBase.DEFAULT_REGION)
-                                    .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
-                                    .build();
+        crtClient = S3AsyncClient.crtBuilder()
+                                 .region(S3IntegrationTestBase.DEFAULT_REGION)
+                                 .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
+                                 .build();
         file = new RandomTempFile(10_000);
         S3IntegrationTestBase.s3.putObject(PutObjectRequest.builder()
                                                            .bucket(BUCKET)
