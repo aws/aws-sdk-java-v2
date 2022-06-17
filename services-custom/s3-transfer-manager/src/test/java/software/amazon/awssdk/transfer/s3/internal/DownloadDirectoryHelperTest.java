@@ -177,7 +177,7 @@ public class DownloadDirectoryHelperTest {
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
                                                                               .destinationDirectory(directory)
                                                                               .bucket("bucket")
-                                                                              .filter(ctx -> "key2".equals(ctx.source().key()))
+                                                                              .filter(s3Object -> "key2".equals(s3Object.key()))
                                                                               .build());
 
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);

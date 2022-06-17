@@ -1,0 +1,6 @@
+{
+    "type": "removal",
+    "category": "AWS SDK Transfer Mananger",
+    "contributor": "",
+    "description": "Backward incompatible changes after removing s3ClientConfiguration() from builder API of S3TransferManager Interface.\n- Added crtBuilder in S3AsyncClient Interface.\n- Backward incompatible changes after changing args of test() API in DownloadFilter Interface from DownloadFileContext to S3Object."
+}
