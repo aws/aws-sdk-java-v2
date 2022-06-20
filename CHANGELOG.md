@@ -1,3 +1,16 @@
+# __2.17.215__ __2022-06-20__
+## __AWS Directory Service__
+  - ### Features
+    - This release adds support for describing and updating AWS Managed Microsoft AD settings
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds the AssetLocation structure to the ListAssets response. AssetLocation includes the RackElevation for an Asset.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Documentation updates to use Az Id during cluster creation.
+
 # __2.17.214__ __2022-06-17__
 ## __AWS SDK for Java v2__
   - ### Features
