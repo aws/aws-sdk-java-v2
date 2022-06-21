@@ -558,6 +558,7 @@
                             <includeModule>url-connection-client</includeModule>
                             <includeModule>cloudwatch-metric-publisher</includeModule>
                             <includeModule>utils</includeModule>
+                            <includeModule>imds</includeModule>
 
                             <!-- High level libraries -->
                             <includeModule>dynamodb-enhanced</includeModule>
