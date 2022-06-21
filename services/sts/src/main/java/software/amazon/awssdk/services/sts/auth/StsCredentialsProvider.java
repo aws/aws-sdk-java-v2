@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.sts.auth;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -66,8 +67,11 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
 
         CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder = CachedSupplier.builder(this::updateSessionCredentials);
-        if (builder.asyncCredentialUpdateEnabled) {
-            cacheBuilder.prefetchStrategy(new NonBlocking(asyncThreadName));
+        if (builder.asyncCredentialUpdateEnabled || builder.scheduledThreadPoolExecutor != null) {
+            CachedSupplier.PrefetchStrategy prefetchStrategy = builder.scheduledThreadPoolExecutor == null ?
+                                                               new NonBlocking(asyncThreadName) :
+                                                               new NonBlocking(builder.scheduledThreadPoolExecutor);
+            cacheBuilder.prefetchStrategy(prefetchStrategy);
         }
         this.sessionCache = cacheBuilder.build();
     }
@@ -125,6 +129,9 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
         private final Function<B, T> providerConstructor;
 
         private Boolean asyncCredentialUpdateEnabled = false;
+
+        private ScheduledThreadPoolExecutor scheduledThreadPoolExecutor;
+
         private StsClient stsClient;
         private Duration staleTime;
         private Duration prefetchTime;
@@ -156,6 +163,21 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
         @SuppressWarnings("unchecked")
         public B asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
             this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
+            return (B) this;
+        }
+
+        /**
+         * Configure whether the provider should fetch credentials asynchronously in the background using the provided
+         * ScheduledThreadPoolExecutor.
+         *
+         * <p>This is recommended for advanced uses cases where there are large numbers of credentials provider instances.  The
+         * provider of the ScheduledThreadPoolExecutor instance is responsible for the configuration and lifecycle thereof.</p>
+         *
+         * <p>By default this is null, resulting an internally created ScheduledThreadPoolExecutor for each credentials provider
+         * when async is enabled via asyncCredentialUpdateEnabled</p>
+         */
+        public B scheduledThreadPoolExecutor(ScheduledThreadPoolExecutor scheduledThreadPoolExecutor) {
+            this.scheduledThreadPoolExecutor = scheduledThreadPoolExecutor;
             return (B) this;
         }
 

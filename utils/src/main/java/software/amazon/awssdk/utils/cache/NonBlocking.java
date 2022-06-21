@@ -53,6 +53,11 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
     private final ScheduledExecutorService executor;
 
     /**
+     * Whether 'executor' is owned (created) by this object
+     */
+    private final boolean ownsExecutor;
+
+    /**
      * Create a non-blocking prefetch strategy that uses the provided value for the name of the background thread that will be
      * performing the update.
      */
@@ -60,10 +65,27 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
         this(asyncThreadName, Duration.ofMinutes(1));
     }
 
+    /**
+     * Create a non-blocking prefetch strategy that uses the provided ScheduledExecutorService to perform the update.
+     */
+    public NonBlocking(ScheduledExecutorService executor) {
+        this(Duration.ofMinutes(1), executor, false);
+    }
+
     @SdkTestInternalApi
     NonBlocking(String asyncThreadName, Duration asyncRefreshFrequency) {
-        this.executor = newExecutor(asyncThreadName);
+        this(asyncRefreshFrequency, newExecutor(asyncThreadName), true);
+    }
+
+    @SdkTestInternalApi
+    NonBlocking(Duration asyncRefreshFrequency, ScheduledExecutorService executor) {
+        this(asyncRefreshFrequency, executor, false);
+    }
+
+    private NonBlocking(Duration asyncRefreshFrequency, ScheduledExecutorService executor, boolean ownsExecutor) {
+        this.executor = executor;
         this.asyncRefreshFrequency = asyncRefreshFrequency;
+        this.ownsExecutor = ownsExecutor;
     }
 
     private static ScheduledExecutorService newExecutor(String asyncThreadName) {
@@ -111,6 +133,8 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
 
     @Override
     public void close() {
-        executor.shutdown();
+        if( ownsExecutor ) {
+            executor.shutdown();
+        }
     }
 }

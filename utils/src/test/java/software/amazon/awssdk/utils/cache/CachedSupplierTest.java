@@ -30,12 +30,14 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 /**
  * Validate the functionality of {@link CachedSupplier}.
@@ -49,6 +51,11 @@ public class CachedSupplierTest {
     private ExecutorService executorService;
 
     /**
+     * A scheduled executor for NonBlocking use, in the case where this is externally provided.
+     */
+    private ScheduledExecutorService scheduledExecutorService;
+
+    /**
      * All executions added to the {@link #executorService} since the beginning of an individual test method.
      */
     private List<Future<?>> allExecutions;
@@ -60,6 +67,11 @@ public class CachedSupplierTest {
     public void setup() {
         executorService = Executors.newFixedThreadPool(50);
         allExecutions = new ArrayList<>();
+        scheduledExecutorService = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().daemonThreads(true)
+                                                                                                 .threadNamePrefix("non-blocking"
+                                                                                                                   + "-creds"
+                                                                                                                   + "-refresh")
+                                                                                                 .build());
     }
 
     /**
@@ -259,6 +271,23 @@ public class CachedSupplierTest {
     }
 
     @Test
+    public void nonBlockingPrefetchStrategyRefreshesInBackgroundWithProvidedExecutor() {
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
+             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
+                                                                   .prefetchStrategy(new NonBlocking(Duration.ofSeconds(1),
+                                                                                                     scheduledExecutorService))
+                                                                   .build()) {
+            waitingSupplier.permits.release(2);
+            cachedSupplier.get();
+
+            // Ensure two "get"s happens even though we only made one call to the cached supplier.
+            waitingSupplier.waitForGetsToHaveStarted(2);
+
+            assertThat(cachedSupplier.get()).isNotNull();
+        }
+    }
+
+    @Test
     public void nonBlockingPrefetchStrategyBackgroundRefreshesHitCache() throws InterruptedException {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), future());
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
@@ -275,11 +304,42 @@ public class CachedSupplierTest {
     }
 
     @Test
+    public void nonBlockingPrefetchStrategyBackgroundRefreshesHitCacheWithProvidedExecutor() throws InterruptedException {
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), future());
+             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
+                                                                   .prefetchStrategy(new NonBlocking(Duration.ofMillis(1),
+                                                                                                     scheduledExecutorService))
+                                                                   .build()) {
+            waitingSupplier.permits.release(5);
+            cachedSupplier.get();
+
+            Thread.sleep(1_000);
+
+            assertThat(waitingSupplier.permits.availablePermits()).isEqualTo(4); // Only 1 call to supplier
+        }
+    }
+
+    @Test
     public void nonBlockingPrefetchStrategyDoesNotRefreshUntilItIsCalled() throws InterruptedException {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                    .prefetchStrategy(new NonBlocking("test-%s",
                                                                                                      Duration.ofMillis(1)))
+                                                                   .build()) {
+            waitingSupplier.startedGetPermits.release();
+
+            Thread.sleep(1_000);
+
+            assertThat(waitingSupplier.startedGetPermits.availablePermits()).isEqualTo(1);
+        }
+    }
+
+    @Test
+    public void nonBlockingPrefetchStrategyDoesNotRefreshUntilItIsCalledWithProvidedExecutor() throws InterruptedException {
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
+             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
+                                                                   .prefetchStrategy(new NonBlocking(Duration.ofMillis(1),
+                                                                                                     scheduledExecutorService))
                                                                    .build()) {
             waitingSupplier.startedGetPermits.release();
 
