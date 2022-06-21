@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EC2 Container Service",
-    "contributor": "",
-    "description": "Amazon ECS UpdateService now supports the following parameters: PlacementStrategies, PlacementConstraints and CapacityProviderStrategy."
-}
