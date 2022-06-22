@@ -1,3 +1,16 @@
+# __2.17.217__ __2022-06-22__
+## __AWS Price List Service__
+  - ### Features
+    - This release introduces 1 update to the GetProducts API. The serviceCode attribute is now required when you use the GetProductsRequest.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Until today, the service supported only RSA host keys and user keys. Now with this launch, Transfer Family has expanded the support for ECDSA and ED25519 host keys and user keys, enabling customers to support a broader set of clients by choosing RSA, ECDSA, and ED25519 host and user keys.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
 # __2.17.216__ __2022-06-21__
 ## __AWS Well-Architected Tool__
   - ### Features
