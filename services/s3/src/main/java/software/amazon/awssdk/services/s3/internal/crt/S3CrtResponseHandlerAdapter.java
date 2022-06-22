@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -68,7 +69,10 @@ public class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseHandler
     }
 
     @Override
-    public void onFinished(int crtCode, int responseStatus, byte[] errorPayload) {
+    public void onFinished(S3FinishedResponseContext context) {
+        int crtCode = context.getErrorCode();
+        int responseStatus = context.getResponseStatus();
+        byte[] errorPayload = context.getErrorPayload();
         if (crtCode != CRT.AWS_CRT_SUCCESS) {
             handleError(crtCode, responseStatus, errorPayload);
         } else {
