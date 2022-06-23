@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -27,9 +28,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 
@@ -42,6 +45,9 @@ public class S3CrtResponseHandlerAdapterTest {
 
     @Mock
     private S3CrtDataPublisher crtDataPublisher;
+
+    @Mock
+    private S3FinishedResponseContext context;
     private CompletableFuture<Void> future;
 
     @Before
@@ -71,7 +77,7 @@ public class S3CrtResponseHandlerAdapterTest {
 
         verify(sdkResponseHandler).onStream(crtDataPublisher);
 
-        responseHandlerAdapter.onFinished(0, 0, null);
+        responseHandlerAdapter.onFinished(stubResponseContext(0, 0, null));
         assertThat(future).isCompleted();
     }
 
@@ -90,7 +96,8 @@ public class S3CrtResponseHandlerAdapterTest {
         verify(sdkResponseHandler).onStream(crtDataPublisher);
 
         byte[] errorPayload = "errorResponse".getBytes(StandardCharsets.UTF_8);
-        responseHandlerAdapter.onFinished(1, statusCode, errorPayload);
+
+        responseHandlerAdapter.onFinished(stubResponseContext(1, statusCode, errorPayload));
 
         ArgumentCaptor<ByteBuffer> byteBufferArgumentCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
         verify(crtDataPublisher).deliverData(byteBufferArgumentCaptor.capture());
@@ -105,7 +112,7 @@ public class S3CrtResponseHandlerAdapterTest {
     @Test
     public void requestFailed_shouldCompleteFutureExceptionally() {
 
-        responseHandlerAdapter.onFinished(1, 0, null);
+        responseHandlerAdapter.onFinished(stubResponseContext(1, 0, null));
 
         ArgumentCaptor<Exception> exceptionArgumentCaptor = ArgumentCaptor.forClass(Exception.class);
         verify(crtDataPublisher).notifyError(exceptionArgumentCaptor.capture());
@@ -114,5 +121,13 @@ public class S3CrtResponseHandlerAdapterTest {
         Exception actualException = exceptionArgumentCaptor.getValue();
         assertThat(actualException).isInstanceOf(SdkClientException.class);
         assertThat(future).isCompletedExceptionally();
+    }
+
+    private S3FinishedResponseContext stubResponseContext(int errorCode, int responseStatus, byte[] errorPayload) {
+        Mockito.reset(context);
+        when(context.getErrorCode()).thenReturn(errorCode);
+        when(context.getResponseStatus()).thenReturn(responseStatus);
+        when(context.getErrorPayload()).thenReturn(errorPayload);
+        return context;
     }
 }
