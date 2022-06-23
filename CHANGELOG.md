@@ -1,3 +1,24 @@
+# __2.17.218__ __2022-06-23__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has released support for automatic DolbyVision metadata generation when converting HDR10 to DolbyVision.
+
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - This release adds the new API UpdateRoute that allows route to be updated to ACTIVE/INACTIVE state. In addition, CreateRoute API will now allow users to create route in ACTIVE/INACTIVE state.
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - This release adds visualizations to the scheduled inference results. Users will be able to see interference results, including diagnostic results from their running inference schedulers.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Ground Truth now supports Virtual Private Cloud. Customers can launch labeling jobs and access to their private workforce in VPC mode.
+
+## __Application Migration Service__
+  - ### Features
+    - New and modified APIs for the Post-Migration Framework
+
 # __2.17.217__ __2022-06-22__
 ## __AWS Price List Service__
   - ### Features
