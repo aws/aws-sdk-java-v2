@@ -327,7 +327,6 @@
         <module>chimesdkmediapipelines</module>
         <module>emrserverless</module>
         <module>m2</module>
-        <module>redshiftserverless</module>
         <module>connectcampaigns</module>
     </modules>
     <description>The AWS Java SDK services</description>

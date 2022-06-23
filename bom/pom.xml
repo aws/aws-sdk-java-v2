@@ -1690,11 +1690,6 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
-                <artifactId>redshiftserverless</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
                 <artifactId>connectcampaigns</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
