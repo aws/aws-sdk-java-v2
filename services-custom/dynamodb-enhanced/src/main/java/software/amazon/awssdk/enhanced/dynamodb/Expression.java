@@ -189,6 +189,15 @@ public final class Expression {
         return expressionNames;
     }
 
+    /**
+     * Coalesces two complete expressions into a single expression joined by an 'AND'.
+     *
+     * @see #join(Expression, Expression, String)
+     */
+    public Expression and(Expression expression) {
+        return join(this, expression, " AND ");
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

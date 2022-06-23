@@ -1,0 +1,24 @@
+{
+    "version": "2.17.209",
+    "date": "2022-06-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS STS",
+            "contributor": "",
+            "description": "Adding New WebIdentityTokenFileCredentialsProvider in sts that accepts STSClient"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Fraud Detector",
+            "contributor": "",
+            "description": "Documentation updates for Amazon Fraud Detector (AWSHawksNest)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

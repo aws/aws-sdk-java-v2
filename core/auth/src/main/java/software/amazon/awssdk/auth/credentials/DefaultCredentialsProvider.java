@@ -71,8 +71,8 @@ public final class DefaultCredentialsProvider
     }
 
     /**
-     * Create an create of the {@link DefaultCredentialsProvider} using the default configuration. Configuration can be
-     * specified by creating an create using the {@link #builder()}.
+     * Create an instance of the {@link DefaultCredentialsProvider} using the default configuration. Configuration can be
+     * specified by creating an instance using the {@link #builder()}.
      */
     public static DefaultCredentialsProvider create() {
         return DEFAULT_CREDENTIALS_PROVIDER;

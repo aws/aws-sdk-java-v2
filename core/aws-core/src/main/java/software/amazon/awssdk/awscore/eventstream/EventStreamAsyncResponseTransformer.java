@@ -44,7 +44,6 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 import software.amazon.eventstream.Message;
 import software.amazon.eventstream.MessageDecoder;
 
@@ -151,9 +150,9 @@ public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     public void onResponse(SdkResponse response) {
         // Capture the request IDs from the initial response, so that we can include them in each event.
         if (response != null && response.sdkHttpResponse() != null) {
-            this.requestId = SdkHttpUtils.firstMatchingHeaderFromCollection(response.sdkHttpResponse().headers(),
-                                                                            X_AMZN_REQUEST_ID_HEADERS)
-                                         .orElse(null);
+            this.requestId = response.sdkHttpResponse()
+                                     .firstMatchingHeader(X_AMZN_REQUEST_ID_HEADERS)
+                                     .orElse(null);
             this.extendedRequestId = response.sdkHttpResponse()
                                              .firstMatchingHeader(X_AMZ_ID_2_HEADER)
                                              .orElse(null);

@@ -461,6 +461,23 @@
       ],
       "documentation":"<p>Removes <a href=\"https://docs.aws.amazon.com/lookoutmetrics/latest/dev/detectors-tags.html\">tags</a> from a detector, dataset, or alert.</p>"
     },
+    "UpdateAlert":{
+      "name":"UpdateAlert",
+      "http":{
+        "method":"POST",
+        "requestUri":"/UpdateAlert"
+      },
+      "input":{"shape":"UpdateAlertRequest"},
+      "output":{"shape":"UpdateAlertResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"TooManyRequestsException"}
+      ],
+      "documentation":"<p>Make changes to an existing alert.</p>"
+    },
     "UpdateAnomalyDetector":{
       "name":"UpdateAnomalyDetector",
       "http":{
@@ -586,6 +603,10 @@
         "CreationTime":{
           "shape":"Timestamp",
           "documentation":"<p>The time at which the alert was created.</p>"
+        },
+        "AlertFilters":{
+          "shape":"AlertFilters",
+          "documentation":"<p>The configuration of the alert filters, containing MetricList and DimensionFilter.</p>"
         }
       },
       "documentation":"<p>A configuration for Amazon SNS-integrated notifications.</p>"
@@ -594,6 +615,20 @@
       "type":"string",
       "max":256,
       "pattern":".*\\S.*"
+    },
+    "AlertFilters":{
+      "type":"structure",
+      "members":{
+        "MetricList":{
+          "shape":"MetricNameList",
+          "documentation":"<p>The list of measures that you want to get alerts for.</p>"
+        },
+        "DimensionFilterList":{
+          "shape":"DimensionFilterList",
+          "documentation":"<p>The list of DimensionFilter objects that are used for dimension-based filtering.</p>"
+        }
+      },
+      "documentation":"<p>The configuration of the alert filters.</p>"
     },
     "AlertName":{
       "type":"string",
@@ -907,6 +942,69 @@
       "max":256,
       "pattern":"arn:([a-z\\d-]+):.*:.*:.*:.+"
     },
+    "AthenaDataCatalog":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\t]*"
+    },
+    "AthenaDatabaseName":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[a-zA-Z0-9_]+"
+    },
+    "AthenaS3ResultsPath":{
+      "type":"string",
+      "max":1024,
+      "pattern":"^s3://[a-z0-9].+$"
+    },
+    "AthenaSourceConfig":{
+      "type":"structure",
+      "members":{
+        "RoleArn":{
+          "shape":"Arn",
+          "documentation":"<p>An IAM role that gives Amazon Lookout for Metrics permission to access the data.</p>"
+        },
+        "DatabaseName":{
+          "shape":"AthenaDatabaseName",
+          "documentation":"<p>The database's name.</p>"
+        },
+        "DataCatalog":{
+          "shape":"AthenaDataCatalog",
+          "documentation":"<p>The database's data catalog.</p>"
+        },
+        "TableName":{
+          "shape":"AthenaTableName",
+          "documentation":"<p>The database's table name.</p>"
+        },
+        "WorkGroupName":{
+          "shape":"AthenaWorkGroupName",
+          "documentation":"<p>The database's work group name.</p>"
+        },
+        "S3ResultsPath":{
+          "shape":"AthenaS3ResultsPath",
+          "documentation":"<p>The database's results path.</p>"
+        },
+        "BackTestConfiguration":{
+          "shape":"BackTestConfiguration",
+          "documentation":"<p>Settings for backtest mode.</p>"
+        }
+      },
+      "documentation":"<p>Details about an Amazon Athena datasource.</p>"
+    },
+    "AthenaTableName":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"[a-zA-Z0-9_]+"
+    },
+    "AthenaWorkGroupName":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"[a-zA-Z0-9._-]{1,128}"
+    },
     "AttributeValue":{
       "type":"structure",
       "members":{
@@ -976,6 +1074,17 @@
       "members":{
       }
     },
+    "BackTestConfiguration":{
+      "type":"structure",
+      "required":["RunBackTestMode"],
+      "members":{
+        "RunBackTestMode":{
+          "shape":"Boolean",
+          "documentation":"<p>Run a backtest instead of monitoring new data.</p>"
+        }
+      },
+      "documentation":"<p>Settings for backtest mode.</p>"
+    },
     "BinaryAttributeValue":{"type":"string"},
     "BinaryListAttributeValue":{
       "type":"list",
@@ -1000,6 +1109,10 @@
         "RoleArn":{
           "shape":"Arn",
           "documentation":"<p>An IAM role that gives Amazon Lookout for Metrics permission to access data in Amazon CloudWatch.</p>"
+        },
+        "BackTestConfiguration":{
+          "shape":"BackTestConfiguration",
+          "documentation":"<p>Settings for backtest mode.</p>"
         }
       },
       "documentation":"<p>Details about an Amazon CloudWatch datasource.</p>"
@@ -1050,7 +1163,6 @@
       "type":"structure",
       "required":[
         "AlertName",
-        "AlertSensitivityThreshold",
         "AnomalyDetectorArn",
         "Action"
       ],
@@ -1078,6 +1190,10 @@
         "Tags":{
           "shape":"TagMap",
           "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/lookoutmetrics/latest/dev/detectors-tags.html\">tags</a> to apply to the alert.</p>"
+        },
+        "AlertFilters":{
+          "shape":"AlertFilters",
+          "documentation":"<p>The configuration of the alert filters, containing MetricList and DimensionFilterList.</p>"
         }
       }
     },
@@ -1626,6 +1742,26 @@
       "type":"list",
       "member":{"shape":"DimensionContribution"}
     },
+    "DimensionFilter":{
+      "type":"structure",
+      "members":{
+        "DimensionName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name of the dimension to filter on.</p>"
+        },
+        "DimensionValueList":{
+          "shape":"DimensionValueList",
+          "documentation":"<p>The list of values for the dimension specified in DimensionName that you want to filter on.</p>"
+        }
+      },
+      "documentation":"<p>The dimension filter, containing DimensionName and DimensionValueList.</p>"
+    },
+    "DimensionFilterList":{
+      "type":"list",
+      "member":{"shape":"DimensionFilter"},
+      "max":5,
+      "min":1
+    },
     "DimensionList":{
       "type":"list",
       "member":{"shape":"ColumnName"},
@@ -1671,6 +1807,12 @@
     "DimensionValueContributionList":{
       "type":"list",
       "member":{"shape":"DimensionValueContribution"}
+    },
+    "DimensionValueList":{
+      "type":"list",
+      "member":{"shape":"DimensionValue"},
+      "max":10,
+      "min":1
     },
     "ErrorMessage":{
       "type":"string",
@@ -2253,6 +2395,12 @@
       "max":256,
       "pattern":"^[a-zA-Z0-9][a-zA-Z0-9\\-_]*"
     },
+    "MetricNameList":{
+      "type":"list",
+      "member":{"shape":"MetricName"},
+      "max":5,
+      "min":1
+    },
     "MetricSetDescription":{
       "type":"string",
       "max":256,
@@ -2309,22 +2457,26 @@
         "S3SourceConfig":{"shape":"S3SourceConfig"},
         "AppFlowConfig":{
           "shape":"AppFlowConfig",
-          "documentation":"<p>An object containing information about the AppFlow configuration.</p>"
+          "documentation":"<p>Details about an AppFlow datasource.</p>"
         },
         "CloudWatchConfig":{
           "shape":"CloudWatchConfig",
-          "documentation":"<p>An object containing information about the Amazon CloudWatch monitoring configuration.</p>"
+          "documentation":"<p>Details about an Amazon CloudWatch monitoring datasource.</p>"
         },
         "RDSSourceConfig":{
           "shape":"RDSSourceConfig",
-          "documentation":"<p>An object containing information about the Amazon Relational Database Service (RDS) configuration.</p>"
+          "documentation":"<p>Details about an Amazon Relational Database Service (RDS) datasource.</p>"
         },
         "RedshiftSourceConfig":{
           "shape":"RedshiftSourceConfig",
-          "documentation":"<p>An object containing information about the Amazon Redshift database configuration.</p>"
+          "documentation":"<p>Details about an Amazon Redshift database datasource.</p>"
+        },
+        "AthenaSourceConfig":{
+          "shape":"AthenaSourceConfig",
+          "documentation":"<p>Details about an Amazon Athena datasource.</p>"
         }
       },
-      "documentation":"<p>Contains information about source data used to generate a metric.</p>"
+      "documentation":"<p>Contains information about source data used to generate metrics.</p>"
     },
     "MetricValue":{"type":"double"},
     "MetricValueList":{
@@ -2551,6 +2703,10 @@
         "SnsTopicArn":{
           "shape":"Arn",
           "documentation":"<p>The ARN of the target SNS topic.</p>"
+        },
+        "SnsFormat":{
+          "shape":"SnsFormat",
+          "documentation":"<p>The format of the SNS topic.</p> <ul> <li> <p> <code>JSON</code> – Send JSON alerts with an anomaly ID and a link to the anomaly detail page. This is the default.</p> </li> <li> <p> <code>LONG_TEXT</code> – Send human-readable alerts with information about the impacted timeseries and a link to the anomaly detail page. We recommend this for email.</p> </li> <li> <p> <code>SHORT_TEXT</code> – Send human-readable alerts with a link to the anomaly detail page. We recommend this for SMS.</p> </li> </ul>"
         }
       },
       "documentation":"<p>Contains information about the SNS topic to which you want to send your alerts and the IAM role that has access to that topic.</p>"
@@ -2632,6 +2788,14 @@
       "documentation":"<p>The request exceeded the service's quotas. Check the service quotas and try again.</p>",
       "error":{"httpStatusCode":402},
       "exception":true
+    },
+    "SnsFormat":{
+      "type":"string",
+      "enum":[
+        "LONG_TEXT",
+        "SHORT_TEXT",
+        "JSON"
+      ]
     },
     "StringAttributeValue":{"type":"string"},
     "StringListAttributeValue":{
@@ -2829,6 +2993,41 @@
     "UntagResourceResponse":{
       "type":"structure",
       "members":{
+      }
+    },
+    "UpdateAlertRequest":{
+      "type":"structure",
+      "required":["AlertArn"],
+      "members":{
+        "AlertArn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the alert to update.</p>"
+        },
+        "AlertDescription":{
+          "shape":"AlertDescription",
+          "documentation":"<p>A description of the alert.</p>"
+        },
+        "AlertSensitivityThreshold":{
+          "shape":"SensitivityThreshold",
+          "documentation":"<p>An integer from 0 to 100 specifying the alert sensitivity threshold.</p>"
+        },
+        "Action":{
+          "shape":"Action",
+          "documentation":"<p>Action that will be triggered when there is an alert.</p>"
+        },
+        "AlertFilters":{
+          "shape":"AlertFilters",
+          "documentation":"<p>The configuration of the alert filters, containing MetricList and DimensionFilterList.</p>"
+        }
+      }
+    },
+    "UpdateAlertResponse":{
+      "type":"structure",
+      "members":{
+        "AlertArn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the updated alert.</p>"
+        }
       }
     },
     "UpdateAnomalyDetectorRequest":{

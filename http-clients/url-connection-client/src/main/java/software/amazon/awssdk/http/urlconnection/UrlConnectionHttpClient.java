@@ -150,8 +150,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     private HttpURLConnection createAndConfigureConnection(HttpExecuteRequest request) {
         HttpURLConnection connection = connectionFactory.createConnection(request.httpRequest().getUri());
         request.httpRequest()
-               .headers()
-               .forEach((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
+               .forEachHeader((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
         invokeSafely(() -> connection.setRequestMethod(request.httpRequest().method().name()));
         if (request.contentStreamProvider().isPresent()) {
             connection.setDoOutput(true);

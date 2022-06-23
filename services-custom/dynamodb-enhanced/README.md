@@ -298,9 +298,10 @@ happens. Some operations such as UpdateItem perform both a write and
 then a read, so call both hooks.
 
 Extensions are loaded in the order they are specified in the enhanced client builder. This load order can be important,
-as one extension can be acting on values that have been transformed by a previous extension. By default, just the
-VersionedRecordExtension will be loaded, however you can override this behavior on the client builder and load any
-extensions you like or specify none if you do not want the default bundled VersionedRecordExtension.
+as one extension can be acting on values that have been transformed by a previous extension. The client comes with a set 
+of pre-written plugin extensions, located in the `/extensions` package. By default (See ExtensionResolver.java) the client loads some of them,
+such as VersionedRecordExtension; however, you can override this behavior on the client builder and load any
+extensions you like or specify none if you do not want the ones bundled by default.
 
 In this example, a custom extension named 'verifyChecksumExtension' is being loaded after the VersionedRecordExtension
 which is usually loaded by default by itself:
@@ -339,6 +340,27 @@ Or using a StaticTableSchema:
                                        .setter(Customer::setVersion)
                                         // Apply the 'version' tag to the attribute
                                        .tags(versionAttribute())                         
+```
+
+### AtomicCounterExtension
+
+This extension is loaded by default and will increment numerical attributes each time records are written to the 
+database. Start and increment values can be specified, if not counters start at 0 and increments by 1. 
+
+To tell the extension which attribute is a counter, tag an attribute of type Long in the TableSchema, here using 
+standard values:
+```java
+    @DynamoDbAtomicCounter
+    public Long getCounter() {...};
+    public void setCounter(Long counter) {...};
+```
+Or using a StaticTableSchema with custom values:
+```java
+    .addAttribute(Integer.class, a -> a.name("counter")
+                                       .getter(Customer::getCounter)
+                                       .setter(Customer::setCounter)
+                                        // Apply the 'atomicCounter' tag to the attribute with start and increment values
+                                       .tags(atomicCounter(10L, 5L))                         
 ```
 
 ## Advanced table schema features

@@ -22,11 +22,12 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.AtomicCounterTag;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTag;
 
 /**
- * Common implementations of {@link StaticAttributeTag}. These tags can be used to mark your attributes as primary or
- * secondary keys in your {@link StaticTableSchema} definitions.
+ * Common implementations of {@link StaticAttributeTag}. These tags can be used to mark your attributes as having certain
+ * characteristics or features, such as primary or secondary keys in your {@link StaticTableSchema} definitions.
  */
 @SdkPublicApi
 @ThreadSafe
@@ -117,6 +118,25 @@ public final class StaticAttributeTags {
      */
     public static StaticAttributeTag updateBehavior(UpdateBehavior updateBehavior) {
         return UpdateBehaviorTag.fromUpdateBehavior(updateBehavior);
+    }
+
+    /**
+     * Used to explicitly designate an attribute to be an auto-generated counter updated unconditionally in DynamoDB.
+     * By supplying a negative integer delta value, the attribute works as a decreasing counter.
+     *
+     * @param delta The value to increment (positive) or decrement (negative) the counter with for each update.
+     * @param startValue The starting value of the counter.
+     */
+    public static StaticAttributeTag atomicCounter(long delta, long startValue) {
+        return AtomicCounterTag.fromValues(delta, startValue);
+    }
+
+    /**
+     * Used to explicitly designate an attribute to be a default auto-generated, increasing counter updated unconditionally in
+     * DynamoDB. The counter will have 0 as its first written value and increment with 1 for each subsequent calls to updateItem.
+     * */
+    public static StaticAttributeTag atomicCounter() {
+        return AtomicCounterTag.create();
     }
 
     private static class KeyAttributeTag implements StaticAttributeTag {

@@ -42,6 +42,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.internal.Base16Lower;
 
 /**
@@ -146,7 +147,7 @@ public final class ChecksumsEnabledValidator {
         if (response.eTag() != null) {
             String contentMd5 = BinaryUtils.toBase64(checksum.getChecksumBytes());
             byte[] digest = BinaryUtils.fromBase64(contentMd5);
-            byte[] ssHash = Base16Lower.decode(response.eTag().replace("\"", ""));
+            byte[] ssHash = Base16Lower.decode(StringUtils.replace(response.eTag(), "\"", ""));
 
             if (!Arrays.equals(digest, ssHash)) {
                 throw RetryableException.create(

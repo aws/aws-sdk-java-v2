@@ -25,13 +25,13 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.docs.WaiterDocs;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 
 public final class AsyncWaiterInterfaceSpec extends BaseWaiterInterfaceSpec {
 
     private final IntermediateModel model;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
     private final ClassName className;
     private final String modelPackage;
 
@@ -39,7 +39,7 @@ public final class AsyncWaiterInterfaceSpec extends BaseWaiterInterfaceSpec {
         super(model);
         this.modelPackage = model.getMetadata().getFullModelPackageName();
         this.model = model;
-        this.poetExtensions = new PoetExtensions(model);
+        this.poetExtensions = new PoetExtension(model);
         this.className = poetExtensions.getAsyncWaiterInterface();
     }
 

@@ -34,6 +34,8 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
     private static final String BUCKET = temporaryBucketName(S3TransferManagerCopyIntegrationTest.class);
     private static final String ORIGINAL_OBJ = "test_file.dat";
     private static final String COPIED_OBJ = "test_file_copy.dat";
+    private static final String ORIGINAL_OBJ_SPECIAL_CHARACTER = "original-special-chars-@$%";
+    private static final String COPIED_OBJ_SPECIAL_CHARACTER= "special-special-chars-@$%";
     private static final long OBJ_SIZE = ThreadLocalRandom.current().nextLong(8 * MB, 16 * MB + 1);
 
     private static S3TransferManager tm;
@@ -60,24 +62,32 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
     @Test
     void copy_copiedObject_hasSameContent() {
         byte[] originalContent = randomBytes(OBJ_SIZE);
-        createOriginalObject(originalContent);
-        copyObject();
-        validateCopiedObject(originalContent);
+        createOriginalObject(originalContent, ORIGINAL_OBJ);
+        copyObject(ORIGINAL_OBJ, COPIED_OBJ);
+        validateCopiedObject(originalContent, ORIGINAL_OBJ);
     }
 
-    private void createOriginalObject(byte[] originalContent) {
+    @Test
+    void copy_specialCharacters_hasSameContent() {
+        byte[] originalContent = randomBytes(OBJ_SIZE);
+        createOriginalObject(originalContent, ORIGINAL_OBJ_SPECIAL_CHARACTER);
+        copyObject(ORIGINAL_OBJ_SPECIAL_CHARACTER, COPIED_OBJ_SPECIAL_CHARACTER);
+        validateCopiedObject(originalContent, COPIED_OBJ_SPECIAL_CHARACTER);
+    }
+
+    private void createOriginalObject(byte[] originalContent, String originalKey) {
         s3.putObject(r -> r.bucket(BUCKET)
-                           .key(ORIGINAL_OBJ),
+                           .key(originalKey),
                      RequestBody.fromBytes(originalContent));
     }
 
-    private void copyObject() {
+    private void copyObject(String original, String destination) {
         Copy copy = tm.copy(c -> c
             .copyObjectRequest(r -> r
                 .sourceBucket(BUCKET)
-                .sourceKey(ORIGINAL_OBJ)
+                .sourceKey(original)
                 .destinationBucket(BUCKET)
-                .destinationKey(COPIED_OBJ))
+                .destinationKey(destination))
             .overrideConfiguration(o -> o.addListener(LoggingTransferListener.create())));
 
         CompletedCopy completedCopy = copy.completionFuture().join();
@@ -85,9 +95,9 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
         assertThat(completedCopy.response().sdkHttpResponse()).isNotNull();
     }
 
-    private void validateCopiedObject(byte[] originalContent) {
+    private void validateCopiedObject(byte[] originalContent, String originalKey) {
         ResponseBytes<GetObjectResponse> copiedObject = s3.getObject(r -> r.bucket(BUCKET)
-                                                                           .key(COPIED_OBJ),
+                                                                           .key(originalKey),
                                                                      ResponseTransformer.toBytes());
         assertThat(computeCheckSum(copiedObject.asByteArrayUnsafe())).isEqualTo(computeCheckSum(originalContent));
     }

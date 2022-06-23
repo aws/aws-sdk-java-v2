@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.utils.cache;
 
-import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
@@ -41,6 +43,11 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
     private final AtomicBoolean currentlyRefreshing = new AtomicBoolean(false);
 
     /**
+     * How frequently to automatically refresh the supplier in the background.
+     */
+    private final Duration asyncRefreshFrequency;
+
+    /**
      * Single threaded executor to asynchronous refresh the value.
      */
     private final ScheduledExecutorService executor;
@@ -50,7 +57,13 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
      * performing the update.
      */
     public NonBlocking(String asyncThreadName) {
+        this(asyncThreadName, Duration.ofMinutes(1));
+    }
+
+    @SdkTestInternalApi
+    NonBlocking(String asyncThreadName, Duration asyncRefreshFrequency) {
         this.executor = newExecutor(asyncThreadName);
+        this.asyncRefreshFrequency = asyncRefreshFrequency;
     }
 
     private static ScheduledExecutorService newExecutor(String asyncThreadName) {
@@ -62,18 +75,17 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
 
     @Override
     public void initializeCachedSupplier(CachedSupplier<?> cachedSupplier) {
-        executor.execute(cachedSupplier::get);
-        scheduleRefresh(cachedSupplier::get);
+        scheduleRefresh(cachedSupplier);
     }
 
-    private void scheduleRefresh(Runnable valueUpdater) {
+    private void scheduleRefresh(CachedSupplier<?> cachedSupplier) {
         executor.schedule(() -> {
             try {
-                valueUpdater.run();
+                cachedSupplier.get();
             } finally {
-                scheduleRefresh(valueUpdater);
+                scheduleRefresh(cachedSupplier);
             }
-        }, 1, MINUTES);
+        }, asyncRefreshFrequency.toMillis(), MILLISECONDS);
     }
 
     @Override
@@ -90,7 +102,7 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
                         currentlyRefreshing.set(false);
                     }
                 });
-            } catch (RuntimeException e) {
+            } catch (Throwable e) {
                 currentlyRefreshing.set(false);
                 throw e;
             }

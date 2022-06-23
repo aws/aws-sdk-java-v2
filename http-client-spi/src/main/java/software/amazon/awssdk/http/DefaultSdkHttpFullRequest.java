@@ -15,18 +15,20 @@
 
 package software.amazon.awssdk.http;
 
-import static software.amazon.awssdk.utils.CollectionUtils.deepCopyMap;
-import static software.amazon.awssdk.utils.CollectionUtils.deepUnmodifiableMap;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableList;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.internal.http.LowCopyListMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
@@ -44,9 +46,9 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
     private final String host;
     private final Integer port;
     private final String path;
-    private final Map<String, List<String>> queryParameters;
+    private final LowCopyListMap.ForBuildable queryParameters;
+    private final LowCopyListMap.ForBuildable headers;
     private final SdkHttpMethod httpMethod;
-    private final Map<String, List<String>> headers;
     private final ContentStreamProvider contentStreamProvider;
 
     private DefaultSdkHttpFullRequest(Builder builder) {
@@ -56,13 +58,8 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         this.path = standardizePath(builder.path);
         this.httpMethod = Validate.paramNotNull(builder.httpMethod, "method");
         this.contentStreamProvider = builder.contentStreamProvider;
-
-        this.queryParameters = builder.queryParametersAreFromToBuilder
-                               ? builder.queryParameters
-                               : deepUnmodifiableMap(builder.queryParameters, () -> new LinkedHashMap<>());
-        this.headers = builder.headersAreFromToBuilder
-                       ? builder.headers
-                       : deepUnmodifiableMap(builder.headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
+        this.queryParameters = builder.queryParameters.forBuildable();
+        this.headers = builder.headers.forBuildable();
     }
 
     private String standardizeProtocol(String protocol) {
@@ -120,7 +117,69 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
 
     @Override
     public Map<String, List<String>> headers() {
-        return headers;
+        return headers.forExternalRead();
+    }
+
+    @Override
+    public List<String> matchingHeaders(String header) {
+        return unmodifiableList(headers.forInternalRead().getOrDefault(header, emptyList()));
+    }
+
+    @Override
+    public Optional<String> firstMatchingHeader(String headerName) {
+        List<String> headers = this.headers.forInternalRead().get(headerName);
+        if (headers == null || headers.isEmpty()) {
+            return Optional.empty();
+        }
+
+        String header = headers.get(0);
+        if (StringUtils.isEmpty(header)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(header);
+    }
+
+    @Override
+    public Optional<String> firstMatchingHeader(Collection<String> headersToFind) {
+        for (String headerName : headersToFind) {
+            Optional<String> header = firstMatchingHeader(headerName);
+            if (header.isPresent()) {
+                return header;
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public void forEachHeader(BiConsumer<? super String, ? super List<String>> consumer) {
+        headers.forInternalRead().forEach((k, v) -> consumer.accept(k, Collections.unmodifiableList(v)));
+    }
+
+    @Override
+    public void forEachRawQueryParameter(BiConsumer<? super String, ? super List<String>> consumer) {
+        queryParameters.forInternalRead().forEach((k, v) -> consumer.accept(k, Collections.unmodifiableList(v)));
+    }
+
+    @Override
+    public int numHeaders() {
+        return headers.forInternalRead().size();
+    }
+
+    @Override
+    public int numRawQueryParameters() {
+        return queryParameters.forInternalRead().size();
+    }
+
+    @Override
+    public Optional<String> encodedQueryParameters() {
+        return SdkHttpUtils.encodeAndFlattenQueryParameters(queryParameters.forInternalRead());
+    }
+
+    @Override
+    public Optional<String> encodedQueryParametersAsFormData() {
+        return SdkHttpUtils.encodeAndFlattenFormData(queryParameters.forInternalRead());
     }
 
     @Override
@@ -130,7 +189,31 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
 
     @Override
     public Map<String, List<String>> rawQueryParameters() {
-        return queryParameters;
+        return queryParameters.forExternalRead();
+    }
+
+    @Override
+    public Optional<String> firstMatchingRawQueryParameter(String key) {
+        List<String> values = queryParameters.forInternalRead().get(key);
+        return values == null ? Optional.empty() : values.stream().findFirst();
+    }
+
+    @Override
+    public Optional<String> firstMatchingRawQueryParameter(Collection<String> keys) {
+        for (String key : keys) {
+            Optional<String> result = firstMatchingRawQueryParameter(key);
+            if (result.isPresent()) {
+                return result;
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public List<String> firstMatchingRawQueryParameters(String key) {
+        List<String> values = queryParameters.forInternalRead().get(key);
+        return values == null ? emptyList() : unmodifiableList(values);
     }
 
     @Override
@@ -156,8 +239,8 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
                        .add("host", host)
                        .add("port", port)
                        .add("encodedPath", path)
-                       .add("headers", headers.keySet())
-                       .add("queryParameters", queryParameters.keySet())
+                       .add("headers", headers.forInternalRead().keySet())
+                       .add("queryParameters", queryParameters.forInternalRead().keySet())
                        .build();
     }
 
@@ -169,29 +252,19 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         private String host;
         private Integer port;
         private String path;
-
-        private boolean queryParametersAreFromToBuilder;
-        private Map<String, List<String>> queryParameters;
-
+        private LowCopyListMap.ForBuilder queryParameters;
+        private LowCopyListMap.ForBuilder headers;
         private SdkHttpMethod httpMethod;
-
-        private boolean headersAreFromToBuilder;
-        private Map<String, List<String>> headers;
-
         private ContentStreamProvider contentStreamProvider;
 
         Builder() {
-            queryParameters = new LinkedHashMap<>();
-            queryParametersAreFromToBuilder = false;
-            headers = new LinkedHashMap<>();
-            headersAreFromToBuilder = false;
+            queryParameters = LowCopyListMap.emptyQueryParameters();
+            headers = LowCopyListMap.emptyHeaders();
         }
 
         Builder(DefaultSdkHttpFullRequest request) {
-            queryParameters = request.queryParameters;
-            queryParametersAreFromToBuilder = true;
-            headers = request.headers;
-            headersAreFromToBuilder = true;
+            queryParameters = request.queryParameters.forBuilder();
+            headers = request.headers.forBuilder();
             protocol = request.protocol;
             host = request.host;
             port = request.port;
@@ -246,49 +319,37 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
 
         @Override
         public DefaultSdkHttpFullRequest.Builder putRawQueryParameter(String paramName, List<String> paramValues) {
-            copyQueryParamsIfNeeded();
-            this.queryParameters.put(paramName, new ArrayList<>(paramValues));
+            this.queryParameters.forInternalWrite().put(paramName, new ArrayList<>(paramValues));
             return this;
         }
 
         @Override
         public SdkHttpFullRequest.Builder appendRawQueryParameter(String paramName, String paramValue) {
-            copyQueryParamsIfNeeded();
-            this.queryParameters.computeIfAbsent(paramName, k -> new ArrayList<>()).add(paramValue);
+            this.queryParameters.forInternalWrite().computeIfAbsent(paramName, k -> new ArrayList<>()).add(paramValue);
             return this;
         }
 
         @Override
         public DefaultSdkHttpFullRequest.Builder rawQueryParameters(Map<String, List<String>> queryParameters) {
-            this.queryParameters = CollectionUtils.deepCopyMap(queryParameters, () -> new LinkedHashMap<>());
-            queryParametersAreFromToBuilder = false;
+            this.queryParameters.setFromExternal(queryParameters);
             return this;
         }
 
         @Override
         public Builder removeQueryParameter(String paramName) {
-            copyQueryParamsIfNeeded();
-            this.queryParameters.remove(paramName);
+            this.queryParameters.forInternalWrite().remove(paramName);
             return this;
         }
 
         @Override
         public Builder clearQueryParameters() {
-            this.queryParameters = new LinkedHashMap<>();
-            queryParametersAreFromToBuilder = false;
+            this.queryParameters.forInternalWrite().clear();
             return this;
-        }
-
-        private void copyQueryParamsIfNeeded() {
-            if (queryParametersAreFromToBuilder) {
-                queryParametersAreFromToBuilder = false;
-                this.queryParameters = deepCopyMap(queryParameters);
-            }
         }
 
         @Override
         public Map<String, List<String>> rawQueryParameters() {
-            return CollectionUtils.unmodifiableMapOfLists(queryParameters);
+            return CollectionUtils.unmodifiableMapOfLists(queryParameters.forInternalRead());
         }
 
         @Override
@@ -304,49 +365,94 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
 
         @Override
         public DefaultSdkHttpFullRequest.Builder putHeader(String headerName, List<String> headerValues) {
-            copyHeadersIfNeeded();
-            this.headers.put(headerName, new ArrayList<>(headerValues));
+            this.headers.forInternalWrite().put(headerName, new ArrayList<>(headerValues));
             return this;
         }
 
         @Override
         public SdkHttpFullRequest.Builder appendHeader(String headerName, String headerValue) {
-            copyHeadersIfNeeded();
-            this.headers.computeIfAbsent(headerName, k -> new ArrayList<>()).add(headerValue);
+            this.headers.forInternalWrite().computeIfAbsent(headerName, k -> new ArrayList<>()).add(headerValue);
             return this;
         }
 
         @Override
         public DefaultSdkHttpFullRequest.Builder headers(Map<String, List<String>> headers) {
-            this.headers = CollectionUtils.deepCopyMap(headers);
-            headersAreFromToBuilder = false;
+            this.headers.setFromExternal(headers);
             return this;
         }
 
         @Override
         public SdkHttpFullRequest.Builder removeHeader(String headerName) {
-            copyHeadersIfNeeded();
-            this.headers.remove(headerName);
+            this.headers.forInternalWrite().remove(headerName);
             return this;
         }
 
         @Override
         public SdkHttpFullRequest.Builder clearHeaders() {
-            this.headers = new LinkedHashMap<>();
-            headersAreFromToBuilder = false;
+            this.headers.clear();
             return this;
         }
 
         @Override
         public Map<String, List<String>> headers() {
-            return CollectionUtils.unmodifiableMapOfLists(this.headers);
+            return CollectionUtils.unmodifiableMapOfLists(this.headers.forInternalRead());
         }
 
-        private void copyHeadersIfNeeded() {
-            if (headersAreFromToBuilder) {
-                headersAreFromToBuilder = false;
-                this.headers = deepCopyMap(headers);
+        @Override
+        public List<String> matchingHeaders(String header) {
+            return unmodifiableList(headers.forInternalRead().getOrDefault(header, emptyList()));
+        }
+
+        @Override
+        public Optional<String> firstMatchingHeader(String headerName) {
+            List<String> headers = this.headers.forInternalRead().get(headerName);
+            if (headers == null || headers.isEmpty()) {
+                return Optional.empty();
             }
+
+            String header = headers.get(0);
+            if (StringUtils.isEmpty(header)) {
+                return Optional.empty();
+            }
+
+            return Optional.of(header);
+        }
+
+        @Override
+        public Optional<String> firstMatchingHeader(Collection<String> headersToFind) {
+            for (String headerName : headersToFind) {
+                Optional<String> header = firstMatchingHeader(headerName);
+                if (header.isPresent()) {
+                    return header;
+                }
+            }
+
+            return Optional.empty();
+        }
+
+        @Override
+        public void forEachHeader(BiConsumer<? super String, ? super List<String>> consumer) {
+            headers.forInternalRead().forEach((k, v) -> consumer.accept(k, unmodifiableList(v)));
+        }
+
+        @Override
+        public void forEachRawQueryParameter(BiConsumer<? super String, ? super List<String>> consumer) {
+            queryParameters.forInternalRead().forEach((k, v) -> consumer.accept(k, unmodifiableList(v)));
+        }
+
+        @Override
+        public int numHeaders() {
+            return headers.forInternalRead().size();
+        }
+
+        @Override
+        public int numRawQueryParameters() {
+            return queryParameters.forInternalRead().size();
+        }
+
+        @Override
+        public Optional<String> encodedQueryParameters() {
+            return SdkHttpUtils.encodeAndFlattenQueryParameters(queryParameters.forInternalRead());
         }
 
         @Override

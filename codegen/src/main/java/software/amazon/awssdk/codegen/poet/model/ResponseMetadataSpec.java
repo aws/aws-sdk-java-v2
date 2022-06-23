@@ -28,7 +28,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -38,14 +38,14 @@ import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
  * Generate ResponseMetadata class
  */
 public class ResponseMetadataSpec implements ClassSpec {
-    private PoetExtensions poetExtensions;
+    private PoetExtension poetExtensions;
     private Map<String, String> headerMetadata = new HashMap<>();
 
     public ResponseMetadataSpec(IntermediateModel model) {
         if (!CollectionUtils.isNullOrEmpty(model.getCustomizationConfig().getCustomResponseMetadata())) {
             this.headerMetadata.putAll(model.getCustomizationConfig().getCustomResponseMetadata());
         }
-        this.poetExtensions = new PoetExtensions(model);
+        this.poetExtensions = new PoetExtension(model);
     }
 
     @Override

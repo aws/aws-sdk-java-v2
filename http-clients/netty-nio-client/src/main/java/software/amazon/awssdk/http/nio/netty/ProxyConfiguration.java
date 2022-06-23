@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ProxySystemSetting;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -248,7 +249,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         if (nonProxyHostsSystem != null && !nonProxyHostsSystem.isEmpty()) {
             return Arrays.stream(nonProxyHostsSystem.split("\\|"))
                          .map(String::toLowerCase)
-                         .map(s -> s.replace("*", ".*?"))
+                         .map(s -> StringUtils.replace(s, "*", ".*?"))
                          .collect(Collectors.toSet());
         }
         return Collections.emptySet();
