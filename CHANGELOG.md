@@ -1,3 +1,37 @@
+# __2.17.218__ __2022-06-23__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has released support for automatic DolbyVision metadata generation when converting HDR10 to DolbyVision.
+
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - This release adds the new API UpdateRoute that allows route to be updated to ACTIVE/INACTIVE state. In addition, CreateRoute API will now allow users to create route in ACTIVE/INACTIVE state.
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - This release adds visualizations to the scheduled inference results. Users will be able to see interference results, including diagnostic results from their running inference schedulers.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Ground Truth now supports Virtual Private Cloud. Customers can launch labeling jobs and access to their private workforce in VPC mode.
+
+## __Application Migration Service__
+  - ### Features
+    - New and modified APIs for the Post-Migration Framework
+
+# __2.17.217__ __2022-06-22__
+## __AWS Price List Service__
+  - ### Features
+    - This release introduces 1 update to the GetProducts API. The serviceCode attribute is now required when you use the GetProductsRequest.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Until today, the service supported only RSA host keys and user keys. Now with this launch, Transfer Family has expanded the support for ECDSA and ED25519 host keys and user keys, enabling customers to support a broader set of clients by choosing RSA, ECDSA, and ED25519 host and user keys.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
 # __2.17.216__ __2022-06-21__
 ## __AWS Well-Architected Tool__
   - ### Features
