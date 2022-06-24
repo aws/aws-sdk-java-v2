@@ -1,3 +1,16 @@
+# __2.17.219__ __2022-06-24__
+## __AWS Glue__
+  - ### Features
+    - This release enables the new ListCrawls API for viewing the AWS Glue Crawler run history.
+
+## __AWS RDS DataService__
+  - ### Features
+    - Documentation updates for RDS Data API
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
 # __2.17.218__ __2022-06-23__
 ## __AWS Elemental MediaConvert__
   - ### Features
