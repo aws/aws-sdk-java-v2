@@ -162,7 +162,7 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
 
     @Override
     public Builder toBuilder() {
-        return builder().putAll(attributes);
+        return new Builder(this);
     }
 
     public static Builder builder() {
@@ -174,6 +174,10 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
         private final Map<Key<?>, Object> configuration = new HashMap<>();
 
         private Builder() {
+        }
+
+        private Builder(AttributeMap attributeMap) {
+            this.configuration.putAll(attributeMap.attributes);
         }
 
         public <T> T get(Key<T> key) {

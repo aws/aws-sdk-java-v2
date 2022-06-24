@@ -51,7 +51,7 @@ public final class DownloadRequest<ReturnT>
     private DownloadRequest(DefaultTypedBuilder<ReturnT> builder) {
         this.responseTransformer = Validate.paramNotNull(builder.responseTransformer, "responseTransformer");
         this.getObjectRequest = Validate.paramNotNull(builder.getObjectRequest, "getObjectRequest");
-        this.overrideConfiguration = builder.configuration;
+        this.overrideConfiguration = builder.overrideConfiguration;
     }
 
     /**
@@ -321,7 +321,7 @@ public final class DownloadRequest<ReturnT>
     
     private static class DefaultTypedBuilder<T> implements TypedBuilder<T> {
         private GetObjectRequest getObjectRequest;
-        private TransferRequestOverrideConfiguration configuration;
+        private TransferRequestOverrideConfiguration overrideConfiguration;
         private AsyncResponseTransformer<GetObjectResponse, T> responseTransformer;
 
         private DefaultTypedBuilder() {
@@ -330,6 +330,7 @@ public final class DownloadRequest<ReturnT>
         private DefaultTypedBuilder(DownloadRequest<T> request) {
             this.getObjectRequest = request.getObjectRequest;
             this.responseTransformer = request.responseTransformer;
+            this.overrideConfiguration = request.overrideConfiguration;
         }
 
         @Override
@@ -340,7 +341,7 @@ public final class DownloadRequest<ReturnT>
 
         @Override
         public DefaultTypedBuilder<T> overrideConfiguration(TransferRequestOverrideConfiguration configuration) {
-            this.configuration = configuration;
+            this.overrideConfiguration = configuration;
             return this;
         }
 

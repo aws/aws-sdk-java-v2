@@ -576,10 +576,12 @@
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
 
-                            <!-- Modified when making HttpCredentialsProvider a public API -->
-                            <exclude>software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider</exclude>
-                            <exclude>software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider</exclude>
-                            <exclude>software.amazon.awssdk.auth.credentials.HttpCredentialsProvider</exclude>
+                            <!-- Fixed constructor visibility -->
+                            <exclude>software.amazon.awssdk.core.http.ExecutionContext$Builder</exclude>
+                            <exclude>software.amazon.awssdk.enhanced.dynamodb.update.AddAction$Builder</exclude>
+                            <exclude>software.amazon.awssdk.enhanced.dynamodb.update.DeleteAction$Builder</exclude>
+                            <exclude>software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction$Builder</exclude>
+                            <exclude>software.amazon.awssdk.enhanced.dynamodb.update.SetAction$Builder</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>

@@ -31,6 +31,8 @@ import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Platform;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -54,16 +56,23 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * </ul>
  */
 @SdkPublicApi
-public final class ProcessCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+public final class ProcessCredentialsProvider
+    implements AwsCredentialsProvider,
+               SdkAutoCloseable,
+               ToCopyableBuilder<ProcessCredentialsProvider.Builder, ProcessCredentialsProvider> {
     private static final JsonNodeParser PARSER = JsonNodeParser.builder()
                                                                .removeErrorLocations(true)
                                                                .build();
 
-    private final List<String> command;
+    private final List<String> executableCommand;
     private final Duration credentialRefreshThreshold;
     private final long processOutputLimit;
 
     private final CachedSupplier<AwsCredentials> processCredentialCache;
+
+    private final String commandFromBuilder;
+
+    private final Boolean asyncCredentialUpdateEnabled;
 
     /**
      * @see #builder()
@@ -83,9 +92,11 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider,
 
         cmd.add(builderCommand);
 
-        this.command = Collections.unmodifiableList(cmd);
+        this.executableCommand = Collections.unmodifiableList(cmd);
         this.processOutputLimit = Validate.isPositive(builder.processOutputLimit, "processOutputLimit");
         this.credentialRefreshThreshold = Validate.isPositive(builder.credentialRefreshThreshold, "expirationBuffer");
+        this.commandFromBuilder = builder.command;
+        this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials);
         if (builder.asyncCredentialUpdateEnabled) {
@@ -185,7 +196,7 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider,
      * Execute the external process to retrieve credentials.
      */
     private String executeCommand() throws IOException, InterruptedException {
-        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        ProcessBuilder processBuilder = new ProcessBuilder(executableCommand);
 
         ByteArrayOutputStream commandOutput = new ByteArrayOutputStream();
 
@@ -210,10 +221,15 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider,
         processCredentialCache.close();
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     /**
      * Used to configure and create a {@link ProcessCredentialsProvider}. See {@link #builder()} creation.
      */
-    public static class Builder {
+    public static class Builder implements CopyableBuilder<Builder, ProcessCredentialsProvider> {
         private Boolean asyncCredentialUpdateEnabled = false;
         private String command;
         private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
@@ -223,6 +239,13 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider,
          * @see #builder()
          */
         private Builder() {
+        }
+
+        private Builder(ProcessCredentialsProvider provider) {
+            this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
+            this.command = provider.commandFromBuilder;
+            this.credentialRefreshThreshold = provider.credentialRefreshThreshold;
+            this.processOutputLimit = provider.processOutputLimit;
         }
 
         /**

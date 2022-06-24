@@ -113,6 +113,9 @@ public final class RemoveAction implements UpdateAction, ToCopyableBuilder<Remov
         private String path;
         private Map<String, String> expressionNames;
 
+        private Builder() {
+        }
+
         /**
          * A string expression representing the attribute to remove
          */
