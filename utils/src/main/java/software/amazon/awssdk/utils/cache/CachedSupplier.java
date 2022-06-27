@@ -37,7 +37,7 @@ import software.amazon.awssdk.utils.Validate;
  * This should be created using {@link #builder(Supplier)}.
  */
 @SdkProtectedApi
-public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
+public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     /**
      * Maximum time to wait for a blocking refresh lock before calling refresh again. This is to rate limit how many times we call
      * refresh. In the ideal case, refresh always occurs in a timely fashion and only one thread actually does the refresh.
@@ -107,7 +107,7 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         if (cachedValue.staleTime() == null) {
             return false;
         }
-        return Instant.now().isAfter(cachedValue.staleTime());
+        return !Instant.now().isBefore(cachedValue.staleTime());
     }
 
     /**
@@ -118,7 +118,7 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         if (cachedValue.prefetchTime() == null) {
             return false;
         }
-        return Instant.now().isAfter(cachedValue.prefetchTime());
+        return !Instant.now().isBefore(cachedValue.prefetchTime());
     }
 
     /**
@@ -146,7 +146,7 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                     }
 
                     // It wasn't, call the supplier to update it.
-                    cachedValue = valueSupplier.get();
+                    cachedValue = prefetchStrategy.fetch(valueSupplier);
                 }
             } finally {
                 if (lockAcquired) {
@@ -214,6 +214,14 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          * Execute the provided value updater to update the cache. The specific implementation defines how this is invoked.
          */
         void prefetch(Runnable valueUpdater);
+
+        /**
+         * Invoke the provided supplier to retrieve the refresh result. This is useful for prefetch strategies to override when
+         * they care about the refresh result.
+         */
+        default <T> RefreshResult<T> fetch(Supplier<RefreshResult<T>> supplier) {
+            return supplier.get();
+        }
 
         /**
          * Invoked when the prefetch strategy is registered with a {@link CachedSupplier}.

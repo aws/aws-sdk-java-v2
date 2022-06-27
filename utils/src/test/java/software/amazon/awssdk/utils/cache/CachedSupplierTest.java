@@ -243,10 +243,9 @@ public class CachedSupplierTest {
 
     @Test
     public void nonBlockingPrefetchStrategyRefreshesInBackground() {
-        try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(now().plusSeconds(62), now());
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
-                                                                   .prefetchStrategy(new NonBlocking("test-%s",
-                                                                                                     Duration.ofSeconds(1)))
+                                                                   .prefetchStrategy(new NonBlocking("test-%s", Duration.ZERO))
                                                                    .build()) {
             waitingSupplier.permits.release(2);
             cachedSupplier.get();
@@ -259,11 +258,24 @@ public class CachedSupplierTest {
     }
 
     @Test
+    public void nonBlockingPrefetchStrategyHasOneMinuteMinimumByDefault() {
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(now(), now());
+             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
+                                                                   .prefetchStrategy(new NonBlocking("test-%s"))
+                                                                   .build()) {
+            waitingSupplier.permits.release(2);
+            cachedSupplier.get();
+
+            // Ensure two "get"s happens even though we only made one call to the cached supplier.
+            assertThat(invokeSafely(() -> waitingSupplier.startedGetPermits.tryAcquire(2, 2, TimeUnit.SECONDS))).isFalse();
+        }
+    }
+
+    @Test
     public void nonBlockingPrefetchStrategyBackgroundRefreshesHitCache() throws InterruptedException {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), future());
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
-                                                                   .prefetchStrategy(new NonBlocking("test-%s",
-                                                                                                     Duration.ofMillis(1)))
+                                                                   .prefetchStrategy(new NonBlocking("test-%s"))
                                                                    .build()) {
             waitingSupplier.permits.release(5);
             cachedSupplier.get();
@@ -278,14 +290,84 @@ public class CachedSupplierTest {
     public void nonBlockingPrefetchStrategyDoesNotRefreshUntilItIsCalled() throws InterruptedException {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
-                                                                   .prefetchStrategy(new NonBlocking("test-%s",
-                                                                                                     Duration.ofMillis(1)))
+                                                                   .prefetchStrategy(new NonBlocking("test-%s"))
                                                                    .build()) {
             waitingSupplier.startedGetPermits.release();
 
             Thread.sleep(1_000);
 
             assertThat(waitingSupplier.startedGetPermits.availablePermits()).isEqualTo(1);
+        }
+    }
+
+    @Test
+    public void threadsAreSharedBetweenNonBlockingInstances() throws InterruptedException {
+        List<CachedSupplier<String>> css = new ArrayList<>();
+        try {
+            // Create 99 concurrent non-blocking instances
+            for (int i = 0; i < 99; i++) {
+                CachedSupplier<String> supplier =
+                    CachedSupplier.builder(() -> RefreshResult.builder("foo")
+                                                              .prefetchTime(now())
+                                                              .staleTime(now())
+                                                              .build())
+                                  .prefetchStrategy(new NonBlocking("test", Duration.ZERO))
+                                  .build();
+                supplier.get();
+                css.add(supplier);
+                Thread.sleep(10);
+            }
+
+            int maxActive = 0;
+            for (int i = 0; i < 100; i++) {
+                maxActive = Math.max(maxActive, NonBlocking.executor().getActiveCount());
+                Thread.sleep(10);
+            }
+
+            // Make sure we used less-than 99 to do the refreshes.
+            assertThat(maxActive).isBetween(1, 99);
+        } finally {
+            css.forEach(CachedSupplier::close);
+        }
+    }
+
+    @Test
+    public void activeThreadsHaveMaxCount() throws InterruptedException {
+        ExecutorService executor = Executors.newCachedThreadPool();
+        List<CachedSupplier<String>> css = new ArrayList<>();
+        try {
+            // Create 99 concurrent non-blocking instances
+            for (int i = 0; i < 1000; i++) {
+                CachedSupplier<String> supplier =
+                    CachedSupplier.builder(() -> {
+                        invokeSafely(() -> Thread.sleep(100));
+                        return RefreshResult.builder("foo")
+                                            .prefetchTime(now())
+                                            .staleTime(now())
+                                            .build();
+                    }).prefetchStrategy(new NonBlocking("test", Duration.ZERO))
+                      .build();
+                executor.submit(supplier::get);
+                css.add(supplier);
+            }
+
+            executor.shutdown();
+            assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+
+            int maxActive = 0;
+            for (int i = 0; i < 1000; i++) {
+                maxActive = Math.max(maxActive, NonBlocking.executor().getActiveCount());
+                Thread.sleep(1);
+            }
+
+            // In a perfect world this would be capped to 100, but the mechanism we use to limit concurrent refreshes usually
+            // means more than 100 can get created. 150 should be a reasonable limit to check for, because without the limiter
+            // it would be ~1000.
+            System.out.print(maxActive);
+            assertThat(maxActive).isBetween(1, 150);
+        } finally {
+            css.forEach(CachedSupplier::close);
+            executor.shutdownNow();
         }
     }
 
