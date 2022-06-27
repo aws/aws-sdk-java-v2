@@ -33,6 +33,7 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityReques
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.services.sts.model.IdpCommunicationErrorException;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * A credential provider that will read web identity token file path, aws role arn, aws session name from system properties or
@@ -55,11 +56,18 @@ import software.amazon.awssdk.utils.ToString;
  * @see StsCredentialsProvider
  */
 @SdkPublicApi
-public final class StsWebIdentityTokenFileCredentialsProvider extends StsCredentialsProvider {
+public final class StsWebIdentityTokenFileCredentialsProvider
+    extends StsCredentialsProvider
+    implements ToCopyableBuilder<StsWebIdentityTokenFileCredentialsProvider.Builder, StsWebIdentityTokenFileCredentialsProvider> {
 
     private final AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;
     private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest;
+
+    private final Path webIdentityTokenFile;
+    private final String roleArn;
+    private final String roleSessionName;
+    private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequestFromBuilder;
 
     private StsWebIdentityTokenFileCredentialsProvider(Builder builder) {
         super(builder, "sts-assume-role-with-web-identity-credentials-provider");
@@ -110,6 +118,11 @@ public final class StsWebIdentityTokenFileCredentialsProvider extends StsCredent
         }
         this.loadException = loadExceptionLocal;
         this.credentialsProvider = credentialsProviderLocal;
+
+        this.webIdentityTokenFile = builder.webIdentityTokenFile;
+        this.roleArn = builder.roleArn;
+        this.roleSessionName = builder.roleSessionName;
+        this.assumeRoleWithWebIdentityRequestFromBuilder = builder.assumeRoleWithWebIdentityRequestSupplier;
     }
 
     public static Builder builder() {
@@ -138,6 +151,11 @@ public final class StsWebIdentityTokenFileCredentialsProvider extends StsCredent
         return stsClient.assumeRoleWithWebIdentity(request).credentials();
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     public static final class Builder extends BaseBuilder<Builder, StsWebIdentityTokenFileCredentialsProvider> {
         private String roleArn;
         private String roleSessionName;
@@ -147,6 +165,15 @@ public final class StsWebIdentityTokenFileCredentialsProvider extends StsCredent
 
         private Builder() {
             super(StsWebIdentityTokenFileCredentialsProvider::new);
+        }
+
+        private Builder(StsWebIdentityTokenFileCredentialsProvider provider) {
+            super(StsWebIdentityTokenFileCredentialsProvider::new);
+            this.roleArn = provider.roleArn;
+            this.roleSessionName = provider.roleSessionName;
+            this.webIdentityTokenFile = provider.webIdentityTokenFile;
+            this.assumeRoleWithWebIdentityRequestSupplier = provider.assumeRoleWithWebIdentityRequestFromBuilder;
+            this.stsClient = provider.stsClient;
         }
 
         /**

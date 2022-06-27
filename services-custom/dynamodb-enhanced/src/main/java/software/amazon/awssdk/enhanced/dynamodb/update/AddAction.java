@@ -143,6 +143,9 @@ public final class AddAction implements UpdateAction, ToCopyableBuilder<AddActio
         private Map<String, String> expressionNames;
         private Map<String, AttributeValue> expressionValues;
 
+        private Builder() {
+        }
+
         /**
          * A string expression representing the attribute to be acted upon
          */

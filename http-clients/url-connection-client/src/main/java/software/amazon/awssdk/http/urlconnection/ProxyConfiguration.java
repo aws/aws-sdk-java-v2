@@ -125,7 +125,8 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
                 .endpoint(endpoint)
                 .username(username)
                 .password(password)
-                .nonProxyHosts(nonProxyHosts);
+                .nonProxyHosts(nonProxyHosts)
+                .useSystemPropertyValues(useSystemPropertyValues);
     }
 
     /**

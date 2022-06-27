@@ -159,7 +159,8 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
                 .ntlmDomain(ntlmDomain)
                 .ntlmWorkstation(ntlmWorkstation)
                 .nonProxyHosts(nonProxyHosts)
-                .preemptiveBasicAuthenticationEnabled(preemptiveBasicAuthenticationEnabled);
+                .preemptiveBasicAuthenticationEnabled(preemptiveBasicAuthenticationEnabled)
+                .useSystemPropertyValues(useSystemPropertyValues);
     }
 
     /**
