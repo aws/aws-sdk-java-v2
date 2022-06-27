@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-import java.nio.file.Path;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -29,17 +28,16 @@ import software.amazon.awssdk.services.s3.model.S3Object;
  */
 @SdkPublicApi
 @SdkPreviewApi
-public interface DownloadFilter extends Predicate<DownloadFileContext> {
+public interface DownloadFilter extends Predicate<S3Object> {
 
     /**
-     * Evaluate whether the remote {@link S3Object} should be downloaded to the destination {@link Path}.
+     * Evaluate condition the remote {@link S3Object} should be downloaded.
      *
-     * @param context A context object containing a description of the remote {@link S3Object} and a {@link Path} representing the
-     *                local file destination
+     * @param s3Object Remote {@link S3Object}
      * @return true if the object should be downloaded, false if the object should not be downloaded
      */
     @Override
-    boolean test(DownloadFileContext context);
+    boolean test(S3Object s3Object);
 
     /**
      * A {@link DownloadFilter} that downloads all objects. This is the default behavior if no filter is provided.

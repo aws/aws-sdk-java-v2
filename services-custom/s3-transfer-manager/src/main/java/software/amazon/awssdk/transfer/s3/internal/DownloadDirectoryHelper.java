@@ -38,7 +38,6 @@ import software.amazon.awssdk.transfer.s3.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.DirectoryDownload;
 import software.amazon.awssdk.transfer.s3.DownloadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.DownloadFileContext;
 import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.FailedFileDownload;
 import software.amazon.awssdk.transfer.s3.FileDownload;
@@ -109,13 +108,12 @@ public class DownloadDirectoryHelper {
 
         CompletableFuture<Void> allOfFutures = new CompletableFuture<>();
 
-        AsyncBufferingSubscriber<DownloadFileContext> asyncBufferingSubscriber =
+        AsyncBufferingSubscriber<S3Object> asyncBufferingSubscriber =
             new AsyncBufferingSubscriber<>(downloadSingleFile(returnFuture, downloadDirectoryRequest,
                                                               failedFileDownloads),
                                            allOfFutures,
                                            DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY);
         listObjectsHelper.listS3ObjectsRecursively(request)
-                         .map(s3Object -> determineDestinationPath(downloadDirectoryRequest, s3Object))
                          .filter(downloadDirectoryRequest.filter())
                          .subscribe(asyncBufferingSubscriber);
 
@@ -130,37 +128,39 @@ public class DownloadDirectoryHelper {
         });
     }
 
-    private Function<DownloadFileContext, CompletableFuture<?>> downloadSingleFile(
+    private Function<S3Object, CompletableFuture<?>> downloadSingleFile(
         CompletableFuture<CompletedDirectoryDownload> returnFuture,
         DownloadDirectoryRequest downloadDirectoryRequest,
         Queue<FailedFileDownload> failedFileDownloads) {
 
-        return downloadContext -> {
+        return s3Object -> {
             CompletableFuture<CompletedFileDownload> future = doDownloadSingleFile(downloadDirectoryRequest,
                                                                                    failedFileDownloads,
-                                                                                   downloadContext);
+                                                                                   s3Object);
             CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
             return future;
         };
     }
 
-    private DownloadFileContext determineDestinationPath(DownloadDirectoryRequest downloadDirectoryRequest, S3Object s3Object) {
+    private Path determineDestinationPath(DownloadDirectoryRequest downloadDirectoryRequest, S3Object s3Object) {
         FileSystem fileSystem = downloadDirectoryRequest.destinationDirectory().getFileSystem();
         String delimiter = downloadDirectoryRequest.delimiter().orElse(null);
         String key = normalizeKey(downloadDirectoryRequest, s3Object, delimiter);
         String relativePath = getRelativePath(fileSystem, delimiter, key);
-        Path destinationPath = downloadDirectoryRequest.destinationDirectory().resolve(relativePath);
-        return new DefaultDownloadFileContext(s3Object, destinationPath);
+        return downloadDirectoryRequest.destinationDirectory().resolve(relativePath);
     }
 
     private CompletableFuture<CompletedFileDownload> doDownloadSingleFile(DownloadDirectoryRequest downloadDirectoryRequest,
                                                                           Collection<FailedFileDownload> failedFileDownloads,
-                                                                          DownloadFileContext downloadContext) {
-        DownloadFileRequest downloadFileRequest = downloadFileRequest(downloadDirectoryRequest, downloadContext);
+                                                                          S3Object s3Object) {
+
+        Path destinationPath = determineDestinationPath(downloadDirectoryRequest, s3Object);
+
+        DownloadFileRequest downloadFileRequest = downloadFileRequest(downloadDirectoryRequest, s3Object, destinationPath);
 
         try {
             log.debug(() -> "Sending download request " + downloadFileRequest);
-            createParentDirectoriesIfNeeded(downloadContext.destination());
+            createParentDirectoriesIfNeeded(destinationPath);
 
             CompletableFuture<CompletedFileDownload> executionFuture =
                 downloadFileFunction.apply(downloadFileRequest).completionFuture();
@@ -211,14 +211,14 @@ public class DownloadDirectoryHelper {
     }
 
     private static DownloadFileRequest downloadFileRequest(DownloadDirectoryRequest downloadDirectoryRequest,
-                                                           DownloadFileContext downloadContext) {
+                                                           S3Object s3Object, Path destinationPath) {
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                                                             .bucket(downloadDirectoryRequest.bucket())
-                                                            .key(downloadContext.source().key())
+                                                            .key(s3Object.key())
                                                             .build();
         return DownloadFileRequest.builder()
-                                  .destination(downloadContext.destination())
+                                  .destination(destinationPath)
                                   .getObjectRequest(getObjectRequest)
                                   .applyMutation(downloadDirectoryRequest.downloadFileRequestTransformer())
                                   .build();
