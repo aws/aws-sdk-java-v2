@@ -39,6 +39,8 @@ import software.amazon.awssdk.utils.ComparableUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -60,18 +62,26 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * Service (ECS)</a>
  */
 @SdkPublicApi
-public final class ContainerCredentialsProvider implements HttpCredentialsProvider {
+public final class ContainerCredentialsProvider
+    implements HttpCredentialsProvider,
+               ToCopyableBuilder<ContainerCredentialsProvider.Builder, ContainerCredentialsProvider> {
     private static final Set<String> ALLOWED_HOSTS = unmodifiableSet(new HashSet<>(Arrays.asList("localhost", "127.0.0.1")));
 
     private final String endpoint;
     private final HttpCredentialsLoader httpCredentialsLoader;
     private final CachedSupplier<AwsCredentials> credentialsCache;
 
+    private final Boolean asyncCredentialUpdateEnabled;
+
+    private final String asyncThreadName;
+
     /**
      * @see #builder()
      */
     private ContainerCredentialsProvider(BuilderImpl builder) {
         this.endpoint = builder.endpoint;
+        this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
+        this.asyncThreadName = builder.asyncThreadName;
         this.httpCredentialsLoader = HttpCredentialsLoader.create();
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
@@ -135,6 +145,11 @@ public final class ContainerCredentialsProvider implements HttpCredentialsProvid
     @Override
     public void close() {
         credentialsCache.close();
+    }
+
+    @Override
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
     }
 
     static final class ContainerCredentialsEndpointProvider implements ResourcesEndpointProvider {
@@ -209,7 +224,8 @@ public final class ContainerCredentialsProvider implements HttpCredentialsProvid
     /**
      * A builder for creating a custom a {@link ContainerCredentialsProvider}.
      */
-    public interface Builder extends HttpCredentialsProvider.Builder<ContainerCredentialsProvider, Builder> {
+    public interface Builder extends HttpCredentialsProvider.Builder<ContainerCredentialsProvider, Builder>,
+                                     CopyableBuilder<Builder, ContainerCredentialsProvider> {
     }
 
     private static final class BuilderImpl implements Builder {
@@ -217,8 +233,14 @@ public final class ContainerCredentialsProvider implements HttpCredentialsProvid
         private Boolean asyncCredentialUpdateEnabled;
         private String asyncThreadName;
 
-        BuilderImpl() {
+        private BuilderImpl() {
             asyncThreadName("container-credentials-provider");
+        }
+
+        private BuilderImpl(ContainerCredentialsProvider credentialsProvider) {
+            this.endpoint = credentialsProvider.endpoint;
+            this.asyncCredentialUpdateEnabled = credentialsProvider.asyncCredentialUpdateEnabled;
+            this.asyncThreadName = credentialsProvider.asyncThreadName;
         }
 
         @Override

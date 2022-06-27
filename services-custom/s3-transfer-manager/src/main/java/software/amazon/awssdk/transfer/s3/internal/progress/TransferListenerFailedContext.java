@@ -91,7 +91,7 @@ public class TransferListenerFailedContext
         private Builder() {
         }
 
-        public Builder(TransferListenerFailedContext failedContext) {
+        private Builder(TransferListenerFailedContext failedContext) {
             this.exception = failedContext.exception;
             this.transferContext = failedContext.transferContext;
         }

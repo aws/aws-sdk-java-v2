@@ -25,6 +25,7 @@ import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenRequest;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * An implementation of {@link AwsCredentialsProvider} that periodically sends a {@link GetSessionTokenRequest} to the AWS
@@ -39,7 +40,9 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 @ThreadSafe
-public class StsGetSessionTokenCredentialsProvider extends StsCredentialsProvider {
+public class StsGetSessionTokenCredentialsProvider
+    extends StsCredentialsProvider
+    implements ToCopyableBuilder<StsGetSessionTokenCredentialsProvider.Builder, StsGetSessionTokenCredentialsProvider> {
     private final GetSessionTokenRequest getSessionTokenRequest;
 
     /**
@@ -71,6 +74,11 @@ public class StsGetSessionTokenCredentialsProvider extends StsCredentialsProvide
                        .build();
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     /**
      * A builder (created by {@link StsGetSessionTokenCredentialsProvider#builder()}) for creating a
      * {@link StsGetSessionTokenCredentialsProvider}.
@@ -81,6 +89,11 @@ public class StsGetSessionTokenCredentialsProvider extends StsCredentialsProvide
 
         private Builder() {
             super(StsGetSessionTokenCredentialsProvider::new);
+        }
+
+        public Builder(StsGetSessionTokenCredentialsProvider provider) {
+            super(StsGetSessionTokenCredentialsProvider::new, provider);
+            this.getSessionTokenRequest = provider.getSessionTokenRequest;
         }
 
         /**
