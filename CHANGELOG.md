@@ -1,3 +1,8 @@
+# __2.17.220__ __2022-06-27__
+## __AWS IoT__
+  - ### Features
+    - This release ease the restriction for the input of tag value to align with AWS standard, now instead of min length 1, we change it to min length 0.
+
 # __2.17.219__ __2022-06-24__
 ## __AWS Glue__
   - ### Features
