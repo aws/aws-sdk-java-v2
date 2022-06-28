@@ -21,6 +21,6 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 // TODO : Implement further functionality such as ToString, fromValue and Exception Handling as needed.
 public enum EndpointMode {
 
-    IPv4,
-    IPv6
+    IPV4,
+    IPV6
 }
