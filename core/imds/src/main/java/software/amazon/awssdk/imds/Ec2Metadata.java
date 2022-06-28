@@ -15,7 +15,14 @@
 
 package software.amazon.awssdk.imds;
 
+import java.net.URI;
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.imds.internal.DefaultEc2Metadata;
+import software.amazon.awssdk.imds.internal.EndpointMode;
+
 
 /**
  *  Interface to represent the Ec2Metadata Client Class.
@@ -29,4 +36,81 @@ public interface Ec2Metadata {
      * @return Instance metadata value
      */
     String get(String path);
+
+    /**
+     * @return The Builder Object consisting all the fields.
+     */
+    Ec2Metadata.Builder toBuilder();
+
+    /**
+     * Create an {@code Ec2Metadata} using the default values.
+     */
+    static Ec2Metadata create() {
+        return builder().build();
+    }
+
+    /**
+     * Creates a default builder for {@link Ec2Metadata}.
+     */
+    static Ec2Metadata.Builder builder() {
+        return DefaultEc2Metadata.builder();
+    }
+
+    /**
+     * The builder definition for a {@link Ec2Metadata}.
+     */
+    interface Builder  {
+
+        /**
+         * Define the retry policy which includes the number of retry attempts for any failed request.
+         *
+         * @param retryPolicy The retry policy which includes the number of retry attempts for any failed request.
+         * @return Returns a reference to this builder
+         */
+        Builder retryPolicy(RetryPolicy retryPolicy);
+
+        /**
+         * Define the endpoint of IMDS.
+         *
+         * @param endpoint The endpoint of IMDS.
+         * @return Returns a reference to this builder
+         */
+        Builder endpoint(URI endpoint);
+
+        /**
+         * Define the Time to live (TTL) of the token.
+         *
+         * @param tokenTtl The Time to live (TTL) of the token.
+         * @return Returns a reference to this builder
+         */
+        Builder tokenTtl(Duration tokenTtl);
+
+        /**
+         * Define the endpoint mode of IMDS.Supported values include IPv4 and IPv6.
+         *
+         * @param endpointMode The endpoint mode of IMDS.Supported values include IPv4 and IPv6.
+         * @return Returns a reference to this builder
+         */
+        Builder endpointMode(EndpointMode endpointMode);
+
+        /**
+         * Define the output stream for debugging.
+         *
+         * @param httpDebugOutput TThe output stream for debugging.
+         * @return Returns a reference to this builder
+         */
+        Builder httpDebugOutput(String httpDebugOutput);
+
+        /**
+         * Define the SdkHttpClient instance to make the http requests.
+         *
+         * @param httpClient The SdkHttpClient instance to make the http requests.
+         * @return Returns a reference to this builder
+         */
+        Builder httpClient(SdkHttpClient httpClient);
+
+        Ec2Metadata build();
+
+    }
+
 }

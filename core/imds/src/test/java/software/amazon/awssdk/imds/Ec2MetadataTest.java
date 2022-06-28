@@ -18,10 +18,12 @@ package software.amazon.awssdk.imds;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 
 /**
  * Unit Tests to test the Ec2Metadata Client functionality
@@ -38,6 +40,15 @@ public class Ec2MetadataTest {
 
         when(ec2Metadata.get("/ami-id")).thenReturn("IMDS");
         assertThat(ec2Metadata.get("/ami-id")).isEqualTo("IMDS");
+
+    }
+
+    @Test
+    public void verify_equals_hashcode(){
+
+        EqualsVerifier.forClass(Ec2Metadata.class)
+            .usingGetClass()
+            .verify();
     }
 
 }
