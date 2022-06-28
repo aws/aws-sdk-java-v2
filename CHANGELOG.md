@@ -1,3 +1,20 @@
+# __2.17.221__ __2022-06-28__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports Amazon FSx for NetApp ONTAP locations.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds a new spread placement group to EC2 Placement Groups: host level spread, which spread instances between physical hosts, available to Outpost customers only. CreatePlacementGroup and DescribePlacementGroups APIs were updated with a new parameter: SpreadLevel to support this feature.
+
+## __Amazon Polly__
+  - ### Features
+    - Add 4 new neural voices - Pedro (es-US), Liam (fr-CA), Daniel (de-DE) and Arthur (en-GB).
+
+## __FinSpace Public API__
+  - ### Features
+    - Release new API GetExternalDataViewAccessDetails
+
 # __2.17.220__ __2022-06-27__
 ## __AWS IoT__
   - ### Features
@@ -113,10 +130,6 @@
 ## __Redshift Data API Service__
   - ### Features
     - This release adds a new --workgroup-name field to operations that connect to an endpoint. Customers can now execute queries against their serverless workgroups.
-
-## __Redshift Serverless__
-  - ### Features
-    - Add new API operations for Amazon Redshift Serverless, a new way of using Amazon Redshift without needing to manually manage provisioned clusters. The new operations let you interact with Redshift Serverless resources, such as create snapshots, list VPC endpoints, delete resource policies, and more.
 
 # __2.17.212__ __2022-06-15__
 ## __AWS Service Catalog App Registry__
