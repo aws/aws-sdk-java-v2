@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.crt;
 
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.net.URI;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
@@ -232,7 +234,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * we have a pool and no one can destroy it underneath us until we've finished submitting the
          * request)
          */
-        try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(asyncRequest.request().getUri())) {
+        try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(poolKey(asyncRequest))) {
             CrtRequestContext context = CrtRequestContext.builder()
                                                          .crtConnPool(crtConnPool)
                                                          .readBufferSize(readBufferSize)
@@ -241,6 +243,12 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
             return new CrtRequestExecutor().execute(context);
         }
+    }
+
+    private URI poolKey(AsyncExecuteRequest asyncRequest) {
+        SdkHttpRequest sdkRequest = asyncRequest.request();
+        return invokeSafely(() -> new URI(sdkRequest.protocol(), null, sdkRequest.host(),
+                                          sdkRequest.port(), null, null, null));
     }
 
     @Override

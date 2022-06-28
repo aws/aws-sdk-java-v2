@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS Common Runtime HTTP Client",
+    "contributor": "",
+    "description": "Improve connection reusing by keying connection pools using hostname + port, instead of the full URI."
+}
