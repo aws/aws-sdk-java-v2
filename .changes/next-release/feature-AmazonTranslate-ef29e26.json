@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Translate",
-    "contributor": "",
-    "description": "Added ListLanguages API which can be used to list the languages supported by Translate."
-}

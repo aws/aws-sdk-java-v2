@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Load Balancing",
-    "contributor": "",
-    "description": "This release adds two attributes for ALB. One, helps to preserve the host header and the other helps to modify, preserve, or remove the X-Forwarded-For header in the HTTP request."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EMR",
-    "contributor": "",
-    "description": "This release introduces additional optional parameter \"Throughput\" to VolumeSpecification to enable user to configure throughput for gp3 ebs volumes."
-}

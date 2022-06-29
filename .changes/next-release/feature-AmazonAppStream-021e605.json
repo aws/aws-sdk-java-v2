@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon AppStream",
-    "contributor": "",
-    "description": "Includes support for StreamingExperienceSettings in CreateStack and UpdateStack APIs"
-}
