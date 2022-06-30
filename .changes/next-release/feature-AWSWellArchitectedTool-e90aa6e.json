@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Well-Architected Tool",
+    "contributor": "",
+    "description": "Added support for UpdateGlobalSettings API. Added status filter to ListWorkloadShares and ListLensShares."
+}
