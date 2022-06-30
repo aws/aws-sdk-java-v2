@@ -1,3 +1,40 @@
+# __2.17.223__ __2022-06-30__
+## __AWS Glue__
+  - ### Features
+    - This release adds tag as an input of CreateDatabase
+
+## __AWS Price List Service__
+  - ### Features
+    - Documentation update for GetProducts Response.
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - Added support for UpdateGlobalSettings API. Added status filter to ListWorkloadShares and ListLensShares.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now provides a data source connector for alfresco
+
+## __Amazon Athena__
+  - ### Features
+    - This feature introduces the API support for Athena's parameterized query and BatchGetPreparedStatement API.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release adds the optional MinAllowedConfidenceScoreForMerging parameter to the CreateDomain, UpdateDomain, and GetAutoMergingPreview APIs in Customer Profiles. This parameter is used as a threshold to influence the profile auto-merging step of the Identity Resolution process.
+
+## __Amazon EMR__
+  - ### Features
+    - This release adds support for the ExecutionRoleArn parameter in the AddJobFlowSteps and DescribeStep APIs. Customers can use ExecutionRoleArn to specify the IAM role used for each job they submit using the AddJobFlowSteps API.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release adds support for managing user availability configurations in Amazon WorkMail.
+
+## __AmazonMWAA__
+  - ### Features
+    - Documentation updates for Amazon Managed Workflows for Apache Airflow.
+
 # __2.17.222__ __2022-06-29__
 ## __AWS Common Runtime HTTP Client__
   - ### Bugfixes
