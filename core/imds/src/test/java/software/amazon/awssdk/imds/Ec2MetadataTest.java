@@ -105,7 +105,7 @@ public class Ec2MetadataTest {
     public void get_AmiId_onMetadataResource_404Error_throws() throws IOException {
 
         thrown.expect(SdkServiceException.class);
-        thrown.expectMessage("token");
+        thrown.expectMessage("metadata");
 
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}").withStatus(404)));
