@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Model Building V2",
+    "contributor": "",
+    "description": "This release introduces additional optional parameters \"messageSelectionStrategy\" to PromptSpecification, which enables the users to configure the bot to play messages in orderly manner."
+}
