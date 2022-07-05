@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Adds waiters support for DBCluster."
-}

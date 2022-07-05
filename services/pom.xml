@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.17.225-SNAPSHOT</version>
+        <version>2.17.225</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -329,6 +329,7 @@
         <module>m2</module>
         <module>connectcampaigns</module>
         <module>redshiftserverless</module>
+        <module>rolesanywhere</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

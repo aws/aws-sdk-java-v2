@@ -1,3 +1,32 @@
+# __2.17.225__ __2022-07-05__
+## __AWS Config__
+  - ### Features
+    - Updating documentation service limits
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Adds support for tagging incident-record on creation by providing incident tags in the template within a response-plan.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release introduces additional optional parameters "messageSelectionStrategy" to PromptSpecification, which enables the users to configure the bot to play messages in orderly manner.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release allows customers to programmatically create QuickSight accounts with Enterprise and Enterprise + Q editions. It also releases allowlisting domains for embedding QuickSight dashboards at runtime through the embedding APIs.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds waiters support for DBCluster.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - IAM Roles Anywhere allows your workloads such as servers, containers, and applications to obtain temporary AWS credentials and use the same IAM roles and policies that you have configured for your AWS workloads to access AWS resources.
+
 # __2.17.224__ __2022-07-01__
 ## __AWS Database Migration Service__
   - ### Features
