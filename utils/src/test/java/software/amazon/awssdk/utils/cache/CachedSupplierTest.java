@@ -325,7 +325,7 @@ public class CachedSupplierTest {
             }
 
             // Make sure we used less-than 99 to do the refreshes.
-            assertThat(maxActive).isBetween(1, 99);
+            assertThat(maxActive).isBetween(2, 99);
         } finally {
             css.forEach(CachedSupplier::close);
         }
@@ -363,8 +363,7 @@ public class CachedSupplierTest {
             // In a perfect world this would be capped to 100, but the mechanism we use to limit concurrent refreshes usually
             // means more than 100 can get created. 150 should be a reasonable limit to check for, because without the limiter
             // it would be ~1000.
-            System.out.print(maxActive);
-            assertThat(maxActive).isBetween(1, 150);
+            assertThat(maxActive).isBetween(2, 150);
         } finally {
             css.forEach(CachedSupplier::close);
             executor.shutdownNow();

@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +53,11 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
     private static final int MAX_CONCURRENT_REFRESHES = 100;
 
     /**
+     * The semaphore around concurrent background refreshes, enforcing the {@link #MAX_CONCURRENT_REFRESHES}.
+     */
+    private static final Semaphore CONCURRENT_REFRESH_LEASES = new Semaphore(MAX_CONCURRENT_REFRESHES);
+
+    /**
      * The {@link Random} instance used for calculating jitter of the background prefetches.
      */
     private static final Random JITTER_RANDOM = new Random();
@@ -61,7 +67,9 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
      * the {@link #EXECUTOR}.
      */
     private static final ScheduledThreadPoolExecutor SCHEDULER =
-        new ScheduledThreadPoolExecutor(1, new ThreadFactoryBuilder().daemonThreads(true).build());
+        new ScheduledThreadPoolExecutor(1, new ThreadFactoryBuilder().threadNamePrefix("sdk-cache-scheduler")
+                                                                     .daemonThreads(true)
+                                                                     .build());
 
     /**
      * Threads used to do the actual work of refreshing the values (because the cached supplier might block, so we don't
@@ -69,15 +77,17 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
      * skipping refreshes when there are more than {@link #MAX_CONCURRENT_REFRESHES} running.
      */
     private static final ThreadPoolExecutor EXECUTOR =
-        new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+        new ThreadPoolExecutor(1, Integer.MAX_VALUE,
                                60L, TimeUnit.SECONDS,
                                new SynchronousQueue<>(),
-                               new ThreadFactoryBuilder().daemonThreads(true).build());
+                               new ThreadFactoryBuilder().threadNamePrefix("sdk-cache")
+                                                         .daemonThreads(true)
+                                                         .build());
 
     /**
      * An incrementing number, used to uniquely identify an instance of NonBlocking in the {@link #asyncThreadName}.
      */
-    private static final AtomicLong THREAD_NUMBER = new AtomicLong(0);
+    private static final AtomicLong INSTANCE_NUMBER = new AtomicLong(0);
 
     /**
      * Whether we are currently refreshing the supplier. This is used to make sure only one caller is blocking at a time.
@@ -125,7 +135,7 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
 
     @SdkTestInternalApi
     NonBlocking(String asyncThreadName, Duration minimumRefreshFrequency) {
-        this.asyncThreadName = asyncThreadName + "-" + THREAD_NUMBER.getAndIncrement();
+        this.asyncThreadName = asyncThreadName + "-" + INSTANCE_NUMBER.getAndIncrement();
         this.minimumRefreshFrequency = minimumRefreshFrequency;
     }
 
@@ -189,13 +199,17 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
 
         Duration waitTime = Duration.between(Instant.now(), refreshTime);
         log.debug(() -> "Scheduling refresh attempt for " + refreshTime + " (in " + waitTime.toMillis() + " ms)");
-        updateTask(SCHEDULER.schedule(() -> {
-            Thread.currentThread().setName(asyncThreadName + "-scheduler");
-            log.debug(() -> "Executing refresh attempt scheduled for " + refreshTime);
 
-            // If the supplier has already been prefetched, this will just be a cache hit.
-            tryRunBackgroundTask(cachedSupplier::get);
-        }, waitTime.toMillis(), TimeUnit.MILLISECONDS));
+        ScheduledFuture<?> scheduledTask = SCHEDULER.schedule(() -> {
+            runWithInstanceThreadName(() -> {
+                log.debug(() -> "Executing refresh attempt scheduled for " + refreshTime);
+
+                // If the supplier has already been prefetched, this will just be a cache hit.
+                tryRunBackgroundTask(cachedSupplier::get);
+            });
+        }, waitTime.toMillis(), TimeUnit.MILLISECONDS);
+
+        updateTask(scheduledTask);
 
         if (shutdown) {
             updateTask(null);
@@ -223,27 +237,40 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
         });
     }
 
-    public void tryRunBackgroundTask(Runnable runnable, Runnable finallyRunnable) {
-        try {
-            if (EXECUTOR.getActiveCount() > MAX_CONCURRENT_REFRESHES) {
-                log.warn(() -> "Skipping a background refresh task because there are too many other tasks running.");
-                return;
-            }
+    public void tryRunBackgroundTask(Runnable runnable, Runnable runOnCompletion) {
+        if (!CONCURRENT_REFRESH_LEASES.tryAcquire()) {
+            log.warn(() -> "Skipping a background refresh task because there are too many other tasks running.");
+            runOnCompletion.run();
+            return;
+        }
 
+        try {
             EXECUTOR.submit(() -> {
-                try {
-                    Thread.currentThread().setName(asyncThreadName);
-                    runnable.run();
-                } catch (Throwable t) {
-                    log.warn(() -> "Exception occurred in AWS SDK background task.", t);
-                } finally {
-                    finallyRunnable.run();
-                }
+                runWithInstanceThreadName(() -> {
+                    try {
+                        runnable.run();
+                    } catch (Throwable t) {
+                        log.warn(() -> "Exception occurred in AWS SDK background task.", t);
+                    } finally {
+                        CONCURRENT_REFRESH_LEASES.release();
+                        runOnCompletion.run();
+                    }
+                });
             });
         } catch (Throwable t) {
             log.warn(() -> "Exception occurred when submitting AWS SDK background task.", t);
+            CONCURRENT_REFRESH_LEASES.release();
+            runOnCompletion.run();
+        }
+    }
+
+    public void runWithInstanceThreadName(Runnable runnable) {
+        String baseThreadName = Thread.currentThread().getName();
+        try {
+            Thread.currentThread().setName(baseThreadName + "-" + asyncThreadName);
+            runnable.run();
         } finally {
-            finallyRunnable.run();
+            Thread.currentThread().setName(baseThreadName);
         }
     }
 }
