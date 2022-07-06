@@ -1,3 +1,12 @@
+# __2.17.226__ __2022-07-06__
+## __AWS CloudFormation__
+  - ### Features
+    - My AWS Service (placeholder) - Add a new feature Account-level Targeting for StackSet operation
+
+## __Synthetics__
+  - ### Features
+    - This release introduces Group feature, which enables users to group cross-region canaries.
+
 # __2.17.225__ __2022-07-05__
 ## __AWS Config__
   - ### Features
