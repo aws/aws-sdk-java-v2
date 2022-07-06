@@ -23,7 +23,6 @@ import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.utils.StringInputStream;
 
 /**
  * Class to parse the parameters to a SdkHttpRequest , make the call to the endpoint and send the HttpExecuteResponse
@@ -44,7 +43,7 @@ public class RequestMarshaller {
 
     public HttpExecuteRequest createTokenRequest(URI uri, SdkHttpMethod method, Duration tokenTtl) throws IOException {
 
-        SdkHttpRequest sdkHttpRequest  = getHttpBuilder().method(method)
+        SdkHttpRequest sdkHttpRequest = getHttpBuilder().method(method)
                                                          .uri(uri)
                                                          .putHeader(EC2_METADATA_TOKEN_TTL_HEADER,
                                                                     String.valueOf(tokenTtl.getSeconds()))
@@ -52,7 +51,6 @@ public class RequestMarshaller {
 
 
         HttpExecuteRequest httpExecuteRequest = HttpExecuteRequest.builder().request(sdkHttpRequest)
-                                                                  .contentStreamProvider(() -> new StringInputStream(""))
                                                                   .build();
         return httpExecuteRequest;
 
@@ -61,7 +59,7 @@ public class RequestMarshaller {
     public HttpExecuteRequest createDataRequest(URI uri, SdkHttpMethod method, String token, Duration tokenTtl)
             throws IOException {
 
-        SdkHttpRequest sdkHttpRequest  = getHttpBuilder().method(method)
+        SdkHttpRequest sdkHttpRequest = getHttpBuilder().method(method)
                                                          .uri(uri)
                                                          .putHeader(EC2_METADATA_TOKEN_TTL_HEADER,
                                                                     String.valueOf(tokenTtl.getSeconds()))

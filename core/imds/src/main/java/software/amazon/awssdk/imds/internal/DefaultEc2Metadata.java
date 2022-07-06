@@ -47,6 +47,10 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
 
+    private static final Logger log = LoggerFactory.getLogger(DefaultEc2Metadata.class);
+
+    private static final RequestMarshaller REQUEST_MARSHALLER = new RequestMarshaller();
+
     private final RetryPolicy retryPolicy;
 
     private final URI endpoint;
@@ -58,10 +62,6 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
     private final String httpDebugOutput;
 
     private final SdkHttpClient httpClient;
-
-    private final Logger log = LoggerFactory.getLogger(DefaultEc2Metadata.class);
-
-    private RequestMarshaller requestMarshaller = new RequestMarshaller();
 
     private DefaultEc2Metadata(DefaultEc2Metadata.Ec2MetadataBuilder builder) {
 
@@ -153,19 +153,24 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         try {
             String token = getToken();
             URI uri = URI.create(endpoint + path);
-            HttpExecuteRequest httpExecuteRequest = requestMarshaller.createDataRequest(uri , SdkHttpMethod.GET, token,
+            HttpExecuteRequest httpExecuteRequest = REQUEST_MARSHALLER.createDataRequest(uri, SdkHttpMethod.GET, token,
                                                                                 tokenTtl);
-            HttpExecuteResponse response =  httpClient.prepareRequest(httpExecuteRequest).call();
+            HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
             int statusCode = response.httpResponse().statusCode();
 
-            if (statusCode == HttpURLConnection.HTTP_OK) {
+            if (statusCode == HttpURLConnection.HTTP_OK && response.responseBody().isPresent()) {
                 abortableInputStream = response.responseBody().get();
                 data = IoUtils.toUtf8String(abortableInputStream);
             } else if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
-                throw SdkServiceException.builder().message("The requested metadata is not found ").build();
+                throw SdkServiceException.builder()
+                                         .message("The requested metadata at path ( " + path + " ) is not found ").build();
+            } else if (statusCode == HttpURLConnection.HTTP_OK) {
+                throw SdkClientException.builder()
+                                         .message("Response body empty with Status Code " + statusCode).build();
             } else {
                 throw SdkClientException.builder()
-                                        .message("Unexpected Exception occurred with Status Code " + statusCode).build();
+                                        .message("Instance metadata service returned unexpected status code " + statusCode)
+                                        .build();
             }
         } catch (SdkServiceException sd) {
             throw SdkServiceException.builder().message(sd.getMessage()).cause(sd).build();
@@ -184,22 +189,25 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         AbortableInputStream abortableInputStream = null;
         try {
             URI uri = URI.create(endpoint + TOKEN_RESOURCE_PATH);
-            HttpExecuteRequest httpExecuteRequest = requestMarshaller.createTokenRequest(uri , SdkHttpMethod.PUT, tokenTtl);
-            HttpExecuteResponse response =  httpClient.prepareRequest(httpExecuteRequest).call();
+            HttpExecuteRequest httpExecuteRequest = REQUEST_MARSHALLER.createTokenRequest(uri, SdkHttpMethod.PUT, tokenTtl);
+            HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
             int statusCode = response.httpResponse().statusCode();
 
-            if (statusCode == HttpURLConnection.HTTP_OK) {
+            if (statusCode == HttpURLConnection.HTTP_OK && response.responseBody().isPresent()) {
                 abortableInputStream = response.responseBody().get();
                 String token = IoUtils.toUtf8String(abortableInputStream);
                 return token;
             } else if (statusCode == HttpURLConnection.HTTP_FORBIDDEN || statusCode == HttpURLConnection.HTTP_BAD_REQUEST) {
-                throw SdkServiceException.builder().message("Could not retrieve token").build();
+                throw SdkServiceException.builder()
+                                         .message("Could not retrieve token as " + statusCode + " error occurred.").build();
+            } else if (statusCode == HttpURLConnection.HTTP_OK) {
+                throw SdkClientException.builder()
+                                        .message("Response body empty with Status Code " + statusCode).build();
             } else {
                 throw SdkClientException.builder()
-                                        .message("Unexpected Exception during token retrieval with Status Code " + statusCode)
+                                        .message("Instance metadata service returned unexpected status code " + statusCode)
                                         .build();
             }
-
         } catch (IOException e) {
             throw e;
         } finally {
