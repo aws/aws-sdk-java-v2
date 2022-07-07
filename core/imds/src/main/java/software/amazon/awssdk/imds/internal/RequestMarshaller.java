@@ -49,11 +49,9 @@ public class RequestMarshaller {
                                                                     String.valueOf(tokenTtl.getSeconds()))
                                                          .build();
 
-
-        HttpExecuteRequest httpExecuteRequest = HttpExecuteRequest.builder().request(sdkHttpRequest)
-                                                                  .build();
-        return httpExecuteRequest;
-
+        return HttpExecuteRequest.builder()
+                                 .request(sdkHttpRequest)
+                                 .build();
     }
 
     public HttpExecuteRequest createDataRequest(URI uri, SdkHttpMethod method, String token, Duration tokenTtl)
@@ -66,12 +64,9 @@ public class RequestMarshaller {
                                                          .putHeader(TOKEN_HEADER, token)
                                                          .build();
 
-
-        HttpExecuteRequest httpExecuteRequest = HttpExecuteRequest.builder()
-                                                                  .request(sdkHttpRequest)
-                                                                  .build();
-        return httpExecuteRequest;
-
+        return HttpExecuteRequest.builder()
+                                 .request(sdkHttpRequest)
+                                 .build();
     }
 
 

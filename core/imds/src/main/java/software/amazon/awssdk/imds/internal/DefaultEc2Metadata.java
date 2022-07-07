@@ -20,6 +20,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Immutable;
@@ -157,9 +158,10 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
                                                                                 tokenTtl);
             HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
             int statusCode = response.httpResponse().statusCode();
+            Optional<AbortableInputStream> responseBody = response.responseBody();
 
-            if (statusCode == HttpURLConnection.HTTP_OK && response.responseBody().isPresent()) {
-                abortableInputStream = response.responseBody().get();
+            if (statusCode == HttpURLConnection.HTTP_OK && responseBody.isPresent()) {
+                abortableInputStream = responseBody.get();
                 data = IoUtils.toUtf8String(abortableInputStream);
             } else if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
                 throw SdkServiceException.builder()
@@ -176,7 +178,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
             throw SdkServiceException.builder().message(sd.getMessage()).cause(sd).build();
         } catch (IOException | SdkClientException  io) {
             // TODO Retry Logic will be added
-            log.warn("Received an IOException " + io);
+            log.warn("Received an IOException {0} " , io);
         } finally {
             IoUtils.closeQuietly(abortableInputStream, log);
         }
@@ -192,11 +194,11 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
             HttpExecuteRequest httpExecuteRequest = REQUEST_MARSHALLER.createTokenRequest(uri, SdkHttpMethod.PUT, tokenTtl);
             HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
             int statusCode = response.httpResponse().statusCode();
+            Optional<AbortableInputStream> responseBody = response.responseBody();
 
-            if (statusCode == HttpURLConnection.HTTP_OK && response.responseBody().isPresent()) {
-                abortableInputStream = response.responseBody().get();
-                String token = IoUtils.toUtf8String(abortableInputStream);
-                return token;
+            if (statusCode == HttpURLConnection.HTTP_OK && responseBody.isPresent()) {
+                abortableInputStream = responseBody.get();
+                return IoUtils.toUtf8String(abortableInputStream);
             } else if (statusCode == HttpURLConnection.HTTP_FORBIDDEN || statusCode == HttpURLConnection.HTTP_BAD_REQUEST) {
                 throw SdkServiceException.builder()
                                          .message("Could not retrieve token as " + statusCode + " error occurred.").build();
