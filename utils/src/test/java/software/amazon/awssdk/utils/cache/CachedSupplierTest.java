@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.Closeable;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -198,7 +197,7 @@ public class CachedSupplierTest {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past())) {
             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                   .prefetchStrategy(new OneCallerBlocks())
-                                                                  .maxPrefetchJitter(Duration.ZERO)
+                                                                  .prefetchJitterEnabled(false)
                                                                   .build();
 
             // Perform one successful "get" to prime the cache.
@@ -226,7 +225,7 @@ public class CachedSupplierTest {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                    .prefetchStrategy(new NonBlocking("test-%s"))
-                                                                   .maxPrefetchJitter(Duration.ZERO)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             // Perform one successful "get" to prime the cache.
             waitingSupplier.permits.release(1);
@@ -248,7 +247,7 @@ public class CachedSupplierTest {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(now().plusSeconds(62), now());
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                    .prefetchStrategy(new NonBlocking("test-%s"))
-                                                                   .maxPrefetchJitter(Duration.ZERO)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             waitingSupplier.permits.release(2);
             cachedSupplier.get();
@@ -315,7 +314,7 @@ public class CachedSupplierTest {
                                                               .staleTime(future())
                                                               .build())
                                   .prefetchStrategy(new NonBlocking("test"))
-                                  .maxPrefetchJitter(Duration.ofMillis(10))
+                                  .prefetchJitterEnabled(false)
                                   .build();
                 supplier.get();
                 css.add(supplier);
@@ -349,7 +348,7 @@ public class CachedSupplierTest {
                                             .staleTime(now())
                                             .build();
                     }).prefetchStrategy(new NonBlocking("test"))
-                      .maxPrefetchJitter(Duration.ZERO)
+                      .prefetchJitterEnabled(false)
                       .build();
                 executor.submit(supplier::get);
                 css.add(supplier);

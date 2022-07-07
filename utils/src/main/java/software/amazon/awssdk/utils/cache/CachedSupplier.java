@@ -27,7 +27,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.utils.ComparableUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
@@ -48,11 +47,6 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * refresh. In the ideal case, refresh always occurs in a timely fashion and only one thread actually does the refresh.
      */
     private static final Duration BLOCKING_REFRESH_MAX_WAIT = Duration.ofSeconds(5);
-
-    /**
-     * Maximum amount of jitter to apply to the refresh result's prefetch time.
-     */
-    private static final Duration MAX_PREFETCH_JITTER = Duration.ofMinutes(5);
 
     /**
      * Random instance used for jittering refresh results.
@@ -78,9 +72,9 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     private final AtomicBoolean prefetchStrategyInitialized = new AtomicBoolean(false);
 
     /**
-     * The maximum amount of prefetch jitter allowed on this instance. Only differs for {@link #MAX_PREFETCH_JITTER} in testing.
+     * Whether jitter is enabled on the prefetch duration (can be disabled for testing).
      */
-    private final Duration maxPrefetchJitter;
+    private final boolean prefetchJitterEnabled;
 
     /**
      * The value currently stored in this cache.
@@ -98,7 +92,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     private CachedSupplier(Builder<T> builder) {
         this.valueSupplier = jitteredValueSupplier(Validate.notNull(builder.supplier, "builder.supplier"));
         this.prefetchStrategy = Validate.notNull(builder.prefetchStrategy, "builder.prefetchStrategy");
-        this.maxPrefetchJitter = Validate.notNull(builder.maxPrefetchJitter, "builder.maxPrefetchJitter");
+        this.prefetchJitterEnabled = Validate.notNull(builder.prefetchJitterEnabled, "builder.prefetchJitterEnabled");
     }
 
     /**
@@ -191,7 +185,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         return () -> {
             RefreshResult<T> result = supplier.get();
 
-            if (result.prefetchTime() == null) {
+            if (!prefetchJitterEnabled || result.prefetchTime() == null) {
                 return result;
             }
 
@@ -210,17 +204,21 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     }
 
     private Duration getMaxJitter(RefreshResult<T> result) {
-        if (result.staleTime() == null) {
-            return maxPrefetchJitter;
-        }
-
-        Instant oneMinuteBeforeStale = result.staleTime().minus(1, MINUTES);
+        Instant staleTime = result.staleTime() != null ? result.staleTime() : Instant.MAX;
+        Instant oneMinuteBeforeStale = staleTime.minus(1, MINUTES);
         if (!result.prefetchTime().isBefore(oneMinuteBeforeStale)) {
             return Duration.ZERO;
         }
 
-        Duration oneMinuteBeforeStaleDuration = Duration.between(result.prefetchTime(), oneMinuteBeforeStale);
-        return ComparableUtils.minimum(oneMinuteBeforeStaleDuration, maxPrefetchJitter);
+        Duration timeBetweenPrefetchAndStale = Duration.between(result.prefetchTime(), oneMinuteBeforeStale);
+        if (timeBetweenPrefetchAndStale.toDays() > 365) {
+            // The value will essentially never become stale. The user is likely using this for a value that should be
+            // periodically refreshed on a best-effort basis. Use a 5-minute jitter range to respect their requested
+            // prefetch time.
+            return Duration.ofMinutes(5);
+        }
+
+        return timeBetweenPrefetchAndStale;
     }
 
     /**
@@ -237,7 +235,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     public static final class Builder<T> {
         private final Supplier<RefreshResult<T>> supplier;
         private PrefetchStrategy prefetchStrategy = new OneCallerBlocks();
-        private Duration maxPrefetchJitter = MAX_PREFETCH_JITTER;
+        private Boolean prefetchJitterEnabled = true;
 
         private Builder(Supplier<RefreshResult<T>> supplier) {
             this.supplier = supplier;
@@ -256,11 +254,11 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         }
 
         /**
-         * The maximum amount of time the prefetch time from the configured supplier will be jittered.
+         * Whether jitter is enabled on the prefetch time. Can be disabled for testing.
          */
         @SdkTestInternalApi
-        Builder<T> maxPrefetchJitter(Duration maxPrefetchJitter) {
-            this.maxPrefetchJitter = maxPrefetchJitter;
+        Builder<T> prefetchJitterEnabled(Boolean prefetchJitterEnabled) {
+            this.prefetchJitterEnabled = prefetchJitterEnabled;
             return this;
         }
 

@@ -361,10 +361,10 @@ public class InstanceProfileCredentialsProviderTest {
         stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
         AwsCredentials credentials24HoursAgo = credentialsProvider.resolveCredentials();
 
-        // Set the time to 3 minutes before expiration, and fail to call IMDS
-        clock.time = now.minus(3, MINUTES);
+        // Set the time to 10 minutes before expiration, and fail to call IMDS
+        clock.time = now.minus(10, MINUTES);
         stubCredentialsResponse(aResponse().withStatus(500));
-        AwsCredentials credentials3MinutesAgo = credentialsProvider.resolveCredentials();
+        AwsCredentials credentials10MinutesAgo = credentialsProvider.resolveCredentials();
 
         // Set the time to 10 seconds before expiration, and verify that we still call IMDS to try to get credentials in at the
         // last moment before expiration
@@ -372,7 +372,7 @@ public class InstanceProfileCredentialsProviderTest {
         stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
         AwsCredentials credentials10SecondsAgo = credentialsProvider.resolveCredentials();
 
-        assertThat(credentials24HoursAgo).isEqualTo(credentials3MinutesAgo);
+        assertThat(credentials24HoursAgo).isEqualTo(credentials10MinutesAgo);
         assertThat(credentials24HoursAgo.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
         assertThat(credentials10SecondsAgo.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
     }

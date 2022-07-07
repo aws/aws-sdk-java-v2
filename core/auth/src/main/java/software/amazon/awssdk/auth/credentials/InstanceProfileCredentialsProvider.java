@@ -16,12 +16,12 @@
 package software.amazon.awssdk.auth.credentials;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
-import static java.time.temporal.ChronoUnit.SECONDS;
 import static software.amazon.awssdk.utils.ComparableUtils.minimum;
 
 import java.io.IOException;
 import java.net.URI;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
@@ -151,7 +151,7 @@ public final class InstanceProfileCredentialsProvider
                     // Choose whether to report this failure at the debug or warn level based on how much time is left on the
                     // credentials before expiration.
                     Supplier<String> errorMessage = () -> "Failure encountered when attempting to refresh credentials from IMDS.";
-                    Instant fifteenMinutesFromNow = Instant.now().plus(15, MINUTES);
+                    Instant fifteenMinutesFromNow = clock.instant().plus(15, MINUTES);
                     if (expiration.isBefore(fifteenMinutesFromNow)) {
                         log.warn(errorMessage, e);
                     } else {
@@ -164,7 +164,7 @@ public final class InstanceProfileCredentialsProvider
         }
 
         return RefreshResult.builder(credentials.getAwsCredentials())
-                            .staleTime(null) // Allow use of expired credentials - they may still work
+                            .staleTime(Instant.MAX) // Allow use of expired credentials - they may still work
                             .prefetchTime(prefetchTime(credentials.getExpiration().orElse(null)))
                             .build();
     }
@@ -180,35 +180,18 @@ public final class InstanceProfileCredentialsProvider
     private Instant prefetchTime(Instant expiration) {
         Instant now = clock.instant();
 
-        // If expiration time doesn't exist, refresh in 60 minutes
         if (expiration == null) {
             return now.plus(60, MINUTES);
         }
 
-        // If expiration time is 60+ minutes from now, refresh in 30 minutes.
-        Instant sixtyMinutesBeforeExpiration = expiration.minus(60, MINUTES);
-        if (now.isBefore(sixtyMinutesBeforeExpiration)) {
-            return now.plus(30, MINUTES);
+        Duration timeUntilExpiration = Duration.between(now, expiration);
+        if (timeUntilExpiration.isNegative()) {
+            log.warn(() -> "IMDS credential expiration has been extended due to an IMDS availability outage. A refresh "
+                           + "of these credentials will be attempted again in ~5 minutes.");
+            return now.plus(5, MINUTES);
         }
 
-        // If expiration time is 15 minutes or more from now, refresh in 10 minutes.
-        Instant fifteenMinutesBeforeExpiration = expiration.minus(15, MINUTES);
-        if (now.isBefore(fifteenMinutesBeforeExpiration)) {
-            return now.plus(10, MINUTES);
-        }
-
-        // If expiration time is 0.25-15 minutes from now, refresh in 5 minutes, or 15 seconds before expiration, whichever is
-        // sooner.
-        Instant fifteenSecondsBeforeExpiration = expiration.minus(15, SECONDS);
-        if (now.isBefore(fifteenSecondsBeforeExpiration)) {
-            return minimum(now.plus(5, MINUTES), fifteenSecondsBeforeExpiration);
-        }
-
-        // These credentials are expired. Try refreshing again in 5 minutes. We can't be more aggressive than that, because we
-        // don't want to overload the IMDS endpoint.
-        log.warn(() -> "IMDS credential expiration has been extended due to an IMDS availability outage. A refresh "
-                       + "of these credentials will be attempted again in 5 minutes.");
-        return now.plus(5, MINUTES);
+        return now.plus(minimum(timeUntilExpiration.abs().dividedBy(2), Duration.ofMinutes(5)));
     }
 
     @Override
