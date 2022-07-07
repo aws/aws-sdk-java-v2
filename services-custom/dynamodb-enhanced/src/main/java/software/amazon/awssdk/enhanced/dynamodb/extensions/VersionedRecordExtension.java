@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,7 +57,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SdkPublicApi
 @ThreadSafe
 public final class VersionedRecordExtension implements DynamoDbEnhancedClientExtension {
-    private static final Function<String, String> EXPRESSION_KEY_MAPPER = key -> ":old_" + key + "_value";
+    private static final Function<String, String> VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER = key -> ":old_" + key + "_value";
     private static final String CUSTOM_METADATA_KEY = "VersionedRecordExtension:VersionAttribute";
     private static final VersionAttribute VERSION_ATTRIBUTE = new VersionAttribute();
 
@@ -101,6 +102,8 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         }
 
         Map<String, AttributeValue> itemToTransform = new HashMap<>(context.items());
+
+        String attributeKeyRef = keyRef(versionAttributeKey.get());
         AttributeValue newVersionValue;
         Expression condition;
         Optional<AttributeValue> existingVersionValue =
@@ -110,7 +113,8 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             // First version of the record
             newVersionValue = AttributeValue.builder().n("1").build();
             condition = Expression.builder()
-                                  .expression(String.format("attribute_not_exists(%s)", versionAttributeKey.get()))
+                                  .expression(String.format("attribute_not_exists(%s)", attributeKeyRef))
+                                  .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
                                   .build();
         } else {
             // Existing record, increment version
@@ -120,11 +124,11 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             }
 
             int existingVersion = Integer.parseInt(existingVersionValue.get().n());
-            String existingVersionValueKey = EXPRESSION_KEY_MAPPER.apply(versionAttributeKey.get());
+            String existingVersionValueKey = VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER.apply(versionAttributeKey.get());
             newVersionValue = AttributeValue.builder().n(Integer.toString(existingVersion + 1)).build();
             condition = Expression.builder()
-                                  .expression(String.format("%s = %s", versionAttributeKey.get(),
-                                                            existingVersionValueKey))
+                                  .expression(String.format("%s = %s", attributeKeyRef, existingVersionValueKey))
+                                  .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
                                   .expressionValues(Collections.singletonMap(existingVersionValueKey,
                                                                              existingVersionValue.get()))
                                   .build();
