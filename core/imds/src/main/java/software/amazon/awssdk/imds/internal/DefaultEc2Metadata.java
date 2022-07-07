@@ -15,16 +15,28 @@
 
 package software.amazon.awssdk.imds.internal;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.imds.Ec2Metadata;
+import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * An Implementation of the Ec2Metadata Interface.
@@ -33,6 +45,12 @@ import software.amazon.awssdk.imds.Ec2Metadata;
 @Immutable
 @ThreadSafe
 public final class DefaultEc2Metadata implements Ec2Metadata {
+
+    private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
+
+    private static final Logger log = LoggerFactory.getLogger(DefaultEc2Metadata.class);
+
+    private static final RequestMarshaller REQUEST_MARSHALLER = new RequestMarshaller();
 
     private final RetryPolicy retryPolicy;
 
@@ -130,7 +148,73 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
      */
     @Override
     public String get(String path) {
-        return "IMDS";
+
+        String data = null;
+        AbortableInputStream abortableInputStream = null;
+        try {
+            String token = getToken();
+            URI uri = URI.create(endpoint + path);
+            HttpExecuteRequest httpExecuteRequest = REQUEST_MARSHALLER.createDataRequest(uri, SdkHttpMethod.GET, token,
+                                                                                tokenTtl);
+            HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
+            int statusCode = response.httpResponse().statusCode();
+            Optional<AbortableInputStream> responseBody = response.responseBody();
+
+            if (statusCode == HttpURLConnection.HTTP_OK && responseBody.isPresent()) {
+                abortableInputStream = responseBody.get();
+                data = IoUtils.toUtf8String(abortableInputStream);
+            } else if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
+                throw SdkServiceException.builder()
+                                         .message("The requested metadata at path ( " + path + " ) is not found ").build();
+            } else if (statusCode == HttpURLConnection.HTTP_OK) {
+                throw SdkClientException.builder()
+                                         .message("Response body empty with Status Code " + statusCode).build();
+            } else {
+                throw SdkClientException.builder()
+                                        .message("Instance metadata service returned unexpected status code " + statusCode)
+                                        .build();
+            }
+        } catch (SdkServiceException sd) {
+            throw SdkServiceException.builder().message(sd.getMessage()).cause(sd).build();
+        } catch (IOException | SdkClientException  io) {
+            // TODO Retry Logic will be added
+            log.warn("Received an IOException {0} " , io);
+        } finally {
+            IoUtils.closeQuietly(abortableInputStream, log);
+        }
+
+        return data;
+    }
+
+    private String getToken() throws IOException {
+
+        AbortableInputStream abortableInputStream = null;
+        try {
+            URI uri = URI.create(endpoint + TOKEN_RESOURCE_PATH);
+            HttpExecuteRequest httpExecuteRequest = REQUEST_MARSHALLER.createTokenRequest(uri, SdkHttpMethod.PUT, tokenTtl);
+            HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
+            int statusCode = response.httpResponse().statusCode();
+            Optional<AbortableInputStream> responseBody = response.responseBody();
+
+            if (statusCode == HttpURLConnection.HTTP_OK && responseBody.isPresent()) {
+                abortableInputStream = responseBody.get();
+                return IoUtils.toUtf8String(abortableInputStream);
+            } else if (statusCode == HttpURLConnection.HTTP_FORBIDDEN || statusCode == HttpURLConnection.HTTP_BAD_REQUEST) {
+                throw SdkServiceException.builder()
+                                         .message("Could not retrieve token as " + statusCode + " error occurred.").build();
+            } else if (statusCode == HttpURLConnection.HTTP_OK) {
+                throw SdkClientException.builder()
+                                        .message("Response body empty with Status Code " + statusCode).build();
+            } else {
+                throw SdkClientException.builder()
+                                        .message("Instance metadata service returned unexpected status code " + statusCode)
+                                        .build();
+            }
+        } catch (IOException e) {
+            throw e;
+        } finally {
+            IoUtils.closeQuietly(abortableInputStream, log);
+        }
     }
 
     private static final class Ec2MetadataBuilder implements Ec2Metadata.Builder {
