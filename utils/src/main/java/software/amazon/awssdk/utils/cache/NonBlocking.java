@@ -15,13 +15,8 @@
 
 package software.amazon.awssdk.utils.cache;
 
-import static java.time.temporal.ChronoUnit.HOURS;
-import static java.time.temporal.ChronoUnit.MINUTES;
-
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Optional;
-import java.util.Random;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.Semaphore;
@@ -56,11 +51,6 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
      * The semaphore around concurrent background refreshes, enforcing the {@link #MAX_CONCURRENT_REFRESHES}.
      */
     private static final Semaphore CONCURRENT_REFRESH_LEASES = new Semaphore(MAX_CONCURRENT_REFRESHES);
-
-    /**
-     * The {@link Random} instance used for calculating jitter of the background prefetches.
-     */
-    private static final Random JITTER_RANDOM = new Random();
 
     /**
      * Thread used to kick off refreshes during the prefetch window. This does not do the actual refreshing. That's left for
@@ -106,11 +96,6 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
     private final AtomicReference<ScheduledFuture<?>> refreshTask = new AtomicReference<>();
 
     /**
-     * The minimum amount of time allowed between async refreshes, primarily adjustable for testing purposes.
-     */
-    private final Duration minimumRefreshFrequency;
-
-    /**
      * Whether this strategy has been shutdown (and should stop doing background refreshes)
      */
     private volatile boolean shutdown = false;
@@ -130,13 +115,7 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
      * performing the update.
      */
     public NonBlocking(String asyncThreadName) {
-        this(asyncThreadName, Duration.ofSeconds(60));
-    }
-
-    @SdkTestInternalApi
-    NonBlocking(String asyncThreadName, Duration minimumRefreshFrequency) {
         this.asyncThreadName = asyncThreadName + "-" + INSTANCE_NUMBER.getAndIncrement();
-        this.minimumRefreshFrequency = minimumRefreshFrequency;
     }
 
     @SdkTestInternalApi
@@ -160,54 +139,36 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
     @Override
     public <T> RefreshResult<T> fetch(Supplier<RefreshResult<T>> supplier) {
         RefreshResult<T> result = supplier.get();
-        if (result.staleTime() == null || result.prefetchTime() == null) {
-            return result;
-        }
-
-        getRefreshTime(result).ifPresent(this::schedulePrefetch);
+        schedulePrefetch(result);
         return result;
     }
 
-    private Optional<Instant> getRefreshTime(RefreshResult<?> result) {
-        Instant minStart = Instant.now().plus(minimumRefreshFrequency);
-        Instant rangeStart = result.prefetchTime().isBefore(minStart) ? minStart : result.prefetchTime();
-
-        if (Duration.between(Instant.now(), rangeStart).toDays() > 7) {
-            log.debug(() -> "Skipping background refresh because the prefetch time is too far in the future: " + rangeStart);
-            return Optional.empty();
-        }
-
-        Instant maxEnd = rangeStart.plus(1, HOURS);
-        Instant rangeEnd = result.staleTime().isAfter(maxEnd) ? maxEnd : result.staleTime().minus(1, MINUTES);
-
-        if (rangeEnd.isBefore(rangeStart)) {
-            return Optional.of(rangeStart);
-        }
-
-        return Optional.of(randomTimeBetween(rangeStart, rangeEnd));
-    }
-
-    private Instant randomTimeBetween(Instant rangeStart, Instant rangeEnd) {
-        Duration timeBetween = Duration.between(rangeStart, rangeEnd);
-        return rangeStart.plusMillis(Math.abs(JITTER_RANDOM.nextLong() % timeBetween.toMillis()));
-    }
-
-    private void schedulePrefetch(Instant refreshTime) {
-        if (shutdown) {
+    private void schedulePrefetch(RefreshResult<?> result) {
+        if (shutdown || result.staleTime() == null || result.prefetchTime() == null) {
             return;
         }
 
-        Duration waitTime = Duration.between(Instant.now(), refreshTime);
-        log.debug(() -> "Scheduling refresh attempt for " + refreshTime + " (in " + waitTime.toMillis() + " ms)");
+        Duration timeUntilPrefetch = Duration.between(Instant.now(), result.prefetchTime());
+        if (timeUntilPrefetch.isNegative() || timeUntilPrefetch.toDays() > 7) {
+            log.debug(() -> "Skipping background refresh because the prefetch time is in the past or too far in the future: " +
+                            result.prefetchTime());
+            return;
+        }
+
+        Instant backgroundRefreshTime = result.prefetchTime().plusSeconds(1);
+        Duration timeUntilBackgroundRefresh = timeUntilPrefetch.plusSeconds(1);
+
+        log.debug(() -> "Scheduling refresh attempt for " + backgroundRefreshTime + " (in " +
+                        timeUntilBackgroundRefresh.toMillis() + " ms)");
 
         ScheduledFuture<?> scheduledTask = SCHEDULER.schedule(() -> {
             runWithInstanceThreadName(() -> {
-                log.debug(() -> "Executing refresh attempt scheduled for " + refreshTime);
+                log.debug(() -> "Executing refresh attempt scheduled for " + backgroundRefreshTime);
 
                 // If the supplier has already been prefetched, this will just be a cache hit.
                 tryRunBackgroundTask(cachedSupplier::get);
             });
-        }, waitTime.toMillis(), TimeUnit.MILLISECONDS);
+        }, timeUntilBackgroundRefresh.toMillis(), TimeUnit.MILLISECONDS);
 
         updateTask(scheduledTask);
 

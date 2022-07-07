@@ -198,6 +198,7 @@ public class CachedSupplierTest {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past())) {
             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                   .prefetchStrategy(new OneCallerBlocks())
+                                                                  .maxPrefetchJitter(Duration.ZERO)
                                                                   .build();
 
             // Perform one successful "get" to prime the cache.
@@ -225,6 +226,7 @@ public class CachedSupplierTest {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                    .prefetchStrategy(new NonBlocking("test-%s"))
+                                                                   .maxPrefetchJitter(Duration.ZERO)
                                                                    .build()) {
             // Perform one successful "get" to prime the cache.
             waitingSupplier.permits.release(1);
@@ -245,7 +247,8 @@ public class CachedSupplierTest {
     public void nonBlockingPrefetchStrategyRefreshesInBackground() {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(now().plusSeconds(62), now());
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
-                                                                   .prefetchStrategy(new NonBlocking("test-%s", Duration.ZERO))
+                                                                   .prefetchStrategy(new NonBlocking("test-%s"))
+                                                                   .maxPrefetchJitter(Duration.ZERO)
                                                                    .build()) {
             waitingSupplier.permits.release(2);
             cachedSupplier.get();
@@ -309,23 +312,23 @@ public class CachedSupplierTest {
                 CachedSupplier<String> supplier =
                     CachedSupplier.builder(() -> RefreshResult.builder("foo")
                                                               .prefetchTime(now())
-                                                              .staleTime(now())
+                                                              .staleTime(future())
                                                               .build())
-                                  .prefetchStrategy(new NonBlocking("test", Duration.ZERO))
+                                  .prefetchStrategy(new NonBlocking("test"))
+                                  .maxPrefetchJitter(Duration.ofMillis(10))
                                   .build();
                 supplier.get();
                 css.add(supplier);
-                Thread.sleep(10);
             }
 
             int maxActive = 0;
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 1000; i++) {
                 maxActive = Math.max(maxActive, NonBlocking.executor().getActiveCount());
-                Thread.sleep(10);
+                Thread.sleep(1);
             }
 
             // Make sure we used less-than 99 to do the refreshes.
-            assertThat(maxActive).isBetween(2, 99);
+            assertThat(maxActive).isBetween(1, 99);
         } finally {
             css.forEach(CachedSupplier::close);
         }
@@ -345,7 +348,8 @@ public class CachedSupplierTest {
                                             .prefetchTime(now())
                                             .staleTime(now())
                                             .build();
-                    }).prefetchStrategy(new NonBlocking("test", Duration.ZERO))
+                    }).prefetchStrategy(new NonBlocking("test"))
+                      .maxPrefetchJitter(Duration.ZERO)
                       .build();
                 executor.submit(supplier::get);
                 css.add(supplier);
