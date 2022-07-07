@@ -55,6 +55,8 @@ import software.amazon.awssdk.services.xml.model.GetOperationWithChecksumRespons
 import software.amazon.awssdk.services.xml.model.InvalidInputException;
 import software.amazon.awssdk.services.xml.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.xml.model.OperationWithChecksumRequiredResponse;
+import software.amazon.awssdk.services.xml.model.OperationWithNoneAuthTypeRequest;
+import software.amazon.awssdk.services.xml.model.OperationWithNoneAuthTypeResponse;
 import software.amazon.awssdk.services.xml.model.PutOperationWithChecksumRequest;
 import software.amazon.awssdk.services.xml.model.PutOperationWithChecksumResponse;
 import software.amazon.awssdk.services.xml.model.StreamingInputOperationRequest;
@@ -68,6 +70,7 @@ import software.amazon.awssdk.services.xml.transform.APostOperationWithOutputReq
 import software.amazon.awssdk.services.xml.transform.EventStreamOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.GetOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.OperationWithChecksumRequiredRequestMarshaller;
+import software.amazon.awssdk.services.xml.transform.OperationWithNoneAuthTypeRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.PutOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.StreamingOutputOperationRequestMarshaller;
@@ -395,6 +398,59 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                                     HttpChecksumRequired.create()).withInput(operationWithChecksumRequiredRequest));
             CompletableFuture<OperationWithChecksumRequiredResponse> whenCompleteFuture = null;
+            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
+            CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
+            return whenCompleteFuture;
+        } catch (Throwable t) {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
+
+    /**
+     * Invokes the OperationWithNoneAuthType operation asynchronously.
+     *
+     * @param operationWithNoneAuthTypeRequest
+     * @return A Java Future containing the result of the OperationWithNoneAuthType operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>XmlException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample XmlAsyncClient.OperationWithNoneAuthType
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/xml-service-2010-05-08/OperationWithNoneAuthType"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public CompletableFuture<OperationWithNoneAuthTypeResponse> operationWithNoneAuthType(
+        OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) {
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithNoneAuthTypeRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithNoneAuthType");
+
+            HttpResponseHandler<Response<OperationWithNoneAuthTypeResponse>> responseHandler = protocolFactory
+                .createCombinedResponseHandler(OperationWithNoneAuthTypeResponse::builder,
+                                               new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+
+            CompletableFuture<OperationWithNoneAuthTypeResponse> executeFuture = clientHandler
+                .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
+                             .withOperationName("OperationWithNoneAuthType")
+                             .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory))
+                             .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
+                             .withInput(operationWithNoneAuthTypeRequest));
+            CompletableFuture<OperationWithNoneAuthTypeResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });

@@ -21,6 +21,14 @@
       },
       "httpChecksumRequired": true
     },
+    "OperationWithNoneAuthType": {
+      "name": "NoneAuthTypeOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "authtype": "none"
+    },
     "APostOperation": {
       "name": "APostOperation",
       "http": {

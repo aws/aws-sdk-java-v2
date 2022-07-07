@@ -171,6 +171,16 @@
       "output":{"shape":"AllTypesStructure"},
       "httpChecksumRequired": true
     },
+    "OperationWithNoneAuthType":{
+      "name":"OperationWithNoneAuthType",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/allTypes"
+      },
+      "input":{"shape":"AllTypesStructure"},
+      "output":{"shape":"AllTypesStructure"},
+      "authtype": "none"
+    },
     "StreamingInputOperation":{
       "name":"StreamingInputOperation",
       "http":{
