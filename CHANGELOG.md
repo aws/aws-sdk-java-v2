@@ -1,3 +1,24 @@
+# __2.17.227__ __2022-07-07__
+## __AWS Database Migration Service__
+  - ### Features
+    - New api to migrate event subscriptions to event bridge rules
+
+## __AWS IoT__
+  - ### Features
+    - This release adds support to register a CA certificate without having to provide a verification certificate. This also allows multiple AWS accounts to register the same CA in the same region.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Adds 5 APIs: PutPositionConfiguration, GetPositionConfiguration, ListPositionConfigurations, UpdatePosition, GetPosition for the new Positioning Service feature which enables customers to configure solvers to calculate position of LoRaWAN devices, or specify position of LoRaWAN devices & gateways.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Adds support for AppKeys and TenantIds in Amazon Chime SDK WebRTC sessions
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Heterogeneous clusters: the ability to launch training jobs with multiple instance types. This enables running component of the training job on the instance type that is most suitable for it. e.g. doing data processing and augmentation on CPU instances and neural network training on GPU instances
+
 # __2.17.226__ __2022-07-06__
 ## __AWS CloudFormation__
   - ### Features
