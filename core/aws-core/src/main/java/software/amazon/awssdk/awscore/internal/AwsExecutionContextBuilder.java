@@ -20,6 +20,7 @@ import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESO
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -107,13 +108,18 @@ public final class AwsExecutionContextBuilder {
                                                      .requestBody(executionParams.getRequestBody())
                                                      .build();
         interceptorContext = runInitialInterceptors(interceptorContext, executionAttributes, executionInterceptorChain);
-        Signer signer = resolveSigner(interceptorContext.request(), clientConfig.option(SdkAdvancedClientOption.SIGNER));
+
+        Signer signer = isAuthenticatedRequest(executionAttributes) ?
+                        resolveSigner(interceptorContext.request(), clientConfig.option(SdkAdvancedClientOption.SIGNER)) :
+                        null;
 
         // beforeExecution and modifyRequest interceptors should avoid dependency on credentials,
         // since they should be resolved after the interceptors run
-        AwsCredentials credentials = resolveCredentials(clientConfig.option(AwsClientOption.CREDENTIALS_PROVIDER),
-                                                        originalRequest,
-                                                        metricCollector);
+        AwsCredentials credentials =
+            isAuthenticatedRequest(executionAttributes) ?
+            resolveCredentials(clientConfig.option(AwsClientOption.CREDENTIALS_PROVIDER), originalRequest, metricCollector)
+                                                        : AnonymousCredentialsProvider.create().resolveCredentials();
+
         executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials);
         executionAttributes.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
                                          resolveSigningMethodUsed(signer, executionAttributes, credentials));
@@ -203,4 +209,9 @@ public final class AwsExecutionContextBuilder {
         }
         return metricCollector;
     }
+
+    private static boolean isAuthenticatedRequest(ExecutionAttributes executionAttributes) {
+        return executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST).orElse(true);
+    }
+
 }

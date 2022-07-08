@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Requests which are defined with AuthType as None should not be signed or authorized by the SDK."
+}
