@@ -38,6 +38,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.testutils.FileUtils;
+import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
+import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
 import software.amazon.awssdk.utils.Logger;
 
 public class S3TransferManagerUploadDirectoryIntegrationTest extends S3IntegrationTestBase {
@@ -90,9 +92,9 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     void uploadDirectory_filesSentCorrectly() {
         String prefix = "yolo";
         DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(directory)
-                                                                          .bucket(TEST_BUCKET)
-                                                                          .prefix(prefix)
-                                                                          .overrideConfiguration(o -> o.recursive(true)));
+                                                                   .bucket(TEST_BUCKET)
+                                                                   .prefix(prefix)
+                                                                   .overrideConfiguration(o -> o.recursive(true)));
         CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
         assertThat(completedDirectoryUpload.failedTransfers()).isEmpty();
 

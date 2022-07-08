@@ -34,9 +34,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
-import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
-import software.amazon.awssdk.transfer.s3.ResumableFileDownload;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 

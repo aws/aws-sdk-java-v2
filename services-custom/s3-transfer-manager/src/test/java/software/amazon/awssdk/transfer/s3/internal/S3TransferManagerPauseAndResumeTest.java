@@ -42,8 +42,8 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
-import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
-import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 

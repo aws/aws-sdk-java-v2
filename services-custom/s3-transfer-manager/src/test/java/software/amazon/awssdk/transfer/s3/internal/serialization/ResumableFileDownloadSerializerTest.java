@@ -39,9 +39,9 @@ import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.RequestPayer;
 import software.amazon.awssdk.testutils.RandomTempFile;
-import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
-import software.amazon.awssdk.transfer.s3.ResumableFileDownload;
-import software.amazon.awssdk.transfer.s3.TransferRequestOverrideConfiguration;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
+import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 
 class ResumableFileDownloadSerializerTest {

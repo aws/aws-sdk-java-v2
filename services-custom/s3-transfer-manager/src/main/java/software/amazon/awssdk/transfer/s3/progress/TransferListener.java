@@ -22,14 +22,14 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
-import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
-import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
-import software.amazon.awssdk.transfer.s3.CompletedObjectTransfer;
-import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
-import software.amazon.awssdk.transfer.s3.TransferRequest;
-import software.amazon.awssdk.transfer.s3.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.model.CompletedObjectTransfer;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.TransferObjectRequest;
+import software.amazon.awssdk.transfer.s3.model.TransferRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
 /**
  * The {@link TransferListener} interface may be implemented by your application in order to receive event-driven updates on the
