@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.Validate.notNull;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
