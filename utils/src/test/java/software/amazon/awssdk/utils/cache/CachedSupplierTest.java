@@ -310,7 +310,7 @@ public class CachedSupplierTest {
             for (int i = 0; i < 99; i++) {
                 CachedSupplier<String> supplier =
                     CachedSupplier.builder(() -> RefreshResult.builder("foo")
-                                                              .prefetchTime(now())
+                                                              .prefetchTime(now().plusMillis(1))
                                                               .staleTime(future())
                                                               .build())
                                   .prefetchStrategy(new NonBlocking("test"))
