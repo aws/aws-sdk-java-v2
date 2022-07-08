@@ -342,14 +342,14 @@ public class CachedSupplierTest {
             for (int i = 0; i < 1000; i++) {
                 CachedSupplier<String> supplier =
                     CachedSupplier.builder(() -> {
-                        invokeSafely(() -> Thread.sleep(100));
-                        return RefreshResult.builder("foo")
-                                            .prefetchTime(now())
-                                            .staleTime(now())
-                                            .build();
-                    }).prefetchStrategy(new NonBlocking("test"))
-                      .prefetchJitterEnabled(false)
-                      .build();
+                                      invokeSafely(() -> Thread.sleep(100));
+                                      return RefreshResult.builder("foo")
+                                                          .prefetchTime(now().plusMillis(1))
+                                                          .staleTime(now().plusSeconds(60))
+                                                          .build();
+                                  }).prefetchStrategy(new NonBlocking("test"))
+                                  .prefetchJitterEnabled(false)
+                                  .build();
                 executor.submit(supplier::get);
                 css.add(supplier);
             }
