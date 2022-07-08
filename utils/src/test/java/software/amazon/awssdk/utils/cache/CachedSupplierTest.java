@@ -244,7 +244,7 @@ public class CachedSupplierTest {
 
     @Test
     public void nonBlockingPrefetchStrategyRefreshesInBackground() {
-        try (WaitingSupplier waitingSupplier = new WaitingSupplier(now().plusSeconds(62), now());
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(now().plusSeconds(62), now().plusSeconds(1));
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                    .prefetchStrategy(new NonBlocking("test-%s"))
                                                                    .prefetchJitterEnabled(false)
