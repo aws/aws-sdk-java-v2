@@ -16,7 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
-import static software.amazon.awssdk.utils.ComparableUtils.minimum;
+import static software.amazon.awssdk.utils.ComparableUtils.maximum;
 
 import java.io.IOException;
 import java.net.URI;
@@ -191,7 +191,7 @@ public final class InstanceProfileCredentialsProvider
             return now.plus(5, MINUTES);
         }
 
-        return now.plus(minimum(timeUntilExpiration.abs().dividedBy(2), Duration.ofMinutes(5)));
+        return now.plus(maximum(timeUntilExpiration.abs().dividedBy(2), Duration.ofMinutes(5)));
     }
 
     @Override
