@@ -52,6 +52,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     private static final RequestMarshaller REQUEST_MARSHALLER = new RequestMarshaller();
 
+    private static final EndpointProvider ENDPOINT_PROVIDER = EndpointProvider.builder().build();
     private final RetryPolicy retryPolicy;
 
     private final URI endpoint;
@@ -67,9 +68,9 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
     private DefaultEc2Metadata(DefaultEc2Metadata.Ec2MetadataBuilder builder) {
 
         this.retryPolicy = builder.retryPolicy != null ? builder.retryPolicy : RetryPolicy.builder().build();
-        this.endpoint = builder.endpoint;
+        this.endpoint = URI.create(ENDPOINT_PROVIDER.resolveEndpoint(builder.endpoint, builder.endpointMode));
         this.tokenTtl = builder.tokenTtl != null ? builder.tokenTtl : Duration.ofSeconds(21600);
-        this.endpointMode = builder.endpointMode;
+        this.endpointMode = ENDPOINT_PROVIDER.resolveEndpointMode(builder.endpointMode);
         this.httpDebugOutput = builder.httpDebugOutput;
         this.httpClient = builder.httpClient != null ? builder.httpClient : UrlConnectionHttpClient.create();
     }
