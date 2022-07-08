@@ -67,7 +67,7 @@ import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
  */
 public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
 
-    private static final int ONE_WEEK_IN_MILLISECONDS = 365 * 1000 * 60 * 60 * 24 * 7;
+    private static final int ONE_WEEK_IN_MILLISECONDS = 1000 * 60 * 60 * 24 * 7;
     private static final int ONE_HOUR_IN_MILLISECONDS = 1000 * 60 * 60;
     /** The CloudWatch client for all tests to use. */
     private static CloudWatchClient cloudwatch;
