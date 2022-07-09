@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.imds.internal.DefaultEc2Metadata;
 import software.amazon.awssdk.imds.internal.EndpointMode;
+import software.amazon.awssdk.imds.internal.MetadataResponse;
 
 
 /**
@@ -33,9 +34,9 @@ public interface Ec2Metadata {
     /**
      * Gets the specified instance metadata value by the given path.
      * @param path  Input path
-     * @return Instance metadata value
+     * @return Instance metadata value as part of MetadataResponse Object
      */
-    String get(String path);
+    MetadataResponse get(String path);
 
     /**
      * @return The Builder Object consisting all the fields.

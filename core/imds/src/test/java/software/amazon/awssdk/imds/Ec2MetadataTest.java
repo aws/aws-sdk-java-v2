@@ -41,6 +41,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
+import software.amazon.awssdk.imds.internal.MetadataResponse;
+import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 
 /**
  * Unit Tests to test the Ec2Metadata Client functionality
@@ -65,6 +68,8 @@ public class Ec2MetadataTest {
     @Rule
     public WireMockRule mockMetadataEndpoint = new WireMockRule();
 
+    private static final JsonNodeParser jsonParser = JsonNode.parser();
+
     @Before
     public void methodSetup() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "http://localhost:" + mockMetadataEndpoint.port());
@@ -74,8 +79,9 @@ public class Ec2MetadataTest {
     @Test
     public void when_dummy_string_is_returned(){
 
-        when(ec2Metadata.get("/ami-id")).thenReturn("IMDS");
-        assertThat(ec2Metadata.get("/ami-id")).isEqualTo("IMDS");
+        MetadataResponse metadataResponse = new MetadataResponse("IMDS");
+        when(ec2Metadata.get("/ami-id")).thenReturn(metadataResponse);
+        assertThat(ec2Metadata.get("/ami-id").asString()).isEqualTo("IMDS");
 
     }
 
@@ -93,9 +99,9 @@ public class Ec2MetadataTest {
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
         Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
-        String data = ec2Metadata.get("/latest/meta-data/ami-id");
 
-        assertThat(data).isEqualTo("{}");
+        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
+        assertThat(metadataResponse.asString()).isEqualTo("{}");
 
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
         WireMock.verify(getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE)).withHeader(TOKEN_HEADER, equalTo("some-token")));
@@ -111,7 +117,7 @@ public class Ec2MetadataTest {
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}").withStatus(404)));
 
         Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
-        String data = ec2Metadata.get("/latest/meta-data/ami-id");
+        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
     }
 
     @Test
@@ -121,9 +127,8 @@ public class Ec2MetadataTest {
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}").withStatus(401)));
 
         Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
-        String data = ec2Metadata.get("/latest/meta-data/ami-id");
-
-        assertThat(data).isNull();
+        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
+        assertThat(metadataResponse).isNull();
     }
 
     @Test
@@ -133,9 +138,9 @@ public class Ec2MetadataTest {
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withFixedDelay(Integer.MAX_VALUE)));
 
         Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
-        String data = ec2Metadata.get("/latest/meta-data/ami-id");
 
-        assertThat(data).isNull();
+        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
+        assertThat(metadataResponse).isNull();
 
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
         WireMock.verify(getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE)).withHeader(TOKEN_HEADER, equalTo("some-token")));
@@ -151,7 +156,7 @@ public class Ec2MetadataTest {
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
         Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
-        String data = ec2Metadata.get("/latest/meta-data/ami-id");
+        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
     }
 
     @Test
@@ -161,9 +166,9 @@ public class Ec2MetadataTest {
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
         Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
-        String data = ec2Metadata.get("/latest/meta-data/ami-id");
 
-        assertThat(data).isNull();
+        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
+        assertThat(metadataResponse).isNull();
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
 
     }
@@ -174,12 +179,10 @@ public class Ec2MetadataTest {
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
         Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
-        String data = ec2Metadata.get("/latest/meta-data/ami-id");
-
-        assertThat(data).isNull();
+        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
+        assertThat(metadataResponse).isNull();
 
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-       // WireMock.verify(getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE)).withHeader(TOKEN_HEADER, equalTo("some-token")));
     }
     @Test
     public void getAmiId_onTokenResource_200() throws IOException {
@@ -187,9 +190,9 @@ public class Ec2MetadataTest {
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
         Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
-        String data = ec2Metadata.get("/latest/meta-data/ami-id");
 
-        assertThat(data).isEqualTo("{}");
+        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
+        assertThat(metadataResponse.asString()).isEqualTo("{}");
 
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
         WireMock.verify(getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE)).withHeader(TOKEN_HEADER, equalTo("some-token")));
