@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Share background refresh threads across async credential providers to reduce base SDK resource consumption."
-}
