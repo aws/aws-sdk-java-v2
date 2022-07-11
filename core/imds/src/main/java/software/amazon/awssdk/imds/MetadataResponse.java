@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.imds.internal;
+package software.amazon.awssdk.imds;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,7 +26,9 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 
 /**
- * The class is used for Response Handling and Parsing.
+ * The class is used for Response Handling and Parsing the metadata fetched by the get call in the {@link Ec2Metadata} interface.
+ * Metadata is stored in the instance variable <b>body</b>. The class provides convenience methods to the users to parse the
+ * metadata as a String, List and to parse the metadata in the JsonResponse according to the key.
  */
 @SdkPublicApi
 public class MetadataResponse {
@@ -35,19 +37,50 @@ public class MetadataResponse {
 
     private static final JsonNodeParser JSON_NODE_PARSER = JsonNode.parser();
     
-    String body;
+    private final String body;
 
     public MetadataResponse(String body) {
         this.body = body;
     }
 
+    /**
+     * Returns the Metadata Response body as a String. This method can be used for parsing the retrieved
+     * singular metadata from IMDS.
+     *
+     * @return String Representation of the Metadata Response Body.
+     *
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * Ec2Metadata ec2Metadata = Ec2Metadata.builder().build();
+     * MetadataResponse metadataResponse = client.get("/latest/meta-data/ami-id");
+     * String response = metadataResponse.asString();
+     *  }
+     *  </pre>
+     */
     public String asString() {
         return body;
+
     }
 
     /**
-     * Method to parse the json String into a list of Strings
-     * @return List obtained by splitting the json on "\n"
+     * Parses the response String into a list of Strings split by delimiter ("\n"). This method can be used for parsing the
+     * list-type metadata from IMDS.
+     *
+     * @return List Representation of the Metadata Response Body.
+     *
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * Ec2Metadata ec2Metadata = Ec2Metadata.builder().build();
+     * MetadataResponse metadataResponse = client.get("/latest/meta-data/ancestor-ami-ids");
+     * List<String>response = metadataResponse.asList();
+     * }
+     * </pre>
      */
     public List<String> asList() {
 
@@ -60,10 +93,25 @@ public class MetadataResponse {
     }
 
     /**
-     * Method to get the String Array Values of the key in jsonResponse
-     * @param key The key / field to retrieve from jsonResponse
-     * @return String Array of the values of the key in the jsonResponse
+     * Parses the response String to get the String Array Values of the key in jsonResponse. This method can be used for
+     * parsing the metadata in a String Json Format.
+     *
+     * @param key The key / field to retrieve from jsonResponse.
+     * @return String Array of the values of the key in the jsonResponse.
+     * Returns Null in case the key is null or key doesn't exist in the json.
+     *
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * Ec2Metadata ec2Metadata = Ec2Metadata.builder().build();
+     * MetadataResponse metadataResponse = client.get("/latest/dynamic/instance-identity/document");
+     * String[] devpayProductCodes = metadataResponse.getStringArrayValuesFromJson("devpayProductCodes");
+     * }
+     * </pre>
      */
+
     public String[] getStringArrayValuesFromJson(String key) {
 
         if (null != key) {
@@ -77,10 +125,26 @@ public class MetadataResponse {
     }
 
     /**
-     * Method to get the String Array Values of the key in jsonResponse
+     * Parses the response String to get the String Value of the key in jsonResponse. This method can be used for
+     * parsing the metadata in a String Json Format.
+     *
      * @param key The key / field to retrieve from jsonResponse
-     * @return String value of the key in the jsonResponse
+     * @return Returns the String Value of the key in the jsonResponse .
+     *
+     * Returns Null in case the key is null or key doesn't exist in the json.
+     *
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * Ec2Metadata ec2Metadata = Ec2Metadata.builder().build();
+     * MetadataResponse metadataResponse = client.get("/latest/dynamic/instance-identity/document");
+     * String region = metadataResponse.getStringArrayValuesFromJson("region");
+     * }
+     * </pre>
      */
+
     public String getStringValueFromJson(String key) {
 
         if (null != key) {

@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.util.List;
 import org.junit.Test;
-import software.amazon.awssdk.imds.internal.MetadataResponse;
 
 /**
  * The class tests the utility methods provided by MetadataResponse Class .

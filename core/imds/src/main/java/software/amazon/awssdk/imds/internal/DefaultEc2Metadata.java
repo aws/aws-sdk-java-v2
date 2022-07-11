@@ -36,6 +36,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.imds.Ec2Metadata;
+import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**

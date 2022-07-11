@@ -22,7 +22,6 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.imds.internal.DefaultEc2Metadata;
 import software.amazon.awssdk.imds.internal.EndpointMode;
-import software.amazon.awssdk.imds.internal.MetadataResponse;
 
 
 /**

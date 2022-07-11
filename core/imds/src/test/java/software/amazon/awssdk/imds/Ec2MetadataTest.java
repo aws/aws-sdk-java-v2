@@ -40,8 +40,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.http.ExecutableHttpRequest;
-import software.amazon.awssdk.imds.internal.MetadataResponse;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 
