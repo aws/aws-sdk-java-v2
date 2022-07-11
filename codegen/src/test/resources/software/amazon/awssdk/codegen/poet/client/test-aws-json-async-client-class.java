@@ -75,6 +75,8 @@ import software.amazon.awssdk.services.json.model.JsonException;
 import software.amazon.awssdk.services.json.model.JsonRequest;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredResponse;
+import software.amazon.awssdk.services.json.model.OperationWithNoneAuthTypeRequest;
+import software.amazon.awssdk.services.json.model.OperationWithNoneAuthTypeResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
@@ -99,6 +101,7 @@ import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersR
 import software.amazon.awssdk.services.json.transform.InputEventMarshaller;
 import software.amazon.awssdk.services.json.transform.InputEventTwoMarshaller;
 import software.amazon.awssdk.services.json.transform.OperationWithChecksumRequiredRequestMarshaller;
+import software.amazon.awssdk.services.json.transform.OperationWithNoneAuthTypeRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithResultKeyRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithoutResultKeyRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingInputOperationRequestMarshaller;
@@ -607,6 +610,63 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                     HttpChecksumRequired.create()).withInput(operationWithChecksumRequiredRequest));
             CompletableFuture<OperationWithChecksumRequiredResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
+            return executeFuture;
+        } catch (Throwable t) {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
+
+    /**
+     * Invokes the OperationWithNoneAuthType operation asynchronously.
+     *
+     * @param operationWithNoneAuthTypeRequest
+     * @return A Java Future containing the result of the OperationWithNoneAuthType operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.OperationWithNoneAuthType
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithNoneAuthType"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public CompletableFuture<OperationWithNoneAuthTypeResponse> operationWithNoneAuthType(
+        OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) {
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithNoneAuthTypeRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithNoneAuthType");
+            JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
+                                                                           .isPayloadJson(true).build();
+
+            HttpResponseHandler<OperationWithNoneAuthTypeResponse> responseHandler = protocolFactory.createResponseHandler(
+                operationMetadata, OperationWithNoneAuthTypeResponse::builder);
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
+                                                                                                       operationMetadata);
+
+            CompletableFuture<OperationWithNoneAuthTypeResponse> executeFuture = clientHandler
+                .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
+                             .withOperationName("OperationWithNoneAuthType")
+                             .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory))
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
+                             .withInput(operationWithNoneAuthTypeRequest));
+            CompletableFuture<OperationWithNoneAuthTypeResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);

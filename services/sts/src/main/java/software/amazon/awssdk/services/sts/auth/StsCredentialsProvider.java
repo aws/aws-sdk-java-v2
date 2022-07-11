@@ -37,9 +37,13 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
  * An implementation of {@link AwsCredentialsProvider} that is extended within this package to provide support for periodically-
- * updating session credentials. When credentials get close to expiration, this class will attempt to update them asynchronously
- * using {@link #getUpdatedCredentials(StsClient)}. If the credentials end up expiring, this class will block all calls to
- * {@link #resolveCredentials()} until the credentials can be updated.
+ * updating session credentials.
+ *
+ * When credentials get close to expiration, this class will attempt to update them automatically either with a single calling
+ * thread (by default) or asynchronously (if {@link #asyncCredentialUpdateEnabled} is true). If the credentials expire, this
+ * class will block all calls to {@link #resolveCredentials()} until the credentials are updated.
+ *
+ * Users of this provider must {@link #close()} it when they are finished using it.
  */
 @ThreadSafe
 @SdkInternalApi
@@ -49,12 +53,12 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
     private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
 
     /**
-     * The STS client that should be used for periodically updating the session credentials in the background.
+     * The STS client that should be used for periodically updating the session credentials.
      */
     final StsClient stsClient;
 
     /**
-     * The session cache that will update the credentials asynchronously in the background when they get close to expiring.
+     * The session cache that handles automatically updating the credentials when they get close to expiring.
      */
     private final CachedSupplier<SessionCredentialsHolder> sessionCache;
 
@@ -174,7 +178,7 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
 
         /**
          * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered
-         * stale and should no longer be used. All threads will block until the value is updated.
+         * stale and must be updated. All threads will block until the value is updated.
          *
          * <p>By default, this is 1 minute.</p>
          */
@@ -186,7 +190,10 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
 
         /**
          * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered
-         * close to stale and should be updated. See {@link #asyncCredentialUpdateEnabled}.
+         * close to stale and should be updated.
+         *
+         * Prefetch updates will occur between the specified time and the stale time of the provider. Prefetch updates may be
+         * asynchronous. See {@link #asyncCredentialUpdateEnabled}.
          *
          * <p>By default, this is 5 minutes.</p>
          */

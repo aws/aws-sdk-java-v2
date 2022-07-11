@@ -1,3 +1,62 @@
+# __2.17.229__ __2022-07-11__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Jitter credential provider cache refresh times.
+    - Log a warning when an extreme number of async credential providers are running in parallel, because it could indicate that the user is not closing their clients or credential providers when they are done using them.
+    - Share background refresh threads across async credential providers to reduce base SDK resource consumption.
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Build, manage, and monitor a unified global network that connects resources running across your cloud and on-premises environments using the AWS Cloud WAN APIs.
+
+## __Amazon Redshift__
+  - ### Features
+    - This release adds a new --snapshot-arn field for describe-cluster-snapshots, describe-node-configuration-options, restore-from-cluster-snapshot, authorize-snapshot-acsess, and revoke-snapshot-acsess APIs. It allows customers to give a Redshift snapshot ARN or a Redshift Serverless ARN as input.
+
+## __Redshift Serverless__
+  - ### Features
+    - Removed prerelease language for GA launch.
+
+# __2.17.228__ __2022-07-08__
+## __AWS Backup__
+  - ### Features
+    - This release adds support for authentication using IAM user identity instead of passed IAM role, identified by excluding the IamRoleArn field in the StartRestoreJob API. This feature applies to only resource clients with a destructive restore nature (e.g. SAP HANA).
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Requests which are defined with AuthType as None should not be signed or authorized by the SDK.
+
+# __2.17.227__ __2022-07-07__
+## __AWS Database Migration Service__
+  - ### Features
+    - New api to migrate event subscriptions to event bridge rules
+
+## __AWS IoT__
+  - ### Features
+    - This release adds support to register a CA certificate without having to provide a verification certificate. This also allows multiple AWS accounts to register the same CA in the same region.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Adds 5 APIs: PutPositionConfiguration, GetPositionConfiguration, ListPositionConfigurations, UpdatePosition, GetPosition for the new Positioning Service feature which enables customers to configure solvers to calculate position of LoRaWAN devices, or specify position of LoRaWAN devices & gateways.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Adds support for AppKeys and TenantIds in Amazon Chime SDK WebRTC sessions
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Heterogeneous clusters: the ability to launch training jobs with multiple instance types. This enables running component of the training job on the instance type that is most suitable for it. e.g. doing data processing and augmentation on CPU instances and neural network training on GPU instances
+
+# __2.17.226__ __2022-07-06__
+## __AWS CloudFormation__
+  - ### Features
+    - My AWS Service (placeholder) - Add a new feature Account-level Targeting for StackSet operation
+
+## __Synthetics__
+  - ### Features
+    - This release introduces Group feature, which enables users to group cross-region canaries.
+
 # __2.17.225__ __2022-07-05__
 ## __AWS Config__
   - ### Features

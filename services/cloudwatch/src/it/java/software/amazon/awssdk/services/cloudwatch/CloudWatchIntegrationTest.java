@@ -164,38 +164,6 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
         assertTrue(seenDimensions);
     }
 
-
-    /**
-     * Tests handling a "request too large" error. This breaks our parser right
-     * now and is therefore disabled.
-     */
-
-    @Test
-    public void put_metric_large_data_throws_request_entity_large_exception()
-            throws Exception {
-        String measureName = this.getClass().getName() + System.currentTimeMillis();
-        long now = System.currentTimeMillis();
-        double value = 42.0;
-
-        Collection<MetricDatum> data = new LinkedList<>();
-        for (int i = ONE_WEEK_IN_MILLISECONDS; i >= 0; i -= ONE_HOUR_IN_MILLISECONDS) {
-            long time = now - i;
-            MetricDatum datum = MetricDatum.builder().dimensions(
-                    Dimension.builder().name("InstanceType").value("m1.small").build())
-                                                 .metricName(measureName).timestamp(Instant.now())
-                                                 .unit("Count").value(value).build();
-            data.add(datum);
-        }
-
-        try {
-            cloudwatch.putMetricData(PutMetricDataRequest.builder().namespace(
-                    "AWS/EC2").metricData(data).build());
-            fail("Expected an error");
-        } catch (SdkServiceException e) {
-            assertTrue(413 == e.statusCode());
-        }
-    }
-
     /**
      * Tests setting the state for an alarm and reading its history.
      */
