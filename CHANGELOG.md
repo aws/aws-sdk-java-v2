@@ -1,3 +1,23 @@
+# __2.17.229__ __2022-07-11__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Jitter credential provider cache refresh times.
+    - Log a warning when an extreme number of async credential providers are running in parallel, because it could indicate that the user is not closing their clients or credential providers when they are done using them.
+    - Share background refresh threads across async credential providers to reduce base SDK resource consumption.
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Build, manage, and monitor a unified global network that connects resources running across your cloud and on-premises environments using the AWS Cloud WAN APIs.
+
+## __Amazon Redshift__
+  - ### Features
+    - This release adds a new --snapshot-arn field for describe-cluster-snapshots, describe-node-configuration-options, restore-from-cluster-snapshot, authorize-snapshot-acsess, and revoke-snapshot-acsess APIs. It allows customers to give a Redshift snapshot ARN or a Redshift Serverless ARN as input.
+
+## __Redshift Serverless__
+  - ### Features
+    - Removed prerelease language for GA launch.
+
 # __2.17.228__ __2022-07-08__
 ## __AWS Backup__
   - ### Features

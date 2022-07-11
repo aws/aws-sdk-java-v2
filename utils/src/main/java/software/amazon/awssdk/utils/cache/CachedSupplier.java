@@ -15,14 +15,18 @@
 
 package software.amazon.awssdk.utils.cache;
 
+import static java.time.temporal.ChronoUnit.MINUTES;
+
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
@@ -37,12 +41,17 @@ import software.amazon.awssdk.utils.Validate;
  * This should be created using {@link #builder(Supplier)}.
  */
 @SdkProtectedApi
-public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
+public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     /**
      * Maximum time to wait for a blocking refresh lock before calling refresh again. This is to rate limit how many times we call
      * refresh. In the ideal case, refresh always occurs in a timely fashion and only one thread actually does the refresh.
      */
     private static final Duration BLOCKING_REFRESH_MAX_WAIT = Duration.ofSeconds(5);
+
+    /**
+     * Random instance used for jittering refresh results.
+     */
+    private static final Random JITTER_RANDOM = new Random();
 
     /**
      * Used as a primitive form of rate limiting for the speed of our refreshes. This will make sure that the backing supplier has
@@ -63,6 +72,11 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     private final AtomicBoolean prefetchStrategyInitialized = new AtomicBoolean(false);
 
     /**
+     * Whether jitter is enabled on the prefetch duration (can be disabled for testing).
+     */
+    private final boolean prefetchJitterEnabled;
+
+    /**
      * The value currently stored in this cache.
      */
     private volatile RefreshResult<T> cachedValue = RefreshResult.builder((T) null)
@@ -76,8 +90,9 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     private final Supplier<RefreshResult<T>> valueSupplier;
 
     private CachedSupplier(Builder<T> builder) {
-        this.valueSupplier = Validate.notNull(builder.supplier, "builder.supplier");
+        this.valueSupplier = jitteredValueSupplier(Validate.notNull(builder.supplier, "builder.supplier"));
         this.prefetchStrategy = Validate.notNull(builder.prefetchStrategy, "builder.prefetchStrategy");
+        this.prefetchJitterEnabled = Validate.notNull(builder.prefetchJitterEnabled, "builder.prefetchJitterEnabled");
     }
 
     /**
@@ -107,7 +122,7 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         if (cachedValue.staleTime() == null) {
             return false;
         }
-        return Instant.now().isAfter(cachedValue.staleTime());
+        return !Instant.now().isBefore(cachedValue.staleTime());
     }
 
     /**
@@ -118,7 +133,7 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         if (cachedValue.prefetchTime() == null) {
             return false;
         }
-        return Instant.now().isAfter(cachedValue.prefetchTime());
+        return !Instant.now().isBefore(cachedValue.prefetchTime());
     }
 
     /**
@@ -146,7 +161,7 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                     }
 
                     // It wasn't, call the supplier to update it.
-                    cachedValue = valueSupplier.get();
+                    cachedValue = prefetchStrategy.fetch(valueSupplier);
                 }
             } finally {
                 if (lockAcquired) {
@@ -164,6 +179,49 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     }
 
     /**
+     * Wrap a value supplier with one that jitters its prefetch time.
+     */
+    private Supplier<RefreshResult<T>> jitteredValueSupplier(Supplier<RefreshResult<T>> supplier) {
+        return () -> {
+            RefreshResult<T> result = supplier.get();
+
+            if (!prefetchJitterEnabled || result.prefetchTime() == null) {
+                return result;
+            }
+
+            Duration maxJitter = getMaxJitter(result);
+            if (maxJitter.isZero()) {
+                return result;
+            }
+
+            long jitter = Math.abs(JITTER_RANDOM.nextLong() % maxJitter.toMillis());
+            Instant newPrefetchTime = result.prefetchTime().plusMillis(jitter);
+            return RefreshResult.builder(result.value())
+                                .prefetchTime(newPrefetchTime)
+                                .staleTime(result.staleTime())
+                                .build();
+        };
+    }
+
+    private Duration getMaxJitter(RefreshResult<T> result) {
+        Instant staleTime = result.staleTime() != null ? result.staleTime() : Instant.MAX;
+        Instant oneMinuteBeforeStale = staleTime.minus(1, MINUTES);
+        if (!result.prefetchTime().isBefore(oneMinuteBeforeStale)) {
+            return Duration.ZERO;
+        }
+
+        Duration timeBetweenPrefetchAndStale = Duration.between(result.prefetchTime(), oneMinuteBeforeStale);
+        if (timeBetweenPrefetchAndStale.toDays() > 365) {
+            // The value will essentially never become stale. The user is likely using this for a value that should be
+            // periodically refreshed on a best-effort basis. Use a 5-minute jitter range to respect their requested
+            // prefetch time.
+            return Duration.ofMinutes(5);
+        }
+
+        return timeBetweenPrefetchAndStale;
+    }
+
+    /**
      * Free any resources consumed by the prefetch strategy this supplier is using.
      */
     @Override
@@ -177,6 +235,7 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     public static final class Builder<T> {
         private final Supplier<RefreshResult<T>> supplier;
         private PrefetchStrategy prefetchStrategy = new OneCallerBlocks();
+        private Boolean prefetchJitterEnabled = true;
 
         private Builder(Supplier<RefreshResult<T>> supplier) {
             this.supplier = supplier;
@@ -191,6 +250,15 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          */
         public Builder<T> prefetchStrategy(PrefetchStrategy prefetchStrategy) {
             this.prefetchStrategy = prefetchStrategy;
+            return this;
+        }
+
+        /**
+         * Whether jitter is enabled on the prefetch time. Can be disabled for testing.
+         */
+        @SdkTestInternalApi
+        Builder<T> prefetchJitterEnabled(Boolean prefetchJitterEnabled) {
+            this.prefetchJitterEnabled = prefetchJitterEnabled;
             return this;
         }
 
@@ -214,6 +282,14 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          * Execute the provided value updater to update the cache. The specific implementation defines how this is invoked.
          */
         void prefetch(Runnable valueUpdater);
+
+        /**
+         * Invoke the provided supplier to retrieve the refresh result. This is useful for prefetch strategies to override when
+         * they care about the refresh result.
+         */
+        default <T> RefreshResult<T> fetch(Supplier<RefreshResult<T>> supplier) {
+            return supplier.get();
+        }
 
         /**
          * Invoked when the prefetch strategy is registered with a {@link CachedSupplier}.

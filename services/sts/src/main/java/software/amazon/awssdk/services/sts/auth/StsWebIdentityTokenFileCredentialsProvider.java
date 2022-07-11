@@ -31,29 +31,24 @@ import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.internal.AssumeRoleWithWebIdentityRequestSupplier;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
-import software.amazon.awssdk.services.sts.model.IdpCommunicationErrorException;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * A credential provider that will read web identity token file path, aws role arn, aws session name from system properties or
- * environment variables  and StsClient for using web identity token credentials with STS
- * <p>
- * StsWebIdentityTokenFileCredentialsProvider allows passing of a custom StsClient at the time of instantiation of the provider.
- * The user needs to make sure that this StsClient handles {@link IdpCommunicationErrorException} in retry policy.
- * </p>
- * <p>
- * This Web Identity Token File Credentials Provider extends {@link StsCredentialsProvider} that supports  periodically
- * updating session credentials. Refer {@link StsCredentialsProvider} for more details.
- * </p>
- * <p>STWebIdentityTokenFileCredentialsProvider differs from StsWebIdentityTokenFileCredentialsProvider which is in sts package:
- * <ol>
- *   <li>This Credentials Provider supports custom StsClient</li>
- *   <li>This Credentials Provider supports periodically updating session credentials. Refer {@link StsCredentialsProvider}</li>
- * </ol>
- * If asyncCredentialUpdateEnabled is set to true then this provider creates a thread in the background to periodically update
- * credentials. If this provider is no longer needed, the background thread can be shut down using {@link #close()}.
- * @see StsCredentialsProvider
+ * An implementation of {@link AwsCredentialsProvider} that periodically sends an {@link AssumeRoleWithWebIdentityRequest} to the
+ * AWS Security Token Service to maintain short-lived sessions to use for authentication. These sessions are updated using a
+ * single calling thread (by default) or asynchronously (if {@link Builder#asyncCredentialUpdateEnabled(Boolean)} is set).
+ *
+ * Unlike {@link StsAssumeRoleWithWebIdentityCredentialsProvider}, this reads the web identity information, including AWS role
+ * ARN, AWS session name and the location of a web identity token file from system properties and environment variables. The
+ * web identity token file is expected to contain the web identity token to use with each request.
+ *
+ * If the credentials are not successfully updated before expiration, calls to {@link #resolveCredentials()} will block until
+ * they are updated successfully.
+ *
+ * Users of this provider must {@link #close()} it when they are finished using it.
+ *
+ * This is created using {@link #builder()}.
  */
 @SdkPublicApi
 public final class StsWebIdentityTokenFileCredentialsProvider
