@@ -27,8 +27,8 @@ import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryOverrideConfiguration;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.config.UploadDirectoryOverrideConfiguration;
+import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 
 public class TransferManagerConfigurationTest {
     private TransferManagerConfiguration transferManagerConfiguration;

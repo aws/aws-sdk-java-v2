@@ -40,14 +40,15 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.transfer.s3.CompletedDirectoryUpload;
-import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
-import software.amazon.awssdk.transfer.s3.DirectoryUpload;
-import software.amazon.awssdk.transfer.s3.FileUpload;
-import software.amazon.awssdk.transfer.s3.TransferRequestOverrideConfiguration;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryOverrideConfiguration;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
+import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
+import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
+import software.amazon.awssdk.transfer.s3.config.UploadDirectoryOverrideConfiguration;
+import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 
@@ -214,7 +215,7 @@ public class UploadDirectoryHelperTest {
 
     private FileUpload newUpload(CompletableFuture<CompletedFileUpload> future) {
         return new DefaultFileUpload(future,
-                                 new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build())
+                                     new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build())
         );
     }
 }

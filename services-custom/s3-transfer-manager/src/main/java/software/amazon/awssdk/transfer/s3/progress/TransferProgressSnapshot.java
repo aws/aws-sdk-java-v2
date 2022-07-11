@@ -23,11 +23,11 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.transfer.s3.Download;
-import software.amazon.awssdk.transfer.s3.FileUpload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.TransferRequest;
-import software.amazon.awssdk.transfer.s3.Upload;
+import software.amazon.awssdk.transfer.s3.model.Download;
+import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.TransferRequest;
+import software.amazon.awssdk.transfer.s3.model.Upload;
 
 /**
  * {@link TransferProgressSnapshot} is an <b>immutable</b>, point-in-time representation of the progress of a given transfer

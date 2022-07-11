@@ -34,14 +34,15 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.S3Object;
-import software.amazon.awssdk.transfer.s3.CompletedDirectoryDownload;
-import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
-import software.amazon.awssdk.transfer.s3.DirectoryDownload;
-import software.amazon.awssdk.transfer.s3.DownloadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
-import software.amazon.awssdk.transfer.s3.FailedFileDownload;
-import software.amazon.awssdk.transfer.s3.FileDownload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultDirectoryDownload;
+import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
+import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.FailedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
@@ -144,6 +145,7 @@ public class DownloadDirectoryHelper {
 
     private Path determineDestinationPath(DownloadDirectoryRequest downloadDirectoryRequest, S3Object s3Object) {
         FileSystem fileSystem = downloadDirectoryRequest.destinationDirectory().getFileSystem();
+        // listOBjectv2requests.delimiter
         String delimiter = downloadDirectoryRequest.delimiter().orElse(null);
         String key = normalizeKey(downloadDirectoryRequest, s3Object, delimiter);
         String relativePath = getRelativePath(fileSystem, delimiter, key);

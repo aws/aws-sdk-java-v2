@@ -23,11 +23,14 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.CSVInput;
 import software.amazon.awssdk.services.s3.model.CSVOutput;
@@ -42,6 +45,7 @@ import software.amazon.awssdk.services.s3.model.SelectObjectContentEventStream.E
 import software.amazon.awssdk.services.s3.model.SelectObjectContentRequest;
 import software.amazon.awssdk.services.s3.model.SelectObjectContentResponse;
 import software.amazon.awssdk.services.s3.model.SelectObjectContentResponseHandler;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET_NAME = temporaryBucketName(SelectObjectContentIntegrationTest.class);
@@ -56,8 +60,10 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         s3.createBucket(r -> r.bucket(BUCKET_NAME));
         s3.waiter().waitUntilBucketExists(r -> r.bucket(BUCKET_NAME));
         s3.putObject(r -> r.bucket(BUCKET_NAME).key(KEY), RequestBody.fromString(CSV_CONTENTS));
+    }
 
-        s3Async = S3IntegrationTestBase.s3AsyncClientBuilder().build();
+    private static Stream<S3AsyncClient> s3AsyncClients() {
+        return Stream.of(crtClientBuilder().build(), s3AsyncClientBuilder().build());
     }
 
     @AfterAll
@@ -65,23 +71,25 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         try {
             deleteBucketAndAllContents(BUCKET_NAME);
         } finally {
-            s3Async.close();
+            s3AsyncClients().forEach(SdkAutoCloseable::close);
             s3.close();
         }
     }
 
-    @Test
-    public void selectObjectContent_onResponseInvokedWithResponse() {
+    @ParameterizedTest
+    @MethodSource("s3AsyncClients")
+    public void selectObjectContent_onResponseInvokedWithResponse(S3AsyncClient client) {
         TestHandler handler = new TestHandler();
-        executeSqlQueryWithHandler(QUERY, handler).join();
+        executeSqlQueryWithHandler(QUERY, handler, client).join();
 
         assertThat(handler.response).isNotNull();
     }
 
-    @Test
-    public void selectObjectContent_recordsEventUnmarshalledCorrectly() {
+    @ParameterizedTest
+    @MethodSource("s3AsyncClients")
+    public void selectObjectContent_recordsEventUnmarshalledCorrectly(S3AsyncClient client) {
         TestHandler handler = new TestHandler();
-        executeSqlQueryWithHandler(QUERY, handler).join();
+        executeSqlQueryWithHandler(QUERY, handler, client).join();
 
         RecordsEvent recordsEvent = (RecordsEvent) handler.receivedEvents.stream()
                                                                          .filter(e -> e.sdkEventType() == EventType.RECORDS)
@@ -91,15 +99,17 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         assertThat(recordsEvent.payload().asUtf8String()).contains("A\nC");
     }
 
-    @Test
-    public void selectObjectContent_invalidQuery_unmarshallsErrorResponse() {
+    @ParameterizedTest
+    @MethodSource("s3AsyncClients")
+    public void selectObjectContent_invalidQuery_unmarshallsErrorResponse(S3AsyncClient client) {
         TestHandler handler = new TestHandler();
-        CompletableFuture<Void> responseFuture = executeSqlQueryWithHandler("not a query", handler);
+        CompletableFuture<Void> responseFuture = executeSqlQueryWithHandler("not a query", handler, client);
 
         assertThatThrownBy(responseFuture::join).hasCauseInstanceOf(S3Exception.class);
     }
 
-    private static CompletableFuture<Void> executeSqlQueryWithHandler(String query, SelectObjectContentResponseHandler handler) {
+    private static CompletableFuture<Void> executeSqlQueryWithHandler(String query, SelectObjectContentResponseHandler handler,
+                                                                      S3AsyncClient client) {
         InputSerialization inputSerialization = InputSerialization.builder()
                                                                   .csv(CSVInput.builder().build())
                                                                   .compressionType(CompressionType.NONE)
@@ -120,7 +130,7 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
                                                                       .outputSerialization(outputSerialization)
                                                                       .build();
 
-        return s3Async.selectObjectContent(select, handler);
+        return client.selectObjectContent(select, handler);
     }
 
     private static class TestHandler implements SelectObjectContentResponseHandler {
