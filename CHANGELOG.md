@@ -1,3 +1,12 @@
+# __2.17.230__ __2022-07-12__
+## __AWS Network Manager__
+  - ### Features
+    - This release adds general availability API support for AWS Cloud WAN.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
 # __2.17.229__ __2022-07-11__
 ## __AWS SDK for Java v2__
   - ### Features

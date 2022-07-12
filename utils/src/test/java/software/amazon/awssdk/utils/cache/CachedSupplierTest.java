@@ -16,6 +16,7 @@
 package software.amazon.awssdk.utils.cache;
 
 import static java.time.Instant.now;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -304,13 +305,12 @@ public class CachedSupplierTest {
 
     @Test
     public void threadsAreSharedBetweenNonBlockingInstances() throws InterruptedException {
-        List<CachedSupplier<String>> css = new ArrayList<>();
-        try {
-            // Create 99 concurrent non-blocking instances
+        int maxActive = runAndCountThreads(() -> {
+            List<CachedSupplier<?>> css = new ArrayList<>();
             for (int i = 0; i < 99; i++) {
-                CachedSupplier<String> supplier =
+                CachedSupplier<?> supplier =
                     CachedSupplier.builder(() -> RefreshResult.builder("foo")
-                                                              .prefetchTime(now().plusMillis(1))
+                                                              .prefetchTime(now().plusMillis(10))
                                                               .staleTime(future())
                                                               .build())
                                   .prefetchStrategy(new NonBlocking("test"))
@@ -319,58 +319,76 @@ public class CachedSupplierTest {
                 supplier.get();
                 css.add(supplier);
             }
+            return css;
+        });
 
-            int maxActive = 0;
-            for (int i = 0; i < 1000; i++) {
-                maxActive = Math.max(maxActive, NonBlocking.executor().getActiveCount());
-                Thread.sleep(1);
-            }
-
-            // Make sure we used less-than 99 to do the refreshes.
-            assertThat(maxActive).isBetween(1, 99);
-        } finally {
-            css.forEach(CachedSupplier::close);
-        }
+        assertThat(maxActive).isBetween(1, 99);
     }
 
     @Test
     public void activeThreadsHaveMaxCount() throws InterruptedException {
         ExecutorService executor = Executors.newCachedThreadPool();
-        List<CachedSupplier<String>> css = new ArrayList<>();
         try {
-            // Create 99 concurrent non-blocking instances
-            for (int i = 0; i < 1000; i++) {
-                CachedSupplier<String> supplier =
-                    CachedSupplier.builder(() -> {
-                                      invokeSafely(() -> Thread.sleep(100));
-                                      return RefreshResult.builder("foo")
-                                                          .prefetchTime(now().plusMillis(1))
-                                                          .staleTime(now().plusSeconds(60))
-                                                          .build();
-                                  }).prefetchStrategy(new NonBlocking("test"))
-                                  .prefetchJitterEnabled(false)
-                                  .build();
-                executor.submit(supplier::get);
-                css.add(supplier);
-            }
+            int maxActive = runAndCountThreads(() -> {
+                List<CachedSupplier<?>> css = new ArrayList<>();
 
-            executor.shutdown();
-            assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+                // Create 1000 concurrent non-blocking instances
+                for (int i = 0; i < 1000; i++) {
+                    CachedSupplier<String> supplier =
+                        CachedSupplier.builder(() -> {
+                                          invokeSafely(() -> Thread.sleep(100));
+                                          return RefreshResult.builder("foo")
+                                                              .prefetchTime(now().plusMillis(10))
+                                                              .staleTime(now().plusSeconds(60))
+                                                              .build();
+                                      }).prefetchStrategy(new NonBlocking("test"))
+                                      .prefetchJitterEnabled(false)
+                                      .build();
+                    executor.submit(supplier::get);
+                    css.add(supplier);
+                }
 
-            int maxActive = 0;
-            for (int i = 0; i < 1000; i++) {
-                maxActive = Math.max(maxActive, NonBlocking.executor().getActiveCount());
-                Thread.sleep(1);
-            }
+                executor.shutdown();
+                assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+                return css;
+            });
 
-            // In a perfect world this would be capped to 100, but the mechanism we use to limit concurrent refreshes usually
-            // means more than 100 can get created. 150 should be a reasonable limit to check for, because without the limiter
-            // it would be ~1000.
             assertThat(maxActive).isBetween(2, 150);
         } finally {
-            css.forEach(CachedSupplier::close);
             executor.shutdownNow();
         }
+    }
+
+    /**
+     * Run the provided supplier, measure the non-blocking executor thread count, and return the result. If the result is 0,
+     * try again. This makes our stochastic tests ~100% reliable instead of ~99%.
+     */
+    private int runAndCountThreads(ThrowingSupplier suppliersConstructor) throws InterruptedException {
+        for (int attempt = 0; attempt < 10; attempt++) {
+            Collection<CachedSupplier<?>> suppliers = emptyList();
+            try {
+                suppliers = suppliersConstructor.get();
+
+                int maxActive = 0;
+                for (int j = 0; j < 1000; j++) {
+                    maxActive = Math.max(maxActive, NonBlocking.executor().getActiveCount());
+                    Thread.sleep(1);
+                }
+
+                if (maxActive != 0) {
+                    return maxActive;
+                }
+            } finally {
+                suppliers.forEach(CachedSupplier::close);
+            }
+        }
+
+        throw new AssertionError("Thread count never exceeded 0.");
+    }
+
+    @FunctionalInterface
+    interface ThrowingSupplier {
+        Collection<CachedSupplier<?>> get() throws InterruptedException;
     }
 
     /**
