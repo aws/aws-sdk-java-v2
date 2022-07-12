@@ -17,10 +17,26 @@ package software.amazon.awssdk.imds.internal;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
+/**
+ * Enum Class for the Endpoint Mode.
+ */
 @SdkPublicApi
-// TODO : Implement further functionality such as ToString, fromValue and Exception Handling as needed.
 public enum EndpointMode {
 
     IPV4,
-    IPV6
+    IPV6;
+
+    public static EndpointMode fromValue(String s) {
+        if (s == null) {
+            return null;
+        }
+
+        for (EndpointMode value : values()) {
+            if (value.name().equalsIgnoreCase(s)) {
+                return value;
+            }
+        }
+
+        throw new IllegalArgumentException("Unrecognized value for endpoint mode: " + s);
+    }
 }
