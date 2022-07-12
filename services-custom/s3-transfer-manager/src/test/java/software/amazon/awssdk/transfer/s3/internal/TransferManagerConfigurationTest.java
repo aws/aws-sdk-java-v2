@@ -21,7 +21,6 @@ import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.EXECUTOR;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_MAX_DEPTH;
-import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_RECURSIVE;
 
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
@@ -32,19 +31,6 @@ import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 
 public class TransferManagerConfigurationTest {
     private TransferManagerConfiguration transferManagerConfiguration;
-
-    @Test
-    public void resolveUploadDirectoryRecursive_requestOverride_requestOverrideShouldTakePrecedence() {
-        transferManagerConfiguration = TransferManagerConfiguration.builder()
-                                                                   .uploadDirectoryConfiguration(UploadDirectoryOverrideConfiguration.builder().recursive(true).build())
-                                                                   .build();
-        UploadDirectoryRequest uploadDirectoryRequest = UploadDirectoryRequest.builder()
-                                                                              .bucket("bucket")
-                                                                              .sourceDirectory(Paths.get("."))
-                                                                              .overrideConfiguration(o -> o.recursive(false))
-                                                                              .build();
-        assertThat(transferManagerConfiguration.resolveUploadDirectoryRecursive(uploadDirectoryRequest)).isFalse();
-    }
 
     @Test
     public void resolveMaxDepth_requestOverride_requestOverrideShouldTakePrecedence() {
@@ -81,7 +67,6 @@ public class TransferManagerConfigurationTest {
         transferManagerConfiguration = TransferManagerConfiguration.builder().build();
         assertThat(transferManagerConfiguration.option(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS)).isFalse();
         assertThat(transferManagerConfiguration.option(UPLOAD_DIRECTORY_MAX_DEPTH)).isEqualTo(Integer.MAX_VALUE);
-        assertThat(transferManagerConfiguration.option(UPLOAD_DIRECTORY_RECURSIVE)).isTrue();
         assertThat(transferManagerConfiguration.option(EXECUTOR)).isNotNull();
     }
 

@@ -43,13 +43,11 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
 
     private final Boolean followSymbolicLinks;
     private final Integer maxDepth;
-    private final Boolean recursive;
     private final Consumer<UploadFileRequest.Builder> uploadFileRequestTransformer;
 
     public UploadDirectoryOverrideConfiguration(DefaultBuilder builder) {
         this.followSymbolicLinks = builder.followSymbolicLinks;
         this.maxDepth = Validate.isPositiveOrNull(builder.maxDepth, "maxDepth");
-        this.recursive = builder.recursive;
         this.uploadFileRequestTransformer = builder.uploadFileRequestTransformer;
     }
 
@@ -67,14 +65,6 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
      */
     public Optional<Integer> maxDepth() {
         return Optional.ofNullable(maxDepth);
-    }
-
-    /**
-     * @return whether to recursively upload all files under the specified directory
-     * @see Builder#recursive(Boolean)
-     */
-    public Optional<Boolean> recursive() {
-        return Optional.ofNullable(recursive);
     }
 
     /**
@@ -107,17 +97,13 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
         if (!Objects.equals(maxDepth, that.maxDepth)) {
             return false;
         }
-        if (!Objects.equals(uploadFileRequestTransformer, that.uploadFileRequestTransformer)) {
-            return false;
-        }
-        return Objects.equals(recursive, that.recursive);
+        return Objects.equals(uploadFileRequestTransformer, that.uploadFileRequestTransformer);
     }
 
     @Override
     public int hashCode() {
         int result = followSymbolicLinks != null ? followSymbolicLinks.hashCode() : 0;
         result = 31 * result + (maxDepth != null ? maxDepth.hashCode() : 0);
-        result = 31 * result + (recursive != null ? recursive.hashCode() : 0);
         result = 31 * result + (uploadFileRequestTransformer != null ? uploadFileRequestTransformer.hashCode() : 0);
         return result;
     }
@@ -127,7 +113,6 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
         return ToString.builder("UploadDirectoryConfiguration")
                        .add("followSymbolicLinks", followSymbolicLinks)
                        .add("maxDepth", maxDepth)
-                       .add("recursive", recursive)
                        .add("uploadFileRequestTransformer", uploadFileRequestTransformer)
                        .build();
     }
@@ -140,20 +125,7 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
         return DefaultBuilder.class;
     }
 
-    // TODO: consider consolidating maxDepth and recursive
     public interface Builder extends CopyableBuilder<Builder, UploadDirectoryOverrideConfiguration> {
-
-        /**
-         * Specify whether to recursively upload all files under the specified directory
-         *
-         * <p>
-         * Default to true
-         *
-         * @param recursive whether enable recursive upload
-         * @return This builder for method chaining.
-         */
-        Builder recursive(Boolean recursive);
-
         /**
          * Specify whether to follow symbolic links when traversing the file tree.
          * <p>
@@ -230,31 +202,15 @@ public final class UploadDirectoryOverrideConfiguration implements ToCopyableBui
     private static final class DefaultBuilder implements Builder {
         private Boolean followSymbolicLinks;
         private Integer maxDepth;
-        private Boolean recursive;
         private Consumer<UploadFileRequest.Builder> uploadFileRequestTransformer;
 
         private DefaultBuilder(UploadDirectoryOverrideConfiguration configuration) {
             this.followSymbolicLinks = configuration.followSymbolicLinks;
             this.maxDepth = configuration.maxDepth;
-            this.recursive = configuration.recursive;
             this.uploadFileRequestTransformer = configuration.uploadFileRequestTransformer;
         }
 
         private DefaultBuilder() {
-        }
-
-        @Override
-        public Builder recursive(Boolean recursive) {
-            this.recursive = recursive;
-            return this;
-        }
-
-        public Boolean getRecursive() {
-            return recursive;
-        }
-
-        public void setRecursive(Boolean recursive) {
-            recursive(recursive);
         }
 
         @Override

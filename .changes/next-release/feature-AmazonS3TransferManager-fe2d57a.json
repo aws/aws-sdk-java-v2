@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3 Transfer Manager",
+    "contributor": "",
+    "description": "Do not base 64 encode when writing `ResumableFileDownload` to disk."
+}

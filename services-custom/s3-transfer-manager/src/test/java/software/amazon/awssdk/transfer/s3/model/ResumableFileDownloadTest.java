@@ -22,7 +22,6 @@ import com.google.common.jimfs.Jimfs;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -72,7 +71,7 @@ class ResumableFileDownloadTest {
         Files.createDirectory(directory);
 
         Path file = jimfs.getPath(directoryName, "serializedDownload");
-        standardDownloadObject.writeToFile(file);
+        standardDownloadObject.serializeToFile(file);
 
         ResumableFileDownload deserializedDownload = ResumableFileDownload.fromFile(file);
         assertThat(deserializedDownload).isEqualTo(standardDownloadObject);
@@ -80,44 +79,41 @@ class ResumableFileDownloadTest {
 
     @Test
     void stringSerDeser() {
-        String serializedDownload = standardDownloadObject.toUtf8String();
+        String serializedDownload = standardDownloadObject.serializeToString();
         ResumableFileDownload deserializedDownload = ResumableFileDownload.fromString(serializedDownload);
         assertThat(deserializedDownload).isEqualTo(standardDownloadObject);
     }
 
     @Test
-    void stringWithCharsetSerDeser() {
-        String serializedDownload = standardDownloadObject.toString(StandardCharsets.ISO_8859_1);
-        ResumableFileDownload deserializedDownload = ResumableFileDownload.fromString(serializedDownload, StandardCharsets.ISO_8859_1);
-        assertThat(deserializedDownload).isEqualTo(standardDownloadObject);
-    }
-
-    @Test
     void bytesSerDeser()  {
-        SdkBytes serializedDownload = standardDownloadObject.toBytes();
-        ResumableFileDownload deserializedDownload = ResumableFileDownload.fromBytes(serializedDownload.asByteArray());
+        SdkBytes serializedDownload = standardDownloadObject.serializeToBytes();
+        ResumableFileDownload deserializedDownload =
+            ResumableFileDownload.fromBytes(SdkBytes.fromByteArrayUnsafe(serializedDownload.asByteArray()));
         assertThat(deserializedDownload).isEqualTo(standardDownloadObject);
     }
 
     @Test
     void inputStreamSerDeser() throws IOException {
-        InputStream serializedDownload = standardDownloadObject.toInputStream();
-        ResumableFileDownload deserializedDownload = ResumableFileDownload.fromInputStream(serializedDownload);
+        InputStream serializedDownload = standardDownloadObject.serializeToInputStream();
+        ResumableFileDownload deserializedDownload =
+            ResumableFileDownload.fromBytes(SdkBytes.fromInputStream(serializedDownload));
         assertThat(deserializedDownload).isEqualTo(standardDownloadObject);
     }
 
     @Test
     void outputStreamSer() throws IOException {
         ByteArrayOutputStream serializedDownload = new ByteArrayOutputStream();
-        standardDownloadObject.writeToOutputStream(serializedDownload);
-        ResumableFileDownload deserializedDownload = ResumableFileDownload.fromBytes(serializedDownload.toByteArray());
+        standardDownloadObject.serializeToOutputStream(serializedDownload);
+        ResumableFileDownload deserializedDownload =
+            ResumableFileDownload.fromBytes(SdkBytes.fromByteArrayUnsafe(serializedDownload.toByteArray()));
         assertThat(deserializedDownload).isEqualTo(standardDownloadObject);
     }
 
     @Test
     void byteBufferDeser()  {
-        SdkBytes serializedDownload = standardDownloadObject.toBytes();
-        ResumableFileDownload deserializedDownload = ResumableFileDownload.fromByteBuffer(serializedDownload.asByteBuffer());
+        SdkBytes serializedDownload = standardDownloadObject.serializeToBytes();
+        ResumableFileDownload deserializedDownload =
+            ResumableFileDownload.fromBytes(SdkBytes.fromByteBuffer(serializedDownload.asByteBuffer()));
         assertThat(deserializedDownload).isEqualTo(standardDownloadObject);
     }
 

@@ -25,23 +25,23 @@ import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
 class DownloadDirectoryRequestTest {
 
     @Test
-    void noDestinationDirectory_throws() {
+    void nodirectory_throws() {
         assertThatThrownBy(() ->
                                DownloadDirectoryRequest.builder().bucket("bucket").build()
-        ).isInstanceOf(NullPointerException.class).hasMessageContaining("destinationDirectory");
+        ).isInstanceOf(NullPointerException.class).hasMessageContaining("destination");
     }
 
     @Test
     void noBucket_throws() {
         assertThatThrownBy(() ->
-                               DownloadDirectoryRequest.builder().destinationDirectory(Paths.get(".")).build()
+                               DownloadDirectoryRequest.builder().destination(Paths.get(".")).build()
         ).isInstanceOf(NullPointerException.class).hasMessageContaining("bucket");
     }
 
     @Test
     void equals_hashcode() {
         EqualsVerifier.forClass(DownloadDirectoryRequest.class)
-                      .withNonnullFields("destinationDirectory", "bucket")
+                      .withNonnullFields("destination", "bucket")
                       .verify();
     }
 }

@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3 Transfer Manager",
+    "contributor": "",
+    "description": "Rename `ResumableFileDownload`'s `to` and `writeTo` methods to `serializeTo` to make it clear that these aren't affecting the download."
+}

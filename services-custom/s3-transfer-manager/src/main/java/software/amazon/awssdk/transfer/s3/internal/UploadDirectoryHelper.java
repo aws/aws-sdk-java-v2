@@ -161,14 +161,7 @@ public class UploadDirectoryHelper {
     private Stream<Path> listFiles(Path directory, UploadDirectoryRequest request) {
 
         try {
-            boolean recursive = transferConfiguration.resolveUploadDirectoryRecursive(request);
             boolean followSymbolicLinks = transferConfiguration.resolveUploadDirectoryFollowSymbolicLinks(request);
-
-            if (!recursive) {
-                return Files.list(directory)
-                            .filter(p -> isRegularFile(p, followSymbolicLinks));
-            }
-
             int maxDepth = transferConfiguration.resolveUploadDirectoryMaxDepth(request);
 
             if (followSymbolicLinks) {
@@ -217,14 +210,15 @@ public class UploadDirectoryHelper {
         return StringUtils.replace(relativePathName, separator, delimiter);
     }
 
-    private UploadFileRequest constructUploadRequest(UploadDirectoryRequest uploadDirectoryRequest, int directoryNameCount,
+    private UploadFileRequest constructUploadRequest(UploadDirectoryRequest uploadDirectoryRequest,
+                                                     int directoryNameCount,
                                                      Path path) {
         String delimiter =
-            uploadDirectoryRequest.delimiter()
+            uploadDirectoryRequest.s3Delimiter()
                                   .filter(s -> !s.isEmpty())
                                   .orElse(DEFAULT_DELIMITER);
 
-        String prefix = uploadDirectoryRequest.prefix()
+        String prefix = uploadDirectoryRequest.s3Prefix()
                                               .map(s -> normalizePrefix(s, delimiter))
                                               .orElse(DEFAULT_PREFIX);
 
