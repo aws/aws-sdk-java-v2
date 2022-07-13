@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "URL Connection Client",
-    "contributor": "",
-    "description": "Set the `Accept` header for `UrlConnectionHttpClient` because the default one does not comply with RFC 7231. See https://bugs.openjdk.org/browse/JDK-8163921"
-}
