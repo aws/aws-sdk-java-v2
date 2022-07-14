@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Firewall Management Service",
+    "contributor": "",
+    "description": "Adds support for strict ordering in stateful rule groups in Network Firewall policies."
+}
