@@ -18,65 +18,22 @@ package software.amazon.awssdk.imds;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import software.amazon.awssdk.core.document.Document;
 
 /**
  * The class tests the utility methods provided by MetadataResponse Class .
  */
 public class MetadataResponseTest {
 
-    @Test
-    public void get_devpayProductCodes_from_JsonResponse_success() throws IOException {
-
-        String jsonResponse = "{"
-                              + "\"pendingTime\":\"2014-08-07T22:07:46Z\","
-                              + "\"instanceType\":\"m1.small\","
-                              + "\"imageId\":\"ami-a49665cc\","
-                              + "\"instanceId\":\"i-6b2de041\","
-                              + "\"billingProducts\":[\"foo\"],"
-                              + "\"architecture\":\"x86_64\","
-                              + "\"accountId\":\"599169622985\","
-                              + "\"kernelId\":\"aki-919dcaf8\","
-                              + "\"ramdiskId\":\"baz\","
-                              + "\"region\":\"us-east-1\","
-                              + "\"version\":\"2010-08-31\","
-                              + "\"availabilityZone\":\"us-east-1b\","
-                              + "\"privateIp\":\"10.201.215.38\","
-                              + "\"devpayProductCodes\":[\"bar\",\"foo\"],"
-                              + "\"marketplaceProductCodes\":[\"qaz\"]"
-                              + "}";
-
-        MetadataResponse metadataResponse = new MetadataResponse(jsonResponse);
-        String[] result = metadataResponse.getStringArrayValuesFromJson("devpayProductCodes");
-        assertThat(result).hasSize(2);
-    }
-
-    @Test
-    public void get_imageId_from_JsonResponse_success() throws IOException {
-
-        String jsonResponse = "{"
-                              + "\"pendingTime\":\"2014-08-07T22:07:46Z\","
-                              + "\"instanceType\":\"m1.small\","
-                              + "\"imageId\":\"ami-a49665cc\","
-                              + "\"instanceId\":\"i-6b2de041\","
-                              + "\"billingProducts\":[\"foo\"],"
-                              + "\"architecture\":\"x86_64\","
-                              + "\"accountId\":\"599169622985\","
-                              + "\"kernelId\":\"aki-919dcaf8\","
-                              + "\"ramdiskId\":\"baz\","
-                              + "\"region\":\"us-east-1\","
-                              + "\"version\":\"2010-08-31\","
-                              + "\"availabilityZone\":\"us-east-1b\","
-                              + "\"privateIp\":\"10.201.215.38\","
-                              + "\"devpayProductCodes\":[\"bar\"],"
-                              + "\"marketplaceProductCodes\":[\"qaz\"]"
-                              + "}";
-
-        MetadataResponse metadataResponse = new MetadataResponse(jsonResponse);
-        String result = metadataResponse.getStringValueFromJson("imageId");
-        assertThat(result).isEqualTo("ami-a49665cc");
-    }
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void check_asString_success() throws IOException {
@@ -90,7 +47,17 @@ public class MetadataResponseTest {
     }
 
     @Test
-    public void check_asList_success() throws IOException {
+    public void check_asString_failure() throws IOException {
+
+        thrown.expect(NullPointerException.class);
+        thrown.expectMessage("Metadata is null");
+
+        MetadataResponse metadataResponse = new MetadataResponse(null);
+        String result = metadataResponse.asString();
+    }
+
+    @Test
+    public void check_asList_success_with_delimiter() throws IOException {
 
         String response = "sai\ntest";
 
@@ -101,65 +68,54 @@ public class MetadataResponseTest {
     }
 
     @Test
-    public void get_devpayProductCodes_from_JsonResponse_failure() throws IOException {
-
-        String jsonResponse = "{"
-                              + "\"pendingTime\":\"2014-08-07T22:07:46Z\","
-                              + "\"instanceType\":\"m1.small\","
-                              + "\"imageId\":\"ami-a49665cc\","
-                              + "\"instanceId\":\"i-6b2de041\","
-                              + "\"billingProducts\":[\"foo\"],"
-                              + "\"architecture\":\"x86_64\","
-                              + "\"accountId\":\"599169622985\","
-                              + "\"kernelId\":\"aki-919dcaf8\","
-                              + "\"ramdiskId\":\"baz\","
-                              + "\"region\":\"us-east-1\","
-                              + "\"version\":\"2010-08-31\","
-                              + "\"availabilityZone\":\"us-east-1b\","
-                              + "\"privateIp\":\"10.201.215.38\","
-                              + "\"devpayProductCodes\":[\"bar\",\"foo\"],"
-                              + "\"marketplaceProductCodes\":[\"qaz\"]"
-                              + "}";
-
-        MetadataResponse metadataResponse = new MetadataResponse(jsonResponse);
-        String[] result = metadataResponse.getStringArrayValuesFromJson("devpayProductCodes1");
-        assertThat(result).isNullOrEmpty();
-    }
-
-    @Test
-    public void get_imageId_from_JsonResponse_failure() throws IOException {
-
-        String jsonResponse = "{"
-                              + "\"pendingTime\":\"2014-08-07T22:07:46Z\","
-                              + "\"instanceType\":\"m1.small\","
-                              + "\"imageId\":\"ami-a49665cc\","
-                              + "\"instanceId\":\"i-6b2de041\","
-                              + "\"billingProducts\":[\"foo\"],"
-                              + "\"architecture\":\"x86_64\","
-                              + "\"accountId\":\"599169622985\","
-                              + "\"kernelId\":\"aki-919dcaf8\","
-                              + "\"ramdiskId\":\"baz\","
-                              + "\"region\":\"us-east-1\","
-                              + "\"version\":\"2010-08-31\","
-                              + "\"availabilityZone\":\"us-east-1b\","
-                              + "\"privateIp\":\"10.201.215.38\","
-                              + "\"devpayProductCodes\":[\"bar\",\"foo\"],"
-                              + "\"marketplaceProductCodes\":[\"qaz\"]"
-                              + "}";
-
-        MetadataResponse metadataResponse = new MetadataResponse(jsonResponse);
-        String result = metadataResponse.getStringValueFromJson("imageId1");
-        assertThat(result).isNull();
-    }
-
-    @Test
-    public void get_outputIamCredList_from_list_failure() throws IOException {
+    public void check_asList_success_without_delimiter() throws IOException {
 
         String response = "test1-test2";
 
         MetadataResponse metadataResponse = new MetadataResponse(response);
         List<String> result = metadataResponse.asList();
-        assertThat(result).isNullOrEmpty();
+        assertThat(result).hasSize(1);
 
     }
+    @Test
+    public void check_asList_failure() throws IOException {
+
+        thrown.expect(NullPointerException.class);
+        thrown.expectMessage("Metadata is null");
+
+        MetadataResponse metadataResponse = new MetadataResponse(null);
+        List<String> result = metadataResponse.asList();
+    }
+
+    @Test
+    public void check_asDocument_failure() throws IOException {
+        thrown.expect(NullPointerException.class);
+        thrown.expectMessage("Metadata is null");
+
+        MetadataResponse metadataResponse = new MetadataResponse(null);
+        Document document = metadataResponse.asDocument();
+
+    }
+
+    @Test
+    public void check_asDocument_success() throws IOException {
+        String jsonResponse = "{"
+                              + "\"instanceType\":\"m1.small\","
+                              + "\"devpayProductCodes\":[\"bar\",\"foo\"]"
+                              + "}";
+
+        MetadataResponse metadataResponse = new MetadataResponse(jsonResponse);
+        Document document = metadataResponse.asDocument();
+        Map<String, Document> expectedMap = new LinkedHashMap<>();
+
+        List<Document> documentList = new ArrayList<>();
+        documentList.add(Document.fromString("bar"));
+        documentList.add(Document.fromString("foo"));
+
+        expectedMap.put("instanceType", Document.fromString("m1.small"));
+        expectedMap.put("devpayProductCodes", Document.fromList(documentList));
+        Document expectedDocumentMap = Document.fromMap(expectedMap);
+        assertThat(document).isEqualTo(expectedDocumentMap);
+    }
+
 }
