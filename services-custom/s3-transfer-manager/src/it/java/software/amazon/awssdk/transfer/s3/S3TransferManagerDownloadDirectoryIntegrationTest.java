@@ -29,12 +29,12 @@ import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.ComparisonFailure;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.ComparisonFailure;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
@@ -199,7 +199,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u
             .destinationDirectory(destinationDirectory)
             .bucket(TEST_BUCKET)
-            .filter(s3Object -> s3Object.key().startsWith("2")));
+            .filter(s3Object -> s3Object.key().startsWith("notes/2021/2")));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
 
