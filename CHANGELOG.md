@@ -1,3 +1,12 @@
+# __2.17.231__ __2022-07-13__
+## __Amazon AppConfig__
+  - ### Features
+    - Adding Create, Get, Update, Delete, and List APIs for new two new resources: Extensions and ExtensionAssociations.
+
+## __URL Connection Client__
+  - ### Bugfixes
+    - Set the `Accept` header for `UrlConnectionHttpClient` because the default one does not comply with RFC 7231. See https://bugs.openjdk.org/browse/JDK-8163921
+
 # __2.17.230__ __2022-07-12__
 ## __AWS Network Manager__
   - ### Features
