@@ -42,9 +42,11 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.FileDownload;
+import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 class S3TransferManagerPauseAndResumeTest {
@@ -120,6 +122,72 @@ class S3TransferManagerPauseAndResumeTest {
                                    .completionFuture()
                                    .join()).hasRootCause(sdkClientException);
     }
+
+    @Test
+    public void pauseAfterResumeBeforeHeadSucceeds() throws InterruptedException {
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest())
+                                                                     .destination(file)
+                                                                     .build();
+
+        CompletableFuture<?> headFuture = new CompletableFuture<>();
+        when(mockS3Crt.headObject(any(Consumer.class))).thenReturn(headFuture);
+
+        ResumableFileDownload originalResumable =
+            ResumableFileDownload.builder()
+                                 .bytesTransferred(file.length())
+                                 .downloadFileRequest(downloadFileRequest)
+                                 .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                 .s3ObjectLastModified(Instant.now())
+                                 .totalSizeInBytes(2000L)
+                                 .build();
+
+        FileDownload fileDownload = tm.resumeDownloadFile(originalResumable);
+        ResumableFileDownload newResumable = fileDownload.pause();
+
+        assertThat(newResumable).isEqualTo(originalResumable);
+        assertThat(fileDownload.completionFuture()).isCancelled();
+        assertThat(headFuture).isCancelled();
+    }
+
+    @Test
+    public void pauseAfterResumeAfterHeadBeforeGetSucceeds() throws InterruptedException {
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest())
+                                                                     .destination(file)
+                                                                     .build();
+
+        CompletableFuture<?> getFuture = new CompletableFuture<>();
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class))).thenReturn(getFuture);
+
+        Instant s3LastModified = Instant.now();
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse(s3LastModified)));
+
+        ResumableFileDownload originalResumable =
+            ResumableFileDownload.builder()
+                                 .bytesTransferred(file.length())
+                                 .downloadFileRequest(downloadFileRequest)
+                                 .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                 .s3ObjectLastModified(s3LastModified)
+                                 .totalSizeInBytes(2000L)
+                                 .build();
+
+        FileDownload fileDownload = tm.resumeDownloadFile(originalResumable);
+        ResumableFileDownload newResumable = fileDownload.pause();
+
+        assertThat(newResumable.s3ObjectLastModified()).isEqualTo(originalResumable.s3ObjectLastModified());
+        assertThat(newResumable.bytesTransferred()).isEqualTo(originalResumable.bytesTransferred());
+        assertThat(newResumable.totalSizeInBytes()).isEqualTo(originalResumable.totalSizeInBytes());
+        assertThat(newResumable.fileLastModified()).isEqualTo(originalResumable.fileLastModified());
+
+        // Download will be modified now that we finished the head request
+        assertThat(newResumable.downloadFileRequest()).isNotEqualTo(originalResumable.downloadFileRequest());
+
+        assertThat(fileDownload.completionFuture()).isCancelled();
+        assertThat(getFuture).isCancelled();
+    }
+
 
     private void verifyActualGetObjectRequest(GetObjectRequest getObjectRequest, String range) {
         ArgumentCaptor<GetObjectRequest> getObjectRequestArgumentCaptor =

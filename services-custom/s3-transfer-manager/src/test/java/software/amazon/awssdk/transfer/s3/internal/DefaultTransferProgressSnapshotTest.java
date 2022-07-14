@@ -26,7 +26,7 @@ public class DefaultTransferProgressSnapshotTest {
     @Test
     public void bytesTransferred_greaterThan_transferSize_shouldThrow() {
         DefaultTransferProgressSnapshot.Builder builder = DefaultTransferProgressSnapshot.builder()
-                                                                                         .bytesTransferred(2)
+                                                                                         .bytesTransferred(2L)
                                                                                          .transferSizeInBytes(1L);
         assertThatThrownBy(builder::build)
             .isInstanceOf(IllegalArgumentException.class)
@@ -36,7 +36,7 @@ public class DefaultTransferProgressSnapshotTest {
     @Test
     public void ratioTransferred_withoutTransferSize_isEmpty() {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
-                                                                           .bytesTransferred(1)
+                                                                           .bytesTransferred(1L)
                                                                            .build();
         assertThat(snapshot.ratioTransferred()).isNotPresent();
     }
@@ -44,7 +44,7 @@ public class DefaultTransferProgressSnapshotTest {
     @Test
     public void ratioTransferred_withTransferSize_isCorrect() {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
-                                                                           .bytesTransferred(1)
+                                                                           .bytesTransferred(1L)
                                                                            .transferSizeInBytes(2L)
                                                                            .build();
         assertThat(snapshot.ratioTransferred()).hasValue(0.5);
@@ -53,7 +53,7 @@ public class DefaultTransferProgressSnapshotTest {
     @Test
     public void bytesRemainingTransferred_withoutTransferSize_isEmpty() {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
-                                                                           .bytesTransferred(1)
+                                                                           .bytesTransferred(1L)
                                                                            .build();
         assertThat(snapshot.bytesRemaining()).isNotPresent();
     }
@@ -61,7 +61,7 @@ public class DefaultTransferProgressSnapshotTest {
     @Test
     public void bytesRemainingTransferred_withTransferSize_isCorrect() {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
-                                                                           .bytesTransferred(1)
+                                                                           .bytesTransferred(1L)
                                                                            .transferSizeInBytes(3L)
                                                                            .build();
         assertThat(snapshot.bytesRemaining()).hasValue(2L);

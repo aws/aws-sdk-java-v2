@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.arns.Arn;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.config.S3TransferManagerOverrideConfiguration;
@@ -43,6 +45,7 @@ import software.amazon.awssdk.transfer.s3.internal.model.DefaultDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultUpload;
+import software.amazon.awssdk.transfer.s3.internal.progress.ResumeTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
 import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
 import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
@@ -243,8 +246,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
         TransferProgressUpdater progressUpdater = doDownloadFile(downloadRequest, responseTransformer, returnFuture);
 
-        return new DefaultFileDownload(returnFuture, CompletableFuture.completedFuture(progressUpdater.progress()),
-                                       CompletableFuture.completedFuture(downloadRequest));
+        return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> downloadRequest, null);
     }
 
     private TransferProgressUpdater doDownloadFile(
@@ -285,26 +287,43 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         CompletableFuture<TransferProgress> progressFuture = new CompletableFuture<>();
         CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture = new CompletableFuture<>();
 
-        s3AsyncClient.headObject(b -> b.bucket(getObjectRequest.bucket()).key(getObjectRequest.key()))
-                     .thenAccept(headObjectResponse -> {
-                         Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>
-                             requestPair = toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse,
-                                                                               originalDownloadRequest);
+        CompletableFuture<HeadObjectResponse> headFuture =
+            s3AsyncClient.headObject(b -> b.bucket(getObjectRequest.bucket()).key(getObjectRequest.key()));
 
-                         DownloadFileRequest newDownloadFileRequest = requestPair.left();
-                         newDownloadFileRequestFuture.complete(newDownloadFileRequest);
-                         log.debug(() -> "Sending downloadFileRequest " + newDownloadFileRequest);
+        // Ensure cancellations are forwarded to the head future
+        CompletableFutureUtils.forwardExceptionTo(returnFuture, headFuture);
 
-                         TransferProgressUpdater progressUpdater = doDownloadFile(newDownloadFileRequest,
-                                                                                  requestPair.right(),
-                                                                                  returnFuture);
-                         progressFuture.complete(progressUpdater.progress());
-                     }).exceptionally(throwable -> {
-                         handleException(returnFuture, progressFuture, newDownloadFileRequestFuture, throwable);
-                         return null;
-                     });
+        headFuture.thenAccept(headObjectResponse -> {
+            Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>
+                requestPair = toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse,
+                                                                  originalDownloadRequest);
 
-        return new DefaultFileDownload(returnFuture, progressFuture, newDownloadFileRequestFuture);
+            DownloadFileRequest newDownloadFileRequest = requestPair.left();
+            newDownloadFileRequestFuture.complete(newDownloadFileRequest);
+            log.debug(() -> "Sending downloadFileRequest " + newDownloadFileRequest);
+
+            TransferProgressUpdater progressUpdater = doDownloadFile(newDownloadFileRequest,
+                                                                     requestPair.right(),
+                                                                     returnFuture);
+            progressFuture.complete(progressUpdater.progress());
+        }).exceptionally(throwable -> {
+            handleException(returnFuture, progressFuture, newDownloadFileRequestFuture, throwable);
+            return null;
+        });
+
+        return new DefaultFileDownload(returnFuture,
+                                       new ResumeTransferProgress(progressFuture),
+                                       () -> newOrOriginalRequestForPause(newDownloadFileRequestFuture, originalDownloadRequest),
+                                       resumableFileDownload);
+    }
+
+    private DownloadFileRequest newOrOriginalRequestForPause(CompletableFuture<DownloadFileRequest> newDownloadFuture,
+                                                             DownloadFileRequest originalDownloadRequest) {
+        try {
+            return newDownloadFuture.getNow(originalDownloadRequest);
+        } catch (CompletionException e) {
+            return originalDownloadRequest;
+        }
     }
 
     private static void handleException(CompletableFuture<CompletedFileDownload> returnFuture,

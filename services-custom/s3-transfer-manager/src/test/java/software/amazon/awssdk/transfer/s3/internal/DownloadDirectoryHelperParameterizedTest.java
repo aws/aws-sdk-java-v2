@@ -145,10 +145,13 @@ public class DownloadDirectoryHelperParameterizedTest {
         return new DefaultFileDownload(CompletableFuture.completedFuture(CompletedFileDownload.builder()
                                                                                               .response(GetObjectResponse.builder().build())
                                                                                               .build()),
-                                       CompletableFuture.completedFuture(new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build())),
-                                       CompletableFuture.completedFuture(DownloadFileRequest.builder().getObjectRequest(GetObjectRequest.builder().build())
+                                       new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
+                                                                                                  .bytesTransferred(0L)
+                                                                                                  .build()),
+                                       () -> DownloadFileRequest.builder().getObjectRequest(GetObjectRequest.builder().build())
                                                                    .destination(Paths.get("."))
-                                                                                  .build()));
+                                                                                  .build(),
+                                       null);
     }
 
     private static void verifyDestinationPathForSingleDownload(FileSystem jimfs, String delimiter, String[] keys,

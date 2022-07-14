@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS S3 Transfer Manager",
+    "contributor": "",
+    "description": "Allow pausing a resumed download, even if the resumed download hasn't started."
+}

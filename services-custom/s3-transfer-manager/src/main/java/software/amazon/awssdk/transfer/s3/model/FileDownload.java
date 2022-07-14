@@ -35,7 +35,7 @@ public interface FileDownload extends ObjectTransfer {
      * The information object is serializable for persistent storage until it should be resumed.
      * See {@link ResumableFileDownload} for supported formats.
      *
-     * @return {@link ResumableFileDownload} that can be used to resume the download
+     * @return A {@link ResumableFileDownload} that can be used to resume the download.
      */
     ResumableFileDownload pause();
 

@@ -26,7 +26,6 @@ import java.nio.file.Files;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import nl.jqno.equalsverifier.EqualsVerifier;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -35,10 +34,11 @@ import org.mockito.Mockito;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
+import software.amazon.awssdk.transfer.s3.internal.progress.ResumeTransferProgress;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
-import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 
 class DefaultFileDownloadTest {
@@ -58,15 +58,6 @@ class DefaultFileDownloadTest {
         file.delete();
     }
 
-
-    @Test
-    void equals_hashcode() {
-        EqualsVerifier.forClass(DefaultFileDownload.class)
-                      .withNonnullFields("completionFuture", "progressFuture", "requestFuture")
-                      .withIgnoredFields("resumableFileDownload", "lock")
-                      .verify();
-    }
-
     @Test
     void pause_shouldReturnCorrectly() {
         CompletableFuture<CompletedFileDownload> future =
@@ -82,8 +73,9 @@ class DefaultFileDownloadTest {
         DownloadFileRequest request = getDownloadFileRequest();
 
         DefaultFileDownload fileDownload = new DefaultFileDownload(future,
-                                                                   CompletableFuture.completedFuture(transferProgress),
-                                                                   CompletableFuture.completedFuture(request));
+                                                                   transferProgress,
+                                                                   () -> request,
+                                                                   null);
 
         ResumableFileDownload pause = fileDownload.pause();
         assertThat(pause.downloadFileRequest()).isEqualTo(request);
@@ -109,8 +101,9 @@ class DefaultFileDownloadTest {
                                                                                             .build());
 
         DefaultFileDownload fileDownload = new DefaultFileDownload(future,
-                                                                   CompletableFuture.completedFuture(transferProgress),
-                                                                   CompletableFuture.completedFuture(getDownloadFileRequest()));
+                                                                   transferProgress,
+                                                                   this::getDownloadFileRequest,
+                                                                   null);
         ResumableFileDownload resumableFileDownload = fileDownload.pause();
         assertThat(resumableFileDownload.bytesTransferred()).isEqualTo(file.length());
         assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(OBJECT_CONTENT_LENGTH);
@@ -127,8 +120,9 @@ class DefaultFileDownloadTest {
         DownloadFileRequest request = getDownloadFileRequest();
 
         DefaultFileDownload fileDownload = new DefaultFileDownload(future,
-                                                                   CompletableFuture.completedFuture(transferProgress),
-                                                                   CompletableFuture.completedFuture(request));
+                                                                   transferProgress,
+                                                                   () -> request,
+                                                                   null);
 
         ResumableFileDownload resumableFileDownload = fileDownload.pause();
         ResumableFileDownload resumableFileDownload2 = fileDownload.pause();
@@ -152,11 +146,13 @@ class DefaultFileDownloadTest {
         TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
         Mockito.when(transferProgress.snapshot()).thenReturn(snapshot);
         DefaultFileDownload fileDownload = new DefaultFileDownload(completedFileDownloadFuture,
-                                                                   progressFuture,
-                                                                   requestFuture);
+                                                                   new ResumeTransferProgress(progressFuture),
+                                                                   () -> requestFuture.getNow(null),
+                                                                   null);
 
-        TransferProgress progress = fileDownload.progress();
-        assertThat(fileDownload.progress().snapshot()).isEqualTo(DefaultTransferProgressSnapshot.builder().build());
+        assertThat(fileDownload.progress().snapshot()).isEqualTo(DefaultTransferProgressSnapshot.builder()
+                                                                                                .bytesTransferred(0L)
+                                                                                                .build());
 
         progressFuture.complete(transferProgress);
         assertThat(fileDownload.progress().snapshot()).isEqualTo(snapshot);
