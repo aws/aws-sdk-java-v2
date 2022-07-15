@@ -46,6 +46,7 @@ public class TransferProgressUpdater {
     public TransferProgressUpdater(TransferObjectRequest request,
                                    AsyncRequestBody requestBody) {
         DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
+        snapshotBuilder.bytesTransferred(0L);
         getContentLengthSafe(requestBody).ifPresent(snapshotBuilder::transferSizeInBytes);
         TransferProgressSnapshot snapshot = snapshotBuilder.build();
         progress = new DefaultTransferProgress(snapshot);
@@ -134,7 +135,7 @@ public class TransferProgressUpdater {
     }
 
     private void resetBytesTransferred() {
-        progress.updateAndGet(b -> b.bytesTransferred(0));
+        progress.updateAndGet(b -> b.bytesTransferred(0L));
     }
 
     private void incrementBytesTransferred(int numBytes) {

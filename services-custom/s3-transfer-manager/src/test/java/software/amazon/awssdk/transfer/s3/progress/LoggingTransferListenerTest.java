@@ -41,6 +41,7 @@ public class LoggingTransferListenerTest {
     @BeforeEach
     public void setUp() throws Exception {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
+                                                                           .bytesTransferred(0L)
                                                                            .transferSizeInBytes(TRANSFER_SIZE_IN_BYTES)
                                                                            .build();
         progress = new DefaultTransferProgress(snapshot);
@@ -107,7 +108,7 @@ public class LoggingTransferListenerTest {
         for (int i = 0; i <= TRANSFER_SIZE_IN_BYTES; i++) {
             int bytes = i;
             listener.bytesTransferred(context.copy(c -> c.progressSnapshot(
-                progress.updateAndGet(p -> p.bytesTransferred(bytes)))));
+                progress.updateAndGet(p -> p.bytesTransferred((long) bytes)))));
         }
 
         listener.transferComplete(context.copy(b -> b.progressSnapshot(progress.snapshot())

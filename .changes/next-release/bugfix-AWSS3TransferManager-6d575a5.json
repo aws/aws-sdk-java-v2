@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS S3 Transfer Manager",
+    "contributor": "",
+    "description": "Require setting the bytes transferred on transfer progress snapshots. This prevents programming bugs where the caller forgets to set the value and it gets defaulted to 0."
+}

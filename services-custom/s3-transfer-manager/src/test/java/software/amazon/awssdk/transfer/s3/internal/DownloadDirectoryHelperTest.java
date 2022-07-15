@@ -275,8 +275,11 @@ public class DownloadDirectoryHelperTest {
 
     private FileDownload newDownload(CompletableFuture<CompletedFileDownload> future) {
         return new DefaultFileDownload(future,
-                                       CompletableFuture.completedFuture(new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build())),
-                                       CompletableFuture.completedFuture(DownloadFileRequest.builder().destination(Paths.get(
-                                           ".")).getObjectRequest(GetObjectRequest.builder().build()).build()));
+                                       new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
+                                                                                                  .bytesTransferred(0L)
+                                                                                                  .build()),
+                                       () -> DownloadFileRequest.builder().destination(Paths.get(
+                                           ".")).getObjectRequest(GetObjectRequest.builder().build()).build(),
+                                       null);
     }
 }

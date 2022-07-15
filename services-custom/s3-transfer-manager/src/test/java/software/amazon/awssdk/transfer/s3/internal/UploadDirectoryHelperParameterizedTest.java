@@ -294,7 +294,9 @@ public class UploadDirectoryHelperParameterizedTest {
         return new DefaultFileUpload(CompletableFuture.completedFuture(CompletedFileUpload.builder()
                                                                                           .response(PutObjectResponse.builder().build())
                                                                                           .build()),
-                                     new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build()));
+                                     new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
+                                                                                                .bytesTransferred(0L)
+                                                                                                .build()));
     }
 
     private Path createTestDirectory() throws IOException {

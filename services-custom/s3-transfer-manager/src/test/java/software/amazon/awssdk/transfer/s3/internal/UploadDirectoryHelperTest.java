@@ -215,7 +215,9 @@ public class UploadDirectoryHelperTest {
 
     private FileUpload newUpload(CompletableFuture<CompletedFileUpload> future) {
         return new DefaultFileUpload(future,
-                                     new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder().build())
+                                     new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
+                                                                                                .bytesTransferred(0L)
+                                                                                                .build())
         );
     }
 }

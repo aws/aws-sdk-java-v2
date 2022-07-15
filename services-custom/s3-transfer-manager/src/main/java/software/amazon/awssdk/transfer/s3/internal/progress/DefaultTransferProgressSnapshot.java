@@ -44,6 +44,7 @@ public final class DefaultTransferProgressSnapshot
                             "bytesTransferred (%s) must not be greater than transferSizeInBytes (%s)",
                             builder.bytesTransferred, builder.transferSizeInBytes);
         }
+        Validate.paramNotNull(builder.bytesTransferred, "byteTransferred");
         this.bytesTransferred = Validate.isNotNegative(builder.bytesTransferred, "bytesTransferred");
         this.transferSizeInBytes = builder.transferSizeInBytes;
         this.sdkResponse = builder.sdkResponse;
@@ -125,7 +126,7 @@ public final class DefaultTransferProgressSnapshot
 
 
     public static final class Builder implements CopyableBuilder<Builder, DefaultTransferProgressSnapshot> {
-        private long bytesTransferred = 0L;
+        private Long bytesTransferred;
         private Long transferSizeInBytes;
         private SdkResponse sdkResponse;
 
@@ -138,7 +139,7 @@ public final class DefaultTransferProgressSnapshot
             this.sdkResponse = snapshot.sdkResponse;
         }
 
-        public Builder bytesTransferred(long bytesTransferred) {
+        public Builder bytesTransferred(Long bytesTransferred) {
             this.bytesTransferred = bytesTransferred;
             return this;
         }
