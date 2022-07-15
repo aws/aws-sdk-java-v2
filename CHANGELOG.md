@@ -1,3 +1,32 @@
+# __2.17.233__ __2022-07-15__
+## __AWS DataSync__
+  - ### Features
+    - Documentation updates for AWS DataSync regarding configuring Amazon FSx for ONTAP location security groups and SMB user permissions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - This SDK release provide customers ability to add sensitivity level for WAF SQLI Match Statements.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - This release adds support for the new segmentation feature.
+
+## __Amazon DynamoDB Enhanced__
+  - ### Bugfixes
+    - Adding usage of ExpressionNames to VersionedRecord, thereby allowing version attributes with reserved words and special characters
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Changed existing APIs to allow choosing a dynamic volume type for replicating volumes, to reduce costs for customers.
+
+## __S3 Transfer Manager (Developer Preview)__
+  - ### Bugfixes
+    - Fixed possible security issue in `S3TransferManager`s `downloadDirectory` operation where files could be downloaded to a sibling directory of the destination directory if the key contained relative paths.
+
 # __2.17.232__ __2022-07-14__
 ## __AWS Config__
   - ### Features
