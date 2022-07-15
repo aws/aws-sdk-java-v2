@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Disaster Recovery Service",
-    "contributor": "",
-    "description": "Changed existing APIs to allow choosing a dynamic volume type for replicating volumes, to reduce costs for customers."
-}

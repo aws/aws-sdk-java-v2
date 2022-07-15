@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS WAFV2",
-    "contributor": "",
-    "description": "This SDK release provide customers ability to add sensitivity level for WAF SQLI Match Statements."
-}
