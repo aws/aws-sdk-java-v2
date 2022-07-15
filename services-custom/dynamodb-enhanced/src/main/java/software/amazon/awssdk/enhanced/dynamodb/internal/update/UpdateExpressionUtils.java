@@ -16,6 +16,8 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.valueRef;
 import static software.amazon.awssdk.utils.CollectionUtils.filterMap;
 
 import java.util.Arrays;
@@ -38,20 +40,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 public final class UpdateExpressionUtils {
 
     private UpdateExpressionUtils() {
-    }
-
-    /**
-     * Creates a key token to be used with an ExpressionNames map.
-     */
-    public static String keyRef(String key) {
-        return "#AMZN_MAPPED_" + EnhancedClientUtils.cleanAttributeName(key);
-    }
-
-    /**
-     * Creates a value token to be used with an ExpressionValues map.
-     */
-    public static String valueRef(String value) {
-        return ":AMZN_MAPPED_" + EnhancedClientUtils.cleanAttributeName(value);
     }
 
     /**
@@ -150,7 +138,7 @@ public final class UpdateExpressionUtils {
      */
     private static Map<String, String> expressionNamesFor(String... attributeNames) {
         return Arrays.stream(attributeNames)
-                     .collect(Collectors.toMap(UpdateExpressionUtils::keyRef, Function.identity()));
+                     .collect(Collectors.toMap(EnhancedClientUtils::keyRef, Function.identity()));
     }
 
 }

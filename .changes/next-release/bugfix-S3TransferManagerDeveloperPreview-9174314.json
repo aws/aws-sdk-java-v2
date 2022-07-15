@@ -1,6 +1,0 @@
-{
-    "category": "S3 Transfer Manager (Developer Preview)", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fixed possible security issue in `S3TransferManager`s `downloadDirectory` operation where files could be downloaded to a sibling directory of the destination directory if the key contained relative paths."
-}
