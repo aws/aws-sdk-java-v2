@@ -129,8 +129,7 @@ public class S3TransferManagerUploadDirectoryUnicodeIntegrationTest extends S3In
     @Test
     public void uploadDirectory_traversedCorrectly() {
         DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(testDirectory)
-                                                                   .bucket(TEST_BUCKET)
-                                                                   .overrideConfiguration(o -> o.recursive(true)));
+                                                                   .bucket(TEST_BUCKET));
         CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
         assertThat(completedDirectoryUpload.failedTransfers()).isEmpty();
 

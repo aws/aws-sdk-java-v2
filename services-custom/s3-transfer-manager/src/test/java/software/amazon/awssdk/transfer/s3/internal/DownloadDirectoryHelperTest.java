@@ -99,7 +99,7 @@ public class DownloadDirectoryHelperTest {
 
         DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
-                                                                              .destinationDirectory(directory)
+                                                                              .destination(directory)
                                                                               .bucket("bucket")
                                                                               .build());
 
@@ -129,7 +129,7 @@ public class DownloadDirectoryHelperTest {
 
         DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
-                                                                              .destinationDirectory(directory)
+                                                                              .destination(directory)
                                                                               .bucket("bucket")
                                                                               .build());
         downloadDirectory.completionFuture().cancel(true);
@@ -154,7 +154,7 @@ public class DownloadDirectoryHelperTest {
 
         DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
-                                                                              .destinationDirectory(directory)
+                                                                              .destination(directory)
                                                                               .bucket("bucket")
                                                                               .build());
 
@@ -176,7 +176,7 @@ public class DownloadDirectoryHelperTest {
 
         DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
-                                                                              .destinationDirectory(directory)
+                                                                              .destination(directory)
                                                                               .bucket("bucket")
                                                                               .filter(s3Object -> "key2".equals(s3Object.key()))
                                                                               .build());
@@ -206,7 +206,7 @@ public class DownloadDirectoryHelperTest {
                                                                                                          .build();
         DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
-                                                                              .destinationDirectory(directory)
+                                                                              .destination(directory)
                                                                               .bucket("bucket")
                                                                               .downloadFileRequestTransformer(d -> d.destination(newDestination)
                                                                                                                     .getObjectRequest(newGetObjectRequest)
@@ -239,7 +239,7 @@ public class DownloadDirectoryHelperTest {
         when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
         DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
-                                                                              .destinationDirectory(directory)
+                                                                              .destination(directory)
                                                                               .bucket("bucket")
                                                                               .listObjectsV2RequestTransformer(l -> l.encodingType(newEncodingType)
                                                                                   .maxKeys(newMaxKeys))

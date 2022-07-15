@@ -18,7 +18,6 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.TRANSFER_MANAGER_DEFAULTS;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_MAX_DEPTH;
-import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_RECURSIVE;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -51,8 +50,6 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
                             uploadDirectoryConfiguration.followSymbolicLinks().orElse(null));
         standardOptions.put(TransferConfigurationOption.UPLOAD_DIRECTORY_MAX_DEPTH,
                             uploadDirectoryConfiguration.maxDepth().orElse(null));
-        standardOptions.put(TransferConfigurationOption.UPLOAD_DIRECTORY_RECURSIVE,
-                            uploadDirectoryConfiguration.recursive().orElse(null));
         finalizeExecutor(builder, standardOptions);
 
         options = standardOptions.build().merge(TRANSFER_MANAGER_DEFAULTS);
@@ -72,12 +69,6 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
      */
     public <T> T option(TransferConfigurationOption<T> option) {
         return options.get(option);
-    }
-
-    public boolean resolveUploadDirectoryRecursive(UploadDirectoryRequest request) {
-        return request.overrideConfiguration()
-                      .flatMap(UploadDirectoryOverrideConfiguration::recursive)
-                      .orElseGet(() -> options.get(UPLOAD_DIRECTORY_RECURSIVE));
     }
 
     public boolean resolveUploadDirectoryFollowSymbolicLinks(UploadDirectoryRequest request) {

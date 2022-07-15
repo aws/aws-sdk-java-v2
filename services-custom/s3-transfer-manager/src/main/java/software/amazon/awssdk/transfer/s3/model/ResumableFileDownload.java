@@ -15,16 +15,10 @@
 
 package software.amazon.awssdk.transfer.s3.model;
 
-import static software.amazon.awssdk.utils.BinaryUtils.fromBase64Bytes;
-import static software.amazon.awssdk.utils.BinaryUtils.toBase64Bytes;
-import static software.amazon.awssdk.utils.IoUtils.toByteArray;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -170,9 +164,9 @@ public final class ResumableFileDownload implements ResumableTransfer,
      *
      * @param path The path to the file to which you want to write the serialized download object.
      */
-    public void writeToFile(Path path) {
+    public void serializeToFile(Path path) {
         try {
-            Files.write(path, toBase64Bytes(ResumableFileDownloadSerializer.toJson(this)));
+            Files.write(path, ResumableFileDownloadSerializer.toJson(this));
         } catch (IOException e) {
             throw SdkClientException.create("Failed to write to " + path, e);
         }
@@ -184,7 +178,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
      *
      * @param outputStream The output stream to write the serialized object to.
      */
-    public void writeToOutputStream(OutputStream outputStream) {
+    public void serializeToOutputStream(OutputStream outputStream) {
         byte[] bytes = ResumableFileDownloadSerializer.toJson(this);
         try {
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
@@ -195,20 +189,10 @@ public final class ResumableFileDownload implements ResumableTransfer,
     }
 
     /**
-     * Returns the serialized JSON data representing this object as a UTF-8 string.
+     * Returns the serialized JSON data representing this object as a string.
      */
-    public String toUtf8String() {
+    public String serializeToString() {
         return new String(ResumableFileDownloadSerializer.toJson(this), StandardCharsets.UTF_8);
-    }
-
-    /**
-     * Returns the serialized JSON data representing this object as a string encoded with the supplied charset.
-     *
-     * @param cs encoding charset
-     * @return the serialized JSON string
-     */
-    public String toString(Charset cs) {
-        return new String(ResumableFileDownloadSerializer.toJson(this), cs);
     }
 
     /**
@@ -216,8 +200,8 @@ public final class ResumableFileDownload implements ResumableTransfer,
      *
      * @return the serialized JSON as {@link SdkBytes}
      */
-    public SdkBytes toBytes() {
-        return SdkBytes.fromByteArray(ResumableFileDownloadSerializer.toJson(this));
+    public SdkBytes serializeToBytes() {
+        return SdkBytes.fromByteArrayUnsafe(ResumableFileDownloadSerializer.toJson(this));
     }
 
     /**
@@ -225,60 +209,32 @@ public final class ResumableFileDownload implements ResumableTransfer,
      *
      * @return the serialized JSON input stream
      */
-    public InputStream toInputStream() {
+    public InputStream serializeToInputStream() {
         return new ByteArrayInputStream(ResumableFileDownloadSerializer.toJson(this));
     }
 
     /**
-     * Deserialize data at the given path into a {@link ResumableFileDownload}. The file must be written as
-     * Base64 encoded JSON.
+     * Deserialize data at the given path into a {@link ResumableFileDownload}.
      *
      * @param path The {@link Path} to the file with serialized data
      * @return the deserialized {@link ResumableFileDownload}
      */
     public static ResumableFileDownload fromFile(Path path) {
-        try {
-            return ResumableFileDownloadSerializer.fromJson(fromBase64Bytes(Files.readAllBytes(path)));
+        try (InputStream stream = Files.newInputStream(path)) {
+            return ResumableFileDownloadSerializer.fromJson(stream);
         } catch (IOException e) {
             throw SdkClientException.create("Failed to create a ResumableFileDownload from " + path, e);
         }
     }
 
     /**
-     * Deserialize a ByteBuffer with JSON data into a {@link ResumableFileDownload}.
-     *
-     * @param byteBuffer the serialized data
-     * @return the deserialized {@link ResumableFileDownload}
-     */
-    public static ResumableFileDownload fromByteBuffer(ByteBuffer byteBuffer) {
-        byte[] bytes = new byte[byteBuffer.remaining()];
-        byteBuffer.get(bytes);
-        return ResumableFileDownloadSerializer.fromJson(bytes);
-    }
-
-    /**
-     * Deserialize a byte array with JSON data into a {@link ResumableFileDownload}.
+     * Deserialize bytes with JSON data into a {@link ResumableFileDownload}.
      *
      * @param bytes the serialized data
      * @return the deserialized {@link ResumableFileDownload}
      */
-    public static ResumableFileDownload fromBytes(byte[] bytes) {
-        return ResumableFileDownloadSerializer.fromJson(bytes);
-    }
-
-    /**
-     * Deserialize contents of an input stream with JSON data into a {@link ResumableFileDownload}.
-     * Note that the {@link InputStream} is not closed after reading.
-     *
-     * @param inputStream the stream containing serialized data
-     * @return the deserialized {@link ResumableFileDownload}
-     */
-    public static ResumableFileDownload fromInputStream(InputStream inputStream) {
-        try {
-            return ResumableFileDownloadSerializer.fromJson(toByteArray(inputStream));
-        } catch (IOException e) {
-            throw SdkClientException.create("Failed to create a ResumableFileDownload from the given InputStream", e);
-        }
+    public static ResumableFileDownload fromBytes(SdkBytes bytes) {
+        return ResumableFileDownloadSerializer.fromJson(bytes.asByteArrayUnsafe());
     }
 
     /**
@@ -288,17 +244,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
      * @return the deserialized {@link ResumableFileDownload}
      */
     public static ResumableFileDownload fromString(String contents) {
-        return ResumableFileDownloadSerializer.fromJson(contents.getBytes(StandardCharsets.UTF_8));
-    }
-
-    /**
-     * Deserialize a string with JSON data into a {@link ResumableFileDownload}.
-     *
-     * @param contents the serialized data
-     * @return the deserialized {@link ResumableFileDownload}
-     */
-    public static ResumableFileDownload fromString(String contents, Charset cs) {
-        return ResumableFileDownloadSerializer.fromJson(contents.getBytes(cs));
+        return ResumableFileDownloadSerializer.fromJson(contents);
     }
 
     @Override

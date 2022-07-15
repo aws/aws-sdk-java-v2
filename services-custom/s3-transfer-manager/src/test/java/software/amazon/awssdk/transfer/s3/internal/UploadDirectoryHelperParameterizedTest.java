@@ -127,28 +127,7 @@ public class UploadDirectoryHelperParameterizedTest {
     }
 
     @Test
-    public void uploadDirectory_recursiveFalse_shouldOnlyUploadTopLevel() {
-        ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
-
-        when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
-        DirectoryUpload uploadDirectory =
-            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                        .sourceDirectory(directory)
-                                                                        .bucket("bucket")
-                                                                        .overrideConfiguration(o -> o.recursive(false))
-                                                                        .build());
-        uploadDirectory.completionFuture().join();
-
-        List<UploadFileRequest> actualRequests = requestArgumentCaptor.getAllValues();
-
-        assertThat(actualRequests.size()).isEqualTo(1);
-
-        actualRequests.forEach(r -> assertThat(r.putObjectRequest().bucket()).isEqualTo("bucket"));
-        assertThat(actualRequests.get(0).putObjectRequest().key()).isEqualTo("bar.txt");
-    }
-
-    @Test
-    public void uploadDirectory_recursiveFalseFollowSymlinkTrue_shouldOnlyUploadTopLevel() {
+    public void uploadDirectory_depth1FollowSymlinkTrue_shouldOnlyUploadTopLevel() {
         // skip the test if we are using jimfs because it doesn't work well with symlink
         assumeTrue(configuration.equals(Configuration.forCurrentPlatform()));
         ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
@@ -158,7 +137,7 @@ public class UploadDirectoryHelperParameterizedTest {
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
-                                                                        .overrideConfiguration(o -> o.recursive(false).followSymbolicLinks(true))
+                                                                        .overrideConfiguration(o -> o.maxDepth(1).followSymbolicLinks(true))
                                                                         .build());
         uploadDirectory.completionFuture().join();
 
@@ -207,7 +186,7 @@ public class UploadDirectoryHelperParameterizedTest {
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
-                                                                        .prefix("yolo")
+                                                                        .s3Prefix("yolo")
                                                                         .build());
         uploadDirectory.completionFuture().join();
 
@@ -228,8 +207,8 @@ public class UploadDirectoryHelperParameterizedTest {
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
-                                                                        .delimiter(",")
-                                                                        .prefix("yolo")
+                                                                        .s3Delimiter(",")
+                                                                        .s3Prefix("yolo")
                                                                         .build());
         uploadDirectory.completionFuture().join();
 

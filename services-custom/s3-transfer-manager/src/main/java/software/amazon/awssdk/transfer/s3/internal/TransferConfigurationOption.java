@@ -29,9 +29,6 @@ public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final TransferConfigurationOption<Integer> UPLOAD_DIRECTORY_MAX_DEPTH =
         new TransferConfigurationOption<>("UploadDirectoryMaxDepth", Integer.class);
 
-    public static final TransferConfigurationOption<Boolean> UPLOAD_DIRECTORY_RECURSIVE =
-        new TransferConfigurationOption<>("UploadDirectoryRecursive", Boolean.class);
-
     public static final TransferConfigurationOption<Boolean> UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS =
         new TransferConfigurationOption<>("UploadDirectoryFileVisitOption", Boolean.class);
 
@@ -43,7 +40,6 @@ public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final int DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY = 100;
 
     private static final int DEFAULT_UPLOAD_DIRECTORY_MAX_DEPTH = Integer.MAX_VALUE;
-    private static final Boolean DEFAULT_UPLOAD_DIRECTORY_RECURSIVE = Boolean.TRUE;
 
     private static final Boolean DEFAULT_UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS = Boolean.FALSE;
 
@@ -51,7 +47,6 @@ public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final AttributeMap TRANSFER_MANAGER_DEFAULTS = AttributeMap
         .builder()
         .put(UPLOAD_DIRECTORY_MAX_DEPTH, DEFAULT_UPLOAD_DIRECTORY_MAX_DEPTH)
-        .put(UPLOAD_DIRECTORY_RECURSIVE, DEFAULT_UPLOAD_DIRECTORY_RECURSIVE)
         .put(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS, DEFAULT_UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS)
         .build();
 

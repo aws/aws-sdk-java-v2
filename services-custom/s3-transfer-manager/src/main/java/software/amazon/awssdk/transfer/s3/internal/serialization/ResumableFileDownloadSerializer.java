@@ -19,6 +19,7 @@ import static software.amazon.awssdk.transfer.s3.internal.serialization.Transfer
 import static software.amazon.awssdk.transfer.s3.internal.serialization.TransferManagerMarshallingUtils.getObjectSdkField;
 import static software.amazon.awssdk.transfer.s3.internal.serialization.TransferManagerMarshallingUtils.getUnmarshaller;
 
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Map;
@@ -100,12 +101,27 @@ public final class ResumableFileDownloadSerializer {
         marshaller.marshall(val, jsonGenerator, field.locationName());
     }
 
-    public static ResumableFileDownload fromJson(byte[] bytes) {
-        TransferManagerJsonUnmarshaller<Object> longUnmarshaller = getUnmarshaller(MarshallingType.LONG);
-        TransferManagerJsonUnmarshaller<Object> instantUnmarshaller = getUnmarshaller(MarshallingType.INSTANT);
-
+    public static ResumableFileDownload fromJson(String bytes) {
         JsonNodeParser jsonNodeParser = JsonNodeParser.builder().build();
         Map<String, JsonNode> downloadNodes = jsonNodeParser.parse(bytes).asObject();
+        return fromNodes(downloadNodes);
+    }
+
+    public static ResumableFileDownload fromJson(byte[] bytes) {
+        JsonNodeParser jsonNodeParser = JsonNodeParser.builder().build();
+        Map<String, JsonNode> downloadNodes = jsonNodeParser.parse(bytes).asObject();
+        return fromNodes(downloadNodes);
+    }
+
+    public static ResumableFileDownload fromJson(InputStream bytes) {
+        JsonNodeParser jsonNodeParser = JsonNodeParser.builder().build();
+        Map<String, JsonNode> downloadNodes = jsonNodeParser.parse(bytes).asObject();
+        return fromNodes(downloadNodes);
+    }
+
+    private static ResumableFileDownload fromNodes(Map<String, JsonNode> downloadNodes) {
+        TransferManagerJsonUnmarshaller<Object> longUnmarshaller = getUnmarshaller(MarshallingType.LONG);
+        TransferManagerJsonUnmarshaller<Object> instantUnmarshaller = getUnmarshaller(MarshallingType.INSTANT);
 
         ResumableFileDownload.Builder builder = ResumableFileDownload.builder();
         builder.bytesTransferred((Long) longUnmarshaller.unmarshall(downloadNodes.get("bytesTransferred")));

@@ -1,0 +1,6 @@
+{
+    "type": "removal",
+    "category": "Amazon S3 Transfer Manager",
+    "contributor": "",
+    "description": "Remove UploadDirectoryRequest's override configuration's `recursive` option. The same functionality can be achieved with `maxDepth(1)`."
+}

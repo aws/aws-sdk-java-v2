@@ -90,7 +90,7 @@ public class DownloadDirectoryHelperParameterizedTest {
             .thenReturn(completedDownload());
         DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
-                                                                              .destinationDirectory(directory)
+                                                                              .destination(directory)
                                                                               .bucket("bucket")
                                                                               .build());
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
@@ -116,9 +116,9 @@ public class DownloadDirectoryHelperParameterizedTest {
         when(singleDownloadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedDownload());
         DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
-                                                                              .destinationDirectory(directory)
+                                                                              .destination(directory)
                                                                               .bucket("bucket")
-                                                                              .delimiter(delimiter)
+                                                                              .listObjectsV2RequestTransformer(r -> r.delimiter(delimiter))
                                                                               .build());
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
@@ -136,7 +136,7 @@ public class DownloadDirectoryHelperParameterizedTest {
         directory = jimfs.getPath("test");
         Path file = jimfs.getPath("afile" + UUID.randomUUID());
         Files.write(file, "hellowrold".getBytes(StandardCharsets.UTF_8));
-        assertThatThrownBy(() -> downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder().destinationDirectory(file)
+        assertThatThrownBy(() -> downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder().destination(file)
                                                                                                    .bucket("bucketName").build()).completionFuture().join())
             .hasMessageContaining("is not a directory").hasCauseInstanceOf(IllegalArgumentException.class);
     }

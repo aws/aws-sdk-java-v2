@@ -239,4 +239,11 @@
         </Or>
         <Bug pattern="SDK_BAD_METHOD_CALL"/>
     </Match>
+
+    <!-- False positive on JDK 11+ -->
+    <Match>
+        <Class name="software.amazon.awssdk.transfer.s3.model.ResumableFileDownload"/>
+        <Method name="fromFile"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
 </FindBugsFilter>

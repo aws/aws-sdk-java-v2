@@ -18,7 +18,6 @@ package software.amazon.awssdk.transfer.s3.model;
 
 import java.nio.file.Path;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -42,19 +41,15 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class DownloadDirectoryRequest
     implements TransferDirectoryRequest, ToCopyableBuilder<DownloadDirectoryRequest.Builder, DownloadDirectoryRequest> {
 
-    private final Path destinationDirectory;
+    private final Path destination;
     private final String bucket;
-    private final String prefix;
-    private final String delimiter;
     private final DownloadFilter filter;
     private final Consumer<DownloadFileRequest.Builder> downloadFileRequestTransformer;
     private final Consumer<ListObjectsV2Request.Builder> listObjectsRequestTransformer;
 
     public DownloadDirectoryRequest(DefaultBuilder builder) {
-        this.destinationDirectory = Validate.paramNotNull(builder.destinationDirectory, "destinationDirectory");
+        this.destination = Validate.paramNotNull(builder.destination, "destination");
         this.bucket = Validate.paramNotNull(builder.bucket, "bucket");
-        this.prefix = builder.prefix;
-        this.delimiter = builder.delimiter;
         this.filter = builder.filter;
         this.downloadFileRequestTransformer = builder.downloadFileRequestTransformer;
         this.listObjectsRequestTransformer = builder.listObjectsRequestTransformer;
@@ -64,10 +59,10 @@ public final class DownloadDirectoryRequest
      * The destination directory to which files should be downloaded.
      *
      * @return the destination directory
-     * @see Builder#destinationDirectory(Path)
+     * @see Builder#destination(Path)
      */
-    public Path destinationDirectory() {
-        return destinationDirectory;
+    public Path destination() {
+        return destination;
     }
 
     /**
@@ -78,22 +73,6 @@ public final class DownloadDirectoryRequest
      */
     public String bucket() {
         return bucket;
-    }
-
-    /**
-     * @return the optional key prefix
-     * @see Builder#prefix(String)
-     */
-    public Optional<String> prefix() {
-        return Optional.ofNullable(prefix);
-    }
-
-    /**
-     * @return the optional delimiter
-     * @see Builder#delimiter(String)
-     */
-    public Optional<String> delimiter() {
-        return Optional.ofNullable(delimiter);
     }
 
     /**
@@ -144,16 +123,10 @@ public final class DownloadDirectoryRequest
 
         DownloadDirectoryRequest that = (DownloadDirectoryRequest) o;
 
-        if (!Objects.equals(destinationDirectory, that.destinationDirectory)) {
+        if (!Objects.equals(destination, that.destination)) {
             return false;
         }
         if (!Objects.equals(bucket, that.bucket)) {
-            return false;
-        }
-        if (!Objects.equals(prefix, that.prefix)) {
-            return false;
-        }
-        if (!Objects.equals(delimiter, that.delimiter)) {
             return false;
         }
         if (!Objects.equals(downloadFileRequestTransformer, that.downloadFileRequestTransformer)) {
@@ -167,10 +140,8 @@ public final class DownloadDirectoryRequest
 
     @Override
     public int hashCode() {
-        int result = destinationDirectory != null ? destinationDirectory.hashCode() : 0;
+        int result = destination != null ? destination.hashCode() : 0;
         result = 31 * result + (bucket != null ? bucket.hashCode() : 0);
-        result = 31 * result + (prefix != null ? prefix.hashCode() : 0);
-        result = 31 * result + (delimiter != null ? delimiter.hashCode() : 0);
         result = 31 * result + (filter != null ? filter.hashCode() : 0);
         result = 31 * result + (downloadFileRequestTransformer != null ? downloadFileRequestTransformer.hashCode() : 0);
         result = 31 * result + (listObjectsRequestTransformer != null ? listObjectsRequestTransformer.hashCode() : 0);
@@ -180,10 +151,8 @@ public final class DownloadDirectoryRequest
     @Override
     public String toString() {
         return ToString.builder("DownloadDirectoryRequest")
-                       .add("destinationDirectory", destinationDirectory)
+                       .add("destination", destination)
                        .add("bucket", bucket)
-                       .add("prefix", prefix)
-                       .add("delimiter", delimiter)
                        .add("filter", filter)
                        .add("downloadFileRequestTransformer", downloadFileRequestTransformer)
                        .add("listObjectsRequestTransformer", listObjectsRequestTransformer)
@@ -194,10 +163,10 @@ public final class DownloadDirectoryRequest
         /**
          * Specify the destination directory to which files should be downloaded.
          *
-         * @param destinationDirectory the destination directory
+         * @param destination the destination directorÏy
          * @return This builder for method chaining.
          */
-        Builder destinationDirectory(Path destinationDirectory);
+        Builder destination(Path destination);
 
         /**
          * The name of the bucket to download objects from.
@@ -206,86 +175,6 @@ public final class DownloadDirectoryRequest
          * @return This builder for method chaining.
          */
         Builder bucket(String bucket);
-
-        /**
-         * Specify the key prefix for the virtual directory. If not provided, all subdirectories will be downloaded recursively
-         * <p>
-         * See <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-prefixes.html">Organizing objects using
-         * prefixes</a>
-         *
-         * <p>
-         * When a non-empty prefix is provided, the prefix is stripped from the directory structure of the files.
-         * <p>
-         * For example, assume that you have the following keys in your bucket:
-         * <ul>
-         *     <li>sample.jpg</li>
-         *     <li>photos/2022/January/sample.jpg</li>
-         *     <li>photos/2022/February/sample1.jpg</li>
-         *     <li>photos/2022/February/sample2.jpg</li>
-         *     <li>photos/2022/February/sample3.jpg</li>
-         * </ul>
-         *
-         * Give a request to download the bucket to a destination with a prefix of "/photos" and destination path of "test", the
-         * downloaded directory would like this
-         *
-         * <pre>
-         *   {@code
-         *      |- test
-         *         |- 2022
-         *              |- January
-         *                 |- sample.jpg
-         *              |- February
-         *                 |- sample1.jpg
-         *                 |- sample2.jpg
-         *                 |- sample3.jpg
-         *   }
-         * </pre>
-         * @param prefix the key prefix
-         * @return This builder for method chaining.
-         */
-        Builder prefix(String prefix);
-
-        /**
-         * Specify the delimiter that will be used to retrieve the objects within the provided bucket. A delimiter causes a list
-         * operation to roll up all the keys that share a common prefix into a single summary list result. It's null by default.
-         *
-         * For example, assume that you have the following keys in your bucket:
-         *
-         * <ul>
-         *     <li>sample.jpg</li>
-         *     <li>photos-2022-January-sample.jpg</li>
-         *     <li>photos-2022-February-sample1.jpg</li>
-         *     <li>photos-2022-February-sample2.jpg</li>
-         *     <li>photos-2022-February-sample3.jpg</li>
-         * </ul>
-         *
-         * Give a request to download the bucket to a destination with delimiter of "-", the downloaded directory would look
-         * like this
-         *
-         * <pre>
-         *   {@code
-         *      |- test
-         *         |- sample.jpg
-         *         |- photos
-         *             |- 2022
-         *                 |- January
-         *                     |- sample.jpg
-         *                 |- February
-         *                     |- sample1.jpg
-         *                     |- sample2.jpg
-         *                     |- sample3.jpg
-         *   }
-         * </pre>
-         *
-         * <p>
-         * See <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-prefixes.html">Organizing objects using
-         * prefixes</a>
-         *
-         * @param delimiter the delimiter
-         * @return This builder for method chaining.
-         * @see #prefix(String)
-         */
-        Builder delimiter(String delimiter);
 
         /**
          * Specify a filter that will be used to evaluate which objects should be downloaded from the target directory.
@@ -323,7 +212,7 @@ public final class DownloadDirectoryRequest
          *
          * DownloadDirectoryRequest request =
          *     DownloadDirectoryRequest.builder()
-         *         .destinationDirectory(Paths.get("."))
+         *         .destination(Paths.get("."))
          *         .bucket("bucket")
          *         .prefix("prefix")
          *         .downloadFileRequestTransformer(request -> request.overrideConfiguration(fileDownloadConfiguration))
@@ -360,10 +249,9 @@ public final class DownloadDirectoryRequest
          *
          * DownloadDirectoryRequest request =
          *     DownloadDirectoryRequest.builder()
-         *         .destinationDirectory(Paths.get("."))
+         *         .destination(Paths.get("."))
          *         .bucket("bucket")
-         *         .prefix("prefix")
-         *         .listObjectsRequestTransformer(request -> request.encodingType(newEncodingType))
+         *         .listObjectsV2RequestTransformer(request -> request.encodingType(newEncodingType))
          *         .build()
          *
          * DownloadDirectoryTransfer downloadDirectory = transferManager.downloadDirectory(request);
@@ -376,6 +264,76 @@ public final class DownloadDirectoryRequest
          * }
          * </pre>
          *
+         * <p>
+         * <b>Prefix:</b>
+         * {@code ListObjectsV2Request}'s {@code prefix} specifies the key prefix for the virtual directory. If not provided,
+         * all subdirectories will be downloaded recursively
+         * <p>
+         * See <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-prefixes.html">Organizing objects using
+         * prefixes</a>
+         *
+         * <p>
+         * When a non-empty prefix is provided, the prefix is stripped from the directory structure of the files.
+         * <p>
+         * For example, assume that you have the following keys in your bucket:
+         * <ul>
+         *     <li>sample.jpg</li>
+         *     <li>photos/2022/January/sample.jpg</li>
+         *     <li>photos/2022/February/sample1.jpg</li>
+         *     <li>photos/2022/February/sample2.jpg</li>
+         *     <li>photos/2022/February/sample3.jpg</li>
+         * </ul>
+         *
+         * Given a request to download the bucket to a destination with a prefix of "/photos" and destination path of "test", the
+         * downloaded directory would like this
+         *
+         * <pre>
+         *   {@code
+         *      |- test
+         *         |- 2022
+         *              |- January
+         *                 |- sample.jpg
+         *              |- February
+         *                 |- sample1.jpg
+         *                 |- sample2.jpg
+         *                 |- sample3.jpg
+         *   }
+         * </pre>
+         *
+         * <p>
+         * <b>Delimiter:</b>
+         * {@code ListObjectsV2Request}'s {@code delimiter} specifies the delimiter that will be used to retrieve the objects
+         * within the provided bucket. A delimiter causes a list operation to roll up all the keys that share a common prefix
+         * into a single summary list result. It's null by default.
+         *
+         * For example, assume that you have the following keys in your bucket:
+         *
+         * <ul>
+         *     <li>sample.jpg</li>
+         *     <li>photos-2022-January-sample.jpg</li>
+         *     <li>photos-2022-February-sample1.jpg</li>
+         *     <li>photos-2022-February-sample2.jpg</li>
+         *     <li>photos-2022-February-sample3.jpg</li>
+         * </ul>
+         *
+         * Given a request to download the bucket to a destination with delimiter of "-", the downloaded directory would look
+         * like this
+         *
+         * <pre>
+         *   {@code
+         *      |- test
+         *         |- sample.jpg
+         *         |- photos
+         *             |- 2022
+         *                 |- January
+         *                     |- sample.jpg
+         *                 |- February
+         *                     |- sample1.jpg
+         *                     |- sample2.jpg
+         *                     |- sample3.jpg
+         *   }
+         * </pre>
+         *
          * @param listObjectsV2RequestTransformer A transformer to use for modifying ListObjectsV2Request before execution
          * @return This builder for method chaining
          */
@@ -385,10 +343,8 @@ public final class DownloadDirectoryRequest
 
     private static final class DefaultBuilder implements Builder {
 
-        private Path destinationDirectory;
+        private Path destination;
         private String bucket;
-        private String prefix;
-        private String delimiter;
         private DownloadFilter filter;
         private Consumer<DownloadFileRequest.Builder> downloadFileRequestTransformer;
         private Consumer<ListObjectsV2Request.Builder> listObjectsRequestTransformer;
@@ -397,27 +353,25 @@ public final class DownloadDirectoryRequest
         }
 
         private DefaultBuilder(DownloadDirectoryRequest request) {
-            this.destinationDirectory = request.destinationDirectory;
+            this.destination = request.destination;
             this.bucket = request.bucket;
-            this.prefix = request.prefix;
             this.filter = request.filter;
             this.downloadFileRequestTransformer = request.downloadFileRequestTransformer;
             this.listObjectsRequestTransformer = request.listObjectsRequestTransformer;
-            this.delimiter = request.delimiter;
         }
 
         @Override
-        public Builder destinationDirectory(Path destinationDirectory) {
-            this.destinationDirectory = destinationDirectory;
+        public Builder destination(Path destination) {
+            this.destination = destination;
             return this;
         }
 
-        public void setDestinationDirectory(Path destinationDirectory) {
-            destinationDirectory(destinationDirectory);
+        public void setDestination(Path destination) {
+            destination(destination);
         }
 
-        public Path getDestinationDirectory() {
-            return destinationDirectory;
+        public Path getDestination() {
+            return destination;
         }
 
         @Override
@@ -432,34 +386,6 @@ public final class DownloadDirectoryRequest
 
         public String getBucket() {
             return bucket;
-        }
-
-        @Override
-        public Builder prefix(String prefix) {
-            this.prefix = prefix;
-            return this;
-        }
-
-        public void setPrefix(String prefix) {
-            prefix(prefix);
-        }
-
-        public String getPrefix() {
-            return prefix;
-        }
-
-        @Override
-        public Builder delimiter(String delimiter) {
-            this.delimiter = delimiter;
-            return this;
-        }
-
-        public void setDelimiter(String delimiter) {
-            delimiter(delimiter);
-        }
-
-        public String getDelimiter() {
-            return delimiter;
         }
 
         @Override

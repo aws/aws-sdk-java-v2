@@ -43,7 +43,6 @@ public class UploadDirectoryOverrideConfigurationTest {
     public void defaultBuilder() {
         UploadDirectoryOverrideConfiguration configuration = UploadDirectoryOverrideConfiguration.builder().build();
         assertThat(configuration.followSymbolicLinks()).isEmpty();
-        assertThat(configuration.recursive()).isEmpty();
         assertThat(configuration.maxDepth()).isEmpty();
     }
 
@@ -51,11 +50,9 @@ public class UploadDirectoryOverrideConfigurationTest {
     public void defaultBuilderWithPropertySet() {
         UploadDirectoryOverrideConfiguration configuration = UploadDirectoryOverrideConfiguration.builder()
                                                                                                  .maxDepth(10)
-                                                                                                 .recursive(true)
                                                                                                  .followSymbolicLinks(false)
                                                                                                  .build();
         assertThat(configuration.followSymbolicLinks()).contains(false);
-        assertThat(configuration.recursive()).contains(true);
         assertThat(configuration.maxDepth()).contains(10);
     }
 

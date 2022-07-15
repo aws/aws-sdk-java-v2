@@ -296,7 +296,7 @@ class S3TransferManagerTest {
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> tm.downloadDirectory(b -> b.bucket(mrapArn)
-                                                            .destinationDirectory(Paths.get(".")))
+                                                            .destination(Paths.get(".")))
                                    .completionFuture().join())
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
 
@@ -330,7 +330,7 @@ class S3TransferManagerTest {
         RuntimeException exception = new RuntimeException("test");
         when(downloadDirectoryHelper.downloadDirectory(any(DownloadDirectoryRequest.class))).thenThrow(exception);
 
-        assertThatThrownBy(() -> tm.downloadDirectory(u -> u.destinationDirectory(Paths.get("/"))
+        assertThatThrownBy(() -> tm.downloadDirectory(u -> u.destination(Paths.get("/"))
                                                           .bucket("bucketName")).completionFuture().join())
             .hasCause(exception);
     }

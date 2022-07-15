@@ -41,16 +41,16 @@ public final class UploadDirectoryRequest
 
     private final Path sourceDirectory;
     private final String bucket;
-    private final String prefix;
+    private final String s3Prefix;
     private final UploadDirectoryOverrideConfiguration overrideConfiguration;
-    private final String delimiter;
+    private final String s3Delimiter;
 
     public UploadDirectoryRequest(DefaultBuilder builder) {
         this.sourceDirectory = Validate.paramNotNull(builder.sourceDirectory, "sourceDirectory");
         this.bucket = Validate.paramNotNull(builder.bucket, "bucket");
-        this.prefix = builder.prefix;
+        this.s3Prefix = builder.s3Prefix;
         this.overrideConfiguration = builder.configuration;
-        this.delimiter = builder.delimiter;
+        this.s3Delimiter = builder.s3Delimiter;
     }
 
     /**
@@ -75,18 +75,18 @@ public final class UploadDirectoryRequest
 
     /**
      * @return the optional key prefix
-     * @see Builder#prefix(String)
+     * @see Builder#s3Prefix(String)
      */
-    public Optional<String> prefix() {
-        return Optional.ofNullable(prefix);
+    public Optional<String> s3Prefix() {
+        return Optional.ofNullable(s3Prefix);
     }
 
     /**
      * @return the optional delimiter
-     * @see Builder#delimiter(String)
+     * @see Builder#s3Delimiter(String)
      */
-    public Optional<String> delimiter() {
-        return Optional.ofNullable(delimiter);
+    public Optional<String> s3Delimiter() {
+        return Optional.ofNullable(s3Delimiter);
     }
 
     /**
@@ -127,22 +127,22 @@ public final class UploadDirectoryRequest
         if (!Objects.equals(bucket, that.bucket)) {
             return false;
         }
-        if (!Objects.equals(prefix, that.prefix)) {
+        if (!Objects.equals(s3Prefix, that.s3Prefix)) {
             return false;
         }
         if (!Objects.equals(overrideConfiguration, that.overrideConfiguration)) {
             return false;
         }
-        return Objects.equals(delimiter, that.delimiter);
+        return Objects.equals(s3Delimiter, that.s3Delimiter);
     }
 
     @Override
     public int hashCode() {
         int result = sourceDirectory != null ? sourceDirectory.hashCode() : 0;
         result = 31 * result + (bucket != null ? bucket.hashCode() : 0);
-        result = 31 * result + (prefix != null ? prefix.hashCode() : 0);
+        result = 31 * result + (s3Prefix != null ? s3Prefix.hashCode() : 0);
         result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
-        result = 31 * result + (delimiter != null ? delimiter.hashCode() : 0);
+        result = 31 * result + (s3Delimiter != null ? s3Delimiter.hashCode() : 0);
         return result;
     }
 
@@ -151,9 +151,9 @@ public final class UploadDirectoryRequest
         return ToString.builder("UploadDirectoryRequest")
                        .add("sourceDirectory", sourceDirectory)
                        .add("bucket", bucket)
-                       .add("prefix", prefix)
+                       .add("s3Prefix", s3Prefix)
+                       .add("s3Delimiter", s3Delimiter)
                        .add("overrideConfiguration", overrideConfiguration)
-                       .add("delimiter", delimiter)
                        .build();
     }
 
@@ -200,11 +200,11 @@ public final class UploadDirectoryRequest
          *
          * the object keys will be "foo/obj1.txt" and "foo/obj2.txt" as apposed to "foo//obj1.txt" and "foo//obj2.txt"
          *
-         * @param prefix the key prefix
+         * @param s3Prefix the key prefix
          * @return This builder for method chaining.
-         * @see #delimiter(String)
+         * @see #s3Delimiter(String)
          */
-        Builder prefix(String prefix);
+        Builder s3Prefix(String s3Prefix);
 
         /**
          * Specify the delimiter. A delimiter causes a list operation to roll up all the keys that share a common prefix into a
@@ -227,11 +227,11 @@ public final class UploadDirectoryRequest
          *
          * the object keys will be "foo/obj1.txt" and "foo/obj2.txt" as apposed to "foo//obj1.txt" and "foo//obj2.txt"
          *
-         * @param delimiter the delimiter
+         * @param s3Delimiter the delimiter
          * @return This builder for method chaining.
-         * @see #prefix(String)
+         * @see #s3Prefix(String)
          */
-        Builder delimiter(String delimiter);
+        Builder s3Delimiter(String s3Delimiter);
 
         /**
          * Add an optional request override configuration.
@@ -267,9 +267,9 @@ public final class UploadDirectoryRequest
 
         private Path sourceDirectory;
         private String bucket;
-        private String prefix;
+        private String s3Prefix;
         private UploadDirectoryOverrideConfiguration configuration;
-        private String delimiter;
+        private String s3Delimiter;
 
         private DefaultBuilder() {
         }
@@ -277,9 +277,9 @@ public final class UploadDirectoryRequest
         private DefaultBuilder(UploadDirectoryRequest request) {
             this.sourceDirectory = request.sourceDirectory;
             this.bucket = request.bucket;
-            this.prefix = request.prefix;
+            this.s3Prefix = request.s3Prefix;
             this.configuration = request.overrideConfiguration;
-            this.delimiter = request.delimiter;
+            this.s3Delimiter = request.s3Delimiter;
         }
 
         @Override
@@ -311,31 +311,31 @@ public final class UploadDirectoryRequest
         }
 
         @Override
-        public Builder prefix(String prefix) {
-            this.prefix = prefix;
+        public Builder s3Prefix(String s3Prefix) {
+            this.s3Prefix = s3Prefix;
             return this;
         }
 
-        public void setPrefix(String prefix) {
-            prefix(prefix);
+        public void setS3Prefix(String s3Prefix) {
+            s3Prefix(s3Prefix);
         }
 
-        public String getPrefix() {
-            return prefix;
+        public String getS3Prefix() {
+            return s3Prefix;
         }
 
         @Override
-        public Builder delimiter(String delimiter) {
-            this.delimiter = delimiter;
+        public Builder s3Delimiter(String s3Delimiter) {
+            this.s3Delimiter = s3Delimiter;
             return this;
         }
 
-        public void setDelimiter(String delimiter) {
-            delimiter(delimiter);
+        public void setS3Delimiter(String s3Delimiter) {
+            s3Delimiter(s3Delimiter);
         }
 
-        public String getDelimiter() {
-            return delimiter;
+        public String getS3Delimiter() {
+            return s3Delimiter;
         }
 
         @Override

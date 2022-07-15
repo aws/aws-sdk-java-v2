@@ -1,0 +1,6 @@
+{
+    "type": "removal",
+    "category": "Amazon S3 Transfer Manager",
+    "contributor": "",
+    "description": "Remove `DownloadDirectoryRequest.prefix` and `delimiter`. The same functionality is already available via the `listObjectsV2RequestTransformer`."
+}

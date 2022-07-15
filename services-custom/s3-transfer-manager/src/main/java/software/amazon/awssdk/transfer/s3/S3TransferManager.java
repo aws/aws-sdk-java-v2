@@ -431,7 +431,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * {@code
      * DirectoryDownload directoryDownload =
      *       transferManager.downloadDirectory(DownloadDirectoryRequest.builder()
-     *                                                                 .destinationDirectory(Paths.get("."))
+     *                                                                 .destination(Paths.get("."))
      *                                                                 .bucket("bucket")
      *                                                                 .prefix("prefix")
      *                                                                 .build());
