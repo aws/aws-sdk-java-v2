@@ -33,9 +33,9 @@ public interface Ec2Metadata {
     /**
      * Gets the specified instance metadata value by the given path.
      * @param path  Input path
-     * @return Instance metadata value
+     * @return Instance metadata value as part of MetadataResponse Object
      */
-    String get(String path);
+    MetadataResponse get(String path);
 
     /**
      * @return The Builder Object consisting all the fields.

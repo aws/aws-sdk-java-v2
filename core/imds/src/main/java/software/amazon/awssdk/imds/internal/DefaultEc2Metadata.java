@@ -36,6 +36,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.imds.Ec2Metadata;
+import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -145,11 +146,12 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
     /**
      * Gets the specified instance metadata value by the given path.
      * @param path  Input path
-     * @return Instance metadata value
+     * @return Instance metadata value as part of MetadataResponse Object
      */
     @Override
-    public String get(String path) {
+    public MetadataResponse get(String path) {
 
+        MetadataResponse metadataResponse = null;
         String data = null;
         AbortableInputStream abortableInputStream = null;
         try {
@@ -164,6 +166,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
             if (statusCode == HttpURLConnection.HTTP_OK && responseBody.isPresent()) {
                 abortableInputStream = responseBody.get();
                 data = IoUtils.toUtf8String(abortableInputStream);
+                metadataResponse = new MetadataResponse(data);
             } else if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
                 throw SdkServiceException.builder()
                                          .message("The requested metadata at path ( " + path + " ) is not found ").build();
@@ -184,7 +187,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
             IoUtils.closeQuietly(abortableInputStream, log);
         }
 
-        return data;
+        return metadataResponse;
     }
 
     private String getToken() throws IOException {
