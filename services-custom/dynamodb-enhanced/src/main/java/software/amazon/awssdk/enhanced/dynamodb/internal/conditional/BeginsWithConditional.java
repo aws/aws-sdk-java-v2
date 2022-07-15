@@ -16,25 +16,20 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.conditional;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.cleanAttributeName;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.UnaryOperator;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
 public class BeginsWithConditional implements QueryConditional {
-    private static final UnaryOperator<String> EXPRESSION_KEY_MAPPER =
-        k -> "#AMZN_MAPPED_" + cleanAttributeName(k);
-    private static final UnaryOperator<String> EXPRESSION_VALUE_KEY_MAPPER =
-        k -> ":AMZN_MAPPED_" + cleanAttributeName(k);
 
     private final Key key;
 
@@ -56,10 +51,10 @@ public class BeginsWithConditional implements QueryConditional {
                                                + "a numeric sort key.");
         }
 
-        String partitionKeyToken = EXPRESSION_KEY_MAPPER.apply(queryConditionalKeyValues.partitionKey());
-        String partitionValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(queryConditionalKeyValues.partitionKey());
-        String sortKeyToken = EXPRESSION_KEY_MAPPER.apply(queryConditionalKeyValues.sortKey());
-        String sortValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(queryConditionalKeyValues.sortKey());
+        String partitionKeyToken = EnhancedClientUtils.keyRef(queryConditionalKeyValues.partitionKey());
+        String partitionValueToken = EnhancedClientUtils.valueRef(queryConditionalKeyValues.partitionKey());
+        String sortKeyToken = EnhancedClientUtils.keyRef(queryConditionalKeyValues.sortKey());
+        String sortValueToken = EnhancedClientUtils.valueRef(queryConditionalKeyValues.sortKey());
 
         String queryExpression = String.format("%s = %s AND begins_with ( %s, %s )",
                                                partitionKeyToken,

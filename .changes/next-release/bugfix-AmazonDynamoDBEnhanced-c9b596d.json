@@ -1,0 +1,6 @@
+{
+    "category": "Amazon DynamoDB Enhanced", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Adding usage of ExpressionNames to VersionedRecord, thereby allowing version attributes with reserved words and special characters"
+}
