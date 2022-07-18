@@ -1,0 +1,48 @@
+{
+    "version": "2.17.233",
+    "date": "2022-07-15",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB Enhanced",
+            "contributor": "",
+            "description": "Adding usage of ExpressionNames to VersionedRecord, thereby allowing version attributes with reserved words and special characters"
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager (Developer Preview)",
+            "contributor": "",
+            "description": "Fixed possible security issue in `S3TransferManager`s `downloadDirectory` operation where files could be downloaded to a sibling directory of the destination directory if the key contained relative paths."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "Documentation updates for AWS DataSync regarding configuring Amazon FSx for ONTAP location security groups and SMB user permissions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "This SDK release provide customers ability to add sensitivity level for WAF SQLI Match Statements."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Evidently",
+            "contributor": "",
+            "description": "This release adds support for the new segmentation feature."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Disaster Recovery Service",
+            "contributor": "",
+            "description": "Changed existing APIs to allow choosing a dynamic volume type for replicating volumes, to reduce costs for customers."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

@@ -1,3 +1,99 @@
+# __2.17.233__ __2022-07-15__
+## __AWS DataSync__
+  - ### Features
+    - Documentation updates for AWS DataSync regarding configuring Amazon FSx for ONTAP location security groups and SMB user permissions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - This SDK release provide customers ability to add sensitivity level for WAF SQLI Match Statements.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - This release adds support for the new segmentation feature.
+
+## __Amazon DynamoDB Enhanced__
+  - ### Bugfixes
+    - Adding usage of ExpressionNames to VersionedRecord, thereby allowing version attributes with reserved words and special characters
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Changed existing APIs to allow choosing a dynamic volume type for replicating volumes, to reduce costs for customers.
+
+## __S3 Transfer Manager (Developer Preview)__
+  - ### Bugfixes
+    - Fixed possible security issue in `S3TransferManager`s `downloadDirectory` operation where files could be downloaded to a sibling directory of the destination directory if the key contained relative paths.
+
+# __2.17.232__ __2022-07-14__
+## __AWS Config__
+  - ### Features
+    - Update ResourceType enum with values for Route53Resolver, Batch, DMS, Workspaces, Stepfunctions, SageMaker, ElasticLoadBalancingV2, MSK types
+
+## __AWS Glue__
+  - ### Features
+    - This release adds an additional worker type for Glue Streaming jobs.
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds the ShipmentInformation and AssetInformationList fields to the GetOrder API response.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - This release adds AccessControlConfigurations which allow you to redefine your document level access control without the need for content re-indexing.
+
+## __Amazon Athena__
+  - ### Features
+    - This release updates data types that contain either QueryExecutionId, NamedQueryId or ExpectedBucketOwner. Ids must be between 1 and 128 characters and contain only non-whitespace characters. ExpectedBucketOwner must be 12-digit string.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds flow logs for Transit Gateway to allow customers to gain deeper visibility and insights into network traffic through their Transit Gateways.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for G5, P4d, and C6i instance types in Amazon SageMaker Inference and increases the number of hyperparameters that can be searched from 20 to 30 in Amazon SageMaker Automatic Model Tuning
+
+## __AmazonNimbleStudio__
+  - ### Features
+    - Amazon Nimble Studio adds support for IAM-based access to AWS resources for Nimble Studio components and custom studio components. Studio Component scripts use these roles on Nimble Studio workstation to mount filesystems, access S3 buckets, or other configured resources in the Studio's AWS account
+
+## __CodeArtifact__
+  - ### Features
+    - This release introduces Package Origin Controls, a mechanism used to counteract Dependency Confusion attacks. Adds two new APIs, PutPackageOriginConfiguration and DescribePackage, and updates the ListPackage, DescribePackageVersion and ListPackageVersion APIs in support of the feature.
+
+## __Firewall Management Service__
+  - ### Features
+    - Adds support for strict ordering in stateful rule groups in Network Firewall policies.
+
+## __Inspector2__
+  - ### Features
+    - This release adds support for Inspector V2 scan configurations through the get and update configuration APIs. Currently this allows configuring ECR automated re-scan duration to lifetime or 180 days or 30 days.
+
+# __2.17.231__ __2022-07-13__
+## __Amazon AppConfig__
+  - ### Features
+    - Adding Create, Get, Update, Delete, and List APIs for new two new resources: Extensions and ExtensionAssociations.
+
+## __URL Connection Client__
+  - ### Bugfixes
+    - Set the `Accept` header for `UrlConnectionHttpClient` because the default one does not comply with RFC 7231. See https://bugs.openjdk.org/browse/JDK-8163921
+
+# __2.17.230__ __2022-07-12__
+## __AWS Network Manager__
+  - ### Features
+    - This release adds general availability API support for AWS Cloud WAN.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
 # __2.17.229__ __2022-07-11__
 ## __AWS SDK for Java v2__
   - ### Features

@@ -67,6 +67,20 @@ public final class EnhancedClientUtils {
         return somethingChanged ? new String(chars) : key;
     }
 
+    /**
+     * Creates a key token to be used with an ExpressionNames map.
+     */
+    public static String keyRef(String key) {
+        return "#AMZN_MAPPED_" + cleanAttributeName(key);
+    }
+
+    /**
+     * Creates a value token to be used with an ExpressionValues map.
+     */
+    public static String valueRef(String value) {
+        return ":AMZN_MAPPED_" + cleanAttributeName(value);
+    }
+
     public static <T> T readAndTransformSingleItem(Map<String, AttributeValue> itemMap,
                                             TableSchema<T> tableSchema,
                                             OperationContext operationContext,
