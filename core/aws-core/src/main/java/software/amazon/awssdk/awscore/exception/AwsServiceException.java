@@ -65,7 +65,9 @@ public class AwsServiceException extends SdkServiceException {
         if (awsErrorDetails != null) {
             StringJoiner details = new StringJoiner(", ", "(", ")");
             details.add("Service: " + awsErrorDetails().serviceName());
-            details.add("Status Code: " + statusCode());
+            if (statusCode() != 0) {
+                details.add("Status Code: " + statusCode());
+            }
             details.add("Request ID: " + requestId());
             if (extendedRequestId() != null) {
                 details.add("Extended Request ID: " + extendedRequestId());

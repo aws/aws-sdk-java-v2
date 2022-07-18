@@ -81,7 +81,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         exception.clockSkew(getClockSkew(executionAttributes));
         // Status code and request id are sdk level fields
         exception.message(errorMessage);
-        exception.statusCode(statusCode(response, modeledExceptionMetadata));
+        statusCode(response, modeledExceptionMetadata).ifPresent(exception::statusCode);
         exception.requestId(response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADERS).orElse(null));
         exception.extendedRequestId(response.firstMatchingHeader(X_AMZ_ID_2_HEADER).orElse(null));
         return exception.build();
@@ -92,14 +92,13 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         return timeOffset == null ? null : Duration.ofSeconds(timeOffset);
     }
 
-    private int statusCode(SdkHttpFullResponse response, Optional<ExceptionMetadata> modeledExceptionMetadata) {
+    private Optional<Integer> statusCode(SdkHttpFullResponse response, Optional<ExceptionMetadata> modeledExceptionMetadata) {
         if (response.statusCode() != 0) {
-            return response.statusCode();
+            return Optional.of(response.statusCode());
         }
 
         return modeledExceptionMetadata.filter(m -> m.httpStatusCode() != null)
-                                       .map(ExceptionMetadata::httpStatusCode)
-                                       .orElse(500);
+                                       .map(ExceptionMetadata::httpStatusCode);
     }
 
     /**
