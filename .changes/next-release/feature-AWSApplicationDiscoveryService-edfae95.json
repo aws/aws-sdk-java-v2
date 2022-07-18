@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Application Discovery Service",
-    "contributor": "",
-    "description": "Add AWS Agentless Collector details to the GetDiscoverySummary API response"
-}

@@ -1,3 +1,36 @@
+# __2.17.234__ __2022-07-18__
+## __AWS Application Discovery Service__
+  - ### Features
+    - Add AWS Agentless Collector details to the GetDiscoverySummary API response
+
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - This release adds "IncludeIframeOnlyStream" for Dash endpoints and increases the number of supported video and audio encryption presets for Speke v2
+
+## __AWS Key Management Service__
+  - ### Features
+    - Added support for the SM2 KeySpec in China Partition Regions
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - AWS SSO now supports attaching customer managed policies and a permissions boundary to your permission sets. This release adds new API operations to manage and view the customer managed policies and the permissions boundary for a given permission set.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Adding AutoMinorVersionUpgrade in the DescribeReplicationGroups API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Edge Manager provides lightweight model deployment feature to deploy machine learning models on requested devices.
+
 # __2.17.233__ __2022-07-15__
 ## __AWS DataSync__
   - ### Features

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Key Management Service",
-    "contributor": "",
-    "description": "Added support for the SM2 KeySpec in China Partition Regions"
-}
