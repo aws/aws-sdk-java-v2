@@ -52,6 +52,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final int maxConcurrency;
     private final URI endpointOverride;
     private final Executor futureCompletionExecutor;
+    private final boolean contentMd5;
 
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
@@ -76,6 +77,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         this.endpointOverride = builder.endpointOverride;
 
         this.futureCompletionExecutor = resolveAsyncFutureCompletionExecutor(builder.asynConfiguration);
+
+        this.contentMd5 = builder.contentMd5 == null ? false : builder.contentMd5;
     }
 
     public static Builder builder() {
@@ -112,6 +115,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
     public Executor futureCompletionExecutor() {
         return futureCompletionExecutor;
+    }
+
+    public boolean isContentMd5() {
+        return contentMd5;
     }
 
     /**
@@ -164,6 +171,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private Integer maxConcurrency;
         private URI endpointOverride;
         private ClientAsyncConfiguration asynConfiguration;
+        private Boolean contentMd5;
 
         private Builder() {
         }
@@ -200,6 +208,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder asyncConfiguration(ClientAsyncConfiguration asyncConfiguration) {
             this.asynConfiguration = asyncConfiguration;
+            return this;
+        }
+
+        public Builder contentMd5(Boolean contentMd5) {
+            this.contentMd5 = contentMd5;
             return this;
         }
 

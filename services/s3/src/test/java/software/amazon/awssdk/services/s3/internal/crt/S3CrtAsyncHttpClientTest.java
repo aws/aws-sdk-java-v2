@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CHECKSUM_SPECS;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 
 import java.net.URI;
@@ -28,12 +29,17 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.crt.http.HttpRequest;
+import software.amazon.awssdk.crt.s3.ChecksumAlgorithm;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
@@ -85,6 +91,7 @@ public class S3CrtAsyncHttpClientTest {
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.DEFAULT);
         assertThat(actual.getCredentialsProvider()).isNull();
         assertThat(actual.getEndpoint().equals(DEFAULT_ENDPOINT));
+        assertThat(actual.getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.CRC32);
 
         HttpRequest httpRequest = actual.getHttpRequest();
         assertThat(httpRequest.getEncodedPath()).isEqualTo("/key");
@@ -131,6 +138,23 @@ public class S3CrtAsyncHttpClientTest {
 
         S3MetaRequestOptions actual = s3MetaRequestOptionsArgumentCaptor.getValue();
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.PUT_OBJECT);
+    }
+
+    @Test
+    public void putObject_shouldSetChecksumAlgorithmCorrectly() {
+        ChecksumSpecs checksumSpecs = ChecksumSpecs.builder().algorithm(Algorithm.SHA1).build();
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(CHECKSUM_SPECS,
+                                                                                                       checksumSpecs).build();
+
+        ArgumentCaptor<S3MetaRequestOptions> s3MetaRequestOptionsArgumentCaptor =
+            ArgumentCaptor.forClass(S3MetaRequestOptions.class);
+
+        asyncHttpClient.execute(asyncExecuteRequest);
+
+        verify(s3Client).makeMetaRequest(s3MetaRequestOptionsArgumentCaptor.capture());
+
+        S3MetaRequestOptions actual = s3MetaRequestOptionsArgumentCaptor.getValue();
+        assertThat(actual.getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.SHA1);
     }
 
     @Test

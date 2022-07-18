@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CHECKSUM_SPECS;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 
 import java.net.URI;
@@ -25,8 +26,11 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
+import software.amazon.awssdk.crt.s3.ChecksumAlgorithm;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
@@ -58,6 +62,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                        .signingRegion(builder.region == null ? null : builder.region.id())
                                        .endpointOverride(builder.endpointOverride)
                                        .credentialsProvider(builder.credentialsProvider)
+                                       .contentMd5(Boolean.FALSE)
                                        .build();
 
         S3ClientOptions s3ClientOptions =
@@ -67,7 +72,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withCredentialsProvider(s3NativeClientConfiguration.credentialsProvider())
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
                                  .withPartSize(s3NativeClientConfiguration.partSizeBytes())
-                                 .withComputeContentMd5(true)
+                                 .withComputeContentMd5(s3NativeClientConfiguration.isContentMd5())
                                  .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps());
         this.crtS3Client = new S3Client(s3ClientOptions);
     }
@@ -87,10 +92,12 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             new S3CrtResponseHandlerAdapter(executeFuture, asyncRequest.responseHandler());
 
         S3MetaRequestOptions.MetaRequestType requestType = requestType(asyncRequest);
+        ChecksumAlgorithm checksumAlgorithm = crtChecksumAlgorithm(asyncRequest);
 
         S3MetaRequestOptions requestOptions = new S3MetaRequestOptions()
             .withHttpRequest(httpRequest)
             .withMetaRequestType(requestType)
+            .withChecksumAlgorithm(checksumAlgorithm)
             .withResponseHandler(responseHandler)
             .withEndpoint(s3NativeClientConfiguration.endpointOverride());
 
@@ -121,6 +128,26 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             }
         }
         return S3MetaRequestOptions.MetaRequestType.DEFAULT;
+    }
+
+    private static ChecksumAlgorithm crtChecksumAlgorithm(AsyncExecuteRequest asyncRequest) {
+        ChecksumSpecs checksumSpecs = asyncRequest.httpExecutionAttributes().getAttribute(CHECKSUM_SPECS);
+        if (checksumSpecs != null && checksumSpecs.algorithm() != null) {
+            Algorithm checksumAlgorithm = checksumSpecs.algorithm();
+            switch (checksumAlgorithm) {
+                case CRC32:
+                    return ChecksumAlgorithm.CRC32;
+                case CRC32C:
+                    return ChecksumAlgorithm.CRC32C;
+                case SHA1:
+                    return ChecksumAlgorithm.SHA1;
+                case SHA256:
+                    return ChecksumAlgorithm.SHA256;
+                default:
+                    throw new IllegalStateException("Checksum algorithm not translatable: " + checksumAlgorithm);
+            }
+        }
+        return ChecksumAlgorithm.CRC32;
     }
 
     private static void closeResourcesWhenComplete(CompletableFuture<Void> executeFuture,

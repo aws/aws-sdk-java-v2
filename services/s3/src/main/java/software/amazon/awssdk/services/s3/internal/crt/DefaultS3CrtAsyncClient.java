@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.crt;
 
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CHECKSUM_SPECS;
 
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -160,10 +161,11 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                 SdkHttpExecutionAttributes.builder()
                                           .put(OPERATION_NAME,
                                                executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME))
+                                          .put(CHECKSUM_SPECS,
+                                               executionAttributes.getAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS))
                                           .build();
 
-            executionAttributes.putAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES,
-                                             attributes);
+            executionAttributes.putAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES, attributes);
         }
     }
 
