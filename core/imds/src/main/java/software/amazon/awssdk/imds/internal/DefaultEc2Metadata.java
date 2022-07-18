@@ -28,7 +28,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -36,6 +36,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.imds.Ec2Metadata;
+import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -54,7 +55,8 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
     private static final RequestMarshaller REQUEST_MARSHALLER = new RequestMarshaller();
 
     private static final EndpointProvider ENDPOINT_PROVIDER = EndpointProvider.builder().build();
-    private final RetryPolicy retryPolicy;
+
+    private final Ec2MetadataRetryPolicy retryPolicy;
 
     private final URI endpoint;
 
@@ -68,7 +70,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     private DefaultEc2Metadata(DefaultEc2Metadata.Ec2MetadataBuilder builder) {
 
-        this.retryPolicy = builder.retryPolicy != null ? builder.retryPolicy : RetryPolicy.builder().build();
+        this.retryPolicy = builder.retryPolicy != null ? builder.retryPolicy : Ec2MetadataRetryPolicy.builder().build();
         this.endpoint = URI.create(ENDPOINT_PROVIDER.resolveEndpoint(builder.endpoint, builder.endpointMode));
         this.tokenTtl = builder.tokenTtl != null ? builder.tokenTtl : Duration.ofSeconds(21600);
         this.endpointMode = ENDPOINT_PROVIDER.resolveEndpointMode(builder.endpointMode);
@@ -152,41 +154,57 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
     public MetadataResponse get(String path) {
 
         MetadataResponse metadataResponse = null;
-        String data = null;
         AbortableInputStream abortableInputStream = null;
-        try {
-            String token = getToken();
-            URI uri = URI.create(endpoint + path);
-            HttpExecuteRequest httpExecuteRequest = REQUEST_MARSHALLER.createDataRequest(uri, SdkHttpMethod.GET, token,
-                                                                                tokenTtl);
-            HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
-            int statusCode = response.httpResponse().statusCode();
-            Optional<AbortableInputStream> responseBody = response.responseBody();
 
-            if (statusCode == HttpURLConnection.HTTP_OK && responseBody.isPresent()) {
-                abortableInputStream = responseBody.get();
-                data = IoUtils.toUtf8String(abortableInputStream);
-                metadataResponse = new MetadataResponse(data);
-            } else if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
-                throw SdkServiceException.builder()
-                                         .message("The requested metadata at path ( " + path + " ) is not found ").build();
-            } else if (statusCode == HttpURLConnection.HTTP_OK) {
-                throw SdkClientException.builder()
-                                         .message("Response body empty with Status Code " + statusCode).build();
-            } else {
-                throw SdkClientException.builder()
-                                        .message("Instance metadata service returned unexpected status code " + statusCode)
-                                        .build();
+        for (int tries = 1 ; tries <= retryPolicy.numRetries() ; tries ++) {
+
+            try {
+                String token = getToken();
+                URI uri = URI.create(endpoint + path);
+                HttpExecuteRequest httpExecuteRequest = REQUEST_MARSHALLER.createDataRequest(uri, SdkHttpMethod.GET, token,
+                                                                                             tokenTtl);
+                HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
+                int statusCode = response.httpResponse().statusCode();
+                Optional<AbortableInputStream> responseBody = response.responseBody();
+
+                if (statusCode == HttpURLConnection.HTTP_OK && responseBody.isPresent()) {
+                    abortableInputStream = responseBody.get();
+                    String data = IoUtils.toUtf8String(abortableInputStream);
+                    metadataResponse = new MetadataResponse(data);
+                } else if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
+                    throw SdkServiceException.builder()
+                                             .message("The requested metadata at path ( " + path + " ) is not found ").build();
+                } else if (statusCode == HttpURLConnection.HTTP_OK) {
+                    throw SdkClientException.builder()
+                                            .message("Response body empty with Status Code " + statusCode).build();
+                } else {
+                    throw SdkClientException.builder()
+                                            .message("Instance metadata service returned unexpected status code " + statusCode)
+                                            .build();
+                }
+            } catch (SdkServiceException sd) {
+                throw SdkServiceException.builder().message(sd.getMessage()).cause(sd).build();
+            } catch (IOException | SdkClientException io) {
+
+                log.warn("Received an IOException {0} ", io);
+                if (tries == 3) {
+                    throw SdkClientException.builder().message("Unable to contact EC2 metadata service.").cause(io).build();
+                }
+
+                Duration backoffTime = retryPolicy.backoffStrategy()
+                                       .computeDelayBeforeNextRetry(RetryPolicyContext.builder()
+                                                                                      .retriesAttempted(tries - 1)
+                                                                                      .build());
+
+                try {
+                    Thread.sleep(backoffTime.toMillis());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            } finally {
+                IoUtils.closeQuietly(abortableInputStream, log);
             }
-        } catch (SdkServiceException sd) {
-            throw SdkServiceException.builder().message(sd.getMessage()).cause(sd).build();
-        } catch (IOException | SdkClientException  io) {
-            // TODO Retry Logic will be added
-            log.warn("Received an IOException {0} " , io);
-        } finally {
-            IoUtils.closeQuietly(abortableInputStream, log);
         }
-
         return metadataResponse;
     }
 
@@ -223,7 +241,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     private static final class Ec2MetadataBuilder implements Ec2Metadata.Builder {
 
-        private RetryPolicy retryPolicy;
+        private Ec2MetadataRetryPolicy retryPolicy;
 
         private URI endpoint;
 
@@ -238,7 +256,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         private Ec2MetadataBuilder() {
         }
 
-        public void setRetryPolicy(RetryPolicy retryPolicy) {
+        public void setRetryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
             this.retryPolicy = retryPolicy;
         }
 
@@ -263,7 +281,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         }
 
         @Override
-        public Builder retryPolicy(RetryPolicy retryPolicy) {
+        public Builder retryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
             this.retryPolicy = retryPolicy;
             return this;
         }
