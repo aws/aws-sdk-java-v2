@@ -1,3 +1,65 @@
+# __2.17.234__ __2022-07-18__
+## __AWS Application Discovery Service__
+  - ### Features
+    - Add AWS Agentless Collector details to the GetDiscoverySummary API response
+
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - This release adds "IncludeIframeOnlyStream" for Dash endpoints and increases the number of supported video and audio encryption presets for Speke v2
+
+## __AWS Key Management Service__
+  - ### Features
+    - Added support for the SM2 KeySpec in China Partition Regions
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - AWS SSO now supports attaching customer managed policies and a permissions boundary to your permission sets. This release adds new API operations to manage and view the customer managed policies and the permissions boundary for a given permission set.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Adding AutoMinorVersionUpgrade in the DescribeReplicationGroups API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Edge Manager provides lightweight model deployment feature to deploy machine learning models on requested devices.
+
+# __2.17.233__ __2022-07-15__
+## __AWS DataSync__
+  - ### Features
+    - Documentation updates for AWS DataSync regarding configuring Amazon FSx for ONTAP location security groups and SMB user permissions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - This SDK release provide customers ability to add sensitivity level for WAF SQLI Match Statements.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - This release adds support for the new segmentation feature.
+
+## __Amazon DynamoDB Enhanced__
+  - ### Bugfixes
+    - Adding usage of ExpressionNames to VersionedRecord, thereby allowing version attributes with reserved words and special characters
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Changed existing APIs to allow choosing a dynamic volume type for replicating volumes, to reduce costs for customers.
+
+## __S3 Transfer Manager (Developer Preview)__
+  - ### Bugfixes
+    - Fixed possible security issue in `S3TransferManager`s `downloadDirectory` operation where files could be downloaded to a sibling directory of the destination directory if the key contained relative paths.
+
 # __2.17.232__ __2022-07-14__
 ## __AWS Config__
   - ### Features

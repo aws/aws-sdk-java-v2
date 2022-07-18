@@ -32,7 +32,7 @@ public class PartitionServiceMetadataTest {
             "codepipeline", "cognito-identity", "cognito-idp", "cognito-sync", "config", "cur", "data.iot",
             "datapipeline", "directconnect", "dms", "ds", "dynamodb", "ec2", "ecs", "elasticache",
             "elasticbeanstalk", "elasticfilesystem", "elasticloadbalancing", "elasticmapreduce", "elastictranscoder",
-            "email", "es", "events", "firehose", "gamelift", "glacier", "health", "inspector",
+            "email", "es", "events", "firehose", "gamelift", "glacier", "inspector",
             "iot", "kinesis", "kinesisanalytics", "kms", "lambda", "lightsail", "logs", "machinelearning",
             "marketplacecommerceanalytics", "metering.marketplace", "mobileanalytics", "monitoring", "opsworks",
             "opsworks-cm", "pinpoint", "polly", "rds", "redshift", "rekognition", "route53domains", "s3",
