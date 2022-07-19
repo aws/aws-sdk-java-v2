@@ -206,7 +206,9 @@ public class MultiplexedChannelRecord {
     }
 
     private Throwable decorateConnectionException(Throwable t) {
-        String message = "An error occurred on the connection: " + t.getMessage();
+        String message =
+            String.format("An error occurred on the connection: %s, [channel: %s]. All streams will be closed", t,
+                          connection.id());
         if (t instanceof IOException) {
             return new IOException(message, t);
         }
