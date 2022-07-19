@@ -23642,7 +23642,6 @@
     },
     "QueryLineageRequest":{
       "type":"structure",
-      "required":["StartArns"],
       "members":{
         "StartArns":{
           "shape":"QueryLineageStartArns",
@@ -23695,7 +23694,7 @@
       "type":"list",
       "member":{"shape":"AssociationEntityArn"},
       "max":1,
-      "min":1
+      "min":0
     },
     "QueryLineageTypes":{
       "type":"list",
