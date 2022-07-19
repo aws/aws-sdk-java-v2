@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "Documentation updates for AWS Glue Job Timeout and Autoscaling"
+}
