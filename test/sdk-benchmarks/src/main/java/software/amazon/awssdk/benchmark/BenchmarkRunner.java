@@ -27,6 +27,7 @@ import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.benchmark.apicall.MetricsEnabledBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.AwsCrtClientBenchmark;
+import software.amazon.awssdk.benchmark.apicall.httpclient.async.AwsCrtClientH2Benchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH1Benchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH2Benchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.ApacheHttpClientBenchmark;
@@ -57,7 +58,8 @@ public class BenchmarkRunner {
     private static final List<String> ASYNC_BENCHMARKS = Arrays.asList(
         NettyHttpClientH2Benchmark.class.getSimpleName(),
         NettyHttpClientH1Benchmark.class.getSimpleName(),
-        AwsCrtClientBenchmark.class.getSimpleName());
+        AwsCrtClientBenchmark.class.getSimpleName(),
+        AwsCrtClientH2Benchmark.class.getSimpleName());
 
     private static final List<String> SYNC_BENCHMARKS = Arrays.asList(
         ApacheHttpClientBenchmark.class.getSimpleName(),
