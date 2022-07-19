@@ -1,3 +1,24 @@
+# __2.17.235__ __2022-07-19__
+## __AWS Glue__
+  - ### Features
+    - Documentation updates for AWS Glue Job Timeout and Autoscaling
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Added new APIs for log anomaly detection feature.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Fixed an issue with cross account QueryLineage
+
+## __Amazon Sagemaker Edge Manager__
+  - ### Features
+    - Amazon SageMaker Edge Manager provides lightweight model deployment feature to deploy machine learning models on requested devices.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Increased the character limit of the login message from 850 to 2000 characters.
+
 # __2.17.234__ __2022-07-18__
 ## __AWS Application Discovery Service__
   - ### Features
