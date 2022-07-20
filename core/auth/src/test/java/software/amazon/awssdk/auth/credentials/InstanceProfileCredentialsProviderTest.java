@@ -404,12 +404,12 @@ public class InstanceProfileCredentialsProviderTest {
             stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
             AwsCredentials credentials5MinutesAgo = credentialsProvider.resolveCredentials();
 
-            // Set the time to 1 second before expiration, and verify that do not call IMDS because it hasn't been 5 minutes yet
-            clock.time = now.minus(1, SECONDS);
+            // Set the time to 2 seconds before expiration, and verify that do not call IMDS because it hasn't been 5 minutes yet
+            clock.time = now.minus(2, SECONDS);
             stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
-            AwsCredentials credentials1SecondsAgo = credentialsProvider.resolveCredentials();
+            AwsCredentials credentials2SecondsAgo = credentialsProvider.resolveCredentials();
 
-            assertThat(credentials5MinutesAgo).isEqualTo(credentials1SecondsAgo);
+            assertThat(credentials2SecondsAgo).isEqualTo(credentials5MinutesAgo);
             assertThat(credentials5MinutesAgo.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
         }
     }
