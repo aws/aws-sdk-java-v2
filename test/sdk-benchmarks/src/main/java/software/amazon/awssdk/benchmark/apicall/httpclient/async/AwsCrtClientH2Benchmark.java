@@ -15,8 +15,13 @@
 
 package software.amazon.awssdk.benchmark.apicall.httpclient.async;
 
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.trustAllTlsAttributeMapBuilder;
+
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Measurement;
@@ -28,7 +33,12 @@ import org.openjdk.jmh.profile.StackProfiler;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.benchmark.utils.MockH2Server;
 import software.amazon.awssdk.benchmark.utils.MockServer;
+import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
+import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 
 /**
  * Using aws-crt-client to test against local mock https server.
@@ -42,9 +52,7 @@ public class AwsCrtClientH2Benchmark extends BaseCrtBenchmark {
 
     private MockH2Server mockServer;
     private SdkAsyncHttpClient sdkHttpClient;
-
-    @Param({DEFAULT_JDK_SSL_PROVIDER, OPEN_SSL_PROVIDER})
-    private String sslProviderValue;
+    private ProtocolRestJsonAsyncClient client;
 
     @Setup(Level.Trial)
     @Override
