@@ -1,3 +1,16 @@
+# __2.17.236__ __2022-07-20__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - AWS Certificate Manager (ACM) Private Certificate Authority (PCA) documentation updates
+
+## __AWS IoT__
+  - ### Features
+    - GA release the ability to enable/disable IoT Fleet Indexing for Device Defender and Named Shadow information, and search them through IoT Fleet Indexing APIs. This includes Named Shadow Selection as a part of the UpdateIndexingConfiguration API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
 # __2.17.235__ __2022-07-19__
 ## __AWS Glue__
   - ### Features
