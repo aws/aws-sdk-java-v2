@@ -23,20 +23,19 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Interface for specifying a retry policy to use when evaluating whether or not a request should be retried. The
- * {@link #builder()}} can be used to construct a retry policy from SDK provided policies or policies that directly implement
- * {@link BackoffStrategy} .
- *
- * When using the {@link #builder()} the SDK will use default values for fields that are not provided. The default number of
- * retries and condition is based on the current {@link RetryMode}.
- *
+ * Interface for specifying a retry policy to use when evaluating whether or not a request should be retried , and the gap
+ * between each retry. The {@link #builder()} can be used to construct a retry policy with numRetries and backoffStrategy.
+ *<p></p>
+ * When using the {@link #builder()} the SDK will use default values for fields that are not provided.A custom BackoffStrategy
+ * can be used to construct a policy or a default {@link BackoffStrategy} is used .
+ * <p></p>
  * @see BackoffStrategy for a list of SDK provided backoff strategies
  */
 @SdkPublicApi
 public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetryPolicy.Builder, Ec2MetadataRetryPolicy> {
 
     private final BackoffStrategy backoffStrategy;
-    private final Integer numRetries;
+    private final int numRetries;
 
     private Ec2MetadataRetryPolicy(BuilderImpl builder) {
 
@@ -65,15 +64,32 @@ public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetr
     @Override
     public int hashCode() {
 
-        int result = numRetries.hashCode();
-        result = 31 * result + backoffStrategy.hashCode();
+        int result = numRetries >= 0 ? numRetries : 0;
+        result = 31 * result + (backoffStrategy != null ? backoffStrategy.hashCode() : 0);
         return result;
     }
 
-    public Integer numRetries() {
+    @Override
+    public String toString() {
+        return "Ec2MetadataRetryPolicy{" +
+               "backoffStrategy=" + backoffStrategy.toString() +
+               ", numRetries=" + numRetries +
+               '}';
+    }
+
+    /**
+     * Method to return the number of retries allowed.
+     * @return The number of retries allowed.
+     */
+
+    public int numRetries() {
         return numRetries;
     }
 
+    /**
+     * Method to return the BackoffStrategy used.
+     * @return The backoff Strategy used.
+     */
     public BackoffStrategy backoffStrategy() {
         return backoffStrategy;
     }
