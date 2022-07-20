@@ -91,8 +91,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         S3MetaRequestOptions requestOptions = new S3MetaRequestOptions()
             .withHttpRequest(httpRequest)
             .withMetaRequestType(requestType)
-            .withResponseHandler(responseHandler)
-            .withEndpoint(s3NativeClientConfiguration.endpointOverride());
+            .withResponseHandler(responseHandler);
 
         try (S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions)) {
             closeResourcesWhenComplete(executeFuture, s3MetaRequest, responseHandler);
