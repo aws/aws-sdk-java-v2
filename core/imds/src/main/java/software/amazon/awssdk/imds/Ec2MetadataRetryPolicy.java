@@ -25,7 +25,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  * Interface for specifying a retry policy to use when evaluating whether or not a request should be retried , and the gap
  * between each retry. The {@link #builder()} can be used to construct a retry policy with numRetries and backoffStrategy.
- *<p></p>
  * When using the {@link #builder()} the SDK will use default values for fields that are not provided.A custom BackoffStrategy
  * can be used to construct a policy or a default {@link BackoffStrategy} is used .
  * <p></p>
@@ -81,7 +80,6 @@ public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetr
      * Method to return the number of retries allowed.
      * @return The number of retries allowed.
      */
-
     public int numRetries() {
         return numRetries;
     }
