@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3 Transfer Manager",
+    "contributor": "",
+    "description": "Fixed an issue where using S3ClientConfiguration.Builder.endpointOverride could cause AWS_ERROR_INVALID_ARGUMENT."
+}
