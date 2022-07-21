@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Adds support for creating an RDS Proxy for an RDS for MariaDB database."
-}

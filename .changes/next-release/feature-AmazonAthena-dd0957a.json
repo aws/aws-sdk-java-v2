@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Athena",
-    "contributor": "",
-    "description": "This feature allows customers to retrieve runtime statistics for completed queries"
-}
