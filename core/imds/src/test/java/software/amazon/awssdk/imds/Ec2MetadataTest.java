@@ -37,15 +37,11 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 
 /**
  * Unit Tests to test the Ec2Metadata Client functionality
@@ -54,7 +50,9 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 public class Ec2MetadataTest {
 
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
+
     private static final String TOKEN_HEADER = "x-aws-ec2-metadata-token";
+
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
 
     private static final String EC2_METADATA_ROOT = "/latest/meta-data";
@@ -114,7 +112,7 @@ public class Ec2MetadataTest {
             Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
             MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
         }).hasMessageContaining("metadata")
-          .hasCauseInstanceOf(SdkServiceException.class);
+          .hasCauseInstanceOf(SdkClientException.class);
     }
 
     @Test
@@ -126,7 +124,7 @@ public class Ec2MetadataTest {
         assertThatThrownBy(() -> {
             Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
             MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        }).hasMessageContaining("Unable to contact EC2 metadata service.")
+        }).hasMessageContaining("Exceeded maximum number of retries.")
           .hasCauseInstanceOf(SdkClientException.class);
     }
 
@@ -139,7 +137,7 @@ public class Ec2MetadataTest {
         assertThatThrownBy(() -> {
             Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
             MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        }).hasMessageContaining("Unable to contact EC2 metadata service.")
+        }).hasMessageContaining("Exceeded maximum number of retries.")
           .isInstanceOf(SdkClientException.class);
 
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
@@ -156,7 +154,7 @@ public class Ec2MetadataTest {
             Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
             MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
         }).hasMessageContaining("token")
-          .hasCauseInstanceOf(SdkServiceException.class);
+          .hasCauseInstanceOf(SdkClientException.class);
     }
 
     @Test
@@ -168,7 +166,7 @@ public class Ec2MetadataTest {
         assertThatThrownBy(() -> {
             Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
             MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        }).hasMessageContaining("Unable to contact EC2 metadata service.")
+        }).hasMessageContaining("Exceeded maximum number of retries.")
           .hasCauseInstanceOf(SdkClientException.class);
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
 
@@ -183,7 +181,7 @@ public class Ec2MetadataTest {
         assertThatThrownBy(() -> {
             Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
             MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        }).hasMessageContaining("Unable to contact EC2 metadata service.")
+        }).hasMessageContaining("Exceeded maximum number of retries.")
           .isInstanceOf(SdkClientException.class);
 
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
@@ -348,7 +346,7 @@ public class Ec2MetadataTest {
 
     }
     @Test
-    public void get_failedTwiceWith401_shouldSucceedOnThirdAttempt() throws IOException {
+    public void get_failedTwiceWith401_shouldFailOnThirdAttempt() throws IOException {
 
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
 
@@ -370,7 +368,7 @@ public class Ec2MetadataTest {
         assertThatThrownBy(() -> {
             Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
             MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        }).hasMessageContaining("Unable to contact EC2 metadata service.")
+        }).hasMessageContaining("Exceeded maximum number of retries.")
           .hasCauseInstanceOf(SdkClientException.class);
 
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));

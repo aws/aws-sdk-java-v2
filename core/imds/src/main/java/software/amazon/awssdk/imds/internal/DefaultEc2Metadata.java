@@ -27,7 +27,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -156,32 +155,35 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         MetadataResponse metadataResponse = null;
         AbortableInputStream abortableInputStream = null;
 
-        for (int tries = 1 ; tries <= retryPolicy.numRetries() ; tries ++) {
+        for (int tries = 1 ; tries <= retryPolicy.numRetries() + 1; tries ++) {
 
             try {
-                String token = getToken();
-                HttpExecuteResponse response = getDataHttpResponse(path, token);
+                Optional<String> token = getToken();
+                if (token.isPresent()) {
+                    HttpExecuteResponse response = getDataHttpResponse(path, token.get());
 
-                int statusCode = response.httpResponse().statusCode();
-                Optional<AbortableInputStream> responseBody = response.responseBody();
+                    int statusCode = response.httpResponse().statusCode();
+                    Optional<AbortableInputStream> responseBody = response.responseBody();
 
-                if (statusCode == 200 && responseBody.isPresent()) {
-                    abortableInputStream = responseBody.get();
-                    String data = IoUtils.toUtf8String(abortableInputStream);
-                    metadataResponse = new MetadataResponse(data);
-                } else {
-                    doDataExceptionBehavior(statusCode, path);
+                    if (statusCode == 200) {
+                        if (!responseBody.isPresent()) {
+                            throw SdkClientException.builder()
+                                                     .message("Response body empty with Status Code "  + statusCode).build();
+                        }
+                        abortableInputStream = responseBody.get();
+                        String data = IoUtils.toUtf8String(abortableInputStream);
+                        metadataResponse = new MetadataResponse(data);
+                        return metadataResponse;
+                    }
+                    handleException(statusCode, path);
                 }
-            } catch (SdkServiceException sd) {
-                throw SdkServiceException.builder().message(sd.getMessage()).cause(sd).build();
-            } catch (IOException | SdkClientException io) {
-
-                try {
-                    doRetryBehavior(tries, io);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw SdkClientException.builder().message(io.getMessage()).cause(io).build();
-                }
+                pauseBeforeRetryIfNeeded(tries);
+                //TODO Create IMDS Custom Exception
+            } catch (SdkClientException sd) {
+                throw SdkClientException.builder().message(sd.getMessage()).cause(sd).build();
+            } catch (IOException io) {
+                SdkStandardLogger.REQUEST_LOGGER.warn(() -> "Received an IOException {0} ", io);
+                pauseBeforeRetryIfNeeded(tries);
 
             } finally {
                 IoUtils.closeQuietly(abortableInputStream, log);
@@ -190,26 +192,17 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         return metadataResponse;
     }
 
-    private void doDataExceptionBehavior(int statusCode, String path) {
+    private void handleException(int statusCode, String path) {
         if (statusCode == 404) {
-            throw SdkServiceException.builder()
+            throw SdkClientException.builder()
                                  .message("The requested metadata at path ( " + path + " ) is not found ").build();
-        } else if (statusCode == 200) {
-            throw SdkClientException.builder()
-                                    .message("Response body empty with Status Code " + statusCode).build();
-        } else {
-            throw SdkClientException.builder()
-                                    .message("Instance metadata service returned unexpected status code " + statusCode)
-                                    .build();
         }
-
     }
 
-    private void doRetryBehavior(int tries , Exception io) throws InterruptedException {
-        SdkStandardLogger.REQUEST_LOGGER.warn(() -> "Received an IOException {0} ", io);
+    private void pauseBeforeRetryIfNeeded(int tries) {
 
-        if (tries == retryPolicy.numRetries()) {
-            throw SdkClientException.builder().message("Unable to contact EC2 metadata service.").cause(io).build();
+        if (tries == retryPolicy.numRetries() + 1) {
+            throw SdkClientException.builder().message("Exceeded maximum number of retries.").build();
         }
 
         try {
@@ -217,7 +210,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
             Thread.sleep(backoffTimeMillis);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw SdkClientException.builder().message("Thread interrupted while trying to  sleep").cause(e).build();
+            throw SdkClientException.builder().message("Thread interrupted while trying to sleep").cause(e).build();
         }
     }
 
@@ -242,7 +235,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         return backoffTime;
     }
 
-    private String getToken() throws IOException {
+    private Optional<String> getToken() throws IOException {
 
         AbortableInputStream abortableInputStream = null;
         try {
@@ -250,32 +243,29 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
             int statusCode = response.httpResponse().statusCode();
             Optional<AbortableInputStream> responseBody = response.responseBody();
 
-            if (statusCode == 200 && responseBody.isPresent()) {
+            if (statusCode == 200) {
+                if (!responseBody.isPresent()) {
+                    throw SdkClientException.builder()
+                                             .message("Response body empty with Status Code "  + statusCode).build();
+                }
                 abortableInputStream = responseBody.get();
-                return IoUtils.toUtf8String(abortableInputStream);
-            } else {
-                doTokenExceptionHandling(statusCode);
+                return Optional.of(IoUtils.toUtf8String(abortableInputStream));
             }
+            handleErrorResponse(statusCode);
         } catch (IOException e) {
+            SdkStandardLogger.REQUEST_LOGGER.warn(() -> "Received an IOException {0} ", e);
             throw e;
         } finally {
             IoUtils.closeQuietly(abortableInputStream, log);
         }
-        return null;
+        return Optional.empty();
     }
 
-    private void doTokenExceptionHandling(int statusCode) {
+    private void handleErrorResponse(int statusCode) {
 
         if (statusCode == 403 || statusCode == 400) {
-            throw SdkServiceException.builder()
+            throw SdkClientException.builder()
                                      .message("Could not retrieve token as " + statusCode + " error occurred.").build();
-        } else if (statusCode == 200) {
-            throw SdkClientException.builder()
-                                    .message("Response body empty with Status Code " + statusCode).build();
-        } else {
-            throw SdkClientException.builder()
-                                    .message("Instance metadata service returned unexpected status code " + statusCode)
-                                    .build();
         }
     }
 
