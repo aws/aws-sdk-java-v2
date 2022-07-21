@@ -1,3 +1,48 @@
+# __2.17.237__ __2022-07-21__
+## __AWS Database Migration Service__
+  - ### Features
+    - Documentation updates for Database Migration Service (DMS).
+
+## __AWS EC2 Instance Connect__
+  - ### Features
+    - This release includes a new exception type "EC2InstanceUnavailableException" for SendSSHPublicKey and SendSerialConsoleSSHPublicKey APIs.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Added asynchronous API to ingest bulk historical and current data into IoT SiteWise.
+
+## __AWS Network Firewall__
+  - ### Features
+    - Network Firewall now supports referencing dynamic IP sets from stateful rule groups, for IP sets stored in Amazon VPC prefix lists.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now provides Oauth2 support for SharePoint Online. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-sharepoint.html
+
+## __Amazon Athena__
+  - ### Features
+    - This feature allows customers to retrieve runtime statistics for completed queries
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Adding support for the suppression of Composite Alarm actions
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Enable copy-on-write restore type
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - The release introduces Account Takeover Insights (ATI) model. The ATI model detects fraud relating to account takeover. This release also adds support for new variable types: ARE_CREDENTIALS_VALID and SESSION_ID and adds new structures to Model Version APIs.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for creating an RDS Proxy for an RDS for MariaDB database.
+
+## __Amazon S3 Transfer Manager__
+  - ### Bugfixes
+    - Fixed an issue where using S3ClientConfiguration.Builder.endpointOverride could cause AWS_ERROR_INVALID_ARGUMENT.
+
 # __2.17.236__ __2022-07-20__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
