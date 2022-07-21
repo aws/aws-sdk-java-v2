@@ -16,19 +16,15 @@
 package software.amazon.awssdk.imds.internal;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -36,8 +32,10 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.imds.Ec2Metadata;
+import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * An Implementation of the Ec2Metadata Interface.
@@ -49,12 +47,13 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultEc2Metadata.class);
+    private static final Logger log = Logger.loggerFor(DefaultEc2Metadata.class);
 
     private static final RequestMarshaller REQUEST_MARSHALLER = new RequestMarshaller();
 
     private static final EndpointProvider ENDPOINT_PROVIDER = EndpointProvider.builder().build();
-    private final RetryPolicy retryPolicy;
+
+    private final Ec2MetadataRetryPolicy retryPolicy;
 
     private final URI endpoint;
 
@@ -68,7 +67,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     private DefaultEc2Metadata(DefaultEc2Metadata.Ec2MetadataBuilder builder) {
 
-        this.retryPolicy = builder.retryPolicy != null ? builder.retryPolicy : RetryPolicy.builder().build();
+        this.retryPolicy = builder.retryPolicy != null ? builder.retryPolicy : Ec2MetadataRetryPolicy.builder().build();
         this.endpoint = URI.create(ENDPOINT_PROVIDER.resolveEndpoint(builder.endpoint, builder.endpointMode));
         this.tokenTtl = builder.tokenTtl != null ? builder.tokenTtl : Duration.ofSeconds(21600);
         this.endpointMode = ENDPOINT_PROVIDER.resolveEndpointMode(builder.endpointMode);
@@ -152,78 +151,130 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
     public MetadataResponse get(String path) {
 
         MetadataResponse metadataResponse = null;
-        String data = null;
         AbortableInputStream abortableInputStream = null;
-        try {
-            String token = getToken();
-            URI uri = URI.create(endpoint + path);
-            HttpExecuteRequest httpExecuteRequest = REQUEST_MARSHALLER.createDataRequest(uri, SdkHttpMethod.GET, token,
-                                                                                tokenTtl);
-            HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
-            int statusCode = response.httpResponse().statusCode();
-            Optional<AbortableInputStream> responseBody = response.responseBody();
 
-            if (statusCode == HttpURLConnection.HTTP_OK && responseBody.isPresent()) {
-                abortableInputStream = responseBody.get();
-                data = IoUtils.toUtf8String(abortableInputStream);
-                metadataResponse = new MetadataResponse(data);
-            } else if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
-                throw SdkServiceException.builder()
-                                         .message("The requested metadata at path ( " + path + " ) is not found ").build();
-            } else if (statusCode == HttpURLConnection.HTTP_OK) {
-                throw SdkClientException.builder()
-                                         .message("Response body empty with Status Code " + statusCode).build();
-            } else {
-                throw SdkClientException.builder()
-                                        .message("Instance metadata service returned unexpected status code " + statusCode)
-                                        .build();
+        for (int tries = 1 ; tries <= retryPolicy.numRetries() + 1; tries ++) {
+
+            try {
+                Optional<String> token = getToken();
+                if (token.isPresent()) {
+                    HttpExecuteResponse response = getDataHttpResponse(path, token.get());
+
+                    int statusCode = response.httpResponse().statusCode();
+                    Optional<AbortableInputStream> responseBody = response.responseBody();
+
+                    if (statusCode == 200) {
+                        if (!responseBody.isPresent()) {
+                            throw SdkClientException.builder()
+                                                     .message("Response body empty with Status Code "  + statusCode).build();
+                        }
+                        abortableInputStream = responseBody.get();
+                        String data = IoUtils.toUtf8String(abortableInputStream);
+                        metadataResponse = new MetadataResponse(data);
+                        return metadataResponse;
+                    }
+                    handleException(statusCode, path);
+                }
+                //TODO Create IMDS Custom Exception
+            } catch (IOException io) {
+                log.warn(() -> "Received an IOException ", io);
+            } finally {
+                IoUtils.closeQuietly(abortableInputStream, log.logger());
             }
-        } catch (SdkServiceException sd) {
-            throw SdkServiceException.builder().message(sd.getMessage()).cause(sd).build();
-        } catch (IOException | SdkClientException  io) {
-            // TODO Retry Logic will be added
-            log.warn("Received an IOException {0} " , io);
-        } finally {
-            IoUtils.closeQuietly(abortableInputStream, log);
+            pauseBeforeRetryIfNeeded(tries);
         }
-
         return metadataResponse;
     }
 
-    private String getToken() throws IOException {
+    private void handleException(int statusCode, String path) {
+        if (statusCode == 404) {
+            throw SdkClientException.builder()
+                                 .message("The requested metadata at path ( " + path + " ) is not found ").build();
+        }
+    }
+
+    private void pauseBeforeRetryIfNeeded(int tries) {
+
+        if (tries == retryPolicy.numRetries() + 1) {
+            throw SdkClientException.builder().message("Exceeded maximum number of retries.").build();
+        }
+
+        try {
+            long backoffTimeMillis = getBackoffDuration(tries);
+            Thread.sleep(backoffTimeMillis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw SdkClientException.builder().message("Thread interrupted while trying to sleep").cause(e).build();
+        }
+    }
+
+    private HttpExecuteResponse getDataHttpResponse(String path, String token) throws IOException {
+
+        URI uri = URI.create(endpoint + path);
+        HttpExecuteRequest httpExecuteRequest = REQUEST_MARSHALLER.createDataRequest(uri, SdkHttpMethod.GET, token,
+                                                                                     tokenTtl);
+        return httpClient.prepareRequest(httpExecuteRequest).call();
+    }
+
+    private long getBackoffDuration(int tries) {
+
+        long backoffTime = 0L;
+        if (tries >= 1) {
+            backoffTime = retryPolicy.backoffStrategy()
+                                              .computeDelayBeforeNextRetry(RetryPolicyContext.builder()
+                                                                                             .retriesAttempted(tries - 1)
+                                                                                             .build()).toMillis();
+        }
+
+        return backoffTime;
+    }
+
+    private Optional<String> getToken() throws IOException {
 
         AbortableInputStream abortableInputStream = null;
         try {
-            URI uri = URI.create(endpoint + TOKEN_RESOURCE_PATH);
-            HttpExecuteRequest httpExecuteRequest = REQUEST_MARSHALLER.createTokenRequest(uri, SdkHttpMethod.PUT, tokenTtl);
-            HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
+            HttpExecuteResponse response = getTokenHttpResponse();
             int statusCode = response.httpResponse().statusCode();
             Optional<AbortableInputStream> responseBody = response.responseBody();
 
-            if (statusCode == HttpURLConnection.HTTP_OK && responseBody.isPresent()) {
+            if (statusCode == 200) {
+                if (!responseBody.isPresent()) {
+                    throw SdkClientException.builder()
+                                             .message("Response body empty with Status Code "  + statusCode).build();
+                }
                 abortableInputStream = responseBody.get();
-                return IoUtils.toUtf8String(abortableInputStream);
-            } else if (statusCode == HttpURLConnection.HTTP_FORBIDDEN || statusCode == HttpURLConnection.HTTP_BAD_REQUEST) {
-                throw SdkServiceException.builder()
-                                         .message("Could not retrieve token as " + statusCode + " error occurred.").build();
-            } else if (statusCode == HttpURLConnection.HTTP_OK) {
-                throw SdkClientException.builder()
-                                        .message("Response body empty with Status Code " + statusCode).build();
-            } else {
-                throw SdkClientException.builder()
-                                        .message("Instance metadata service returned unexpected status code " + statusCode)
-                                        .build();
+                return Optional.of(IoUtils.toUtf8String(abortableInputStream));
             }
+            handleErrorResponse(statusCode);
         } catch (IOException e) {
+            log.warn(() -> "Received an IOException ", e);
             throw e;
         } finally {
-            IoUtils.closeQuietly(abortableInputStream, log);
+            IoUtils.closeQuietly(abortableInputStream, log.logger());
         }
+        return Optional.empty();
+    }
+
+    private void handleErrorResponse(int statusCode) {
+
+        if (statusCode == 403 || statusCode == 400) {
+            throw SdkClientException.builder()
+                                     .message("Could not retrieve token as " + statusCode + " error occurred.").build();
+        }
+    }
+
+
+    private HttpExecuteResponse getTokenHttpResponse() throws IOException {
+
+        URI uri = URI.create(endpoint + TOKEN_RESOURCE_PATH);
+        HttpExecuteRequest httpExecuteRequest = REQUEST_MARSHALLER.createTokenRequest(uri, SdkHttpMethod.PUT, tokenTtl);
+        return httpClient.prepareRequest(httpExecuteRequest).call();
+
     }
 
     private static final class Ec2MetadataBuilder implements Ec2Metadata.Builder {
 
-        private RetryPolicy retryPolicy;
+        private Ec2MetadataRetryPolicy retryPolicy;
 
         private URI endpoint;
 
@@ -238,7 +289,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         private Ec2MetadataBuilder() {
         }
 
-        public void setRetryPolicy(RetryPolicy retryPolicy) {
+        public void setRetryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
             this.retryPolicy = retryPolicy;
         }
 
@@ -263,7 +314,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         }
 
         @Override
-        public Builder retryPolicy(RetryPolicy retryPolicy) {
+        public Builder retryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
             this.retryPolicy = retryPolicy;
             return this;
         }

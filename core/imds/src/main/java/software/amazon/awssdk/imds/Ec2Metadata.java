@@ -18,7 +18,6 @@ package software.amazon.awssdk.imds;
 import java.net.URI;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.imds.internal.DefaultEc2Metadata;
 import software.amazon.awssdk.imds.internal.EndpointMode;
@@ -67,7 +66,7 @@ public interface Ec2Metadata {
          * @param retryPolicy The retry policy which includes the number of retry attempts for any failed request.
          * @return Returns a reference to this builder
          */
-        Builder retryPolicy(RetryPolicy retryPolicy);
+        Builder retryPolicy(Ec2MetadataRetryPolicy retryPolicy);
 
         /**
          * Define the endpoint of IMDS.
