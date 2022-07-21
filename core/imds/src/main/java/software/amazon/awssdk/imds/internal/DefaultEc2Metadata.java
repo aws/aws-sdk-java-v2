@@ -20,12 +20,9 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -38,6 +35,7 @@ import software.amazon.awssdk.imds.Ec2Metadata;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * An Implementation of the Ec2Metadata Interface.
@@ -49,7 +47,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultEc2Metadata.class);
+    private static final Logger log = Logger.loggerFor(DefaultEc2Metadata.class);
 
     private static final RequestMarshaller REQUEST_MARSHALLER = new RequestMarshaller();
 
@@ -177,17 +175,13 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
                     }
                     handleException(statusCode, path);
                 }
-                pauseBeforeRetryIfNeeded(tries);
                 //TODO Create IMDS Custom Exception
-            } catch (SdkClientException sd) {
-                throw SdkClientException.builder().message(sd.getMessage()).cause(sd).build();
             } catch (IOException io) {
-                SdkStandardLogger.REQUEST_LOGGER.warn(() -> "Received an IOException {0} ", io);
-                pauseBeforeRetryIfNeeded(tries);
-
+                log.warn(() -> "Received an IOException {0} ", io);
             } finally {
-                IoUtils.closeQuietly(abortableInputStream, log);
+                IoUtils.closeQuietly(abortableInputStream, log.logger());
             }
+            pauseBeforeRetryIfNeeded(tries);
         }
         return metadataResponse;
     }
@@ -253,10 +247,10 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
             }
             handleErrorResponse(statusCode);
         } catch (IOException e) {
-            SdkStandardLogger.REQUEST_LOGGER.warn(() -> "Received an IOException {0} ", e);
+            log.warn(() -> "Received an IOException {0} ", e);
             throw e;
         } finally {
-            IoUtils.closeQuietly(abortableInputStream, log);
+            IoUtils.closeQuietly(abortableInputStream, log.logger());
         }
         return Optional.empty();
     }

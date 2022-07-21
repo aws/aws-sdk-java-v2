@@ -112,7 +112,7 @@ public class Ec2MetadataTest {
             Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
             MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
         }).hasMessageContaining("metadata")
-          .hasCauseInstanceOf(SdkClientException.class);
+          .isInstanceOf(SdkClientException.class);
     }
 
     @Test
@@ -125,7 +125,7 @@ public class Ec2MetadataTest {
             Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
             MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
         }).hasMessageContaining("Exceeded maximum number of retries.")
-          .hasCauseInstanceOf(SdkClientException.class);
+          .isInstanceOf(SdkClientException.class);
     }
 
     @Test
@@ -154,7 +154,7 @@ public class Ec2MetadataTest {
             Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
             MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
         }).hasMessageContaining("token")
-          .hasCauseInstanceOf(SdkClientException.class);
+          .isInstanceOf(SdkClientException.class);
     }
 
     @Test
@@ -167,7 +167,7 @@ public class Ec2MetadataTest {
             Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
             MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
         }).hasMessageContaining("Exceeded maximum number of retries.")
-          .hasCauseInstanceOf(SdkClientException.class);
+          .isInstanceOf(SdkClientException.class);
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
 
     }
@@ -369,7 +369,7 @@ public class Ec2MetadataTest {
             Ec2Metadata ec2Metadata = Ec2Metadata.builder().endpoint(URI.create("http://localhost:8080")).build();
             MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
         }).hasMessageContaining("Exceeded maximum number of retries.")
-          .hasCauseInstanceOf(SdkClientException.class);
+          .isInstanceOf(SdkClientException.class);
 
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
 
