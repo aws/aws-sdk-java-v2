@@ -177,7 +177,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
                 }
                 //TODO Create IMDS Custom Exception
             } catch (IOException io) {
-                log.warn(() -> "Received an IOException {0} ", io);
+                log.warn(() -> "Received an IOException ", io);
             } finally {
                 IoUtils.closeQuietly(abortableInputStream, log.logger());
             }
@@ -247,7 +247,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
             }
             handleErrorResponse(statusCode);
         } catch (IOException e) {
-            log.warn(() -> "Received an IOException {0} ", e);
+            log.warn(() -> "Received an IOException ", e);
             throw e;
         } finally {
             IoUtils.closeQuietly(abortableInputStream, log.logger());
