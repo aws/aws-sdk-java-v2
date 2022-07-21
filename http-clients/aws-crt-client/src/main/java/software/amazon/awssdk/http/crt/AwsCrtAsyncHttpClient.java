@@ -31,6 +31,9 @@ import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
 import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.crt.http.HttpStreamManagerOptions;
+import software.amazon.awssdk.crt.http.Http2StreamManagerOptions;
+import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
+import software.amazon.awssdk.crt.http.HttpVersion;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
@@ -177,15 +180,29 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private HttpStreamManager createConnectionPool(URI uri) {
         log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxConnectionsPerEndpoint);
 
-        HttpStreamManagerOptions options = new HttpStreamManagerOptions()
+        HttpClientConnectionManagerOptions h1Options = new HttpClientConnectionManagerOptions()
             .withClientBootstrap(bootstrap)
             .withSocketOptions(socketOptions)
             .withTlsContext(tlsContext)
             .withUri(uri)
+            .withWindowSize(readBufferSize)
             .withMaxConnections(maxConnectionsPerEndpoint)
             .withManualWindowManagement(true)
             .withProxyOptions(proxyOptions)
-            .withMonitoringOptions(monitoringOptions);
+            .withMonitoringOptions(monitoringOptions)
+            .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds);
+
+        Http2StreamManagerOptions h2Options = new Http2StreamManagerOptions()
+            .withConnectionManagerOptions(h1Options);
+
+        HttpStreamManagerOptions options = new HttpStreamManagerOptions()
+            .withHTTP1ConnectionManagerOptions(h1Options)
+            .withHTTP2StreamManagerOptions(h2Options);
+        if (protocol == Protocol.HTTP2) {
+            options.withExpectedProtocol(HttpVersion.HTTP_2);
+        } else{
+            options.withExpectedProtocol(HttpVersion.HTTP_1_1);
+        }
 
         return HttpStreamManager.create(options);
     }
