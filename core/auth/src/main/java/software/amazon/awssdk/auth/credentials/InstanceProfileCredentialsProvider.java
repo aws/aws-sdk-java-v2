@@ -17,15 +17,15 @@ package software.amazon.awssdk.auth.credentials;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static software.amazon.awssdk.utils.ComparableUtils.maximum;
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
-import java.io.IOException;
 import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
-import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider;
@@ -81,8 +81,6 @@ public final class InstanceProfileCredentialsProvider
 
     private final String profileName;
 
-    private volatile LoadedCredentials cachedCredentials;
-
     /**
      * @see #builder()
      */
@@ -105,9 +103,14 @@ public final class InstanceProfileCredentialsProvider
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
                                                   .prefetchStrategy(new NonBlocking(builder.asyncThreadName))
+                                                  .staleValueBehavior(ALLOW)
+                                                  .clock(clock)
                                                   .build();
         } else {
-            this.credentialsCache = CachedSupplier.builder(this::refreshCredentials).build();
+            this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
+                                                  .staleValueBehavior(ALLOW)
+                                                  .clock(clock)
+                                                  .build();
         }
     }
 
@@ -138,43 +141,30 @@ public final class InstanceProfileCredentialsProvider
             throw SdkClientException.create("IMDS credentials have been disabled by environment variable or system property.");
         }
 
-        LoadedCredentials credentials;
         try {
-            credentials = httpCredentialsLoader.loadCredentials(createEndpointProvider());
-            logExpirationTime(credentials);
-            this.cachedCredentials = credentials;
-        } catch (RuntimeException | IOException e) {
-            credentials = this.cachedCredentials;
+            LoadedCredentials credentials = httpCredentialsLoader.loadCredentials(createEndpointProvider());
+            Instant expiration = credentials.getExpiration().orElse(null);
+            log.debug(() -> "Loaded credentials from IMDS with expiration time of " + expiration);
 
-            if (credentials != null) {
-                credentials.getExpiration().ifPresent(expiration -> {
-                    // Choose whether to report this failure at the debug or warn level based on how much time is left on the
-                    // credentials before expiration.
-                    Supplier<String> errorMessage = () -> "Failure encountered when attempting to refresh credentials from IMDS.";
-                    Instant fifteenMinutesFromNow = clock.instant().plus(15, MINUTES);
-                    if (expiration.isBefore(fifteenMinutesFromNow)) {
-                        log.warn(errorMessage, e);
-                    } else {
-                        log.debug(errorMessage, e);
-                    }
-                });
-            } else {
-                throw SdkClientException.create("Failed to load credentials from IMDS.", e);
-            }
+            return RefreshResult.builder(credentials.getAwsCredentials())
+                                .staleTime(staleTime(expiration))
+                                .prefetchTime(prefetchTime(expiration))
+                                .build();
+        } catch (RuntimeException e) {
+            throw SdkClientException.create("Failed to load credentials from IMDS.", e);
         }
-
-        return RefreshResult.builder(credentials.getAwsCredentials())
-                            .staleTime(Instant.MAX) // Allow use of expired credentials - they may still work
-                            .prefetchTime(prefetchTime(credentials.getExpiration().orElse(null)))
-                            .build();
-    }
-
-    private void logExpirationTime(LoadedCredentials credentials) {
-        log.debug(() -> "Loaded credentials from IMDS with expiration time of " + credentials.getExpiration());
     }
 
     private boolean isLocalCredentialLoadingDisabled() {
         return SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow();
+    }
+
+    private Instant staleTime(Instant expiration) {
+        if (expiration == null) {
+            return null;
+        }
+
+        return expiration.minusSeconds(1);
     }
 
     private Instant prefetchTime(Instant expiration) {
@@ -186,12 +176,11 @@ public final class InstanceProfileCredentialsProvider
 
         Duration timeUntilExpiration = Duration.between(now, expiration);
         if (timeUntilExpiration.isNegative()) {
-            log.warn(() -> "IMDS credential expiration has been extended due to an IMDS availability outage. A refresh "
-                           + "of these credentials will be attempted again in ~5 minutes.");
-            return now.plus(5, MINUTES);
+            // IMDS gave us a time in the past. We're already stale. Don't prefetch.
+            return null;
         }
 
-        return now.plus(maximum(timeUntilExpiration.abs().dividedBy(2), Duration.ofMinutes(5)));
+        return now.plus(maximum(timeUntilExpiration.dividedBy(2), Duration.ofMinutes(5)));
     }
 
     @Override
@@ -204,7 +193,7 @@ public final class InstanceProfileCredentialsProvider
         return ToString.create("InstanceProfileCredentialsProvider");
     }
 
-    private ResourcesEndpointProvider createEndpointProvider() throws IOException {
+    private ResourcesEndpointProvider createEndpointProvider() {
         String imdsHostname = getImdsEndpoint();
         String token = getToken(imdsHostname);
         String[] securityCredentials = getSecurityCredentials(imdsHostname, token);
@@ -253,12 +242,13 @@ public final class InstanceProfileCredentialsProvider
         return URI.create(finalHost + TOKEN_RESOURCE);
     }
 
-    private String[] getSecurityCredentials(String imdsHostname, String metadataToken) throws IOException {
+    private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
         ResourcesEndpointProvider securityCredentialsEndpoint =
             new StaticResourcesEndpointProvider(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE),
                                                 getTokenHeaders(metadataToken));
 
-        String securityCredentialsList = HttpResourcesUtils.instance().readResource(securityCredentialsEndpoint);
+        String securityCredentialsList =
+            invokeSafely(() -> HttpResourcesUtils.instance().readResource(securityCredentialsEndpoint));
         String[] securityCredentials = securityCredentialsList.trim().split("\n");
 
         if (securityCredentials.length == 0) {
