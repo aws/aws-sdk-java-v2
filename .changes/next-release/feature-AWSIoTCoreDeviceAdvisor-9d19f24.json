@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Core Device Advisor",
+    "contributor": "",
+    "description": "Added new service feature (Early access only) - Long Duration Test, where customers can test the IoT device to observe how it behaves when the device is in operation for longer period."
+}
