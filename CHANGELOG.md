@@ -1,3 +1,35 @@
+# __2.17.238__ __2022-07-22__
+## __AWS Account__
+  - ### Features
+    - This release enables customers to manage the primary contact information for their AWS accounts. For more information, see https://docs.aws.amazon.com/accounts/latest/reference/API_Operations.html
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Link devices now support remote rebooting. Link devices now support maintenance windows. Maintenance windows allow a Link device to install software updates without stopping the MediaLive channel. The channel will experience a brief loss of input from the device while updates are installed.
+
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - Added new service feature (Early access only) - Long Duration Test, where customers can test the IoT device to observe how it behaves when the device is in operation for longer period.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fix issue in IMDS credentials provider that causes expired credentials to be vended for a short period of time after the credentials provider is inactive for a long time.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for EC2 M1 Mac instances. For more information, please visit aws.amazon.com/mac.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds the "ModifyActivityStream" API with support for audit policy state locking and unlocking.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Remove unsupported language codes for StartTranscriptionJob and update VocabularyFileUri for UpdateMedicalVocabulary
+
 # __2.17.237__ __2022-07-21__
 ## __AWS Database Migration Service__
   - ### Features
