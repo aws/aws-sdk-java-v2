@@ -17,16 +17,20 @@ package software.amazon.awssdk.utils.cache;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.utils.ComparableUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
@@ -42,6 +46,8 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkProtectedApi
 public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
+    private static final Logger log = Logger.loggerFor(CachedSupplier.class);
+
     /**
      * Maximum time to wait for a blocking refresh lock before calling refresh again. This is to rate limit how many times we call
      * refresh. In the ideal case, refresh always occurs in a timely fashion and only one thread actually does the refresh.
@@ -72,17 +78,24 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     private final AtomicBoolean prefetchStrategyInitialized = new AtomicBoolean(false);
 
     /**
-     * Whether jitter is enabled on the prefetch duration (can be disabled for testing).
+     * How the supplier should behave when the cached value is stale on retrieval or fails to be retrieved.
      */
-    private final boolean prefetchJitterEnabled;
+    private final StaleValueBehavior staleValueBehavior;
+
+    /**
+     * The clock used by this supplier. Adjustable for testing.
+     */
+    private final Clock clock;
+
+    /**
+     * The number of consecutive failures encountered when updating a stale value.
+     */
+    private final AtomicInteger consecutiveStaleRetrievalFailures = new AtomicInteger(0);
 
     /**
      * The value currently stored in this cache.
      */
-    private volatile RefreshResult<T> cachedValue = RefreshResult.builder((T) null)
-                                                                 .staleTime(Instant.MIN)
-                                                                 .prefetchTime(Instant.MIN)
-                                                                 .build();
+    private volatile RefreshResult<T> cachedValue;
 
     /**
      * The "expensive" to call supplier that is used to refresh the {@link #cachedValue}.
@@ -90,9 +103,13 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     private final Supplier<RefreshResult<T>> valueSupplier;
 
     private CachedSupplier(Builder<T> builder) {
-        this.valueSupplier = jitteredValueSupplier(Validate.notNull(builder.supplier, "builder.supplier"));
+        Validate.notNull(builder.supplier, "builder.supplier");
+        Validate.notNull(builder.jitterEnabled, "builder.jitterEnabled");
+
+        this.valueSupplier = jitteredPrefetchValueSupplier(builder.supplier, builder.jitterEnabled);
         this.prefetchStrategy = Validate.notNull(builder.prefetchStrategy, "builder.prefetchStrategy");
-        this.prefetchJitterEnabled = Validate.notNull(builder.prefetchJitterEnabled, "builder.prefetchJitterEnabled");
+        this.staleValueBehavior = Validate.notNull(builder.staleValueBehavior, "builder.staleValueBehavior");
+        this.clock = Validate.notNull(builder.clock, "builder.clock");
     }
 
     /**
@@ -119,10 +136,18 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * Determines whether the value in this cache is stale, and all threads should block and wait for an updated value.
      */
     private boolean cacheIsStale() {
-        if (cachedValue.staleTime() == null) {
+        RefreshResult<T> currentCachedValue = cachedValue;
+
+        if (currentCachedValue == null) {
+            return true;
+        }
+
+        if (currentCachedValue.staleTime() == null) {
             return false;
         }
-        return !Instant.now().isBefore(cachedValue.staleTime());
+
+        Instant now = clock.instant();
+        return !now.isBefore(currentCachedValue.staleTime());
     }
 
     /**
@@ -130,10 +155,17 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * configured {@link #prefetchStrategy}.
      */
     private boolean shouldInitiateCachePrefetch() {
-        if (cachedValue.prefetchTime() == null) {
+        RefreshResult<T> currentCachedValue = cachedValue;
+
+        if (currentCachedValue == null) {
             return false;
         }
-        return !Instant.now().isBefore(cachedValue.prefetchTime());
+
+        if (currentCachedValue.prefetchTime() == null) {
+            return false;
+        }
+
+        return !clock.instant().isBefore(currentCachedValue.prefetchTime());
     }
 
     /**
@@ -156,12 +188,17 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                 // Make sure the value was not refreshed while we waited for the lock.
                 if (cacheIsStale() || shouldInitiateCachePrefetch()) {
 
+                    // It wasn't, call the supplier to update it.
+
                     if (prefetchStrategyInitialized.compareAndSet(false, true)) {
                         prefetchStrategy.initializeCachedSupplier(this);
                     }
 
-                    // It wasn't, call the supplier to update it.
-                    cachedValue = prefetchStrategy.fetch(valueSupplier);
+                    try {
+                        cachedValue = handleFetchedSuccess(prefetchStrategy.fetch(valueSupplier));
+                    } catch (RuntimeException t) {
+                        cachedValue = handleFetchFailure(t);
+                    }
                 }
             } finally {
                 if (lockAcquired) {
@@ -169,19 +206,79 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                 }
             }
         } catch (InterruptedException e) {
-            handleInterruptedException("Interrupted waiting to refresh the value.", e);
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted waiting to refresh a cached value.", e);
         }
     }
 
-    private void handleInterruptedException(String message, InterruptedException cause) {
-        Thread.currentThread().interrupt();
-        throw new IllegalStateException(message, cause);
+    /**
+     * Perform necessary transformations of the successfully-fetched value based on the stale value behavior of this supplier.
+     */
+    private RefreshResult<T> handleFetchedSuccess(RefreshResult<T> fetch) {
+        consecutiveStaleRetrievalFailures.set(0);
+
+        Instant now = clock.instant();
+
+        if (now.isBefore(fetch.staleTime())) {
+            return fetch;
+        }
+
+        switch (staleValueBehavior) {
+            case STRICT:
+                Instant newStale = now.plusSeconds(1);
+                log.warn(() -> "Retrieved value expiration is in the past (" + fetch.staleTime() + "). Using expiration "
+                               + "of " + newStale);
+                return fetch.toBuilder().staleTime(newStale).build(); // Refresh again in 1 second
+            case ALLOW:
+                Instant newStaleTime = jitterTime(now, Duration.ofMinutes(1), Duration.ofMinutes(10));
+                log.warn(() -> "Cached value expiration has been extended to " + newStaleTime + " because the downstream "
+                               + "service returned a time in the past: " + fetch.staleTime());
+
+                return fetch.toBuilder()
+                            .staleTime(newStaleTime)
+                            .build();
+            default:
+                throw new IllegalStateException("Unknown stale-value-behavior: " + staleValueBehavior);
+        }
+    }
+
+    /**
+     * Perform necessary transformations of the currently-cached value based on the stale value behavior of this supplier.
+     */
+    private RefreshResult<T> handleFetchFailure(RuntimeException e) {
+        RefreshResult<T> currentCachedValue = cachedValue;
+        if (currentCachedValue == null) {
+            throw e;
+        }
+
+        Instant now = clock.instant();
+        if (!now.isBefore(currentCachedValue.staleTime())) {
+            int numFailures = consecutiveStaleRetrievalFailures.incrementAndGet();
+
+            switch (staleValueBehavior) {
+                case STRICT:
+                    throw e;
+                case ALLOW:
+                    Instant newStaleTime = jitterTime(now, Duration.ofMillis(1), maxStaleFailureJitter(numFailures));
+                    log.warn(() -> "Cached value expiration has been extended to " + newStaleTime + " because calling the "
+                                   + "downstream service failed (consecutive failures: " + numFailures + ").");
+
+                    return currentCachedValue.toBuilder()
+                                             .staleTime(newStaleTime)
+                                             .build();
+                default:
+                    throw new IllegalStateException("Unknown stale-value-behavior: " + staleValueBehavior);
+            }
+        }
+
+        return currentCachedValue;
     }
 
     /**
      * Wrap a value supplier with one that jitters its prefetch time.
      */
-    private Supplier<RefreshResult<T>> jitteredValueSupplier(Supplier<RefreshResult<T>> supplier) {
+    private Supplier<RefreshResult<T>> jitteredPrefetchValueSupplier(Supplier<RefreshResult<T>> supplier,
+                                                                     boolean prefetchJitterEnabled) {
         return () -> {
             RefreshResult<T> result = supplier.get();
 
@@ -189,21 +286,19 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                 return result;
             }
 
-            Duration maxJitter = getMaxJitter(result);
+            Duration maxJitter = maxPrefetchJitter(result);
             if (maxJitter.isZero()) {
                 return result;
             }
 
-            long jitter = Math.abs(JITTER_RANDOM.nextLong() % maxJitter.toMillis());
-            Instant newPrefetchTime = result.prefetchTime().plusMillis(jitter);
-            return RefreshResult.builder(result.value())
-                                .prefetchTime(newPrefetchTime)
-                                .staleTime(result.staleTime())
-                                .build();
+            Instant newPrefetchTime = jitterTime(result.prefetchTime(), Duration.ZERO, maxJitter);
+            return result.toBuilder()
+                         .prefetchTime(newPrefetchTime)
+                         .build();
         };
     }
 
-    private Duration getMaxJitter(RefreshResult<T> result) {
+    private Duration maxPrefetchJitter(RefreshResult<T> result) {
         Instant staleTime = result.staleTime() != null ? result.staleTime() : Instant.MAX;
         Instant oneMinuteBeforeStale = staleTime.minus(1, MINUTES);
         if (!result.prefetchTime().isBefore(oneMinuteBeforeStale)) {
@@ -221,6 +316,17 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         return timeBetweenPrefetchAndStale;
     }
 
+    private Duration maxStaleFailureJitter(int numFailures) {
+        long exponentialBackoffMillis = (1L << numFailures - 1) * 100;
+        return ComparableUtils.minimum(Duration.ofMillis(exponentialBackoffMillis), Duration.ofSeconds(10));
+    }
+
+    private Instant jitterTime(Instant time, Duration jitterStart, Duration jitterEnd) {
+        long jitterRange = jitterEnd.minus(jitterStart).toMillis();
+        long jitterAmount = Math.abs(JITTER_RANDOM.nextLong() % jitterRange);
+        return time.plus(jitterStart).plusMillis(jitterAmount);
+    }
+
     /**
      * Free any resources consumed by the prefetch strategy this supplier is using.
      */
@@ -235,7 +341,9 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     public static final class Builder<T> {
         private final Supplier<RefreshResult<T>> supplier;
         private PrefetchStrategy prefetchStrategy = new OneCallerBlocks();
-        private Boolean prefetchJitterEnabled = true;
+        private Boolean jitterEnabled = true;
+        private StaleValueBehavior staleValueBehavior = StaleValueBehavior.STRICT;
+        private Clock clock = Clock.systemUTC();
 
         private Builder(Supplier<RefreshResult<T>> supplier) {
             this.supplier = supplier;
@@ -254,11 +362,31 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         }
 
         /**
+         * Configure the way the cache should behave when a stale value is retrieved or when retrieving a value fails while the
+         * cache is stale.
+         *
+         * By default, this uses {@link StaleValueBehavior#STRICT}.
+         */
+        public Builder<T> staleValueBehavior(StaleValueBehavior staleValueBehavior) {
+            this.staleValueBehavior = staleValueBehavior;
+            return this;
+        }
+
+        /**
+         * Configure the clock used for this cached supplier. Configurable for testing.
+         */
+        @SdkTestInternalApi
+        public Builder<T> clock(Clock clock) {
+            this.clock = clock;
+            return this;
+        }
+
+        /**
          * Whether jitter is enabled on the prefetch time. Can be disabled for testing.
          */
         @SdkTestInternalApi
-        Builder<T> prefetchJitterEnabled(Boolean prefetchJitterEnabled) {
-            this.prefetchJitterEnabled = prefetchJitterEnabled;
+        Builder<T> jitterEnabled(Boolean jitterEnabled) {
+            this.jitterEnabled = jitterEnabled;
             return this;
         }
 
@@ -304,5 +432,24 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         @Override
         default void close() {
         }
+    }
+
+    /**
+     * How the cached supplier should behave when a stale value is retrieved from the underlying supplier or the underlying
+     * supplier fails while the cached value is stale.
+     */
+    public enum StaleValueBehavior {
+        /**
+         * Strictly treat the stale time. Never return a stale cached value (except when the supplier returns an expired
+         * value, in which case the supplier will return the value but only for a very short period of time to prevent
+         * overloading the underlying supplier).
+         */
+        STRICT,
+
+        /**
+         * Allow stale values to be returned from the cache. Value retrieval will never fail, as long as the cache has
+         * succeeded when calling the underlying supplier at least once.
+         */
+        ALLOW
     }
 }

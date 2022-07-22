@@ -18,13 +18,15 @@ package software.amazon.awssdk.utils.cache;
 import java.time.Instant;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * A wrapper for the value returned by the {@link Supplier} underlying a {@link CachedSupplier}. The underlying {@link Supplier}
  * returns this to specify when the underlying value should be refreshed.
  */
 @SdkProtectedApi
-public final class RefreshResult<T> {
+public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.Builder<T>, RefreshResult<T>> {
     private final T value;
     private final Instant staleTime;
     private final Instant prefetchTime;
@@ -52,7 +54,7 @@ public final class RefreshResult<T> {
     }
 
     /**
-     * When the configured value is stale and should not longer be used. All threads will block until the value is updated.
+     * When the configured value is stale and should no longer be used. All threads will block until the value is updated.
      */
     public Instant staleTime() {
         return staleTime;
@@ -66,16 +68,27 @@ public final class RefreshResult<T> {
         return prefetchTime;
     }
 
+    @Override
+    public RefreshResult.Builder<T> toBuilder() {
+        return new RefreshResult.Builder<>(this);
+    }
+
     /**
      * A builder for a {@link RefreshResult}.
      */
-    public static final class Builder<T> {
+    public static final class Builder<T> implements CopyableBuilder<Builder<T>, RefreshResult<T>> {
         private final T value;
         private Instant staleTime = Instant.MAX;
         private Instant prefetchTime = Instant.MAX;
 
         private Builder(T value) {
             this.value = value;
+        }
+
+        private Builder(RefreshResult<T> value) {
+            this.value = value.value;
+            this.staleTime = value.staleTime;
+            this.prefetchTime = value.prefetchTime;
         }
 
         /**

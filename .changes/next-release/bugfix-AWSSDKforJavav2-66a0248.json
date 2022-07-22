@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fix issue in IMDS credentials provider that causes expired credentials to be vended for a short period of time after the credentials provider is inactive for a long time."
+}
