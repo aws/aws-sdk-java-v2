@@ -17,11 +17,8 @@ package software.amazon.awssdk.benchmark.utils;
 
 import java.io.IOException;
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
-import org.eclipse.jetty.http2.HTTP2Cipher;
-import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -43,22 +40,6 @@ public class MockH2Server extends BaseMockServer {
     public MockH2Server(boolean usingAlpn) throws IOException {
         super();
         server = new Server();
-        ServerConnector connector = new ServerConnector(server);
-        connector.setPort(httpPort);
-
-        // HTTP Configuration
-        HttpConfiguration httpConfiguration = new HttpConfiguration();
-        httpConfiguration.setSecureScheme("https");
-        httpConfiguration.setSecurePort(httpsPort);
-        httpConfiguration.setSendXPoweredBy(true);
-        httpConfiguration.setSendServerVersion(true);
-
-        // HTTP Connector
-        ServerConnector http = new ServerConnector(server,
-                                                   new HttpConnectionFactory(httpConfiguration),
-                                                   new HTTP2CServerConnectionFactory(httpConfiguration));
-        http.setPort(httpPort);
-        server.addConnector(http);
 
 
         // HTTPS Configuration
@@ -66,31 +47,30 @@ public class MockH2Server extends BaseMockServer {
         https.addCustomizer(new SecureRequestCustomizer());
 
         // SSL Context Factory for HTTPS and HTTP/2
-        SslContextFactory sslContextFactory = new SslContextFactory();
+        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setTrustAll(true);
         sslContextFactory.setValidateCerts(false);
         sslContextFactory.setNeedClientAuth(false);
         sslContextFactory.setWantClientAuth(false);
         sslContextFactory.setValidatePeerCerts(false);
-        sslContextFactory.setCipherComparator(HTTP2Cipher.COMPARATOR);
         sslContextFactory.setKeyStorePassword("password");
+        sslContextFactory.setIncludeCipherSuites("TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
         sslContextFactory.setKeyStorePath(MockServer.class.getResource("mock-keystore.jks").toExternalForm());
 
 
         // HTTP/2 Connection Factory
-        HTTP2ServerConnectionFactory h2 = new HTTP2ServerConnectionFactory(https);
+        HTTP2ServerConnectionFactory h2 = new HTTP2ServerConnectionFactory(https, "h2");
 
         // SSL Connection Factory
         SslConnectionFactory ssl = new SslConnectionFactory(sslContextFactory, "h2");
         ServerConnector http2Connector;
 
         if (usingAlpn) {
-            ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
-            alpn.setDefaultProtocol("h2");
+            ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory("h2");
             // HTTP/2 Connector
-            http2Connector = new ServerConnector(server, ssl, alpn, h2, new HttpConnectionFactory(https));
+            http2Connector = new ServerConnector(server, ssl, alpn, h2);
         } else {
-            http2Connector = new ServerConnector(server, ssl, h2, new HttpConnectionFactory(https));
+            http2Connector = new ServerConnector(server, ssl, h2);
         }
 
         http2Connector.setPort(httpsPort);
