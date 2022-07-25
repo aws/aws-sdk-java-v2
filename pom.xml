@@ -886,7 +886,7 @@
                         <version>${maven-javadoc-plugin.version}</version>
                         <configuration>
                             <minmemory>128m</minmemory>
-                            <maxmemory>12g</maxmemory>
+                            <maxmemory>24</maxmemory>
                             <includeDependencySources>false</includeDependencySources>
                             <show>public</show>
                             <author>false</author>
