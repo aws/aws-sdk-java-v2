@@ -30,7 +30,7 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.imds.Ec2Metadata;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.MetadataResponse;
@@ -72,7 +72,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         this.tokenTtl = builder.tokenTtl != null ? builder.tokenTtl : Duration.ofSeconds(21600);
         this.endpointMode = ENDPOINT_PROVIDER.resolveEndpointMode(builder.endpointMode);
         this.httpDebugOutput = builder.httpDebugOutput;
-        this.httpClient = builder.httpClient != null ? builder.httpClient : UrlConnectionHttpClient.create();
+        this.httpClient = builder.httpClient != null ? builder.httpClient : ApacheHttpClient.create();
     }
 
     public static Ec2Metadata.Builder builder() {

@@ -18,11 +18,9 @@ package software.amazon.awssdk.imds;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.document.Document;
-import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
+import software.amazon.awssdk.imds.internal.unmarshall.document.DocumentUnmarshaller;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.utils.Validate;
@@ -33,8 +31,6 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public class MetadataResponse {
-
-    private static final Logger log = LoggerFactory.getLogger(MetadataResponse.class);
 
     private static final JsonNodeParser JSON_NODE_PARSER = JsonNode.parserBuilder().removeErrorLocations(true).build();
     

@@ -15,11 +15,16 @@
 
 package software.amazon.awssdk.regions.providers;
 
+import java.io.IOException;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.imds.Ec2Metadata;
+import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Attempts to load region information from the EC2 Metadata service. If the application is not
@@ -36,6 +41,14 @@ public final class InstanceProfileRegionProvider implements AwsRegionProvider {
      * Cache region as it will not change during the lifetime of the JVM.
      */
     private volatile String region;
+
+    private static final Logger log = Logger.loggerFor(InstanceProfileRegionProvider.class);
+
+    private static final String REGION = "region";
+
+    private static final String EC2_DYNAMICDATA_ROOT = "/latest/dynamic/";
+
+    private static final String INSTANCE_IDENTITY_DOCUMENT = "instance-identity/document";
 
     @Override
     public Region getRegion() throws SdkClientException {
@@ -65,6 +78,20 @@ public final class InstanceProfileRegionProvider implements AwsRegionProvider {
     }
 
     private String tryDetectRegion() {
-        return EC2MetadataUtils.getEC2InstanceRegion();
+
+        Ec2Metadata ec2Metadata = Ec2Metadata.create();
+        MetadataResponse metadataResponse = ec2Metadata.get(EC2_DYNAMICDATA_ROOT + INSTANCE_IDENTITY_DOCUMENT);
+
+        try {
+            Document document = metadataResponse.asDocument();
+            if(document.isMap()){
+                Map<String, Document> documentMap = document.asMap();
+                Document regionDocument = documentMap.get(REGION);
+                return regionDocument.asString();
+            }
+        } catch (IOException e) {
+            log.warn(() -> "Received IOException", e);
+        }
+        return null;
     }
 }

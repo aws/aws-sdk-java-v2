@@ -93,6 +93,12 @@
             <artifactId>equalsverifier</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>imds</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

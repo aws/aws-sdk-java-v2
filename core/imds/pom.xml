@@ -61,12 +61,6 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>url-connection-client</artifactId>
-            <version>${awsjavasdk.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>http-client-spi</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>compile</scope>
@@ -101,12 +95,6 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>aws-json-protocol</artifactId>
-            <version>${awsjavasdk.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>test-utils</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>compile</scope>
@@ -114,6 +102,12 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>profiles</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>apache-client</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>compile</scope>
         </dependency>
