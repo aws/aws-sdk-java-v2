@@ -69,6 +69,8 @@ public class Metadata {
 
     private String waitersPackageName;
 
+    private String samplesPackageName;
+
     private String serviceAbbreviation;
 
     private String serviceFullName;
@@ -671,8 +673,25 @@ public class Metadata {
         return this;
     }
 
+    public String getSamplesPackageName() {
+        return samplesPackageName;
+    }
+
+    public void setSamplesPackageName(String samplesPackageName) {
+        this.samplesPackageName = samplesPackageName;
+    }
+
+    public Metadata withSamplesPackageName(String samplesPackageName) {
+        this.samplesPackageName = samplesPackageName;
+        return this;
+    }
+
     public String getFullWaitersPackageName() {
         return joinPackageNames(rootPackageName, getWaitersPackageName());
+    }
+
+    public String getFullSamplesPackageName() {
+        return joinPackageNames(rootPackageName, getSamplesPackageName());
     }
 
     public String getFullWaitersInternalPackageName() {

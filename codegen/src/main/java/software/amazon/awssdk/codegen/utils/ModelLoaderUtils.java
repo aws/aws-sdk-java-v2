@@ -54,6 +54,20 @@ public final class ModelLoaderUtils {
         return Optional.of(loadModel(clzz, file));
     }
 
+    public static <T> Optional<T> loadOptionalSampleModel(Class<T> clzz, File file) {
+        if (!file.exists()) {
+            log.info("file does not exist " + file);
+            return Optional.empty();
+        }
+        log.info("file exists " + file);
+        try {
+            return Optional.of(Jackson.loadSamples(clzz, file));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
+    }
+
     public static <T> Optional<T> loadOptionalModel(Class<T> clzz, File file, boolean failOnUnknownProperties) {
         if (!file.exists()) {
             return Optional.empty();

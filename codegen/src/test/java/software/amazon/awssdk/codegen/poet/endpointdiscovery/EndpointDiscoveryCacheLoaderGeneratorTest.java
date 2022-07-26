@@ -27,7 +27,7 @@ public class EndpointDiscoveryCacheLoaderGeneratorTest {
     @Test
     public void syncEndpointDiscoveryCacheLoaderGenerator() {
         IntermediateModel model = ClientTestModels.endpointDiscoveryModels();
-        GeneratorTaskParams dependencies = GeneratorTaskParams.create(model, "sources/", "tests/");
+        GeneratorTaskParams dependencies = GeneratorTaskParams.create(model, "sources/", "tests/", "samples/");
         EndpointDiscoveryCacheLoaderGenerator cacheLoader = new EndpointDiscoveryCacheLoaderGenerator(dependencies);
         assertThat(cacheLoader, generatesTo("test-sync-cache-loader.java"));
     }
@@ -35,7 +35,7 @@ public class EndpointDiscoveryCacheLoaderGeneratorTest {
     @Test
     public void asyncEndpointDiscoveryCacheLoaderGenerator() {
         IntermediateModel model = ClientTestModels.endpointDiscoveryModels();
-        GeneratorTaskParams dependencies = GeneratorTaskParams.create(model, "sources/", "tests/");
+        GeneratorTaskParams dependencies = GeneratorTaskParams.create(model, "sources/", "tests/","samples/");
         EndpointDiscoveryAsyncCacheLoaderGenerator cacheLoader = new EndpointDiscoveryAsyncCacheLoaderGenerator(dependencies);
         assertThat(cacheLoader, generatesTo("test-async-cache-loader.java"));
     }

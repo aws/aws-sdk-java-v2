@@ -85,6 +85,11 @@ public class PoetExtension {
                                                                               "Waiter");
     }
 
+    public ClassName getSampleClass() {
+        return ClassName.get(model.getMetadata().getFullSamplesPackageName(),  model.getMetadata().getServiceName() +
+                                                                              "Samples");
+    }
+
     public ClassName getAsyncWaiterInterface() {
         return ClassName.get(model.getMetadata().getFullWaitersPackageName(), model.getMetadata().getServiceName() +
                                                                               "AsyncWaiter");

@@ -39,6 +39,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.Paginators;
+import software.amazon.awssdk.codegen.model.service.Samples;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
@@ -59,6 +60,7 @@ public class IntermediateModelBuilder {
     private final List<IntermediateModelShapeProcessor> shapeProcessors;
     private final Paginators paginators;
     private final Waiters waiters;
+    private final Samples samples;
 
     public IntermediateModelBuilder(C2jModels models) {
         this.customConfig = models.customizationConfig();
@@ -68,6 +70,7 @@ public class IntermediateModelBuilder {
         this.shapeProcessors = createShapeProcessors();
         this.paginators = models.paginatorsModel();
         this.waiters = models.waitersModel();
+        this.samples = models.samplesModel();
     }
 
 
@@ -130,7 +133,7 @@ public class IntermediateModelBuilder {
         IntermediateModel fullModel = new IntermediateModel(
             constructMetadata(service, customConfig), operations, shapes,
             customConfig, endpointOperation, paginators.getPagination(), namingStrategy,
-            waiters.getWaiters());
+            waiters.getWaiters(), samples.getSamples());
 
         customization.postprocess(fullModel);
 
@@ -149,7 +152,8 @@ public class IntermediateModelBuilder {
                                                                endpointOperation,
                                                                fullModel.getPaginators(),
                                                                namingStrategy,
-                                                               fullModel.getWaiters());
+                                                               fullModel.getWaiters(),
+                                                               fullModel.getSamples());
 
         linkMembersToShapes(trimmedModel);
         linkOperationsToInputOutputShapes(trimmedModel);

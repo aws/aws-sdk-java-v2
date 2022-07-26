@@ -31,6 +31,7 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.codegen.poet.samples.Sample;
 import software.amazon.awssdk.utils.IoUtils;
 
 public final class IntermediateModel {
@@ -50,6 +51,8 @@ public final class IntermediateModel {
 
     private Map<String, WaiterDefinition> waiters;
 
+    private Map<String, Sample> samples;
+
     @JsonIgnore
     private NamingStrategy namingStrategy;
 
@@ -63,6 +66,7 @@ public final class IntermediateModel {
         this.endpointOperation = Optional.empty();
         this.paginators = new HashMap<>();
         this.waiters = new HashMap<>();
+        this.samples = new HashMap<>();
         this.namingStrategy = null;
     }
 
@@ -71,7 +75,7 @@ public final class IntermediateModel {
                              Map<String, ShapeModel> shapes,
                              CustomizationConfig customizationConfig) {
         this(metadata, operations, shapes, customizationConfig, null,
-             Collections.emptyMap(), null, Collections.emptyMap());
+             Collections.emptyMap(), null, Collections.emptyMap(), Collections.emptyMap());
     }
 
     public IntermediateModel(
@@ -82,7 +86,8 @@ public final class IntermediateModel {
         OperationModel endpointOperation,
         Map<String, PaginatorDefinition> paginators,
         NamingStrategy namingStrategy,
-        Map<String, WaiterDefinition> waiters) {
+        Map<String, WaiterDefinition> waiters,
+        Map<String, Sample> samples) {
         this.metadata = metadata;
         this.operations = operations;
         this.shapes = shapes;
@@ -91,6 +96,7 @@ public final class IntermediateModel {
         this.paginators = paginators;
         this.namingStrategy = namingStrategy;
         this.waiters = waiters;
+        this.samples = samples;
     }
 
     public Metadata getMetadata() {
@@ -152,6 +158,14 @@ public final class IntermediateModel {
 
     public Map<String, WaiterDefinition> getWaiters() {
         return waiters;
+    }
+
+    public Map<String, Sample> getSamples() {
+        return samples;
+    }
+
+    public void setSamples(Map<String, Sample> samples) {
+        this.samples = samples;
     }
 
     public void setPaginators(Map<String, PaginatorDefinition> paginators) {
@@ -244,6 +258,10 @@ public final class IntermediateModel {
 
     public boolean hasWaiters() {
         return waiters.size() > 0;
+    }
+
+    public boolean hasSamples() {
+        return !samples.isEmpty();
     }
 
     public boolean containsRequestSigners() {

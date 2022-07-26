@@ -26,11 +26,13 @@ public class GeneratorPathProvider {
     private final IntermediateModel model;
     private final String sourceDirectory;
     private final String testDirectory;
+    private final String samplesDirectory;
 
-    public GeneratorPathProvider(IntermediateModel model, String sourceDirectory, String testDirectory) {
+    public GeneratorPathProvider(IntermediateModel model, String sourceDirectory, String testDirectory, String samplesDirectory) {
         this.model = model;
         this.sourceDirectory = sourceDirectory;
         this.testDirectory = testDirectory;
+        this.samplesDirectory = samplesDirectory;
     }
 
     public String getSourceDirectory() {
@@ -63,6 +65,10 @@ public class GeneratorPathProvider {
 
     public String getWaitersDirectory() {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullWaitersPackageName());
+    }
+
+    public String getSamplesDirectory() {
+        return samplesDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullSamplesPackageName());
     }
 
     public String getWaitersInternalDirectory() {

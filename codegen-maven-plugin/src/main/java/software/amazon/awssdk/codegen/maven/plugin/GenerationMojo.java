@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.maven.plugin;
 
+import static software.amazon.awssdk.codegen.utils.ModelLoaderUtils.loadOptionalSampleModel;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,6 +35,7 @@ import software.amazon.awssdk.codegen.CodeGenerator;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.Paginators;
+import software.amazon.awssdk.codegen.model.service.Samples;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
@@ -46,6 +49,7 @@ public class GenerationMojo extends AbstractMojo {
     private static final String MODEL_FILE = "service-2.json";
     private static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";
     private static final String WAITERS_FILE = "waiters-2.json";
+    private static final String SAMPLES_FILE = "samples-1.json";
     private static final String PAGINATORS_FILE = "paginators-1.json";
 
     @Parameter(property = "codeGenResources", defaultValue = "${basedir}/src/main/resources/codegen-resources/")
@@ -62,11 +66,13 @@ public class GenerationMojo extends AbstractMojo {
 
     private Path sourcesDirectory;
     private Path testsDirectory;
+    private Path samplesDirectory;
 
     @Override
     public void execute() throws MojoExecutionException {
         this.sourcesDirectory = Paths.get(outputDirectory).resolve("generated-sources").resolve("sdk");
         this.testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
+        this.samplesDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-samples");
 
         findModelRoots().forEach(p -> {
             Path modelRootPath = p.modelRoot;
@@ -76,6 +82,7 @@ public class GenerationMojo extends AbstractMojo {
                                   .serviceModel(loadServiceModel(modelRootPath))
                                   .waitersModel(loadWaiterModel(modelRootPath))
                                   .paginatorsModel(loadPaginatorModel(modelRootPath))
+                                  .samplesModel(loadSamplesModel(modelRootPath))
                                   .build());
         });
         project.addCompileSourceRoot(sourcesDirectory.toFile().getAbsolutePath());
@@ -106,6 +113,7 @@ public class GenerationMojo extends AbstractMojo {
                      .models(models)
                      .sourcesDirectory(sourcesDirectory.toFile().getAbsolutePath())
                      .testsDirectory(testsDirectory.toFile().getAbsolutePath())
+                     .samplesDirectory(samplesDirectory.toFile().getAbsolutePath())
                      .intermediateModelFileNamePrefix(intermediateModelFileNamePrefix(models))
                      .build()
                      .execute();
@@ -132,6 +140,12 @@ public class GenerationMojo extends AbstractMojo {
 
     private Paginators loadPaginatorModel(Path root) {
         return loadOptionalModel(Paginators.class, root.resolve(PAGINATORS_FILE)).orElse(Paginators.none());
+    }
+
+    private Samples loadSamplesModel(Path root) {
+        Samples samples = loadOptionalSampleModel(Samples.class, root.resolve(SAMPLES_FILE).toFile()).orElseGet(Samples::none);
+        getLog().info("Loading samples isEmpty? " + samples.getSamples().isEmpty());
+        return samples;
     }
 
     /**

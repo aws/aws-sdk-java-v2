@@ -1,0 +1,80 @@
+{
+  "samples": {
+    "PublishSnsMessages": {
+      "documentation": "This example demonstrates how to publish SMS messages to an Amazon SNS topic",
+      "instructions": [
+        {
+          "name": "CreateTopic",
+          "type": "ServiceOperation",
+          "documentation": "Create a topic and return its ARN.",
+          "input": [
+            {
+              "name": "name",
+              "type": "string",
+              "value": "foo"
+            }
+          ],
+          "outputConsumer": {
+            "outputType": "CreateTopicResponse",
+            "outputVariable": "createTopicResponse",
+            "instructions": [
+              {
+                "name": "print",
+                "type": "SdkOperation",
+                "input": [
+                  {
+                    "type": "string",
+                    "value": "Response: "
+                  },
+                  {
+                    "type": "reference",
+                    "value": "createTopicResponse"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "Subscribe",
+          "type": "ServiceOperation",
+          "documentation": "Subscribe an endpoint to a topic",
+          "input": [
+            {
+              "name": "topicArn",
+              "type": "reference",
+              "value": "createTopicResponse.topicArn"
+            },
+            {
+              "name": "protocol",
+              "type": "string",
+              "value": "sms"
+            },
+            {
+              "name": "endpoint",
+              "type": "string",
+              "value": "12345678"
+            }
+          ]
+        },
+        {
+          "name": "Publish",
+          "type": "ServiceOperation",
+          "documentation": "Publish a message to a topic. The message is sent to every subscriber.",
+          "input": [
+            {
+              "name": "topicArn",
+              "type": "reference",
+              "value": "createTopicResponse.topicArn"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": "hello world"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

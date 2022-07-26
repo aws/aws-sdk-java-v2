@@ -302,6 +302,18 @@
                             </configuration>
                         </execution>
                         <execution>
+                            <id>add-samples-resources</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>add-test-source</goal>
+                            </goals>
+                            <configuration>
+                                <sources>
+                                        <source>${basedir}/target/generated-test-sources/sdk-samples</source>
+                                </sources>
+                            </configuration>
+                        </execution>
+                        <execution>
                             <id>add-license-notice</id>
                             <phase>generate-sources</phase>
                             <goals>

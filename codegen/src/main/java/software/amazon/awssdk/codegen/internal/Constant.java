@@ -68,6 +68,8 @@ public final class Constant {
 
     public static final String PACKAGE_NAME_WAITERS_PATTERN = "%s.waiters";
 
+    public static final String PACKAGE_NAME_SAMPLES_PATTERN = "%s.samples";
+
     public static final String PACKAGE_NAME_SMOKE_TEST_PATTERN = "%s.smoketests";
 
     public static final String PACKAGE_NAME_CUSTOM_AUTH_PATTERN = "%s.auth";

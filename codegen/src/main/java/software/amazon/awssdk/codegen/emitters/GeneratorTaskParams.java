@@ -40,8 +40,9 @@ public class GeneratorTaskParams {
         this.poetExtensions = new PoetExtension(model);
     }
 
-    public static GeneratorTaskParams create(IntermediateModel model, String sourceDirectory, String testDirectory) {
-        GeneratorPathProvider pathProvider = new GeneratorPathProvider(model, sourceDirectory, testDirectory);
+    public static GeneratorTaskParams create(IntermediateModel model, String sourceDirectory, String testDirectory,
+                                             String samplesDirectory) {
+        GeneratorPathProvider pathProvider = new GeneratorPathProvider(model, sourceDirectory, testDirectory, samplesDirectory);
         GeneratorTaskParams params = new GeneratorTaskParams(model, pathProvider);
         TASK_PARAMS_VALIDATORS.accept(params);
         return params;

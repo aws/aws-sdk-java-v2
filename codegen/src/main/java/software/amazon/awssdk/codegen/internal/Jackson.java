@@ -30,6 +30,7 @@ public final class Jackson {
     private static final JSON MAPPER;
     private static final JSON FAIL_ON_UNKNOWN_PROPERTIES_MAPPER;
     private static volatile ObjectWriter OBJECT_MAPPER;
+    private static final ObjectMapper JACKSON_OBJECT_MAPPER = new ObjectMapper();
 
     static {
         JSON.Builder mapperBuilder = JSON.builder()
@@ -56,6 +57,10 @@ public final class Jackson {
 
     public static <T> T load(Class<T> clazz, File file) throws IOException {
         return MAPPER.beanFrom(clazz, file);
+    }
+
+    public static <T> T loadSamples(Class<T> clazz, File file) throws IOException {
+        return JACKSON_OBJECT_MAPPER.readValue(file, clazz);
     }
 
     public static <T> T load(Class<T> clazz, File file, boolean failOnUnknownProperties) throws IOException {

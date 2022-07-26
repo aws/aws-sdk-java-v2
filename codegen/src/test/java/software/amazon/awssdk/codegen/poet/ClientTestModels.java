@@ -16,13 +16,12 @@
 package software.amazon.awssdk.codegen.poet;
 
 import java.io.File;
-
-import org.eclipse.core.runtime.internal.adaptor.IModel;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
+import software.amazon.awssdk.codegen.model.service.Samples;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
@@ -63,12 +62,14 @@ public class ClientTestModels {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
         File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/query/customization.config").getFile());
         File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query/waiters-2.json").getFile());
+        File samplesModel = new File(ClientTestModels.class.getResource("client/c2j/query/samples-1.json").getFile());
 
         C2jModels models = C2jModels
                 .builder()
                 .serviceModel(getServiceModel(serviceModel))
                 .customizationConfig(getCustomizationConfig(customizationModel))
                 .waitersModel(getWaiters(waitersModel))
+            .samplesModel(getSamples(samplesModel))
                 .build();
 
         return new IntermediateModelBuilder(models).build();
@@ -134,6 +135,10 @@ public class ClientTestModels {
 
     private static Waiters getWaiters(File file) {
         return ModelLoaderUtils.loadModel(Waiters.class, file);
+    }
+
+    private static Samples getSamples(File file) {
+        return ModelLoaderUtils.loadModel(Samples.class, file);
     }
 
     private static Paginators getPaginatorsModel(File file) {

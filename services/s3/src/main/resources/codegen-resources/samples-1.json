@@ -1,0 +1,127 @@
+{
+  "samples": {
+    "CRUD": {
+      "documentation": "This example demonstrates CRUD operations",
+      "instructions": [
+        {
+          "name": "CreateBucket",
+          "type": "ServiceOperation",
+          "documentation": "",
+          "useWaiter": true,
+          "input": [
+            {
+              "name": "bucket",
+              "type": "string",
+              "value": "foo"
+            }
+          ],
+          "outputConsumer": {
+            "outputType": "CreateBucketResponse",
+            "outputVariable": "createBucketResponse",
+            "instructions": [
+              {
+                "name": "print",
+                "type": "SdkOperation",
+                "input": [
+                  {
+                    "type": "string",
+                    "value": "Response: "
+                  },
+                  {
+                    "type": "reference",
+                    "value": "createBucketResponse"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "PutObject",
+          "type": "ServiceOperation",
+          "documentation": "",
+          "input": [
+            {
+              "name": "bucket",
+              "type": "string",
+              "value": "foo"
+            },
+            {
+              "name": "key",
+              "type": "string",
+              "value": "bar"
+            }
+          ],
+          "streamingInput": {
+            "type": "file",
+            "value": "test.txt"
+          }
+        },
+        {
+          "name": "GetObject",
+          "type": "ServiceOperation",
+          "documentation": "",
+          "input": [
+            {
+              "name": "bucket",
+              "type": "string",
+              "value": "foo"
+            },
+            {
+              "name": "key",
+              "type": "string",
+              "value": "bar"
+            }
+          ],
+          "streamingOutput": {
+            "type": "file",
+            "value": "test.txt"
+          }
+        },
+        {
+          "name": "ListObjectsV2",
+          "type": "ServiceOperation",
+          "documentation": "",
+          "usePaginator": true,
+          "input": [
+            {
+              "name": "bucket",
+              "type": "string",
+              "value": "foo"
+            }
+          ]
+        },
+        {
+          "name": "DeleteObject",
+          "type": "ServiceOperation",
+          "documentation": "",
+          "input": [
+            {
+              "name": "bucket",
+              "type": "string",
+              "value": "foo"
+            },
+            {
+              "name": "key",
+              "type": "string",
+              "value": "bar"
+            }
+          ]
+        },
+        {
+          "name": "DeleteBucket",
+          "type": "ServiceOperation",
+          "documentation": "",
+          "input": [
+            {
+              "name": "bucket",
+              "type": "string",
+              "value": "foo"
+            }
+          ],
+          "useWaiter": true
+        }
+      ]
+    }
+  }
+}
