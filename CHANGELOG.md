@@ -1,3 +1,40 @@
+# __2.17.240__ __2022-07-26__
+## __AWS AppSync__
+  - ### Features
+    - Adds support for a new API to evaluate mapping templates with mock data, allowing you to remotely unit test your AppSync resolvers and functions.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family now supports Applicability Statement 2 (AS2), a network protocol used for the secure and reliable transfer of critical Business-to-Business (B2B) data over the public internet using HTTP/HTTPS as the transport mechanism.
+
+## __Amazon Detective__
+  - ### Features
+    - Added the ability to get data source package information for the behavior graph. Graph administrators can now start (or stop) optional datasources on the behavior graph.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Amazon GuardDuty introduces a new Malware Protection feature that triggers malware scan on selected EC2 instance resources, after the service detects a potentially malicious activity.
+
+## __Amazon Lookout for Vision__
+  - ### Features
+    - This release introduces support for the automatic scaling of inference units used by Amazon Lookout for Vision models.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for retrieving (revealing) sample occurrences of sensitive data that Amazon Macie detects and reports in findings.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release introduces support for the automatic scaling of inference units used by Amazon Rekognition Custom Labels models.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for using RDS Proxies with RDS for MariaDB databases.
+
 # __2.17.239__ __2022-07-25__
 ## __Auto Scaling__
   - ### Features
