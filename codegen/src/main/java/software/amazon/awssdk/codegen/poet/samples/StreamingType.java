@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.codegen.poet.samples;
 
-public enum StreamingType {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+public enum StreamingType {
+    @JsonProperty("file")
     FILE,
+    @JsonProperty("bytes")
     BYTES
 }

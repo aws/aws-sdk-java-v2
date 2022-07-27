@@ -24,20 +24,23 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.utils.PaginatorUtils;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.utils.StringUtils;
 
-/**
- * Base class containing common logic shared between the sync waiter class and the async waiter class
- */
 public class SampleClassSpec implements ClassSpec {
 
     private final IntermediateModel model;
@@ -103,22 +106,65 @@ public class SampleClassSpec implements ClassSpec {
 
     private void addCodeForEachInstruction(MethodSpec.Builder builder,
                                            CodeBlock.Builder codeBlockBuilder, Instruction instruction) {
-
+        codeBlockBuilder.add("\n");
         switch (instruction.getType()) {
             case SERVICE_OPERATION:
-                addCodeForServiceOperation(builder, codeBlockBuilder, instruction);
+                addServiceOperation(builder, codeBlockBuilder, instruction);
                 break;
             case SDK_OPERATION:
                 addSdkOperation(builder, codeBlockBuilder, instruction);
                 break;
+            case SERVICE_WAITER:
+                addWaiterOperation(builder, codeBlockBuilder, instruction);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unsupported instruction: " + instruction.getType());
         }
+    }
+
+    private void addWaiterOperation(MethodSpec.Builder methodBuilder, CodeBlock.Builder codeBlockBuilder,
+                                    Instruction instruction) {
+        String name = instruction.getName();
+
+        String waiterMethodName = getWaiterMethodName(name);
+
+        codeBlockBuilder.add("client.waiter().$N(request->request", waiterMethodName);
+
+        instruction.getInput().forEach(i -> {
+            // List<ShapeModel> shapesByC2jName = Utils.findMemberShapeModelByC2jNameIfExists(i.getName());
+            //String fluentSetterMethodName = fluentSetterMethod(operationModel, i);
+            // FIXME: should use member model to find out the setter name instead of lower case first char
+            switch (i.getType()) {
+                case STRING:
+                    codeBlockBuilder.add(".$N($S)",
+                                         lowercaseFirstChar(i.getName()), i.getValue());
+                    break;
+                case REFERENCE:
+                    codeBlockBuilder.add(".$N($N())",
+                                         lowercaseFirstChar(i.getName()), i.getValue());
+                    break;
+                default:
+                    throw new UnsupportedOperationException("unsupported type " + i.getType());
+            }
+        });
+        codeBlockBuilder.add(");");
+        methodBuilder.addCode(codeBlockBuilder.build());
+
+    }
+
+    private ClassName waiterClassName() {
+        return poetExtensions.getSyncWaiterClass();
+    }
+
+    private String getWaiterMethodName(String waiterMethodName) {
+        return "waitUntil" + waiterMethodName;
     }
 
     private void addSdkOperation(MethodSpec.Builder builder, CodeBlock.Builder codeBlockBuilder, Instruction instruction) {
 
         String name = instruction.getName();
         if (!name.equals("print")) {
-            return;
+            throw new UnsupportedOperationException("Unsupported instruction: " + instruction.getName());
         }
         codeBlockBuilder.add("System.out.println(");
         instruction.getInput().forEach(input -> {
@@ -137,10 +183,14 @@ public class SampleClassSpec implements ClassSpec {
         builder.addStatement(codeBlockBuilder.build());
     }
 
-    private void addCodeForServiceOperation(MethodSpec.Builder builder, CodeBlock.Builder codeBlockBuilder,
-                                            Instruction instruction) {
+    private void addServiceOperation(MethodSpec.Builder methodBuilder, CodeBlock.Builder codeBlockBuilder,
+                                     Instruction instruction) {
         String operationName = instruction.getName();
         OperationModel operationModel = model.getOperation(operationName);
+        if (StringUtils.isNotBlank(instruction.getDocumentation())) {
+            codeBlockBuilder.add("// $L", instruction.getDocumentation());
+            codeBlockBuilder.add("\n");
+        }
 
         OutputConsumer outputConsumer = instruction.getOutputConsumer();
         if (outputConsumer != null) {
@@ -150,33 +200,80 @@ public class SampleClassSpec implements ClassSpec {
             codeBlockBuilder.add("$T $N = ", responseType, outputVariable);
         }
 
-        codeBlockBuilder.add("client.$N", lowercaseFirstChar(operationModel.getOperationName()));
+        if (instruction.isUsePaginator()) {
+            String paginatorMethod = PaginatorUtils.getPaginatedMethodName(operationName);
+            codeBlockBuilder.add("client.$N", lowercaseFirstChar(paginatorMethod));
+        } else {
+            codeBlockBuilder.add("client.$N", lowercaseFirstChar(operationModel.getOperationName()));
+        }
 
         codeBlockBuilder.add("(request -> request");
 
         List<Input> input = instruction.getInput();
         input.forEach(i -> {
+            String fluentSetterMethodName = fluentSetterMethod(operationModel, i);
             switch (i.getType()) {
                 case STRING:
                     codeBlockBuilder.add(".$N($S)",
-                                         i.getName(), i.getValue());
+                                         fluentSetterMethodName, i.getValue());
                     break;
                 case REFERENCE:
                     codeBlockBuilder.add(".$N($N())",
-                                         i.getName(), i.getValue());
+                                         fluentSetterMethodName, i.getValue());
                     break;
                 default:
                     throw new UnsupportedOperationException("unsupported type " + i.getType());
             }
         });
 
-        codeBlockBuilder.add(")");
+        handleStreamingInputIfNeeded(codeBlockBuilder, instruction);
 
-        builder.addStatement(codeBlockBuilder.build());
+        handleStreamingOutputIfNeeded(codeBlockBuilder, instruction);
+
+        if (instruction.isUsePaginator()) {
+            //TODO: hard code
+            codeBlockBuilder.add(").contents().forEach(System.out::println)");
+        } else {
+            codeBlockBuilder.add(")");
+        }
+
+        methodBuilder.addStatement(codeBlockBuilder.build());
 
         if (outputConsumer != null) {
             List<Instruction> nestedInstructions = outputConsumer.getInstructions();
-            nestedInstructions.forEach(i -> addCodeForEachInstruction(builder, CodeBlock.builder(), i));
+            nestedInstructions.forEach(i -> addCodeForEachInstruction(methodBuilder, CodeBlock.builder(), i));
+        }
+    }
+
+    private String fluentSetterMethod(OperationModel operationModel, Input input) {
+        MemberModel memberModel = operationModel.getInputShape().findMemberModelByC2jName(input.getName());
+        return memberModel.getFluentSetterMethodName();
+    }
+
+    private void handleStreamingOutputIfNeeded(CodeBlock.Builder codeBlockBuilder, Instruction instruction) {
+        Streaming streamingOutput = instruction.getStreamingOutput();
+        if (streamingOutput != null) {
+            switch (streamingOutput.getType()) {
+                case FILE:
+                    codeBlockBuilder.add(", $T.toFile($T.get($S))", ResponseTransformer.class, Paths.class,
+                                         streamingOutput.getValue());
+                    break;
+                default:
+                    throw new UnsupportedOperationException("unsupported type " + streamingOutput.getType());
+            }
+        }
+    }
+
+    private void handleStreamingInputIfNeeded(CodeBlock.Builder codeBlockBuilder, Instruction instruction) {
+        Streaming streamingInput = instruction.getStreamingInput();
+        if (streamingInput != null) {
+            switch (streamingInput.getType()) {
+                case FILE:
+                    codeBlockBuilder.add(", $T.fromFile($T.get($S))", RequestBody.class, Paths.class, streamingInput.getValue());
+                    break;
+                default:
+                    throw new UnsupportedOperationException("unsupported type " + streamingInput.getType());
+            }
         }
     }
 

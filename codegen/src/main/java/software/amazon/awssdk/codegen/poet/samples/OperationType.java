@@ -24,4 +24,7 @@ public enum OperationType {
 
     @JsonProperty("SdkOperation")
     SDK_OPERATION,
+
+    @JsonProperty("ServiceWaiter")
+    SERVICE_WAITER,
 }

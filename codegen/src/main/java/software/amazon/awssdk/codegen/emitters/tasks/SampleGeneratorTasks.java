@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
+import software.amazon.awssdk.codegen.emitters.PoetSampleGeneratorTask;
 import software.amazon.awssdk.codegen.poet.samples.SampleClassSpec;
 import software.amazon.awssdk.codegen.poet.waiters.AsyncWaiterInterfaceSpec;
 
@@ -49,8 +50,8 @@ public class SampleGeneratorTasks extends BaseGeneratorTasks {
 
     private List<GeneratorTask> createSyncTasks() {
         List<GeneratorTask> syncTasks = new ArrayList<>();
-        syncTasks.add(new PoetGeneratorTask(sampleClassDir(), model.getFileHeader(),
-                                            new SampleClassSpec(model)));
+        syncTasks.add(new PoetSampleGeneratorTask(sampleClassDir(), model.getFileHeader(),
+                                                  new SampleClassSpec(model)));
         return syncTasks;
     }
 

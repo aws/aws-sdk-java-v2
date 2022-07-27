@@ -24,6 +24,7 @@ import static software.amazon.awssdk.codegen.internal.Constant.SYNC_STREAMING_OU
 import static software.amazon.awssdk.codegen.poet.client.AsyncClientInterface.STREAMING_TYPE_VARIABLE;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -94,8 +95,15 @@ public final class SyncClientInterface implements ClassSpec {
                                   .addJavadoc("Value for looking up the service's metadata from the {@link $T}.",
                                               ServiceMetadataProvider.class)
                                   .build());
-
-        PoetUtils.addJavadoc(result::addJavadoc, getJavadoc());
+        if (model.hasSamples()) {
+            result.addJavadoc(CodeBlock.builder()
+                                  .add(getJavadoc())
+                                  .add("\n")
+                                  .add("See following samples for common usage scenarios:\n")
+                                       .add("{@snippet class=\"$N.$N\" region=\"sample\"}"
+                                           , poetExtensions.getSampleClass().packageName(), poetExtensions.getSampleClass().simpleName())
+                                       .build());
+        }
 
         if (!model.getCustomizationConfig().isExcludeClientCreateMethod()) {
             result.addMethod(create());

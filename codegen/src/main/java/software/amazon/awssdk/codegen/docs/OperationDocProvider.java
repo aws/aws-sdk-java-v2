@@ -121,9 +121,9 @@ abstract class OperationDocProvider {
      * @return Documentation describing the consumer-builder variant of a method.
      */
     private String getConsumerBuilderDocs() {
-        return "<p>This is a convenience which creates an instance of the {@link " +
+        return "<p>This is a convenience which creates an instance of the {@code " +
                opModel.getInput().getSimpleType() +
-               ".Builder} avoiding the need to create one manually via {@link " +
+               ".Builder} avoiding the need to create one manually via {@code " +
                opModel.getInput().getSimpleType() +
                "#builder()}</p>";
     }
@@ -173,7 +173,7 @@ abstract class OperationDocProvider {
 
         if (config.isConsumerBuilder()) {
             docBuilder.param(opModel.getInput().getVariableName(),
-                             "A {@link Consumer} that will call methods on {@link %s.Builder} to create a request. %s",
+                             "A {@link Consumer} that will call methods on {@code %s.Builder} to create a request. %s",
                              opModel.getInputShape().getC2jName(),
                              parameterDocs);
         } else {

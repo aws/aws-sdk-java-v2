@@ -1,22 +1,20 @@
 {
   "samples": {
-    "CRUD": {
-      "documentation": "This example demonstrates CRUD operations",
+    "BasicBucketAndObjectOperations": {
+      "documentation": "This example demonstrates how to get started with S3 buckets and objects by performing basic CRUD operations on S3 buckets and objects\n",
       "instructions": [
         {
           "name": "CreateBucket",
           "type": "ServiceOperation",
-          "documentation": "",
-          "useWaiter": true,
+          "documentation": "Create an S3 bucket",
           "input": [
             {
-              "name": "bucket",
+              "name": "Bucket",
               "type": "string",
               "value": "foo"
             }
           ],
           "outputConsumer": {
-            "outputType": "CreateBucketResponse",
             "outputVariable": "createBucketResponse",
             "instructions": [
               {
@@ -37,55 +35,67 @@
           }
         },
         {
-          "name": "PutObject",
-          "type": "ServiceOperation",
-          "documentation": "",
+          "name": "BucketExists",
+          "type": "ServiceWaiter",
+          "documentation": "Wait until the bucket has been created",
           "input": [
             {
-              "name": "bucket",
+              "name": "Bucket",
+              "type": "string",
+              "value": "foo"
+            }
+          ]
+        },
+        {
+          "name": "PutObject",
+          "type": "ServiceOperation",
+          "documentation": "Upload a local file \"source.txt\" to the bucket",
+          "input": [
+            {
+              "name": "Bucket",
               "type": "string",
               "value": "foo"
             },
             {
-              "name": "key",
+              "name": "Key",
               "type": "string",
               "value": "bar"
             }
           ],
           "streamingInput": {
             "type": "file",
-            "value": "test.txt"
+            "value": "source.txt"
           }
         },
         {
           "name": "GetObject",
           "type": "ServiceOperation",
-          "documentation": "",
+          "documentation": "Download the S3 object to a local file",
           "input": [
             {
-              "name": "bucket",
+              "name": "Bucket",
               "type": "string",
               "value": "foo"
             },
             {
-              "name": "key",
+              "name": "Key",
               "type": "string",
               "value": "bar"
             }
           ],
           "streamingOutput": {
             "type": "file",
-            "value": "test.txt"
+            "value": "destination.txt"
           }
         },
         {
           "name": "ListObjectsV2",
           "type": "ServiceOperation",
-          "documentation": "",
+          "documentation": "List all objects in the bucket",
           "usePaginator": true,
           "input": [
             {
-              "name": "bucket",
+              "name": "Bucket",
               "type": "string",
               "value": "foo"
             }
@@ -94,15 +104,15 @@
         {
           "name": "DeleteObject",
           "type": "ServiceOperation",
-          "documentation": "",
+          "documentation": "Delete the object",
           "input": [
             {
-              "name": "bucket",
+              "name": "Bucket",
               "type": "string",
               "value": "foo"
             },
             {
-              "name": "key",
+              "name": "Key",
               "type": "string",
               "value": "bar"
             }
@@ -111,15 +121,26 @@
         {
           "name": "DeleteBucket",
           "type": "ServiceOperation",
-          "documentation": "",
+          "documentation": "Delete the bucket",
           "input": [
             {
-              "name": "bucket",
+              "name": "Bucket",
               "type": "string",
               "value": "foo"
             }
-          ],
-          "useWaiter": true
+          ]
+        },
+        {
+          "name": "BucketNotExists",
+          "type": "ServiceWaiter",
+          "documentation": "Wait until the bucket has been deleted",
+          "input": [
+            {
+              "name": "Bucket",
+              "type": "string",
+              "value": "foo"
+            }
+          ]
         }
       ]
     }

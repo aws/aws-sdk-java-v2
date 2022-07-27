@@ -20,7 +20,6 @@ import java.util.List;
 
 public class OutputConsumer {
     private String outputVariable;
-    private String outputType;
     private List<Instruction> instructions;
 
     public OutputConsumer() {
@@ -32,14 +31,6 @@ public class OutputConsumer {
 
     public void setOutputVariable(String outputVariable) {
         this.outputVariable = outputVariable;
-    }
-
-    public String getOutputType() {
-        return outputType;
-    }
-
-    public void setOutputType(String outputType) {
-        this.outputType = outputType;
     }
 
     public List<Instruction> getInstructions() {
