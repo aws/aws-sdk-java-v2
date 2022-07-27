@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Chime",
-    "contributor": "",
-    "description": "Chime VoiceConnector will now support ValidateE911Address which will allow customers to prevalidate their addresses included in their SIP invites for emergency calling"
-}

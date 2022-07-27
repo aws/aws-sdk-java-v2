@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces",
-    "contributor": "",
-    "description": "Added CreateWorkspaceImage API to create a new WorkSpace image from an existing WorkSpace."
-}

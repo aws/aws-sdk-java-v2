@@ -1,3 +1,40 @@
+# __2.17.241__ __2022-07-27__
+## __AWS Audit Manager__
+  - ### Features
+    - This release adds an exceeded quota exception to several APIs. We added a ServiceQuotaExceededException for the following operations: CreateAssessment, CreateControl, CreateAssessmentFramework, and UpdateAssessmentStatus.
+
+## __AWS Config__
+  - ### Features
+    - This release adds ListConformancePackComplianceScores API to support the new compliance score feature, which provides a percentage of the number of compliant rule-resource combinations in a conformance pack compared to the number of total possible rule-resource combinations in the conformance pack.
+
+## __AWS Global Accelerator__
+  - ### Features
+    - Global Accelerator now supports dual-stack accelerators, enabling support for IPv4 and IPv6 traffic.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - The SDK for the StartChangeSet API will now automatically set and use an idempotency token in the ClientRequestToken request parameter if the customer does not provide it.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Chime__
+  - ### Features
+    - Chime VoiceConnector will now support ValidateE911Address which will allow customers to prevalidate their addresses included in their SIP invites for emergency calling
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new English and Hindi voice - Kajal. Kajal is available as Neural voice only.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Adding doc updates for OpsCenter support in Service Setting actions.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added CreateWorkspaceImage API to create a new WorkSpace image from an existing WorkSpace.
+
 # __2.17.240__ __2022-07-26__
 ## __AWS AppSync__
   - ### Features

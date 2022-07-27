@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Marketplace Catalog Service",
-    "contributor": "",
-    "description": "The SDK for the StartChangeSet API will now automatically set and use an idempotency token in the ClientRequestToken request parameter if the customer does not provide it."
-}
