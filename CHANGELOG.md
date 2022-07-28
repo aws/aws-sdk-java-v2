@@ -1,3 +1,24 @@
+# __2.17.242__ __2022-07-28__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for VM Import/Export.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - This release adds support for gp3 EBS (Elastic Block Store) storage.
+
+## __Amazon Lookout for Vision__
+  - ### Features
+    - This release introduces support for image segmentation models and updates CPU accelerator options for models hosted on edge devices.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for gp3 EBS (Elastic Block Store) storage.
+
 # __2.17.241__ __2022-07-27__
 ## __AWS Audit Manager__
   - ### Features
