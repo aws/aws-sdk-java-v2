@@ -1,0 +1,36 @@
+{
+    "version": "2.17.242",
+    "date": "2022-07-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation updates for VM Import/Export."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "contributor": "",
+            "description": "This release adds support for gp3 EBS (Elastic Block Store) storage."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Vision",
+            "contributor": "",
+            "description": "This release introduces support for image segmentation models and updates CPU accelerator options for models hosted on edge devices."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Service",
+            "contributor": "",
+            "description": "This release adds support for gp3 EBS (Elastic Block Store) storage."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
