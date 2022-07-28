@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "AWS-JSON services use the Fault trait to designate exceptions that are the service's fault (i.e. 500), rather than HTTP status code bindings like REST services. In cases where the response being unmarshalled does *NOT* have a status code (e.g. because the response was constructed rather from some other data rather than an actual HTTP response), the JSON unmarshaller will now also check the metadata if it's marked as a fault."
+}
