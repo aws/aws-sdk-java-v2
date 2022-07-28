@@ -21,6 +21,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.SimpleGeneratorTask;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 
 /**
  * Emits the package-info.java for the base service package. Includes the service
@@ -29,10 +30,12 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 public final class PackageInfoGeneratorTasks extends BaseGeneratorTasks {
 
     private final String baseDirectory;
+    private final PoetExtension poetExtensions;
 
     PackageInfoGeneratorTasks(GeneratorTaskParams dependencies) {
         super(dependencies);
         this.baseDirectory = dependencies.getPathProvider().getClientDirectory();
+        this.poetExtensions = new PoetExtension(model);
     }
 
     @Override
@@ -41,9 +44,12 @@ public final class PackageInfoGeneratorTasks extends BaseGeneratorTasks {
         String packageInfoContents =
             String.format("/**%n"
                           + " * %s%n"
+                          + " * See following code samples for common usage scenarios:\n"
+                          + " * {@snippet class=\"%s.%s\" region=\"sample\"}%n"
                           + "*/%n"
                           + "package %s;",
                           metadata.getDocumentation(),
+                          poetExtensions.getSampleClass().packageName(), poetExtensions.getSampleClass().simpleName(),
                           metadata.getFullClientPackageName());
         return Collections.singletonList(new SimpleGeneratorTask(baseDirectory,
                                                                  "package-info.java",

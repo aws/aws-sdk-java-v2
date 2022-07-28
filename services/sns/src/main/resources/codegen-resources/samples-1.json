@@ -1,12 +1,12 @@
 {
   "samples": {
-    "PublishSnsMessages": {
+    "PublishSmsMessages": {
       "documentation": "This example demonstrates how to publish SMS messages to an Amazon SNS topic",
       "instructions": [
         {
           "name": "CreateTopic",
           "type": "ServiceOperation",
-          "documentation": "Create a topic and return its ARN.",
+          "documentation": "Create an Amazon SNS topic",
           "input": [
             {
               "name": "Name",
@@ -37,7 +37,7 @@
         {
           "name": "Subscribe",
           "type": "ServiceOperation",
-          "documentation": "Subscribe an endpoint to a topic",
+          "documentation": "Subscribe a phone number to the topic",
           "input": [
             {
               "name": "TopicArn",
@@ -59,7 +59,7 @@
         {
           "name": "Publish",
           "type": "ServiceOperation",
-          "documentation": "Publish a message to a topic. The message is sent to every subscriber.",
+          "documentation": "Publish SMS messages to the topic so that subscribed phone number receives the message",
           "input": [
             {
               "name": "TopicArn",

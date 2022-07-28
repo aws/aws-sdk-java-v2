@@ -1,0 +1,88 @@
+{
+  "samples": {
+    "SendAndReceiveMessages": {
+      "documentation": "This example demonstrates how to send and receive SQS messages",
+      "instructions": [
+        {
+          "name": "CreateQueue",
+          "type": "ServiceOperation",
+          "documentation": "Create an SQS queue",
+          "input": [
+            {
+              "name": "QueueName",
+              "type": "string",
+              "value": "foo"
+            }
+          ],
+          "outputConsumer": {
+            "outputVariable": "createQueueResponse",
+            "instructions": [
+              {
+                "name": "print",
+                "type": "SdkOperation",
+                "input": [
+                  {
+                    "type": "string",
+                    "value": "Response: "
+                  },
+                  {
+                    "type": "reference",
+                    "value": "createQueueResponse"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "SendMessage",
+          "type": "ServiceOperation",
+          "documentation": "Send an SQS message",
+          "input": [
+            {
+              "name": "QueueUrl",
+              "type": "reference",
+              "value": "createQueueResponse.queueUrl"
+            },
+            {
+              "name": "MessageBody",
+              "type": "string",
+              "value": "Hello World"
+            }
+          ]
+        },
+        {
+          "name": "ReceiveMessage",
+          "type": "ServiceOperation",
+          "documentation": "Receive messages",
+          "input": [
+            {
+              "name": "QueueUrl",
+              "type": "reference",
+              "value": "createQueueResponse.queueUrl"
+            }
+          ],
+          "outputConsumer": {
+            "outputVariable": "receiveMessageResponse",
+            "instructions": [
+              {
+                "name": "print",
+                "type": "SdkOperation",
+                "input": [
+                  {
+                    "type": "string",
+                    "value": "Response: "
+                  },
+                  {
+                    "type": "reference",
+                    "value": "receiveMessageResponse"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

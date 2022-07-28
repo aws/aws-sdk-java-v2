@@ -107,6 +107,10 @@ public class SampleClassSpec implements ClassSpec {
     private void addCodeForEachInstruction(MethodSpec.Builder builder,
                                            CodeBlock.Builder codeBlockBuilder, Instruction instruction) {
         codeBlockBuilder.add("\n");
+        if (StringUtils.isNotBlank(instruction.getDocumentation())) {
+            codeBlockBuilder.add("// $L", instruction.getDocumentation());
+            codeBlockBuilder.add("\n");
+        }
         switch (instruction.getType()) {
             case SERVICE_OPERATION:
                 addServiceOperation(builder, codeBlockBuilder, instruction);
@@ -187,10 +191,6 @@ public class SampleClassSpec implements ClassSpec {
                                      Instruction instruction) {
         String operationName = instruction.getName();
         OperationModel operationModel = model.getOperation(operationName);
-        if (StringUtils.isNotBlank(instruction.getDocumentation())) {
-            codeBlockBuilder.add("// $L", instruction.getDocumentation());
-            codeBlockBuilder.add("\n");
-        }
 
         OutputConsumer outputConsumer = instruction.getOutputConsumer();
         if (outputConsumer != null) {
