@@ -37,11 +37,6 @@ import software.amazon.awssdk.utils.Logger;
 @SdkProtectedApi
 public final class InstanceProfileRegionProvider implements AwsRegionProvider {
 
-    /**
-     * Cache region as it will not change during the lifetime of the JVM.
-     */
-    private volatile String region;
-
     private static final Logger log = Logger.loggerFor(InstanceProfileRegionProvider.class);
 
     private static final String REGION = "region";
@@ -49,6 +44,11 @@ public final class InstanceProfileRegionProvider implements AwsRegionProvider {
     private static final String EC2_DYNAMICDATA_ROOT = "/latest/dynamic/";
 
     private static final String INSTANCE_IDENTITY_DOCUMENT = "instance-identity/document";
+
+    /**
+     * Cache region as it will not change during the lifetime of the JVM.
+     */
+    private volatile String region;
 
     @Override
     public Region getRegion() throws SdkClientException {
@@ -84,7 +84,7 @@ public final class InstanceProfileRegionProvider implements AwsRegionProvider {
 
         try {
             Document document = metadataResponse.asDocument();
-            if(document.isMap()){
+            if (document.isMap()) {
                 Map<String, Document> documentMap = document.asMap();
                 Document regionDocument = documentMap.get(REGION);
                 return regionDocument.asString();
