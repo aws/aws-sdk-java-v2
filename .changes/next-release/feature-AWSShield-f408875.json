@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Shield",
+    "contributor": "",
+    "description": "AWS Shield Advanced now supports filtering for ListProtections and ListProtectionGroups."
+}
