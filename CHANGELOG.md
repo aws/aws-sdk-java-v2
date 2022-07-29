@@ -1,3 +1,120 @@
+# __2.17.243__ __2022-07-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Shield__
+  - ### Features
+    - AWS Shield Advanced now supports filtering for ListProtections and ListProtectionGroups.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
+## __Amazon FSx__
+  - ### Features
+    - Documentation updates for Amazon FSx
+
+# __2.17.242__ __2022-07-28__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for VM Import/Export.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - This release adds support for gp3 EBS (Elastic Block Store) storage.
+
+## __Amazon Lookout for Vision__
+  - ### Features
+    - This release introduces support for image segmentation models and updates CPU accelerator options for models hosted on edge devices.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for gp3 EBS (Elastic Block Store) storage.
+
+# __2.17.241__ __2022-07-27__
+## __AWS Audit Manager__
+  - ### Features
+    - This release adds an exceeded quota exception to several APIs. We added a ServiceQuotaExceededException for the following operations: CreateAssessment, CreateControl, CreateAssessmentFramework, and UpdateAssessmentStatus.
+
+## __AWS Config__
+  - ### Features
+    - This release adds ListConformancePackComplianceScores API to support the new compliance score feature, which provides a percentage of the number of compliant rule-resource combinations in a conformance pack compared to the number of total possible rule-resource combinations in the conformance pack.
+
+## __AWS Global Accelerator__
+  - ### Features
+    - Global Accelerator now supports dual-stack accelerators, enabling support for IPv4 and IPv6 traffic.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - The SDK for the StartChangeSet API will now automatically set and use an idempotency token in the ClientRequestToken request parameter if the customer does not provide it.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Chime__
+  - ### Features
+    - Chime VoiceConnector will now support ValidateE911Address which will allow customers to prevalidate their addresses included in their SIP invites for emergency calling
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new English and Hindi voice - Kajal. Kajal is available as Neural voice only.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Adding doc updates for OpsCenter support in Service Setting actions.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added CreateWorkspaceImage API to create a new WorkSpace image from an existing WorkSpace.
+
+# __2.17.240__ __2022-07-26__
+## __AWS AppSync__
+  - ### Features
+    - Adds support for a new API to evaluate mapping templates with mock data, allowing you to remotely unit test your AppSync resolvers and functions.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family now supports Applicability Statement 2 (AS2), a network protocol used for the secure and reliable transfer of critical Business-to-Business (B2B) data over the public internet using HTTP/HTTPS as the transport mechanism.
+
+## __Amazon Detective__
+  - ### Features
+    - Added the ability to get data source package information for the behavior graph. Graph administrators can now start (or stop) optional datasources on the behavior graph.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Amazon GuardDuty introduces a new Malware Protection feature that triggers malware scan on selected EC2 instance resources, after the service detects a potentially malicious activity.
+
+## __Amazon Lookout for Vision__
+  - ### Features
+    - This release introduces support for the automatic scaling of inference units used by Amazon Lookout for Vision models.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for retrieving (revealing) sample occurrences of sensitive data that Amazon Macie detects and reports in findings.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release introduces support for the automatic scaling of inference units used by Amazon Rekognition Custom Labels models.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for using RDS Proxies with RDS for MariaDB databases.
+
+# __2.17.239__ __2022-07-25__
+## __Auto Scaling__
+  - ### Features
+    - Documentation update for Amazon EC2 Auto Scaling.
+
 # __2.17.238__ __2022-07-22__
 ## __AWS Account__
   - ### Features
