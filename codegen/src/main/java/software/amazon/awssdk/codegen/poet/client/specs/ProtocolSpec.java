@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.service.AuthType;
@@ -71,19 +72,30 @@ public interface ProtocolSpec {
         return model.getShapes().values().stream()
                     .filter(s -> s.getShapeType() == ShapeType.Exception)
                     .map(e -> CodeBlock.builder()
-                                       .add(".registerModeledException($T.builder().errorCode($S)"
-                                            + ".exceptionBuilderSupplier($T::builder)$L.build())",
+                                       .add(".registerModeledException($T.builder()"
+                                            + ".errorCode($S)"
+                                            + ".exceptionBuilderSupplier($T::builder)"
+                                            + "$L" // populateHttpStatusCode
+                                            + ".build())",
                                             ExceptionMetadata.class,
                                             e.getErrorCode(),
                                             poetExtensions.getModelClass(e.getShapeName()),
-                                            populateHttpStatusCode(e))
+                                            populateHttpStatusCode(e, model))
                                        .build())
                     .collect(Collectors.toList());
     }
 
-    default String populateHttpStatusCode(ShapeModel shapeModel) {
-        return shapeModel.getHttpStatusCode() != null
-               ? String.format(".httpStatusCode(%d)", shapeModel.getHttpStatusCode()) : "";
+    default String populateHttpStatusCode(ShapeModel shapeModel, IntermediateModel model) {
+        Integer statusCode = shapeModel.getHttpStatusCode();
+
+        if (statusCode == null && model.getMetadata().getProtocol() == Protocol.AWS_JSON) {
+            if (shapeModel.isFault()) {
+                statusCode = 500;
+            } else {
+                statusCode = 400;
+            }
+        }
+        return statusCode != null ? String.format(".httpStatusCode(%d)", statusCode) : "";
     }
 
     default String hostPrefixExpression(OperationModel opModel) {
