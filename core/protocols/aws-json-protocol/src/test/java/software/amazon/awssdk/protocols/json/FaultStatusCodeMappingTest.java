@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -42,7 +41,6 @@ public class FaultStatusCodeMappingTest {
         AwsJsonProtocolErrorUnmarshaller unmarshaller = makeUnmarshaller(
             Arrays.asList(ExceptionMetadata.builder()
                                            .errorCode("ServiceException")
-                                           .isFault(tc.isFault)
                                            .httpStatusCode(tc.metadataStatusCode)
                                            .exceptionBuilderSupplier(AwsServiceException::builder)
                                            .build()));
@@ -61,21 +59,10 @@ public class FaultStatusCodeMappingTest {
 
     public static List<TestCase> unmarshal_faultValue_testCases() {
         return Arrays.asList(
-            new TestCase(null, null, null, 500),
-            new TestCase(null, null, true, 500),
-            new TestCase(null, null, false, 400),
-
-            new TestCase(null, 1, null, 1),
-            new TestCase(null, 1, true, 1),
-            new TestCase(null, 1, false, 1),
-
-            new TestCase(2, null, null, 2),
-            new TestCase(2, null, true, 2),
-            new TestCase(2, null, false, 2),
-
-            new TestCase(2, 1, null, 2),
-            new TestCase(2, 1, true, 2),
-            new TestCase(2, 1, false, 2)
+            new TestCase(null, null, 500),
+            new TestCase(null, 1, 1),
+            new TestCase(2, null, 2),
+            new TestCase(2, 1, 2)
         );
     }
 
@@ -104,14 +91,12 @@ public class FaultStatusCodeMappingTest {
     private static class TestCase {
         private final Integer httpStatusCode;
         private final Integer metadataStatusCode;
-        private final Boolean isFault;
 
         private final int expectedStatusCode;
 
-        public TestCase(Integer httpStatusCode, Integer metadataStatusCode, Boolean isFault, int expectedStatusCode) {
+        public TestCase(Integer httpStatusCode, Integer metadataStatusCode, int expectedStatusCode) {
             this.httpStatusCode = httpStatusCode;
             this.metadataStatusCode = metadataStatusCode;
-            this.isFault = isFault;
             this.expectedStatusCode = expectedStatusCode;
         }
     }

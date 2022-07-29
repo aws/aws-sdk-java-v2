@@ -76,28 +76,26 @@ public interface ProtocolSpec {
                                             + ".errorCode($S)"
                                             + ".exceptionBuilderSupplier($T::builder)"
                                             + "$L" // populateHttpStatusCode
-                                            + "$L" // populateFault
                                             + ".build())",
                                             ExceptionMetadata.class,
                                             e.getErrorCode(),
                                             poetExtensions.getModelClass(e.getShapeName()),
-                                            populateHttpStatusCode(e),
-                                            populateFault(e, model))
+                                            populateHttpStatusCode(e, model))
                                        .build())
                     .collect(Collectors.toList());
     }
 
-    default String populateHttpStatusCode(ShapeModel shapeModel) {
-        return shapeModel.getHttpStatusCode() != null
-               ? String.format(".httpStatusCode(%d)", shapeModel.getHttpStatusCode()) : "";
-    }
+    default String populateHttpStatusCode(ShapeModel shapeModel, IntermediateModel model) {
+        Integer statusCode = shapeModel.getHttpStatusCode();
 
-    default String populateFault(ShapeModel shapeModel, IntermediateModel model) {
-        if (model.getMetadata().getProtocol() != Protocol.AWS_JSON) {
-            return "";
+        if (statusCode == null && model.getMetadata().getProtocol() == Protocol.AWS_JSON) {
+            if (shapeModel.isFault()) {
+                statusCode = 500;
+            } else {
+                statusCode = 400;
+            }
         }
-
-        return String.format(".isFault(%b)", shapeModel.isFault());
+        return statusCode != null ? String.format(".httpStatusCode(%d)", statusCode) : "";
     }
 
     default String hostPrefixExpression(OperationModel opModel) {

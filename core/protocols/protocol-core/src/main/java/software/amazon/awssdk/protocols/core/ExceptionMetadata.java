@@ -28,13 +28,11 @@ public final class ExceptionMetadata {
     private final String errorCode;
     private final Supplier<SdkPojo> exceptionBuilderSupplier;
     private final Integer httpStatusCode;
-    private final Boolean fault;
 
     private ExceptionMetadata(Builder builder) {
         this.errorCode = builder.errorCode;
         this.exceptionBuilderSupplier = builder.exceptionBuilderSupplier;
         this.httpStatusCode = builder.httpStatusCode;
-        this.fault = builder.fault;
     }
 
     /**
@@ -59,10 +57,6 @@ public final class ExceptionMetadata {
         return httpStatusCode;
     }
 
-    public Boolean isFault() {
-        return fault;
-    }
-
     public static Builder builder() {
         return new Builder();
     }
@@ -74,7 +68,6 @@ public final class ExceptionMetadata {
         private String errorCode;
         private Supplier<SdkPojo> exceptionBuilderSupplier;
         private Integer httpStatusCode;
-        private Boolean fault;
 
         private Builder() {
         }
@@ -91,11 +84,6 @@ public final class ExceptionMetadata {
 
         public Builder httpStatusCode(Integer httpStatusCode) {
             this.httpStatusCode = httpStatusCode;
-            return this;
-        }
-
-        public Builder isFault(Boolean fault) {
-            this.fault = fault;
             return this;
         }
 

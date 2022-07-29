@@ -81,6 +81,9 @@
       "errors": [
         {
           "shape": "InvalidInputException"
+        },
+        {
+          "shape": "ServiceFaultException"
         }
       ],
       "documentation": "<p>Performs a post operation to the query service and has modelled output</p>"
@@ -259,12 +262,14 @@
         }
       },
       "documentation": "<p>The request was rejected because an invalid or out-of-range value was supplied for an input parameter.</p>",
-      "error": {
-        "code": "InvalidInput",
-        "httpStatusCode": 400,
-        "senderFault": true
-      },
       "exception": true
+    },
+    "ServiceFaultException": {
+      "type": "structure",
+      "members": {
+      },
+      "exception": true,
+      "fault": true
     },
     "nestedMember": {
       "type": "structure",

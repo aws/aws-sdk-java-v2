@@ -97,22 +97,9 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
             return response.statusCode();
         }
 
-        if (modeledExceptionMetadata.isPresent()) {
-            ExceptionMetadata md = modeledExceptionMetadata.get();
-
-            if (md.httpStatusCode() != null) {
-                return md.httpStatusCode();
-            }
-
-            if (md.isFault() != null) {
-                if (md.isFault()) {
-                    return 500;
-                }
-                return 400;
-            }
-        }
-
-        return 500;
+        return modeledExceptionMetadata.filter(m -> m.httpStatusCode() != null)
+                                       .map(ExceptionMetadata::httpStatusCode)
+                                       .orElse(500);
     }
 
     /**

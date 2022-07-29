@@ -81,6 +81,7 @@ import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKe
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse;
+import software.amazon.awssdk.services.json.model.ServiceFaultException;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingInputOutputOperationRequest;
@@ -216,6 +217,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         <ul>
      *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
      *         for an input parameter.</li>
+     *         <li>ServiceFaultException</li>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
@@ -1186,9 +1188,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 .protocol(AwsJsonProtocol.AWS_JSON)
                 .protocolVersion("1.1")
                 .registerModeledException(
-                        ExceptionMetadata.builder().errorCode("InvalidInput")
-                                .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).isFault(false)
-                                .build());
+                        ExceptionMetadata.builder().errorCode("InvalidInputException")
+                                .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
+                .registerModeledException(
+                        ExceptionMetadata.builder().errorCode("ServiceFaultException")
+                                .exceptionBuilderSupplier(ServiceFaultException::builder).httpStatusCode(500).build());
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
