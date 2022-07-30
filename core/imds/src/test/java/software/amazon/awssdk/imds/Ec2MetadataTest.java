@@ -42,6 +42,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.imds.internal.DefaultEc2Metadata;
 
 /**
  * Unit Tests to test the Ec2Metadata Client functionality
@@ -83,7 +84,7 @@ public class Ec2MetadataTest {
     @Test
     public void verifyEc2Metadata_equalsAndHashcode(){
 
-        EqualsVerifier.forClass(Ec2Metadata.class)
+        EqualsVerifier.forClass(DefaultEc2Metadata.class)
             .usingGetClass()
             .verify();
     }
@@ -345,6 +346,7 @@ public class Ec2MetadataTest {
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
 
     }
+
     @Test
     public void get_failedTwiceWith401_shouldFailOnThirdAttempt() throws IOException {
 
@@ -376,9 +378,21 @@ public class Ec2MetadataTest {
     }
 
     @Test
-    public void verifyEc2MetadataRetryPolicy_equalsAndHashcode(){
+    public void verifyToString_when_defaultCase(){
+        Ec2Metadata ec2Metadata = Ec2Metadata.create();
+        String output ="DefaultEc2Metadata{retries=Ec2MetadataRetryPolicy{backoffStrategy=FullJitterBackoffStrategy"
+                       + "(baseDelay=PT0.1S, maxBackoffTime=PT20S), numRetries=3}, endpoint='http://localhost:8080', tokenTtl=PT6H, endpointMode='IPV4', httpDebugOutput='null', httpClient= UrlConnection}";
+        assertThat(ec2Metadata.toString()).isEqualTo(output);
+    }
 
-        EqualsVerifier.forClass(Ec2MetadataRetryPolicy.class).usingGetClass().verify();
+    @Test
+    public void verifyToBuilder_when_defaultCase(){
+        Ec2Metadata ec2Metadata = Ec2Metadata.create();
+        Ec2Metadata ec2MetadataNew = ec2Metadata.toBuilder().endpointMode(EndpointMode.IPV6).build();
+        String output ="DefaultEc2Metadata{retries=Ec2MetadataRetryPolicy{backoffStrategy=FullJitterBackoffStrategy"
+                       + "(baseDelay=PT0.1S, maxBackoffTime=PT20S), numRetries=3}, endpoint='http://localhost:8080', "
+                       + "tokenTtl=PT6H, endpointMode='IPV6', httpDebugOutput='null', httpClient= UrlConnection}";
+        assertThat(ec2MetadataNew.toString()).isEqualTo(output);
     }
 
 }

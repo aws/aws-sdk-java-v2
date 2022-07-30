@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -51,7 +52,6 @@ public class EndpointProvider {
         if (endpointOverride != null) {
             return endpointOverride;
         }
-
         EndpointMode finalEndpointMode = resolveEndpointMode(endpointMode);
         if (finalEndpointMode == EndpointMode.IPV4) {
             return EC2_METADATA_SERVICE_URL_IPV4 ;
@@ -74,14 +74,11 @@ public class EndpointProvider {
     }
 
     public String getEndpointOverride() {
-
         Optional<String> endpointOverride = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getNonDefaultStringValue();
         if (endpointOverride.isPresent()) {
             return endpointOverride.get();
         }
-
         Optional<String> configFileValue = configFileEndpointOverride();
-
         return configFileValue.orElse(null);
     }
 

@@ -33,6 +33,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.imds.Ec2Metadata;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
+import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -114,18 +115,18 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         if (!Objects.equals(httpDebugOutput, ec2Metadata.httpDebugOutput)) {
             return false;
         }
-        return Objects.equals(httpClient.clientName(), ec2Metadata.httpClient.clientName());
+        return Objects.equals(httpClient, ec2Metadata.httpClient);
     }
 
     @Override
     public int hashCode() {
 
-        int result = retryPolicy.hashCode();
+        int result = retryPolicy != null ? retryPolicy.hashCode() : 0;
         result = 31 * result + (endpoint != null ? endpoint.hashCode() : 0);
-        result = 31 * result + tokenTtl.hashCode();
+        result = 31 * result + (tokenTtl != null ? tokenTtl.hashCode() : 0);
         result = 31 * result + (endpointMode != null ? endpointMode.hashCode() : 0);
         result = 31 * result + (httpDebugOutput != null ? httpDebugOutput.hashCode() : 0);
-        result = 31 * result + httpClient.clientName().hashCode();
+        result = 31 * result + (httpClient != null ? httpClient.hashCode() : 0);
 
         return result;
     }

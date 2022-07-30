@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.imds.internal;
+package software.amazon.awssdk.imds;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
@@ -26,6 +26,12 @@ public enum EndpointMode {
     IPV4,
     IPV6;
 
+    /**
+     * Returns the appropriate EndpointMode Value after parsing the parameter.
+     * @param s EndpointMode in String Format.
+     * @return EndpointMode enumValue (IPV4 or IPV6).
+     * @throws IllegalArgumentException Unrecognized value for endpoint mode.
+     */
     public static EndpointMode fromValue(String s) {
         if (s == null) {
             return null;

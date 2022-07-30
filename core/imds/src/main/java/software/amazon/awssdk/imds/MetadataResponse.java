@@ -63,7 +63,6 @@ public class MetadataResponse {
      */
     public String asString() {
         return body;
-
     }
 
     /**
@@ -86,7 +85,6 @@ public class MetadataResponse {
     public List<String> asList() {
         return Arrays.asList(body.split("\n"));
     }
-
 
     /**
      * Parses the response String into {@link Document} type. This method can be used for
