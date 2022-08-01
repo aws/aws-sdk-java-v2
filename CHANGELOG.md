@@ -1,3 +1,16 @@
+# __2.17.244__ __2022-08-01__
+## __AWS Config__
+  - ### Features
+    - Documentation update for PutConfigRule and PutOrganizationConfigRule
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - AWS-JSON services use the Fault trait to designate exceptions that are the service's fault (i.e. 500), rather than HTTP status code bindings like REST services. In cases where the response being unmarshalled does *NOT* have a status code (e.g. because the response was constructed rather from some other data rather than an actual HTTP response), the status code will default to 500 for faults and 400 for non-faults.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release introduces ModifySamlProperties, a new API that allows control of SAML properties associated with a WorkSpaces directory. The DescribeWorkspaceDirectories API will now additionally return SAML properties in its responses.
+
 # __2.17.243__ __2022-07-29__
 ## __AWS SDK for Java v2__
   - ### Features

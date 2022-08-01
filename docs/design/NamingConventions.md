@@ -35,3 +35,7 @@ This page describes the naming conventions, nouns and common terms
 * If the class does not make service calls:
   * If the class creates presigned URLs: `{ServiceName}Presigner` (e.g. `S3Presigner`)
   * If the class is a collection of various unrelated "helper" methods: `{ServiceName}Utilities` (e.g. `S3Utilities`)
+
+### Tests Naming
+
+Test names SHOULD follow `methodToTest_when_expectedBehavior` (e.g. `close_withCustomExecutor_shouldNotCloseCustomExecutor`, `uploadDirectory_withDelimiter_filesSentCorrectly`)
