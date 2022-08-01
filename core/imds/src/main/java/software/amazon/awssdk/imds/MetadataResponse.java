@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.document.Document;
-import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
+import software.amazon.awssdk.imds.internal.unmarshall.document.DocumentUnmarshaller;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.utils.Validate;
@@ -63,7 +63,6 @@ public class MetadataResponse {
      */
     public String asString() {
         return body;
-
     }
 
     /**
@@ -86,7 +85,6 @@ public class MetadataResponse {
     public List<String> asList() {
         return Arrays.asList(body.split("\n"));
     }
-
 
     /**
      * Parses the response String into {@link Document} type. This method can be used for

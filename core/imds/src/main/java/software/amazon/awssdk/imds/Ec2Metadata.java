@@ -20,7 +20,6 @@ import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.imds.internal.DefaultEc2Metadata;
-import software.amazon.awssdk.imds.internal.EndpointMode;
 
 
 /**

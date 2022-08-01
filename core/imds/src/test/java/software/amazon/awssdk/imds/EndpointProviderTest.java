@@ -16,7 +16,6 @@
 package software.amazon.awssdk.imds;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -26,9 +25,7 @@ import org.junit.Rule;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.imds.internal.EndpointMode;
 import software.amazon.awssdk.imds.internal.EndpointProvider;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
