@@ -25,7 +25,7 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeVisitor;
 
 @SdkInternalApi
-public class DocumentUnmarshaller implements JsonNodeVisitor<Document> {
+public final class DocumentUnmarshaller implements JsonNodeVisitor<Document> {
     @Override
     public Document visitNull() {
         return Document.fromNull();
