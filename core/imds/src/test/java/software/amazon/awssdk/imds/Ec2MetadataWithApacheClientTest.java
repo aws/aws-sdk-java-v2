@@ -26,35 +26,28 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
 import java.net.URI;
-import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.imds.internal.DefaultEc2Metadata;
 
 /**
- * Unit Tests to test the Ec2Metadata Client functionality
+ * Unit Tests to test the Ec2Metadata Client functionality with Apache HttpClient.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class Ec2MetadataWithApacheClientTest {
 
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
-
-    private static final String TOKEN_HEADER = "x-aws-ec2-metadata-token";
 
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
 
@@ -63,9 +56,6 @@ public class Ec2MetadataWithApacheClientTest {
     private static final String AMI_ID_RESOURCE = EC2_METADATA_ROOT + "/ami-id";
 
     private SdkHttpClient httpClient;
-
-    @Mock
-    private Ec2Metadata ec2Metadata;
 
     @Rule
     public WireMockRule mockMetadataEndpoint = new WireMockRule();
@@ -77,132 +67,21 @@ public class Ec2MetadataWithApacheClientTest {
     }
 
     @Test
-    public void get_whenDummyResponseIsReturned(){
-
-        MetadataResponse metadataResponse = new MetadataResponse("IMDS");
-        when(ec2Metadata.get("/ami-id")).thenReturn(metadataResponse);
-        assertThat(ec2Metadata.get("/ami-id").asString()).isEqualTo("IMDS");
-
-    }
-
-    @Test
-    public void verifyEc2Metadata_equalsAndHashcode(){
-
-        EqualsVerifier.forClass(DefaultEc2Metadata.class)
-            .usingGetClass()
-            .verify();
-    }
-
-    @Test
-    public void get_shouldSucceedOnFirstAttempt() throws IOException {
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
-
-        Ec2Metadata ec2Metadata =
-            Ec2Metadata.builder().httpClient(httpClient).endpoint(URI.create("http://localhost:8080")).build();
-
-        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        assertThat(metadataResponse.asString()).isEqualTo("{}");
-
-        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-        WireMock.verify(getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE)).withHeader(TOKEN_HEADER, equalTo("some-token")));
-    }
-
-    @Test
-    public void get_failedThriceWith404() throws IOException {
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}").withStatus(404)));
-
-        assertThatThrownBy(() -> {
-            Ec2Metadata ec2Metadata =
-                Ec2Metadata.builder().httpClient(httpClient).endpoint(URI.create("http://localhost:8080")).build();
-            MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        }).hasMessageContaining("metadata")
-          .isInstanceOf(SdkClientException.class);
-    }
-
-    @Test
-    public void get_failedThriceWith401() throws IOException {
+    public void get_failedThriceWith401() {
 
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}").withStatus(401)));
 
         assertThatThrownBy(() -> {
             Ec2Metadata ec2Metadata =
-                Ec2Metadata.builder().httpClient(httpClient).endpoint(URI.create("http://localhost:8080")).build();
+                Ec2Metadata.builder().httpClient(httpClient).build();
             MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
         }).hasMessageContaining("Exceeded maximum number of retries.")
           .isInstanceOf(SdkClientException.class);
     }
 
     @Test
-    public void getToken_failedThriceWith403() throws IOException {
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(403)));
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
-
-        assertThatThrownBy(() -> {
-            Ec2Metadata ec2Metadata = Ec2Metadata.builder().httpClient(httpClient).endpoint(URI.create("http://localhost:8080")).build();
-            MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        }).hasMessageContaining("token")
-          .isInstanceOf(SdkClientException.class);
-    }
-
-    @Test
-    public void getToken_failedThriceWith401() throws IOException {
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(401)));
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
-
-        assertThatThrownBy(() -> {
-            Ec2Metadata ec2Metadata = Ec2Metadata.builder().httpClient(httpClient).endpoint(URI.create("http://localhost:8080")).build();
-            MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        }).hasMessageContaining("Exceeded maximum number of retries.")
-          .isInstanceOf(SdkClientException.class);
-        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-
-    }
-
-    @Test
-    public void getToken_failedThriceWithFixedDelay() throws IOException {
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withFixedDelay(Integer.MAX_VALUE)));
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
-
-        assertThatThrownBy(() -> {
-            Ec2Metadata ec2Metadata = Ec2Metadata.builder().httpClient(httpClient).endpoint(URI.create("http://localhost:8080")).build();
-            MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        }).hasMessageContaining("Exceeded maximum number of retries.")
-          .isInstanceOf(SdkClientException.class);
-
-        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-    }
-
-    @Test
-    public void getToken_failedOnceWith401_shouldSucceedOnSecondAttempt_Apache() throws IOException {
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs(STARTED)
-                                                        .willReturn(aResponse().withStatus(401))
-                                                        .willSetStateTo("Cause Success"));
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs("Cause Success")
-                                                        .willReturn(aResponse().withBody("some-token")));
-
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
-
-        Ec2Metadata ec2Metadata = Ec2Metadata.builder().httpClient(httpClient).endpoint(URI.create("http://localhost:8080")).build();
-        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        assertThat(metadataResponse.asString()).isEqualTo("{}");
-
-        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-
-    }
-
-    @Test
-    public void get_failedOnceWith401_shouldSucceedOnSecondAttempt() throws IOException {
+    public void get_failedOnceWith401_shouldSucceedOnSecondAttempt() {
 
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
 
@@ -216,174 +95,12 @@ public class Ec2MetadataWithApacheClientTest {
                                                         .willReturn(aResponse().withBody("{}")));
 
 
-        Ec2Metadata ec2Metadata = Ec2Metadata.builder().httpClient(httpClient).endpoint(URI.create("http://localhost:8080")).build();
+        Ec2Metadata ec2Metadata = Ec2Metadata.builder().httpClient(httpClient).build();
         MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
         assertThat(metadataResponse.asString()).isEqualTo("{}");
 
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
 
-    }
-
-    @Test
-    public void getAndGetToken_failedOnceWith401_shouldSucceedOnSecondAttempt() throws IOException {
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs(STARTED)
-                                                        .willReturn(aResponse().withStatus(401))
-                                                        .willSetStateTo("Cause Success"));
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs("Cause Success")
-                                                        .willReturn(aResponse().withBody("some-token")));
-
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
-                                                    .whenScenarioStateIs(STARTED)
-                                                    .willReturn(aResponse().withStatus(401))
-                                                    .willSetStateTo("Cause Success"));
-
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
-                                                    .whenScenarioStateIs("Cause Success")
-                                                    .willReturn(aResponse().withBody("{}")));
-
-
-        Ec2Metadata ec2Metadata = Ec2Metadata.builder().httpClient(httpClient).endpoint(URI.create("http://localhost:8080")).build();
-        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        assertThat(metadataResponse.asString()).isEqualTo("{}");
-
-        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-
-    }
-
-    @Test
-    public void getAndGetToken_failedOnceWith403_shouldSucceedOnSecondAttempt() throws IOException {
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs(STARTED)
-                                                        .willReturn(aResponse().withStatus(403))
-                                                        .willSetStateTo("Cause Success"));
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs("Cause Success")
-                                                        .willReturn(aResponse().withBody("some-token")));
-
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
-                                                    .whenScenarioStateIs(STARTED)
-                                                    .willReturn(aResponse().withStatus(403))
-                                                    .willSetStateTo("Cause Success"));
-
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
-                                                    .whenScenarioStateIs("Cause Success")
-                                                    .willReturn(aResponse().withBody("{}")));
-
-        assertThatThrownBy(() -> {
-            Ec2Metadata ec2Metadata = Ec2Metadata.builder().httpClient(httpClient).endpoint(URI.create("http://localhost:8080")).build();
-            MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        }).hasMessageContaining("Could not retrieve token ");
-
-        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-
-    }
-
-    @Test
-    public void getToken_failedTwiceWith200_shouldSucceedOnThirdAttempt() throws IOException {
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs(STARTED)
-                                                        .willReturn(aResponse().withStatus(200))
-                                                        .willSetStateTo("Try-2"));
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs("Try-2")
-                                                        .willReturn(aResponse().withStatus(200))
-                                                        .willSetStateTo("Try-3"));
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs("Try-3")
-                                                        .willReturn(aResponse().withBody("some-token")));
-
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
-
-        Ec2Metadata ec2Metadata = Ec2Metadata.builder().httpClient(httpClient).endpoint(URI.create("http://localhost:8080")).build();
-        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        assertThat(metadataResponse.asString()).isEqualTo("{}");
-
-        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-
-    }
-
-    @Test
-    public void getToken_failedTwiceWithIOExceptionAnd200_shouldSucceedOnThirdAttempt() throws IOException {
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs(STARTED)
-                                                        .willReturn(aResponse().withFault(Fault.MALFORMED_RESPONSE_CHUNK))
-                                                        .willSetStateTo("Try-2"));
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs("Try-2")
-                                                        .willReturn(aResponse().withStatus(200))
-                                                        .willSetStateTo("Try-3"));
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs("Try-3")
-                                                        .willReturn(aResponse().withBody("some-token")));
-
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
-
-        Ec2Metadata ec2Metadata = Ec2Metadata.builder().httpClient(httpClient).endpoint(URI.create("http://localhost:8080")).build();
-        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        assertThat(metadataResponse.asString()).isEqualTo("{}");
-
-        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-
-    }
-
-    @Test
-    public void get_failedTwiceWith401_shouldFailOnThirdAttempt() throws IOException {
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
-
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
-                                                    .whenScenarioStateIs(STARTED)
-                                                    .willReturn(aResponse().withStatus(401))
-                                                    .willSetStateTo("Try-2"));
-
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
-                                                    .whenScenarioStateIs("Try-2")
-                                                    .willReturn(aResponse().withStatus(401))
-                                                    .willSetStateTo("Try-3"));
-
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
-                                                    .whenScenarioStateIs("Try-3")
-                                                    .willReturn(aResponse().withStatus(401)));
-
-
-        assertThatThrownBy(() -> {
-            Ec2Metadata ec2Metadata = Ec2Metadata.builder().httpClient(httpClient).endpoint(URI.create("http://localhost:8080")).build();
-            MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        }).hasMessageContaining("Exceeded maximum number of retries.")
-          .isInstanceOf(SdkClientException.class);
-
-        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-
-    }
-
-    @Test
-    public void verifyToString_when_defaultCase(){
-        Ec2Metadata ec2Metadata = Ec2Metadata.create();
-        String output ="DefaultEc2Metadata{retries=Ec2MetadataRetryPolicy{backoffStrategy=FullJitterBackoffStrategy"
-                       + "(baseDelay=PT0.1S, maxBackoffTime=PT20S), numRetries=3}, endpoint='http://localhost:8080', tokenTtl=PT6H, endpointMode='IPV4', httpDebugOutput='null', httpClient= UrlConnection}";
-        assertThat(ec2Metadata.toString()).isEqualTo(output);
-    }
-
-    @Test
-    public void verifyToBuilder_when_defaultCase(){
-        Ec2Metadata ec2Metadata = Ec2Metadata.create();
-        Ec2Metadata ec2MetadataNew = ec2Metadata.toBuilder().endpointMode(EndpointMode.IPV6).build();
-        String output ="DefaultEc2Metadata{retries=Ec2MetadataRetryPolicy{backoffStrategy=FullJitterBackoffStrategy"
-                       + "(baseDelay=PT0.1S, maxBackoffTime=PT20S), numRetries=3}, endpoint='http://localhost:8080', "
-                       + "tokenTtl=PT6H, endpointMode='IPV6', httpDebugOutput='null', httpClient= UrlConnection}";
-        assertThat(ec2MetadataNew.toString()).isEqualTo(output);
     }
 
 }
