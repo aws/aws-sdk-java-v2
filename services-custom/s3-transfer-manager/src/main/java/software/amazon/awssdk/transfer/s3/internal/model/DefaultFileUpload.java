@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -33,6 +34,11 @@ public final class DefaultFileUpload implements FileUpload {
     public DefaultFileUpload(CompletableFuture<CompletedFileUpload> completionFuture, TransferProgress progress) {
         this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
         this.progress = Validate.paramNotNull(progress, "progress");
+    }
+
+    @Override
+    public ResumableFileDownload pause() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
