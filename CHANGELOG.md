@@ -1,3 +1,16 @@
+# __2.17.245__ __2022-08-02__
+## __AWS License Manager User Subscriptions__
+  - ### Features
+    - This release supports user based subscription for Microsoft Visual Studio Professional and Enterprise on EC2.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Personalize__
+  - ### Features
+    - This release adds support for incremental bulk ingestion for the Personalize CreateDatasetImportJob API.
+
 # __2.17.244__ __2022-08-01__
 ## __AWS Config__
   - ### Features
