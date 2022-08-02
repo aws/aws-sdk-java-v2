@@ -85,6 +85,7 @@ abstract class AddShapes {
         shapeModel.withIsEvent(shape.isEvent());
         shapeModel.withXmlNamespace(shape.getXmlNamespace());
         shapeModel.withIsUnion(shape.isUnion());
+        shapeModel.withIsFault(shape.isFault());
 
         boolean hasHeaderMember = false;
         boolean hasStatusCodeMember = false;

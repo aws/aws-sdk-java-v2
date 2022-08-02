@@ -61,6 +61,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     private String errorCode;
     private Integer httpStatusCode;
+    private boolean fault;
 
     private ShapeCustomizationInfo customization = new ShapeCustomizationInfo();
 
@@ -637,5 +638,14 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public void withIsUnion(boolean union) {
         this.union = union;
+    }
+
+    public boolean isFault() {
+        return fault;
+    }
+
+    public ShapeModel withIsFault(boolean fault) {
+        this.fault = fault;
+        return this;
     }
 }

@@ -36,6 +36,8 @@ import software.amazon.awssdk.services.xml.model.GetOperationWithChecksumRespons
 import software.amazon.awssdk.services.xml.model.InvalidInputException;
 import software.amazon.awssdk.services.xml.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.xml.model.OperationWithChecksumRequiredResponse;
+import software.amazon.awssdk.services.xml.model.OperationWithNoneAuthTypeRequest;
+import software.amazon.awssdk.services.xml.model.OperationWithNoneAuthTypeResponse;
 import software.amazon.awssdk.services.xml.model.PutOperationWithChecksumRequest;
 import software.amazon.awssdk.services.xml.model.PutOperationWithChecksumResponse;
 import software.amazon.awssdk.services.xml.model.StreamingInputOperationRequest;
@@ -47,6 +49,7 @@ import software.amazon.awssdk.services.xml.transform.APostOperationRequestMarsha
 import software.amazon.awssdk.services.xml.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.GetOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.OperationWithChecksumRequiredRequestMarshaller;
+import software.amazon.awssdk.services.xml.transform.OperationWithNoneAuthTypeRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.PutOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.StreamingOutputOperationRequestMarshaller;
@@ -260,6 +263,49 @@ final class DefaultXmlClient implements XmlClient {
                              .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                                     HttpChecksumRequired.create())
                              .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    /**
+     * Invokes the OperationWithNoneAuthType operation.
+     *
+     * @param operationWithNoneAuthTypeRequest
+     * @return Result of the OperationWithNoneAuthType operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws XmlException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample XmlClient.OperationWithNoneAuthType
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/xml-service-2010-05-08/OperationWithNoneAuthType"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public OperationWithNoneAuthTypeResponse operationWithNoneAuthType(
+        OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) throws AwsServiceException, SdkClientException,
+                                                                                  XmlException {
+
+        HttpResponseHandler<Response<OperationWithNoneAuthTypeResponse>> responseHandler = protocolFactory
+            .createCombinedResponseHandler(OperationWithNoneAuthTypeResponse::builder,
+                                           new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithNoneAuthTypeRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithNoneAuthType");
+
+            return clientHandler
+                .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
+                             .withOperationName("OperationWithNoneAuthType").withCombinedResponseHandler(responseHandler)
+                             .withMetricCollector(apiCallMetricCollector).withInput(operationWithNoneAuthTypeRequest)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
+                             .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }

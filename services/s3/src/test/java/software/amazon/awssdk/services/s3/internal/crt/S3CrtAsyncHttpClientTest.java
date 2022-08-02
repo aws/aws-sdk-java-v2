@@ -84,7 +84,6 @@ public class S3CrtAsyncHttpClientTest {
         S3MetaRequestOptions actual = s3MetaRequestOptionsArgumentCaptor.getValue();
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.DEFAULT);
         assertThat(actual.getCredentialsProvider()).isNull();
-        assertThat(actual.getEndpoint().equals(DEFAULT_ENDPOINT));
 
         HttpRequest httpRequest = actual.getHttpRequest();
         assertThat(httpRequest.getEncodedPath()).isEqualTo("/key");

@@ -61,6 +61,10 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
     public static final ExecutionAttribute<SdkHttpExecutionAttributes> SDK_HTTP_EXECUTION_ATTRIBUTES =
         new ExecutionAttribute<>("SdkHttpExecutionAttributes");
 
+    public static final ExecutionAttribute<Boolean> IS_NONE_AUTH_TYPE_REQUEST =
+        new ExecutionAttribute<>("IsNoneAuthTypeRequest");
+
+
     private SdkInternalExecutionAttribute() {
     }
 }

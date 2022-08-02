@@ -11,7 +11,7 @@ __Jump To:__
 * [Additional Resources](#additional-resources)
 
 ## Bug Reports
-Bug reports are accepted through the [Issues][issues] page.
+Bug reports are accepted through the [this][bug-report] page.
 
 The following labels are used to track bug related issues: [Bug][label-bug],
 [Documentation Issue][label-doc-issue].
@@ -20,7 +20,7 @@ The following labels are used to track bug related issues: [Bug][label-bug],
 Before submitting a bug report, please do the following:
 
 1. Do a search through the existing issues to make sure it has not already been
-   reported. If there's an existing one, be sure give a +1 reaction which will
+   reported. If there's an existing one, be sure give a 👍 reaction which will
    help us prioritize which issues to address first.
 
 2. If possible, upgrade to the latest release of the SDK. The SDK has a near
@@ -33,7 +33,7 @@ If, after doing the above steps, you determine that you need to submit a bug
 report, refer to the next section.
 
 ### Submitting a Bug Report
-So that we are able to assist you as effectively as possible with the issue,
+So that we are able to assist you as effectively as possible with the issue, 
 please ensure that your bug report has the following:
 
 * A short, descriptive title. Ideally, other community members should be able
@@ -51,8 +51,7 @@ please ensure that your bug report has the following:
   stacktraces.
 
 ## Feature Requests
-Like bug reports, feature requests are submitted through the [Issues][issues]
-page.
+Feature requests are submitted through the [this][feature-request] page.
 
 As with Bug Reports, please do a search of the open requests first before
 submitting a new one to avoid duplicates. If you find an existing one, give it
@@ -65,7 +64,7 @@ the right design and that it makes sense to include in the SDK. Keep in mind
 that other concerns like source and binary compatibility will also play a
 deciding factor.
 
-Feature requests are labeled with [Feature Request][label-feature-request].
+Feature requests are labeled with [feature-request][label-feature-request].
 
 ### Submitting a Feature Request
 Open an [issue][issues] with the following:
@@ -118,7 +117,7 @@ checklist below:
 
 * [ ] Includes tests to exercise the new behavior
 * [ ] Code is documented, especially public and user-facing constructs
-* [ ] Local run of `mvn install` succeeds
+* [ ] Local run of `./mvnw package`(Linux) or `./mvnw.cmd package`(Windows) succeeds
 * [ ] Git commit message is detailed and includes context behind the change
 * [ ] If the change is related to an existing Bug Report or Feature Request,
   the issue number is referenced
@@ -148,25 +147,21 @@ days, especially if it's a large or complex one. If, after a week, your Pull
 Request has not had any engagement from the SDK team, feel free to ping a
 member to ask for a review.
 
-If your branch has more than one commit when it's approved, you will also be
-asked to [squash][git-rewriting-history] them into a single commit before it is
-merged in.
-
 ## Additional Resources
 We maintain [docs](docs/README.md) where information like design decisions, internal
 architecture, and style conventions are documented that you may find helpful
 when contributing to the SDK.
 
-## Getting in Contact
-* Come chat with us on [Gitter][gitter]!
 
 [license]: ./LICENSE.txt
 [mwe]: https://en.wikipedia.org/wiki/Minimal_Working_Example
 [markdown]: https://guides.github.com/features/mastering-markdown/
 [issues]: https://github.com/aws/aws-sdk-java-v2/issues
 [pull-requests]: https://github.com/aws/aws-sdk-java-v2/pulls
-[label-bug]: https://github.com/aws/aws-sdk-java-v2/labels/Bug
-[label-doc-issue]: https://github.com/aws/aws-sdk-java-v2/labels/Documentation%20Issue
-[label-feature-request]: https://github.com/aws/aws-sdk-java-v2/labels/Feature%20Request
+[label-bug]: https://github.com/aws/aws-sdk-java-v2/labels/bug
+[label-doc-issue]: https://github.com/aws/aws-sdk-java-v2/labels/documentation
+[label-feature-request]: https://github.com/aws/aws-sdk-java-v2/labels/feature-request
 [git-rewriting-history]: https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History
 [gitter]: https://gitter.im/aws/aws-sdk-java-v2
+[bug-report]: https://github.com/aws/aws-sdk-java-v2/issues/new?assignees=&labels=bug%2Cneeds-triage&template=bug-report.yml&title=%28short+issue+description%29
+[feature-request]: https://github.com/aws/aws-sdk-java-v2/issues/new?assignees=&labels=feature-request%2Cneeds-triage&template=feature-request.yml&title=%28short+issue+description%29

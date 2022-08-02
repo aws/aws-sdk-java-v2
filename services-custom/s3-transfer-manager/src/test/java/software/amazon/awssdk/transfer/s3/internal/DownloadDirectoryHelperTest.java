@@ -27,6 +27,7 @@ import static software.amazon.awssdk.transfer.s3.util.S3ApiCallMockUtils.stubSuc
 import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
@@ -38,22 +39,24 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.EncodingType;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
-import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
-import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
-import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 
 public class DownloadDirectoryHelperTest {
@@ -113,6 +116,31 @@ public class DownloadDirectoryHelperTest {
             "key1"));
         assertThat(argumentCaptor.getAllValues()).element(1).satisfies(d -> assertThat(d.getObjectRequest().key()).isEqualTo(
             "key2"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/blah",
+                            "../blah/object.dat",
+                            "blah/../../object.dat",
+                            "blah/../object/../../blah/another/object.dat",
+                            "../{directory-name}-2/object.dat"})
+    void invalidKey_shouldThrowException(String testingString) throws Exception {
+        assertExceptionThrownForInvalidKeys(testingString);
+    }
+
+    private void assertExceptionThrownForInvalidKeys(String key) throws IOException {
+        Path destinationDirectory = Files.createTempDirectory("test");
+        String lastElement = destinationDirectory.getName(destinationDirectory.getNameCount() - 1).toString();
+        key = key.replace("{directory-name}", lastElement);
+        stubSuccessfulListObjects(listObjectsHelper, key);
+        DirectoryDownload downloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destination(destinationDirectory)
+                                                                              .bucket("bucket")
+                                                                              .build());
+
+        assertThatThrownBy(() -> downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS))
+            .hasCauseInstanceOf(SdkClientException.class).getRootCause().hasMessageContaining("Cannot download key");
     }
 
     @Test

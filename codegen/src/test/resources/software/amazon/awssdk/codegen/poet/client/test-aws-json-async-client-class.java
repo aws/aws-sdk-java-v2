@@ -75,10 +75,13 @@ import software.amazon.awssdk.services.json.model.JsonException;
 import software.amazon.awssdk.services.json.model.JsonRequest;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredResponse;
+import software.amazon.awssdk.services.json.model.OperationWithNoneAuthTypeRequest;
+import software.amazon.awssdk.services.json.model.OperationWithNoneAuthTypeResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse;
+import software.amazon.awssdk.services.json.model.ServiceFaultException;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingInputOutputOperationRequest;
@@ -99,6 +102,7 @@ import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersR
 import software.amazon.awssdk.services.json.transform.InputEventMarshaller;
 import software.amazon.awssdk.services.json.transform.InputEventTwoMarshaller;
 import software.amazon.awssdk.services.json.transform.OperationWithChecksumRequiredRequestMarshaller;
+import software.amazon.awssdk.services.json.transform.OperationWithNoneAuthTypeRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithResultKeyRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithoutResultKeyRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingInputOperationRequestMarshaller;
@@ -213,6 +217,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         <ul>
      *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
      *         for an input parameter.</li>
+     *         <li>ServiceFaultException</li>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
@@ -618,6 +623,63 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     }
 
     /**
+     * Invokes the OperationWithNoneAuthType operation asynchronously.
+     *
+     * @param operationWithNoneAuthTypeRequest
+     * @return A Java Future containing the result of the OperationWithNoneAuthType operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.OperationWithNoneAuthType
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithNoneAuthType"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public CompletableFuture<OperationWithNoneAuthTypeResponse> operationWithNoneAuthType(
+            OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) {
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithNoneAuthTypeRequest
+                .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+                .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithNoneAuthType");
+            JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
+                    .isPayloadJson(true).build();
+
+            HttpResponseHandler<OperationWithNoneAuthTypeResponse> responseHandler = protocolFactory.createResponseHandler(
+                    operationMetadata, OperationWithNoneAuthTypeResponse::builder);
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
+                    operationMetadata);
+
+            CompletableFuture<OperationWithNoneAuthTypeResponse> executeFuture = clientHandler
+                    .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
+                            .withOperationName("OperationWithNoneAuthType")
+                            .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
+                            .withInput(operationWithNoneAuthTypeRequest));
+            CompletableFuture<OperationWithNoneAuthTypeResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
+            return executeFuture;
+        } catch (Throwable t) {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
+
+    /**
      * Some paginated operation with result_key in paginators.json file
      *
      * @param paginatedOperationWithResultKeyRequest
@@ -695,7 +757,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     *
+     * 
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
@@ -705,19 +767,19 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     *
+     * 
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse>() {
-     *
+     * 
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     *
-     *
+     * 
+     * 
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response) { //... };
      * });}
      * </pre>
-     *
+     * 
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
@@ -828,7 +890,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     *
+     * 
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
@@ -838,19 +900,19 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     *
+     * 
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse>() {
-     *
+     * 
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     *
-     *
+     * 
+     * 
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse response) { //... };
      * });}
      * </pre>
-     *
+     * 
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
@@ -990,8 +1052,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOutputOperation");
-            Pair<AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair =
-                AsyncResponseTransformerUtils.wrapWithEndOfStreamFuture(asyncResponseTransformer);
+            Pair<AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair = AsyncResponseTransformerUtils
+                    .wrapWithEndOfStreamFuture(asyncResponseTransformer);
             asyncResponseTransformer = pair.left();
             CompletableFuture<Void> endOfStreamFuture = pair.right();
             streamingInputOutputOperationRequest = applySignerOverride(streamingInputOutputOperationRequest,
@@ -1032,7 +1094,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         } catch (Throwable t) {
             AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                           () -> finalAsyncResponseTransformer.exceptionOccurred(t));
+                    () -> finalAsyncResponseTransformer.exceptionOccurred(t));
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -1073,8 +1135,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
-            Pair<AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair =
-                AsyncResponseTransformerUtils.wrapWithEndOfStreamFuture(asyncResponseTransformer);
+            Pair<AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair = AsyncResponseTransformerUtils
+                    .wrapWithEndOfStreamFuture(asyncResponseTransformer);
             asyncResponseTransformer = pair.left();
             CompletableFuture<Void> endOfStreamFuture = pair.right();
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
@@ -1108,7 +1170,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         } catch (Throwable t) {
             AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                           () -> finalAsyncResponseTransformer.exceptionOccurred(t));
+                    () -> finalAsyncResponseTransformer.exceptionOccurred(t));
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -1126,8 +1188,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 .protocol(AwsJsonProtocol.AWS_JSON)
                 .protocolVersion("1.1")
                 .registerModeledException(
-                        ExceptionMetadata.builder().errorCode("InvalidInput")
-                                .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
+                        ExceptionMetadata.builder().errorCode("InvalidInputException")
+                                .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
+                .registerModeledException(
+                        ExceptionMetadata.builder().errorCode("ServiceFaultException")
+                                .exceptionBuilderSupplier(ServiceFaultException::builder).httpStatusCode(500).build());
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,

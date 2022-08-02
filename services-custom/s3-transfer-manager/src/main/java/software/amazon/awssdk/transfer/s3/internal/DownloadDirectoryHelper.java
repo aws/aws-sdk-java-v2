@@ -117,7 +117,7 @@ public class DownloadDirectoryHelper {
 
         allOfFutures.whenComplete((r, t) -> {
             if (t != null) {
-                returnFuture.completeExceptionally(SdkClientException.create("Failed to call ListObjectsV2", t));
+                returnFuture.completeExceptionally(SdkClientException.create("Failed to send request", t));
             } else {
                 returnFuture.complete(CompletedDirectoryDownload.builder()
                                                                 .failedTransfers(failedFileDownloads)
@@ -150,7 +150,17 @@ public class DownloadDirectoryHelper {
         String delimiter = listRequest.delimiter();
         String key = normalizeKey(downloadDirectoryRequest, listRequest, s3Object, delimiter);
         String relativePath = getRelativePath(fileSystem, delimiter, key);
-        return downloadDirectoryRequest.destination().resolve(relativePath);
+        Path destinationPath = downloadDirectoryRequest.destination().resolve(relativePath);
+
+        validatePath(downloadDirectoryRequest.destination(), destinationPath, s3Object.key());
+        return destinationPath;
+    }
+
+    private void validatePath(Path destinationDirectory, Path targetPath, String key) {
+        if (!targetPath.toAbsolutePath().normalize().startsWith(destinationDirectory.toAbsolutePath().normalize())) {
+            throw SdkClientException.create("Cannot download key " + key +
+                                            ", its relative path resolves outside the parent directory.");
+        }
     }
 
     private CompletableFuture<CompletedFileDownload> doDownloadSingleFile(DownloadDirectoryRequest downloadDirectoryRequest,
