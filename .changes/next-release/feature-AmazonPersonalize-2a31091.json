@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Personalize",
+    "contributor": "",
+    "description": "This release adds support for incremental bulk ingestion for the Personalize CreateDatasetImportJob API."
+}
