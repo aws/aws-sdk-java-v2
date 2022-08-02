@@ -164,6 +164,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
      *
      * @param path The path to the file to which you want to write the serialized download object.
      */
+    @Override
     public void serializeToFile(Path path) {
         try {
             Files.write(path, ResumableFileDownloadSerializer.toJson(this));
@@ -178,6 +179,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
      *
      * @param outputStream The output stream to write the serialized object to.
      */
+    @Override
     public void serializeToOutputStream(OutputStream outputStream) {
         byte[] bytes = ResumableFileDownloadSerializer.toJson(this);
         try {
@@ -191,6 +193,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
     /**
      * Returns the serialized JSON data representing this object as a string.
      */
+    @Override
     public String serializeToString() {
         return new String(ResumableFileDownloadSerializer.toJson(this), StandardCharsets.UTF_8);
     }
@@ -200,6 +203,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
      *
      * @return the serialized JSON as {@link SdkBytes}
      */
+    @Override
     public SdkBytes serializeToBytes() {
         return SdkBytes.fromByteArrayUnsafe(ResumableFileDownloadSerializer.toJson(this));
     }
@@ -209,6 +213,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
      *
      * @return the serialized JSON input stream
      */
+    @Override
     public InputStream serializeToInputStream() {
         return new ByteArrayInputStream(ResumableFileDownloadSerializer.toJson(this));
     }

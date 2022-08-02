@@ -15,8 +15,12 @@
 
 package software.amazon.awssdk.transfer.s3.model;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Path;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkBytes;
 
 /**
  * Contains the information of a pausible upload or download; such
@@ -27,4 +31,49 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 @SdkPublicApi
 @SdkPreviewApi
 public interface ResumableTransfer {
+
+    /**
+     * Persists this download object to a file in Base64-encoded JSON format.
+     *
+     * @param path The path to the file to which you want to write the serialized download object.
+     */
+    default void serializeToFile(Path path) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Writes the serialized JSON data representing this object to an output stream.
+     * Note that the {@link OutputStream} is not closed or flushed after writing.
+     *
+     * @param outputStream The output stream to write the serialized object to.
+     */
+    default void serializeToOutputStream(OutputStream outputStream) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Returns the serialized JSON data representing this object as a string.
+     */
+    default String serializeToString() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Returns the serialized JSON data representing this object as an {@link SdkBytes} object.
+     *
+     * @return the serialized JSON as {@link SdkBytes}
+     */
+    default SdkBytes serializeToBytes() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Returns the serialized JSON data representing this object as an {@link InputStream}.
+     *
+     * @return the serialized JSON input stream
+     */
+    default InputStream serializeToInputStream() {
+        throw new UnsupportedOperationException();
+    }
+
 }

@@ -44,6 +44,7 @@ import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
+import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
@@ -262,6 +263,56 @@ public interface S3TransferManager extends SdkAutoCloseable {
      */
     default FileUpload uploadFile(Consumer<UploadFileRequest.Builder> request) {
         return uploadFile(UploadFileRequest.builder().applyMutation(request).build());
+    }
+
+    /**
+     * Resumes uploadFile operation. This upload operation uses the same configuration as the original upload. Any data
+     * already uploaded will be skipped, and only the remaining data is uploaded to Amazon S3. If it is determined that the file
+     * has be modified since the last pause, the SDK will upload the object from the beginning
+     * as if it is a new {@link UploadFileRequest}.
+     *
+     * <p>
+     * <b>Usage Example:</b>
+     * <pre>
+     * {@code
+     * // Initiate the transfer
+     * FileUpload upload =
+     *     tm.uploadFile(d -> d.putObjectRequest(g -> g.bucket("bucket").key("key"))
+     *                           .source(Paths.get("myFile.txt")));
+     *
+     * // Pause the download
+     * ResumableFileUpload resumableFileUpload = upload.pause();
+     *
+     * //Optionally, persist the download object
+     * resumableFileUpload.writeToFile(file);
+     *
+     * ResumableFileUpload persistedResumableFileUpload = ResumableFileUpload.fromFile(file);
+     *
+     * // Resume the download
+     * FileUpload resumedUpload = tm.resumeUploadFile(persistedResumableFileUpload);
+     *
+     * // Wait for the transfer to complete
+     * resumedUpload.completionFuture().join();
+     * }
+     * </pre>
+     *
+     * @param resumableFileUpload the upload to resume.
+     * @return A new {@code FileUpload} object to use to check the state of the download.
+     * @see #uploadFile(UploadFileRequest)
+     * @see FileUpload#pause()
+     */
+    default FileUpload resumeUploadFile(ResumableFileUpload resumableFileUpload) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link ResumableFileUpload} builder, avoiding the need to
+     * create one manually via {@link ResumableFileUpload#builder()}.
+     *
+     * @see #resumeDownloadFile(ResumableFileDownload)
+     */
+    default FileUpload resumeUploadFile(Consumer<ResumableFileUpload.Builder> resumableFileUpload) {
+        return resumeUploadFile(ResumableFileUpload.builder().applyMutation(resumableFileUpload).build());
     }
 
     /**
