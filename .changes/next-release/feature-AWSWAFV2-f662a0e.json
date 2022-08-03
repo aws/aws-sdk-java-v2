@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS WAFV2",
-    "contributor": "",
-    "description": "You can now associate an AWS WAF web ACL with an Amazon Cognito user pool."
-}
