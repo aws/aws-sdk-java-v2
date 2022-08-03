@@ -15,21 +15,36 @@
 
 package software.amazon.awssdk.core.rules;
 
-import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public interface RuleEngine {
-    /**
-     * Evaluate the given {@link EndpointRuleset} using the named values in {@code args} as input into the rule set.
-     *
-     * @param ruleset The rule set to evaluate.
-     * @param args The arguments.
-     * @return The computed value.
-     */
-    Value evaluate(EndpointRuleset ruleset, Map<Identifier, Value> args);
+public class Not extends SingleArgFn {
 
-    static RuleEngine defaultEngine() {
-        return new DefaultRuleEngine();
+    public static final String ID = "not";
+
+    public Not(FnNode fnNode) {
+        super(fnNode);
+    }
+
+    public static Not ofExpr(Expr expr) {
+        return new Not(FnNode.ofExprs(ID, expr));
+    }
+
+    @Override
+    public <T> T acceptFnVisitor(FnVisitor<T> visitor) {
+        return visitor.visitNot(this);
+    }
+
+    public static Not ofExprs(Expr expr) {
+        return new Not(FnNode.ofExprs(ID, expr));
+    }
+
+    @Override
+    protected Value evalArg(Value arg) {
+        return Value.fromBool(!arg.expectBool());
+    }
+
+    public Expr target() {
+        return expectOneArg();
     }
 }

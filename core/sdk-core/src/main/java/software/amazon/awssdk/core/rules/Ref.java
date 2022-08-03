@@ -18,29 +18,22 @@ package software.amazon.awssdk.core.rules;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Identifiers for variables declared within the rule engine, e.g. from an {@code assign} statement.
+ * A reference to a field.
  */
 @SdkInternalApi
-public final class Identifier {
-    private String name;
+public class Ref extends Expr {
+    private final Identifier name;
 
-    public Identifier(String name) {
+    public Ref(Identifier name) {
         this.name = name;
     }
 
-    public static Identifier fromString(String name) {
-        return new Identifier(name);
+    @Override
+    public <R> R accept(ExprVisitor<R> visitor) {
+        return visitor.visitRef(this);
     }
 
-    public static Identifier of(String name) {
-        return new Identifier(name);
-    }
-
-    public String asString() {
-        return name;
-    }
-
-    public String toString() {
+    public Identifier getName() {
         return name;
     }
 
@@ -52,14 +45,27 @@ public final class Identifier {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+        Ref ref = (Ref) o;
+        return name.equals(ref.name);
+    }
 
-        Identifier that = (Identifier) o;
+    @Override
+    public String template() {
+        return String.format("{%s}", name);
+    }
 
-        return name != null ? name.equals(that.name) : that.name == null;
+    @Override
+    public String toString() {
+        return name.asString();
     }
 
     @Override
     public int hashCode() {
         return name != null ? name.hashCode() : 0;
+    }
+
+    @Override
+    public Value eval(Scope<Value> scope) {
+        return scope.getValue(this.name).orElse(new Value.None());
     }
 }
