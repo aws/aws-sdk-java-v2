@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Cognito Identity Provider",
+    "contributor": "",
+    "description": "Add a new exception type, ForbiddenException, that is returned when request is not allowed"
+}
