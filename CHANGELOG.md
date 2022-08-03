@@ -1,3 +1,12 @@
+# __2.17.246__ __2022-08-03__
+## __AWS WAFV2__
+  - ### Features
+    - You can now associate an AWS WAF web ACL with an Amazon Cognito user pool.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add a new exception type, ForbiddenException, that is returned when request is not allowed
+
 # __2.17.245__ __2022-08-02__
 ## __AWS License Manager User Subscriptions__
   - ### Features
