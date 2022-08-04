@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime SDK Meetings",
+    "contributor": "",
+    "description": "Adds support for Tags on Amazon Chime SDK WebRTC sessions"
+}
