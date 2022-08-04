@@ -38,7 +38,6 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.utils.MockH2Server;
-import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
@@ -60,7 +59,7 @@ public class AwsCrtClientH2Benchmark implements SdkHttpClientBenchmark {
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        Log.initLoggingToFile(Log.LogLevel.Trace, "log.txt");
+        //Log.initLoggingToFile(Log.LogLevel.Trace, "log.txt");
         mockServer = new MockH2Server(true);
         mockServer.start();
 

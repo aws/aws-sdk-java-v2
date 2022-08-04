@@ -16,7 +16,6 @@
 package software.amazon.awssdk.benchmark.apicall.httpclient.async;
 
 import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.DEFAULT_JDK_SSL_PROVIDER;
-import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.OPEN_SSL_PROVIDER;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.getSslProvider;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.trustAllTlsAttributeMapBuilder;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
@@ -58,7 +57,7 @@ public class NettyHttpClientH2Benchmark extends BaseNettyBenchmark {
     private MockH2Server mockServer;
     private SdkAsyncHttpClient sdkHttpClient;
 
-    @Param({DEFAULT_JDK_SSL_PROVIDER, OPEN_SSL_PROVIDER})
+    @Param({DEFAULT_JDK_SSL_PROVIDER})
     private String sslProviderValue;
 
     @Setup(Level.Trial)
