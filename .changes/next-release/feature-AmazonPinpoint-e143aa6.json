@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Pinpoint",
+    "contributor": "",
+    "description": "Adds support for Advance Quiet Time in Journeys. Adds RefreshOnSegmentUpdate and WaitForQuietTime to JourneyResponse."
+}
