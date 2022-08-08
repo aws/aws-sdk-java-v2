@@ -1,3 +1,40 @@
+# __2.17.248__ __2022-08-08__
+## __AWS Glue__
+  - ### Features
+    - Add an option to run non-urgent or non-time sensitive Glue Jobs on spare capacity
+
+## __AWS IoT Wireless__
+  - ### Features
+    - AWS IoT Wireless release support for sidewalk data reliability.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SSO Identity Store__
+  - ### Features
+    - Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)
+
+## __AWS SSO OIDC__
+  - ### Features
+    - Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)
+
+## __AWS Single Sign-On__
+  - ### Features
+    - Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Adds support for Advance Quiet Time in Journeys. Adds RefreshOnSegmentUpdate and WaitForQuietTime to JourneyResponse.
+
+## __Amazon QuickSight__
+  - ### Features
+    - A series of documentation updates to the QuickSight API reference.
+
 # __2.17.247__ __2022-08-04__
 ## __AWS Config__
   - ### Features
