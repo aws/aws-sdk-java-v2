@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Location Service",
+    "contributor": "",
+    "description": "Amazon Location Service now allows circular geofences in BatchPutGeofence, PutGeofence, and GetGeofence APIs."
+}
