@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch",
-    "contributor": "",
-    "description": "Various quota increases related to dimensions and custom metrics"
-}
