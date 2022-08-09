@@ -1,3 +1,20 @@
+# __2.17.249__ __2022-08-09__
+## __Amazon Augmented AI Runtime__
+  - ### Features
+    - Fix bug with parsing ISO-8601 CreationTime in Java SDK in DescribeHumanLoop
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Various quota increases related to dimensions and custom metrics
+
+## __Amazon Location Service__
+  - ### Features
+    - Amazon Location Service now allows circular geofences in BatchPutGeofence, PutGeofence, and GetGeofence APIs.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Automatic Model Tuning now supports specifying multiple alternate EC2 instance types to make tuning jobs more robust when the preferred instance type is not available due to insufficient capacity.
+
 # __2.17.248__ __2022-08-08__
 ## __AWS Glue__
   - ### Features
