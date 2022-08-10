@@ -1,3 +1,16 @@
+# __2.17.250__ __2022-08-10__
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - This release adds support for excluding specific data (non-boot) volumes from multi-volume snapshot sets created by snapshot lifecycle policies
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for excluding specific data (non-root) volumes from multi-volume snapshot sets created from instances.
+
+## __URL Connection HTTP Client__
+  - ### Bugfixes
+    - Fix for S3Client with URL Connection http client fails with EOFException when executing HeadObjectRequest for gzip encodeFix to S3Client fails with EOFException.
+
 # __2.17.249__ __2022-08-09__
 ## __Amazon Augmented AI Runtime__
   - ### Features
