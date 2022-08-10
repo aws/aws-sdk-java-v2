@@ -1,0 +1,60 @@
+{
+    "version": "2.17.248",
+    "date": "2022-08-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Add an option to run non-urgent or non-time sensitive Glue Jobs on spare capacity"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Wireless",
+            "contributor": "",
+            "description": "AWS IoT Wireless release support for sidewalk data reliability."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSO Identity Store",
+            "contributor": "",
+            "description": "Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSO OIDC",
+            "contributor": "",
+            "description": "Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Single Sign-On",
+            "contributor": "",
+            "description": "Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Single Sign-On Admin",
+            "contributor": "",
+            "description": "Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint",
+            "contributor": "",
+            "description": "Adds support for Advance Quiet Time in Journeys. Adds RefreshOnSegmentUpdate and WaitForQuietTime to JourneyResponse."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "A series of documentation updates to the QuickSight API reference."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
