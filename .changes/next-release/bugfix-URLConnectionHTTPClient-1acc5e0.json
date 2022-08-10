@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "URL Connection HTTP Client",
+    "contributor": "",
+    "description": "Fix for S3Client with URL Connection http client fails with EOFException when executing HeadObjectRequest for gzip encodeFix to S3Client fails with EOFException."
+}

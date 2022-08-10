@@ -320,7 +320,9 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         }
 
         private Optional<InputStream> tryGetInputStream() {
-            return getAndHandle100Bug(() -> invokeSafely(connection::getInputStream), true);
+            return responseHasNoContent()
+                   ? Optional.empty()
+                   : getAndHandle100Bug(() -> invokeSafely(connection::getInputStream), true);
         }
 
         private Optional<InputStream> tryGetErrorStream() {
