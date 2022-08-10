@@ -104,6 +104,9 @@ public class JsonProtocolSpec implements ProtocolSpec {
         if (contentType != null) {
             methodSpec.addCode(".contentType($S)", contentType);
         }
+        if (model.getAwsQueryCompatible() != null) {
+            methodSpec.addCode(errorCodeMapping(model));
+        }
 
         registerModeledExceptions(model, poetExtensions).forEach(methodSpec::addCode);
         methodSpec.addCode(";");

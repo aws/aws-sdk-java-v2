@@ -17,6 +17,7 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -46,6 +47,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     private final JsonFactory jsonFactory;
     private final Supplier<SdkPojo> defaultExceptionSupplier;
     private final ErrorCodeParser errorCodeParser;
+    private final Map<String, String> awsQueryCompatibleErrorCodeMapping;
 
     private AwsJsonProtocolErrorUnmarshaller(Builder builder) {
         this.jsonProtocolUnmarshaller = builder.jsonProtocolUnmarshaller;
@@ -54,6 +56,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         this.jsonFactory = builder.jsonFactory;
         this.defaultExceptionSupplier = builder.defaultExceptionSupplier;
         this.exceptions = builder.exceptions;
+        this.awsQueryCompatibleErrorCodeMapping = builder.awsQueryCompatibleErrorCodeMapping;
     }
 
     @Override
@@ -72,12 +75,14 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         SdkPojo sdkPojo = modeledExceptionMetadata.map(ExceptionMetadata::exceptionBuilderSupplier)
                                                   .orElse(defaultExceptionSupplier)
                                                   .get();
+        String effectiveErrorCode = getEffectiveErrorCode(errorCode);
 
         AwsServiceException.Builder exception = ((AwsServiceException) jsonProtocolUnmarshaller
             .unmarshall(sdkPojo, response, jsonContent.getJsonNode())).toBuilder();
         String errorMessage = errorMessageParser.parseErrorMessage(response, jsonContent.getJsonNode());
+
         exception.awsErrorDetails(extractAwsErrorDetails(response, executionAttributes, jsonContent,
-                                                         errorCode, errorMessage));
+                                                         effectiveErrorCode, errorMessage));
         exception.clockSkew(getClockSkew(executionAttributes));
         // Status code and request id are sdk level fields
         exception.message(errorMessage);
@@ -85,6 +90,13 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         exception.requestId(response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADERS).orElse(null));
         exception.extendedRequestId(response.firstMatchingHeader(X_AMZ_ID_2_HEADER).orElse(null));
         return exception.build();
+    }
+
+    private String getEffectiveErrorCode(String errorCode) {
+        if (awsQueryCompatibleErrorCodeMapping != null) {
+            return awsQueryCompatibleErrorCodeMapping.getOrDefault(errorCode, errorCode);
+        }
+        return errorCode;
     }
 
     private Duration getClockSkew(ExecutionAttributes executionAttributes) {
@@ -146,6 +158,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         private JsonFactory jsonFactory;
         private Supplier<SdkPojo> defaultExceptionSupplier;
         private ErrorCodeParser errorCodeParser;
+        private Map<String, String> awsQueryCompatibleErrorCodeMapping;
 
         private Builder() {
         }
@@ -212,6 +225,11 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
          */
         public Builder errorCodeParser(ErrorCodeParser errorCodeParser) {
             this.errorCodeParser = errorCodeParser;
+            return this;
+        }
+
+        public Builder awsQueryCompatibleErrorCodeMapping(Map<String, String> awsQueryCompatibleErrorCodeMapping) {
+            this.awsQueryCompatibleErrorCodeMapping = awsQueryCompatibleErrorCodeMapping;
             return this;
         }
 

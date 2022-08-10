@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.service.AwsQueryCompatible;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
@@ -53,6 +54,9 @@ public final class IntermediateModel {
     @JsonIgnore
     private NamingStrategy namingStrategy;
 
+    @JsonIgnore
+    private Map<String, AwsQueryCompatible> awsQueryCompatible;
+
     static {
         FILE_HEADER = loadDefaultFileHeader();
     }
@@ -71,7 +75,7 @@ public final class IntermediateModel {
                              Map<String, ShapeModel> shapes,
                              CustomizationConfig customizationConfig) {
         this(metadata, operations, shapes, customizationConfig, null,
-             Collections.emptyMap(), null, Collections.emptyMap());
+             Collections.emptyMap(), null, Collections.emptyMap(), Collections.emptyMap());
     }
 
     public IntermediateModel(
@@ -82,7 +86,8 @@ public final class IntermediateModel {
         OperationModel endpointOperation,
         Map<String, PaginatorDefinition> paginators,
         NamingStrategy namingStrategy,
-        Map<String, WaiterDefinition> waiters) {
+        Map<String, WaiterDefinition> waiters,
+        Map<String, AwsQueryCompatible> awsQueryCompatible) {
         this.metadata = metadata;
         this.operations = operations;
         this.shapes = shapes;
@@ -91,6 +96,7 @@ public final class IntermediateModel {
         this.paginators = paginators;
         this.namingStrategy = namingStrategy;
         this.waiters = waiters;
+        this.awsQueryCompatible = awsQueryCompatible;
     }
 
     public Metadata getMetadata() {
@@ -154,6 +160,9 @@ public final class IntermediateModel {
         return waiters;
     }
 
+    public Map<String, AwsQueryCompatible> getAwsQueryCompatible() {
+        return awsQueryCompatible;
+    }
     public void setPaginators(Map<String, PaginatorDefinition> paginators) {
         this.paginators = paginators;
     }

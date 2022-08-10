@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Codegen, AWS core",
+    "contributor": "ziyanli-amazon",
+    "description": "Add awsQueryCompatible trait support to service.\nWhen awsQueryCompatible trait is found, it's made available as an API property. When this property is found,\nthe error code is returned by looking up the mapping. This is a pre-requisite for migrating services from\nAWSQuery wire protocol to AWSJson."
+}

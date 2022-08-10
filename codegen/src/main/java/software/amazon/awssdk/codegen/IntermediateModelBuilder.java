@@ -130,7 +130,7 @@ public class IntermediateModelBuilder {
         IntermediateModel fullModel = new IntermediateModel(
             constructMetadata(service, customConfig), operations, shapes,
             customConfig, endpointOperation, paginators.getPagination(), namingStrategy,
-            waiters.getWaiters());
+            waiters.getWaiters(), service.getAwsQueryCompatible());
 
         customization.postprocess(fullModel);
 
@@ -149,7 +149,8 @@ public class IntermediateModelBuilder {
                                                                endpointOperation,
                                                                fullModel.getPaginators(),
                                                                namingStrategy,
-                                                               fullModel.getWaiters());
+                                                               fullModel.getWaiters(),
+                                                               fullModel.getAwsQueryCompatible());
 
         linkMembersToShapes(trimmedModel);
         linkOperationsToInputOutputShapes(trimmedModel);

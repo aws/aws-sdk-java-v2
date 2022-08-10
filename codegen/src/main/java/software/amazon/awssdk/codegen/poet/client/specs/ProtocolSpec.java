@@ -31,6 +31,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.service.AuthType;
+import software.amazon.awssdk.codegen.model.service.AwsQueryCompatible;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
@@ -65,6 +66,17 @@ public interface ProtocolSpec {
 
     default List<MethodSpec> additionalMethods() {
         return new ArrayList<>();
+    }
+
+    default CodeBlock errorCodeMapping(IntermediateModel model) {
+        CodeBlock.Builder builder = CodeBlock.builder()
+            .add(".errorCodeMapping(software.amazon.awssdk.utils.ImmutableMap.<String,String>builder()\n");
+        model.getAwsQueryCompatible().keySet().stream().sorted().forEach(errorCode -> {
+            AwsQueryCompatible errorModel = model.getAwsQueryCompatible().get(errorCode);
+            builder.add(".put($S,$S)\n", errorCode, errorModel.getErrorCode());
+        });
+        builder.add(".build()");
+        return builder.build();
     }
 
     default List<CodeBlock> registerModeledExceptions(IntermediateModel model, PoetExtension poetExtensions) {

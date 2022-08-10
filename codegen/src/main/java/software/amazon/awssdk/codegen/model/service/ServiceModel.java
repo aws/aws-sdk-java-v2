@@ -25,6 +25,7 @@ public class ServiceModel {
     private Map<String, Shape> shapes;
     private Map<String, Authorizer> authorizers;
 
+    private Map<String, AwsQueryCompatible> awsQueryCompatible;
     private String documentation;
 
     public ServiceModel() {
@@ -33,11 +34,13 @@ public class ServiceModel {
     public ServiceModel(ServiceMetadata metadata,
                         Map<String, Operation> operations,
                         Map<String, Shape> shapes,
-                        Map<String, Authorizer> authorizers) {
+                        Map<String, Authorizer> authorizers,
+                        Map<String, AwsQueryCompatible> awsQueryCompatible) {
         this.metadata = metadata;
         this.operations = operations;
         this.shapes = shapes;
         this.authorizers = authorizers;
+        this.awsQueryCompatible = awsQueryCompatible;
     }
 
     public ServiceMetadata getMetadata() {
@@ -98,5 +101,19 @@ public class ServiceModel {
 
     public void setAuthorizers(Map<String, Authorizer> authorizers) {
         this.authorizers = authorizers;
+    }
+
+    /**
+     * Provides a map of error code to compatibility model, used during error deserialization to ensure
+     * that errorCode is compatible with an AWS Query protocol
+     *
+     * @return the compatibility map, or null if none is specified in the model
+     */
+    public Map<String, AwsQueryCompatible> getAwsQueryCompatible() {
+        return awsQueryCompatible;
+    }
+
+    public void setAwsQueryCompatible(Map<String, AwsQueryCompatible> awsQueryCompatible) {
+        this.awsQueryCompatible = awsQueryCompatible;
     }
 }

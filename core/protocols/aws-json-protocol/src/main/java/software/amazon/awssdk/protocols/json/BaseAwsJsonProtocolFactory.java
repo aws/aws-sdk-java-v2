@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocols.json;
 
 import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.unmodifiableMap;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +60,7 @@ public abstract class BaseAwsJsonProtocolFactory {
 
     private final AwsJsonProtocolMetadata protocolMetadata;
     private final List<ExceptionMetadata> modeledExceptions;
+    private final Map<String, String> awsQueryCompatibleErrorCodeMapping;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final String customErrorCodeFieldName;
     private final SdkClientConfiguration clientConfiguration;
@@ -67,6 +69,8 @@ public abstract class BaseAwsJsonProtocolFactory {
     protected BaseAwsJsonProtocolFactory(Builder<?> builder) {
         this.protocolMetadata = builder.protocolMetadata.build();
         this.modeledExceptions = unmodifiableList(builder.modeledExceptions);
+        this.awsQueryCompatibleErrorCodeMapping = builder.awsQueryCompatibleErrorCodeMapping == null ? null :
+                                                  unmodifiableMap(builder.awsQueryCompatibleErrorCodeMapping);
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
         this.customErrorCodeFieldName = builder.customErrorCodeFieldName;
         this.clientConfiguration = builder.clientConfiguration;
@@ -124,6 +128,7 @@ public abstract class BaseAwsJsonProtocolFactory {
             .jsonProtocolUnmarshaller(protocolUnmarshaller)
             .exceptions(modeledExceptions)
             .errorCodeParser(getSdkFactory().getErrorCodeParser(customErrorCodeFieldName))
+            .awsQueryCompatibleErrorCodeMapping(awsQueryCompatibleErrorCodeMapping)
             .errorMessageParser(AwsJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER)
             .jsonFactory(getSdkFactory().getJsonFactory())
             .defaultExceptionSupplier(defaultServiceExceptionSupplier)
@@ -199,6 +204,7 @@ public abstract class BaseAwsJsonProtocolFactory {
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
         private String customErrorCodeFieldName;
         private SdkClientConfiguration clientConfiguration;
+        private Map<String, String> awsQueryCompatibleErrorCodeMapping;
 
         protected Builder() {
         }
@@ -211,6 +217,19 @@ public abstract class BaseAwsJsonProtocolFactory {
          */
         public final SubclassT registerModeledException(ExceptionMetadata errorMetadata) {
             modeledExceptions.add(errorMetadata);
+            return getSubclass();
+        }
+
+        /**
+         * Provides an error code mapping, which causes error codes in error responses to be mapped to an alternate
+         * error code. This mapping allows for an SDK client to be compatible with AWS Query. The given map is
+         * AWS Json error code to mapped error code.
+         *
+         * @param errorCodeMapping the error code mapping
+         * @return This builder for method chaining.
+         */
+        public final SubclassT awsQueryCompatibleErrorCodeMapping(Map<String, String> errorCodeMapping) {
+            this.awsQueryCompatibleErrorCodeMapping = errorCodeMapping;
             return getSubclass();
         }
 
