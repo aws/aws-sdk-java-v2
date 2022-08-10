@@ -48,7 +48,7 @@ import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter;
 public class WaitersUserAgentTest {
 
     @Rule
-    public WireMockRule mockServer = new WireMockRule(options().notifier(new ConsoleNotifier(true)).dynamicHttpsPort());
+    public WireMockRule mockServer = new WireMockRule(options().notifier(new ConsoleNotifier(true)).dynamicHttpsPort().dynamicPort());
 
     private DynamoDbClient dynamoDbClient;
     private DynamoDbAsyncClient dynamoDbAsyncClient;
