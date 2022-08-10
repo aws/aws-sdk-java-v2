@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Data Lifecycle Manager",
-    "contributor": "",
-    "description": "This release adds support for excluding specific data (non-boot) volumes from multi-volume snapshot sets created by snapshot lifecycle policies"
-}
