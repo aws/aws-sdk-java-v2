@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Backup Storage",
-    "contributor": "",
-    "description": "This is the first public release of AWS Backup Storage. We are exposing some previously-internal APIs for use by external services. These APIs are not meant to be used directly by customers."
-}
