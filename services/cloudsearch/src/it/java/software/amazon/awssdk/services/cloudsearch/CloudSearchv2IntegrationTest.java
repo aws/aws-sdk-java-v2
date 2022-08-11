@@ -449,7 +449,7 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
     @Test
     public void testScalingParameters() {
         ScalingParameters scalingParameters = ScalingParameters.builder()
-                                                               .desiredInstanceType(PartitionInstanceType.SEARCH_M1_SMALL)
+                                                               .desiredInstanceType(PartitionInstanceType.SEARCH_SMALL)
                                                                .desiredReplicationCount(5)
                                                                .desiredPartitionCount(5).build();
         cloudSearch.updateScalingParameters(UpdateScalingParametersRequest.builder()
