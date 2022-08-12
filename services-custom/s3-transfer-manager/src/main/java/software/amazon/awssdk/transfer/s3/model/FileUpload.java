@@ -35,7 +35,7 @@ public interface FileUpload extends ObjectTransfer {
      *
      * @return A {@link ResumableFileUpload} that can be used to resume the download.
      */
-    ResumableFileDownload pause();
+    ResumableFileUpload pause();
     
     @Override
     CompletableFuture<CompletedFileUpload> completionFuture();

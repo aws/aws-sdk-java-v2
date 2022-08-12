@@ -46,13 +46,13 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
-import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
-import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -297,7 +297,10 @@ public class UploadDirectoryHelperParameterizedTest {
                                                                                           .build()),
                                      new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
                                                                                                 .transferredBytes(0L)
-                                                                                                .build()));
+                                                                                                .build()),
+                                     null,UploadFileRequest.builder()
+                                                           .putObjectRequest(p -> p.key("key").bucket("bucket")).source(Paths.get("test.txt"))
+                                                           .build());
     }
 
     private Path createTestDirectory() throws IOException {

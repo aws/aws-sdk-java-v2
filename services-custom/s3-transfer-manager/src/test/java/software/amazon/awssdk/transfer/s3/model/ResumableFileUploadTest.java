@@ -39,12 +39,11 @@ class ResumableFileUploadTest {
         ResumableFileUpload fileUpload = ResumableFileUpload.builder()
             .multipartUploadId("1234")
             .uploadFileRequest(UploadFileRequest.builder().putObjectRequest(p -> p.bucket("bucket").key("key")).source(Paths.get("test")).build())
-            .numOfParts(10L)
             .fileLastModified(Instant.now())
             .build();
 
         assertThat(fileUpload.toBuilder().build()).isEqualTo(fileUpload);
-        assertThat(fileUpload.toBuilder().numOfParts(11L).build()).isNotEqualTo(fileUpload);
+        assertThat(fileUpload.toBuilder().multipartUploadId("5678").build()).isNotEqualTo(fileUpload);
     }
 
 }

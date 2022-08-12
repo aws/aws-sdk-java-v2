@@ -30,6 +30,11 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
 
     public static final S3InternalSdkHttpExecutionAttribute<HttpChecksum> HTTP_CHECKSUM =
         new S3InternalSdkHttpExecutionAttribute<>(HttpChecksum.class);
+    public static final S3InternalSdkHttpExecutionAttribute<S3MetaRequestPauseObservable> METAREQUEST_PAUSE_OBSERVABLE =
+        new S3InternalSdkHttpExecutionAttribute<>(S3MetaRequestPauseObservable.class);
+
+    public static final S3InternalSdkHttpExecutionAttribute<String> CRT_PAUSE_RESUME_TOKEN =
+        new S3InternalSdkHttpExecutionAttribute<>(String.class);
 
     private S3InternalSdkHttpExecutionAttribute(Class<T> valueClass) {
         super(valueClass);

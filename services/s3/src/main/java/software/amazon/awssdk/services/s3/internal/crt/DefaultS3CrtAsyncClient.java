@@ -176,11 +176,17 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         public void afterMarshalling(Context.AfterMarshalling context,
                                      ExecutionAttributes executionAttributes) {
 
-            SdkHttpExecutionAttributes.Builder attributes =
-                SdkHttpExecutionAttributes.builder()
-                                          .put(OPERATION_NAME,
-                                               executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME))
-                    .put(HTTP_CHECKSUM, executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM));
+            SdkHttpExecutionAttributes existingHttpAttributes = executionAttributes.getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES);
+
+            SdkHttpExecutionAttributes.Builder builder = existingHttpAttributes != null ?
+                                                         existingHttpAttributes.toBuilder() :
+                                                         SdkHttpExecutionAttributes.builder();
+
+            SdkHttpExecutionAttributes attributes =
+                builder.put(OPERATION_NAME,
+                            executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME))
+                       .put(HTTP_CHECKSUM, executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM))
+                       .build();
 
             // TODO: is there a better way to disable SDK flexible checksum implementation
             // Clear HTTP_CHECKSUM and RESOLVED_CHECKSUM_SPECS to disable SDK flexible checksum implementation.
@@ -188,7 +194,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
             executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_CHECKSUM_SPECS, null);
 
             executionAttributes.putAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES,
-                                             attributes.build());
+                                             attributes);
         }
     }
 
