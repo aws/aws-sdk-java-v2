@@ -1,3 +1,28 @@
+# __2.17.252__ __2022-08-12__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - The Amazon Chime SDK now supports channels with up to one million participants with elastic channels.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Updates various list api MaxResults ranges
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - This release provides support for promotions in AWS Personalize runtime.
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - This release adds log APIs that allow customers to manage logging for their Amazon Managed Service for Prometheus workspaces.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for RDS Custom to DBInstanceClass in ModifyDBInstance
+
 # __2.17.251__ __2022-08-11__
 ## __AWS Backup Storage__
   - ### Features

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Adds support for RDS Custom to DBInstanceClass in ModifyDBInstance"
-}

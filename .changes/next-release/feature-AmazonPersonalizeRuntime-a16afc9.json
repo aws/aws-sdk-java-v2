@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Personalize Runtime",
-    "contributor": "",
-    "description": "This release provides support for promotions in AWS Personalize runtime."
-}

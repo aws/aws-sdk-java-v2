@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Prometheus Service",
-    "contributor": "",
-    "description": "This release adds log APIs that allow customers to manage logging for their Amazon Managed Service for Prometheus workspaces."
-}
