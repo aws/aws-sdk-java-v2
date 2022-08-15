@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudFront",
-    "contributor": "",
-    "description": "Adds Http 3 support to distributions"
-}
