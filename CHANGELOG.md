@@ -1,3 +1,16 @@
+# __2.17.254__ __2022-08-16__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Documentation updates for Service Catalog
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds APIs which support copying an Amazon Rekognition Custom Labels model and managing project policies across AWS account.
+
 # __2.17.253__ __2022-08-15__
 ## __AWS SSO Identity Store__
   - ### Features
