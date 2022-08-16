@@ -25,6 +25,34 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaA
 /**
  * Denotes this attribute as being the primary partition key of the DynamoDb table. This attribute must map to a
  * DynamoDb scalar type (string, number or binary) to be valid. Every mapped table schema must have exactly one of these.
+ *
+ * <p>
+ * Example using {@link DynamoDbPartitionKey}:
+ * <pre>
+ * {@code
+ * @DynamoDbBean
+ * public class Customer {
+ *     private String id;
+ *     private Instant createdOn;
+ *
+ *     @DynamoDbPartitionKey
+ *     public String getId() {
+ *          return this.id;
+ *     }
+ *
+ *     public void setId(String id) {
+ *          this.name = id;
+ *     }
+ *
+ *     public Instant getCreatedOn() {
+ *          return this.createdOn;
+ *     }
+ *     public void setCreatedOn(Instant createdOn) {
+ *          this.createdOn = createdOn;
+ *      }
+ * }
+ * }
+ * </pre>
  */
 @SdkPublicApi
 @Target({ElementType.METHOD})
