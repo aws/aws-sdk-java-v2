@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Rekognition",
+    "contributor": "",
+    "description": "This release adds APIs which support copying an Amazon Rekognition Custom Labels model and managing project policies across AWS account."
+}
