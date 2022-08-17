@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lake Formation",
+    "contributor": "",
+    "description": "This release adds a new API support \"AssumeDecoratedRoleWithSAML\" and also release updates the corresponding documentation."
+}
