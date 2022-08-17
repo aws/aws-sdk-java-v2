@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Adds support for Internet Protocol Version 6 (IPv6) for RDS Aurora database clusters."
-}
