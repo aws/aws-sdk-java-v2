@@ -1,3 +1,36 @@
+# __2.17.255__ __2022-08-17__
+## __AWS App Mesh__
+  - ### Features
+    - AWS App Mesh release to support Multiple Listener and Access Log Format feature
+
+## __AWS Lake Formation__
+  - ### Features
+    - This release adds a new API support "AssumeDecoratedRoleWithSAML" and also release updates the corresponding documentation.
+
+## __AWS Lambda__
+  - ### Features
+    - Added support for customization of Consumer Group ID for MSK and Kafka Event Source Mappings.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - This release adds Zendesk connector (which allows you to specify Zendesk SAAS platform as data source), Proxy Support for Sharepoint and Confluence Server (which allows you to specify the proxy configuration if proxy is required to connect to your Sharepoint/Confluence Server as data source).
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release introduces support for enhanced conversation design with the ability to define custom conversation flows with conditional branching and new bot responses.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for Internet Protocol Version 6 (IPv6) for RDS Aurora database clusters.
+
+## __AmazonConnectCampaignService__
+  - ### Features
+    - Updated exceptions for Amazon Connect Outbound Campaign api's.
+
 # __2.17.254__ __2022-08-16__
 ## __AWS SDK for Java v2__
   - ### Features
