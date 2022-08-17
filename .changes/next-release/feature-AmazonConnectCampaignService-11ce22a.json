@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmazonConnectCampaignService",
+    "contributor": "",
+    "description": "Updated exceptions for Amazon Connect Outbound Campaign api's."
+}
