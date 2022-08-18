@@ -18,22 +18,28 @@ package software.amazon.awssdk.http.apache;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import software.amazon.awssdk.utils.internal.SystemSettingUtilsTestBackdoor;
 
 public class ProxyConfigurationTest {
 
     @BeforeEach
     public void setup() {
         clearProxyProperties();
+        clearProxyEnvironmentVariables();
     }
 
     @AfterAll
     public static void cleanup() {
         clearProxyProperties();
+        clearProxyEnvironmentVariables();
     }
 
     @Test
@@ -47,7 +53,7 @@ public class ProxyConfigurationTest {
 
         assertThat(config.host()).isEqualTo(host);
         assertThat(config.port()).isEqualTo(port);
-        assertThat(config.scheme()).isNull();
+        assertThat(config.scheme()).isEqualTo("http");
     }
 
     @Test
@@ -115,6 +121,158 @@ public class ProxyConfigurationTest {
                               .build();
 
         assertThat(proxyConfiguration.toBuilder()).isNotNull();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"http_proxy", "https_proxy"})
+    public void testSystemPropertiesOverrideEnvironmentVariables(String proxyEnvVariable) {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(proxyEnvVariable, "https://user1:password1@env.com:4444");
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("no_proxy", "env.com");
+
+        System.setProperty("http.proxyHost", "foo.com");
+        System.setProperty("http.proxyPort", "5555");
+        System.setProperty("http.nonProxyHosts", "bar.com");
+        System.setProperty("http.proxyUser", "user");
+        System.setProperty("http.proxyPassword", "password");
+
+        ProxyConfiguration proxyConfiguration =
+            ProxyConfiguration.builder()
+                              .useSystemPropertyValues(true)
+                              .useEnvironmentVariables(true)
+                              .build();
+
+        assertThat(proxyConfiguration.nonProxyHosts()).isEqualTo(Collections.singleton("bar.com"));
+        assertThat(proxyConfiguration.scheme()).isEqualTo("http");
+        assertThat(proxyConfiguration.host()).isEqualTo("foo.com");
+        assertThat(proxyConfiguration.port()).isEqualTo(5555);
+        assertThat(proxyConfiguration.username()).isEqualTo("user");
+        assertThat(proxyConfiguration.password()).isEqualTo("password");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"http_proxy", "https_proxy"})
+    public void testProxyConfigurationWithProxyEnvironmentVariable(String proxyEnvVariable) {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(proxyEnvVariable, "http://1.2.3.4:8080");
+        ProxyConfiguration proxyConfiguration =
+            ProxyConfiguration.builder()
+                              .useEnvironmentVariables(true)
+                              .build();
+
+        assertThat(proxyConfiguration.scheme()).isEqualTo("http");
+        assertThat(proxyConfiguration.host()).isEqualTo("1.2.3.4");
+        assertThat(proxyConfiguration.port()).isEqualTo(8080);
+        assertThat(proxyConfiguration.username()).isEqualTo(null);
+        assertThat(proxyConfiguration.password()).isEqualTo(null);
+    }
+
+    @Test
+    public void testProxyConfigurationWithBothEnvironmentVariables() {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("https_proxy", "https://1.2.3.4:8080");
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("http_proxy", "http://5.6.7.8:9090");
+        ProxyConfiguration proxyConfiguration =
+            ProxyConfiguration.builder()
+                              .useEnvironmentVariables(true)
+                              .build();
+
+        // https_proxy should be preferred over http_proxy
+        assertThat(proxyConfiguration.scheme()).isEqualTo("https");
+        assertThat(proxyConfiguration.host()).isEqualTo("1.2.3.4");
+        assertThat(proxyConfiguration.port()).isEqualTo(8080);
+        assertThat(proxyConfiguration.username()).isEqualTo(null);
+        assertThat(proxyConfiguration.password()).isEqualTo(null);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"http_proxy", "https_proxy"})
+    public void testProxyConfigurationWithMalformedEnvironmentVariable(String proxyEnvVariable) {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(proxyEnvVariable, "noprotocol.com:8080");
+        ProxyConfiguration proxyConfiguration =
+            ProxyConfiguration.builder()
+                              .useEnvironmentVariables(true)
+                              .build();
+
+        // no proxy should be set
+        assertThat(proxyConfiguration.scheme()).isEqualTo(null);
+        assertThat(proxyConfiguration.nonProxyHosts()).isEqualTo(Collections.emptySet());
+        assertThat(proxyConfiguration.host()).isEqualTo(null);
+        assertThat(proxyConfiguration.port()).isEqualTo(0);
+        assertThat(proxyConfiguration.username()).isEqualTo(null);
+        assertThat(proxyConfiguration.password()).isEqualTo(null);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"http_proxy", "https_proxy"})
+    public void testProxyConfigurationWithEnvironmentVariableWithUsernamePassword(String proxyEnvVariable) {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(proxyEnvVariable, "https://username:password@1.2.3.4:8080");
+        ProxyConfiguration proxyConfiguration =
+            ProxyConfiguration.builder()
+                              .useEnvironmentVariables(true)
+                              .build();
+
+        assertThat(proxyConfiguration.scheme()).isEqualTo("https");
+        assertThat(proxyConfiguration.host()).isEqualTo("1.2.3.4");
+        assertThat(proxyConfiguration.port()).isEqualTo(8080);
+        assertThat(proxyConfiguration.username()).isEqualTo("username");
+        assertThat(proxyConfiguration.password()).isEqualTo("password");
+    }
+
+    @Test
+    public void testProxyConfigurationWithNonProxyHostsEnvironmentVariable() {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("no_proxy", "test.com,bar.com,foo.com,1.2.3.4");
+        ProxyConfiguration proxyConfiguration =
+            ProxyConfiguration.builder()
+                              .useEnvironmentVariables(true)
+                              .build();
+
+        Set<String> expectedNonProxyHosts = new HashSet<>();
+        expectedNonProxyHosts.add("test.com");
+        expectedNonProxyHosts.add("bar.com");
+        expectedNonProxyHosts.add("foo.com");
+        expectedNonProxyHosts.add("1.2.3.4");
+        assertThat(proxyConfiguration.nonProxyHosts()).isEqualTo(expectedNonProxyHosts);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"http_proxy", "https_proxy", "no_proxy"})
+    public void testProxyConfigurationWithEmptyEnvironmentVariables(String envProxyVariable) {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(envProxyVariable, "");
+        ProxyConfiguration proxyConfiguration =
+            ProxyConfiguration.builder()
+                              .useEnvironmentVariables(true)
+                              .build();
+
+        assertThat(proxyConfiguration.scheme()).isEqualTo(null);
+        assertThat(proxyConfiguration.host()).isEqualTo(null);
+        assertThat(proxyConfiguration.port()).isEqualTo(0);
+        assertThat(proxyConfiguration.username()).isEqualTo(null);
+        assertThat(proxyConfiguration.password()).isEqualTo(null);
+        assertThat(proxyConfiguration.nonProxyHosts()).isEqualTo(Collections.emptySet());
+    }
+
+    @Test
+    public void testExplicitConfigurationOverridesEnvironment() {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("https_proxy", "http://username:password@proxy.com:8080");
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("http_proxy", "http://username:password@proxy.com:8080");
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("no_proxy", "foo.com");
+        ProxyConfiguration proxyConfiguration =
+            ProxyConfiguration.builder()
+                              .endpoint(URI.create("https://explicit.com:9999"))
+                              .username("explicit-username")
+                              .password("explicit-password")
+                              .nonProxyHosts(Collections.singleton("bar.com"))
+                              .useEnvironmentVariables(true)
+                              .build();
+
+        assertThat(proxyConfiguration.scheme()).isEqualTo("https");
+        assertThat(proxyConfiguration.host()).isEqualTo("explicit.com");
+        assertThat(proxyConfiguration.port()).isEqualTo(9999);
+        assertThat(proxyConfiguration.username()).isEqualTo("explicit-username");
+        assertThat(proxyConfiguration.password()).isEqualTo("explicit-password");
+        assertThat(proxyConfiguration.nonProxyHosts()).isEqualTo(Collections.singleton("bar.com"));
+    }
+
+    private static void clearProxyEnvironmentVariables() {
+        SystemSettingUtilsTestBackdoor.clearEnvironmentVariableOverrides();
     }
 
     private static void clearProxyProperties() {

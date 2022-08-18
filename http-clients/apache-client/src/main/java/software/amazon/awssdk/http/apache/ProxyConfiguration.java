@@ -223,9 +223,8 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             return Collections.unmodifiableSet(nonProxyHosts);
         }
         if (useSystemPropertyValues) {
-            Set<String> systemNonProxyHosts = parseNonProxyHostsProperty();
-            if (!systemNonProxyHosts.isEmpty()) {
-                return Collections.unmodifiableSet(systemNonProxyHosts);
+            if(ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().isPresent()) {
+                return Collections.unmodifiableSet(parseNonProxyHostsProperty());
             }
         }
         if (useEnvironmentVariables) {
@@ -337,7 +336,28 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     public String resolveScheme() {
-        return endpoint != null ? endpoint.getScheme() : null;
+        if(endpoint != null) {
+            return endpoint.getScheme();
+        }
+        if(useSystemPropertyValues) {
+            if(ProxySystemSetting.PROXY_HOST.getStringValue().isPresent()) {
+                return "http";
+            }
+        }
+        if(useEnvironmentVariables) {
+            Optional<String> httpsProxy = ProxyEnvironmentSetting.HTTPS_PROXY.getStringValue();
+            Optional<String> httpProxy = ProxyEnvironmentSetting.HTTP_PROXY.getStringValue();
+
+            if (httpsProxy.isPresent()) {
+                Optional<String> envProxyProtocol = EnvironmentProxyUtils.parseProtocol(httpsProxy.get());
+                return envProxyProtocol.orElse(null);
+            }
+            if (httpProxy.isPresent()) {
+                Optional<String> envProxyProtocol = EnvironmentProxyUtils.parseProtocol(httpProxy.get());
+                return envProxyProtocol.orElse(null);
+            }
+        }
+        return null;
     }
 
     /**

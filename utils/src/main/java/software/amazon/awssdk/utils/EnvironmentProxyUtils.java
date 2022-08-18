@@ -41,7 +41,16 @@ public final class EnvironmentProxyUtils {
     public static Optional<Integer> parsePort(String proxyEnvValue) {
         try {
             URL proxyUrl = new URL(proxyEnvValue);
-            return Optional.of(proxyUrl.getPort());
+            return proxyUrl.getPort() == -1 ? Optional.empty() : Optional.of(proxyUrl.getPort());
+        } catch (MalformedURLException e) {
+            return Optional.empty();
+        }
+    }
+
+    public static Optional<String> parseProtocol(String proxyEnvValue) {
+        try {
+            URL proxyUrl = new URL(proxyEnvValue);
+            return Optional.of(proxyUrl.getProtocol());
         } catch (MalformedURLException e) {
             return Optional.empty();
         }
