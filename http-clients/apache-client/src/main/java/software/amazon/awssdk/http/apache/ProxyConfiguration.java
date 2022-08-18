@@ -223,7 +223,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             return Collections.unmodifiableSet(nonProxyHosts);
         }
         if (useSystemPropertyValues) {
-            if(ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().isPresent()) {
+            if (ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().isPresent()) {
                 return Collections.unmodifiableSet(parseNonProxyHostsProperty());
             }
         }
@@ -336,15 +336,15 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     public String resolveScheme() {
-        if(endpoint != null) {
+        if (endpoint != null) {
             return endpoint.getScheme();
         }
-        if(useSystemPropertyValues) {
-            if(ProxySystemSetting.PROXY_HOST.getStringValue().isPresent()) {
+        if (useSystemPropertyValues) {
+            if (ProxySystemSetting.PROXY_HOST.getStringValue().isPresent()) {
                 return "http";
             }
         }
-        if(useEnvironmentVariables) {
+        if (useEnvironmentVariables) {
             Optional<String> httpsProxy = ProxyEnvironmentSetting.HTTPS_PROXY.getStringValue();
             Optional<String> httpProxy = ProxyEnvironmentSetting.HTTP_PROXY.getStringValue();
 
