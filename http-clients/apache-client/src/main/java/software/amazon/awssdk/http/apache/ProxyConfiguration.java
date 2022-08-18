@@ -21,8 +21,11 @@ import static software.amazon.awssdk.utils.http.SdkHttpUtils.parseNonProxyHostsP
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.EnvironmentProxyUtils;
+import software.amazon.awssdk.utils.ProxyEnvironmentSetting;
 import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -43,6 +46,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     private final Set<String> nonProxyHosts;
     private final Boolean preemptiveBasicAuthenticationEnabled;
     private final Boolean useSystemPropertyValues;
+    private final Boolean useEnvironmentVariables;
     private final String host;
     private final int port;
     private final String scheme;
@@ -60,24 +64,41 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         this.preemptiveBasicAuthenticationEnabled = builder.preemptiveBasicAuthenticationEnabled == null ? Boolean.FALSE :
                 builder.preemptiveBasicAuthenticationEnabled;
         this.useSystemPropertyValues = builder.useSystemPropertyValues;
+        this.useEnvironmentVariables = builder.useEnvironmentVariables;
         this.host = resolveHost();
         this.port = resolvePort();
         this.scheme = resolveScheme();
     }
 
     /**
-     * Returns the proxy host name either from the configured endpoint or
-     * from the "http.proxyHost" system property if {@link Builder#useSystemPropertyValues(Boolean)} is set to true.
+     * The host to use when connecting through a proxy.
+     *
+     * If the value is not set in {@link ProxyConfiguration#endpoint}, the following sources are checked in order:
+     *
+     * <ul>
+     *  <li>"http.proxyHost" system property (If {@link ProxyConfiguration#useSystemPropertyValues} is true)</li>
+     *  <li>"https_proxy" environment variable (If {@link ProxyConfiguration#useEnvironmentVariables} is true)</li>
+     *  <li>"http_proxy" environment variable (If {@link ProxyConfiguration#useEnvironmentVariables} is true)</li>
+     * </ul>
+     *
+     * If no value is found, 0 is returned.
      */
     public String host() {
         return host;
     }
 
     /**
-     * Returns the proxy port either from the configured endpoint or
-     * from the "http.proxyPort" system property if {@link Builder#useSystemPropertyValues(Boolean)} is set to true.
+     * The port to use when connecting through a proxy.
      *
-     * If no value is found in neither of the above options, the default value of 0 is returned.
+     * If the value is not set in {@link ProxyConfiguration#endpoint}, the following sources are checked in order:
+     *
+     * <ul>
+     *  <li>"http.proxyPort" system property (If {@link ProxyConfiguration#useSystemPropertyValues} is true)</li>
+     *  <li>"https_proxy" environment variable (If {@link ProxyConfiguration#useEnvironmentVariables} is true)</li>
+     *  <li>"http_proxy" environment variable (If {@link ProxyConfiguration#useEnvironmentVariables} is true)</li>
+     * </ul>
+     *
+     * If no value is found, 0 is returned.
      */
     public int port() {
         return port;
@@ -93,19 +114,79 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     /**
      * The username to use when connecting through a proxy.
      *
-     * @see Builder#password(String)
+     * If the value is not explicitly set on the object, the following sources are checked in order:
+     *
+     * <ul>
+     *  <li>"http.proxyUsername" system property (If {@link ProxyConfiguration#useSystemPropertyValues} is true)</li>
+     *  <li>"https_proxy" environment variable (If {@link ProxyConfiguration#useEnvironmentVariables} is true)</li>
+     *  <li>"http_proxy" environment variable (If {@link ProxyConfiguration#useEnvironmentVariables} is true)</li>
+     * </ul>
+     *
+     * @see Builder#username(String)
      */
     public String username() {
-        return resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
+        if (username != null) {
+            return username;
+        }
+        if (useSystemPropertyValues) {
+            Optional<String> systemPropertyUsername = ProxySystemSetting.PROXY_USERNAME.getStringValue();
+            if (systemPropertyUsername.isPresent()) {
+                return systemPropertyUsername.get();
+            }
+        }
+        if (useEnvironmentVariables) {
+            Optional<String> httpsProxy = ProxyEnvironmentSetting.HTTPS_PROXY.getStringValue();
+            Optional<String> httpProxy = ProxyEnvironmentSetting.HTTP_PROXY.getStringValue();
+
+            if (httpsProxy.isPresent()) {
+                Optional<String> envProxyUsername = EnvironmentProxyUtils.parseUsername(httpsProxy.get());
+                return envProxyUsername.orElse(null);
+            }
+            if (httpProxy.isPresent()) {
+                Optional<String> envProxyUsername = EnvironmentProxyUtils.parseUsername(httpProxy.get());
+                return envProxyUsername.orElse(null);
+            }
+        }
+        return null;
     }
 
     /**
      * The password to use when connecting through a proxy.
      *
+     * If the value is not explicitly set on the object, the following sources are checked in order:
+     *
+     * <ul>
+     *  <li>"http.proxyPassword" system property (If {@link ProxyConfiguration#useSystemPropertyValues} is true)</li>
+     *  <li>"https_proxy" environment variable (If {@link ProxyConfiguration#useEnvironmentVariables} is true)</li>
+     *  <li>"http_proxy" environment variable (If {@link ProxyConfiguration#useEnvironmentVariables} is true)</li>
+     * </ul>
+     *
      * @see Builder#password(String)
      */
     public String password() {
-        return resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
+        if (password != null) {
+            return password;
+        }
+        if (useSystemPropertyValues) {
+            Optional<String> systemPropertyUsername = ProxySystemSetting.PROXY_PASSWORD.getStringValue();
+            if (systemPropertyUsername.isPresent()) {
+                return systemPropertyUsername.get();
+            }
+        }
+        if (useEnvironmentVariables) {
+            Optional<String> httpsProxy = ProxyEnvironmentSetting.HTTPS_PROXY.getStringValue();
+            Optional<String> httpProxy = ProxyEnvironmentSetting.HTTP_PROXY.getStringValue();
+
+            if (httpsProxy.isPresent()) {
+                Optional<String> envProxyPassword = EnvironmentProxyUtils.parsePassword(httpsProxy.get());
+                return envProxyPassword.orElse(null);
+            }
+            if (httpProxy.isPresent()) {
+                Optional<String> envProxyPassword = EnvironmentProxyUtils.parsePassword(httpProxy.get());
+                return envProxyPassword.orElse(null);
+            }
+        }
+        return null;
     }
 
     /**
@@ -129,16 +210,35 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     /**
      * The hosts that the client is allowed to access without going through the proxy.
      *
-     * If the value is not set on the object, the value represent by "http.nonProxyHosts" system property is returned.
-     * If system property is also not set, an unmodifiable empty set is returned.
+     * If the value is not explicitly set on the object, the following sources are checked in order:
      *
+     * <ul>
+     *  <li>"http.nonProxyHosts" system property (If {@link ProxyConfiguration#useSystemPropertyValues} is true)</li>
+     *  <li>"no_proxy" environment variable (If {@link ProxyConfiguration#useEnvironmentVariables} is true)</li>
+     * </ul>
      * @see Builder#nonProxyHosts(Set)
      */
     public Set<String> nonProxyHosts() {
-        Set<String> hosts = nonProxyHosts == null && useSystemPropertyValues ? parseNonProxyHostsProperty()
-                                                                             : nonProxyHosts;
+        if (nonProxyHosts != null) {
+            return Collections.unmodifiableSet(nonProxyHosts);
+        }
+        if (useSystemPropertyValues) {
+            Set<String> systemNonProxyHosts = parseNonProxyHostsProperty();
+            if (!systemNonProxyHosts.isEmpty()) {
+                return Collections.unmodifiableSet(systemNonProxyHosts);
+            }
+        }
+        if (useEnvironmentVariables) {
+            Optional<String> envNonProxySetting = ProxyEnvironmentSetting.NO_PROXY.getStringValue();
+            if (envNonProxySetting.isPresent()) {
+                Set<String> envNonProxyHosts = EnvironmentProxyUtils.parseNonProxyHosts(envNonProxySetting.get());
+                if (!envNonProxyHosts.isEmpty()) {
+                    return Collections.unmodifiableSet(envNonProxyHosts);
+                }
+            }
+        }
 
-        return Collections.unmodifiableSet(hosts != null ? hosts : Collections.emptySet());
+        return Collections.emptySet();
     }
 
     /**
@@ -160,7 +260,8 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
                 .ntlmWorkstation(ntlmWorkstation)
                 .nonProxyHosts(nonProxyHosts)
                 .preemptiveBasicAuthenticationEnabled(preemptiveBasicAuthenticationEnabled)
-                .useSystemPropertyValues(useSystemPropertyValues);
+                .useSystemPropertyValues(useSystemPropertyValues)
+                .useEnvironmentVariables(useEnvironmentVariables);
     }
 
     /**
@@ -184,34 +285,59 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
 
     private String resolveHost() {
-        return endpoint != null ? endpoint.getHost()
-                                : resolveValue(null, ProxySystemSetting.PROXY_HOST);
+        if (endpoint != null) {
+            return endpoint.getHost();
+        }
+        if (useSystemPropertyValues) {
+            Optional<String> systemPropertyProxyHost = ProxySystemSetting.PROXY_HOST.getStringValue();
+            if (systemPropertyProxyHost.isPresent()) {
+                return systemPropertyProxyHost.get();
+            }
+        }
+        if (useEnvironmentVariables) {
+            Optional<String> httpsProxy = ProxyEnvironmentSetting.HTTPS_PROXY.getStringValue();
+            Optional<String> httpProxy = ProxyEnvironmentSetting.HTTP_PROXY.getStringValue();
+
+            if (httpsProxy.isPresent()) {
+                Optional<String> envProxyHost = EnvironmentProxyUtils.parseHost(httpsProxy.get());
+                return envProxyHost.orElse(null);
+            }
+            if (httpProxy.isPresent()) {
+                Optional<String> envProxyHost = EnvironmentProxyUtils.parseHost(httpProxy.get());
+                return envProxyHost.orElse(null);
+            }
+        }
+        return null;
     }
 
     private int resolvePort() {
-        int port = 0;
-
         if (endpoint != null) {
-            port = endpoint.getPort();
-        } else if (useSystemPropertyValues) {
-            port = ProxySystemSetting.PROXY_PORT.getStringValue()
-                                                .map(Integer::parseInt)
-                                                .orElse(0);
+            return endpoint.getPort();
         }
+        if (useSystemPropertyValues) {
+            Optional<String> systemPropertyPort = ProxySystemSetting.PROXY_PORT.getStringValue();
+            if (systemPropertyPort.isPresent()) {
+                return systemPropertyPort.map(Integer::parseInt).orElse(0);
+            }
+        }
+        if (useEnvironmentVariables) {
+            Optional<String> httpsProxy = ProxyEnvironmentSetting.HTTPS_PROXY.getStringValue();
+            Optional<String> httpProxy = ProxyEnvironmentSetting.HTTP_PROXY.getStringValue();
 
-        return port;
+            if (httpsProxy.isPresent()) {
+                Optional<Integer> envProxyPort = EnvironmentProxyUtils.parsePort(httpsProxy.get());
+                return envProxyPort.orElse(0);
+            }
+            if (httpProxy.isPresent()) {
+                Optional<Integer> envProxyPort = EnvironmentProxyUtils.parsePort(httpProxy.get());
+                return envProxyPort.orElse(0);
+            }
+        }
+        return 0;
     }
 
     public String resolveScheme() {
         return endpoint != null ? endpoint.getScheme() : null;
-    }
-
-    /**
-     * Uses the configuration options, system setting property and returns the final value of the given member.
-     */
-    private String resolveValue(String value, ProxySystemSetting systemSetting) {
-        return value == null && useSystemPropertyValues ? systemSetting.getStringValue().orElse(null)
-                                                        : value;
     }
 
     /**
@@ -273,6 +399,15 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          */
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
 
+        /**
+         * Option whether to use environment variables from {@link ProxyEnvironmentSetting} if any of the config options are
+         * missing.
+         *
+         * If this is used in conjunction with {@link #useSystemPropertyValues(Boolean)}, any system proxy properties provided
+         * will take precedence over environment variables.
+         */
+        Builder useEnvironmentVariables(Boolean useEnvironmentVariables);
+
     }
 
     /**
@@ -288,6 +423,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         private Set<String> nonProxyHosts;
         private Boolean preemptiveBasicAuthenticationEnabled;
         private Boolean useSystemPropertyValues = Boolean.TRUE;
+        private Boolean useEnvironmentVariables = Boolean.FALSE;
 
         @Override
         public Builder endpoint(URI endpoint) {
@@ -383,6 +519,16 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
         public void setUseSystemPropertyValues(Boolean useSystemPropertyValues) {
             useSystemPropertyValues(useSystemPropertyValues);
+        }
+
+        @Override
+        public Builder useEnvironmentVariables(Boolean useEnvironmentVariables) {
+            this.useEnvironmentVariables = useEnvironmentVariables;
+            return this;
+        }
+
+        public void setUseEnvironmentVariables(Boolean useEnvironmentVariables) {
+            useEnvironmentVariables(useEnvironmentVariables);
         }
 
         @Override
