@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Network Manager",
+    "contributor": "",
+    "description": "Add TransitGatewayPeeringAttachmentId property to TransitGatewayPeering Model"
+}
