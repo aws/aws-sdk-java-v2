@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB",
-    "contributor": "",
-    "description": "This release adds support for importing data from S3 into a new DynamoDB table"
-}
