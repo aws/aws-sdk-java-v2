@@ -1,3 +1,28 @@
+# __2.17.256__ __2022-08-18__
+## __AWS Network Manager__
+  - ### Features
+    - Add TransitGatewayPeeringAttachmentId property to TransitGatewayPeering Model
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - The Amazon Chime SDK now supports live streaming of real-time video from the Amazon Chime SDK sessions to streaming platforms such as Amazon IVS and Amazon Elemental MediaLive. We have also added support for concatenation to create a single media capture file.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Add support for managed Contributor Insights Rules
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This change is being made simply to fix the public documentation based on the models. We have included the PasswordChange and ResendCode events, along with the Pass, Fail and InProgress status. We have removed the Success and Failure status which are never returned by our APIs.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release adds support for importing data from S3 into a new DynamoDB table
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for VPN log options , a new feature allowing S2S VPN connections to send IKE activity logs to CloudWatch Logs
+
 # __2.17.255__ __2022-08-17__
 ## __AWS App Mesh__
   - ### Features
