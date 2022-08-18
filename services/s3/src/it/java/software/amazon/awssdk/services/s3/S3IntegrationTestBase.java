@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
@@ -51,6 +52,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
      */
     @BeforeClass
     public static void setUp() throws Exception {
+        Log.initLoggingToStdout(Log.LogLevel.Warn);
         s3 = s3ClientBuilder().build();
         s3Async = s3AsyncClientBuilder().build();
     }

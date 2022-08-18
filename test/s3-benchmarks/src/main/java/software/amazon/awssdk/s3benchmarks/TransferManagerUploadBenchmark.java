@@ -22,9 +22,11 @@ import software.amazon.awssdk.utils.Logger;
 
 public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark {
     private static final Logger logger = Logger.loggerFor("TransferManagerUploadBenchmark");
+    private final TransferManagerBenchmarkConfig config;
 
     public TransferManagerUploadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
+        this.config = config;
     }
 
     @Override
@@ -55,7 +57,7 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
     private void uploadOnceFromFile(List<Double> latencies) {
         File sourceFile = new File(path);
         long start = System.currentTimeMillis();
-        transferManager.uploadFile(b -> b.putObjectRequest(r -> r.bucket(bucket).key(key))
+        transferManager.uploadFile(b -> b.putObjectRequest(r -> r.bucket(bucket).key(key).checksumAlgorithm(config.checksumAlgorithm()))
                                          .source(sourceFile.toPath()))
                        .completionFuture().join();
         long end = System.currentTimeMillis();

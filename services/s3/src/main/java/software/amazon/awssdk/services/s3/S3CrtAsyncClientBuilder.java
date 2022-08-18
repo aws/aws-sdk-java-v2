@@ -16,9 +16,12 @@
 package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
+import java.nio.file.Path;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -115,6 +118,17 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * @return this builder for method chaining.
      */
     S3CrtAsyncClientBuilder endpointOverride(URI endpointOverride);
+
+    /**
+     * Option to disable checksum validation for streaming operations such as
+     * {@link S3AsyncClient#getObject(GetObjectRequest, Path)}
+     * and {@link S3AsyncClient#putObject(PutObjectRequest, Path)}
+     *
+     * <p> //TODO: update algorithm once determined
+     * Checksum validation using CRC32 is enabled by default.
+     *
+     */
+    S3CrtAsyncClientBuilder checksumValidationEnabled(Boolean checksumValidationEnabled);
 
     @Override
     S3AsyncClient build();
