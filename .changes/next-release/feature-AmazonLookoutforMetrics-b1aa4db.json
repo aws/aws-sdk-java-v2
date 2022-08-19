@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lookout for Metrics",
-    "contributor": "",
-    "description": "This release is to make GetDataQualityMetrics API publicly available."
-}
