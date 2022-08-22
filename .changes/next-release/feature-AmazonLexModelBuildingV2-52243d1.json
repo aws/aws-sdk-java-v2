@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Model Building V2",
+    "contributor": "",
+    "description": "This release introduces a new feature to stop a running BotRecommendation Job for Automated Chatbot Designer."
+}
