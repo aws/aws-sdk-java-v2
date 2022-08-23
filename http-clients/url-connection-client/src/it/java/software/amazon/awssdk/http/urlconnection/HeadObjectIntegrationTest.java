@@ -15,18 +15,22 @@
 
 package software.amazon.awssdk.http.urlconnection;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class HeadObjectIntegrationTest extends UrlHttpConnectionS3IntegrationTestBase {
@@ -34,7 +38,7 @@ public class HeadObjectIntegrationTest extends UrlHttpConnectionS3IntegrationTes
 
     private static final String GZIPPED_KEY = "some-key";
 
-    @BeforeClass
+    @BeforeAll
     public static void setupFixture() throws IOException {
         createBucket(BUCKET);
 
@@ -50,15 +54,23 @@ public class HeadObjectIntegrationTest extends UrlHttpConnectionS3IntegrationTes
                      RequestBody.fromBytes(baos.toByteArray()));
     }
 
+    @AfterAll
+    public static void cleanup() {
+        deleteBucketAndAllContents(BUCKET);
+    }
+
     @Test
     public void syncClientSupportsGzippedObjects() {
         HeadObjectResponse response = s3.headObject(r -> r.bucket(BUCKET).key(GZIPPED_KEY));
-        assertThat(response.contentEncoding()).isEqualTo("gzip");
+        assertEquals(response.contentEncoding(), "gzip");
     }
 
-    @AfterClass
-    public static void cleanup() {
-        deleteBucketAndAllContents(BUCKET);
+    @Test
+    public void syncClient_throwsRightException_withGzippedObjects() {
+
+        assertThrows(NoSuchBucketException.class,
+                     () -> s3.headObject(r -> r.bucket(BUCKET + UUID.randomUUID()).key(GZIPPED_KEY)));
+
     }
 
 }
