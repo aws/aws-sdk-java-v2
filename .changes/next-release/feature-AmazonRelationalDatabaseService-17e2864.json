@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "contributor": "",
+    "description": "RDS for Oracle supports Oracle Data Guard switchover and read replica backups."
+}
