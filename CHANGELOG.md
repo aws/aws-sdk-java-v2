@@ -1,3 +1,16 @@
+# __2.17.259__ __2022-08-23__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix signature mismatch exception generated when signing query parameters with empty-value keys.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - RDS for Oracle supports Oracle Data Guard switchover and read replica backups.
+
 # __2.17.258__ __2022-08-22__
 ## __AWS IoT SiteWise__
   - ### Features
