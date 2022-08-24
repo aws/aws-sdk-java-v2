@@ -87,6 +87,16 @@ public class Outputs {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "Outputs{" +
+               "dnsSuffix='" + dnsSuffix + '\'' +
+               ", dualStackDnsSuffix='" + dualStackDnsSuffix + '\'' +
+               ", supportsFips=" + supportsFips +
+               ", supportsDualStack=" + supportsDualStack +
+               '}';
+    }
+
     public static Builder builder() {
         return new Builder();
     }

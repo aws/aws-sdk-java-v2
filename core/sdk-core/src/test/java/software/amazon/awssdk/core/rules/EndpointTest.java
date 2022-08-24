@@ -85,15 +85,6 @@ public class EndpointTest {
         b.expectation(Expectation.fromNode(objNode.get(EXPECT)));
 
         return b.build();
-        // Builder builder = new Builder(node);
-        // return ctx("while parsing endpoint test", node, () -> {
-        //     ObjectNode on = node.expectObjectNode("endpoint tests must be objects");
-        //     on.getStringMember(DOCUMENTATION).ifPresent(docs -> builder.documentation(docs.getValue()));
-        //     Value.Record params = Value.fromNode(on.expectObjectMember(PARAMS)).expectRecord();
-        //     builder.params(params);
-        //     builder.expectation(Expectation.fromNode(on.expectObjectMember(EXPECT)));
-        //     return builder.build();
-        // });
     }
 
     @Override
@@ -135,16 +126,6 @@ public class EndpointTest {
                 result = new Endpoint(Value.endpointFromNode(node));
             }
             return result;
-            // ObjectNode on = node.expectObjectNode("test expectation must be an object");
-            // Optional<StringNode> error = on.getStringMember(ERROR);
-            // Expectation result;
-            // if (error.isPresent()) {
-            //     result = new Error(error.get().getValue());
-            // } else {
-            //     result = new Endpoint(Value.endpointFromNode(node));
-            // }
-            // result.sourceLocation = node.getSourceLocation();
-            // return result;
         }
 
         abstract void check(Value value);

@@ -368,21 +368,7 @@ public abstract class Value {
                 headersNode.asObject()
                     .forEach((k, v) -> v.asArray().forEach(e -> b.addHeader(k, e.asString())));
             }
-            // ObjectNode on = node.expectObjectNode("endpoints are object nodes");
-            // on.expectNoAdditionalProperties(Arrays.asList("properties", "url", "headers"));
-            // builder.url(on.expectStringMember("url").getValue());
-            // on.getObjectMember("properties").ifPresent(props -> {
-            //     props.getMembers().forEach((k, v) -> {
-            //         builder.property(k.getValue(), Value.fromNode(v));
-            //     });
-            //
-            // });
-            //
-            // on.getObjectMember("headers").ifPresent(headers -> headers.getMembers().forEach(((key, value) -> {
-            //     String name = key.getValue();
-            //     value.expectArrayNode("Header values must be an array").getElements()
-            //          .forEach(e -> builder.addHeader(name, e.expectStringNode().getValue()));
-            // })));
+
             return b.build();
         }
 

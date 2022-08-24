@@ -50,10 +50,9 @@ public class IntegrationTest {
     }
 
     private Stream<ValidationTestCase> validTestcases() {
-        TestDiscovery discovery = new TestDiscovery();
         return TEST_DISCOVERY.getValidRules()
                         .stream()
-                        .map(name -> new ValidationTestCase(name, discovery.validRulesetUrl(name), discovery.testCaseUrl(name)));
+                        .map(name -> new ValidationTestCase(name, TEST_DISCOVERY.validRulesetUrl(name), TEST_DISCOVERY.testCaseUrl(name)));
     }
 
     private Stream<TestDiscovery.RulesTestcase> checkableTestCases() {
