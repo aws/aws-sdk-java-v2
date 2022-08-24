@@ -15,21 +15,19 @@
 
 package software.amazon.awssdk.core.rules;
 
-import java.util.Map;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public interface RuleEngine {
-    /**
-     * Evaluate the given {@link EndpointRuleset} using the named values in {@code args} as input into the rule set.
-     *
-     * @param ruleset The rule set to evaluate.
-     * @param args The arguments.
-     * @return The computed value.
-     */
-    Value evaluate(EndpointRuleset ruleset, Map<Identifier, Value> args);
+abstract class VarargFn extends Fn {
 
-    static RuleEngine defaultEngine() {
-        return new DefaultRuleEngine();
+    VarargFn(FnNode fnNode) {
+        super(fnNode);
+    }
+
+    public abstract Value eval(Scope<Value> scope);
+
+    protected List<Expr> args() {
+        return this.fnNode.getArgv();
     }
 }

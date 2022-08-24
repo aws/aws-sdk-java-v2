@@ -15,21 +15,32 @@
 
 package software.amazon.awssdk.core.rules;
 
-import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public interface RuleEngine {
-    /**
-     * Evaluate the given {@link EndpointRuleset} using the named values in {@code args} as input into the rule set.
-     *
-     * @param ruleset The rule set to evaluate.
-     * @param args The arguments.
-     * @return The computed value.
-     */
-    Value evaluate(EndpointRuleset ruleset, Map<Identifier, Value> args);
+public final class EndpointRule extends Rule {
+    private final Endpoint endpoint;
 
-    static RuleEngine defaultEngine() {
-        return new DefaultRuleEngine();
+    protected EndpointRule(Builder builder, Endpoint endpoint) {
+        super(builder);
+        this.endpoint = endpoint;
+    }
+
+    public Endpoint getEndpoint() {
+        return endpoint;
+    }
+
+    @Override
+    public <T> T accept(RuleValueVisitor<T> visitor) {
+        return visitor.visitEndpointRule(this.getEndpoint());
+    }
+
+    @Override
+    public String toString() {
+        return "EndpointRule{" +
+               "endpoint=" + endpoint +
+               ", conditions=" + conditions +
+               ", documentation='" + documentation + '\'' +
+               '}';
     }
 }

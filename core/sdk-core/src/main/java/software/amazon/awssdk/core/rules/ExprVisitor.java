@@ -15,21 +15,34 @@
 
 package software.amazon.awssdk.core.rules;
 
-import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public interface RuleEngine {
-    /**
-     * Evaluate the given {@link EndpointRuleset} using the named values in {@code args} as input into the rule set.
-     *
-     * @param ruleset The rule set to evaluate.
-     * @param args The arguments.
-     * @return The computed value.
-     */
-    Value evaluate(EndpointRuleset ruleset, Map<Identifier, Value> args);
+public interface ExprVisitor<R> {
 
-    static RuleEngine defaultEngine() {
-        return new DefaultRuleEngine();
+    R visitLiteral(Literal literal);
+
+    R visitRef(Ref ref);
+
+    R visitFn(Fn fn);
+
+    abstract class Default<R> implements ExprVisitor<R> {
+
+        public abstract R getDefault();
+
+        @Override
+        public R visitLiteral(Literal literal) {
+            return getDefault();
+        }
+
+        @Override
+        public R visitRef(Ref ref) {
+            return getDefault();
+        }
+
+        @Override
+        public R visitFn(Fn fn) {
+            return getDefault();
+        }
     }
 }

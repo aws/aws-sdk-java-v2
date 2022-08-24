@@ -15,21 +15,23 @@
 
 package software.amazon.awssdk.core.rules;
 
-import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public interface RuleEngine {
-    /**
-     * Evaluate the given {@link EndpointRuleset} using the named values in {@code args} as input into the rule set.
-     *
-     * @param ruleset The rule set to evaluate.
-     * @param args The arguments.
-     * @return The computed value.
-     */
-    Value evaluate(EndpointRuleset ruleset, Map<Identifier, Value> args);
+public abstract class SingleArgFn extends Fn {
 
-    static RuleEngine defaultEngine() {
-        return new DefaultRuleEngine();
+    public SingleArgFn(FnNode fnNode) {
+        super(fnNode);
     }
+
+    public Expr target() {
+        return expectOneArg();
+    }
+
+    @Override
+    public Value eval(Scope<Value> scope) {
+        return evalArg(expectOneArg().eval(scope));
+    }
+
+    protected abstract Value evalArg(Value arg);
 }

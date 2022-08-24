@@ -15,21 +15,18 @@
 
 package software.amazon.awssdk.core.rules;
 
-import java.util.Map;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
+/**
+ * Visitor for the right-hand side of rules (tree, error, endpoint)
+ * @param <R> The return type of the visitor
+ */
 @SdkInternalApi
-public interface RuleEngine {
-    /**
-     * Evaluate the given {@link EndpointRuleset} using the named values in {@code args} as input into the rule set.
-     *
-     * @param ruleset The rule set to evaluate.
-     * @param args The arguments.
-     * @return The computed value.
-     */
-    Value evaluate(EndpointRuleset ruleset, Map<Identifier, Value> args);
+public interface RuleValueVisitor<R> {
+    R visitTreeRule(List<Rule> rules);
 
-    static RuleEngine defaultEngine() {
-        return new DefaultRuleEngine();
-    }
+    R visitErrorRule(Expr error);
+
+    R visitEndpointRule(Endpoint endpoint);
 }
