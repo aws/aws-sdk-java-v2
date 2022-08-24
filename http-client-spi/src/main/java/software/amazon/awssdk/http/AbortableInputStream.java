@@ -17,6 +17,7 @@ package software.amazon.awssdk.http;
 
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
+import java.io.ByteArrayInputStream;
 import java.io.FilterInputStream;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -59,6 +60,10 @@ public final class AbortableInputStream extends FilterInputStream implements Abo
             return new AbortableInputStream(delegate, (Abortable) delegate);
         }
         return new AbortableInputStream(delegate, () -> { });
+    }
+
+    public static AbortableInputStream createEmpty() {
+        return create(new ByteArrayInputStream(new byte[0]));
     }
 
     @Override

@@ -15,24 +15,12 @@
 
 package software.amazon.awssdk.http.urlconnection;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Iterator;
 import java.util.List;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.core.ClientType;
-import software.amazon.awssdk.core.interceptor.Context;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
-import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
-import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
@@ -40,7 +28,6 @@ import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
@@ -79,6 +66,7 @@ public class UrlHttpConnectionS3IntegrationTestBase extends AwsTestBase {
         Waiter.run(() -> s3.createBucket(r -> r.bucket(bucket)))
               .ignoringException(NoSuchBucketException.class)
               .orFail();
+        s3.waiter().waitUntilBucketExists(r -> r.bucket(bucket));
     }
 
     protected static void deleteBucketAndAllContents(String bucketName) {
