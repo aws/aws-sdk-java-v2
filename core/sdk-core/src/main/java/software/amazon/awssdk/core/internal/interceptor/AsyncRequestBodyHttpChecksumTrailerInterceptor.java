@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.interceptor;
 
+import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
+
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ClientType;
@@ -47,7 +49,7 @@ public final class AsyncRequestBodyHttpChecksumTrailerInterceptor implements Exe
     public Optional<AsyncRequestBody> modifyAsyncHttpContent(Context.ModifyHttpRequest context,
                                                              ExecutionAttributes executionAttributes) {
         ChecksumSpecs checksumSpecs =
-            HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).orElse(null);
+            executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS);
 
         if (checksumSpecs == null ||
             checksumSpecs.headerName() == null ||
@@ -75,7 +77,7 @@ public final class AsyncRequestBodyHttpChecksumTrailerInterceptor implements Exe
                                             ExecutionAttributes executionAttributes) {
 
         ChecksumSpecs checksumSpecs =
-            HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).orElse(null);
+            executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS);
         if (checksumSpecs == null ||
             checksumSpecs.headerName() == null ||
             !HttpChecksumUtils

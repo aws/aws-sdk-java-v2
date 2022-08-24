@@ -17,6 +17,7 @@ package software.amazon.awssdk.authcrt.signer.internal;
 
 import static software.amazon.awssdk.auth.signer.internal.AbstractAwsS3V4Signer.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
 import static software.amazon.awssdk.auth.signer.internal.Aws4SignerUtils.calculateRequestContentLength;
+import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
 import java.nio.charset.StandardCharsets;
@@ -32,7 +33,6 @@ import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
-import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -100,7 +100,7 @@ public final class DefaultAwsCrtS3V4aSigner implements AwsCrtS3V4aSigner {
     }
 
     private static SignerChecksumParams signerChecksumParamsFromAttributes(ExecutionAttributes executionAttributes) {
-        ChecksumSpecs checksumSpecs = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).orElse(null);
+        ChecksumSpecs checksumSpecs = executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS);
         if (checksumSpecs == null) {
             return null;
         }

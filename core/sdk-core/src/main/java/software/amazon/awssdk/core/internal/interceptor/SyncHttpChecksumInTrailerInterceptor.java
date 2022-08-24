@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.interceptor;
 
 import static software.amazon.awssdk.core.HttpChecksumConstant.AWS_CHUNKED_HEADER;
 import static software.amazon.awssdk.core.HttpChecksumConstant.CONTENT_SHA_256_FOR_UNSIGNED_TRAILER;
+import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
 import java.io.InputStream;
@@ -56,7 +57,7 @@ public final class SyncHttpChecksumInTrailerInterceptor implements ExecutionInte
     public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
                                                    ExecutionAttributes executionAttributes) {
         ChecksumSpecs checksumSpecs =
-            HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).orElse(null);
+            executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS);
 
         if (!shouldAddTrailerBasedChecksumInRequest(context, executionAttributes, checksumSpecs)) {
             return context.requestBody();
@@ -95,7 +96,7 @@ public final class SyncHttpChecksumInTrailerInterceptor implements ExecutionInte
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
 
         ChecksumSpecs checksumSpecs =
-            HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).orElse(null);
+            executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS);
 
         if (!shouldAddTrailerBasedChecksumInRequest(context, executionAttributes, checksumSpecs)) {
             return context.httpRequest();

@@ -90,7 +90,7 @@ public class HttpChecksumResolverTest {
                                                   .build();
         ExecutionAttributes executionAttributes = getExecutionAttributeWithAllFieldsSet();
         ChecksumSpecs checksumSpecs =
-            HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).orElse(null);
+            HttpChecksumResolver.getResolvedChecksumSpecs(executionAttributes);
         boolean checksumHeaderAlreadyUpdated = HttpChecksumUtils.isHttpChecksumPresent(sdkRequest, checksumSpecs);
         Assert.assertTrue(checksumHeaderAlreadyUpdated);
     }
@@ -105,7 +105,7 @@ public class HttpChecksumResolverTest {
                                                   .build();
         ExecutionAttributes executionAttributes = getExecutionAttributeWithAllFieldsSet();
         ChecksumSpecs checksumSpecs =
-            HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).orElse(null);
+            HttpChecksumResolver.getResolvedChecksumSpecs(executionAttributes);
         boolean checksumHeaderAlreadyUpdated = HttpChecksumUtils.isHttpChecksumPresent(sdkRequest,
                                                                                        checksumSpecs);
         Assert.assertFalse(checksumHeaderAlreadyUpdated);
@@ -121,7 +121,7 @@ public class HttpChecksumResolverTest {
                                                   .build();
         ExecutionAttributes executionAttributes = getExecutionAttributeWithAllFieldsSet();
         ChecksumSpecs checksumSpecs =
-            HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).orElse(null);
+            HttpChecksumResolver.getResolvedChecksumSpecs(executionAttributes);
         boolean checksumHeaderAlreadyUpdated = HttpChecksumUtils
             .isHttpChecksumPresent(sdkRequest, checksumSpecs);
         Assert.assertTrue(checksumHeaderAlreadyUpdated);
@@ -137,7 +137,7 @@ public class HttpChecksumResolverTest {
 
         ExecutionAttributes executionAttributes = getExecutionAttributeWithAllFieldsSet();
         ChecksumSpecs checksumSpecs =
-            HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).orElse(null);
+            HttpChecksumResolver.getResolvedChecksumSpecs(executionAttributes);
         boolean checksumHeaderAlreadyUpdated = HttpChecksumUtils
             .isHttpChecksumPresent(sdkRequest, checksumSpecs);
         Assert.assertFalse(checksumHeaderAlreadyUpdated);

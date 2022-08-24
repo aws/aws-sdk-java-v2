@@ -127,20 +127,6 @@ public final class HttpChecksumUtils {
         }
     }
 
-
-    /**
-     *
-     * @param executionAttributes Execution attributes defined for the request.
-     * @return Optional ChecksumSpec if checksum Algorithm exist for the checksumSpec
-     */
-    public static Optional<ChecksumSpecs> checksumSpecWithRequestAlgorithm(ExecutionAttributes executionAttributes) {
-        ChecksumSpecs resolvedChecksumSpecs = getResolvedChecksumSpecs(executionAttributes);
-        if (resolvedChecksumSpecs != null && resolvedChecksumSpecs.algorithm() != null) {
-            return Optional.of(resolvedChecksumSpecs);
-        }
-        return Optional.empty();
-    }
-
     /**
      * Checks if the request header is already updated with Calculated checksum.
      *

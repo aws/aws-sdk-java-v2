@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.interceptor;
 
 import static software.amazon.awssdk.core.HttpChecksumConstant.HTTP_CHECKSUM_VALUE;
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
+import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 import static software.amazon.awssdk.core.internal.util.HttpChecksumResolver.getResolvedChecksumSpecs;
 
 import java.io.IOException;
@@ -49,7 +50,7 @@ public class HttpChecksumInHeaderInterceptor implements ExecutionInterceptor {
 
     @Override
     public void afterMarshalling(Context.AfterMarshalling context, ExecutionAttributes executionAttributes) {
-        ChecksumSpecs headerChecksumSpecs = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).orElse(null);
+        ChecksumSpecs headerChecksumSpecs = executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS);
 
         if (shouldSkipHttpChecksumInHeader(context, executionAttributes, headerChecksumSpecs)) {
             return;
