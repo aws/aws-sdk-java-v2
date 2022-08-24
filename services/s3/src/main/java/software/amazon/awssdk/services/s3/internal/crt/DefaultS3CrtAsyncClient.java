@@ -29,16 +29,20 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.internal.DelegatingS3AsyncClient;
 
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
+
+    public static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
 
     private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         super(initializeS3AsyncClient(builder));
@@ -63,6 +67,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     }
 
     private static S3CrtAsyncHttpClient.Builder initializeS3CrtAsyncHttpClient(DefaultS3CrtClientBuilder builder) {
+        validateCrtInClassPath();
         return S3CrtAsyncHttpClient.builder()
                                    .targetThroughputInGbps(builder.targetThroughputInGbps())
                                    .minimumPartSizeInBytes(builder.minimumPartSizeInBytes())
@@ -188,7 +193,29 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                 if (overrideConfiguration.credentialsProvider().isPresent()) {
                     throw new UnsupportedOperationException("Request-level credentials override is not supported");
                 }
+
+                if (overrideConfiguration.metricPublishers() != null) {
+                    throw new UnsupportedOperationException("Request-level Metric Publishers override is not supported");
+                }
+
+                if (overrideConfiguration.apiCallAttemptTimeout().isPresent()) {
+                    throw new UnsupportedOperationException("Request-level apiCallAttemptTimeout override is not supported");
+                }
+
+                if (overrideConfiguration.executionAttributes() != null) {
+                    throw new UnsupportedOperationException("Request-level executionAttributes override is not supported");
+                }
             }
+        }
+    }
+
+    private static void validateCrtInClassPath() {
+        try {
+            ClassLoaderHelper.loadClass(CRT_CLIENT_CLASSPATH, false);
+        } catch (ClassNotFoundException e) {
+
+            throw new IllegalStateException("Could not load classes from AWS Common Runtime (CRT) library."
+                                            + " Make sure you have software.amazon.awssdk.crt:crt on the class path ", e);
         }
     }
 }

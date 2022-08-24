@@ -148,7 +148,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
             tm.uploadDirectory(r -> r.sourceDirectory(directory)
                                      .bucket(TEST_BUCKET)
                                      .s3Prefix(prefix)
-                                     .overrideConfiguration(c -> c.uploadFileRequestTransformer(f -> f.source(newSourceForEachUpload))))
+                                     .uploadFileRequestTransformer(f -> f.source(newSourceForEachUpload)))
               .completionFuture()
               .get(10, TimeUnit.SECONDS);
         assertThat(result.failedTransfers()).isEmpty();

@@ -41,7 +41,6 @@ import software.amazon.awssdk.services.s3.model.RequestPayer;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
-import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 
 class ResumableFileDownloadSerializerTest {
@@ -101,7 +100,7 @@ class ResumableFileDownloadSerializerTest {
             ResumableFileDownload.builder()
                                  .downloadFileRequest(d -> d.destination(PATH)
                                                             .getObjectRequest(GET_OBJECT_REQUESTS.get("STANDARD"))
-                                                            .overrideConfiguration(c -> c.addListener(LoggingTransferListener.create())))
+                                     .addTransferListener(LoggingTransferListener.create()))
                                  .bytesTransferred(1000L)
                                  .build();
 
@@ -109,7 +108,7 @@ class ResumableFileDownloadSerializerTest {
         ResumableFileDownload deserializedDownload = ResumableFileDownloadSerializer.fromJson(serializedDownload);
 
         DownloadFileRequest fileRequestWithoutConfig =
-            download.downloadFileRequest().copy(r -> r.overrideConfiguration((TransferRequestOverrideConfiguration) null));
+            download.downloadFileRequest().copy(r -> r.transferListeners((List) null));
         assertThat(deserializedDownload).isEqualTo(download.copy(d -> d.downloadFileRequest(fileRequestWithoutConfig)));
     }
 

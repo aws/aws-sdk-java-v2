@@ -19,6 +19,7 @@ import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequest
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.arns.Arn;
@@ -37,7 +38,6 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.config.S3TransferManagerOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultCopy;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultDirectoryUpload;
@@ -116,9 +116,9 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
     private static TransferManagerConfiguration resolveTransferManagerConfiguration(DefaultBuilder tmBuilder) {
         TransferManagerConfiguration.Builder transferConfigBuilder = TransferManagerConfiguration.builder();
-        tmBuilder.transferManagerConfiguration.uploadDirectoryConfiguration()
-                                              .ifPresent(transferConfigBuilder::uploadDirectoryConfiguration);
-        tmBuilder.transferManagerConfiguration.executor().ifPresent(transferConfigBuilder::executor);
+        transferConfigBuilder.followSymbolicLinks(tmBuilder.followSymbolicLinks);
+        transferConfigBuilder.maxDepth(tmBuilder.maxDepth);
+        transferConfigBuilder.executor(tmBuilder.executor);
         return transferConfigBuilder.build();
     }
 
@@ -431,8 +431,9 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
     private static final class DefaultBuilder implements S3TransferManager.Builder {
         private S3AsyncClient s3AsyncClient;
-        private S3TransferManagerOverrideConfiguration transferManagerConfiguration =
-            S3TransferManagerOverrideConfiguration.builder().build();
+        private Executor executor;
+        private Boolean followSymbolicLinks;
+        private Integer maxDepth;
 
         private DefaultBuilder() {
         }
@@ -444,9 +445,37 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         }
 
         @Override
-        public Builder transferConfiguration(S3TransferManagerOverrideConfiguration transferManagerConfiguration) {
-            this.transferManagerConfiguration = transferManagerConfiguration;
+        public Builder executor(Executor executor) {
+            this.executor = executor;
             return this;
+        }
+
+        @Override
+        public Builder followSymbolicLinks(Boolean followSymbolicLinks) {
+            this.followSymbolicLinks = followSymbolicLinks;
+            return this;
+        }
+
+        public void setFollowSymbolicLinks(Boolean followSymbolicLinks) {
+            followSymbolicLinks(followSymbolicLinks);
+        }
+
+        public Boolean getFollowSymbolicLinks() {
+            return followSymbolicLinks;
+        }
+
+        @Override
+        public Builder maxDepth(Integer maxDepth) {
+            this.maxDepth = maxDepth;
+            return this;
+        }
+
+        public void setMaxDepth(Integer maxDepth) {
+            maxDepth(maxDepth);
+        }
+
+        public Integer getMaxDepth() {
+            return maxDepth;
         }
 
         @Override

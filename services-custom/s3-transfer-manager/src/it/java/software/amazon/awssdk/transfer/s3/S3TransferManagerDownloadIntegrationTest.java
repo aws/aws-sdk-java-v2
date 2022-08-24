@@ -81,7 +81,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
             tm.downloadFile(DownloadFileRequest.builder()
                                                .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                .destination(path)
-                                               .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                               .addTransferListener(LoggingTransferListener.create())
                                                .build());
         CompletedFileDownload completedFileDownload = download.completionFuture().join();
         assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
@@ -97,7 +97,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
             tm.downloadFile(DownloadFileRequest.builder()
                                                .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                .destination(path)
-                                               .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                               .addTransferListener(LoggingTransferListener.create())
                                                .build());
         CompletedFileDownload completedFileDownload = download.completionFuture().join();
         assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
@@ -110,7 +110,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
             tm.download(DownloadRequest.builder()
                                        .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                        .responseTransformer(AsyncResponseTransformer.toBytes())
-                                       .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                       .addTransferListener(LoggingTransferListener.create())
                                        .build());
         CompletedDownload<ResponseBytes<GetObjectResponse>> completedDownload = download.completionFuture().join();
         ResponseBytes<GetObjectResponse> result = completedDownload.result();
@@ -124,7 +124,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
             tm.download(DownloadRequest.builder()
                                        .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                        .responseTransformer(AsyncResponseTransformer.toPublisher())
-                                       .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                       .addTransferListener(LoggingTransferListener.create())
                                        .build());
         CompletedDownload<ResponsePublisher<GetObjectResponse>> completedDownload = download.completionFuture().join();
         ResponsePublisher<GetObjectResponse> responsePublisher = completedDownload.result();

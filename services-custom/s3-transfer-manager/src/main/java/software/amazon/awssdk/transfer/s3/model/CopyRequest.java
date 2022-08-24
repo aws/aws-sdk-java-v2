@@ -17,17 +17,18 @@ package software.amazon.awssdk.transfer.s3.model;
 
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.utils.ToString;
-import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -43,11 +44,11 @@ public final class CopyRequest
                ToCopyableBuilder<CopyRequest.Builder, CopyRequest> {
 
     private final CopyObjectRequest copyObjectRequest;
-    private final TransferRequestOverrideConfiguration configuration;
+    private final List<TransferListener> transferListeners;
 
     private CopyRequest(DefaultBuilder builder) {
         this.copyObjectRequest = paramNotNull(builder.copyObjectRequest, "copyObjectRequest");
-        this.configuration = builder.configuration;
+        this.transferListeners = builder.transferListeners;
     }
 
     /**
@@ -58,12 +59,12 @@ public final class CopyRequest
     }
 
     /**
-     * @return the optional override configuration
-     * @see Builder#overrideConfiguration(TransferRequestOverrideConfiguration)
+     * @return the List of transferListener.
+     * @see Builder#transferListeners(Collection)
      */
     @Override
-    public Optional<TransferRequestOverrideConfiguration> overrideConfiguration() {
-        return Optional.ofNullable(configuration);
+    public List<TransferListener> transferListeners() {
+        return transferListeners;
     }
 
     /**
@@ -98,13 +99,13 @@ public final class CopyRequest
         if (!Objects.equals(copyObjectRequest, that.copyObjectRequest)) {
             return false;
         }
-        return Objects.equals(configuration, that.configuration);
+        return Objects.equals(transferListeners, that.transferListeners);
     }
 
     @Override
     public int hashCode() {
         int result = copyObjectRequest != null ? copyObjectRequest.hashCode() : 0;
-        result = 31 * result + (configuration != null ? configuration.hashCode() : 0);
+        result = 31 * result + (transferListeners != null ? transferListeners.hashCode() : 0);
         return result;
     }
 
@@ -112,7 +113,7 @@ public final class CopyRequest
     public String toString() {
         return ToString.builder("CopyRequest")
                        .add("copyRequest", copyObjectRequest)
-                       .add("configuration", configuration)
+                       .add("transferListeners", transferListeners)
                        .build();
     }
 
@@ -150,28 +151,24 @@ public final class CopyRequest
         }
 
         /**
-         * Add an optional request override configuration.
+         * The {@link TransferListener}s that will be notified as part of this request. This method overrides and replaces any
+         * transferListeners that have already been set. Add an optional request override configuration.
          *
-         * @param configuration The override configuration.
+         * @param transferListeners     the collection of transferListeners
+         * @return Returns a reference to this object so that method calls can be chained together.
          * @return This builder for method chaining.
+         * @see TransferListener
          */
-        Builder overrideConfiguration(TransferRequestOverrideConfiguration configuration);
+        Builder transferListeners(Collection<TransferListener> transferListeners);
 
         /**
-         * Similar to {@link #overrideConfiguration(TransferRequestOverrideConfiguration)}, but takes a lambda to configure a new
-         * {@link TransferRequestOverrideConfiguration.Builder}. This removes the need to call {@link
-         * TransferRequestOverrideConfiguration#builder()} and {@link TransferRequestOverrideConfiguration.Builder#build()}.
+         * Add a {@link TransferListener} that will be notified as part of this request.
          *
-         * @param configurationBuilder the copy configuration
-         * @return this builder for method chaining.
-         * @see #overrideConfiguration(TransferRequestOverrideConfiguration)
+         * @param transferListener the transferListener to add
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see TransferListener
          */
-        default Builder overrideConfiguration(Consumer<TransferRequestOverrideConfiguration.Builder> configurationBuilder) {
-            Validate.paramNotNull(configurationBuilder, "configurationBuilder");
-            return overrideConfiguration(TransferRequestOverrideConfiguration.builder()
-                                                                             .applyMutation(configurationBuilder)
-                                                                             .build());
-        }
+        Builder addTransferListener(TransferListener transferListener);
 
         /**
          * @return The built request.
@@ -182,14 +179,14 @@ public final class CopyRequest
 
     private static class DefaultBuilder implements Builder {
         private CopyObjectRequest copyObjectRequest;
-        private TransferRequestOverrideConfiguration configuration;
+        private List<TransferListener> transferListeners;
 
         private DefaultBuilder() {
         }
 
         private DefaultBuilder(CopyRequest copyRequest) {
             this.copyObjectRequest = copyRequest.copyObjectRequest;
-            this.configuration = copyRequest.configuration;
+            this.transferListeners = copyRequest.transferListeners;
         }
 
         @Override
@@ -207,17 +204,26 @@ public final class CopyRequest
         }
 
         @Override
-        public Builder overrideConfiguration(TransferRequestOverrideConfiguration configuration) {
-            this.configuration = configuration;
+        public DefaultBuilder transferListeners(Collection<TransferListener> transferListeners) {
+            this.transferListeners = transferListeners != null ? new ArrayList<>(transferListeners) : null;
             return this;
         }
 
-        public void setOverrideConfiguration(TransferRequestOverrideConfiguration configuration) {
-            overrideConfiguration(configuration);
+        @Override
+        public DefaultBuilder addTransferListener(TransferListener transferListener) {
+            if (transferListeners == null) {
+                transferListeners = new ArrayList<>();
+            }
+            transferListeners.add(transferListener);
+            return this;
         }
 
-        public TransferRequestOverrideConfiguration getOverrideConfiguration() {
-            return configuration;
+        public List<TransferListener> getTransferListeners() {
+            return transferListeners;
+        }
+
+        public void setTransferListeners(Collection<TransferListener> transferListeners) {
+            transferListeners(transferListeners);
         }
 
         @Override

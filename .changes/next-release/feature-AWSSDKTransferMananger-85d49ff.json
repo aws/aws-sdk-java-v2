@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK Transfer Mananger",
+    "contributor": "",
+    "description": "Flattened and removed OverrideConfigurations such that these can be configured directly to S3TransferManagerBuilder, upload and transfer Requests. Also refactored certain attributes and API names to represent better meaningful names."
+}

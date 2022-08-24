@@ -16,8 +16,10 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
@@ -26,8 +28,8 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest.TypedBuilder;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -48,12 +50,12 @@ public final class DownloadRequest<ReturnT>
     
     private final AsyncResponseTransformer<GetObjectResponse, ReturnT> responseTransformer;
     private final GetObjectRequest getObjectRequest;
-    private final TransferRequestOverrideConfiguration overrideConfiguration;
+    private final List<TransferListener> transferListeners;
 
     private DownloadRequest(DefaultTypedBuilder<ReturnT> builder) {
         this.responseTransformer = Validate.paramNotNull(builder.responseTransformer, "responseTransformer");
         this.getObjectRequest = Validate.paramNotNull(builder.getObjectRequest, "getObjectRequest");
-        this.overrideConfiguration = builder.overrideConfiguration;
+        this.transferListeners = builder.transferListeners;
     }
 
     /**
@@ -89,12 +91,12 @@ public final class DownloadRequest<ReturnT>
     }
 
     /**
-     * @return the optional override configuration
-     * @see TypedBuilder#overrideConfiguration(TransferRequestOverrideConfiguration)
+     * @return the List of transferListeners.
+     * @see TypedBuilder#transferListeners(Collection)
      */
     @Override
-    public Optional<TransferRequestOverrideConfiguration> overrideConfiguration() {
-        return Optional.ofNullable(overrideConfiguration);
+    public List<TransferListener> transferListeners() {
+        return transferListeners;
     }
 
     @Override
@@ -114,14 +116,14 @@ public final class DownloadRequest<ReturnT>
         if (!Objects.equals(getObjectRequest, that.getObjectRequest)) {
             return false;
         }
-        return Objects.equals(overrideConfiguration, that.overrideConfiguration);
+        return Objects.equals(transferListeners, that.transferListeners);
     }
 
     @Override
     public int hashCode() {
         int result = responseTransformer != null ? responseTransformer.hashCode() : 0;
         result = 31 * result + (getObjectRequest != null ? getObjectRequest.hashCode() : 0);
-        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
+        result = 31 * result + (transferListeners != null ? transferListeners.hashCode() : 0);
         return result;
     }
 
@@ -130,7 +132,7 @@ public final class DownloadRequest<ReturnT>
         return ToString.builder("DownloadRequest")
                        .add("responseTransformer", responseTransformer)
                        .add("getObjectRequest", getObjectRequest)
-                       .add("overrideConfiguration", overrideConfiguration)
+                       .add("transferListeners", transferListeners)
                        .build();
     }
 
@@ -174,29 +176,24 @@ public final class DownloadRequest<ReturnT>
         }
 
         /**
-         * Add an optional request override configuration.
+         * The {@link TransferListener}s that will be notified as part of this request. This method overrides and replaces any
+         * transferListeners that have already been set. Add an optional request override configuration.
          *
-         * @param configuration The override configuration.
+         * @param transferListeners     the collection of transferListeners
+         * @return Returns a reference to this object so that method calls can be chained together.
          * @return This builder for method chaining.
+         * @see TransferListener
          */
-        UntypedBuilder overrideConfiguration(TransferRequestOverrideConfiguration configuration);
+        UntypedBuilder transferListeners(Collection<TransferListener> transferListeners);
 
         /**
-         * Similar to {@link #overrideConfiguration(TransferRequestOverrideConfiguration)}, but takes a lambda to configure a new
-         * {@link TransferRequestOverrideConfiguration.Builder}. This removes the need to call {@link
-         * TransferRequestOverrideConfiguration#builder()} and {@link TransferRequestOverrideConfiguration.Builder#build()}.
+         * Add a {@link TransferListener} that will be notified as part of this request.
          *
-         * @param configurationBuilder the upload configuration
-         * @return this builder for method chaining.
-         * @see #overrideConfiguration(TransferRequestOverrideConfiguration)
+         * @param transferListener the transferListener to add
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see TransferListener
          */
-        default UntypedBuilder overrideConfiguration(
-            Consumer<TransferRequestOverrideConfiguration.Builder> configurationBuilder) {
-            Validate.paramNotNull(configurationBuilder, "configurationBuilder");
-            return overrideConfiguration(TransferRequestOverrideConfiguration.builder()
-                                                                             .applyMutation(configurationBuilder)
-                                                                             .build());
-        }
+        UntypedBuilder addTransferListener(TransferListener transferListener);
 
         /**
          * Specifies the {@link AsyncResponseTransformer} that should be used for the download. This method also infers the
@@ -224,7 +221,7 @@ public final class DownloadRequest<ReturnT>
 
     private static class DefaultUntypedBuilder implements UntypedBuilder {
         private GetObjectRequest getObjectRequest;
-        private TransferRequestOverrideConfiguration configuration;
+        private List<TransferListener> transferListeners;
 
         private DefaultUntypedBuilder() {
         }
@@ -236,16 +233,33 @@ public final class DownloadRequest<ReturnT>
         }
 
         @Override
-        public UntypedBuilder overrideConfiguration(TransferRequestOverrideConfiguration configuration) {
-            this.configuration = configuration;
+        public UntypedBuilder transferListeners(Collection<TransferListener> transferListeners) {
+            this.transferListeners = transferListeners != null ? new ArrayList<>(transferListeners) : null;
             return this;
+        }
+
+        @Override
+        public UntypedBuilder addTransferListener(TransferListener transferListener) {
+            if (transferListeners == null) {
+                transferListeners = new ArrayList<>();
+            }
+            transferListeners.add(transferListener);
+            return this;
+        }
+
+        public List<TransferListener> getTransferListeners() {
+            return transferListeners;
+        }
+
+        public void setTransferListeners(Collection<TransferListener> transferListeners) {
+            transferListeners(transferListeners);
         }
 
         @Override
         public <T> TypedBuilder<T> responseTransformer(AsyncResponseTransformer<GetObjectResponse, T> responseTransformer) {
             return new DefaultTypedBuilder<T>()
                 .getObjectRequest(getObjectRequest)
-                .overrideConfiguration(configuration)
+                .transferListeners(transferListeners)
                 .responseTransformer(responseTransformer);
         }
     }
@@ -285,29 +299,24 @@ public final class DownloadRequest<ReturnT>
         }
 
         /**
-         * Add an optional request override configuration.
+         * The {@link TransferListener}s that will be notified as part of this request. This method overrides and replaces any
+         * transferListeners that have already been set. Add an optional request override configuration.
          *
-         * @param configuration The override configuration.
+         * @param transferListeners     the collection of transferListeners
+         * @return Returns a reference to this object so that method calls can be chained together.
          * @return This builder for method chaining.
+         * @see TransferListener
          */
-        TypedBuilder<T> overrideConfiguration(TransferRequestOverrideConfiguration configuration);
+        TypedBuilder<T> transferListeners(Collection<TransferListener> transferListeners);
 
         /**
-         * Similar to {@link #overrideConfiguration(TransferRequestOverrideConfiguration)}, but takes a lambda to configure a new
-         * {@link TransferRequestOverrideConfiguration.Builder}. This removes the need to call {@link
-         * TransferRequestOverrideConfiguration#builder()} and {@link TransferRequestOverrideConfiguration.Builder#build()}.
+         * Add a {@link TransferListener} that will be notified as part of this request.
          *
-         * @param configurationBuilder the upload configuration
-         * @return this builder for method chaining.
-         * @see #overrideConfiguration(TransferRequestOverrideConfiguration)
+         * @param transferListener the transferListener to add
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see TransferListener
          */
-        default TypedBuilder<T> overrideConfiguration(
-            Consumer<TransferRequestOverrideConfiguration.Builder> configurationBuilder) {
-            Validate.paramNotNull(configurationBuilder, "configurationBuilder");
-            return overrideConfiguration(TransferRequestOverrideConfiguration.builder()
-                                                                             .applyMutation(configurationBuilder)
-                                                                             .build());
-        }
+        TypedBuilder<T> addTransferListener(TransferListener transferListener);
 
         /**
          * Specifies the {@link AsyncResponseTransformer} that should be used for the download. The generic type used is
@@ -323,7 +332,7 @@ public final class DownloadRequest<ReturnT>
     
     private static class DefaultTypedBuilder<T> implements TypedBuilder<T> {
         private GetObjectRequest getObjectRequest;
-        private TransferRequestOverrideConfiguration overrideConfiguration;
+        private List<TransferListener> transferListeners;
         private AsyncResponseTransformer<GetObjectResponse, T> responseTransformer;
 
         private DefaultTypedBuilder() {
@@ -332,7 +341,7 @@ public final class DownloadRequest<ReturnT>
         private DefaultTypedBuilder(DownloadRequest<T> request) {
             this.getObjectRequest = request.getObjectRequest;
             this.responseTransformer = request.responseTransformer;
-            this.overrideConfiguration = request.overrideConfiguration;
+            this.transferListeners = request.transferListeners;
         }
 
         @Override
@@ -342,17 +351,33 @@ public final class DownloadRequest<ReturnT>
         }
 
         @Override
-        public DefaultTypedBuilder<T> overrideConfiguration(TransferRequestOverrideConfiguration configuration) {
-            this.overrideConfiguration = configuration;
-            return this;
-        }
-
-        @Override
         public TypedBuilder<T> responseTransformer(AsyncResponseTransformer<GetObjectResponse, T> responseTransformer) {
             this.responseTransformer = responseTransformer;
             return this;
         }
 
+        @Override
+        public TypedBuilder<T> transferListeners(Collection<TransferListener> transferListeners) {
+            this.transferListeners = transferListeners != null ? new ArrayList<>(transferListeners) : null;
+            return this;
+        }
+
+        @Override
+        public TypedBuilder<T> addTransferListener(TransferListener transferListener) {
+            if (transferListeners == null) {
+                transferListeners = new ArrayList<>();
+            }
+            transferListeners.add(transferListener);
+            return this;
+        }
+
+        public List<TransferListener> getTransferListeners() {
+            return transferListeners;
+        }
+
+        public void setTransferListeners(Collection<TransferListener> transferListeners) {
+            transferListeners(transferListeners);
+        }
 
         @Override
         public DownloadRequest<T> build() {

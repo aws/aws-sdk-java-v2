@@ -81,7 +81,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         FileUpload fileUpload =
             tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET).key(TEST_KEY).metadata(metadata))
                                 .source(testFile.toPath())
-                                .overrideConfiguration(o -> o.addListener(LoggingTransferListener.create()))
+                                .addTransferListener(LoggingTransferListener.create())
                                 .build());
 
         CompletedFileUpload completedFileUpload = fileUpload.completionFuture().join();
@@ -105,7 +105,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
             tm.upload(UploadRequest.builder()
                                    .putObjectRequest(b -> b.bucket(TEST_BUCKET).key(TEST_KEY))
                                    .requestBody(AsyncRequestBody.fromString(content))
-                                   .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                   .addTransferListener(LoggingTransferListener.create())
                                    .build());
 
         CompletedUpload completedUpload = upload.completionFuture().join();

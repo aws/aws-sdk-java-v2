@@ -30,6 +30,8 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -47,7 +49,6 @@ import software.amazon.awssdk.services.s3.model.EncodingType;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
-import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
@@ -58,6 +59,7 @@ import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 
 public class DownloadDirectoryHelperTest {
     private static FileSystem jimfs;
@@ -229,16 +231,16 @@ public class DownloadDirectoryHelperTest {
         when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
         Path newDestination = Paths.get("/new/path");
         GetObjectRequest newGetObjectRequest = GetObjectRequest.builder().build();
-        TransferRequestOverrideConfiguration newOverrideConfiguration = TransferRequestOverrideConfiguration.builder()
-                                                                                                         .addListener(LoggingTransferListener.create())
-                                                                                                         .build();
+
+        List<TransferListener> newTransferListener = Arrays.asList(LoggingTransferListener.create());
+
         DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
                                                                               .destination(directory)
                                                                               .bucket("bucket")
                                                                               .downloadFileRequestTransformer(d -> d.destination(newDestination)
                                                                                                                     .getObjectRequest(newGetObjectRequest)
-                                                                                                                    .overrideConfiguration(newOverrideConfiguration))
+                                                                                                                    .transferListeners(newTransferListener))
                                                                               .build());
 
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
@@ -249,7 +251,7 @@ public class DownloadDirectoryHelperTest {
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
         assertThat(argumentCaptor.getAllValues()).allSatisfy(d -> {
             assertThat(d.getObjectRequest()).isEqualTo(newGetObjectRequest);
-            assertThat(d.overrideConfiguration()).hasValue(newOverrideConfiguration);
+            assertThat(d.transferListeners()).isEqualTo(newTransferListener);
             assertThat(d.destination()).isEqualTo(newDestination);
         });
     }
@@ -304,7 +306,7 @@ public class DownloadDirectoryHelperTest {
     private FileDownload newDownload(CompletableFuture<CompletedFileDownload> future) {
         return new DefaultFileDownload(future,
                                        new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
-                                                                                                  .bytesTransferred(0L)
+                                                                                                  .transferredBytes(0L)
                                                                                                   .build()),
                                        () -> DownloadFileRequest.builder().destination(Paths.get(
                                            ".")).getObjectRequest(GetObjectRequest.builder().build()).build(),

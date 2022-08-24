@@ -25,13 +25,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.config.UploadDirectoryOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.ExecutorUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * Contains resolved configuration settings for {@link S3TransferManager}.
@@ -41,17 +39,12 @@ import software.amazon.awssdk.utils.Validate;
 public class TransferManagerConfiguration implements SdkAutoCloseable {
     private final AttributeMap options;
 
+
     private TransferManagerConfiguration(Builder builder) {
-        UploadDirectoryOverrideConfiguration uploadDirectoryConfiguration =
-            Validate.paramNotNull(builder.uploadDirectoryOverrideConfiguration, "uploadDirectoryOverrideConfiguration");
         AttributeMap.Builder standardOptions = AttributeMap.builder();
-
-        standardOptions.put(TransferConfigurationOption.UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS,
-                            uploadDirectoryConfiguration.followSymbolicLinks().orElse(null));
-        standardOptions.put(TransferConfigurationOption.UPLOAD_DIRECTORY_MAX_DEPTH,
-                            uploadDirectoryConfiguration.maxDepth().orElse(null));
+        standardOptions.put(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS, builder.followSymbolicLinks);
+        standardOptions.put(UPLOAD_DIRECTORY_MAX_DEPTH, builder.maxDepth);
         finalizeExecutor(builder, standardOptions);
-
         options = standardOptions.build().merge(TRANSFER_MANAGER_DEFAULTS);
     }
 
@@ -72,14 +65,12 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
     }
 
     public boolean resolveUploadDirectoryFollowSymbolicLinks(UploadDirectoryRequest request) {
-        return request.overrideConfiguration()
-                      .flatMap(UploadDirectoryOverrideConfiguration::followSymbolicLinks)
+        return request.followSymbolicLinks()
                       .orElseGet(() -> options.get(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS));
     }
 
     public int resolveUploadDirectoryMaxDepth(UploadDirectoryRequest request) {
-        return request.overrideConfiguration()
-                      .flatMap(UploadDirectoryOverrideConfiguration::maxDepth)
+        return request.maxDepth()
                       .orElseGet(() -> options.get(UPLOAD_DIRECTORY_MAX_DEPTH));
     }
 
@@ -106,13 +97,36 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
     }
 
     public static final class Builder {
-        private UploadDirectoryOverrideConfiguration uploadDirectoryOverrideConfiguration =
-            UploadDirectoryOverrideConfiguration.builder().build();
+
+        private Boolean followSymbolicLinks;
+        private Integer maxDepth;
         private Executor executor;
 
-        public Builder uploadDirectoryConfiguration(UploadDirectoryOverrideConfiguration configuration) {
-            this.uploadDirectoryOverrideConfiguration = configuration;
+
+        public Builder followSymbolicLinks(Boolean followSymbolicLinks) {
+            this.followSymbolicLinks = followSymbolicLinks;
             return this;
+        }
+
+        public void setFollowSymbolicLinks(Boolean followSymbolicLinks) {
+            followSymbolicLinks(followSymbolicLinks);
+        }
+
+        public Boolean getFollowSymbolicLinks() {
+            return followSymbolicLinks;
+        }
+
+        public Builder maxDepth(Integer maxDepth) {
+            this.maxDepth = maxDepth;
+            return this;
+        }
+
+        public void setMaxDepth(Integer maxDepth) {
+            maxDepth(maxDepth);
+        }
+
+        public Integer getMaxDepth() {
+            return maxDepth;
         }
 
         public Builder executor(Executor executor) {

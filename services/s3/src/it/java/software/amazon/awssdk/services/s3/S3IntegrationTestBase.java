@@ -71,7 +71,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
                                 new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC)));
     }
 
-    protected static S3CrtAsyncClient.S3CrtAsyncClientBuilder crtClientBuilder() {
+    protected static S3CrtAsyncClientBuilder crtClientBuilder() {
         return S3AsyncClient.crtBuilder()
                             .region(DEFAULT_REGION)
                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);

@@ -96,7 +96,7 @@ public class S3TransferManagerListenerTest {
                                                                .putObjectRequest(r -> r.bucket("bucket")
                                                                                        .key("key"))
                                                                .source(path)
-                                                               .overrideConfiguration(b -> b.addListener(listener))
+                                                               .addTransferListener(listener)
                                                                .build();
         FileUpload fileUpload = tm.uploadFile(uploadFileRequest);
 
@@ -105,24 +105,24 @@ public class S3TransferManagerListenerTest {
         verify(listener, timeout(1000).times(1)).transferInitiated(captor1.capture());
         TransferListener.Context.TransferInitiated ctx1 = captor1.getValue();
         assertThat(ctx1.request()).isSameAs(uploadFileRequest);
-        assertThat(ctx1.progressSnapshot().transferSizeInBytes()).hasValue(contentLength);
-        assertThat(ctx1.progressSnapshot().bytesTransferred()).isZero();
+        assertThat(ctx1.progressSnapshot().totalBytes()).hasValue(contentLength);
+        assertThat(ctx1.progressSnapshot().transferredBytes()).isZero();
 
         ArgumentCaptor<TransferListener.Context.BytesTransferred> captor2 =
             ArgumentCaptor.forClass(TransferListener.Context.BytesTransferred.class);
         verify(listener, timeout(1000).times(1)).bytesTransferred(captor2.capture());
         TransferListener.Context.BytesTransferred ctx2 = captor2.getValue();
         assertThat(ctx2.request()).isSameAs(uploadFileRequest);
-        assertThat(ctx2.progressSnapshot().transferSizeInBytes()).hasValue(contentLength);
-        assertThat(ctx2.progressSnapshot().bytesTransferred()).isPositive();
+        assertThat(ctx2.progressSnapshot().totalBytes()).hasValue(contentLength);
+        assertThat(ctx2.progressSnapshot().transferredBytes()).isPositive();
 
         ArgumentCaptor<TransferListener.Context.TransferComplete> captor3 =
             ArgumentCaptor.forClass(TransferListener.Context.TransferComplete.class);
         verify(listener, timeout(1000).times(1)).transferComplete(captor3.capture());
         TransferListener.Context.TransferComplete ctx3 = captor3.getValue();
         assertThat(ctx3.request()).isSameAs(uploadFileRequest);
-        assertThat(ctx3.progressSnapshot().transferSizeInBytes()).hasValue(contentLength);
-        assertThat(ctx3.progressSnapshot().bytesTransferred()).isEqualTo(contentLength);
+        assertThat(ctx3.progressSnapshot().totalBytes()).hasValue(contentLength);
+        assertThat(ctx3.progressSnapshot().transferredBytes()).isEqualTo(contentLength);
         assertThat(ctx3.completedTransfer()).isSameAs(fileUpload.completionFuture().get());
 
         fileUpload.completionFuture().join();
@@ -137,7 +137,7 @@ public class S3TransferManagerListenerTest {
                                                    .putObjectRequest(r -> r.bucket("bucket")
                                                                            .key("key"))
                                                    .requestBody(AsyncRequestBody.fromString("foo"))
-                                                   .overrideConfiguration(b -> b.addListener(listener))
+                                                   .addTransferListener(listener)
                                                    .build();
         Upload upload = tm.upload(uploadRequest);
 
@@ -146,24 +146,24 @@ public class S3TransferManagerListenerTest {
         verify(listener, timeout(1000).times(1)).transferInitiated(captor1.capture());
         TransferListener.Context.TransferInitiated ctx1 = captor1.getValue();
         assertThat(ctx1.request()).isSameAs(uploadRequest);
-        assertThat(ctx1.progressSnapshot().transferSizeInBytes()).hasValue(3L);
-        assertThat(ctx1.progressSnapshot().bytesTransferred()).isZero();
+        assertThat(ctx1.progressSnapshot().totalBytes()).hasValue(3L);
+        assertThat(ctx1.progressSnapshot().transferredBytes()).isZero();
 
         ArgumentCaptor<TransferListener.Context.BytesTransferred> captor2 =
             ArgumentCaptor.forClass(TransferListener.Context.BytesTransferred.class);
         verify(listener, timeout(1000).times(1)).bytesTransferred(captor2.capture());
         TransferListener.Context.BytesTransferred ctx2 = captor2.getValue();
         assertThat(ctx2.request()).isSameAs(uploadRequest);
-        assertThat(ctx2.progressSnapshot().transferSizeInBytes()).hasValue(3L);
-        assertThat(ctx2.progressSnapshot().bytesTransferred()).isPositive();
+        assertThat(ctx2.progressSnapshot().totalBytes()).hasValue(3L);
+        assertThat(ctx2.progressSnapshot().transferredBytes()).isPositive();
 
         ArgumentCaptor<TransferListener.Context.TransferComplete> captor3 =
             ArgumentCaptor.forClass(TransferListener.Context.TransferComplete.class);
         verify(listener, timeout(1000).times(1)).transferComplete(captor3.capture());
         TransferListener.Context.TransferComplete ctx3 = captor3.getValue();
         assertThat(ctx3.request()).isSameAs(uploadRequest);
-        assertThat(ctx3.progressSnapshot().transferSizeInBytes()).hasValue(3L);
-        assertThat(ctx3.progressSnapshot().bytesTransferred()).isEqualTo(3L);
+        assertThat(ctx3.progressSnapshot().totalBytes()).hasValue(3L);
+        assertThat(ctx3.progressSnapshot().transferredBytes()).isEqualTo(3L);
         assertThat(ctx3.completedTransfer()).isSameAs(upload.completionFuture().get());
 
         upload.completionFuture().join();
@@ -178,7 +178,7 @@ public class S3TransferManagerListenerTest {
                                                                  .getObjectRequest(r -> r.bucket("bucket")
                                                                                          .key("key"))
                                                                  .destination(newTempFile())
-                                                                 .overrideConfiguration(b -> b.addListener(listener))
+                                                                 .addTransferListener(listener)
                                                                  .build();
         FileDownload download = tm.downloadFile(downloadRequest);
 
@@ -188,8 +188,8 @@ public class S3TransferManagerListenerTest {
         TransferListener.Context.TransferInitiated ctx1 = captor1.getValue();
         assertThat(ctx1.request()).isSameAs(downloadRequest);
         // transferSize is not known until we receive GetObjectResponse header
-        assertThat(ctx1.progressSnapshot().transferSizeInBytes()).isNotPresent();
-        assertThat(ctx1.progressSnapshot().bytesTransferred()).isZero();
+        assertThat(ctx1.progressSnapshot().totalBytes()).isNotPresent();
+        assertThat(ctx1.progressSnapshot().transferredBytes()).isZero();
 
         ArgumentCaptor<TransferListener.Context.BytesTransferred> captor2 =
             ArgumentCaptor.forClass(TransferListener.Context.BytesTransferred.class);
@@ -197,16 +197,16 @@ public class S3TransferManagerListenerTest {
         TransferListener.Context.BytesTransferred ctx2 = captor2.getValue();
         assertThat(ctx2.request()).isSameAs(downloadRequest);
         // transferSize should now be known
-        assertThat(ctx2.progressSnapshot().transferSizeInBytes()).hasValue(contentLength);
-        assertThat(ctx2.progressSnapshot().bytesTransferred()).isPositive();
+        assertThat(ctx2.progressSnapshot().totalBytes()).hasValue(contentLength);
+        assertThat(ctx2.progressSnapshot().transferredBytes()).isPositive();
 
         ArgumentCaptor<TransferListener.Context.TransferComplete> captor3 =
             ArgumentCaptor.forClass(TransferListener.Context.TransferComplete.class);
         verify(listener, timeout(1000).times(1)).transferComplete(captor3.capture());
         TransferListener.Context.TransferComplete ctx3 = captor3.getValue();
         assertThat(ctx3.request()).isSameAs(downloadRequest);
-        assertThat(ctx3.progressSnapshot().transferSizeInBytes()).hasValue(contentLength);
-        assertThat(ctx3.progressSnapshot().bytesTransferred()).isEqualTo(contentLength);
+        assertThat(ctx3.progressSnapshot().totalBytes()).hasValue(contentLength);
+        assertThat(ctx3.progressSnapshot().transferredBytes()).isEqualTo(contentLength);
         assertThat(ctx3.completedTransfer()).isSameAs(download.completionFuture().get());
 
         download.completionFuture().join();
@@ -223,7 +223,7 @@ public class S3TransferManagerListenerTest {
                                                        "bucket")
                                                    .key("key"))
                            .responseTransformer(AsyncResponseTransformer.toBytes())
-                           .overrideConfiguration(b -> b.addListener(listener))
+                           .addTransferListener(listener)
                            .build();
         Download<ResponseBytes<GetObjectResponse>> download = tm.download(downloadRequest);
 
@@ -233,8 +233,8 @@ public class S3TransferManagerListenerTest {
         TransferListener.Context.TransferInitiated ctx1 = captor1.getValue();
         assertThat(ctx1.request()).isSameAs(downloadRequest);
         // transferSize is not known until we receive GetObjectResponse header
-        assertThat(ctx1.progressSnapshot().transferSizeInBytes()).isNotPresent();
-        assertThat(ctx1.progressSnapshot().bytesTransferred()).isZero();
+        assertThat(ctx1.progressSnapshot().totalBytes()).isNotPresent();
+        assertThat(ctx1.progressSnapshot().transferredBytes()).isZero();
 
         ArgumentCaptor<TransferListener.Context.BytesTransferred> captor2 =
             ArgumentCaptor.forClass(TransferListener.Context.BytesTransferred.class);
@@ -242,16 +242,16 @@ public class S3TransferManagerListenerTest {
         TransferListener.Context.BytesTransferred ctx2 = captor2.getValue();
         assertThat(ctx2.request()).isSameAs(downloadRequest);
         // transferSize should now be known
-        assertThat(ctx2.progressSnapshot().transferSizeInBytes()).hasValue(contentLength);
-        assertThat(ctx2.progressSnapshot().bytesTransferred()).isPositive();
+        assertThat(ctx2.progressSnapshot().totalBytes()).hasValue(contentLength);
+        assertThat(ctx2.progressSnapshot().transferredBytes()).isPositive();
 
         ArgumentCaptor<TransferListener.Context.TransferComplete> captor3 =
             ArgumentCaptor.forClass(TransferListener.Context.TransferComplete.class);
         verify(listener, timeout(1000).times(1)).transferComplete(captor3.capture());
         TransferListener.Context.TransferComplete ctx3 = captor3.getValue();
         assertThat(ctx3.request()).isSameAs(downloadRequest);
-        assertThat(ctx3.progressSnapshot().transferSizeInBytes()).hasValue(contentLength);
-        assertThat(ctx3.progressSnapshot().bytesTransferred()).isEqualTo(contentLength);
+        assertThat(ctx3.progressSnapshot().totalBytes()).hasValue(contentLength);
+        assertThat(ctx3.progressSnapshot().transferredBytes()).isEqualTo(contentLength);
         assertThat(ctx3.completedTransfer()).isSameAs(download.completionFuture().get());
 
         download.completionFuture().join();
@@ -269,7 +269,7 @@ public class S3TransferManagerListenerTest {
                                                                .putObjectRequest(r -> r.bucket("bucket")
                                                                                        .key("key"))
                                                                .source(path)
-                                                               .overrideConfiguration(b -> b.addListener(listener))
+                                                               .addTransferListener(listener)
                                                                .build();
         SdkClientException sdkClientException = SdkClientException.create("");
         when(s3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
@@ -286,14 +286,14 @@ public class S3TransferManagerListenerTest {
         verify(listener, timeout(1000).times(1)).transferInitiated(captor1.capture());
         TransferListener.Context.TransferInitiated ctx1 = captor1.getValue();
         assertThat(ctx1.request()).isSameAs(uploadFileRequest);
-        assertThat(ctx1.progressSnapshot().bytesTransferred()).isZero();
+        assertThat(ctx1.progressSnapshot().transferredBytes()).isZero();
 
         ArgumentCaptor<TransferListener.Context.TransferFailed> captor2 =
             ArgumentCaptor.forClass(TransferListener.Context.TransferFailed.class);
         verify(listener, timeout(1000).times(1)).transferFailed(captor2.capture());
         TransferListener.Context.TransferFailed ctx2 = captor2.getValue();
         assertThat(ctx2.request()).isSameAs(uploadFileRequest);
-        assertThat(ctx2.progressSnapshot().bytesTransferred()).isZero();
+        assertThat(ctx2.progressSnapshot().transferredBytes()).isZero();
         assertThat(ctx2.exception()).isEqualTo(sdkClientException);
 
         verifyNoMoreInteractions(listener);
@@ -310,7 +310,7 @@ public class S3TransferManagerListenerTest {
                                                                .putObjectRequest(r -> r.bucket("bucket")
                                                                                        .key("key"))
                                                                .source(path)
-                                                               .overrideConfiguration(b -> b.addListener(listener))
+                                                               .addTransferListener(listener)
                                                                .build();
         FileUpload fileUpload = tm.uploadFile(uploadFileRequest);
 

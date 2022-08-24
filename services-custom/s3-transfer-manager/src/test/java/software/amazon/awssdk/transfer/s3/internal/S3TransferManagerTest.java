@@ -48,7 +48,6 @@ import software.amazon.awssdk.transfer.s3.model.CopyRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.config.S3TransferManagerOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
@@ -58,7 +57,6 @@ class S3TransferManagerTest {
     private UploadDirectoryHelper uploadDirectoryHelper;
     private DownloadDirectoryHelper downloadDirectoryHelper;
     private TransferManagerConfiguration configuration;
-
 
 
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
@@ -346,7 +344,7 @@ class S3TransferManagerTest {
     @Test
     void close_shouldNotCloseCloseS3AsyncClientPassedInBuilder_when_transferManagerClosed() {
         S3TransferManager transferManager =
-            DefaultS3TransferManager.builder().s3AsyncClient(mockS3Crt).transferConfiguration(S3TransferManagerOverrideConfiguration.builder().build()).build();
+            DefaultS3TransferManager.builder().s3AsyncClient(mockS3Crt).build();
         transferManager.close();
         verify(mockS3Crt, times(0)).close();
     }

@@ -27,10 +27,12 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -46,11 +48,12 @@ import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
-import software.amazon.awssdk.transfer.s3.config.UploadDirectoryOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
+import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 
 public class UploadDirectoryHelperTest {
     private static FileSystem jimfs;
@@ -183,18 +186,16 @@ public class UploadDirectoryHelperTest {
         PutObjectRequest newPutObjectRequest = PutObjectRequest.builder().build();
         TransferRequestOverrideConfiguration newOverrideConfig = TransferRequestOverrideConfiguration.builder()
                                                                                                      .build();
+        List<TransferListener> listeners = Arrays.asList(LoggingTransferListener.create());
 
-        UploadDirectoryOverrideConfiguration uploadConfig =
-            UploadDirectoryOverrideConfiguration.builder()
-                                                .uploadFileRequestTransformer(r -> r.source(newSource)
-                                                                                    .putObjectRequest(newPutObjectRequest)
-                                                                                    .overrideConfiguration(newOverrideConfig))
-                                                .build();
+        Consumer<UploadFileRequest.Builder> uploadFileRequestTransformer = r -> r.source(newSource)
+                                                                    .putObjectRequest(newPutObjectRequest)
+                                                                    .transferListeners(listeners);
 
         uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                     .sourceDirectory(directory)
                                                                     .bucket("bucket")
-                                                                    .overrideConfiguration(uploadConfig)
+                                                                    .uploadFileRequestTransformer(uploadFileRequestTransformer)
                                                                     .build())
                              .completionFuture()
                              .get(5, TimeUnit.SECONDS);
@@ -204,19 +205,19 @@ public class UploadDirectoryHelperTest {
         assertThat(uploadRequests).element(0).satisfies(r -> {
             assertThat(r.source()).isEqualTo(newSource);
             assertThat(r.putObjectRequest()).isEqualTo(newPutObjectRequest);
-            assertThat(r.overrideConfiguration()).hasValue(newOverrideConfig);
+            assertThat(r.transferListeners()).isEqualTo(listeners);
         });
         assertThat(uploadRequests).element(1).satisfies(r -> {
             assertThat(r.source()).isEqualTo(newSource);
             assertThat(r.putObjectRequest()).isEqualTo(newPutObjectRequest);
-            assertThat(r.overrideConfiguration()).hasValue(newOverrideConfig);
+            assertThat(r.transferListeners()).isEqualTo(listeners);
         });
     }
 
     private FileUpload newUpload(CompletableFuture<CompletedFileUpload> future) {
         return new DefaultFileUpload(future,
                                      new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
-                                                                                                .bytesTransferred(0L)
+                                                                                                .transferredBytes(0L)
                                                                                                 .build())
         );
     }

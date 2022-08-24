@@ -19,11 +19,13 @@ package software.amazon.awssdk.transfer.s3.model;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.config.UploadDirectoryOverrideConfiguration;
+import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -42,15 +44,20 @@ public final class UploadDirectoryRequest
     private final Path sourceDirectory;
     private final String bucket;
     private final String s3Prefix;
-    private final UploadDirectoryOverrideConfiguration overrideConfiguration;
     private final String s3Delimiter;
+    private final Boolean followSymbolicLinks;
+    private final Integer maxDepth;
+    private final Consumer<UploadFileRequest.Builder> uploadFileRequestTransformer;
+
 
     public UploadDirectoryRequest(DefaultBuilder builder) {
         this.sourceDirectory = Validate.paramNotNull(builder.sourceDirectory, "sourceDirectory");
         this.bucket = Validate.paramNotNull(builder.bucket, "bucket");
         this.s3Prefix = builder.s3Prefix;
-        this.overrideConfiguration = builder.configuration;
         this.s3Delimiter = builder.s3Delimiter;
+        this.followSymbolicLinks = builder.followSymbolicLinks;
+        this.maxDepth = builder.maxDepth;
+        this.uploadFileRequestTransformer = builder.uploadFileRequestTransformer;
     }
 
     /**
@@ -89,13 +96,31 @@ public final class UploadDirectoryRequest
         return Optional.ofNullable(s3Delimiter);
     }
 
+
     /**
-     * @return the optional override configuration
-     * @see Builder#overrideConfiguration(UploadDirectoryOverrideConfiguration)
+     * @return whether to follow symbolic links
+     * @see Builder#followSymbolicLinks(Boolean)
      */
-    public Optional<UploadDirectoryOverrideConfiguration> overrideConfiguration() {
-        return Optional.ofNullable(overrideConfiguration);
+    public Optional<Boolean> followSymbolicLinks() {
+        return Optional.ofNullable(followSymbolicLinks);
     }
+
+    /**
+     * @return the maximum number of directory levels to traverse
+     * @see Builder#maxDepth(Integer)
+     */
+    public OptionalInt maxDepth() {
+        return maxDepth == null ? OptionalInt.empty() : OptionalInt.of(maxDepth);
+    }
+
+    /**
+     * @return the upload request transformer if not null, otherwise no-op
+     * @see Builder#uploadFileRequestTransformer(Consumer)
+     */
+    public Consumer<UploadFileRequest.Builder> uploadFileRequestTransformer() {
+        return uploadFileRequestTransformer == null ? ignore -> { } : uploadFileRequestTransformer;
+    }
+
 
     public static Builder builder() {
         return new DefaultBuilder();
@@ -130,7 +155,13 @@ public final class UploadDirectoryRequest
         if (!Objects.equals(s3Prefix, that.s3Prefix)) {
             return false;
         }
-        if (!Objects.equals(overrideConfiguration, that.overrideConfiguration)) {
+        if (!Objects.equals(followSymbolicLinks, that.followSymbolicLinks)) {
+            return false;
+        }
+        if (!Objects.equals(maxDepth, that.maxDepth)) {
+            return false;
+        }
+        if (!Objects.equals(uploadFileRequestTransformer, that.uploadFileRequestTransformer)) {
             return false;
         }
         return Objects.equals(s3Delimiter, that.s3Delimiter);
@@ -141,8 +172,10 @@ public final class UploadDirectoryRequest
         int result = sourceDirectory != null ? sourceDirectory.hashCode() : 0;
         result = 31 * result + (bucket != null ? bucket.hashCode() : 0);
         result = 31 * result + (s3Prefix != null ? s3Prefix.hashCode() : 0);
-        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
         result = 31 * result + (s3Delimiter != null ? s3Delimiter.hashCode() : 0);
+        result = 31 * result + (followSymbolicLinks != null ? followSymbolicLinks.hashCode() : 0);
+        result = 31 * result + (maxDepth != null ? maxDepth.hashCode() : 0);
+        result = 31 * result + (uploadFileRequestTransformer != null ? uploadFileRequestTransformer.hashCode() : 0);
         return result;
     }
 
@@ -153,7 +186,9 @@ public final class UploadDirectoryRequest
                        .add("bucket", bucket)
                        .add("s3Prefix", s3Prefix)
                        .add("s3Delimiter", s3Delimiter)
-                       .add("overrideConfiguration", overrideConfiguration)
+                       .add("followSymbolicLinks", followSymbolicLinks)
+                       .add("maxDepth", maxDepth)
+                       .add("uploadFileRequestTransformer", uploadFileRequestTransformer)
                        .build();
     }
 
@@ -168,7 +203,6 @@ public final class UploadDirectoryRequest
          *
          * @param sourceDirectory the source directory
          * @return This builder for method chaining.
-         * @see UploadDirectoryOverrideConfiguration
          */
         Builder sourceDirectory(Path sourceDirectory);
 
@@ -234,29 +268,72 @@ public final class UploadDirectoryRequest
         Builder s3Delimiter(String s3Delimiter);
 
         /**
-         * Add an optional request override configuration.
+         * Specify whether to follow symbolic links when traversing the file tree in
+         * {@link S3TransferManager#downloadDirectory} operation
+         * <p>
+         * Default to false
          *
-         * @param configuration The override configuration.
+         * @param followSymbolicLinks whether to follow symbolic links
          * @return This builder for method chaining.
          */
-        Builder overrideConfiguration(UploadDirectoryOverrideConfiguration configuration);
+        Builder followSymbolicLinks(Boolean followSymbolicLinks);
 
         /**
-         * Similar to {@link #overrideConfiguration(UploadDirectoryOverrideConfiguration)}, but takes a lambda to configure a new
-         * {@link UploadDirectoryOverrideConfiguration.Builder}. This removes the need to call
-         * {@link UploadDirectoryOverrideConfiguration#builder()} and
-         * {@link UploadDirectoryOverrideConfiguration.Builder#build()}.
+         * Specify the maximum number of levels of directories to visit. Must be positive.
+         * 1 means only the files directly within the provided source directory are visited.
          *
-         * @param uploadConfigurationBuilder the upload configuration
-         * @return this builder for method chaining.
-         * @see #overrideConfiguration(UploadDirectoryOverrideConfiguration)
+         * <p>
+         * Default to {@code Integer.MAX_VALUE}
+         *
+         * @param maxDepth the maximum number of directory levels to visit
+         * @return This builder for method chaining.
          */
-        default Builder overrideConfiguration(Consumer<UploadDirectoryOverrideConfiguration.Builder> uploadConfigurationBuilder) {
-            Validate.paramNotNull(uploadConfigurationBuilder, "uploadConfigurationBuilder");
-            return overrideConfiguration(UploadDirectoryOverrideConfiguration.builder()
-                                                                             .applyMutation(uploadConfigurationBuilder)
-                                                                             .build());
-        }
+        Builder maxDepth(Integer maxDepth);
+
+        /**
+         * Specify a function used to transform the {@link UploadFileRequest}s generated by this {@link UploadDirectoryRequest}.
+         * The provided function is called once for each file that is uploaded, allowing you to modify the paths resolved by
+         * TransferManager on a per-file basis, modify the created {@link PutObjectRequest} before it is passed to S3, or
+         * configure a {@link TransferRequestOverrideConfiguration}.
+         *
+         * <p>The factory receives the {@link UploadFileRequest}s created by Transfer Manager for each file in the directory
+         * being uploaded, and returns a (potentially modified) {@code UploadFileRequest}.
+         *
+         * <p>
+         * <b>Usage Example:</b>
+         * <pre>
+         * {@code
+         * // Add a LoggingTransferListener to every transfer within the upload directory request
+         *
+         * UploadDirectoryOverrideConfiguration directoryUploadConfiguration =
+         *     UploadDirectoryOverrideConfiguration.builder()
+         *         .uploadFileRequestTransformer(request -> request.addTransferListenerf(LoggingTransferListener.create())
+         *         .build();
+         *
+         * UploadDirectoryRequest request =
+         *     UploadDirectoryRequest.builder()
+         *         .sourceDirectory(Paths.get("."))
+         *         .bucket("bucket")
+         *         .prefix("prefix")
+         *         .overrideConfiguration(directoryUploadConfiguration)
+         *         .build()
+         *
+         * UploadDirectoryTransfer uploadDirectory = transferManager.uploadDirectory(request);
+         *
+         * // Wait for the transfer to complete
+         * CompletedUploadDirectory completedUploadDirectory = uploadDirectory.completionFuture().join();
+         *
+         * // Print out the failed uploads
+         * completedUploadDirectory.failedUploads().forEach(System.out::println);
+         * }
+         * </pre>
+         *
+         * @param uploadFileRequestTransformer A transformer to use for modifying the file-level upload requests before execution
+         * @return This builder for method chaining
+         */
+        Builder uploadFileRequestTransformer(Consumer<UploadFileRequest.Builder> uploadFileRequestTransformer);
+
+
 
         @Override
         UploadDirectoryRequest build();
@@ -268,8 +345,10 @@ public final class UploadDirectoryRequest
         private Path sourceDirectory;
         private String bucket;
         private String s3Prefix;
-        private UploadDirectoryOverrideConfiguration configuration;
         private String s3Delimiter;
+        private Boolean followSymbolicLinks;
+        private Integer maxDepth;
+        private Consumer<UploadFileRequest.Builder> uploadFileRequestTransformer;
 
         private DefaultBuilder() {
         }
@@ -278,8 +357,10 @@ public final class UploadDirectoryRequest
             this.sourceDirectory = request.sourceDirectory;
             this.bucket = request.bucket;
             this.s3Prefix = request.s3Prefix;
-            this.configuration = request.overrideConfiguration;
             this.s3Delimiter = request.s3Delimiter;
+            this.followSymbolicLinks = request.followSymbolicLinks;
+            this.maxDepth = request.maxDepth;
+            this.uploadFileRequestTransformer = request.uploadFileRequestTransformer;
         }
 
         @Override
@@ -339,17 +420,45 @@ public final class UploadDirectoryRequest
         }
 
         @Override
-        public Builder overrideConfiguration(UploadDirectoryOverrideConfiguration configuration) {
-            this.configuration = configuration;
+        public Builder followSymbolicLinks(Boolean followSymbolicLinks) {
+            this.followSymbolicLinks = followSymbolicLinks;
             return this;
         }
 
-        public void setOverrideConfiguration(UploadDirectoryOverrideConfiguration configuration) {
-            overrideConfiguration(configuration);
+        public void setFollowSymbolicLinks(Boolean followSymbolicLinks) {
+            followSymbolicLinks(followSymbolicLinks);
         }
 
-        public UploadDirectoryOverrideConfiguration getOverrideConfiguration() {
-            return configuration;
+        public Boolean getFollowSymbolicLinks() {
+            return followSymbolicLinks;
+        }
+
+        @Override
+        public Builder maxDepth(Integer maxDepth) {
+            this.maxDepth = maxDepth;
+            return this;
+        }
+
+        public void setMaxDepth(Integer maxDepth) {
+            maxDepth(maxDepth);
+        }
+
+        public Integer getMaxDepth() {
+            return maxDepth;
+        }
+
+        @Override
+        public Builder uploadFileRequestTransformer(Consumer<UploadFileRequest.Builder> uploadFileRequestTransformer) {
+            this.uploadFileRequestTransformer = uploadFileRequestTransformer;
+            return this;
+        }
+
+        public Consumer<UploadFileRequest.Builder> getUploadFileRequestTransformer() {
+            return uploadFileRequestTransformer;
+        }
+
+        public void setUploadFileRequestTransformer(Consumer<UploadFileRequest.Builder> uploadFileRequestTransformer) {
+            this.uploadFileRequestTransformer = uploadFileRequestTransformer;
         }
 
         @Override

@@ -42,7 +42,7 @@ import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
  * Each {@link TransferListener} callback is invoked with an immutable {@link Context} object. Depending on the current lifecycle
  * of the request, different {@link Context} objects have different attributes available (indicated by the provided context
  * interface). Most notably, every callback is given access to the current {@link TransferProgressSnapshot}, which contains
- * helpful progress-related methods like {@link TransferProgressSnapshot#bytesTransferred()} and {@link
+ * helpful progress-related methods like {@link TransferProgressSnapshot#transferredBytes()} and {@link
  * TransferProgressSnapshot#ratioTransferred()}.
  * <p>
  * A successful transfer callback lifecycle is sequenced as follows:
@@ -89,7 +89,7 @@ import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
  * Upload upload = tm.upload(UploadRequest.builder()
  *                                        .putObjectRequest(b -> b.bucket("bucket").key("key"))
  *                                        .source(Paths.get(...))
- *                                        .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+ *                                        .addTransferListener(LoggingTransferListener.create())
  *                                        .build());
  * }</pre>
  * And then a successful transfer may output something similar to:

@@ -17,15 +17,17 @@ package software.amazon.awssdk.transfer.s3.model;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -44,12 +46,12 @@ public final class DownloadFileRequest
 
     private final Path destination;
     private final GetObjectRequest getObjectRequest;
-    private final TransferRequestOverrideConfiguration configuration;
+    private final List<TransferListener> transferListeners;
 
     private DownloadFileRequest(DefaultBuilder builder) {
         this.destination = Validate.paramNotNull(builder.destination, "destination");
         this.getObjectRequest = Validate.paramNotNull(builder.getObjectRequest, "getObjectRequest");
-        this.configuration = builder.configuration;
+        this.transferListeners = builder.transferListeners;
     }
 
     /**
@@ -84,12 +86,12 @@ public final class DownloadFileRequest
     }
 
     /**
-     * @return the optional override configuration
-     * @see Builder#overrideConfiguration(TransferRequestOverrideConfiguration)
+     *
+     * @return List of {@link TransferListener}s that will be notified as part of this request.
      */
     @Override
-    public Optional<TransferRequestOverrideConfiguration> overrideConfiguration() {
-        return Optional.ofNullable(configuration);
+    public List<TransferListener> transferListeners() {
+        return transferListeners;
     }
 
     @Override
@@ -109,14 +111,14 @@ public final class DownloadFileRequest
         if (!Objects.equals(getObjectRequest, that.getObjectRequest)) {
             return false;
         }
-        return Objects.equals(configuration, that.configuration);
+        return Objects.equals(transferListeners, that.transferListeners);
     }
 
     @Override
     public int hashCode() {
         int result = destination != null ? destination.hashCode() : 0;
         result = 31 * result + (getObjectRequest != null ? getObjectRequest.hashCode() : 0);
-        result = 31 * result + (configuration != null ? configuration.hashCode() : 0);
+        result = 31 * result + (transferListeners != null ? transferListeners.hashCode() : 0);
         return result;
     }
 
@@ -125,7 +127,7 @@ public final class DownloadFileRequest
         return ToString.builder("DownloadFileRequest")
                        .add("destination", destination)
                        .add("getObjectRequest", getObjectRequest)
-                       .add("configuration", configuration)
+                       .add("transferListeners", transferListeners)
                        .build();
     }
 
@@ -190,35 +192,31 @@ public final class DownloadFileRequest
         }
 
         /**
-         * Add an optional request override configuration.
+         * The {@link TransferListener}s that will be notified as part of this request. This method overrides and replaces any
+         * transferListeners that have already been set. Add an optional request override configuration.
          *
-         * @param configuration The override configuration.
+         * @param transferListeners     the collection of transferListeners
+         * @return Returns a reference to this object so that method calls can be chained together.
          * @return This builder for method chaining.
+         * @see TransferListener
          */
-        Builder overrideConfiguration(TransferRequestOverrideConfiguration configuration);
+        Builder transferListeners(Collection<TransferListener> transferListeners);
 
         /**
-         * Similar to {@link #overrideConfiguration(TransferRequestOverrideConfiguration)}, but takes a lambda to configure a new
-         * {@link TransferRequestOverrideConfiguration.Builder}. This removes the need to call
-         * {@link TransferRequestOverrideConfiguration#builder()} and
-         * {@link TransferRequestOverrideConfiguration.Builder#build()}.
+         * Add a {@link TransferListener} that will be notified as part of this request.
          *
-         * @param configurationBuilder the upload configuration
-         * @return this builder for method chaining.
-         * @see #overrideConfiguration(TransferRequestOverrideConfiguration)
+         * @param transferListener the transferListener to add
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see TransferListener
          */
-        default Builder overrideConfiguration(Consumer<TransferRequestOverrideConfiguration.Builder> configurationBuilder) {
-            Validate.paramNotNull(configurationBuilder, "configurationBuilder");
-            return overrideConfiguration(TransferRequestOverrideConfiguration.builder()
-                                                                             .applyMutation(configurationBuilder)
-                                                                             .build());
-        }
+        Builder addTransferListener(TransferListener transferListener);
+
     }
 
     private static final class DefaultBuilder implements Builder {
         private Path destination;
         private GetObjectRequest getObjectRequest;
-        private TransferRequestOverrideConfiguration configuration;
+        private List<TransferListener> transferListeners;
 
         private DefaultBuilder() {
         }
@@ -226,7 +224,7 @@ public final class DownloadFileRequest
         private DefaultBuilder(DownloadFileRequest downloadFileRequest) {
             this.destination = downloadFileRequest.destination;
             this.getObjectRequest = downloadFileRequest.getObjectRequest;
-            this.configuration = downloadFileRequest.configuration;
+            this.transferListeners = downloadFileRequest.transferListeners;
         }
 
         @Override
@@ -244,7 +242,7 @@ public final class DownloadFileRequest
         }
 
         @Override
-        public Builder getObjectRequest(GetObjectRequest getObjectRequest) {
+        public DefaultBuilder getObjectRequest(GetObjectRequest getObjectRequest) {
             this.getObjectRequest = getObjectRequest;
             return this;
         }
@@ -258,17 +256,26 @@ public final class DownloadFileRequest
         }
 
         @Override
-        public Builder overrideConfiguration(TransferRequestOverrideConfiguration configuration) {
-            this.configuration = configuration;
+        public DefaultBuilder transferListeners(Collection<TransferListener> transferListeners) {
+            this.transferListeners = transferListeners != null ? new ArrayList<>(transferListeners) : null;
             return this;
         }
 
-        public void setOverrideConfiguration(TransferRequestOverrideConfiguration configuration) {
-            overrideConfiguration(configuration);
+        @Override
+        public Builder addTransferListener(TransferListener transferListener) {
+            if (transferListeners == null) {
+                transferListeners = new ArrayList<>();
+            }
+            transferListeners.add(transferListener);
+            return this;
         }
 
-        public TransferRequestOverrideConfiguration getOverrideConfiguration() {
-            return configuration;
+        public List<TransferListener> getTransferListeners() {
+            return transferListeners;
+        }
+
+        public void setTransferListeners(Collection<TransferListener> transferListeners) {
+            transferListeners(transferListeners);
         }
 
         @Override

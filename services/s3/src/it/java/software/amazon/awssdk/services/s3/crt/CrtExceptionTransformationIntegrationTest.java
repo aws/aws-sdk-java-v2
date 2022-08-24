@@ -26,6 +26,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -42,7 +43,7 @@ public class CrtExceptionTransformationIntegrationTest extends S3IntegrationTest
 
     private static final int OBJ_SIZE = 8 * 1024;
     private static RandomTempFile testFile;
-    private static S3CrtAsyncClient s3Crt;
+    private static S3AsyncClient s3Crt;
 
     @BeforeAll
     public static void setupFixture() throws Exception {
