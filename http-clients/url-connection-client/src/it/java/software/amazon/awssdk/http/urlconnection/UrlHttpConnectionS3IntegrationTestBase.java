@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.urlconnection;
 
 import java.util.Iterator;
 import java.util.List;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -48,7 +48,7 @@ public class UrlHttpConnectionS3IntegrationTestBase extends AwsTestBase {
      * Loads the AWS account info for the integration tests and creates an S3
      * client for tests to use.
      */
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         s3 = s3ClientBuilder().build();
     }
