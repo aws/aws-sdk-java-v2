@@ -102,10 +102,6 @@ public class CrtCredentialProviderAdapterTest {
 
         Credentials crtCredentials = crtCredentialsProvider.getCredentials().join();
 
-        //assertThat(crtCredentials.getAccessKeyId()).isNull();
-        //assertThat(crtCredentials.getSecretAccessKey()).isNull();
-
-
     }
 
 
