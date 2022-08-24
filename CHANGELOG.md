@@ -1,3 +1,32 @@
+# __2.17.260__ __2022-08-24__
+## __AWS Config__
+  - ### Features
+    - AWS Config now supports ConformancePackTemplate documents in SSM Docs for the deployment and update of conformance packs.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue in sync clients where empty response payloads could cause a null pointer exception.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Documentation updates for AWS Transfer Family
+
+## __Amazon CloudFront__
+  - ### Features
+    - Adds support for CloudFront origin access control (OAC), making it possible to restrict public access to S3 bucket origins in all AWS Regions, those with SSE-KMS, and more.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Documentation Change for IVS API Reference - Doc-only update to type field description for CreateChannel and UpdateChannel actions and for Channel data type. Also added Amazon Resource Names (ARNs) paragraph to Welcome section.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added a new optional property DashboardVisual under ExperienceConfiguration parameter of GenerateEmbedUrlForAnonymousUser and GenerateEmbedUrlForRegisteredUser API operations. This supports embedding of specific visuals in QuickSight dashboards.
+
 # __2.17.259__ __2022-08-23__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
