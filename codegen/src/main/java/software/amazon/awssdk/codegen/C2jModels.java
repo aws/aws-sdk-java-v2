@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen;
 
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
@@ -28,15 +29,18 @@ public class C2jModels {
 
     private final ServiceModel serviceModel;
     private final Waiters waitersModel;
+    private final EndpointRuleSetModel endpointRuleSetModel;
     private final CustomizationConfig customizationConfig;
     private final Paginators paginatorsModel;
 
     private C2jModels(ServiceModel serviceModel,
                       Waiters waitersModel,
+                      EndpointRuleSetModel endpointRuleSetModel,
                       CustomizationConfig customizationConfig,
                       Paginators paginatorsModel) {
         this.serviceModel = serviceModel;
         this.waitersModel = waitersModel;
+        this.endpointRuleSetModel = endpointRuleSetModel;
         this.customizationConfig = customizationConfig;
         this.paginatorsModel = paginatorsModel;
     }
@@ -61,10 +65,15 @@ public class C2jModels {
         return paginatorsModel;
     }
 
+    public EndpointRuleSetModel endpointRuleSetModel() {
+        return endpointRuleSetModel;
+    }
+
     public static class Builder implements SdkBuilder<Builder, C2jModels> {
 
         private ServiceModel serviceModel;
         private Waiters waitersModel;
+        private EndpointRuleSetModel endpointRuleSetModel;
         private CustomizationConfig customizationConfig;
         private Paginators paginatorsModel;
 
@@ -91,11 +100,16 @@ public class C2jModels {
             return this;
         }
 
+        public Builder endpointRuleSetModel(EndpointRuleSetModel endpointRuleSetModel) {
+            this.endpointRuleSetModel = endpointRuleSetModel;
+            return this;
+        }
+
         @Override
         public C2jModels build() {
             Waiters waiters = waitersModel != null ? waitersModel : Waiters.none();
             Paginators paginators = paginatorsModel != null ? paginatorsModel : Paginators.none();
-            return new C2jModels(serviceModel, waiters, customizationConfig, paginators);
+            return new C2jModels(serviceModel, waiters, endpointRuleSetModel, customizationConfig, paginators);
         }
     }
 }
