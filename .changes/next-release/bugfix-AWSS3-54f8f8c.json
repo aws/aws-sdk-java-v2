@@ -1,0 +1,6 @@
+{
+    "category": "AWS S3", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Added usage of createAnonymousCredentials to fix issue where NPE was thrown when AnonymousCredentialsProvider was passed in"
+}
