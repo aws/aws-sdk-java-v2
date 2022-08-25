@@ -38,6 +38,6 @@ public class ResumeTransferProgress implements TransferProgress {
         if (progressFuture.isDone() && !progressFuture.isCompletedExceptionally()) {
             return progressFuture.join().snapshot();
         }
-        return DefaultTransferProgressSnapshot.builder().bytesTransferred(0L).build();
+        return DefaultTransferProgressSnapshot.builder().transferredBytes(0L).build();
     }
 }

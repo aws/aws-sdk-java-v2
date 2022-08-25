@@ -45,7 +45,7 @@ import software.amazon.awssdk.utils.Md5Utils;
 public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(S3CrtGetObjectIntegrationTest.class);
     private static final String KEY = "key";
-    private static S3CrtAsyncClient crtClient;
+    private static S3AsyncClient crtClient;
     private static File file;
     private static ExecutorService executorService;
 

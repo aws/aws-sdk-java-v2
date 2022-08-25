@@ -101,7 +101,7 @@ To monitor a transfer's progress, you can include a `TransferListener` with your
 FileUpload upload =
     tm.uploadFile(u -> u.source(Paths.get("myFile.txt"))
                         .putObjectRequest(p -> p.bucket("bucket").key("key"))
-                        .overrideConfiguration(o -> o.addListener(LoggingTransferListener.create())));
+                        .addTransferListener(LoggingTransferListener.create()));
 upload.completionFuture().join();
 ```
 

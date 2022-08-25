@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -43,7 +44,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
     private static final String WARMUP_KEY = "warmupobject";
 
     protected final S3TransferManager transferManager;
-    protected final S3CrtAsyncClient s3;
+    protected final S3AsyncClient s3;
     protected final S3Client s3Sync;
     protected final String bucket;
     protected final String key;

@@ -110,7 +110,7 @@ public class UploadDirectoryHelperParameterizedTest {
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
-                                                                        .overrideConfiguration(o -> o.followSymbolicLinks(false))
+                                                                        .followSymbolicLinks(false)
                                                                         .build());
         uploadDirectory.completionFuture().join();
 
@@ -137,7 +137,8 @@ public class UploadDirectoryHelperParameterizedTest {
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
-                                                                        .overrideConfiguration(o -> o.maxDepth(1).followSymbolicLinks(true))
+                                                                        .maxDepth(1)
+                                                                        .followSymbolicLinks(true)
                                                                         .build());
         uploadDirectory.completionFuture().join();
 
@@ -162,7 +163,7 @@ public class UploadDirectoryHelperParameterizedTest {
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
-                                                                        .overrideConfiguration(o -> o.followSymbolicLinks(true))
+                                                                        .followSymbolicLinks(true)
                                                                         .build());
         uploadDirectory.completionFuture().join();
 
@@ -230,7 +231,7 @@ public class UploadDirectoryHelperParameterizedTest {
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                         .sourceDirectory(directory)
                                                                         .bucket("bucket")
-                                                                        .overrideConfiguration(o -> o.maxDepth(1))
+                                                                        .maxDepth(1)
                                                                         .build());
         uploadDirectory.completionFuture().join();
 
@@ -272,7 +273,7 @@ public class UploadDirectoryHelperParameterizedTest {
 
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
         DirectoryUpload uploadDirectory = uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                                                      .overrideConfiguration(o -> o.followSymbolicLinks(true))
+                                                                                                      .followSymbolicLinks(true)
                                                                                                       .sourceDirectory(Paths.get(directory.toString(), "symlink"))
                                                                                                       .bucket("bucket").build());
 
@@ -295,7 +296,7 @@ public class UploadDirectoryHelperParameterizedTest {
                                                                                           .response(PutObjectResponse.builder().build())
                                                                                           .build()),
                                      new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
-                                                                                                .bytesTransferred(0L)
+                                                                                                .transferredBytes(0L)
                                                                                                 .build()));
     }
 

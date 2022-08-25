@@ -66,7 +66,7 @@ class DefaultFileDownloadTest {
         GetObjectResponse sdkResponse = getObjectResponse();
 
         Mockito.when(transferProgress.snapshot()).thenReturn(DefaultTransferProgressSnapshot.builder()
-                                                                                            .bytesTransferred(1000L)
+                                                                                            .transferredBytes(1000L)
                                                                                             .sdkResponse(sdkResponse)
                                                                                             .build());
 
@@ -95,8 +95,8 @@ class DefaultFileDownloadTest {
                                                                    .build());
         TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
         Mockito.when(transferProgress.snapshot()).thenReturn(DefaultTransferProgressSnapshot.builder()
-                                                                                            .bytesTransferred(OBJECT_CONTENT_LENGTH)
-                                                                                            .transferSizeInBytes(OBJECT_CONTENT_LENGTH)
+                                                                                            .transferredBytes(OBJECT_CONTENT_LENGTH)
+                                                                                            .totalBytes(OBJECT_CONTENT_LENGTH)
                                                                                             .sdkResponse(getObjectResponse)
                                                                                             .build());
 
@@ -115,7 +115,7 @@ class DefaultFileDownloadTest {
             new CompletableFuture<>();
         TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
         Mockito.when(transferProgress.snapshot()).thenReturn(DefaultTransferProgressSnapshot.builder()
-                                                                                            .bytesTransferred(1000L)
+                                                                                            .transferredBytes(1000L)
                                                                                             .build());
         DownloadFileRequest request = getDownloadFileRequest();
 
@@ -141,7 +141,7 @@ class DefaultFileDownloadTest {
         CompletableFuture<DownloadFileRequest> requestFuture =
             new CompletableFuture<>();
         DefaultTransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
-                                                                               .bytesTransferred(1000L)
+                                                                               .transferredBytes(1000L)
                                                                                .build();
         TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
         Mockito.when(transferProgress.snapshot()).thenReturn(snapshot);
@@ -151,7 +151,7 @@ class DefaultFileDownloadTest {
                                                                    null);
 
         assertThat(fileDownload.progress().snapshot()).isEqualTo(DefaultTransferProgressSnapshot.builder()
-                                                                                                .bytesTransferred(0L)
+                                                                                                .transferredBytes(0L)
                                                                                                 .build());
 
         progressFuture.complete(transferProgress);

@@ -26,7 +26,6 @@ import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import software.amazon.awssdk.transfer.s3.config.UploadDirectoryOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 
 public class TransferManagerConfigurationTest {
@@ -35,14 +34,12 @@ public class TransferManagerConfigurationTest {
     @Test
     public void resolveMaxDepth_requestOverride_requestOverrideShouldTakePrecedence() {
         transferManagerConfiguration = TransferManagerConfiguration.builder()
-                                                                   .uploadDirectoryConfiguration(UploadDirectoryOverrideConfiguration.builder()
-                                                                                                                                     .maxDepth(1)
-                                                                                                                                     .build())
+                                                                   .maxDepth(1)
                                                                    .build();
         UploadDirectoryRequest uploadDirectoryRequest = UploadDirectoryRequest.builder()
                                                                               .bucket("bucket")
                                                                               .sourceDirectory(Paths.get("."))
-                                                                              .overrideConfiguration(o -> o.maxDepth(2))
+                                                                              .maxDepth(2)
                                                                               .build();
         assertThat(transferManagerConfiguration.resolveUploadDirectoryMaxDepth(uploadDirectoryRequest)).isEqualTo(2);
     }
@@ -50,14 +47,12 @@ public class TransferManagerConfigurationTest {
     @Test
     public void resolveFollowSymlinks_requestOverride_requestOverrideShouldTakePrecedence() {
         transferManagerConfiguration = TransferManagerConfiguration.builder()
-                                                                   .uploadDirectoryConfiguration(UploadDirectoryOverrideConfiguration.builder()
-                                                                                                                                     .followSymbolicLinks(false)
-                                                                                                                                     .build())
+                                                                   .followSymbolicLinks(false)
                                                                    .build();
         UploadDirectoryRequest uploadDirectoryRequest = UploadDirectoryRequest.builder()
                                                                               .bucket("bucket")
                                                                               .sourceDirectory(Paths.get("."))
-                                                                              .overrideConfiguration(o -> o.followSymbolicLinks(true))
+                                                                              .followSymbolicLinks(true)
                                                                               .build();
         assertThat(transferManagerConfiguration.resolveUploadDirectoryFollowSymbolicLinks(uploadDirectoryRequest)).isTrue();
     }

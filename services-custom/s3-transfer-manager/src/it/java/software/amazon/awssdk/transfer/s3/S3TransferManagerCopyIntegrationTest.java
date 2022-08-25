@@ -91,7 +91,7 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
                 .sourceKey(original)
                 .destinationBucket(BUCKET)
                 .destinationKey(destination))
-            .overrideConfiguration(o -> o.addListener(LoggingTransferListener.create())));
+            .addTransferListener(LoggingTransferListener.create()));
 
         CompletedCopy completedCopy = copy.completionFuture().join();
         assertThat(completedCopy.response().responseMetadata().requestId()).isNotNull();

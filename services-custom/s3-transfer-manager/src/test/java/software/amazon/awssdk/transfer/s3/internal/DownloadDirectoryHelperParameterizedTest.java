@@ -146,7 +146,7 @@ public class DownloadDirectoryHelperParameterizedTest {
                                                                                               .response(GetObjectResponse.builder().build())
                                                                                               .build()),
                                        new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
-                                                                                                  .bytesTransferred(0L)
+                                                                                                  .transferredBytes(0L)
                                                                                                   .build()),
                                        () -> DownloadFileRequest.builder().getObjectRequest(GetObjectRequest.builder().build())
                                                                    .destination(Paths.get("."))

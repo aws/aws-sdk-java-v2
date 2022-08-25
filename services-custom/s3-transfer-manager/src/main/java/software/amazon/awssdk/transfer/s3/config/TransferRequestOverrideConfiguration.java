@@ -96,24 +96,24 @@ public final class TransferRequestOverrideConfiguration
 
         /**
          * The {@link TransferListener}s that will be notified as part of this request. This method overrides and replaces any
-         * listeners that have already been set. Add an optional request override configuration.
+         * transferListeners that have already been set. Add an optional request override configuration.
          *
-         * @param listeners     the collection of listeners
+         * @param transferListeners     the collection of transferListeners
          * @param configuration The override configuration.
          * @return Returns a reference to this object so that method calls can be chained together.
          * @return This builder for method chaining.
          * @see TransferListener
          */
-        Builder listeners(Collection<TransferListener> listeners);
+        Builder transferListeners(Collection<TransferListener> transferListeners);
 
         /**
          * Add a {@link TransferListener} that will be notified as part of this request.
          *
-         * @param listener the listener to add
+         * @param transferListener the transferListener to add
          * @return Returns a reference to this object so that method calls can be chained together.
          * @see TransferListener
          */
-        Builder addListener(TransferListener listener);
+        Builder addTransferListener(TransferListener transferListener);
 
         @Override
         TransferRequestOverrideConfiguration build();
@@ -130,17 +130,17 @@ public final class TransferRequestOverrideConfiguration
         }
 
         @Override
-        public Builder listeners(Collection<TransferListener> listeners) {
-            this.listeners = new ArrayList<>(listeners);
+        public Builder transferListeners(Collection<TransferListener> transferListeners) {
+            this.listeners = transferListeners != null ? new ArrayList<>(transferListeners) : null;
             return this;
         }
 
         @Override
-        public Builder addListener(TransferListener listener) {
+        public Builder addTransferListener(TransferListener transferListener) {
             if (listeners == null) {
                 listeners = new ArrayList<>();
             }
-            listeners.add(listener);
+            listeners.add(transferListener);
             return this;
         }
 
@@ -149,7 +149,7 @@ public final class TransferRequestOverrideConfiguration
         }
 
         public void setListeners(Collection<TransferListener> listeners) {
-            listeners(listeners);
+            transferListeners(listeners);
         }
 
         @Override

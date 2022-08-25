@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
@@ -28,8 +29,6 @@ import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
-import software.amazon.awssdk.transfer.s3.config.S3TransferManagerOverrideConfiguration;
-import software.amazon.awssdk.transfer.s3.config.UploadDirectoryOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.internal.DefaultS3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
@@ -102,7 +101,7 @@ import software.amazon.awssdk.utils.Validate;
  * FileUpload upload =
  *     tm.uploadFile(u -> u.source(Paths.get("myFile.txt"))
  *                         .putObjectRequest(p -> p.bucket("bucket").key("key"))
- *                         .overrideConfiguration(o -> o.addListener(LoggingTransferListener.create())));
+ *                         .addTransferListener(LoggingTransferListener.create()));
  * upload.completionFuture().join();
  * }
  * </pre>
@@ -353,11 +352,11 @@ public interface S3TransferManager extends SdkAutoCloseable {
     /**
      * Upload all files under the given directory to the provided S3 bucket. The key name transformation depends on the optional
      * prefix and delimiter provided in the {@link UploadDirectoryRequest}. By default, all subdirectories will be uploaded
-     * recursively, and symbolic links are not followed automatically. This behavior can be configured in
-     * {@link UploadDirectoryOverrideConfiguration}
-     * at request level via {@link UploadDirectoryRequest.Builder#overrideConfiguration(UploadDirectoryOverrideConfiguration)} or
-     * client level via {@link S3TransferManager.Builder#transferConfiguration(S3TransferManagerOverrideConfiguration)} Note
-     * that request-level configuration takes precedence over client-level configuration.
+     * recursively, and symbolic links are not followed automatically.
+     * This behavior can be configured in at request level via
+     * {@link UploadDirectoryRequest.Builder#followSymbolicLinks(Boolean)} } or
+     * client level via {@link S3TransferManager.Builder#followSymbolicLinks(Boolean)}}
+     * Note that request-level configuration takes precedence over client-level configuration.
      * <p>
      * By default, the prefix is an empty string and the delimiter is {@code "/"}. Assume you have a local
      * directory "/test" with the following structure:
@@ -415,7 +414,6 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *
      * @param uploadDirectoryRequest the upload directory request
      * @see #uploadDirectory(Consumer)
-     * @see UploadDirectoryOverrideConfiguration
      */
     default DirectoryUpload uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
         throw new UnsupportedOperationException();
@@ -588,34 +586,46 @@ public interface S3TransferManager extends SdkAutoCloseable {
         Builder s3AsyncClient(S3AsyncClient s3AsyncClient);
 
         /**
-         * Configuration settings for how {@link S3TransferManager} should process the request. The
-         * {@link S3TransferManager} already provides sensible defaults. All values are optional.
-         *
-         * @param transferConfiguration the configuration to use
-         * @return Returns a reference to this object so that method calls can be chained together.
-         * @see #transferConfiguration(Consumer)
-         */
-        Builder transferConfiguration(S3TransferManagerOverrideConfiguration transferConfiguration);
-
-        /**
-         * Configuration settings for how {@link S3TransferManager} should process the request. The
-         * {@link S3TransferManager} already provides sensible defaults. All values are optional.
+         * Specify the executor that {@link S3TransferManager} will use to execute background tasks before handing them off to the
+         * underlying S3 async client, such as visiting file tree in a
+         * {@link S3TransferManager#uploadDirectory(UploadDirectoryRequest)}
+         * operation
          *
          * <p>
-         * This is a convenience method that creates an instance of the {@link S3TransferManagerOverrideConfiguration} builder
-         * avoiding the need to create one manually via {@link S3TransferManagerOverrideConfiguration#builder()}.
+         * The SDK will create an executor if not provided
          *
-         * @param configuration the configuration to use
-         * @return Returns a reference to this object so that method calls can be chained together.
-         * @see #transferConfiguration(S3TransferManagerOverrideConfiguration)
+         * <p>
+         * <b>This executor must be shut down by the user when it is ready to be disposed. The SDK will not close the executor
+         * when the s3 transfer manager is closed.</b>
+         *
+         * @param executor the executor to use
+         * @return this builder for method chaining.
          */
-        default Builder transferConfiguration(Consumer<S3TransferManagerOverrideConfiguration.Builder> configuration) {
-            Validate.paramNotNull(configuration, "configuration");
-            S3TransferManagerOverrideConfiguration.Builder builder = S3TransferManagerOverrideConfiguration.builder();
-            configuration.accept(builder);
-            transferConfiguration(builder.build());
-            return this;
-        }
+        Builder executor(Executor executor);
+
+        /**
+         * Specify whether to follow symbolic links when traversing the file tree in
+         * {@link S3TransferManager#downloadDirectory} operation
+         * <p>
+         * Default to false
+         *
+         * @param followSymbolicLinks whether to follow symbolic links
+         * @return This builder for method chaining.
+         */
+        Builder followSymbolicLinks(Boolean followSymbolicLinks);
+
+        /**
+         * Specify the maximum number of levels of directories to visit in {@link S3TransferManager#downloadDirectory} operation.
+         * Must be positive. 1 means only the files directly within
+         * the provided source directory are visited.
+         *
+         * <p>
+         * Default to {@code Integer.MAX_VALUE}
+         *
+         * @param maxDepth the maximum number of directory levels to visit
+         * @return This builder for method chaining.
+         */
+        Builder maxDepth(Integer maxDepth);
 
         /**
          * Build an instance of {@link S3TransferManager} based on the settings supplied to this builder

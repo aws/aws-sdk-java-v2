@@ -19,15 +19,17 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -46,12 +48,12 @@ public final class UploadFileRequest
 
     private final PutObjectRequest putObjectRequest;
     private final Path source;
-    private final TransferRequestOverrideConfiguration configuration;
+    private final List<TransferListener> listeners;
 
     private UploadFileRequest(DefaultBuilder builder) {
         this.putObjectRequest = paramNotNull(builder.putObjectRequest, "putObjectRequest");
         this.source = paramNotNull(builder.source, "source");
-        this.configuration = builder.configuration;
+        this.listeners = builder.listeners;
     }
 
     /**
@@ -71,12 +73,11 @@ public final class UploadFileRequest
     }
 
     /**
-     * @return the optional override configuration
-     * @see Builder#overrideConfiguration(TransferRequestOverrideConfiguration)
+     * @return the List of transferListeners.
      */
     @Override
-    public Optional<TransferRequestOverrideConfiguration> overrideConfiguration() {
-        return Optional.ofNullable(configuration);
+    public List<TransferListener> transferListeners() {
+        return listeners;
     }
 
     /**
@@ -114,14 +115,14 @@ public final class UploadFileRequest
         if (!Objects.equals(source, that.source)) {
             return false;
         }
-        return Objects.equals(configuration, that.configuration);
+        return Objects.equals(listeners, that.listeners);
     }
 
     @Override
     public int hashCode() {
         int result = putObjectRequest != null ? putObjectRequest.hashCode() : 0;
         result = 31 * result + (source != null ? source.hashCode() : 0);
-        result = 31 * result + (configuration != null ? configuration.hashCode() : 0);
+        result = 31 * result + (listeners != null ? listeners.hashCode() : 0);
         return result;
     }
 
@@ -130,7 +131,7 @@ public final class UploadFileRequest
         return ToString.builder("UploadFileRequest")
                        .add("putObjectRequest", putObjectRequest)
                        .add("source", source)
-                       .add("configuration", configuration)
+                       .add("configuration", listeners)
                        .build();
     }
 
@@ -191,34 +192,31 @@ public final class UploadFileRequest
         }
 
         /**
-         * Add an optional request override configuration.
+         * The {@link TransferListener}s that will be notified as part of this request. This method overrides and replaces any
+         * transferListeners that have already been set. Add an optional request override configuration.
          *
-         * @param configuration The override configuration.
+         * @param transferListeners     the collection of transferListeners
+         * @return Returns a reference to this object so that method calls can be chained together.
          * @return This builder for method chaining.
+         * @see TransferListener
          */
-        Builder overrideConfiguration(TransferRequestOverrideConfiguration configuration);
+        Builder transferListeners(Collection<TransferListener> transferListeners);
 
         /**
-         * Similar to {@link #overrideConfiguration(TransferRequestOverrideConfiguration)}, but takes a lambda to configure a new
-         * {@link TransferRequestOverrideConfiguration.Builder}. This removes the need to call {@link
-         * TransferRequestOverrideConfiguration#builder()} and {@link TransferRequestOverrideConfiguration.Builder#build()}.
+         * Add a {@link TransferListener} that will be notified as part of this request.
          *
-         * @param configurationBuilder the upload configuration
-         * @return this builder for method chaining.
-         * @see #overrideConfiguration(TransferRequestOverrideConfiguration)
+         * @param transferListener the transferListener to add
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see TransferListener
          */
-        default Builder overrideConfiguration(Consumer<TransferRequestOverrideConfiguration.Builder> configurationBuilder) {
-            Validate.paramNotNull(configurationBuilder, "configurationBuilder");
-            return overrideConfiguration(TransferRequestOverrideConfiguration.builder()
-                                                                             .applyMutation(configurationBuilder)
-                                                                             .build());
-        }
+        Builder addTransferListener(TransferListener transferListener);
+
     }
 
     private static class DefaultBuilder implements Builder {
         private PutObjectRequest putObjectRequest;
         private Path source;
-        private TransferRequestOverrideConfiguration configuration;
+        private List<TransferListener> listeners;
 
         private DefaultBuilder() {
         }
@@ -226,7 +224,7 @@ public final class UploadFileRequest
         private DefaultBuilder(UploadFileRequest uploadFileRequest) {
             this.source = uploadFileRequest.source;
             this.putObjectRequest = uploadFileRequest.putObjectRequest;
-            this.configuration = uploadFileRequest.configuration;
+            this.listeners = uploadFileRequest.listeners;
         }
 
         @Override
@@ -258,17 +256,26 @@ public final class UploadFileRequest
         }
 
         @Override
-        public Builder overrideConfiguration(TransferRequestOverrideConfiguration configuration) {
-            this.configuration = configuration;
+        public Builder transferListeners(Collection<TransferListener> transferListeners) {
+            this.listeners = transferListeners != null ? new ArrayList<>(transferListeners) : null;
             return this;
         }
 
-        public void setOverrideConfiguration(TransferRequestOverrideConfiguration configuration) {
-            overrideConfiguration(configuration);
+        @Override
+        public Builder addTransferListener(TransferListener transferListener) {
+            if (listeners == null) {
+                listeners = new ArrayList<>();
+            }
+            listeners.add(transferListener);
+            return this;
         }
 
-        public TransferRequestOverrideConfiguration getOverrideConfiguration() {
-            return configuration;
+        public List<TransferListener> getListeners() {
+            return listeners;
+        }
+
+        public void setListeners(Collection<TransferListener> listeners) {
+            transferListeners(listeners);
         }
 
         @Override

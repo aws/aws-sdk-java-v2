@@ -205,17 +205,13 @@ public final class DownloadDirectoryRequest
          * <pre>
          * {@code
          * // Add a LoggingTransferListener to every transfer within the download directory request
-         * TransferRequestOverrideConfiguration fileDownloadConfiguration =
-         *     TransferRequestOverrideConfiguration.builder()
-         *         .addListener(LoggingTransferListener.create())
-         *         .build();
          *
          * DownloadDirectoryRequest request =
          *     DownloadDirectoryRequest.builder()
          *         .destination(Paths.get("."))
          *         .bucket("bucket")
          *         .prefix("prefix")
-         *         .downloadFileRequestTransformer(request -> request.overrideConfiguration(fileDownloadConfiguration))
+         *         .downloadFileRequestTransformer(request -> request.addTransferListener(LoggingTransferListener.create()))
          *         .build()
          *
          * DownloadDirectoryTransfer downloadDirectory = transferManager.downloadDirectory(request);

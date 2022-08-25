@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.transfer.s3.model;
 
-import java.util.Optional;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 
 /**
  * Interface for all single object transfer requests.
@@ -32,5 +32,5 @@ import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfigur
 @SdkPreviewApi
 public interface TransferObjectRequest extends TransferRequest {
 
-    Optional<? extends TransferRequestOverrideConfiguration> overrideConfiguration();
+    List<TransferListener> transferListeners();
 }

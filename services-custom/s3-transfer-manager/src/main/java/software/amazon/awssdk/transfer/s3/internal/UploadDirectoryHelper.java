@@ -38,7 +38,6 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.config.UploadDirectoryOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
@@ -234,10 +233,7 @@ public class UploadDirectoryHelper {
                                                                     .source(path)
                                                                     .putObjectRequest(putObjectRequest);
 
-        uploadDirectoryRequest.overrideConfiguration()
-                              .map(UploadDirectoryOverrideConfiguration::uploadFileRequestTransformer)
-                              .ifPresent(c -> c.accept(requestBuilder));
-
+        uploadDirectoryRequest.uploadFileRequestTransformer().accept(requestBuilder);
         return requestBuilder.build();
     }
 
