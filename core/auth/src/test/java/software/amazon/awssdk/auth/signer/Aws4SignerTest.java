@@ -217,6 +217,23 @@ public class Aws4SignerTest {
                       + "Signature=6d3520e3397e7aba593d8ebd8361fc4405e90aed71bc4c7a09dcacb6f72460b9");
     }
 
+    /**
+     * Query strings with empty keys should not be included in the canonical string.
+     */
+    @Test
+    public void canonicalizedQueryString_keyWithEmptyNames_doNotGetSigned() throws Exception {
+        AwsBasicCredentials credentials = AwsBasicCredentials.create("akid", "skid");
+        SdkHttpFullRequest.Builder request = generateBasicRequest();
+        request.putRawQueryParameter("", (String) null);
+
+        SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingOverrideClock, "us-east-1");
+
+        assertThat(actual.firstMatchingHeader("Authorization"))
+            .hasValue("AWS4-HMAC-SHA256 Credential=akid/19810216/us-east-1/demo/aws4_request, "
+                      + "SignedHeaders=host;x-amz-archive-description;x-amz-date, "
+                      + "Signature=581d0042389009a28d461124138f1fe8eeb8daed87611d2a2b47fd3d68d81d73");
+    }
+
     private SdkHttpFullRequest.Builder generateBasicRequest() {
         return SdkHttpFullRequest.builder()
                                  .contentStreamProvider(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
