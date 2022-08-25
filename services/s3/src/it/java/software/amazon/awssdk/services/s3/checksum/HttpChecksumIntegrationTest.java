@@ -20,9 +20,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -303,7 +308,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void asyncHttpsValidUnsignedTrailerChecksumCalculatedBySdkClient() throws InterruptedException {
+    public void asyncHttpsValidUnsignedTrailerChecksumCalculatedBySdkClient_withSmallRequestBody() throws InterruptedException {
         s3Async.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)
@@ -320,6 +325,23 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
         assertThat(response).isEqualTo("Hello world");
     }
 
+    @Test
+    public void asyncHttpsValidUnsignedTrailerChecksumCalculatedBySdkClient_withHugeRequestBody() throws InterruptedException {
+        s3Async.putObject(PutObjectRequest.builder()
+                                          .bucket(BUCKET)
+                                          .key(KEY)
+                                          .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                          .build(), AsyncRequestBody.fromString(createDataSize(HUGE_MSG_SIZE))).join();
+        assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
+        assertThat(interceptor.requestChecksumInHeader()).isNull();
+
+        String response = s3Async.getObject(GetObjectRequest.builder().bucket(BUCKET)
+                                                            .key(KEY).checksumMode(ChecksumMode.ENABLED)
+                                                            .build(), AsyncResponseTransformer.toBytes()).join().asUtf8String();
+        assertThat(interceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
+        assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
+        assertThat(response).isEqualTo(createDataSize(HUGE_MSG_SIZE));
+    }
 
 
     @Disabled("Http Async Signing is not supported for S3")
@@ -416,4 +438,118 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
         assertThat(interceptor.responseValidation()).isNull();
         assertThat(text).isEqualTo(createDataSize(HUGE_MSG_SIZE));
     }
+
+
+    @Test
+    public void asyncHttpsValidUnsignedTrailerChecksumCalculatedBySdkClient_withSmallFileRequestBody() throws InterruptedException, IOException {
+        File randomFileOfFixedLength = getRandomFileOfFixedLength(10);
+        s3Async.putObject(PutObjectRequest.builder()
+                                          .bucket(BUCKET)
+                                          .key(KEY)
+                                          .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                          .build(), AsyncRequestBody.fromFile(randomFileOfFixedLength.toPath())).join();
+        assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
+        assertThat(interceptor.requestChecksumInHeader()).isNull();
+
+        String response = s3Async.getObject(GetObjectRequest.builder().bucket(BUCKET)
+                                                            .key(KEY).checksumMode(ChecksumMode.ENABLED)
+                                                            .build(), AsyncResponseTransformer.toBytes()).join().asUtf8String();
+        assertThat(interceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
+        assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
+
+        byte[] bytes = Files.readAllBytes(randomFileOfFixedLength.toPath());
+        assertThat(response).isEqualTo(new String (bytes));
+
+
+    }
+
+    @Test
+    public void asyncHttpsValidUnsignedTrailerChecksumCalculatedBySdkClient_withHugeFileRequestBody()
+        throws IOException {
+
+        File randomFileOfFixedLength = getRandomFileOfFixedLength(17);
+        s3Async.putObject(PutObjectRequest.builder()
+                                          .bucket(BUCKET)
+                                          .key(KEY)
+                                          .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                          .build(), AsyncRequestBody.fromFile(randomFileOfFixedLength.toPath())).join();
+        assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
+        assertThat(interceptor.requestChecksumInHeader()).isNull();
+
+        String response = s3Async.getObject(GetObjectRequest.builder().bucket(BUCKET)
+                                                            .key(KEY).checksumMode(ChecksumMode.ENABLED)
+                                                            .build(), AsyncResponseTransformer.toBytes()).join().asUtf8String();
+        assertThat(interceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
+        assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
+
+        byte[] bytes = Files.readAllBytes(randomFileOfFixedLength.toPath());
+        assertThat(response).isEqualTo(new String (bytes));
+
+    }
+
+    @Test
+    public void syncValidUnsignedTrailerChecksumCalculatedBySdkClient_withSmallFileRequestBody() throws InterruptedException,
+                                                                                                        IOException {
+
+        File randomFileOfFixedLength = getRandomFileOfFixedLength(10);
+
+        s3Https.putObject(PutObjectRequest.builder()
+                                          .bucket(BUCKET)
+                                          .key(KEY)
+                                          .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                          .build(), RequestBody.fromFile(randomFileOfFixedLength.toPath()));
+
+        assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
+        assertThat(interceptor.requestChecksumInHeader()).isNull();
+
+        ResponseInputStream<GetObjectResponse> s3HttpsObject =
+            s3Https.getObject(GetObjectRequest.builder().bucket(BUCKET).key(KEY).checksumMode(ChecksumMode.ENABLED).build());
+        String text = new BufferedReader(
+            new InputStreamReader(s3HttpsObject, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
+        assertThat(interceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
+        assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
+        byte[] bytes = Files.readAllBytes(randomFileOfFixedLength.toPath());
+        assertThat(text).isEqualTo(new String(bytes));
+    }
+
+
+    @Test
+    public void syncValidUnsignedTrailerChecksumCalculatedBySdkClient_withHugeFileRequestBody() throws InterruptedException,
+                                                                                                        IOException {
+
+        File randomFileOfFixedLength = getRandomFileOfFixedLength(34);
+
+        s3Https.putObject(PutObjectRequest.builder()
+                                          .bucket(BUCKET)
+                                          .key(KEY)
+                                          .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                          .build(), RequestBody.fromFile(randomFileOfFixedLength.toPath()));
+
+        assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
+        assertThat(interceptor.requestChecksumInHeader()).isNull();
+
+        ResponseInputStream<GetObjectResponse> s3HttpsObject =
+            s3Https.getObject(GetObjectRequest.builder().bucket(BUCKET).key(KEY).checksumMode(ChecksumMode.ENABLED).build());
+        String text = new BufferedReader(
+            new InputStreamReader(s3HttpsObject, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
+        assertThat(interceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
+        assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
+        byte[] bytes = Files.readAllBytes(randomFileOfFixedLength.toPath());
+        assertThat(text).isEqualTo(new String(bytes));
+    }
+
+    private File getRandomFileOfFixedLength(int sizeInKb) throws IOException {
+        int objectSize = sizeInKb * 1024  ;
+        final File tempFile = File.createTempFile("s3-object-file-", ".tmp");
+        try (RandomAccessFile f = new RandomAccessFile(tempFile, "rw")) {
+            f.setLength(objectSize  );
+        }
+        tempFile.deleteOnExit();
+        return tempFile;
+    }
+
 }

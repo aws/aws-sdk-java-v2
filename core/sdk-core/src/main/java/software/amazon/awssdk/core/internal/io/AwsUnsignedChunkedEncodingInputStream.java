@@ -68,17 +68,19 @@ public class AwsUnsignedChunkedEncodingInputStream extends AwsChunkedEncodingInp
                 + CRLF.length();
     }
 
-    public static long calculateStreamContentLength(long originalLength) {
-        if (originalLength < 0) {
-            throw new IllegalArgumentException("Non negative content length expected.");
+    public static long calculateStreamContentLength(long originalLength, long defaultChunkSize) {
+        if (originalLength < 0 || defaultChunkSize == 0) {
+            throw new IllegalArgumentException(originalLength + ", " + defaultChunkSize + "Args <= 0 not expected");
         }
 
-        long maxSizeChunks = originalLength / DEFAULT_CHUNK_SIZE;
-        long remainingBytes = originalLength % DEFAULT_CHUNK_SIZE;
+        long maxSizeChunks = originalLength / defaultChunkSize;
+        long remainingBytes = originalLength % defaultChunkSize;
 
-        return maxSizeChunks * calculateChunkLength(DEFAULT_CHUNK_SIZE)
-                + (remainingBytes > 0 ? calculateChunkLength(remainingBytes) : 0)
-                + calculateChunkLength(0);
+        long allChunks = maxSizeChunks * calculateChunkLength(defaultChunkSize);
+        long remainingInChunk = remainingBytes > 0 ? calculateChunkLength(remainingBytes) : 0;
+        long lastByteSize = "0".length() + CRLF.length();
+
+        return allChunks +  remainingInChunk + lastByteSize;
     }
 
     @Override

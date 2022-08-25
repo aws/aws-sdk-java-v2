@@ -189,7 +189,8 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
                     ByteBuffer allocatedBuffer = getFinalChecksumAppendedChunk(byteBuffer);
                     wrapped.onNext(allocatedBuffer);
                 } else {
-                    wrapped.onNext(byteBuffer);
+                    ByteBuffer allocatedBuffer = appendChunkSizeAndFinalByte(byteBuffer);
+                    wrapped.onNext(allocatedBuffer);
                 }
             } catch (SdkException sdkException) {
                 this.subscription.cancel();
@@ -211,6 +212,14 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
                     .put(contentChunk)
                     .put(finalChunkedByteBuffer)
                     .put(checksumTrailerByteBuffer);
+            checksumAppendedBuffer.flip();
+            return checksumAppendedBuffer;
+        }
+
+        private ByteBuffer appendChunkSizeAndFinalByte(ByteBuffer byteBuffer) {
+            ByteBuffer contentChunk = createChunk(byteBuffer, false);
+            ByteBuffer checksumAppendedBuffer = ByteBuffer.allocate(contentChunk.remaining());
+            checksumAppendedBuffer.put(contentChunk);
             checksumAppendedBuffer.flip();
             return checksumAppendedBuffer;
         }

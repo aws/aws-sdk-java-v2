@@ -55,10 +55,11 @@ public class AwsChunkedEncodingInputStreamTest {
     public void lengthsOfCalculateByChecksumCalculatingInputStream(){
 
         String initialString = "Hello world";
-        long calculateChunkLength = AwsUnsignedChunkedEncodingInputStream.calculateStreamContentLength(initialString.length());
+        long calculateChunkLength = AwsUnsignedChunkedEncodingInputStream.calculateStreamContentLength(initialString.length(),
+                                                                                                       AwsChunkedEncodingInputStream.DEFAULT_CHUNK_SIZE);
         long checksumContentLength = AwsUnsignedChunkedEncodingInputStream.calculateChecksumContentLength(
                 SHA256_ALGORITHM, SHA256_HEADER_NAME);
-        assertThat(calculateChunkLength).isEqualTo(21);
+        assertThat(calculateChunkLength).isEqualTo(19);
         assertThat(checksumContentLength).isEqualTo(69);
     }
 

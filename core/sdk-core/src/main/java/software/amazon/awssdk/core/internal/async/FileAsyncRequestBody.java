@@ -47,12 +47,13 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  */
 @SdkInternalApi
 public final class FileAsyncRequestBody implements AsyncRequestBody {
-    private static final Logger log = Logger.loggerFor(FileAsyncRequestBody.class);
 
     /**
      * Default size (in bytes) of ByteBuffer chunks read from the file and delivered to the subscriber.
      */
-    private static final int DEFAULT_CHUNK_SIZE = 16 * 1024;
+    public static final int DEFAULT_CHUNK_SIZE = 16 * 1024;
+
+    private static final Logger log = Logger.loggerFor(FileAsyncRequestBody.class);
 
     /**
      * File to read.
