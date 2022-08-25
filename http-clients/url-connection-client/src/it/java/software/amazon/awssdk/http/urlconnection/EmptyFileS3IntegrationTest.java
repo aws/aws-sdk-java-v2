@@ -18,21 +18,21 @@ package software.amazon.awssdk.http.urlconnection;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 
 public class EmptyFileS3IntegrationTest extends UrlHttpConnectionS3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(EmptyFileS3IntegrationTest.class);
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         createBucket(BUCKET);
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
     }
