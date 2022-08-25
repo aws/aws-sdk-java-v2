@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Panorama",
+    "contributor": "",
+    "description": "Support sorting and filtering in ListDevices API, and add more fields to device listings and single device detail"
+}
