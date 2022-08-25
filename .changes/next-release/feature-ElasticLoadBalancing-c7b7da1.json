@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Load Balancing",
-    "contributor": "",
-    "description": "Documentation updates for ELBv2. Gateway Load Balancer now supports Configurable Flow Stickiness, enabling you to configure the hashing used to maintain stickiness of flows to a specific target appliance."
-}
