@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import static software.amazon.awssdk.transfer.s3.SizeConstant.GB;
+import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.File;
@@ -53,7 +55,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
 
     BaseTransferManagerBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);
-        Long partSizeInMb = config.partSizeInMb() == null ? null : config.partSizeInMb() * 1024 * 1024L;
+        Long partSizeInMb = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
         s3 = S3CrtAsyncClient.builder()
                              .targetThroughputInGbps(config.targetThroughput())
                              .minimumPartSizeInBytes(partSizeInMb)
@@ -61,15 +63,14 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
         s3Sync = S3Client.builder()
                          .build();
         transferManager = S3TransferManager.builder()
-                                           .s3AsyncClient(S3CrtAsyncClient.builder()
-                                                                          .targetThroughputInGbps(config.targetThroughput())
-                                                                          .minimumPartSizeInBytes(partSizeInMb).build())
+                                           .s3AsyncClient(s3)
                                            .build();
         bucket = config.bucket();
         key = config.key();
         path = config.filePath();
         try {
             file = new RandomTempFile(1024 * 1000L);
+            file.deleteOnExit();
         } catch (IOException e) {
             logger.error(() -> "Failed to create the file");
             throw new RuntimeException("Failed to create the temp file", e);
@@ -99,7 +100,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
 
     protected final void printOutResult(List<Double> metrics, String name) {
         logger.info(() -> String.format("===============  %s Result ================", name));
-        logger.info(() -> "" + metrics);
+        logger.info(() -> String.valueOf(metrics));
         double averageLatency = metrics.stream()
                                        .mapToDouble(a -> a)
                                        .average()
@@ -110,7 +111,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
                                       .min().orElse(0.0);
 
         HeadObjectResponse headObjectResponse = s3Sync.headObject(b -> b.bucket(bucket).key(key));
-        double contentLengthInGigabit = (headObjectResponse.contentLength() / (1000 * 1000 * 1000.0)) * 8.0;
+        double contentLengthInGigabit = ((double) headObjectResponse.contentLength() / GB) * 8.0;
         logger.info(() -> "Average latency (s): " + averageLatency);
         logger.info(() -> "Object size (Gigabit): " + contentLengthInGigabit);
         logger.info(() -> "Average throughput (Gbps): " + contentLengthInGigabit / averageLatency);
@@ -120,6 +121,8 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
 
     private void cleanup() {
         s3Sync.deleteObject(b -> b.bucket(bucket).key(WARMUP_KEY));
+        s3.close();
+        s3Sync.close();
         transferManager.close();
     }
 

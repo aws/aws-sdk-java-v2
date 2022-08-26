@@ -30,7 +30,9 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
@@ -48,6 +50,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
 
     private static RandomTempFile testFile;
     private static S3TransferManager tm;
+    private static S3AsyncClient s3Crt;
 
     @BeforeAll
     public static void setUp() throws Exception {
@@ -56,18 +59,19 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
 
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
 
+        s3Crt = S3CrtAsyncClient.builder()
+                                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                .region(DEFAULT_REGION)
+                                .build();
+
         tm = S3TransferManager.builder()
-                              .s3AsyncClient(
-                                  S3CrtAsyncClient.builder()
-                                                  .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                  .region(DEFAULT_REGION)
-                                                  .maxConcurrency(100)
-                                                  .build())
+                              .s3AsyncClient(s3Crt)
                               .build();
     }
 
     @AfterAll
     public static void teardown() throws IOException {
+        s3Crt.close();
         tm.close();
         Files.delete(testFile.toPath());
         deleteBucketAndAllContents(TEST_BUCKET);
@@ -79,7 +83,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         Map<String, String> metadata = new HashMap<>();
         metadata.put("x-amz-meta-foobar", "FOO BAR");
         FileUpload fileUpload =
-            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET).key(TEST_KEY).metadata(metadata))
+            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET).key(TEST_KEY).metadata(metadata).checksumAlgorithm(ChecksumAlgorithm.CRC32))
                                 .source(testFile.toPath())
                                 .addTransferListener(LoggingTransferListener.create())
                                 .build());

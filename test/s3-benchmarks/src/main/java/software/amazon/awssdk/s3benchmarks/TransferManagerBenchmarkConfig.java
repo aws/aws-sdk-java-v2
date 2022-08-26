@@ -15,12 +15,15 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
-public class TransferManagerBenchmarkConfig {
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
+
+public final class TransferManagerBenchmarkConfig {
     private final String filePath;
     private final String bucket;
     private final String key;
     private final Double targetThroughput;
     private final Long partSizeInMb;
+    private final ChecksumAlgorithm checksumAlgorithm;
 
     private TransferManagerBenchmarkConfig(Builder builder) {
         this.filePath = builder.filePath;
@@ -28,6 +31,7 @@ public class TransferManagerBenchmarkConfig {
         this.key = builder.key;
         this.targetThroughput = builder.targetThroughput;
         this.partSizeInMb = builder.partSizeInMb;
+        this.checksumAlgorithm = builder.checksumAlgorithm;
     }
 
     public String filePath() {
@@ -50,6 +54,10 @@ public class TransferManagerBenchmarkConfig {
         return partSizeInMb;
     }
 
+    public ChecksumAlgorithm checksumAlgorithm() {
+        return checksumAlgorithm;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -61,11 +69,13 @@ public class TransferManagerBenchmarkConfig {
                ", bucket: '" + bucket + '\'' +
                ", key: '" + key + '\'' +
                ", targetThroughput: " + targetThroughput +
-               ", partSizeInMB: " + partSizeInMb +
+               ", partSizeInMB: " + partSizeInMb + '\'' +
+               ", checksumAlgorithm: " + checksumAlgorithm +
                '}';
     }
 
     static final class Builder {
+        private ChecksumAlgorithm checksumAlgorithm;
         private String filePath;
         private String bucket;
         private String key;
@@ -94,6 +104,11 @@ public class TransferManagerBenchmarkConfig {
 
         public Builder partSizeInMb(Long partSizeInMb) {
             this.partSizeInMb = partSizeInMb;
+            return this;
+        }
+
+        public Builder checksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
+            this.checksumAlgorithm = checksumAlgorithm;
             return this;
         }
 

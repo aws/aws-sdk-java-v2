@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 
 import java.net.URI;
@@ -24,11 +25,13 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
@@ -59,6 +62,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                             .credentialsProvider(builder.credentialsProvider)
                             .overrideConfiguration(o -> o.putAdvancedOption(SdkAdvancedClientOption.SIGNER,
                                                                             new NoOpSigner())
+                                                         .putExecutionAttribute(
+                                                             SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
+                                                             ChecksumValidation.FORCE_SKIP)
                                                          .retryPolicy(RetryPolicy.none())
                                                          .addExecutionInterceptor(new ValidateRequestInterceptor())
                                                          .addExecutionInterceptor(new AttachHttpAttributesExecutionInterceptor()))
@@ -73,6 +79,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                    .minimumPartSizeInBytes(builder.minimumPartSizeInBytes())
                                    .maxConcurrency(builder.maxConcurrency)
                                    .region(builder.region)
+                                   .checksumValidationEnabled(builder.checksumValidationEnabled)
                                    .endpointOverride(builder.endpointOverride)
                                    .credentialsProvider(builder.credentialsProvider);
     }
@@ -89,6 +96,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
         private URI endpointOverride;
+        private Boolean checksumValidationEnabled;
 
         public AwsCredentialsProvider credentialsProvider() {
             return credentialsProvider;
@@ -152,6 +160,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         }
 
         @Override
+        public S3CrtAsyncClientBuilder checksumValidationEnabled(Boolean checksumValidationEnabled) {
+            this.checksumValidationEnabled = checksumValidationEnabled;
+            return this;
+        }
+
+        @Override
         public S3CrtAsyncClient build() {
             return new DefaultS3CrtAsyncClient(this);
         }
@@ -161,14 +175,20 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public void afterMarshalling(Context.AfterMarshalling context,
                                      ExecutionAttributes executionAttributes) {
-            SdkHttpExecutionAttributes attributes =
+
+            SdkHttpExecutionAttributes.Builder attributes =
                 SdkHttpExecutionAttributes.builder()
                                           .put(OPERATION_NAME,
                                                executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME))
-                                          .build();
+                    .put(HTTP_CHECKSUM, executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM));
+
+            // TODO: is there a better way to disable SDK flexible checksum implementation
+            // Clear HTTP_CHECKSUM and RESOLVED_CHECKSUM_SPECS to disable SDK flexible checksum implementation.
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM, null);
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_CHECKSUM_SPECS, null);
 
             executionAttributes.putAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES,
-                                             attributes);
+                                             attributes.build());
         }
     }
 

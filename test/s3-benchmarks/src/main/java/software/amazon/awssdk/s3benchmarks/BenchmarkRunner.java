@@ -20,6 +20,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 
 public class BenchmarkRunner {
 
@@ -29,6 +30,7 @@ public class BenchmarkRunner {
     private static final String MAX_THROUGHPUT = "maxThroughput";
     private static final String KEY = "key";
     private static final String OPERATION = "operation";
+    private static final String CHECKSUM_ALGORITHM = "checksumAlgo";
 
     private BenchmarkRunner() {
     }
@@ -45,6 +47,7 @@ public class BenchmarkRunner {
         options.addRequiredOption(null, OPERATION, true, "The operation to benchmark against");
         options.addOption(null, PART_SIZE_IN_MB, true, "Part size in MB");
         options.addOption(null, MAX_THROUGHPUT, true, "The max throughput");
+        options.addOption(null, CHECKSUM_ALGORITHM, true, "The checksum algorithm to use");
 
         CommandLine cmd = parser.parse(options, args);
         TransferManagerBenchmarkConfig config = parseConfig(cmd);
@@ -71,11 +74,16 @@ public class BenchmarkRunner {
 
         Double maxThroughput = cmd.getOptionValue(MAX_THROUGHPUT) == null ? null :
                                Double.parseDouble(cmd.getOptionValue(MAX_THROUGHPUT));
-
+        ChecksumAlgorithm checksumAlgorithm = null;
+        if (cmd.getOptionValue(CHECKSUM_ALGORITHM) != null) {
+            checksumAlgorithm = ChecksumAlgorithm.fromValue(cmd.getOptionValue(CHECKSUM_ALGORITHM)
+                                                                               .toUpperCase(Locale.ENGLISH));
+        }
         return TransferManagerBenchmarkConfig.builder()
                                              .key(key)
                                              .bucket(bucket)
                                              .partSizeInMb(partSize)
+                                             .checksumAlgorithm(checksumAlgorithm)
                                              .targetThroughput(maxThroughput)
                                              .filePath(filePath)
                                              .build();

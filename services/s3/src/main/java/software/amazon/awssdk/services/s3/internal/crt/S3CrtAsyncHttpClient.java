@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 
 import java.net.URI;
@@ -25,8 +26,11 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
+import software.amazon.awssdk.crt.s3.ChecksumAlgorithm;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
@@ -48,6 +52,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final Logger log = Logger.loggerFor(S3CrtAsyncHttpClient.class);
     private final S3Client crtS3Client;
     private final S3NativeClientConfiguration s3NativeClientConfiguration;
+    private final boolean checksumValidationEnabled;
 
     private S3CrtAsyncHttpClient(Builder builder) {
         s3NativeClientConfiguration =
@@ -67,8 +72,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withCredentialsProvider(s3NativeClientConfiguration.credentialsProvider())
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
                                  .withPartSize(s3NativeClientConfiguration.partSizeBytes())
-                                 .withComputeContentMd5(true)
+                                 .withComputeContentMd5(false)
                                  .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps());
+        this.checksumValidationEnabled = builder.checksumValidationEnabled == null || builder.checksumValidationEnabled;
         this.crtS3Client = new S3Client(s3ClientOptions);
     }
 
@@ -76,6 +82,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     S3CrtAsyncHttpClient(S3Client crtS3Client, S3NativeClientConfiguration nativeClientConfiguration) {
         this.crtS3Client = crtS3Client;
         this.s3NativeClientConfiguration = nativeClientConfiguration;
+        this.checksumValidationEnabled = true;
     }
 
     @Override
@@ -87,10 +94,13 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             new S3CrtResponseHandlerAdapter(executeFuture, asyncRequest.responseHandler());
 
         S3MetaRequestOptions.MetaRequestType requestType = requestType(asyncRequest);
+        ChecksumAlgorithm checksumAlgorithm = crtChecksumAlgorithm(asyncRequest);
 
         S3MetaRequestOptions requestOptions = new S3MetaRequestOptions()
             .withHttpRequest(httpRequest)
             .withMetaRequestType(requestType)
+            .withChecksumAlgorithm(checksumAlgorithm)
+            .withValidateChecksum(checksumValidationEnabled)
             .withResponseHandler(responseHandler);
 
         try (S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions)) {
@@ -120,6 +130,33 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             }
         }
         return S3MetaRequestOptions.MetaRequestType.DEFAULT;
+    }
+
+    private ChecksumAlgorithm crtChecksumAlgorithm(AsyncExecuteRequest asyncRequest) {
+        HttpChecksum httpChecksum = asyncRequest.httpExecutionAttributes().getAttribute(HTTP_CHECKSUM);
+
+        if (checksumNotApplicable(httpChecksum)) {
+            return null;
+        }
+
+        // TODO: revisit default checksum
+        Algorithm algorithm = httpChecksum.requestAlgorithm() == null ? Algorithm.CRC32 :
+                              Algorithm.fromValue(httpChecksum.requestAlgorithm());
+        return ChecksumAlgorithm.valueOf(algorithm.toString().toUpperCase());
+    }
+
+
+    /**
+     * Checksum algorithm is not applicable to the following situations:
+     * 1. checksum validation is disabled OR
+     * 2. No HttpChecksum Trait for this operation OR
+     * 3. It's a GET operation.
+     * 4. It's not a streaming operation
+     */
+    private boolean checksumNotApplicable(HttpChecksum httpChecksum) {
+        return !checksumValidationEnabled ||
+               httpChecksum == null ||
+               httpChecksum.responseAlgorithms() != null;
     }
 
     private static void closeResourcesWhenComplete(CompletableFuture<Void> executeFuture,
@@ -174,6 +211,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
         private URI endpointOverride;
+        private Boolean checksumValidationEnabled;
 
         /**
          * Configure the credentials that should be used to authenticate with S3.
@@ -226,6 +264,15 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
          */
         public Builder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        /**
+         * Option to disable checksum validation of an object stored in S3.
+         *
+         */
+        public Builder checksumValidationEnabled(Boolean checksumValidationEnabled) {
+            this.checksumValidationEnabled = checksumValidationEnabled;
             return this;
         }
 
