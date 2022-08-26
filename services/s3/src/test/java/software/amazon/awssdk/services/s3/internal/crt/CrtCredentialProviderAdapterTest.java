@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -91,4 +92,21 @@ public class CrtCredentialProviderAdapterTest {
         adapter.close();
         verify((SdkAutoCloseable) awsCredentialsProvider).close();
     }
+
+    @Test
+    public void crtCredentials_anonymousCredentialsProvider_shouldWork() {
+        AwsCredentialsProvider awsCredentialsProvider = AnonymousCredentialsProvider.create();
+
+        CrtCredentialsProviderAdapter adapter = new CrtCredentialsProviderAdapter(awsCredentialsProvider);
+        CredentialsProvider crtCredentialsProvider = adapter.crtCredentials();
+
+        Credentials crtCredentials = crtCredentialsProvider.getCredentials().join();
+
+        assertThat(crtCredentials.getAccessKeyId()).isNull();
+        assertThat(crtCredentials.getSecretAccessKey()).isNull();
+
+    }
+
+
+
 }
