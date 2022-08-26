@@ -143,6 +143,5 @@
             <artifactId>eventstream</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 </project>
