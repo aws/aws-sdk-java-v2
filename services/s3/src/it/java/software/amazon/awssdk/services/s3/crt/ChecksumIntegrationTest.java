@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
@@ -45,7 +46,7 @@ public class ChecksumIntegrationTest extends S3IntegrationTestBase {
     private static final int OBJ_SIZE = 1024 * 1024;
 
     private static RandomTempFile testFile;
-    private static S3CrtAsyncClient s3Crt;
+    private static S3AsyncClient s3Crt;
 
     @BeforeAll
     public static void setup() throws Exception {
@@ -101,7 +102,7 @@ public class ChecksumIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void checksumDisabled_shouldNotPerformChecksumValidation() {
 
-        try (S3CrtAsyncClient s3Crt = S3CrtAsyncClient.builder()
+        try (S3AsyncClient s3Crt = S3CrtAsyncClient.builder()
                                                       .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
                                                       .region(S3IntegrationTestBase.DEFAULT_REGION)
                                                       .checksumValidationEnabled(Boolean.FALSE)

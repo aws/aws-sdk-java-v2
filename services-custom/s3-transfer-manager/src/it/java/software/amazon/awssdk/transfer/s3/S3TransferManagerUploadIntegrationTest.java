@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -49,7 +50,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
 
     private static RandomTempFile testFile;
     private static S3TransferManager tm;
-    private static S3CrtAsyncClient s3Crt;
+    private static S3AsyncClient s3Crt;
 
     @BeforeAll
     public static void setUp() throws Exception {
