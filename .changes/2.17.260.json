@@ -1,0 +1,48 @@
+{
+    "version": "2.17.260",
+    "date": "2022-08-24",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed an issue in sync clients where empty response payloads could cause a null pointer exception."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "AWS Config now supports ConformancePackTemplate documents in SSM Docs for the deployment and update of conformance packs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Documentation updates for AWS Identity and Access Management (IAM)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "Documentation updates for AWS Transfer Family"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Adds support for CloudFront origin access control (OAC), making it possible to restrict public access to S3 bucket origins in all AWS Regions, those with SSE-KMS, and more."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "contributor": "",
+            "description": "Documentation Change for IVS API Reference - Doc-only update to type field description for CreateChannel and UpdateChannel actions and for Channel data type. Also added Amazon Resource Names (ARNs) paragraph to Welcome section."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Added a new optional property DashboardVisual under ExperienceConfiguration parameter of GenerateEmbedUrlForAnonymousUser and GenerateEmbedUrlForRegisteredUser API operations. This supports embedding of specific visuals in QuickSight dashboards."
+        }
+    ]
+}

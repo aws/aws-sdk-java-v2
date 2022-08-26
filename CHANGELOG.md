@@ -1,3 +1,61 @@
+# __2.17.261__ __2022-08-25__
+## __AWS IoT Wireless__
+  - ### Features
+    - This release includes a new feature for the customers to enable the LoRa gateways to send out beacons for Class B devices and an option to select one or more gateways for Class C devices when sending the LoRaWAN downlink messages.
+
+## __AWS Panorama__
+  - ### Features
+    - Support sorting and filtering in ListDevices API, and add more fields to device listings and single device detail
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SSO OIDC__
+  - ### Features
+    - Updated required request parameters on IAM Identity Center's OIDC CreateToken action.
+
+## __Amazon GameLift__
+  - ### Features
+    - This release adds support for eight EC2 local zones as fleet locations; Atlanta, Chicago, Dallas, Denver, Houston, Kansas City (us-east-1-mci-1a), Los Angeles, and Phoenix. It also adds support for C5d, C6a, C6i, and R5d EC2 instance families.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Documentation change for IVS Chat API Reference. Doc-only update to add a paragraph on ARNs to the Welcome section.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Documentation updates for ELBv2. Gateway Load Balancer now supports Configurable Flow Stickiness, enabling you to configure the hashing used to maintain stickiness of flows to a specific target appliance.
+
+# __2.17.260__ __2022-08-24__
+## __AWS Config__
+  - ### Features
+    - AWS Config now supports ConformancePackTemplate documents in SSM Docs for the deployment and update of conformance packs.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue in sync clients where empty response payloads could cause a null pointer exception.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Documentation updates for AWS Transfer Family
+
+## __Amazon CloudFront__
+  - ### Features
+    - Adds support for CloudFront origin access control (OAC), making it possible to restrict public access to S3 bucket origins in all AWS Regions, those with SSE-KMS, and more.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Documentation Change for IVS API Reference - Doc-only update to type field description for CreateChannel and UpdateChannel actions and for Channel data type. Also added Amazon Resource Names (ARNs) paragraph to Welcome section.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added a new optional property DashboardVisual under ExperienceConfiguration parameter of GenerateEmbedUrlForAnonymousUser and GenerateEmbedUrlForRegisteredUser API operations. This supports embedding of specific visuals in QuickSight dashboards.
+
 # __2.17.259__ __2022-08-23__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
