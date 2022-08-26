@@ -94,6 +94,7 @@ public class DownloadDirectoryHelper {
                                      DownloadDirectoryRequest downloadDirectoryRequest) {
         validateDirectoryIfExists(downloadDirectoryRequest.destinationDirectory());
         String bucket = downloadDirectoryRequest.bucket();
+        // Delimiter is null by default. See https://github.com/aws/aws-sdk-java/issues/1215
         String delimiter = downloadDirectoryRequest.delimiter().orElse(null);
         String prefix = downloadDirectoryRequest.prefix().orElse(DEFAULT_PREFIX);
 
@@ -146,7 +147,7 @@ public class DownloadDirectoryHelper {
 
     private DownloadFileContext determineDestinationPath(DownloadDirectoryRequest downloadDirectoryRequest, S3Object s3Object) {
         FileSystem fileSystem = downloadDirectoryRequest.destinationDirectory().getFileSystem();
-        String delimiter = downloadDirectoryRequest.delimiter().orElse(null);
+        String delimiter = downloadDirectoryRequest.delimiter().orElse(DEFAULT_DELIMITER);
         String key = normalizeKey(downloadDirectoryRequest, s3Object, delimiter);
         String relativePath = getRelativePath(fileSystem, delimiter, key);
         Path destinationPath = downloadDirectoryRequest.destinationDirectory().resolve(relativePath);
@@ -194,17 +195,28 @@ public class DownloadDirectoryHelper {
     }
 
     /**
-     * Normalizing the key by stripping the prefix from the s3 object key if the prefix is not empty. For example: given a request
-     * with prefix = "notes/2021", delimiter = "/" and key = "notes/2021/1.txt", the returned string should be "1.txt". If a
-     * delimiter is null (not provided by user), use "/" by default.
+     * Normalizing the key by stripping the prefix from the s3 object key if the prefix is not empty.
+     *
+     * If a delimiter is null (not provided by user), use "/" by default.
+     *
+     * For example: given a request with prefix = "notes/2021"  or "notes/2021/", delimiter = "/" and key = "notes/2021/1.txt",
+     * the normalized key should be "1.txt".
      */
     private static String normalizeKey(DownloadDirectoryRequest downloadDirectoryRequest,
                                        S3Object s3Object,
                                        String delimiter) {
-        int delimiterLength = delimiter == null ? DEFAULT_DELIMITER.length() : delimiter.length();
+        int delimiterLength = delimiter.length();
         return downloadDirectoryRequest.prefix()
                                        .filter(prefix -> !prefix.isEmpty())
-                                       .map(prefix -> s3Object.key().substring(prefix.length() + delimiterLength))
+                                       .map(prefix -> {
+                                           String normalizedKey;
+                                           if (prefix.endsWith(delimiter)) {
+                                               normalizedKey = s3Object.key().substring(prefix.length());
+                                           } else {
+                                               normalizedKey = s3Object.key().substring(prefix.length() + delimiterLength);
+                                           }
+                                           return normalizedKey;
+                                       })
                                        .orElseGet(s3Object::key);
     }
 
