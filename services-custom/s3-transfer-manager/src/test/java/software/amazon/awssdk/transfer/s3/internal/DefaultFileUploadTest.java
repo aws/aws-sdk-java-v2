@@ -17,6 +17,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
 
 public class DefaultFileUploadTest {
@@ -24,7 +25,8 @@ public class DefaultFileUploadTest {
     @Test
     public void equals_hashcode() {
         EqualsVerifier.forClass(DefaultFileUpload.class)
-                      .withNonnullFields("completionFuture", "progress")
+                      .withNonnullFields("completionFuture", "progress", "request", "observable", "resumableFileUpload")
+                      .withPrefabValues(S3MetaRequestPauseObservable.class, new S3MetaRequestPauseObservable(), new S3MetaRequestPauseObservable())
                       .verify();
     }
 }

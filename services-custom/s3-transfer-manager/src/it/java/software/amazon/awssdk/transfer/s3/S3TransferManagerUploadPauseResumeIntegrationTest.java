@@ -95,7 +95,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
 
         FileUpload resumedUpload = tm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
-        System.out.println(resumedUpload.progress().snapshot().transferSizeInBytes());
+        System.out.println(resumedUpload.progress().snapshot().transferredBytes());
 
         //assertThat(resumedUpload.progress().snapshot().transferSizeInBytes()).hasValue((long) bytes.length);
     }
@@ -119,7 +119,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
 
         FileUpload resumedUpload = tm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
-        System.out.println(resumedUpload.progress().snapshot().transferSizeInBytes());
+        System.out.println(resumedUpload.progress().snapshot().transferredBytes());
 
         //assertThat(resumedUpload.progress().snapshot().transferSizeInBytes()).hasValue((long) bytes.length);
     }
@@ -164,7 +164,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         FileUpload resumedUpload = tm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
         verifyMultipartUploadIdNotExist(resumableFileUpload);
-        assertThat(resumedUpload.progress().snapshot().transferSizeInBytes()).hasValue((long) bytes.length);
+        assertThat(resumedUpload.progress().snapshot().totalBytes()).hasValue(bytes.length);
     }
 
     private void verifyMultipartUploadIdExists(ResumableFileUpload resumableFileUpload) {
@@ -182,7 +182,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
 
     private static void waitUntilFirstByteBufferDelivered(FileUpload upload) {
         Waiter<TransferProgressSnapshot> waiter = Waiter.builder(TransferProgressSnapshot.class)
-                                                        .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(r -> r.bytesTransferred() > 0))
+                                                        .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(r -> r.transferredBytes() > 0))
                                                         .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(r -> true))
                                                         .overrideConfiguration(o -> o.waitTimeout(Duration.ofMinutes(1))
                                                                                      .maxAttempts(Integer.MAX_VALUE)

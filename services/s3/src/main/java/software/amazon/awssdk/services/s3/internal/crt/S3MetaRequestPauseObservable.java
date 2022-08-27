@@ -19,6 +19,9 @@ import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 
+/**
+ * An observable that notifies the observer {@link S3CrtAsyncHttpClient} to pause the request.
+ */
 @SdkInternalApi
 public class S3MetaRequestPauseObservable {
 
@@ -36,6 +39,9 @@ public class S3MetaRequestPauseObservable {
         this.request = request;
     }
 
+    /**
+     * Pause the request
+     */
     public String pause() {
         return pause.apply(request);
     }

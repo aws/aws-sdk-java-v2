@@ -18,7 +18,9 @@ package software.amazon.awssdk.transfer.s3.internal.utils;
 import java.io.File;
 import java.nio.file.Path;
 import java.time.Instant;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public final class FileUtils {
 
     private FileUtils() {

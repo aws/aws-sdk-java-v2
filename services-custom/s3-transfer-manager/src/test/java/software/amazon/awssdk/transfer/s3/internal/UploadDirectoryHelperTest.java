@@ -40,6 +40,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
@@ -50,15 +51,10 @@ import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
-import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
-import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
-import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
-import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
 public class UploadDirectoryHelperTest {
     private static FileSystem jimfs;
@@ -224,7 +220,7 @@ public class UploadDirectoryHelperTest {
                                      new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
                                                                                                 .transferredBytes(0L)
                                                                                                 .build()),
-                                     null,
+                                     new S3MetaRequestPauseObservable(),
                                      UploadFileRequest.builder()
                                                       .putObjectRequest(p -> p.key("key").bucket("bucket")).source(Paths.get("test.txt"))
                                                       .build());

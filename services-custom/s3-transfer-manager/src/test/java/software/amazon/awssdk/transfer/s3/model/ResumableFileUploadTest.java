@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.nio.file.FileSystem;
 import java.nio.file.Paths;
@@ -30,17 +31,21 @@ class ResumableFileUploadTest {
     @Test
     void equalsHashcode() {
         EqualsVerifier.forClass(ResumableFileUpload.class)
-                      .withNonnullFields("uploadFileRequest", "fileLastModified", "totalNumOfParts")
+                      .withNonnullFields("fileLength", "uploadFileRequest", "fileLastModified")
                       .verify();
     }
 
     @Test
     void toBuilder() {
-        ResumableFileUpload fileUpload = ResumableFileUpload.builder()
-            .multipartUploadId("1234")
-            .uploadFileRequest(UploadFileRequest.builder().putObjectRequest(p -> p.bucket("bucket").key("key")).source(Paths.get("test")).build())
-            .fileLastModified(Instant.now())
-            .build();
+        ResumableFileUpload fileUpload =
+            ResumableFileUpload.builder()
+                               .multipartUploadId("1234")
+                               .uploadFileRequest(UploadFileRequest.builder().putObjectRequest(p -> p.bucket("bucket").key("key"
+                               )).source(Paths.get("test")).build())
+                               .fileLastModified(Instant.now())
+                               .fileLength(10L)
+                               .partSizeInBytes(10 * MB)
+                               .build();
 
         assertThat(fileUpload.toBuilder().build()).isEqualTo(fileUpload);
         assertThat(fileUpload.toBuilder().multipartUploadId("5678").build()).isNotEqualTo(fileUpload);

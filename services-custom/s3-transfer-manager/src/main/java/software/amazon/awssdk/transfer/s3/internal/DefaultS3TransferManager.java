@@ -215,7 +215,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
                                                 resumableFileUpload.fileLastModified(),
                                                 resumableFileUpload.uploadFileRequest().source());
 
-        boolean noResumeToken = noResumeToken(resumableFileUpload);
+        boolean noResumeToken = !hasResumeToken(resumableFileUpload);
 
         if (fileModified || noResumeToken) {
             return uploadFromBeginning(resumableFileUpload, fileModified);
@@ -228,8 +228,8 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         UploadFileRequest uploadFileRequest = resumableFileUpload.uploadFileRequest();
         PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
 
-        CrtUploadResumeToken token = new CrtUploadResumeToken(resumableFileUpload.totalNumOfParts().get(),
-                                                              resumableFileUpload.partSizeInBytes().get(),
+        CrtUploadResumeToken token = new CrtUploadResumeToken(resumableFileUpload.totalNumOfParts().getAsLong(),
+                                                              resumableFileUpload.partSizeInBytes().getAsLong(),
                                                               resumableFileUpload.multipartUploadId().orElse(null));
         String marshalledToken = marshallResumeToken(token);
 
@@ -275,8 +275,8 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         return uploadFile(uploadFileRequest);
     }
 
-    private boolean noResumeToken(ResumableFileUpload resumableFileUpload) {
-        return !resumableFileUpload.totalNumOfParts().isPresent() || !resumableFileUpload.partSizeInBytes().isPresent();
+    private boolean hasResumeToken(ResumableFileUpload resumableFileUpload) {
+        return resumableFileUpload.totalNumOfParts().isPresent() && resumableFileUpload.partSizeInBytes().isPresent();
     }
 
     private PutObjectRequest attachSdkAttribute(PutObjectRequest putObjectRequest,
@@ -291,7 +291,9 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
         AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
             putObjectRequest.overrideConfiguration().map(o -> o.toBuilder().applyMutation(attachSdkHttpAttributes).build())
-                            .orElseGet(() -> AwsRequestOverrideConfiguration.builder().applyMutation(attachSdkHttpAttributes).build());
+                            .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
+                                                                            .applyMutation(attachSdkHttpAttributes)
+                                                                            .build());
 
         return putObjectRequest.toBuilder()
                                .overrideConfiguration(modifiedRequestOverrideConfig)

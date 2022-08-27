@@ -43,6 +43,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
@@ -298,9 +299,10 @@ public class UploadDirectoryHelperParameterizedTest {
                                      new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
                                                                                                 .transferredBytes(0L)
                                                                                                 .build()),
-                                     null,UploadFileRequest.builder()
-                                                           .putObjectRequest(p -> p.key("key").bucket("bucket")).source(Paths.get("test.txt"))
-                                                           .build());
+                                     new S3MetaRequestPauseObservable(),
+                                     UploadFileRequest.builder()
+                                         .source(Paths.get(".")).putObjectRequest(b -> b.bucket("bucket").key("key"))
+                                                      .build());
     }
 
     private Path createTestDirectory() throws IOException {

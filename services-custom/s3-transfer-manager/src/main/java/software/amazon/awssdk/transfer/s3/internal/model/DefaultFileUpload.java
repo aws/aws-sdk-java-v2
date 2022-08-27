@@ -78,7 +78,7 @@ public final class DefaultFileUpload implements FileUpload {
             }
         }
 
-        // upload hasn't started yet or it's a single object upload
+        // upload hasn't started yet, or it's a single object upload
         if (token == null) {
             return ResumableFileUpload.builder()
                                       .fileLastModified(fileLastModified)

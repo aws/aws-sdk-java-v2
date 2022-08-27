@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.model;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * </ul>
  *
  * @see S3TransferManager#uploadFile(UploadFileRequest)
+ * @see S3TransferManager#resumeUploadFile(ResumableFileUpload)
  */
 @SdkPublicApi
 public final class ResumableFileUpload implements ResumableTransfer,
@@ -71,20 +73,32 @@ public final class ResumableFileUpload implements ResumableTransfer,
 
         ResumableFileUpload that = (ResumableFileUpload) o;
 
+        if (fileLength != that.fileLength) {
+            return false;
+        }
         if (!uploadFileRequest.equals(that.uploadFileRequest)) {
+            return false;
+        }
+        if (!fileLastModified.equals(that.fileLastModified)) {
             return false;
         }
         if (!Objects.equals(multipartUploadId, that.multipartUploadId)) {
             return false;
         }
-        return fileLastModified.equals(that.fileLastModified);
+        if (!Objects.equals(partSizeInBytes, that.partSizeInBytes)) {
+            return false;
+        }
+        return Objects.equals(totalNumOfParts, that.totalNumOfParts);
     }
 
     @Override
     public int hashCode() {
         int result = uploadFileRequest.hashCode();
-        result = 31 * result + (multipartUploadId != null ? multipartUploadId.hashCode() : 0);
         result = 31 * result + fileLastModified.hashCode();
+        result = 31 * result + (multipartUploadId != null ? multipartUploadId.hashCode() : 0);
+        result = 31 * result + (partSizeInBytes != null ? partSizeInBytes.hashCode() : 0);
+        result = 31 * result + (totalNumOfParts != null ? totalNumOfParts.hashCode() : 0);
+        result = 31 * result + (int) (fileLength ^ (fileLength >>> 32));
         return result;
     }
 
@@ -111,21 +125,21 @@ public final class ResumableFileUpload implements ResumableTransfer,
     }
 
     /**
-     * @return
+     * Return the part size in bytes
      */
-    public Optional<Long> partSizeInBytes() {
-        return Optional.ofNullable(partSizeInBytes);
+    public OptionalLong partSizeInBytes() {
+        return partSizeInBytes == null ? OptionalLong.empty() : OptionalLong.of(partSizeInBytes);
     }
 
     /**
-     * @return
+     * Return the total number of parts associated with this tranfser
      */
-    public Optional<Long> totalNumOfParts() {
-        return Optional.ofNullable(totalNumOfParts);
+    public OptionalLong totalNumOfParts() {
+        return totalNumOfParts == null ? OptionalLong.empty() : OptionalLong.of(totalNumOfParts);
     }
 
     /**
-     * The total size of the transfer in bytes, or {@link Optional#empty()} if unknown
+     * The multipart upload ID, or {@link Optional#empty()} if unknown
      *
      * @return the optional total size of the transfer.
      */
@@ -139,9 +153,9 @@ public final class ResumableFileUpload implements ResumableTransfer,
                        .add("fileLastModified", fileLastModified)
                        .add("multipartUploadId", multipartUploadId)
                        .add("uploadFileRequest", uploadFileRequest)
-            .add("fileLength", fileLength)
-            .add("totalNumOfParts", totalNumOfParts)
-            .add("partSizeInBytes", partSizeInBytes)
+                       .add("fileLength", fileLength)
+                       .add("totalNumOfParts", totalNumOfParts)
+                       .add("partSizeInBytes", partSizeInBytes)
                        .build();
     }
 
@@ -214,7 +228,6 @@ public final class ResumableFileUpload implements ResumableTransfer,
         private UploadFileRequest uploadFileRequest;
         private Long partSizeInBytes;
         private Long totalNumOfParts;
-
         private Instant fileLastModified;
         private Long fileLength;
 
@@ -222,10 +235,12 @@ public final class ResumableFileUpload implements ResumableTransfer,
         }
 
         private DefaultBuilder(ResumableFileUpload persistableFileUpload) {
+            this.multipartUploadId = persistableFileUpload.multipartUploadId;
             this.uploadFileRequest = persistableFileUpload.uploadFileRequest;
             this.partSizeInBytes = persistableFileUpload.partSizeInBytes;
             this.fileLastModified = persistableFileUpload.fileLastModified;
             this.totalNumOfParts = persistableFileUpload.totalNumOfParts;
+            this.fileLength = persistableFileUpload.fileLength;
         }
 
         @Override
