@@ -1,3 +1,25 @@
+# __2.17.263__ __2022-08-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Bump CRT version to 0.19.2
+    - Updated service endpoint metadata.
+
+## __Amazon FSx__
+  - ### Features
+    - Documentation updates for Amazon FSx for NetApp ONTAP.
+
+## __Amazon S3 Transfer Manager__
+  - ### Bugfixes
+    - Added usage of createAnonymousCredentials to fix issue where NPE was thrown when AnonymousCredentialsProvider was passed in
+
+## __Amazon Voice ID__
+  - ### Features
+    - Amazon Connect Voice ID now detects voice spoofing. When a prospective fraudster tries to spoof caller audio using audio playback or synthesized speech, Voice ID will return a risk score and outcome to indicate the how likely it is that the voice is spoofed.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fixed the file name mapping issue in downloadDirectory. See [#3366](https://github.com/aws/aws-sdk-java-v2/issues/3366)
+
 # __2.17.262__ __2022-08-26__
 ## __AWS Elemental MediaPackage__
   - ### Features
