@@ -218,7 +218,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         boolean noResumeToken = !hasResumeToken(resumableFileUpload);
 
         if (fileModified || noResumeToken) {
-            return uploadFromBeginning(resumableFileUpload, fileModified);
+            return uploadFromBeginning(resumableFileUpload, fileModified, noResumeToken);
         }
 
         return doResumeUpload(resumableFileUpload);
@@ -243,7 +243,8 @@ public final class DefaultS3TransferManager implements S3TransferManager {
                                            .build());
     }
 
-    private FileUpload uploadFromBeginning(ResumableFileUpload resumableFileUpload, boolean fileModified) {
+    private FileUpload uploadFromBeginning(ResumableFileUpload resumableFileUpload, boolean fileModified,
+                                           boolean noResumeToken) {
         UploadFileRequest uploadFileRequest = resumableFileUpload.uploadFileRequest();
         PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
         if (fileModified) {
@@ -269,6 +270,16 @@ public final class DefaultS3TransferManager implements S3TransferManager {
                                                     }
                                                 });
                                });
+        }
+
+        if (noResumeToken) {
+            log.debug(() -> String.format("No resume token is found " +
+                                          "The SDK will upload the requested object in bucket"
+                                          + " (%s) with key (%s) from "
+                                          + "the "
+                                          + "beginning.",
+                                          putObjectRequest.bucket(),
+                                          putObjectRequest.key()));
         }
 
 
