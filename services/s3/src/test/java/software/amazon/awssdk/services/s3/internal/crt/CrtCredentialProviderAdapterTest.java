@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 public class CrtCredentialProviderAdapterTest {
 
     @Test
-    public void crtCredentials_withSession_shouldConvert() {
+    void crtCredentials_withSession_shouldConvert() {
         AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider
             .create(AwsSessionCredentials.create("foo", "bar", "session"));
 
@@ -51,7 +51,7 @@ public class CrtCredentialProviderAdapterTest {
     }
 
     @Test
-    public void crtCredentials_withoutSession_shouldConvert() {
+    void crtCredentials_withoutSession_shouldConvert() {
         AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider
             .create(AwsBasicCredentials.create("foo", "bar"));
 
@@ -66,7 +66,7 @@ public class CrtCredentialProviderAdapterTest {
     }
 
     @Test
-    public void crtCredentials_provideAwsCredentials_shouldInvokeResolveAndClose() {
+    void crtCredentials_provideAwsCredentials_shouldInvokeResolveAndClose() {
         AwsCredentialsProvider awsCredentialsProvider = Mockito.mock(HttpCredentialsProvider.class);
         AwsCredentials credentials = new AwsCredentials() {
             @Override
@@ -94,7 +94,7 @@ public class CrtCredentialProviderAdapterTest {
     }
 
     @Test
-    public void crtCredentials_anonymousCredentialsProvider_shouldWork() {
+    void crtCredentials_anonymousCredentialsProvider_shouldWork() {
         AwsCredentialsProvider awsCredentialsProvider = AnonymousCredentialsProvider.create();
 
         CrtCredentialsProviderAdapter adapter = new CrtCredentialsProviderAdapter(awsCredentialsProvider);
