@@ -1,0 +1,30 @@
+{
+    "version": "2.17.251",
+    "date": "2022-08-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Backup Storage",
+            "contributor": "",
+            "description": "This is the first public release of AWS Backup Storage. We are exposing some previously-internal APIs for use by external services. These APIs are not meant to be used directly by customers."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Add support for Python 3.9 AWS Glue Python Shell jobs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Private 5G",
+            "contributor": "",
+            "description": "This is the initial SDK release for AWS Private 5G. AWS Private 5G is a managed service that makes it easy to deploy, operate, and scale your own private mobile network at your on-premises location."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

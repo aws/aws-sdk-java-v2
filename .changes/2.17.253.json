@@ -1,0 +1,30 @@
+{
+    "version": "2.17.253",
+    "date": "2022-08-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SSO Identity Store",
+            "contributor": "",
+            "description": "Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Single Sign-On",
+            "contributor": "",
+            "description": "Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Adds Http 3 support to distributions"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Wisdom Service",
+            "contributor": "",
+            "description": "This release introduces a new API PutFeedback that allows submitting feedback to Wisdom on content relevance."
+        }
+    ]
+}

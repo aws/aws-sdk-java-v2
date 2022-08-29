@@ -1,0 +1,24 @@
+{
+    "version": "2.17.259",
+    "date": "2022-08-23",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix signature mismatch exception generated when signing query parameters with empty-value keys."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Single Sign-On Admin",
+            "contributor": "",
+            "description": "Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "RDS for Oracle supports Oracle Data Guard switchover and read replica backups."
+        }
+    ]
+}

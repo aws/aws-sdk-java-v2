@@ -52,7 +52,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.17.244</version>
+      <version>2.17.263</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -86,12 +86,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.17.244</version>
+  <version>2.17.263</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.17.244</version>
+  <version>2.17.263</version>
 </dependency>
 ```
 
@@ -103,7 +103,7 @@ You can import the whole SDK into your project (includes *ALL* services). Please
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>aws-sdk-java</artifactId>
-  <version>2.17.244</version>
+  <version>2.17.263</version>
 </dependency>
 ```
 
@@ -143,18 +143,22 @@ You can find sample code for v2 in the following places:
 * Integration tests in this repo. They are located in the `it` directory under each service module, eg: [s3-integration-tests]
 
 ## Maintenance and Support for SDK Major Versions
-For information about maintenance and support for SDK major versions and their underlying dependencies, see the following in the AWS SDKs and Tools Shared Configuration and Credentials Reference Guide:
+For information about maintenance and support for SDK major versions and their underlying dependencies, see the following in the AWS SDKs and Tools Reference Guide:
 
 * [AWS SDKs and Tools Maintenance Policy][maintenance-policy]
 * [AWS SDKs and Tools Version Support Matrix][version-matrix]
 
+## Maintenance and Support for Java Versions
+
+We maintain full support on Long-Term Support(LTS) releases: Java 8, Java 11, and Java 17.
+
 ## Giving Feedback
 We need your help in making this SDK great. Please participate in the community and contribute to this effort by submitting issues, participating in discussion forums and submitting pull requests through the following channels:
 
-* Submit [issues][sdk-issues] - this is the preferred channel to interact with our team
-* Come join the AWS Java community chat on [Gitter][gitter]
+* Submit [issues][sdk-issues] - this is the **preferred** channel to interact with our team
 * Articulate your feature request or upvote existing ones on our [Issues][features] page
 * Send feedback directly to the team at aws-java-sdk-v2-feedback@amazon.com
+* Come join the AWS Java community chat on [Gitter][gitter]
 
 [aws-iam-credentials]: http://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/java-dg-roles.html
 [aws]: http://aws.amazon.com/

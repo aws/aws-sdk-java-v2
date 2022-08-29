@@ -44,14 +44,14 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
-import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
-import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 
 /**
  * Testing {@link DownloadDirectoryHelper} with different file systems.
@@ -102,6 +102,54 @@ public class DownloadDirectoryHelperParameterizedTest {
         assertThat(actualRequests.size()).isEqualTo(keys.length);
 
         verifyDestinationPathForSingleDownload(jimfs, "/", keys, actualRequests);
+    }
+
+    /**
+     * The S3 bucket has the following keys:
+     * abc/def/image.jpg
+     * abc/def/title.jpg
+     * abc/def/ghi/xyz.txt
+     *
+     * if the prefix is "abc/def/", the structure should like this:
+     * image.jpg
+     * title.jpg
+     * ghi
+     *  - xyz.txt
+     */
+    @ParameterizedTest
+    @MethodSource("fileSystems")
+    void downloadDirectory_withPrefix_shouldStripPrefixInDestinationPath(FileSystem jimfs) {
+        directory = jimfs.getPath("test");
+        String[] keys = {"abc/def/image.jpg", "abc/def/title.jpg", "abc/def/ghi/xyz.txt"};
+        stubSuccessfulListObjects(listObjectsHelper, keys);
+        ArgumentCaptor<DownloadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
+
+        when(singleDownloadFunction.apply(requestArgumentCaptor.capture()))
+            .thenReturn(completedDownload());
+        DirectoryDownload downloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destination(directory)
+                                                                              .bucket("bucket")
+                                                                              .listObjectsV2RequestTransformer(l -> l.prefix(
+                                                                                  "abc/def/"))
+                                                                              .build());
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
+        assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
+
+        List<DownloadFileRequest> actualRequests = requestArgumentCaptor.getAllValues();
+
+        assertThat(actualRequests.size()).isEqualTo(keys.length);
+
+        List<String> destinations =
+            actualRequests.stream().map(u -> u.destination().toString())
+                          .collect(Collectors.toList());
+
+        String jimfsSeparator = jimfs.getSeparator();
+
+        List<String> expectedPaths =
+            Arrays.asList("image.jpg", "title.jpg", "ghi/xyz.txt").stream()
+                  .map(k -> DIRECTORY_NAME + jimfsSeparator + k.replace("/",jimfsSeparator)).collect(Collectors.toList());
+        assertThat(destinations).isEqualTo(expectedPaths);
     }
 
     @ParameterizedTest

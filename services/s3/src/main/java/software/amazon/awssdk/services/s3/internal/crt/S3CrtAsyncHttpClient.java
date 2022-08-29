@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.crt;
 
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -101,13 +102,18 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             .withMetaRequestType(requestType)
             .withChecksumAlgorithm(checksumAlgorithm)
             .withValidateChecksum(checksumValidationEnabled)
-            .withResponseHandler(responseHandler);
+            .withResponseHandler(responseHandler)
+            .withEndpoint(getEndpoint(uri));
 
         try (S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions)) {
             closeResourcesWhenComplete(executeFuture, s3MetaRequest, responseHandler);
         }
 
         return executeFuture;
+    }
+
+    private static URI getEndpoint(URI uri) {
+        return invokeSafely(() -> new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), null, null, null));
     }
 
     @Override

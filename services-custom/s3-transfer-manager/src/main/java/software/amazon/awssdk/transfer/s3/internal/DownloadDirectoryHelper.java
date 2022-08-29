@@ -95,6 +95,7 @@ public class DownloadDirectoryHelper {
         validateDirectoryIfExists(downloadDirectoryRequest.destination());
         String bucket = downloadDirectoryRequest.bucket();
 
+        // Delimiter is null by default. See https://github.com/aws/aws-sdk-java/issues/1215
         ListObjectsV2Request request =
             ListObjectsV2Request.builder()
                                 .bucket(bucket)
@@ -147,7 +148,7 @@ public class DownloadDirectoryHelper {
                                           S3Object s3Object) {
         FileSystem fileSystem = downloadDirectoryRequest.destination().getFileSystem();
         // listOBjectv2requests.delimiter
-        String delimiter = listRequest.delimiter();
+        String delimiter = listRequest.delimiter() == null ? DEFAULT_DELIMITER : listRequest.delimiter();
         String key = normalizeKey(downloadDirectoryRequest, listRequest, s3Object, delimiter);
         String relativePath = getRelativePath(fileSystem, delimiter, key);
         Path destinationPath = downloadDirectoryRequest.destination().resolve(relativePath);
@@ -199,18 +200,28 @@ public class DownloadDirectoryHelper {
     }
 
     /**
-     * Normalizing the key by stripping the prefix from the s3 object key if the prefix is not empty. For example: given a request
-     * with prefix = "notes/2021", delimiter = "/" and key = "notes/2021/1.txt", the returned string should be "1.txt". If a
-     * delimiter is null (not provided by user), use "/" by default.
+     * Normalizing the key by stripping the prefix from the s3 object key if the prefix is not empty.
+     *
+     * If a delimiter is null (not provided by user), use "/" by default.
+     *
+     * For example: given a request with prefix = "notes/2021"  or "notes/2021/", delimiter = "/" and key = "notes/2021/1.txt",
+     * the normalized key should be "1.txt".
      */
     private static String normalizeKey(DownloadDirectoryRequest downloadDirectoryRequest,
                                        ListObjectsV2Request listObjectsRequest,
                                        S3Object s3Object,
                                        String delimiter) {
-        int delimiterLength = delimiter == null ? DEFAULT_DELIMITER.length() : delimiter.length();
+        int delimiterLength = delimiter.length();
 
         if (!StringUtils.isEmpty(listObjectsRequest.prefix())) {
-            return s3Object.key().substring(listObjectsRequest.prefix().length() + delimiterLength);
+            String prefix = listObjectsRequest.prefix();
+            String normalizedKey;
+            if (prefix.endsWith(delimiter)) {
+                normalizedKey = s3Object.key().substring(prefix.length());
+            } else {
+                normalizedKey = s3Object.key().substring(prefix.length() + delimiterLength);
+            }
+            return normalizedKey;
         }
 
         return s3Object.key();

@@ -105,8 +105,7 @@
       "required":[
         "clientId",
         "clientSecret",
-        "grantType",
-        "deviceCode"
+        "grantType"
       ],
       "members":{
         "clientId":{

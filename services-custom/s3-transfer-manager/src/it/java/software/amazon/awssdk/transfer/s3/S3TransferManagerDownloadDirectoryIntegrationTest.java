@@ -35,6 +35,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
@@ -136,7 +138,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
     }
 
     /**
-     * The destination directory structure should be the following with prefix "notes"
+     * With prefix = "notes", the destination directory structure should be the following:
      * <pre>
      *   {@code
      *      - destination
@@ -149,9 +151,9 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      *   }
      * </pre>
      */
-    @Test
-    public void downloadDirectory_withPrefix() throws Exception {
-        String prefix = "notes";
+    @ParameterizedTest
+    @ValueSource(strings = {"notes/2021", "notes/2021/", "notes"})
+    public void downloadDirectory_withPrefix(String prefix) throws Exception {
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destination(directory)
                                                                          .listObjectsV2RequestTransformer(r -> r.prefix(prefix))
                                                                          .bucket(TEST_BUCKET));

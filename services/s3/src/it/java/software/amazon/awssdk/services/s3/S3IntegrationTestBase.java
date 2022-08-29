@@ -110,6 +110,8 @@ public class S3IntegrationTestBase extends AwsTestBase {
                 throw e;
             }
         }
+
+        s3.waiter().waitUntilBucketExists(r -> r.bucket(bucketName));
     }
 
     protected static void deleteBucketAndAllContents(String bucketName) {
