@@ -1,3 +1,32 @@
+# __2.17.264__ __2022-08-30__
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Adds topologyFilter to ListInstalledComponentsRequest which allows filtration of components by ROOT or ALL (including root and dependency components). Adds lastStatusChangeTimestamp to ListInstalledComponents response to show the last time a component changed state on a device.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SSO Identity Store__
+  - ### Features
+    - Documentation updates for the Identity Store CLI Reference.
+
+## __AWS Single Sign-On__
+  - ### Features
+    - Documentation updates for the AWS IAM Identity Center Portal CLI Reference.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Documentation updates for the AWS IAM Identity Center CLI Reference.
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - This release adds new apis for providing labels.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API adds support for using allow lists to define specific text and text patterns to ignore when inspecting data sources for sensitive data.
+
 # __2.17.263__ __2022-08-29__
 ## __AWS SDK for Java v2__
   - ### Features
