@@ -115,7 +115,8 @@ public final class NettyUtils {
         return "Maximum pending connection acquisitions exceeded. The request rate is too high for the client to keep up.\n"
 
                + "Consider taking any of the following actions to mitigate the issue: increase max connections, "
-               + "increase max pending acquire count, decrease pool lease timeout, or slowing the request rate.\n"
+               + "increase max pending acquire count, decrease connection acquisition timeout, or "
+               + "slowing the request rate.\n"
 
                + "Increasing the max connections can increase client throughput (unless the network interface is already "
                + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
