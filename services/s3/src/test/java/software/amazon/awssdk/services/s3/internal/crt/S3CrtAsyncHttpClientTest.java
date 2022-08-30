@@ -20,20 +20,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.http.HttpRequest;
+import software.amazon.awssdk.crt.s3.ChecksumAlgorithm;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
@@ -43,45 +43,36 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 
-@RunWith(MockitoJUnitRunner.class)
 public class S3CrtAsyncHttpClientTest {
     private static final URI DEFAULT_ENDPOINT = URI.create("https://127.0.0.1:443");
 
     private S3CrtAsyncHttpClient asyncHttpClient;
     private S3NativeClientConfiguration s3NativeClientConfiguration;
 
-    @Mock
     private S3Client s3Client;
 
-    @Mock
     private SdkAsyncHttpResponseHandler responseHandler;
 
-    @Mock
     private SdkHttpContentPublisher contentPublisher;
 
-    @Before
+    @BeforeEach
     public void methodSetup() {
-
+        s3Client = Mockito.mock(S3Client.class);
+        responseHandler = Mockito.mock(SdkAsyncHttpResponseHandler.class);
+        contentPublisher = Mockito.mock(SdkHttpContentPublisher.class);
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .endpointOverride(DEFAULT_ENDPOINT)
                                                                  .credentialsProvider(null)
                                                                  .build();
 
-        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration);
+        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration, true);
     }
 
     @Test
     public void defaultRequest_shouldSetMetaRequestOptionsCorrectly() {
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().build();
 
-        ArgumentCaptor<S3MetaRequestOptions> s3MetaRequestOptionsArgumentCaptor =
-            ArgumentCaptor.forClass(S3MetaRequestOptions.class);
-
-        asyncHttpClient.execute(asyncExecuteRequest);
-
-        verify(s3Client).makeMetaRequest(s3MetaRequestOptionsArgumentCaptor.capture());
-
-        S3MetaRequestOptions actual = s3MetaRequestOptionsArgumentCaptor.getValue();
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.DEFAULT);
         assertThat(actual.getCredentialsProvider()).isNull();
         assertThat(actual.getEndpoint()).isEqualTo(URI.create(DEFAULT_ENDPOINT.getScheme() + "://" + DEFAULT_ENDPOINT.getHost()));
@@ -106,14 +97,7 @@ public class S3CrtAsyncHttpClientTest {
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                           "GetObject").build();
 
-        ArgumentCaptor<S3MetaRequestOptions> s3MetaRequestOptionsArgumentCaptor =
-            ArgumentCaptor.forClass(S3MetaRequestOptions.class);
-
-        asyncHttpClient.execute(asyncExecuteRequest);
-
-        verify(s3Client).makeMetaRequest(s3MetaRequestOptionsArgumentCaptor.capture());
-
-        S3MetaRequestOptions actual = s3MetaRequestOptionsArgumentCaptor.getValue();
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.GET_OBJECT);
     }
 
@@ -122,14 +106,7 @@ public class S3CrtAsyncHttpClientTest {
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                           "PutObject").build();
 
-        ArgumentCaptor<S3MetaRequestOptions> s3MetaRequestOptionsArgumentCaptor =
-            ArgumentCaptor.forClass(S3MetaRequestOptions.class);
-
-        asyncHttpClient.execute(asyncExecuteRequest);
-
-        verify(s3Client).makeMetaRequest(s3MetaRequestOptionsArgumentCaptor.capture());
-
-        S3MetaRequestOptions actual = s3MetaRequestOptionsArgumentCaptor.getValue();
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.PUT_OBJECT);
     }
 
@@ -144,6 +121,181 @@ public class S3CrtAsyncHttpClientTest {
         future.cancel(false);
 
         verify(metaRequest).cancel();
+    }
+
+    @Test
+    public void nonStreamingOperation_noChecksumAlgoProvided_shouldNotSetByDefault() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .isRequestStreaming(false)
+                                                .build();
+
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "NonStreaming")
+
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getChecksumAlgorithm()).isNull();
+    }
+
+    @Test
+    public void nonStreamingOperation_checksumAlgoProvided_shouldHonor() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .isRequestStreaming(false)
+                                                .requestAlgorithm("SHA1")
+                                                .build();
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "NonStreaming")
+
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.SHA1);
+    }
+
+    @Test
+    public void checksumRequiredOperation_noChecksumAlgoProvided_shouldSetByDefault() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .requestChecksumRequired(true)
+                                                .build();
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "PutObject")
+
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.CRC32);
+    }
+
+    @Test
+    public void streamingOperation_noChecksumAlgoProvided_shouldSetByDefault() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .isRequestStreaming(true)
+                                                .build();
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "PutObject")
+
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.CRC32);
+    }
+
+    @Test
+    public void operationWithResponseAlgorithms_validateNotSpecified_shouldValidateByDefault() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .responseAlgorithms("CRC32")
+                                                .build();
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "GetObject")
+
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getValidateChecksum()).isTrue();
+    }
+
+    @Test
+    public void operationWithResponseAlgorithms_optOutValidationFromClient_shouldHonor() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .responseAlgorithms("CRC32")
+                                                .build();
+
+        s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
+                                                                 .endpointOverride(DEFAULT_ENDPOINT)
+                                                                 .credentialsProvider(null)
+                                                                 .build();
+
+        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration, false);
+
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "GetObject")
+
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getValidateChecksum()).isFalse();
+    }
+
+    @Test
+    public void operationWithResponseAlgorithms_optInFromRequest_shouldHonor() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .responseAlgorithms("CRC32")
+                                                .requestValidationMode("Enabled")
+                                                .build();
+
+        s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
+                                                                 .endpointOverride(DEFAULT_ENDPOINT)
+                                                                 .credentialsProvider(null)
+                                                                 .build();
+
+        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration, false);
+
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "GetObject")
+
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getValidateChecksum()).isTrue();
+    }
+
+    @Test
+    public void operationWithoutResponseAlgorithms_shouldNotValidate() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .build();
+
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "GetObject")
+
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getValidateChecksum()).isFalse();
+    }
+
+    private S3MetaRequestOptions makeRequest(AsyncExecuteRequest asyncExecuteRequest) {
+        ArgumentCaptor<S3MetaRequestOptions> s3MetaRequestOptionsArgumentCaptor =
+            ArgumentCaptor.forClass(S3MetaRequestOptions.class);
+
+        asyncHttpClient.execute(asyncExecuteRequest);
+
+        verify(s3Client).makeMetaRequest(s3MetaRequestOptionsArgumentCaptor.capture());
+
+        return s3MetaRequestOptionsArgumentCaptor.getValue();
+    }
+
+    @Test
+    public void streamingOperation_checksumAlgoProvided_shouldTakePrecedence() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .isRequestStreaming(true)
+                                                .requestAlgorithm("SHA1")
+                                                .build();
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "PutObject")
+
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.SHA1);
     }
 
     @Test
