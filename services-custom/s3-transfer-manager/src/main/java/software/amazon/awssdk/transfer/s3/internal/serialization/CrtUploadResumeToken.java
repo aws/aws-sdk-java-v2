@@ -17,13 +17,14 @@ package software.amazon.awssdk.transfer.s3.internal.serialization;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
 
 @SdkInternalApi
-public class CrtUploadResumeToken {
+public final class CrtUploadResumeToken {
 
     private final Long totalNumOfParts;
     private final Long partSizeInBytes;
@@ -45,6 +46,34 @@ public class CrtUploadResumeToken {
 
     public String multipartUploadId() {
         return multipartUploadId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        CrtUploadResumeToken token = (CrtUploadResumeToken) o;
+
+        if (!Objects.equals(totalNumOfParts, token.totalNumOfParts)) {
+            return false;
+        }
+        if (!Objects.equals(partSizeInBytes, token.partSizeInBytes)) {
+            return false;
+        }
+        return Objects.equals(multipartUploadId, token.multipartUploadId);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = totalNumOfParts != null ? totalNumOfParts.hashCode() : 0;
+        result = 31 * result + (partSizeInBytes != null ? partSizeInBytes.hashCode() : 0);
+        result = 31 * result + (multipartUploadId != null ? multipartUploadId.hashCode() : 0);
+        return result;
     }
 
     public static String marshallResumeToken(CrtUploadResumeToken resumeToken) {

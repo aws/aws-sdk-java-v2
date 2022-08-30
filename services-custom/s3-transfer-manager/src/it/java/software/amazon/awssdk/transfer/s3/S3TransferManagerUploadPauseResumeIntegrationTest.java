@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.Waiter;
@@ -40,6 +41,8 @@ import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 import software.amazon.awssdk.utils.Logger;
 
+// TODO: re-enable tests
+@Disabled("Disable tests because they are flaky right now due to crt bug")
 public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3IntegrationTestBase {
     private static final Logger log = Logger.loggerFor(S3TransferManagerUploadPauseResumeIntegrationTest.class);
     private static final String BUCKET = temporaryBucketName(S3TransferManagerUploadPauseResumeIntegrationTest.class);
@@ -85,19 +88,14 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         FileUpload fileUpload = tm.uploadFile(request);
         waitUntilFirstByteBufferDelivered(fileUpload);
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
-        log.info(() -> "Paused: " + resumableFileUpload);
+        log.debug(() -> "Paused: " + resumableFileUpload);
 
         assertThat(resumableFileUpload.multipartUploadId()).isEmpty();
-        assertThat(resumableFileUpload.partSizeInBytes()).isNotEmpty();
-        assertThat(resumableFileUpload.totalNumOfParts()).isNotEmpty();
-
-        verifyMultipartUploadIdExists(resumableFileUpload);
+        assertThat(resumableFileUpload.partSizeInBytes()).isEmpty();
+        assertThat(resumableFileUpload.totalNumOfParts()).isEmpty();
 
         FileUpload resumedUpload = tm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
-        System.out.println(resumedUpload.progress().snapshot().transferredBytes());
-
-        //assertThat(resumedUpload.progress().snapshot().transferSizeInBytes()).hasValue((long) bytes.length);
     }
 
     @Test
@@ -119,9 +117,6 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
 
         FileUpload resumedUpload = tm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
-        System.out.println(resumedUpload.progress().snapshot().transferredBytes());
-
-        //assertThat(resumedUpload.progress().snapshot().transferSizeInBytes()).hasValue((long) bytes.length);
     }
 
     @Test
@@ -132,7 +127,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
                                                    .build();
         FileUpload fileUpload = tm.uploadFile(request);
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
-        log.info(() -> "Paused: " + resumableFileUpload);
+        log.debug(() -> "Paused: " + resumableFileUpload);
 
         assertThat(resumableFileUpload.multipartUploadId()).isEmpty();
         assertThat(resumableFileUpload.partSizeInBytes()).isEmpty();
@@ -151,7 +146,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         FileUpload fileUpload = tm.uploadFile(request);
         waitUntilFirstByteBufferDelivered(fileUpload);
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
-        log.info(() -> "Paused: " + resumableFileUpload);
+        log.debug(() -> "Paused: " + resumableFileUpload);
 
         assertThat(resumableFileUpload.multipartUploadId()).isNotEmpty();
         assertThat(resumableFileUpload.partSizeInBytes()).isNotEmpty();

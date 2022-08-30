@@ -41,6 +41,7 @@ import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObserva
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -260,9 +261,12 @@ public final class DefaultS3TransferManager implements S3TransferManager {
             resumableFileUpload.multipartUploadId()
                                .ifPresent(id -> {
                                    log.debug(() -> "Aborting previous upload with multipartUploadId: " + id);
-                                   s3AsyncClient.abortMultipartUpload(request -> request.bucket(putObjectRequest.bucket())
-                                                                                        .key(putObjectRequest.key())
-                                                                                        .uploadId(id))
+                                   s3AsyncClient.abortMultipartUpload(
+                                                    AbortMultipartUploadRequest.builder()
+                                                                               .bucket(putObjectRequest.bucket())
+                                                                               .key(putObjectRequest.key())
+                                                                               .uploadId(id)
+                                                                               .build())
                                                 .whenComplete((r, t) -> {
                                                     if (t != null) {
                                                         log.warn(() -> "Failed to abort multipart upload: " + id,

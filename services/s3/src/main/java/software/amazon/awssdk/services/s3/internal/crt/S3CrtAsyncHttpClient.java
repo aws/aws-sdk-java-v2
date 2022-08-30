@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
-import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
@@ -113,7 +113,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             .withValidateChecksum(validateChecksum)
             .withResponseHandler(responseHandler)
             .withResumeToken(resumeToken)
-            .withEndpoint(getEndpoint(uri));
+            .withEndpoint(getEndpoint(uri))
+            .withResumeToken(resumeToken);
 
         S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions);
         S3MetaRequestPauseObservable observable =

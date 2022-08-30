@@ -41,6 +41,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.internal.DelegatingS3AsyncClient;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
@@ -220,7 +221,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                     throw new UnsupportedOperationException("Request-level credentials override is not supported");
                 }
 
-                if (overrideConfiguration.metricPublishers() != null) {
+                if (!CollectionUtils.isNullOrEmpty(overrideConfiguration.metricPublishers())) {
                     throw new UnsupportedOperationException("Request-level Metric Publishers override is not supported");
                 }
 
@@ -228,9 +229,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                     throw new UnsupportedOperationException("Request-level apiCallAttemptTimeout override is not supported");
                 }
 
-                if (overrideConfiguration.executionAttributes() != null) {
-                    throw new UnsupportedOperationException("Request-level executionAttributes override is not supported");
-                }
+                // if (overrideConfiguration.executionAttributes() != null) {
+                //     throw new UnsupportedOperationException("Request-level executionAttributes override is not supported");
+                // }
             }
         }
     }

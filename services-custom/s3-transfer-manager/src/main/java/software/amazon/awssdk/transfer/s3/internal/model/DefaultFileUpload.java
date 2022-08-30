@@ -73,12 +73,13 @@ public final class DefaultFileUpload implements FileUpload {
         try {
             token = observable.pause();
         } catch (CrtRuntimeException exception) {
+            // CRT throws exception if it is a single part
             if (!exception.errorName.equals("AWS_ERROR_UNSUPPORTED_OPERATION")) {
                 throw exception;
             }
         }
 
-        // upload hasn't started yet, or it's a single object upload
+        // Upload hasn't started yet, or it's a single object upload
         if (token == null) {
             return ResumableFileUpload.builder()
                                       .fileLastModified(fileLastModified)

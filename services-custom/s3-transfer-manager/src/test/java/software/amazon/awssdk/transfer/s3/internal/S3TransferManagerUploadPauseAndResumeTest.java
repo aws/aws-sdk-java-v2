@@ -41,11 +41,12 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.internal.serialization.CrtUploadResumeToken;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
@@ -100,7 +101,7 @@ class S3TransferManagerUploadPauseAndResumeTest {
     }
 
     @Test
-    void resumeUploadFile_fileModified_shouldUploadFromBeginning() {
+    void resumeUploadFile_fileModified_shouldAbortExistingAndUploadFromBeginning() {
         PutObjectRequest putObjectRequest = putObjectRequest();
         PutObjectResponse response = PutObjectResponse.builder().build();
         Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
@@ -114,6 +115,9 @@ class S3TransferManagerUploadPauseAndResumeTest {
 
         when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
             .thenReturn(CompletableFuture.completedFuture(response));
+
+        when(mockS3Crt.abortMultipartUpload(any(AbortMultipartUploadRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(AbortMultipartUploadResponse.builder().build()));
 
         String multipartId = "someId";
         CompletedFileUpload completedFileUpload = tm.resumeUploadFile(r -> r.fileLength(fileLength + 10L)
@@ -135,92 +139,49 @@ class S3TransferManagerUploadPauseAndResumeTest {
         assertThat(actualRequest.uploadId()).isEqualTo(multipartId);
     }
 
+    @Test
+    void resumeUploadFile_hasValidResumeToken_shouldResumeUpload() {
+        PutObjectRequest putObjectRequest = putObjectRequest();
+        PutObjectResponse response = PutObjectResponse.builder().build();
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        long fileLength = file.length();
 
-    // @Test
-    // void resumeUploadFile_headObjectFailed_shouldFail() {
-    //     PutObjectRequest putObjectRequest = putObjectRequest();
-    //     Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
-    //     UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
-    //                                                            .putObjectRequest(putObjectRequest)
-    //                                                            .source(file)
-    //                                                            .build();
-    //     SdkClientException sdkClientException = SdkClientException.create("failed");
-    //     when(mockS3Crt.headObject(any(Consumer.class)))
-    //         .thenReturn(CompletableFutureUtils.failedFuture(sdkClientException));
-    //
-    //     assertThatThrownBy(() -> tm.resumeUploadFile(r -> r.bytesTransferred(1000l)
-    //                                                        .uploadFileRequest(uploadFileRequest)
-    //                                                        .fileLastModified(fileLastModified)
-    //                                                        .s3ObjectLastModified(Instant.now()))
-    //                                .completionFuture()
-    //                                .join()).hasRootCause(sdkClientException);
-    // }
-    //
-    // @Test
-    // public void pauseAfterResumeBeforeHeadSucceeds() throws InterruptedException {
-    //     UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
-    //                                                            .putObjectRequest(putObjectRequest())
-    //                                                            .source(file)
-    //                                                            .build();
-    //
-    //     CompletableFuture<?> headFuture = new CompletableFuture<>();
-    //     when(mockS3Crt.headObject(any(Consumer.class))).thenReturn(headFuture);
-    //
-    //     ResumableFileUpload originalResumable =
-    //         ResumableFileUpload.builder()
-    //                            .bytesTransferred(file.length())
-    //                            .uploadFileRequest(uploadFileRequest)
-    //                            .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
-    //                            .s3ObjectLastModified(Instant.now())
-    //                            .totalSizeInBytes(2000L)
-    //                            .build();
-    //
-    //     FileUpload fileDownload = tm.resumeUploadFile(originalResumable);
-    //     ResumableFileUpload newResumable = fileDownload.pause();
-    //
-    //     assertThat(newResumable).isEqualTo(originalResumable);
-    //     assertThat(fileDownload.completionFuture()).isCancelled();
-    //     assertThat(headFuture).isCancelled();
-    // }
-    //
-    // @Test
-    // public void pauseAfterResumeAfterHeadBeforeGetSucceeds() throws InterruptedException {
-    //     UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
-    //                                                            .putObjectRequest(putObjectRequest())
-    //                                                            .source(file)
-    //                                                            .build();
-    //
-    //     CompletableFuture<?> getFuture = new CompletableFuture<>();
-    //     when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class))).thenReturn(getFuture);
-    //
-    //     Instant s3LastModified = Instant.now();
-    //     when(mockS3Crt.headObject(any(Consumer.class)))
-    //         .thenReturn(CompletableFuture.completedFuture(headObjectResponse(s3LastModified)));
-    //
-    //     ResumableFileUpload originalResumable =
-    //         ResumableFileUpload.builder()
-    //                            .bytesTransferred(file.length())
-    //                            .uploadFileRequest(uploadFileRequest)
-    //                            .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
-    //                            .s3ObjectLastModified(s3LastModified)
-    //                            .totalSizeInBytes(2000L)
-    //                            .build();
-    //
-    //     FileUpload fileDownload = tm.resumeUploadFile(originalResumable);
-    //     ResumableFileUpload newResumable = fileDownload.pause();
-    //
-    //     assertThat(newResumable.s3ObjectLastModified()).isEqualTo(originalResumable.s3ObjectLastModified());
-    //     assertThat(newResumable.bytesTransferred()).isEqualTo(originalResumable.bytesTransferred());
-    //     assertThat(newResumable.totalSizeInBytes()).isEqualTo(originalResumable.totalSizeInBytes());
-    //     assertThat(newResumable.fileLastModified()).isEqualTo(originalResumable.fileLastModified());
-    //
-    //     // Download will be modified now that we finished the head request
-    //     assertThat(newResumable.uploadFileRequest()).isNotEqualTo(originalResumable.uploadFileRequest());
-    //
-    //     assertThat(fileDownload.completionFuture()).isCancelled();
-    //     assertThat(getFuture).isCancelled();
-    // }
+        UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
+                                                               .putObjectRequest(putObjectRequest)
+                                                               .source(file)
+                                                               .build();
 
+
+        when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        String multipartId = "someId";
+        long totalNumOfParts = 10L;
+        long partSizeInBytes = 8 * MB;
+        CompletedFileUpload completedFileUpload = tm.resumeUploadFile(r -> r.fileLength(fileLength)
+                                                                            .partSizeInBytes(partSizeInBytes)
+                                                                            .totalNumOfParts(totalNumOfParts)
+                                                                            .multipartUploadId(multipartId)
+                                                                            .uploadFileRequest(uploadFileRequest)
+                                                                            .fileLastModified(fileLastModified))
+                                                    .completionFuture()
+                                                    .join();
+        assertThat(completedFileUpload.response()).isEqualTo(response);
+
+        ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor =
+            ArgumentCaptor.forClass(PutObjectRequest.class);
+        verify(mockS3Crt).putObject(putObjectRequestArgumentCaptor.capture(), any(AsyncRequestBody.class));
+        PutObjectRequest actualRequest = putObjectRequestArgumentCaptor.getValue();
+        AwsRequestOverrideConfiguration awsRequestOverrideConfiguration = actualRequest.overrideConfiguration().get();
+        SdkHttpExecutionAttributes attribute =
+            awsRequestOverrideConfiguration.executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES);
+
+        assertThat(CrtUploadResumeToken.unmarshallResumeToken(attribute.getAttribute(CRT_PAUSE_RESUME_TOKEN))).satisfies(token -> {
+            assertThat(token.multipartUploadId()).isEqualTo(token.multipartUploadId());
+            assertThat(token.partSizeInBytes()).isEqualTo(partSizeInBytes);
+            assertThat(token.totalNumOfParts()).isEqualTo(totalNumOfParts);
+        });
+    }
 
     private void verifyActualPutObjectRequestNotResumed() {
         ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor =
@@ -232,7 +193,6 @@ class S3TransferManagerUploadPauseAndResumeTest {
             awsRequestOverrideConfiguration.executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES);
 
         assertThat(attribute.getAttribute(CRT_PAUSE_RESUME_TOKEN)).isNull();
-
     }
 
     private static PutObjectRequest putObjectRequest() {
@@ -240,14 +200,6 @@ class S3TransferManagerUploadPauseAndResumeTest {
                                .key("key")
                                .bucket("bucket")
                                .build();
-    }
-
-    private static HeadObjectResponse headObjectResponse(Instant s3ObjectLastModified) {
-        return HeadObjectResponse
-            .builder()
-            .contentLength(2000L)
-            .lastModified(s3ObjectLastModified)
-            .build();
     }
 
 }
