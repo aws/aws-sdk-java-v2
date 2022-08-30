@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -35,6 +36,8 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
+//TODO: re-enable the test once the CRT bug is fixed
+@Disabled("disable due to CRT bug: response payload is null if withValidateChecksum is true")
 public class CrtExceptionTransformationIntegrationTest extends S3IntegrationTestBase {
 
     private static final String BUCKET = temporaryBucketName(CrtExceptionTransformationIntegrationTest.class);

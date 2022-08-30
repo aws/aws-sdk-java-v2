@@ -27,7 +27,6 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
@@ -42,6 +41,7 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -80,10 +80,12 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     @SdkTestInternalApi
-    S3CrtAsyncHttpClient(S3Client crtS3Client, S3NativeClientConfiguration nativeClientConfiguration) {
+    S3CrtAsyncHttpClient(S3Client crtS3Client,
+                         S3NativeClientConfiguration nativeClientConfiguration,
+                         boolean checksumValidationEnabled) {
         this.crtS3Client = crtS3Client;
         this.s3NativeClientConfiguration = nativeClientConfiguration;
-        this.checksumValidationEnabled = true;
+        this.checksumValidationEnabled = checksumValidationEnabled;
     }
 
     @Override
@@ -95,13 +97,17 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             new S3CrtResponseHandlerAdapter(executeFuture, asyncRequest.responseHandler());
 
         S3MetaRequestOptions.MetaRequestType requestType = requestType(asyncRequest);
-        ChecksumAlgorithm checksumAlgorithm = crtChecksumAlgorithm(asyncRequest);
+
+        HttpChecksum httpChecksum = asyncRequest.httpExecutionAttributes().getAttribute(HTTP_CHECKSUM);
+        ChecksumAlgorithm checksumAlgorithm = crtChecksumAlgorithm(httpChecksum);
+
+        boolean validateChecksum = validateResponseChecksum(httpChecksum);
 
         S3MetaRequestOptions requestOptions = new S3MetaRequestOptions()
             .withHttpRequest(httpRequest)
             .withMetaRequestType(requestType)
             .withChecksumAlgorithm(checksumAlgorithm)
-            .withValidateChecksum(checksumValidationEnabled)
+            .withValidateChecksum(validateChecksum)
             .withResponseHandler(responseHandler)
             .withEndpoint(getEndpoint(uri));
 
@@ -110,6 +116,19 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         return executeFuture;
+    }
+
+    /**
+     * Only validate response checksum if this operation supports checksum validation AND either of the following applies
+     * 1. checksum validation is enabled at request level via request validation mode OR
+     * 2. checksum validation is enabled at client level
+     */
+    private boolean validateResponseChecksum(HttpChecksum httpChecksum) {
+        if (httpChecksum == null || CollectionUtils.isNullOrEmpty(httpChecksum.responseAlgorithms())) {
+            return false;
+        }
+
+        return checksumValidationEnabled || httpChecksum.requestValidationMode() != null;
     }
 
     private static URI getEndpoint(URI uri) {
@@ -138,28 +157,31 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         return S3MetaRequestOptions.MetaRequestType.DEFAULT;
     }
 
-    private ChecksumAlgorithm crtChecksumAlgorithm(AsyncExecuteRequest asyncRequest) {
-        HttpChecksum httpChecksum = asyncRequest.httpExecutionAttributes().getAttribute(HTTP_CHECKSUM);
-
-        if (checksumNotApplicable(httpChecksum)) {
+    private ChecksumAlgorithm crtChecksumAlgorithm(HttpChecksum httpChecksum) {
+        if (requestChecksumAlgoNotApplicable(httpChecksum)) {
             return null;
         }
 
-        // TODO: revisit default checksum
-        Algorithm algorithm = httpChecksum.requestAlgorithm() == null ? Algorithm.CRC32 :
-                              Algorithm.fromValue(httpChecksum.requestAlgorithm());
-        return ChecksumAlgorithm.valueOf(algorithm.toString().toUpperCase());
-    }
+        if (httpChecksum.requestAlgorithm() == null) {
+            // Only set checksum algorithm by default for streaming operations and operations that require checksum
+            if (!(httpChecksum.isRequestStreaming() || httpChecksum.isRequestChecksumRequired())) {
+                return null;
+            }
 
+            // TODO: revisit default checksum
+            return ChecksumAlgorithm.CRC32;
+        }
+
+        return ChecksumAlgorithm.valueOf(httpChecksum.requestAlgorithm().toUpperCase());
+    }
 
     /**
      * Checksum algorithm is not applicable to the following situations:
-     * 1. checksum validation is disabled OR
+     * 1. Checksum validation is disabled OR
      * 2. No HttpChecksum Trait for this operation OR
-     * 3. It's a GET operation.
-     * 4. It's not a streaming operation
+     * 3. It's a GET operation
      */
-    private boolean checksumNotApplicable(HttpChecksum httpChecksum) {
+    private boolean requestChecksumAlgoNotApplicable(HttpChecksum httpChecksum) {
         return !checksumValidationEnabled ||
                httpChecksum == null ||
                httpChecksum.responseAlgorithms() != null;
