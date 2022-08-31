@@ -18,6 +18,10 @@ package software.amazon.awssdk.codegen.model.service;
 public class ParameterModel {
     private String type;
 
+    /**
+     * The type of this parameter. Currently, only "boolean" and "string" are
+     * permitted for parameters.
+     */
     public String getType() {
         return type;
     }
