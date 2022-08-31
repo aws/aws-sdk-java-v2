@@ -120,19 +120,22 @@ public final class ResumableFileUpload implements ResumableTransfer,
         return fileLastModified;
     }
 
+    /**
+     * File length since last pause
+     */
     public long fileLength() {
         return fileLength;
     }
 
     /**
-     * Return the part size in bytes
+     * Return the part size in bytes or {@link OptionalLong#empty()} if unknown
      */
     public OptionalLong partSizeInBytes() {
         return partSizeInBytes == null ? OptionalLong.empty() : OptionalLong.of(partSizeInBytes);
     }
 
     /**
-     * Return the total number of parts associated with this tranfser
+     * Return the total number of parts associated with this transfer or {@link OptionalLong#empty()} if unknown
      */
     public OptionalLong totalNumOfParts() {
         return totalNumOfParts == null ? OptionalLong.empty() : OptionalLong.of(totalNumOfParts);
@@ -195,11 +198,12 @@ public final class ResumableFileUpload implements ResumableTransfer,
         }
 
         /**
-         * Sets resume token
-         * @param mutipartUploadId the resume token
+         * Sets multipart ID associated with this transfer
+         *
+         * @param multipartUploadId the multipart ID
          * @return a reference to this object so that method calls can be chained together.
          */
-        Builder multipartUploadId(String mutipartUploadId);
+        Builder multipartUploadId(String multipartUploadId);
 
         /**
          * Sets the last modified time of the object
@@ -210,15 +214,26 @@ public final class ResumableFileUpload implements ResumableTransfer,
         Builder fileLastModified(Instant fileLastModified);
 
         /**
-         * Sets the last modified time of the object
+         * Sets the file length
          *
          * @param fileLength the last modified time of the object
          * @return a reference to this object so that method calls can be chained together.
          */
         Builder fileLength(Long fileLength);
 
-        Builder totalNumOfParts(Long partSizeInBytes);
+        /**
+         * Sets the total number of parts
+         *
+         * @param totalNumOfParts the total number of parts
+         * @return a reference to this object so that method calls can be chained together.
+         */
+        Builder totalNumOfParts(Long totalNumOfParts);
 
+        /**
+         * The part size associated with this transfer
+         * @param partSizeInBytes the part size in bytes
+         * @return a reference to this object so that method calls can be chained together.
+         */
         Builder partSizeInBytes(Long partSizeInBytes);
     }
 
