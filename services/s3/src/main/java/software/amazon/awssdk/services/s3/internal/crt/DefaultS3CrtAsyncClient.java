@@ -228,10 +228,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                 if (overrideConfiguration.apiCallAttemptTimeout().isPresent()) {
                     throw new UnsupportedOperationException("Request-level apiCallAttemptTimeout override is not supported");
                 }
-
-                // if (overrideConfiguration.executionAttributes() != null) {
-                //     throw new UnsupportedOperationException("Request-level executionAttributes override is not supported");
-                // }
             }
         }
     }
@@ -240,9 +236,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         try {
             ClassLoaderHelper.loadClass(CRT_CLIENT_CLASSPATH, false);
         } catch (ClassNotFoundException e) {
-
             throw new IllegalStateException("Could not load classes from AWS Common Runtime (CRT) library."
-                                            + " Make sure you have software.amazon.awssdk.crt:crt on the class path ", e);
+                                            + "software.amazon.awssdk.crt:crt is a required dependency; make sure you have it "
+                                            + "on the classpath.", e);
         }
     }
 }

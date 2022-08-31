@@ -23,9 +23,16 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
 
+/**
+ * POJO class for the resume token used by CRT
+ */
 @SdkInternalApi
 public final class CrtUploadResumeToken {
-
+    private static final String CRT_S3_REQUEST_TYPE = "AWS_S3_META_REQUEST_TYPE_PUT_OBJECT";
+    private static final String TOTAL_NUM_PARTS_FIELD = "total_num_parts";
+    private static final String PARTITION_SIZE_FIELD = "partition_size";
+    private static final String TYPE_FIELD = "type";
+    private static final String MULTIPART_UPLOAD_ID_FIELD = "multipart_upload_id";
     private final Long totalNumOfParts;
     private final Long partSizeInBytes;
     private final String multipartUploadId;
@@ -76,14 +83,14 @@ public final class CrtUploadResumeToken {
         return result;
     }
 
-    public static String marshallResumeToken(CrtUploadResumeToken resumeToken) {
+    public String marshallResumeToken() {
         JsonWriter jsonGenerator = JsonWriter.create();
         jsonGenerator.writeStartObject();
 
-        TransferManagerJsonMarshaller.LONG.marshall(resumeToken.totalNumOfParts(), jsonGenerator, "total_num_parts");
-        TransferManagerJsonMarshaller.LONG.marshall(resumeToken.partSizeInBytes(), jsonGenerator, "partition_size");
-        TransferManagerJsonMarshaller.STRING.marshall("AWS_S3_META_REQUEST_TYPE_PUT_OBJECT", jsonGenerator, "type");
-        TransferManagerJsonMarshaller.STRING.marshall(resumeToken.multipartUploadId(), jsonGenerator, "multipart_upload_id");
+        TransferManagerJsonMarshaller.LONG.marshall(totalNumOfParts(), jsonGenerator, TOTAL_NUM_PARTS_FIELD);
+        TransferManagerJsonMarshaller.LONG.marshall(partSizeInBytes(), jsonGenerator, PARTITION_SIZE_FIELD);
+        TransferManagerJsonMarshaller.STRING.marshall(CRT_S3_REQUEST_TYPE, jsonGenerator, TYPE_FIELD);
+        TransferManagerJsonMarshaller.STRING.marshall(multipartUploadId(), jsonGenerator, MULTIPART_UPLOAD_ID_FIELD);
 
         jsonGenerator.writeEndObject();
         return new String(jsonGenerator.getBytes(), StandardCharsets.UTF_8);
@@ -93,9 +100,9 @@ public final class CrtUploadResumeToken {
         JsonNodeParser jsonNodeParser = JsonNodeParser.builder().build();
         Map<String, JsonNode> nodes = jsonNodeParser.parse(resumeToken).asObject();
 
-        Long totalNumOfParts = Long.valueOf(nodes.get("total_num_parts").asNumber());
-        Long partitionSize = Long.valueOf(nodes.get("partition_size").asNumber());
-        String multipartUploadId = nodes.get("multipart_upload_id").asString();
+        Long totalNumOfParts = Long.valueOf(nodes.get(TOTAL_NUM_PARTS_FIELD).asNumber());
+        Long partitionSize = Long.valueOf(nodes.get(PARTITION_SIZE_FIELD).asNumber());
+        String multipartUploadId = nodes.get(MULTIPART_UPLOAD_ID_FIELD).asString();
         return new CrtUploadResumeToken(totalNumOfParts, partitionSize, multipartUploadId);
     }
 }

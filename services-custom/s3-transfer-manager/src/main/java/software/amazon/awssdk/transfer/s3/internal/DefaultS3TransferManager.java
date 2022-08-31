@@ -18,7 +18,6 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
-import static software.amazon.awssdk.transfer.s3.internal.serialization.CrtUploadResumeToken.marshallResumeToken;
 import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
@@ -232,7 +231,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         CrtUploadResumeToken token = new CrtUploadResumeToken(resumableFileUpload.totalNumOfParts().getAsLong(),
                                                               resumableFileUpload.partSizeInBytes().getAsLong(),
                                                               resumableFileUpload.multipartUploadId().orElse(null));
-        String marshalledToken = marshallResumeToken(token);
+        String marshalledToken = token.marshallResumeToken();
 
         Consumer<SdkHttpExecutionAttributes.Builder> attachResumeToken =
             b -> b.put(CRT_PAUSE_RESUME_TOKEN, marshalledToken);
@@ -267,21 +266,24 @@ public final class DefaultS3TransferManager implements S3TransferManager {
                                                                                .key(putObjectRequest.key())
                                                                                .uploadId(id)
                                                                                .build())
-                                                .whenComplete((r, t) -> {
-                                                    if (t != null) {
-                                                        log.warn(() -> "Failed to abort multipart upload: " + id,
-                                                                 t);
-                                                    }
+                                                .exceptionally(t -> {
+                                                    log.warn(() -> String.format("Failed to abort previous multipart upload "
+                                                                                 + "(id: %s)"
+                                                                                 + ". You may need to call "
+                                                                                 + "S3AsyncClient#abortMultiPartUpload to "
+                                                                                 + "free all storage consumed by"
+                                                                                 + " all parts. ",
+                                                                                 id), t);
+                                                    return null;
                                                 });
                                });
         }
 
         if (noResumeToken) {
-            log.debug(() -> String.format("No resume token is found " +
+            log.debug(() -> String.format("No resume token is found. " +
                                           "The SDK will upload the requested object in bucket"
                                           + " (%s) with key (%s) from "
-                                          + "the "
-                                          + "beginning.",
+                                          + "the beginning.",
                                           putObjectRequest.bucket(),
                                           putObjectRequest.key()));
         }
@@ -295,7 +297,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     }
 
     private PutObjectRequest attachSdkAttribute(PutObjectRequest putObjectRequest,
-                                                 Consumer<SdkHttpExecutionAttributes.Builder> builderMutation) {
+                                                Consumer<SdkHttpExecutionAttributes.Builder> builderMutation) {
         SdkHttpExecutionAttributes modifiedAttributes =
             putObjectRequest.overrideConfiguration().map(o -> o.executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES))
                             .map(b -> b.toBuilder().applyMutation(builderMutation).build())
@@ -305,7 +307,8 @@ public final class DefaultS3TransferManager implements S3TransferManager {
             b -> b.putExecutionAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES, modifiedAttributes);
 
         AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
-            putObjectRequest.overrideConfiguration().map(o -> o.toBuilder().applyMutation(attachSdkHttpAttributes).build())
+            putObjectRequest.overrideConfiguration()
+                            .map(o -> o.toBuilder().applyMutation(attachSdkHttpAttributes).build())
                             .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
                                                                             .applyMutation(attachSdkHttpAttributes)
                                                                             .build());

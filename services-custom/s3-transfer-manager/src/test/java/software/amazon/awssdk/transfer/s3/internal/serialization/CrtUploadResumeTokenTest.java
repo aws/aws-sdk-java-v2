@@ -33,7 +33,7 @@ class CrtUploadResumeTokenTest {
     void marshallResumeToken_shouldWork() {
         CrtUploadResumeToken token = new CrtUploadResumeToken(10L, 10 * MB, "123");
 
-        String serialized = CrtUploadResumeToken.marshallResumeToken(token);
+        String serialized = token.marshallResumeToken();
         assertThat(CrtUploadResumeToken.unmarshallResumeToken(serialized)).isEqualTo(token);
     }
 }
