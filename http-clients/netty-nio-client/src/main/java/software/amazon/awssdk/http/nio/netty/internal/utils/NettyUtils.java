@@ -116,7 +116,7 @@ public final class NettyUtils {
 
                + "Consider taking any of the following actions to mitigate the issue: increase max connections, "
                + "increase max pending acquire count, decrease connection acquisition timeout, or "
-               + "slowing the request rate.\n"
+               + "slow the request rate.\n"
 
                + "Increasing the max connections can increase client throughput (unless the network interface is already "
                + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
