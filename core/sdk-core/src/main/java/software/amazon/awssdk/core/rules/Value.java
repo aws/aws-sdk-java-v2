@@ -305,10 +305,24 @@ public abstract class Value {
 
         private final String url;
         private final Map<String, Value> properties;
+        private final Map<String, List<String>> headers;
 
         private Endpoint(Builder b) {
             this.url = b.url;
             this.properties = b.properties;
+            this.headers = b.headers;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public Map<String, Value> getProperties() {
+            return properties;
+        }
+
+        public Map<String, List<String>> getHeaders() {
+            return headers;
         }
 
         @Override
@@ -330,13 +344,17 @@ public abstract class Value {
             if (url != null ? !url.equals(endpoint.url) : endpoint.url != null) {
                 return false;
             }
-            return properties != null ? properties.equals(endpoint.properties) : endpoint.properties == null;
+            if (properties != null ? !properties.equals(endpoint.properties) : endpoint.properties != null) {
+                return false;
+            }
+            return headers != null ? headers.equals(endpoint.headers) : endpoint.headers == null;
         }
 
         @Override
         public int hashCode() {
             int result = url != null ? url.hashCode() : 0;
             result = 31 * result + (properties != null ? properties.hashCode() : 0);
+            result = 31 * result + (headers != null ? headers.hashCode() : 0);
             return result;
         }
 
@@ -345,6 +363,7 @@ public abstract class Value {
             return "Endpoint{" +
                    "url='" + url + '\'' +
                    ", properties=" + properties +
+                   ", headers=" + headers +
                    '}';
         }
 

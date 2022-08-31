@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
@@ -50,6 +51,8 @@ public final class IntermediateModel {
 
     private Map<String, WaiterDefinition> waiters;
 
+    private EndpointRuleSetModel endpointRuleSetModel;
+
     @JsonIgnore
     private NamingStrategy namingStrategy;
 
@@ -71,7 +74,7 @@ public final class IntermediateModel {
                              Map<String, ShapeModel> shapes,
                              CustomizationConfig customizationConfig) {
         this(metadata, operations, shapes, customizationConfig, null,
-             Collections.emptyMap(), null, Collections.emptyMap());
+             Collections.emptyMap(), null, Collections.emptyMap(), null);
     }
 
     public IntermediateModel(
@@ -82,7 +85,8 @@ public final class IntermediateModel {
         OperationModel endpointOperation,
         Map<String, PaginatorDefinition> paginators,
         NamingStrategy namingStrategy,
-        Map<String, WaiterDefinition> waiters) {
+        Map<String, WaiterDefinition> waiters,
+        EndpointRuleSetModel endpointRuleSetModel) {
         this.metadata = metadata;
         this.operations = operations;
         this.shapes = shapes;
@@ -91,6 +95,7 @@ public final class IntermediateModel {
         this.paginators = paginators;
         this.namingStrategy = namingStrategy;
         this.waiters = waiters;
+        this.endpointRuleSetModel = endpointRuleSetModel;
     }
 
     public Metadata getMetadata() {
@@ -152,6 +157,10 @@ public final class IntermediateModel {
 
     public Map<String, WaiterDefinition> getWaiters() {
         return waiters;
+    }
+
+    public EndpointRuleSetModel getEndpointRuleSetModel() {
+        return endpointRuleSetModel;
     }
 
     public void setPaginators(Map<String, PaginatorDefinition> paginators) {
