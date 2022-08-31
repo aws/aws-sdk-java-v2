@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SSO Identity Store",
+    "contributor": "",
+    "description": "Expand IdentityStore API to support Create, Read, Update, Delete and Get operations for User, Group and GroupMembership resources."
+}
