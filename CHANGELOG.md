@@ -1,3 +1,28 @@
+# __2.17.265__ __2022-08-31__
+## __AWS IoT Things Graph__
+  - ### Features
+    - This release deprecates all APIs of the ThingsGraph service
+
+## __AWS RDS DataService__
+  - ### Features
+    - Documentation updates for RDS Data API
+
+## __AWS SSO Identity Store__
+  - ### Features
+    - Expand IdentityStore API to support Create, Read, Update, Delete and Get operations for User, Group and GroupMembership resources.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Update API documentation for CloudFront origin access control (OAC)
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - IVS Merge Fragmented Streams. This release adds support for recordingReconnectWindow field in IVS recordingConfigurations. For more information see https://docs.aws.amazon.com/ivs/latest/APIReference/Welcome.html
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Inference Recommender now accepts Inference Recommender fields: Domain, Task, Framework, SamplePayloadUrl, SupportedContentTypes, SupportedInstanceTypes, directly in our CreateInferenceRecommendationsJob API through ContainerConfig
+
 # __2.17.264__ __2022-08-30__
 ## __AWS IoT Greengrass V2__
   - ### Features
