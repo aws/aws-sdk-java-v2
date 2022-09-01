@@ -21,7 +21,7 @@
       "documentation": "base rule",
       "conditions": [
         {
-          "fn": "partition",
+          "fn": "aws.partition",
           "argv": [
             {
               "ref": "Region"

@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.json;
 
+import java.util.ArrayList;
 import java.util.List;
 import software.amazon.MyServiceHttpConfig;
 import software.amazon.MyServiceRetryPolicy;
@@ -14,6 +15,8 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.services.json.rules.JsonEndpointProvider;
+import software.amazon.awssdk.services.json.rules.internal.JsonEndpointInterceptor;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -38,6 +41,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkAdvancedClientOption.SIGNER, defaultSigner())
                                   .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                                  .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
                                   .option(SdkClientOption.SERVICE_CONFIGURATION, ServiceConfiguration.builder().build()));
     }
 
@@ -47,6 +51,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
+        List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
+        additionalInterceptors.add(new JsonEndpointInterceptor());
+        interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
         ServiceConfiguration.Builder c = ((ServiceConfiguration) config.option(SdkClientOption.SERVICE_CONFIGURATION))
             .toBuilder();
         c.profileFile(c.profileFile() != null ? c.profileFile() : config.option(SdkClientOption.PROFILE_FILE));
@@ -79,6 +86,10 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final String signingName() {
         return "json-service";
+    }
+
+    private JsonEndpointProvider defaultEndpointProvider() {
+        return JsonEndpointProvider.defaultProvider();
     }
 
     public B serviceConfiguration(ServiceConfiguration serviceConfiguration) {

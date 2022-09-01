@@ -25,6 +25,7 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class EndpointRulesSpecUtils {
     private final IntermediateModel intermediateModel;
@@ -51,8 +52,14 @@ public class EndpointRulesSpecUtils {
                              "Default" + providerInterfaceName().simpleName());
     }
 
-    public String paramSetterName(String param) {
-        return Utils.unCapitalize(param);
+    public ClassName interceptorName() {
+        Metadata md = intermediateModel.getMetadata();
+        return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
+                             md.getServiceName() + "EndpointInterceptor");
+    }
+
+    public String paramMethodName(String param) {
+        return Utils.unCapitalize(CodegenNamingUtils.pascalCase(param));
     }
 
     public TypeName toJavaType(String type) {
@@ -85,13 +92,13 @@ public class EndpointRulesSpecUtils {
     }
 
     public TypeName parameterType(ParameterModel param) {
-        if (param.getBuiltIn() == null) {
+        if (param.getBuiltIn() == null || !"aws::region".equalsIgnoreCase(param.getBuiltIn())) {
             return toJavaType(param.getType());
         }
 
         if ("aws::region".equals(param.getBuiltIn().toLowerCase(Locale.ENGLISH))) {
             return ClassName.get(Region.class);
         }
-        return ClassName.get(Boolean.class);
+        return toJavaType(param.getType());
     }
 }

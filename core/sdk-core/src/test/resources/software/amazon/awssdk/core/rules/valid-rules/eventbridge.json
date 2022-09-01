@@ -23,7 +23,7 @@
     {
       "conditions": [
         {
-          "fn": "partition",
+          "fn": "aws.partition",
           "argv": [
             {
               "ref": "region"

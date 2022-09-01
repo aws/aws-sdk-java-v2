@@ -32,6 +32,7 @@ import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.CodeGenerator;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
@@ -77,6 +78,7 @@ public class GenerationMojo extends AbstractMojo {
                                   .serviceModel(loadServiceModel(modelRootPath))
                                   .waitersModel(loadWaiterModel(modelRootPath))
                                   .paginatorsModel(loadPaginatorModel(modelRootPath))
+                                  .endpointRuleSetModel(loadEndpointRuleSetModel(modelRootPath))
                                   .build());
         });
         project.addCompileSourceRoot(sourcesDirectory.toFile().getAbsolutePath());
@@ -133,6 +135,10 @@ public class GenerationMojo extends AbstractMojo {
 
     private Paginators loadPaginatorModel(Path root) {
         return loadOptionalModel(Paginators.class, root.resolve(PAGINATORS_FILE)).orElse(Paginators.none());
+    }
+
+    private EndpointRuleSetModel loadEndpointRuleSetModel(Path root) {
+        return loadRequiredModel(EndpointRuleSetModel.class, root.resolve(ENDPOINT_RULE_SET_FILE));
     }
 
     /**
