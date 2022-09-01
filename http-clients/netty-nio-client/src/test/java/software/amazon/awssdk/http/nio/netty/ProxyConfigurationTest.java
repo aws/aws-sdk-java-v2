@@ -54,8 +54,8 @@ public class ProxyConfigurationTest {
     }
 
     @Test
-    public void build_systemPropertyDefault() {
-        setProxyProperties();
+    public void build_systemPropertyDefault_Http() {
+        setHttpProxyProperties();
         Set<String> nonProxyHost = new HashSet<>();
         nonProxyHost.add("bar.com");
         ProxyConfiguration config = ProxyConfiguration.builder().build();
@@ -69,8 +69,8 @@ public class ProxyConfigurationTest {
     }
 
     @Test
-    public void build_systemPropertyEnabled() {
-        setProxyProperties();
+    public void build_systemPropertyEnabled_Https() {
+        setHttpsProxyProperties();
         Set<String> nonProxyHost = new HashSet<>();
         nonProxyHost.add("bar.com");
         ProxyConfiguration config = ProxyConfiguration.builder().useSystemPropertyValues(Boolean.TRUE).build();
@@ -85,7 +85,7 @@ public class ProxyConfigurationTest {
 
     @Test
     public void build_systemPropertyDisabled() {
-        setProxyProperties();
+        setHttpProxyProperties();
         Set<String> nonProxyHost = new HashSet<>();
         nonProxyHost.add("test.com");
 
@@ -107,7 +107,7 @@ public class ProxyConfigurationTest {
 
     @Test
     public void build_systemPropertyOverride() {
-        setProxyProperties();
+        setHttpProxyProperties();
         Set<String> nonProxyHost = new HashSet<>();
         nonProxyHost.add("test.com");
 
@@ -224,12 +224,20 @@ public class ProxyConfigurationTest {
         return ss;
     }
 
-    private void setProxyProperties() {
+    private void setHttpProxyProperties() {
         System.setProperty("http.proxyHost", TEST_HOST);
         System.setProperty("http.proxyPort", Integer.toString(TEST_PORT));
         System.setProperty("http.nonProxyHosts", TEST_NON_PROXY_HOST);
         System.setProperty("http.proxyUser", TEST_USER);
         System.setProperty("http.proxyPassword", TEST_PASSWORD);
+    }
+
+    private void setHttpsProxyProperties() {
+        System.setProperty("https.proxyHost", TEST_HOST);
+        System.setProperty("https.proxyPort", Integer.toString(TEST_PORT));
+        System.setProperty("https.nonProxyHosts", TEST_NON_PROXY_HOST);
+        System.setProperty("https.proxyUser", TEST_USER);
+        System.setProperty("https.proxyPassword", TEST_PASSWORD);
     }
 
     private static void clearProxyProperties() {
@@ -238,5 +246,11 @@ public class ProxyConfigurationTest {
         System.clearProperty("http.nonProxyHosts");
         System.clearProperty("http.proxyUser");
         System.clearProperty("http.proxyPassword");
+
+        System.clearProperty("https.proxyHost");
+        System.clearProperty("https.proxyPort");
+        System.clearProperty("https.nonProxyHosts");
+        System.clearProperty("https.proxyUser");
+        System.clearProperty("https.proxyPassword");
     }
 }

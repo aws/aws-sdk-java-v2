@@ -37,11 +37,25 @@ public class ProxyConfigurationTest {
     }
 
     @Test
-    public void testEndpointValues_SystemPropertyEnabled() {
+    public void testEndpointValues_Http_SystemPropertyEnabled() {
         String host = "foo.com";
         int port = 7777;
         System.setProperty("http.proxyHost", host);
         System.setProperty("http.proxyPort", Integer.toString(port));
+
+        ProxyConfiguration config = ProxyConfiguration.builder().useSystemPropertyValues(true).build();
+
+        assertThat(config.host()).isEqualTo(host);
+        assertThat(config.port()).isEqualTo(port);
+        assertThat(config.scheme()).isNull();
+    }
+
+    @Test
+    public void testEndpointValues_Https_SystemPropertyEnabled() {
+        String host = "foo.com";
+        int port = 7777;
+        System.setProperty("https.proxyHost", host);
+        System.setProperty("https.proxyPort", Integer.toString(port));
 
         ProxyConfiguration config = ProxyConfiguration.builder().useSystemPropertyValues(true).build();
 
@@ -86,7 +100,7 @@ public class ProxyConfigurationTest {
     }
 
     @Test
-    public void testProxyConfigurationWithSystemPropertyEnabled() throws Exception {
+    public void testProxyConfigurationWithSystemPropertyEnabled_Http() throws Exception {
         Set<String> nonProxyHosts = new HashSet<>();
         nonProxyHosts.add("foo.com");
 
@@ -95,6 +109,26 @@ public class ProxyConfigurationTest {
         System.setProperty("http.proxyPort", "5555");
         System.setProperty("http.nonProxyHosts", "bar.com");
         System.setProperty("http.proxyUser", "user");
+
+        ProxyConfiguration config = ProxyConfiguration.builder()
+                                                      .nonProxyHosts(nonProxyHosts)
+                                                      .build();
+
+        assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHosts);
+        assertThat(config.host()).isEqualTo("foo.com");
+        assertThat(config.username()).isEqualTo("user");
+    }
+
+    @Test
+    public void testProxyConfigurationWithSystemPropertyEnabled_Https() throws Exception {
+        Set<String> nonProxyHosts = new HashSet<>();
+        nonProxyHosts.add("foo.com");
+
+        // system property should not be used
+        System.setProperty("https.proxyHost", "foo.com");
+        System.setProperty("https.proxyPort", "5555");
+        System.setProperty("https.nonProxyHosts", "bar.com");
+        System.setProperty("https.proxyUser", "user");
 
         ProxyConfiguration config = ProxyConfiguration.builder()
                                                       .nonProxyHosts(nonProxyHosts)
@@ -123,5 +157,11 @@ public class ProxyConfigurationTest {
         System.clearProperty("http.nonProxyHosts");
         System.clearProperty("http.proxyUser");
         System.clearProperty("http.proxyPassword");
+
+        System.clearProperty("https.proxyHost");
+        System.clearProperty("https.proxyPort");
+        System.clearProperty("https.nonProxyHosts");
+        System.clearProperty("https.proxyUser");
+        System.clearProperty("https.proxyPassword");
     }
 }

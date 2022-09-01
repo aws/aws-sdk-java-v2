@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Configuration that defines how to communicate via an HTTP proxy.
+ * Configuration that defines how to communicate via an HTTP or HTTPS proxy.
  */
 @SdkPublicApi
 public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfiguration.Builder, ProxyConfiguration> {
@@ -66,18 +66,17 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     /**
-     * Returns the proxy host name either from the configured endpoint or
-     * from the "http.proxyHost" system property if {@link Builder#useSystemPropertyValues(Boolean)} is set to true.
+     * Returns the proxy host name either from the configured endpoint or from the "https.proxyHost" or "http.proxyHost" system
+     * property if {@link Builder#useSystemPropertyValues(Boolean)} is set to true.
      */
     public String host() {
         return host;
     }
 
     /**
-     * Returns the proxy port either from the configured endpoint or
-     * from the "http.proxyPort" system property if {@link Builder#useSystemPropertyValues(Boolean)} is set to true.
-     *
-     * If no value is found in neither of the above options, the default value of 0 is returned.
+     * Returns the proxy port either from the configured endpoint or from the "https.proxyPort" or "http.proxyPort" system
+     * property if {@link Builder#useSystemPropertyValues(Boolean)} is set to true.
+     * If no value is found in none of the above options, the default value of 0 is returned.
      */
     public int port() {
         return port;
@@ -96,7 +95,9 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      * @see Builder#password(String)
      */
     public String username() {
-        return resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
+        String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
+        return httpsPort != null ? resolveValue(username, ProxySystemSetting.HTTPS_PROXY_USERNAME)
+               : resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
     }
 
     /**
@@ -105,7 +106,9 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      * @see Builder#password(String)
      */
     public String password() {
-        return resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
+        String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
+        return httpsPort != null ? resolveValue(password, ProxySystemSetting.HTTPS_PROXY_PASSWORD)
+                                 : resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
     }
 
     /**
@@ -128,8 +131,8 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
     /**
      * The hosts that the client is allowed to access without going through the proxy.
-     *
-     * If the value is not set on the object, the value represent by "http.nonProxyHosts" system property is returned.
+     * If the value is not set on the object, the value represent by "https.nonProxyHosts" or "http.nonProxyHosts" system
+     * property is returned.
      * If system property is also not set, an unmodifiable empty set is returned.
      *
      * @see Builder#nonProxyHosts(Set)
@@ -184,8 +187,12 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
 
     private String resolveHost() {
-        return endpoint != null ? endpoint.getHost()
-                                : resolveValue(null, ProxySystemSetting.PROXY_HOST);
+        if (endpoint != null) {
+            return endpoint.getHost();
+        }
+
+        String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
+        return httpsPort != null ? httpsPort : resolveValue(null, ProxySystemSetting.PROXY_HOST);
     }
 
     private int resolvePort() {
@@ -194,9 +201,16 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         if (endpoint != null) {
             port = endpoint.getPort();
         } else if (useSystemPropertyValues) {
-            port = ProxySystemSetting.PROXY_PORT.getStringValue()
-                                                .map(Integer::parseInt)
-                                                .orElse(0);
+            String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
+            if (httpsPort != null) {
+                port = ProxySystemSetting.HTTPS_PROXY_PORT.getStringValue()
+                                                    .map(Integer::parseInt)
+                                                    .orElse(0);
+            } else {
+                port = ProxySystemSetting.PROXY_PORT.getStringValue()
+                                                    .map(Integer::parseInt)
+                                                    .orElse(0);
+            }
         }
 
         return port;

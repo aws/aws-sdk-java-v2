@@ -27,7 +27,7 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Proxy configuration for {@link NettyNioAsyncHttpClient}. This class is used to configure an HTTP proxy to be used by
+ * Proxy configuration for {@link NettyNioAsyncHttpClient}. This class is used to configure an HTTP or HTTPS proxy to be used by
  * the {@link NettyNioAsyncHttpClient}.
  *
  * @see NettyNioAsyncHttpClient.Builder#proxyConfiguration(ProxyConfiguration)
@@ -64,44 +64,48 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     /**
-     * @return The proxy host from the configuration if set, or from the "http.proxyHost" system property if
-     * {@link Builder#useSystemPropertyValues(Boolean)} is set to true
+     * @return The proxy host from the configuration if set, or from the "https.proxyHost" or "http.proxyHost" system property if
+     * {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      */
     public String host() {
         return host;
     }
 
     /**
-     * @return The proxy port from the configuration if set, or from the "http.proxyPort" system property if
-     * {@link Builder#useSystemPropertyValues(Boolean)} is set to true
+     * @return The proxy port from the configuration if set, or from the "https.proxyPort" or "http.proxyPort" system property if
+     * {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      */
     public int port() {
         return port;
     }
 
     /**
-     * @return The proxy username from the configuration if set, or from the "http.proxyUser" system property if
-     * {@link Builder#useSystemPropertyValues(Boolean)} is set to true
+     * @return The proxy username from the configuration if set, or from the "https.proxyUser" or "http.proxyUser" system
+     * property if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      * */
     public String username() {
-        return resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
+        String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
+        return httpsPort != null ? resolveValue(username, ProxySystemSetting.HTTPS_PROXY_USERNAME)
+                                 : resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
     }
 
     /**
-     * @return The proxy password from the configuration if set, or from the "http.proxyPassword" system property if
-     * {@link Builder#useSystemPropertyValues(Boolean)} is set to true
+     * @return The proxy password from the configuration if set, or from the "https.proxyPassword" or "http.proxyPassword" system
+     * property if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      * */
     public String password() {
-        return resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
+        String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
+        return httpsPort != null ? resolveValue(password, ProxySystemSetting.HTTPS_PROXY_PASSWORD)
+                                 : resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
     }
 
     /**
-     * @return The set of hosts that should not be proxied. If the value is not set, the value present by "http.nonProxyHost
-     * system property os returned. If system property is also not set, an unmodifiable empty set is returned.
+     * @return The set of hosts that should not be proxied. If the value is not set, the value present by "https.nonProxyHost" or
+     * "http.nonProxyHost" system property os returned. If system property is also not set, an unmodifiable empty set is returned.
      */
     public Set<String> nonProxyHosts() {
         Set<String> hosts = nonProxyHosts == null && useSystemPropertyValues ? parseNonProxyHostsProperty()
-                                                                : nonProxyHosts;
+                                                                             : nonProxyHosts;
         return Collections.unmodifiableSet(hosts != null ? hosts : Collections.emptySet());
     }
 
@@ -227,12 +231,18 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     private String resolveHost(String host) {
-        return resolveValue(host, ProxySystemSetting.PROXY_HOST);
+        String httpsPort = resolveValue(host, ProxySystemSetting.HTTPS_PROXY_HOST);
+        return httpsPort != null ? httpsPort : resolveValue(null, ProxySystemSetting.PROXY_HOST);
     }
 
     private int resolvePort(int port) {
-        return port == 0 && Boolean.TRUE.equals(useSystemPropertyValues)  ?
-               ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0) : port;
+        if (port == 0 && Boolean.TRUE.equals(useSystemPropertyValues)) {
+            String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
+            return httpsPort != null ? ProxySystemSetting.HTTPS_PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0)
+                                     : ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0);
+        }
+
+        return port;
     }
 
     /**
@@ -244,7 +254,9 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     private Set<String> parseNonProxyHostsProperty() {
-        String nonProxyHostsSystem = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
+        String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
+        String nonProxyHostsSystem = httpsPort != null ? ProxySystemSetting.HTTPS_NON_PROXY_HOSTS.getStringValue().orElse(null)
+                                                       : ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
 
         if (nonProxyHostsSystem != null && !nonProxyHostsSystem.isEmpty()) {
             return Arrays.stream(nonProxyHostsSystem.split("\\|"))
