@@ -16,6 +16,7 @@
 package software.amazon.awssdk.profiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.AbstractMap;
@@ -432,6 +433,120 @@ public class ProfileFileTest {
         assertThat(credentialFileProfiles("[profile foo]\n" +
                                           "name = value"))
             .isEqualTo(profiles());
+    }
+
+    @Test
+    public void sectionsInCredentialsFilesIsIgnored() {
+
+        String ASSUME_ROLE_PROFILE =
+            "[test]\n"
+            + "region = us-west-1\n"
+            + "credential_source = Environment\n"
+            + "sso_session = session\n"
+            + "role_arn = some_Arn\n"
+            + "[sso-session session]\n"
+            + "sso_region = us-west-1\n"
+            + "start_url = someUrl\n";
+
+        ProfileFile profileFile = credentialFile(ASSUME_ROLE_PROFILE);
+        Map<String, Profile> profileMap = profileFile.profiles();
+        assertThat(profileMap)
+            .isEqualTo(profiles(profile("test", property("region", "us-west-1")
+                , property("credential_source", "Environment")
+                , property("sso_session", "session"),
+                                        property("role_arn", "some_Arn"))));
+
+        ;
+        assertThat(profileFile.getSection("sso-session", "session")).isNotPresent();
+    }
+
+    @Test
+    public void invalidSectionNamesAreNotAddedInSectionListOfProfileFiles() {
+
+        ProfileFile aggregatedProfileFiles = ProfileFile.aggregator()
+                                                        .addFile(credentialFile("[in valid 2]\n"
+                                                                                + "name2 = value2"))
+                                                        .addFile(configFile("[profile validSection]\n"
+                                                                            + "sso_session = validSso\n"
+                                                                            + "[sso-session validSso]\n"
+                                                                            + "start_url = Valid-url\n"))
+                                                        .addFile(configFile("[profile section]\n"
+                                                                            + "sso_session = sso invalid\n"
+                                                                            + "[sso-session sso invalid]\n"
+                                                                            + "start_url = url\n"))
+                                                        .build();
+
+        assertThat(aggregatedProfileFiles.profiles())
+            .isEqualTo(profiles(profile("section", property("sso_session", "sso invalid")),
+                       profile("validSection", property("sso_session", "validSso"))));
+
+        assertThat(aggregatedProfileFiles.getSection("sso-session", "sso")).isNotPresent();
+        assertThat(aggregatedProfileFiles.getSection("sso-session", "sso invalid")).isNotPresent();
+        assertThat(aggregatedProfileFiles.getSection("sso-session", "validSso").get())
+            .isEqualTo(profile("validSso", property("start_url", "Valid-url")));
+    }
+
+    @Test
+    public void defaultSessionNameIsNotSupported_when_session_doesNot_exist() {
+
+        String nonExistentSessionName = "nonExistentSession";
+        ProfileFile aggregatedProfileFiles = ProfileFile.aggregator()
+                                                        .addFile(configFile("[profile validSection]\n"
+                                                                            + "sso_session = " + nonExistentSessionName + "\n"
+                                                                            + "[profile " + nonExistentSessionName + "]\n"
+                                                                            + "start_url = Valid-url-2\n"
+                                                                            + "[sso-session default]\n"
+                                                                            + "start_url = Valid-url\n"))
+                                                        .build();
+
+        assertThat(aggregatedProfileFiles.profiles())
+            .isEqualTo(profiles(profile("validSection", property("sso_session",  nonExistentSessionName)),
+                                profile(nonExistentSessionName, property("start_url", "Valid-url-2"))));
+
+        assertThat(aggregatedProfileFiles.getSection("sso-session", nonExistentSessionName)).isNotPresent();
+    }
+
+    @Test
+    public void sessionIsNotAdjacentToProfile() {
+
+        ProfileFile aggregatedProfileFiles = ProfileFile.aggregator()
+                                                        .addFile(configFile("[profile profile1]\n"
+                                                                            + "sso_session = sso-token1\n"
+                                                                            + "[profile profile2]\n"
+                                                                            + "region  = us-west-2\n"
+                                                                            + "[default]\n"
+                                                                            + "default_property = property1\n"))
+                                                        .addFile(configFile("[sso-session sso-token1]\n"
+                                                                            + "start_url = startUrl1\n"
+                                                                            + "[profile profile3]\n"
+                                                                            + "region = us-east-1\n")
+                                                        ).build();
+
+        assertThat(aggregatedProfileFiles.profiles())
+            .isEqualTo(profiles(profile("profile1", property("sso_session",  "sso-token1")),
+                                profile("default", property("default_property", "property1")),
+                                profile("profile2", property("region", "us-west-2")),
+                                profile("profile3", property("region", "us-east-1"))
+
+            ));
+
+        assertThat(aggregatedProfileFiles.getSection("sso-session", "sso-token1")).isPresent();
+        assertThat(aggregatedProfileFiles.getSection("sso-session", "sso-token1").get()).isEqualTo(
+            profile("sso-token1", property("start_url", "startUrl1"))         );
+    }
+
+    @Test
+    public void exceptionIsThrown_when_sectionDoesnotHaveASquareBracket() {
+
+
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+            () -> ProfileFile.aggregator()
+                             .addFile(configFile("[profile profile1]\n"
+                                                 + "sso_session = sso-token1\n"
+                                                 + "[sso-session sso-token1\n"
+                                                 + "start_url = startUrl1\n")
+                             ).build()).withMessageContaining("Section definition must end with ']' on line 3");
+
     }
 
     @Test
