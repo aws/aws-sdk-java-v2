@@ -26,7 +26,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.service.ParameterModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
@@ -42,7 +42,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder b = PoetUtils.createClassBuilder(className())
-                                      .addJavadoc("The parameters object used to resolve an endpoint for the % service.",
+                                      .addJavadoc("The parameters object used to resolve an endpoint for the $L service.",
                                                   intermediateModel.getMetadata().getServiceName())
                                       .addMethod(ctor())
                                       .addMethod(builderMethod())
@@ -65,7 +65,8 @@ public class EndpointParametersClassSpec implements ClassSpec {
     }
 
     private TypeSpec builderInterfaceSpec() {
-        TypeSpec.Builder b = TypeSpec.interfaceBuilder(builderInterfaceName());
+        TypeSpec.Builder b = TypeSpec.interfaceBuilder(builderInterfaceName())
+                                         .addModifiers(Modifier.PUBLIC);
 
         parameters().forEach((name, model) -> {
             b.addMethod(setterMethodDeclaration(name, model));
@@ -92,6 +93,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
         b.addMethod(MethodSpec.methodBuilder("build")
                               .addModifiers(Modifier.PUBLIC)
                               .addAnnotation(Override.class)
+                              .returns(className())
                               .addCode(CodeBlock.builder()
                                                 .addStatement("return new $T(this)", className())
                                                 .build())
@@ -113,11 +115,11 @@ public class EndpointParametersClassSpec implements ClassSpec {
     }
 
     private ParameterSpec parameterSpec(String name, ParameterModel model) {
-        return ParameterSpec.builder(endpointRulesSpecUtils.toJavaType(model.getType()), name).build();
+        return ParameterSpec.builder(endpointRulesSpecUtils.parameterType(model), name).build();
     }
 
     private FieldSpec fieldSpec(String name, ParameterModel model) {
-        return FieldSpec.builder(endpointRulesSpecUtils.toJavaType(model.getType()), name)
+        return FieldSpec.builder(endpointRulesSpecUtils.parameterType(model), name)
                         .addModifiers(Modifier.PRIVATE)
                         .build();
     }
@@ -132,7 +134,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
 
     private MethodSpec accessorMethod(String name, ParameterModel model) {
         return MethodSpec.methodBuilder(Utils.unCapitalize(name))
-                         .returns(endpointRulesSpecUtils.toJavaType(model.getType()))
+                         .returns(endpointRulesSpecUtils.parameterType(model))
                          .addModifiers(Modifier.PUBLIC)
                          .addStatement("return $N", name)
                          .build();
@@ -143,6 +145,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
                          .addParameter(parameterSpec(name, model))
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PUBLIC)
+                         .returns(builderInterfaceName())
                          .addCode(CodeBlock.builder()
                                            .addStatement("this.$1N = $1N", name)
                                            .addStatement("return this")
@@ -166,7 +169,9 @@ public class EndpointParametersClassSpec implements ClassSpec {
         return MethodSpec.methodBuilder("builder")
                          .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                          .returns(builderInterfaceName())
-                         .addStatement("new $T()", builderClassName())
+                         .addStatement("return new $T()", builderClassName())
                          .build();
     }
+
+
 }

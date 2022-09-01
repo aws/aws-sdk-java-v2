@@ -5,7 +5,8 @@
     "region": {
       "type": "string",
       "builtIn": "AWS::Region",
-      "required": true
+      "required": true,
+      "documentation": "The region to send requests to"
     },
     "useDualStackEndpoint": {
       "type": "boolean",
@@ -17,6 +18,21 @@
     },
     "endpointId": {
       "type": "string"
+    },
+    "defaultTrueParam": {
+      "type": "boolean",
+      "default": true
+    },
+    "defaultStringParam": {
+      "type": "string",
+      "default": "hello endpoints"
+    },
+    "deprecatedParam": {
+      "type": "string",
+      "deprecated": {
+        "message": "Don't use!",
+        "since": "2021-01-01"
+      }
     }
   },
   "rules": [

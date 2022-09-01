@@ -47,6 +47,7 @@ public class GenerationMojo extends AbstractMojo {
     private static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";
     private static final String WAITERS_FILE = "waiters-2.json";
     private static final String PAGINATORS_FILE = "paginators-1.json";
+    private static final String ENDPOINT_RULE_SET_FILE = "endpoint-rule-set.json";
 
     @Parameter(property = "codeGenResources", defaultValue = "${basedir}/src/main/resources/codegen-resources/")
     private File codeGenResources;

@@ -24,7 +24,7 @@ import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
 public class EndpointProviderClassSpecTest {
     @Test
-    public void endpointProviderInterface() {
+    public void endpointProviderClass() {
         ClassSpec endpointProviderSpec = new EndpointProviderSpec(ClientTestModels.queryServiceModels());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-class.java"));
     }

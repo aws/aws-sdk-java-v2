@@ -68,4 +68,13 @@ public class GeneratorPathProvider {
     public String getWaitersInternalDirectory() {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullWaitersInternalPackageName());
     }
+
+    public String getEndpointRulesDirectory() {
+        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullEndpointRulesPackageName());
+    }
+
+
+    public String getEndpointRulesInternalDirectory() {
+        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullInternalEndpointRulesPackageName());
+    }
 }

@@ -15,15 +15,16 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.RuleModel;
 
 public class EndpointRuleSetModel {
     private String serviceId;
     private String version;
     private Map<String, ParameterModel> parameters;
-    private List<JsonNode> rules;
+    private List<RuleModel> rules;
 
     public String getServiceId() {
         return serviceId;
@@ -49,11 +50,11 @@ public class EndpointRuleSetModel {
         this.parameters = parameters;
     }
 
-    public List<JsonNode> getRules() {
+    public List<RuleModel> getRules() {
         return rules;
     }
 
-    public void setRules(List<JsonNode> rules) {
+    public void setRules(List<RuleModel> rules) {
         this.rules = rules;
     }
 }

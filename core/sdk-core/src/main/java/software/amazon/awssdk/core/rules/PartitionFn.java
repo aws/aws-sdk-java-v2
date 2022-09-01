@@ -26,7 +26,7 @@ import software.amazon.awssdk.utils.MapUtils;
 
 @SdkInternalApi
 public class PartitionFn extends SingleArgFn {
-    public static final String ID = "partition";
+    public static final String ID = "aws.partition";
 
     public static final Identifier NAME = Identifier.of("name");
     public static final Identifier DNS_SUFFIX = Identifier.of("dnsSuffix");

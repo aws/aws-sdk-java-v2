@@ -2,14 +2,15 @@ package software.amazon.awssdk.services.query.rules;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.regions.Region;
 
 /**
- * The parameters object used to resolve an endpoint for the % service.
+ * The parameters object used to resolve an endpoint for the Query service.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
 public final class QueryEndpointParameters {
-    private final String region;
+    private final Region region;
 
     private final Boolean useDualStackEndpoint;
 
@@ -17,18 +18,27 @@ public final class QueryEndpointParameters {
 
     private final String endpointId;
 
+    private final Boolean defaultTrueParam;
+
+    private final String defaultStringParam;
+
+    private final String deprecatedParam;
+
     private QueryEndpointParameters(BuilderImpl builder) {
         this.region = builder.region;
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
         this.useFIPSEndpoint = builder.useFIPSEndpoint;
         this.endpointId = builder.endpointId;
+        this.defaultTrueParam = builder.defaultTrueParam;
+        this.defaultStringParam = builder.defaultStringParam;
+        this.deprecatedParam = builder.deprecatedParam;
     }
 
     public static Builder builder() {
-        new BuilderImpl();
+        return new BuilderImpl();
     }
 
-    public String region() {
+    public Region region() {
         return region;
     }
 
@@ -44,8 +54,20 @@ public final class QueryEndpointParameters {
         return endpointId;
     }
 
-    interface Builder {
-        Builder region(String region);
+    public Boolean defaultTrueParam() {
+        return defaultTrueParam;
+    }
+
+    public String defaultStringParam() {
+        return defaultStringParam;
+    }
+
+    public String deprecatedParam() {
+        return deprecatedParam;
+    }
+
+    public interface Builder {
+        Builder region(Region region);
 
         Builder useDualStackEndpoint(Boolean useDualStackEndpoint);
 
@@ -53,11 +75,17 @@ public final class QueryEndpointParameters {
 
         Builder endpointId(String endpointId);
 
+        Builder defaultTrueParam(Boolean defaultTrueParam);
+
+        Builder defaultStringParam(String defaultStringParam);
+
+        Builder deprecatedParam(String deprecatedParam);
+
         QueryEndpointParameters build();
     }
 
     private static class BuilderImpl implements Builder {
-        private String region;
+        private Region region;
 
         private Boolean useDualStackEndpoint;
 
@@ -65,32 +93,56 @@ public final class QueryEndpointParameters {
 
         private String endpointId;
 
+        private Boolean defaultTrueParam;
+
+        private String defaultStringParam;
+
+        private String deprecatedParam;
+
         @Override
-        public void region(String region) {
+        public Builder region(Region region) {
             this.region = region;
             return this;
         }
 
         @Override
-        public void useDualStackEndpoint(Boolean useDualStackEndpoint) {
+        public Builder useDualStackEndpoint(Boolean useDualStackEndpoint) {
             this.useDualStackEndpoint = useDualStackEndpoint;
             return this;
         }
 
         @Override
-        public void useFIPSEndpoint(Boolean useFIPSEndpoint) {
+        public Builder useFIPSEndpoint(Boolean useFIPSEndpoint) {
             this.useFIPSEndpoint = useFIPSEndpoint;
             return this;
         }
 
         @Override
-        public void endpointId(String endpointId) {
+        public Builder endpointId(String endpointId) {
             this.endpointId = endpointId;
             return this;
         }
 
         @Override
-        public void build() {
+        public Builder defaultTrueParam(Boolean defaultTrueParam) {
+            this.defaultTrueParam = defaultTrueParam;
+            return this;
+        }
+
+        @Override
+        public Builder defaultStringParam(String defaultStringParam) {
+            this.defaultStringParam = defaultStringParam;
+            return this;
+        }
+
+        @Override
+        public Builder deprecatedParam(String deprecatedParam) {
+            this.deprecatedParam = deprecatedParam;
+            return this;
+        }
+
+        @Override
+        public QueryEndpointParameters build() {
             return new QueryEndpointParameters(this);
         }
     }
