@@ -412,7 +412,7 @@ public class SsoOidcTokenProviderTest {
         mockTokenManager.storeToken(cachedDiskToken);
 
         when(ssoOidcClient.createToken(any(CreateTokenRequest.class)))
-            .thenReturn(getDefaultServiceResponse().accessToken("tokenGreaterThanStaleButLessThanPrefetch").expiresIn(200)
+            .thenReturn(getDefaultServiceResponse().accessToken("tokenGreaterThanStaleButLessThanPrefetch").expiresIn(1)
                                                    .build())
             .thenReturn(getDefaultServiceResponse().accessToken("tokenVeryHighExpiry").expiresIn(20000).build());
 
@@ -424,14 +424,14 @@ public class SsoOidcTokenProviderTest {
             .build();
 
         Thread.sleep(100);
-        verify(ssoOidcClient, times(1)).createToken(any(CreateTokenRequest.class));
         SdkToken sdkToken = tokenProvider.resolveToken();
         assertThat(sdkToken.token()).isEqualTo("tokenGreaterThanStaleButLessThanPrefetch");
 
-        Thread.sleep(100);
+        Thread.sleep(1000);
         // Sleep to make sure Async prefetch thread gets picked up and it calls createToken to get new token.
-        verify(ssoOidcClient, times(2)).createToken(any(CreateTokenRequest.class));
+        verify(ssoOidcClient, times(1)).createToken(any(CreateTokenRequest.class));
         SdkToken highExpiryDateToken = tokenProvider.resolveToken();
+        Thread.sleep(1000);
         assertThat(highExpiryDateToken.token()).isEqualTo("tokenVeryHighExpiry");
     }
 

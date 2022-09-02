@@ -141,7 +141,7 @@ public abstract class SsoOidcTokenRefreshTestBase {
     }
 
     @Test
-    public void tokenProvider_with_customStaleTime_refreshes_token() throws IOException {
+    public void tokenProvider_with_customStaleTime_refreshes_token() throws IOException, InterruptedException {
 
         // Creating a token and saving to disc
         OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(testSessionName);
@@ -160,6 +160,7 @@ public abstract class SsoOidcTokenRefreshTestBase {
         assertThat(loadedFromDiscAfterSecondRefresh).hasValue(firstResolvedToken);
 
         // Resolve second time
+        Thread.sleep(1000);
         SsoOidcToken secondResolvedToken = (SsoOidcToken) awsTokenProvider.resolveToken();
         assert_oldCachedToken_isNoSameAs_NewResolvedToken(firstResolvedToken, secondResolvedToken);
         loadedFromDiscAfterSecondRefresh = onDiskTokenManager.loadToken();
