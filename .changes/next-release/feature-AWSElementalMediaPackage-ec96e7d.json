@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaPackage",
-    "contributor": "",
-    "description": "Added support for AES_CTR encryption to CMAF origin endpoints"
-}
