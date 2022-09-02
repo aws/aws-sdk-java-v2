@@ -63,9 +63,10 @@ public class S3CrtAsyncHttpClientTest {
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .endpointOverride(DEFAULT_ENDPOINT)
                                                                  .credentialsProvider(null)
+                                                                 .checksumValidationEnabled(true)
                                                                  .build();
 
-        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration, true);
+        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration);
     }
 
     @Test
@@ -214,9 +215,10 @@ public class S3CrtAsyncHttpClientTest {
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .endpointOverride(DEFAULT_ENDPOINT)
                                                                  .credentialsProvider(null)
+                                                                 .checksumValidationEnabled(false)
                                                                  .build();
 
-        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration, false);
+        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration);
 
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "GetObject")
@@ -239,9 +241,10 @@ public class S3CrtAsyncHttpClientTest {
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .endpointOverride(DEFAULT_ENDPOINT)
                                                                  .credentialsProvider(null)
+                                                                 .checksumValidationEnabled(false)
                                                                  .build();
 
-        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration, false);
+        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration);
 
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "GetObject")

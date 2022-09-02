@@ -20,6 +20,7 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequest;
@@ -42,14 +43,23 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.internal.DelegatingS3AsyncClient;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
-
-    public static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
+    private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
+    private static S3NativeClientConfiguration s3NativeClientConfiguration;
+    private final CopyHelper copyHelper;
 
     private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         super(initializeS3AsyncClient(builder));
+        this.copyHelper = new CopyHelper(delegate, s3NativeClientConfiguration);
+    }
+
+    @Override
+    public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
+        return copyHelper.copyObject(copyObjectRequest);
     }
 
     private static S3AsyncClient initializeS3AsyncClient(DefaultS3CrtClientBuilder builder) {
@@ -75,14 +85,18 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
     private static S3CrtAsyncHttpClient.Builder initializeS3CrtAsyncHttpClient(DefaultS3CrtClientBuilder builder) {
         validateCrtInClassPath();
+        s3NativeClientConfiguration =
+            S3NativeClientConfiguration.builder()
+                                       .checksumValidationEnabled(builder.checksumValidationEnabled)
+                                       .targetThroughputInGbps(builder.targetThroughputInGbps)
+                                       .partSizeInBytes(builder.minimalPartSizeInBytes)
+                                       .maxConcurrency(builder.maxConcurrency)
+                                       .signingRegion(builder.region == null ? null : builder.region.id())
+                                       .endpointOverride(builder.endpointOverride)
+                                       .credentialsProvider(builder.credentialsProvider)
+                                       .build();
         return S3CrtAsyncHttpClient.builder()
-                                   .targetThroughputInGbps(builder.targetThroughputInGbps())
-                                   .minimumPartSizeInBytes(builder.minimumPartSizeInBytes())
-                                   .maxConcurrency(builder.maxConcurrency)
-                                   .region(builder.region)
-                                   .checksumValidationEnabled(builder.checksumValidationEnabled)
-                                   .endpointOverride(builder.endpointOverride)
-                                   .credentialsProvider(builder.credentialsProvider);
+                                   .s3ClientConfiguration(s3NativeClientConfiguration);
     }
 
     @Override

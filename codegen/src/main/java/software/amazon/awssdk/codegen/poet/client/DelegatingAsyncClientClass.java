@@ -56,7 +56,7 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
               .addAnnotation(SdkInternalApi.class)
               .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
               .addField(FieldSpec.builder(interfaceClass, "delegate")
-                                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                                 .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                                  .build())
               .addMethods(operations())
               .addMethod(closeMethod());

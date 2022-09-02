@@ -39,7 +39,6 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 public class TransferManagerConfiguration implements SdkAutoCloseable {
     private final AttributeMap options;
 
-
     private TransferManagerConfiguration(Builder builder) {
         AttributeMap.Builder standardOptions = AttributeMap.builder();
         standardOptions.put(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS, builder.followSymbolicLinks);
