@@ -29,7 +29,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -173,38 +172,38 @@ public class CachedTokenRefresherTest {
 
         CachedTokenRefresher cachedTokenRefresher = CachedTokenRefresher.builder()
                                                                         .asyncRefreshEnabled(true)
-                                                                        .staleDuration(Duration.ofMillis(3))
+                                                                        .staleDuration(Duration.ofMillis(1000))
                                                                         .tokenRetriever(mockCache)
                                                                         .prefetchTime(Duration.ofMillis(1500))
                                                                         .build();
 
         // Sleep is invoked to make sure executor executes refresh in initializeCachedSupplier() in NonBlocking CachedSupplier.PrefetchStrategy
-        Thread.sleep(2);
-        verify(mockCache, times(1)).get();
+        Thread.sleep(1000);
+        verify(mockCache, times(0)).get();
         SdkToken firstRetrieved = cachedTokenRefresher.refreshIfStaleAndFetch();
         assertThat(firstRetrieved).isEqualTo(firstToken);
 
-        Thread.sleep(10);
+        Thread.sleep(1000);
         // Sleep to make sure the Async prefetch thread is picked up
-        verify(mockCache, times(2)).get();
+        verify(mockCache, times(1)).get();
         SdkToken secondRetrieved = cachedTokenRefresher.refreshIfStaleAndFetch();
         // Note that since the token has already been prefetched mockCache.get() is not called again thus it is secondToken.
         assertThat(secondRetrieved).isEqualTo(secondToken);
 
-        Thread.sleep(10);
+        Thread.sleep(1000);
         // Sleep to make sure the Async prefetch thread is picked up
-        verify(mockCache, times(3)).get();
+        verify(mockCache, times(2)).get();
         SdkToken thirdRetrievedToken = cachedTokenRefresher.refreshIfStaleAndFetch();
         assertThat(thirdRetrievedToken).isEqualTo(thirdToken);
 
         // Sleep to make sure the Async prefetch thread is picked up
-        Thread.sleep(10);
-        verify(mockCache, times(4)).get();
+        Thread.sleep(1000);
+        verify(mockCache, times(3)).get();
         SdkToken fourthRetrievedToken = cachedTokenRefresher.refreshIfStaleAndFetch();
         assertThat(fourthRetrievedToken).isEqualTo(fourthToken);
 
         // Sleep to make sure the Async prefetch thread is picked up
-        Thread.sleep(10);
+        Thread.sleep(1000);
         verify(mockCache, times(4)).get();
         SdkToken fifthToken = cachedTokenRefresher.refreshIfStaleAndFetch();
         // Note that since Fourth token's expiry date is too high the prefetch is no longer done and the last fetch token is used.
@@ -221,11 +220,12 @@ public class CachedTokenRefresherTest {
         TestToken token2 = TestToken.builder().token("token2").build();
         when(supplier.get()).thenReturn(token1).thenReturn(token2);
 
+
         CachedTokenRefresher tokenRefresher = tokenRefresherBuilder().tokenRetriever(supplier).build();
 
         SdkToken firstRefreshToken = tokenRefresher.refreshIfStaleAndFetch();
         assertThat(firstRefreshToken).isEqualTo(token1);
-        Thread.sleep(50);
+        Thread.sleep(1000);
         SdkToken secondRefreshToken = tokenRefresher.refreshIfStaleAndFetch();
         assertThat(secondRefreshToken).isEqualTo(token2);
     }
