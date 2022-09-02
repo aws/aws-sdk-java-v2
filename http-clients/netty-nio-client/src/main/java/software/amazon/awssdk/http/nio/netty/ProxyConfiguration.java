@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.nio.netty;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -84,9 +85,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      * property if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      * */
     public String username() {
-        String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
-        return httpsPort != null ? resolveValue(username, ProxySystemSetting.HTTPS_PROXY_USERNAME)
-                                 : resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
+        if (Objects.equals(scheme(), "https")) {
+            return resolveValue(username, ProxySystemSetting.HTTPS_PROXY_USERNAME);
+        }
+        return resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
     }
 
     /**
@@ -94,9 +96,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      * property if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      * */
     public String password() {
-        String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
-        return httpsPort != null ? resolveValue(password, ProxySystemSetting.HTTPS_PROXY_PASSWORD)
-                                 : resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
+        if (Objects.equals(scheme(), "https")) {
+            return resolveValue(password, ProxySystemSetting.HTTPS_PROXY_PASSWORD);
+        }
+        return resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
     }
 
     /**
@@ -231,15 +234,18 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     private String resolveHost(String host) {
-        String httpsPort = resolveValue(host, ProxySystemSetting.HTTPS_PROXY_HOST);
-        return httpsPort != null ? httpsPort : resolveValue(null, ProxySystemSetting.PROXY_HOST);
+        if (Objects.equals(scheme(), "https")) {
+            return resolveValue(host, ProxySystemSetting.HTTPS_PROXY_HOST);
+        }
+        return resolveValue(host, ProxySystemSetting.PROXY_HOST);
     }
 
     private int resolvePort(int port) {
         if (port == 0 && Boolean.TRUE.equals(useSystemPropertyValues)) {
-            String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
-            return httpsPort != null ? ProxySystemSetting.HTTPS_PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0)
-                                     : ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0);
+            if (Objects.equals(scheme(), "https")) {
+                return ProxySystemSetting.HTTPS_PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0);
+            }
+            return ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0);
         }
 
         return port;
@@ -254,9 +260,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     private Set<String> parseNonProxyHostsProperty() {
-        String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
-        String nonProxyHostsSystem = httpsPort != null ? ProxySystemSetting.HTTPS_NON_PROXY_HOSTS.getStringValue().orElse(null)
-                                                       : ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
+        String nonProxyHostsSystem = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
 
         if (nonProxyHostsSystem != null && !nonProxyHostsSystem.isEmpty()) {
             return Arrays.stream(nonProxyHostsSystem.split("\\|"))

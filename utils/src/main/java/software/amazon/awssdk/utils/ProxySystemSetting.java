@@ -31,7 +31,6 @@ public enum ProxySystemSetting implements SystemSetting  {
 
     HTTPS_PROXY_HOST("https.proxyHost"),
     HTTPS_PROXY_PORT("https.proxyPort"),
-    HTTPS_NON_PROXY_HOSTS("https.nonProxyHosts"),
     HTTPS_PROXY_USERNAME("https.proxyUser"),
     HTTPS_PROXY_PASSWORD("https.proxyPassword")
     ;

@@ -21,6 +21,7 @@ import static software.amazon.awssdk.utils.http.SdkHttpUtils.parseNonProxyHostsP
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ProxySystemSetting;
@@ -95,9 +96,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      * @see Builder#password(String)
      */
     public String username() {
-        String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
-        return httpsPort != null ? resolveValue(username, ProxySystemSetting.HTTPS_PROXY_USERNAME)
-               : resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
+        if (Objects.equals(scheme(), "https")) {
+            return resolveValue(username, ProxySystemSetting.HTTPS_PROXY_USERNAME);
+        }
+        return resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
     }
 
     /**
@@ -106,9 +108,11 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      * @see Builder#password(String)
      */
     public String password() {
-        String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
-        return httpsPort != null ? resolveValue(password, ProxySystemSetting.HTTPS_PROXY_PASSWORD)
-                                 : resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
+
+        if (Objects.equals(scheme(), "https")) {
+            return resolveValue(password, ProxySystemSetting.HTTPS_PROXY_PASSWORD);
+        }
+        return resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
     }
 
     /**
@@ -191,8 +195,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             return endpoint.getHost();
         }
 
-        String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
-        return httpsPort != null ? httpsPort : resolveValue(null, ProxySystemSetting.PROXY_HOST);
+        if (Objects.equals(scheme(), "https")) {
+            return resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
+        }
+        return resolveValue(null, ProxySystemSetting.PROXY_HOST);
     }
 
     private int resolvePort() {
@@ -201,11 +207,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         if (endpoint != null) {
             port = endpoint.getPort();
         } else if (useSystemPropertyValues) {
-            String httpsPort = resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
-            if (httpsPort != null) {
+            if (Objects.equals(scheme(), "https")) {
                 port = ProxySystemSetting.HTTPS_PROXY_PORT.getStringValue()
-                                                    .map(Integer::parseInt)
-                                                    .orElse(0);
+                                                          .map(Integer::parseInt)
+                                                          .orElse(0);
             } else {
                 port = ProxySystemSetting.PROXY_PORT.getStringValue()
                                                     .map(Integer::parseInt)

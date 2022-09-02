@@ -429,10 +429,7 @@ public final class SdkHttpUtils {
      * See http://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html
      */
     public static Set<String> parseNonProxyHostsProperty() {
-        String systemNonProxyHosts = ProxySystemSetting.HTTPS_NON_PROXY_HOSTS.getStringValue().orElse(null);
-        if (systemNonProxyHosts == null) {
-            systemNonProxyHosts = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
-        }
+        String systemNonProxyHosts = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
 
         if (systemNonProxyHosts != null && !isEmpty(systemNonProxyHosts)) {
             return Arrays.stream(systemNonProxyHosts.split("\\|"))
