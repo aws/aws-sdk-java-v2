@@ -31,7 +31,6 @@ import software.amazon.awssdk.services.s3.internal.CopyRequestConversionUtils;
 import software.amazon.awssdk.services.s3.internal.UploadPartCopyRequestProvider;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
-import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
@@ -82,10 +81,10 @@ public final class CopyHelper {
                 long partSize = s3NativeClientConfiguration.partSizeBytes();
 
                 if (contentLength <= partSize) {
-                    log.debug(() -> "Start the copy as a single copy part requests");
+                    log.debug(() -> "Starting the copy as a single copy part request");
                     copyInOneChunk(copyObjectRequest, returnFuture);
                 } else {
-                    log.debug(() -> "Start the copy as multiple copy part requests");
+                    log.debug(() -> "Starting the copy as multi part copy request");
                     copyInParts(copyObjectRequest, contentLength, returnFuture);
                 }
             }
@@ -99,7 +98,8 @@ public final class CopyHelper {
                              CompletableFuture<CopyObjectResponse> returnFuture) {
 
         CreateMultipartUploadRequest request = CopyRequestConversionUtils.toCreateMultipartUploadRequest(copyObjectRequest);
-        CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture = s3AsyncClient.createMultipartUpload(request);
+        CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
+            s3AsyncClient.createMultipartUpload(request);
 
         // Ensure cancellations are forwarded to the createMultipartUploadFuture future
         CompletableFutureUtils.forwardExceptionTo(returnFuture, createMultipartUploadFuture);
@@ -137,34 +137,36 @@ public final class CopyHelper {
                                                                                     uploadId,
                                                                                     completedParts,
                                                                                     optimalPartSize);
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                         .thenCompose(ignore -> {
+                             log.debug(() -> String.format("Sending completeMultipartUploadRequest, uploadId: %s",
+                                                           uploadId));
+                             CompletedPart[] parts =
+                                 IntStream.range(0, completedParts.length()).mapToObj(completedParts::get).toArray(CompletedPart[]::new);
+                             CompleteMultipartUploadRequest completeMultipartUploadRequest =
+                                 CompleteMultipartUploadRequest.builder()
+                                                               .bucket(copyObjectRequest.destinationBucket())
+                                                               .key(copyObjectRequest.destinationKey())
+                                                               .uploadId(uploadId)
+                                                               .multipartUpload(CompletedMultipartUpload.builder()
+                                                                                                        .parts(parts)
+                                                                                                        .build())
+                                                               .build();
 
-        CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUploadFuture =
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                             .thenCompose(ignore -> {
-                                 CompletedPart[] parts =
-                                     IntStream.range(0, completedParts.length()).mapToObj(completedParts::get).toArray(CompletedPart[]::new);
-                                 CompleteMultipartUploadRequest completeMultipartUploadRequest =
-                                     CompleteMultipartUploadRequest.builder()
-                                                                   .bucket(copyObjectRequest.destinationBucket())
-                                                                   .key(copyObjectRequest.destinationKey())
-                                                                   .uploadId(uploadId)
-                                                                   .multipartUpload(CompletedMultipartUpload.builder()
-                                                                                                            .parts(parts)
-                                                                                                            .build())
-                                                                   .build();
-
-                                 return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
-                             }).exceptionally(throwable -> {
+                             return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
+                         }).whenComplete((completeMultipartUploadResponse, throwable) -> {
+                             if (throwable != null) {
                                  cleanUpParts(copyObjectRequest, uploadId);
 
                                  handleException(returnFuture, () -> "Failed to send multipart copy requests.",
                                                  throwable);
-                                 return null;
-                             });
-
-        CompletableFutureUtils.forwardTransformedResultTo(completeMultipartUploadFuture,
-                                                          returnFuture,
-                                                          CopyRequestConversionUtils::toCopyObjectResponse);
+                             } else {
+                                 returnFuture.complete(CopyRequestConversionUtils.toCopyObjectResponse(completeMultipartUploadResponse));
+                             }
+                         }).exceptionally(throwable -> {
+                             handleException(returnFuture, () -> "Unexpected exception occurred", throwable);
+                             return null;
+                         });
     }
 
     private void cleanUpParts(CopyObjectRequest copyObjectRequest, String uploadId) {
@@ -178,7 +180,7 @@ public final class CopyHelper {
                                                       + "S3AsyncClient#abortMultiPartUpload to "
                                                       + "free all storage consumed by"
                                                       + " all parts. ",
-                                                      uploadId), t);
+                                                      uploadId), throwable);
                          return null;
                      });
     }
@@ -227,8 +229,7 @@ public final class CopyHelper {
     }
 
     /**
-     * Calculates the optimal part size of each part request if the copy operation is carried out as multi-part copy.
-     * Round up, so we don't push the copy over the maximum number of parts
+     * Calculates the optimal part size of each part request if the copy operation is carried out as multipart copy.
      */
     private long calculateOptimalPartSizeForCopy(long contentLengthOfSource) {
         double optimalPartSize = contentLengthOfSource / (double) MAX_UPLOAD_PARTS;

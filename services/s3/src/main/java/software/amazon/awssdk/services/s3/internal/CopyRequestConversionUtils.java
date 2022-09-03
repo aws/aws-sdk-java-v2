@@ -16,12 +16,10 @@
 package software.amazon.awssdk.services.s3.internal;
 
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
-import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
-import software.amazon.awssdk.services.s3.model.CopyObjectResult;
 import software.amazon.awssdk.services.s3.model.CopyPartResult;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
@@ -61,18 +59,25 @@ public final class CopyRequestConversionUtils {
     public static CopyObjectResponse toCopyObjectResponse(CompleteMultipartUploadResponse response) {
         CopyObjectResponse.Builder builder = CopyObjectResponse.builder()
                                                                .versionId(response.versionId())
-                                                               .copyObjectResult(CopyObjectResult.builder()
-                                                                                                 .checksumCRC32(response.checksumCRC32())
-                                                                                                 .checksumSHA1(response.checksumSHA1())
-                                                                                                 .checksumSHA256(response.checksumSHA256())
-                                                                                                 .checksumCRC32C(response.checksumCRC32C())
-                                                                                                 .eTag(response.eTag())
-                                                                                                 .build())
+                                                               .copyObjectResult(b -> b.checksumCRC32(response.checksumCRC32())
+                                                                                       .checksumSHA1(response.checksumSHA1())
+                                                                                       .checksumSHA256(response.checksumSHA256())
+                                                                                       .checksumCRC32C(response.checksumCRC32C())
+                                                                                       .eTag(response.eTag())
+                                                                                       .build())
                                                                .expiration(response.expiration())
+                                                               .bucketKeyEnabled(response.bucketKeyEnabled())
+                                                               .serverSideEncryption(response.serverSideEncryption())
                                                                .requestCharged(response.requestCharged());
-        return (CopyObjectResponse) builder.responseMetadata(response.responseMetadata())
-                                           .sdkHttpResponse(response.sdkHttpResponse())
-                                           .build();
+        if (response.responseMetadata() != null) {
+            builder.responseMetadata(response.responseMetadata());
+        }
+
+        if (response.sdkHttpResponse() != null) {
+            builder.sdkHttpResponse(response.sdkHttpResponse());
+        }
+
+        return builder.build();
     }
 
     public static AbortMultipartUploadRequest toAbortMultipartUploadRequest(CopyObjectRequest copyObjectRequest,
