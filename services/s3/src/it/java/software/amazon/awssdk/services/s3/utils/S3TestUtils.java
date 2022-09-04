@@ -15,13 +15,20 @@
 
 package software.amazon.awssdk.services.s3.utils;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.rmi.NoSuchObjectException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Bucket;
@@ -41,6 +48,7 @@ public class S3TestUtils {
     private static final Logger log = Logger.loggerFor(S3TestUtils.class);
     private static final String TEST_BUCKET_PREFIX = "s3-test-bucket-";
     private static final String NON_DNS_COMPATIBLE_TEST_BUCKET_PREFIX = "s3.test.bucket.";
+    public static final int KB = 1024;
 
     private static Map<Class<?>, List<Runnable>> cleanupTasks = new ConcurrentHashMap<>();
 
@@ -167,4 +175,25 @@ public class S3TestUtils {
             e.printStackTrace();
         }
     }
+
+    public static File fixedLengthFileWithRandomCharacters(int sizeInKb) throws IOException {
+        File tempFile = File.createTempFile("s3-object-file-", ".tmp");
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(tempFile, "rw")) {
+            PrintWriter writer = new PrintWriter(tempFile, "UTF-8");
+            int objectSize = sizeInKb * KB;
+            Random random = new Random();
+            for (int index = 0; index < objectSize; index ++) {
+                writer.print(index % 5 == 0 ? ' ' : (char) ('a' + random.nextInt(26)));
+            }
+            writer.flush();
+        }
+        tempFile.deleteOnExit();
+        return tempFile;
+    }
+
+    public static String createDataOfSizeInKb(int dataSize, char contentCharacter) {
+        return IntStream.range(0, dataSize  * 1024).mapToObj(i -> String.valueOf(contentCharacter)).collect(Collectors.joining());
+    }
+
+
 }

@@ -32,6 +32,7 @@ import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.async.ByteBufferingSubscriber;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -40,6 +41,8 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  */
 @SdkInternalApi
 public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
+
+    public static final int DEFAULT_CHUNK_SIZE = 16 * 1024;
 
     public static final byte[] FINAL_BYTE = new byte[0];
     private final AsyncRequestBody wrapped;
@@ -148,7 +151,8 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         if (sdkChecksum != null) {
             sdkChecksum.reset();
         }
-        wrapped.subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum, trailerHeader, remainingBytes));
+        wrapped.subscribe(new ByteBufferingSubscriber(
+            new ChecksumCalculatingSubscriber(s, sdkChecksum, trailerHeader, remainingBytes), DEFAULT_CHUNK_SIZE));
     }
 
     private static final class ChecksumCalculatingSubscriber implements Subscriber<ByteBuffer> {
@@ -189,7 +193,7 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
                     ByteBuffer allocatedBuffer = getFinalChecksumAppendedChunk(byteBuffer);
                     wrapped.onNext(allocatedBuffer);
                 } else {
-                    ByteBuffer allocatedBuffer = appendChunkSizeAndFinalByte(byteBuffer);
+                    ByteBuffer allocatedBuffer = createChunk(byteBuffer, false);
                     wrapped.onNext(allocatedBuffer);
                 }
             } catch (SdkException sdkException) {
@@ -212,14 +216,6 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
                     .put(contentChunk)
                     .put(finalChunkedByteBuffer)
                     .put(checksumTrailerByteBuffer);
-            checksumAppendedBuffer.flip();
-            return checksumAppendedBuffer;
-        }
-
-        private ByteBuffer appendChunkSizeAndFinalByte(ByteBuffer byteBuffer) {
-            ByteBuffer contentChunk = createChunk(byteBuffer, false);
-            ByteBuffer checksumAppendedBuffer = ByteBuffer.allocate(contentChunk.remaining());
-            checksumAppendedBuffer.put(contentChunk);
             checksumAppendedBuffer.flip();
             return checksumAppendedBuffer;
         }

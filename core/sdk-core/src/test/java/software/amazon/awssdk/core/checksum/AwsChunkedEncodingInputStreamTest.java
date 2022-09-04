@@ -60,7 +60,7 @@ public class AwsChunkedEncodingInputStreamTest {
         long checksumContentLength = AwsUnsignedChunkedEncodingInputStream.calculateChecksumContentLength(
                 SHA256_ALGORITHM, SHA256_HEADER_NAME);
         assertThat(calculateChunkLength).isEqualTo(19);
-        assertThat(checksumContentLength).isEqualTo(69);
+        assertThat(checksumContentLength).isEqualTo(71);
     }
 
     @Test

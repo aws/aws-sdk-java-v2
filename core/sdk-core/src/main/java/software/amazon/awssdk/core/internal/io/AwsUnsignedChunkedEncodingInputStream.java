@@ -48,12 +48,10 @@ public class AwsUnsignedChunkedEncodingInputStream extends AwsChunkedEncodingInp
      * @return Content length of the trailer that will be appended at the end.
      */
     public static long calculateChecksumContentLength(Algorithm algorithm, String headerName) {
-        int checksumLength = algorithm.base64EncodedLength();
-
-        return (headerName.length()
-                + HEADER_COLON_SEPARATOR.length()
-                + checksumLength
-                + CRLF.length());
+        return headerName.length()
+               + HEADER_COLON_SEPARATOR.length()
+               + algorithm.base64EncodedLength().longValue()
+               + CRLF.length() + CRLF.length();
     }
 
     /**
@@ -78,7 +76,7 @@ public class AwsUnsignedChunkedEncodingInputStream extends AwsChunkedEncodingInp
 
         long allChunks = maxSizeChunks * calculateChunkLength(defaultChunkSize);
         long remainingInChunk = remainingBytes > 0 ? calculateChunkLength(remainingBytes) : 0;
-        long lastByteSize = "0".length() + CRLF.length();
+        long lastByteSize = (long) "0".length() + (long) CRLF.length();
 
         return allChunks +  remainingInChunk + lastByteSize;
     }

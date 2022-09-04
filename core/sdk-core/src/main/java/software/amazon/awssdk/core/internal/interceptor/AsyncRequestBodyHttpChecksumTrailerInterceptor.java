@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.interceptor;
 
+import static software.amazon.awssdk.core.internal.io.AwsUnsignedChunkedEncodingInputStream.calculateStreamContentLength;
+
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ClientType;
@@ -25,8 +27,6 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.async.ChecksumCalculatingAsyncRequestBody;
-import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
-import software.amazon.awssdk.core.internal.io.AwsUnsignedChunkedEncodingInputStream;
 import software.amazon.awssdk.core.internal.util.ChunkContentUtils;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.http.Header;
@@ -99,10 +99,8 @@ public final class AsyncRequestBodyHttpChecksumTrailerInterceptor implements Exe
     private static SdkHttpRequest updateHeadersForTrailerChecksum(Context.ModifyHttpRequest context, ChecksumSpecs checksum,
                                                                   long checksumContentLength, long originalContentLength) {
 
-        long chunkLength = isFileAsyncRequestBody(context)
-                           ? AwsUnsignedChunkedEncodingInputStream
-                               .calculateStreamContentLength(originalContentLength, FileAsyncRequestBody.DEFAULT_CHUNK_SIZE)
-                           : ChunkContentUtils.calculateChunkLength(originalContentLength);
+        long chunkLength =
+            calculateStreamContentLength(originalContentLength, ChecksumCalculatingAsyncRequestBody.DEFAULT_CHUNK_SIZE);
 
         return context.httpRequest().copy(r ->
                 r.putHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, checksum.headerName())
@@ -112,9 +110,4 @@ public final class AsyncRequestBodyHttpChecksumTrailerInterceptor implements Exe
                         .putHeader(Header.CONTENT_LENGTH,
                                    Long.toString(chunkLength + checksumContentLength)));
     }
-
-    private static boolean isFileAsyncRequestBody(Context.ModifyHttpRequest context) {
-        return context.asyncRequestBody().isPresent() && context.asyncRequestBody().get() instanceof FileAsyncRequestBody;
-    }
-
 }
