@@ -30,6 +30,7 @@ import static software.amazon.awssdk.utils.UserHomeDirectoryUtils.userHomeDirect
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
@@ -50,6 +51,7 @@ import software.amazon.awssdk.awscore.internal.token.TokenManager;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ssooidc.SsoOidcClient;
 import software.amazon.awssdk.services.ssooidc.SsoOidcTokenProvider;
+import software.amazon.awssdk.services.ssooidc.internal.common.SsoOidcTokenRefreshTestBase;
 import software.amazon.awssdk.services.ssooidc.model.CreateTokenRequest;
 import software.amazon.awssdk.services.ssooidc.model.CreateTokenResponse;
 import software.amazon.awssdk.services.ssooidc.model.UnauthorizedClientException;
@@ -64,7 +66,7 @@ public class SsoOidcTokenProviderTest {
     private FileSystem testFs;
     private Path cache;
 
-    private static String deriveCacheKey(String startUrl) {
+    public static String deriveCacheKey(String startUrl) {
         try {
             MessageDigest sha1 = MessageDigest.getInstance("sha1");
             sha1.update(startUrl.getBytes(StandardCharsets.UTF_8));
@@ -76,10 +78,17 @@ public class SsoOidcTokenProviderTest {
 
     @BeforeEach
     public void setup() throws IOException {
-        testFs = Jimfs.newFileSystem(Configuration.unix());
-        cache = testFs.getPath("/cache");
-        Files.createDirectory(cache);
 
+        File cacheDirectory = SsoOidcTokenRefreshTestBase.DEFAULT_TOKEN_LOCATION.toFile();
+        if(! cacheDirectory.exists()){
+            cacheDirectory.mkdirs();
+        }
+        Path file = Paths.get(cacheDirectory.getPath()+ deriveCacheKey(START_URL) + ".json");
+        if(file.toFile().exists()){
+            file.toFile().delete();
+        }
+        Files.createDirectories(file.getParent());
+        Files.createFile(file);
         mockTokenManager = OnDiskTokenManager.create(START_URL);
         ssoOidcClient = mock(SsoOidcClient.class);
     }
