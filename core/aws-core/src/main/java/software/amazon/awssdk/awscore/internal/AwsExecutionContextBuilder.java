@@ -106,15 +106,15 @@ public final class AwsExecutionContextBuilder {
                                                      .build();
         interceptorContext = runInitialInterceptors(interceptorContext, executionAttributes, executionInterceptorChain);
 
-        Signer signer = isAuthenticatedRequest(executionAttributes) ?
-                        resolveSigner(interceptorContext.request(), clientConfig.option(SdkAdvancedClientOption.SIGNER)) :
-                        null;
-
-        AuthorizationStrategyFactory authorizationStrategyFactory =
-            new AuthorizationStrategyFactory(interceptorContext.request(), metricCollector, clientConfig);
-        AuthorizationStrategy authorizationStrategy = authorizationStrategyFactory.strategyFor(executionParams.credentialType());
-        authorizationStrategy.addCredentialsToExecutionAttributes(executionAttributes);
-
+        Signer signer = null;
+        if (isAuthenticatedRequest(executionAttributes)) {
+            AuthorizationStrategyFactory authorizationStrategyFactory =
+                new AuthorizationStrategyFactory(interceptorContext.request(), metricCollector, clientConfig);
+            AuthorizationStrategy authorizationStrategy =
+                authorizationStrategyFactory.strategyFor(executionParams.credentialType());
+            authorizationStrategy.addCredentialsToExecutionAttributes(executionAttributes);
+            signer = authorizationStrategy.resolveSigner();
+        }
 
         executionAttributes.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
                                          resolveSigningMethodUsed(
@@ -125,7 +125,7 @@ public final class AwsExecutionContextBuilder {
                                .interceptorChain(executionInterceptorChain)
                                .interceptorContext(interceptorContext)
                                .executionAttributes(executionAttributes)
-                               .signer(authorizationStrategy.resolveSigner())
+                               .signer(signer)
                                .metricCollector(metricCollector)
                                .build();
     }
