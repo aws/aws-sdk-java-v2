@@ -82,7 +82,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     /**
-     * @return The proxy username from the configuration if set, or from the "https.proxyUser" or "http.proxyUser" system
+     * @return The proxy username from the configuration if set, else from the "https.proxyUser" or "http.proxyUser" system
      * property, based on the scheme used, if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      * */
     public String username() {
@@ -93,8 +93,9 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     /**
-     * @return The proxy password from the configuration if set, or from the "https.proxyPassword" or "http.proxyPassword" system
-     * property, based on the scheme used, if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
+     * @return The proxy password from the configuration if set, else from the "https.proxyPassword" or "http.proxyPassword"
+     * system property, based on the scheme used, if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set
+     * to true
      * */
     public String password() {
         if (Objects.equals(scheme(), HTTPS)) {
