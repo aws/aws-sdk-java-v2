@@ -1,3 +1,12 @@
+# __2.17.268__ __2022-09-06__
+## __AWS SSO Identity Store__
+  - ### Features
+    - Documentation updates for the Identity Store CLI Reference.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds HyperParameterTuningJob type in Search API.
+
 # __2.17.267__ __2022-09-02__
 ## __AWS Elemental MediaPackage__
   - ### Features
