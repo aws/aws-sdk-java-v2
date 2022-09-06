@@ -122,7 +122,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             return false;
         }
 
-        return s3NativeClientConfiguration.ChecksumValidationEnabled() || httpChecksum.requestValidationMode() != null;
+        return s3NativeClientConfiguration.checksumValidationEnabled() || httpChecksum.requestValidationMode() != null;
     }
 
     private static URI getEndpoint(URI uri) {
@@ -174,7 +174,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
      * 3. It's a GET operation
      */
     private boolean requestChecksumAlgoNotApplicable(HttpChecksum httpChecksum) {
-        return !s3NativeClientConfiguration.ChecksumValidationEnabled() ||
+        return !s3NativeClientConfiguration.checksumValidationEnabled() ||
                httpChecksum == null ||
                httpChecksum.responseAlgorithms() != null;
     }

@@ -44,7 +44,7 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithout
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
-    private final JsonAsyncClient delegate;
+    protected final JsonAsyncClient delegate;
 
     public DelegatingJsonAsyncClient(JsonAsyncClient delegate) {
         this.delegate = delegate;

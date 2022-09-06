@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -511,10 +513,14 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Creates a copy of an object that is already stored in S3.
+     * Creates a copy of an object that is already stored in S3 in the same region.
      * <p>
      * Under the hood, {@link S3TransferManager} will intelligently use plain {@link CopyObjectRequest}s for smaller objects, or
-     * multiple parallel {@link UploadPartCopyRequest}s for larger objects.
+     * multiple parallel {@link UploadPartCopyRequest}s for larger objects. This behavior can be configured via
+     * {@link S3CrtAsyncClientBuilder#minimumPartSizeInBytes(Long)}. Note that for multipart copy request, existing metadata
+     * stored in the source object is NOT copied to the destination object; if required, you can retrieve the metadata
+     * from the source object and set it explicitly in the {@link CopyObjectRequest.Builder#metadata(Map)}.
+     *
      * <p>
      * While this API supports {@link TransferListener}s, they will not receive {@code bytesTransferred} callback-updates due to
      * the way the {@link CopyObjectRequest} API behaves. When copying an object, S3 performs the byte copying on your behalf

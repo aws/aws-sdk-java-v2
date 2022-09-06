@@ -27,8 +27,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.internal.CopyRequestConversionUtils;
-import software.amazon.awssdk.services.s3.internal.UploadPartCopyRequestProvider;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
@@ -39,26 +37,26 @@ import software.amazon.awssdk.services.s3.model.CopyPartResult;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
-import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * An internal helper class that automatically use multipart copy based on the size of the source object
+ * An internal helper class that automatically uses multipart copy based on the size of the source object
  */
 @SdkInternalApi
-public final class CopyHelper {
+public final class CopyObjectHelper {
     private static final Logger log = Logger.loggerFor(S3AsyncClient.class);
-    private final S3AsyncClient s3AsyncClient;
-    private final S3NativeClientConfiguration s3NativeClientConfiguration;
 
     /**
-     * The max number of part on S3 side is 10,000
+     * The max number of parts on S3 side is 10,000
      */
     private static final long MAX_UPLOAD_PARTS = 10_000;
 
-    public CopyHelper(S3AsyncClient s3AsyncClient, S3NativeClientConfiguration s3NativeClientConfiguration) {
+    private final S3AsyncClient s3AsyncClient;
+    private final S3NativeClientConfiguration s3NativeClientConfiguration;
+
+    public CopyObjectHelper(S3AsyncClient s3AsyncClient, S3NativeClientConfiguration s3NativeClientConfiguration) {
         this.s3AsyncClient = s3AsyncClient;
         this.s3NativeClientConfiguration = s3NativeClientConfiguration;
     }
@@ -85,7 +83,7 @@ public final class CopyHelper {
                     log.debug(() -> "Starting the copy as a single copy part request");
                     copyInOneChunk(copyObjectRequest, returnFuture);
                 } else {
-                    log.debug(() -> "Starting the copy as multi part copy request");
+                    log.debug(() -> "Starting the copy as multipart copy request");
                     copyInParts(copyObjectRequest, contentLength, returnFuture);
                 }
             }
@@ -143,7 +141,9 @@ public final class CopyHelper {
                                   log.debug(() -> String.format("Sending completeMultipartUploadRequest, uploadId: %s",
                                                                 uploadId));
                                   CompletedPart[] parts =
-                                      IntStream.range(0, completedParts.length()).mapToObj(completedParts::get).toArray(CompletedPart[]::new);
+                                      IntStream.range(0, completedParts.length())
+                                               .mapToObj(completedParts::get)
+                                               .toArray(CompletedPart[]::new);
                                   CompleteMultipartUploadRequest completeMultipartUploadRequest =
                                       CompleteMultipartUploadRequest.builder()
                                                                     .bucket(copyObjectRequest.destinationBucket())
@@ -162,7 +162,8 @@ public final class CopyHelper {
                                       handleException(returnFuture, () -> "Failed to send multipart copy requests.",
                                                       throwable);
                                   } else {
-                                      returnFuture.complete(CopyRequestConversionUtils.toCopyObjectResponse(completeMultipartUploadResponse));
+                                      returnFuture.complete(CopyRequestConversionUtils.toCopyObjectResponse(
+                                          completeMultipartUploadResponse));
                                   }
                               }).exceptionally(throwable -> {
                                   handleException(returnFuture, () -> "Unexpected exception occurred", throwable);
@@ -201,37 +202,39 @@ public final class CopyHelper {
     }
 
     private List<CompletableFuture<CompletedPart>> sendUploadPartCopyRequests(CopyObjectRequest copyObjectRequest,
-                                                                              Long contentLength,
+                                                                              long contentLength,
                                                                               String uploadId,
                                                                               AtomicReferenceArray<CompletedPart> completedParts,
                                                                               long optimalPartSize) {
         List<CompletableFuture<CompletedPart>> futures = new ArrayList<>();
 
-        UploadPartCopyRequestProvider copyRequestProvider = new UploadPartCopyRequestProvider(uploadId,
-                                                                                              optimalPartSize,
-                                                                                              copyObjectRequest,
-                                                                                              contentLength);
+        UploadPartCopyRequestIterable uploadPartCopyRequests = new UploadPartCopyRequestIterable(uploadId,
+                                                                                                 optimalPartSize,
+                                                                                                 copyObjectRequest,
+                                                                                                 contentLength);
 
-        while (copyRequestProvider.hasMoreRequests()) {
-            UploadPartCopyRequest nextCopyPartRequest = copyRequestProvider.nextCopyPartRequest();
-            log.debug(() -> "Sending uploadPartCopyRequest with range: " + nextCopyPartRequest.copySourceRange());
+        uploadPartCopyRequests.stream().forEach(uploadPartCopyRequest -> {
+            Integer partNumber = uploadPartCopyRequest.partNumber();
+            log.debug(() -> "Sending uploadPartCopyRequest with range: " + uploadPartCopyRequest.copySourceRange() + " uploadId: "
+                            + uploadId);
 
-            CompletableFuture<UploadPartCopyResponse> uploadPartCopyFuture = s3AsyncClient.uploadPartCopy(nextCopyPartRequest);
+            CompletableFuture<UploadPartCopyResponse> uploadPartCopyFuture = s3AsyncClient.uploadPartCopy(uploadPartCopyRequest);
 
             CompletableFuture<CompletedPart> convertFuture =
                 uploadPartCopyFuture.thenApply(uploadPartCopyResponse -> {
                     CopyPartResult copyPartResult = uploadPartCopyResponse.copyPartResult();
                     CompletedPart completedPart =
                         CopyRequestConversionUtils.toCompletedPart(copyPartResult,
-                                                                   nextCopyPartRequest.partNumber());
+                                                                   partNumber);
 
-                    completedParts.set(completedPart.partNumber() - 1, completedPart);
+                    completedParts.set(partNumber - 1, completedPart);
                     return completedPart;
                 });
             futures.add(convertFuture);
 
             CompletableFutureUtils.forwardExceptionTo(convertFuture, uploadPartCopyFuture);
-        }
+        });
+
         return futures;
     }
 

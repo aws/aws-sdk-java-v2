@@ -26,7 +26,6 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @SdkProtectedApi
 public final class CompletableFutureUtils {
-    private static final Logger log = Logger.loggerFor(CompletableFutureUtils.class);
     private CompletableFutureUtils() {
     }
 
@@ -177,19 +176,16 @@ public final class CompletableFutureUtils {
      * futures} are.
      */
     public static CompletableFuture<Void> allOfCancelForwarded(CompletableFuture<?>[] futures) {
-        CompletableFuture<?>[] futuresCopy = new CompletableFuture[futures.length];
-        System.arraycopy(futures, 0, futuresCopy, 0, futures.length);
 
         CompletableFuture<Void> anyFail = anyFail(futures);
 
         anyFail.whenComplete((r, t) -> {
-            log.info(() -> "cancelling others" + futures.length);
             for (CompletableFuture<?> cf : futures) {
                 cf.cancel(true);
             }
         });
 
-        return CompletableFuture.allOf(futuresCopy);
+        return CompletableFuture.allOf(futures);
     }
 
     /**

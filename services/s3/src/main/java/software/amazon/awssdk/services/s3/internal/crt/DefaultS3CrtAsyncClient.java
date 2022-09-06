@@ -50,16 +50,16 @@ import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
     private static S3NativeClientConfiguration s3NativeClientConfiguration;
-    private final CopyHelper copyHelper;
+    private final CopyObjectHelper copyObjectHelper;
 
     private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         super(initializeS3AsyncClient(builder));
-        this.copyHelper = new CopyHelper(delegate, s3NativeClientConfiguration);
+        this.copyObjectHelper = new CopyObjectHelper(delegate, s3NativeClientConfiguration);
     }
 
     @Override
     public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
-        return copyHelper.copyObject(copyObjectRequest);
+        return copyObjectHelper.copyObject(copyObjectRequest);
     }
 
     private static S3AsyncClient initializeS3AsyncClient(DefaultS3CrtClientBuilder builder) {

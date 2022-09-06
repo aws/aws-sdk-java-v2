@@ -66,6 +66,8 @@ public class S3IntegrationTestBase extends AwsTestBase {
 
     @AfterAll
     public static void cleanUp() {
+        s3.close();
+        s3Async.close();
         CrtResource.waitForNoResources();
     }
 

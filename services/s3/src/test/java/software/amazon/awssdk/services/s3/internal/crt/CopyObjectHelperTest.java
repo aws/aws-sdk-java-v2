@@ -25,9 +25,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -51,7 +48,7 @@ import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
-class CopyHelperTest {
+class CopyObjectHelperTest {
 
     private static final String SOURCE_BUCKET = "source";
     private static final String SOURCE_KEY = "sourceKey";
@@ -59,15 +56,8 @@ class CopyHelperTest {
     private static final String DESTINATION_KEY = "destinationKey";
     private static final String MULTIPART_ID = "multipartId";
     private S3AsyncClient s3AsyncClient;
-    private CopyHelper copyHelper;
+    private CopyObjectHelper copyHelper;
     private S3NativeClientConfiguration s3NativeClientConfiguration;
-    private static Executor executor;
-
-    @BeforeAll
-    public static void setUpForClass() {
-        executor = Executors.newFixedThreadPool(3);
-    }
-
 
     @BeforeEach
     public void setUp() {
@@ -75,7 +65,7 @@ class CopyHelperTest {
                                                                  .partSizeInBytes(1024L)
                                                                  .build();
         s3AsyncClient = Mockito.mock(S3AsyncClient.class);
-        copyHelper = new CopyHelper(s3AsyncClient, s3NativeClientConfiguration);
+        copyHelper = new CopyObjectHelper(s3AsyncClient, s3NativeClientConfiguration);
     }
 
     @Test
@@ -150,7 +140,7 @@ class CopyHelperTest {
      * Four parts, after the first part failed, the remaining four futures should be cancelled
      */
     @Test
-    void multiPartCopy_uploadPartFailed_shouldCancelFailAndAbort() {
+    void multiPartCopy_onePartFailed_shouldCancelFailAndAbort() {
         CopyObjectRequest copyObjectRequest = copyObjectRequest();
 
         stubSuccessfulHeadObjectCall(4000L);
@@ -214,6 +204,22 @@ class CopyHelperTest {
         assertThat(actualRequest.uploadId()).isEqualTo(MULTIPART_ID);
     }
 
+    @Test
+    void copy_cancelResponseFuture_shouldPropagate() {
+        CopyObjectRequest copyObjectRequest = copyObjectRequest();
+
+        CompletableFuture<HeadObjectResponse> headFuture = new CompletableFuture<>();
+
+        when(s3AsyncClient.headObject(any(HeadObjectRequest.class)))
+            .thenReturn(headFuture);
+
+        CompletableFuture<CopyObjectResponse> future =
+            copyHelper.copyObject(copyObjectRequest);
+
+        future.cancel(true);
+
+        assertThat(headFuture).isCancelled();
+    }
 
     private void stubSuccessfulUploadPartCopyCalls() {
         when(s3AsyncClient.uploadPartCopy(any(UploadPartCopyRequest.class)))
@@ -229,11 +235,6 @@ class CopyHelperTest {
                                                                                    .build());
                 }
             });
-    }
-
-    private void stubFailedUploadPartCopyCalls() {
-        when(s3AsyncClient.uploadPartCopy(any(UploadPartCopyRequest.class)))
-            .thenThrow(SdkClientException.create("failed"));
     }
 
     private void stubSuccessfulCompleteMultipartCall() {
