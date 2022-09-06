@@ -47,7 +47,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     private final String host;
     private final int port;
     private final String scheme;
-    private final String HTTPS = "https";
+    private static final String HTTPS = "https";
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -62,22 +62,22 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         this.preemptiveBasicAuthenticationEnabled = builder.preemptiveBasicAuthenticationEnabled == null ? Boolean.FALSE :
                 builder.preemptiveBasicAuthenticationEnabled;
         this.useSystemPropertyValues = builder.useSystemPropertyValues;
-        this.host = resolveHost();
-        this.port = resolvePort();
         this.scheme = resolveScheme();
+        this.host = resolveHost(scheme);
+        this.port = resolvePort(scheme);
     }
 
     /**
-     * Returns the proxy host name either from the configured endpoint or from the "https.proxyHost" or "http.proxyHost" system
-     * property if {@link Builder#useSystemPropertyValues(Boolean)} is set to true.
+     * Returns the proxy host name from the configured endpoint if set, else from the "https.proxyHost" or "http.proxyHost" system
+     * property, based on the scheme used, if {@link Builder#useSystemPropertyValues(Boolean)} is set to true.
      */
     public String host() {
         return host;
     }
 
     /**
-     * Returns the proxy port either from the configured endpoint or from the "https.proxyPort" or "http.proxyPort" system
-     * property if {@link Builder#useSystemPropertyValues(Boolean)} is set to true.
+     * Returns the proxy port from the configured endpoint if set, else from the "https.proxyPort" or "http.proxyPort" system
+     * property, based on the scheme used, if {@link Builder#useSystemPropertyValues(Boolean)} is set to true.
      * If no value is found in none of the above options, the default value of 0 is returned.
      */
     public int port() {
@@ -136,8 +136,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
     /**
      * The hosts that the client is allowed to access without going through the proxy.
-     * If the value is not set on the object, the value represent by "https.nonProxyHosts" or "http.nonProxyHosts" system
-     * property is returned.
+     * If the value is not set on the object, the value represent by "http.nonProxyHosts" system property is returned.
      * If system property is also not set, an unmodifiable empty set is returned.
      *
      * @see Builder#nonProxyHosts(Set)
@@ -191,24 +190,24 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
 
-    private String resolveHost() {
+    private String resolveHost(String scheme) {
         if (endpoint != null) {
             return endpoint.getHost();
         }
 
-        if (Objects.equals(scheme(), HTTPS)) {
+        if (Objects.equals(scheme, HTTPS)) {
             return resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
         }
         return resolveValue(null, ProxySystemSetting.PROXY_HOST);
     }
 
-    private int resolvePort() {
+    private int resolvePort(String scheme) {
         int port = 0;
 
         if (endpoint != null) {
             port = endpoint.getPort();
         } else if (useSystemPropertyValues) {
-            if (Objects.equals(scheme(), HTTPS)) {
+            if (Objects.equals(scheme, HTTPS)) {
                 port = ProxySystemSetting.HTTPS_PROXY_PORT.getStringValue()
                                                           .map(Integer::parseInt)
                                                           .orElse(0);

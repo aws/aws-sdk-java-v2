@@ -41,7 +41,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     private final String username;
     private final String password;
     private final Boolean useSystemPropertyValues;
-    private final String HTTPS = "https";
+    private static final String HTTPS = "https";
 
     private ProxyConfiguration(BuilderImpl builder) {
         this.useSystemPropertyValues = builder.useSystemPropertyValues;
@@ -60,24 +60,24 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     /**
-     * @return The proxy host from the configuration if set, or from the "https.proxyHost" or "http.proxyHost" system property if
-     * {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
+     * @return The proxy host from the configuration if set, else from the "https.proxyHost" or "http.proxyHost" system property,
+     * based on the scheme used, if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      */
     public String host() {
         return host;
     }
 
     /**
-     * @return The proxy port from the configuration if set, or from the "https.proxyPort" or "http.proxyPort" system property if
-     * {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
+     * @return The proxy port from the configuration if set, else from the "https.proxyPort" or "http.proxyPort" system property,
+     * based on the scheme used, if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      */
     public int port() {
         return port;
     }
 
     /**
-     * @return The proxy username from the configuration if set, or from the "https.proxyUser" or "http.proxyUser" system
-     * property if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
+     * @return The proxy username from the configuration if set, else from the "https.proxyUser" or "http.proxyUser" system
+     * property, based on the scheme used, if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      * */
     public String username() {
         if (Objects.equals(scheme(), HTTPS)) {
@@ -87,8 +87,9 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     /**
-     * @return The proxy password from the configuration if set, or from the "https.proxyPassword" or "http.proxyPassword" system
-     * property if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
+     * @return The proxy password from the configuration if set, else from the "https.proxyPassword" or "http.proxyPassword"
+     * system property, based on the scheme used, if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set
+     * to true
      * */
     public String password() {
         if (Objects.equals(scheme(), HTTPS)) {
