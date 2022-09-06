@@ -1,0 +1,6 @@
+{
+    "category": "__Apache HTTP Client__", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Adds support for Https system properties"
+}
