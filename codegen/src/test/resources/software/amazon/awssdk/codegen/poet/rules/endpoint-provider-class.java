@@ -7,6 +7,7 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.rules.Condition;
 import software.amazon.awssdk.core.rules.DefaultRuleEngine;
+import software.amazon.awssdk.core.rules.EndpointResult;
 import software.amazon.awssdk.core.rules.EndpointRuleset;
 import software.amazon.awssdk.core.rules.Expr;
 import software.amazon.awssdk.core.rules.FnNode;
@@ -186,14 +187,14 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                                             .build().validate())
                                                     .build())
                                             .endpoint(
-                                                software.amazon.awssdk.core.rules.Endpoint
+                                                EndpointResult
                                                     .builder()
                                                     .url(Expr
                                                              .of("https://{endpointId}.query.{partitionResult#dualStackDnsSuffix}"))
                                                     .build()),
                                         Rule.builder()
                                             .endpoint(
-                                                software.amazon.awssdk.core.rules.Endpoint
+                                                EndpointResult
                                                     .builder()
                                                     .url(Expr
                                                              .of("https://{endpointId}.query.{partitionResult#dnsSuffix}"))
@@ -253,7 +254,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                                             .build().validate())
                                                     .build())
                                             .endpoint(
-                                                software.amazon.awssdk.core.rules.Endpoint
+                                                EndpointResult
                                                     .builder()
                                                     .url(Expr
                                                              .of("https://query-fips.{region}.{partitionResult#dnsSuffix}"))
@@ -300,7 +301,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                                             .build().validate())
                                                     .build())
                                             .endpoint(
-                                                software.amazon.awssdk.core.rules.Endpoint
+                                                EndpointResult
                                                     .builder()
                                                     .url(Expr
                                                              .of("https://query.{region}.{partitionResult#dualStackDnsSuffix}"))
@@ -351,14 +352,14 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                                             .build().validate())
                                                     .build())
                                             .endpoint(
-                                                software.amazon.awssdk.core.rules.Endpoint
+                                                EndpointResult
                                                     .builder()
                                                     .url(Expr
                                                              .of("https://query-fips.{region}.{partitionResult#dualStackDnsSuffix}"))
                                                     .build()),
                                         Rule.builder()
                                             .endpoint(
-                                                software.amazon.awssdk.core.rules.Endpoint
+                                                EndpointResult
                                                     .builder()
                                                     .url(Expr
                                                              .of("https://query.{region}.{partitionResult#dnsSuffix}"))

@@ -36,7 +36,7 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.RuleModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.core.rules.Condition;
-import software.amazon.awssdk.core.rules.Endpoint;
+import software.amazon.awssdk.core.rules.EndpointResult;
 import software.amazon.awssdk.core.rules.EndpointRuleset;
 import software.amazon.awssdk.core.rules.Expr;
 import software.amazon.awssdk.core.rules.FnNode;
@@ -163,7 +163,7 @@ public class RuleSetCreationSpec {
     private CodeBlock endpoint(EndpointModel model) {
         CodeBlock.Builder b = CodeBlock.builder();
 
-        b.add("$T.builder()", Endpoint.class);
+        b.add("$T.builder()", EndpointResult.class);
 
         TreeNode url = model.getUrl();
         b.add(".url($L)", expr(url));

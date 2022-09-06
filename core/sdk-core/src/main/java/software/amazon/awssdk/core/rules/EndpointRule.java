@@ -19,14 +19,14 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public final class EndpointRule extends Rule {
-    private final Endpoint endpoint;
+    private final EndpointResult endpoint;
 
-    protected EndpointRule(Builder builder, Endpoint endpoint) {
+    protected EndpointRule(Builder builder, EndpointResult endpoint) {
         super(builder);
         this.endpoint = endpoint;
     }
 
-    public Endpoint getEndpoint() {
+    public EndpointResult getEndpoint() {
         return endpoint;
     }
 

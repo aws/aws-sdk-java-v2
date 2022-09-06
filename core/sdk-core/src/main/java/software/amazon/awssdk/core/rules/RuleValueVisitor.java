@@ -28,5 +28,5 @@ public interface RuleValueVisitor<R> {
 
     R visitErrorRule(Expr error);
 
-    R visitEndpointRule(Endpoint endpoint);
+    R visitEndpointRule(EndpointResult endpoint);
 }

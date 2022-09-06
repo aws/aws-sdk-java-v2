@@ -26,7 +26,7 @@ public abstract class TraversingVisitor<R> extends DefaultVisitor<Stream<R>> {
     }
 
     @Override
-    public Stream<R> visitEndpointRule(Endpoint endpoint) {
+    public Stream<R> visitEndpointRule(EndpointResult endpoint) {
         return visitEndpoint(endpoint);
     }
 
@@ -40,7 +40,7 @@ public abstract class TraversingVisitor<R> extends DefaultVisitor<Stream<R>> {
         return rules.stream().flatMap(subrule -> subrule.accept(this));
     }
 
-    public Stream<R> visitEndpoint(Endpoint endpoint) {
+    public Stream<R> visitEndpoint(EndpointResult endpoint) {
         return Stream.concat(
                 endpoint.getUrl()
                         .accept(this),

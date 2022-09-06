@@ -141,7 +141,7 @@ public class RuleEvaluator implements FnVisitor<Value>, ExprVisitor<Value> {
                         }
 
                         @Override
-                        public Value visitEndpointRule(Endpoint endpoint) {
+                        public Value visitEndpointRule(EndpointResult endpoint) {
                             return generateEndpoint(endpoint);
                         }
                     });
@@ -156,7 +156,7 @@ public class RuleEvaluator implements FnVisitor<Value>, ExprVisitor<Value> {
         return value;
     }
 
-    public Value generateEndpoint(Endpoint endpoint) {
+    public Value generateEndpoint(EndpointResult endpoint) {
         Value.Endpoint.Builder builder = Value.Endpoint.builder()
                                                        .url(endpoint.getUrl()
                                                                     .accept(this)
