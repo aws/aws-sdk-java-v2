@@ -11,7 +11,7 @@ public class ValidateUriScheme extends TraversingVisitor<ValidationError> {
     boolean checkingEndpoint = false;
 
     @Override
-    public Stream<ValidationError> visitEndpoint(Endpoint endpoint) {
+    public Stream<ValidationError> visitEndpoint(EndpointResult endpoint) {
         checkingEndpoint = true;
         Stream<ValidationError> errors = endpoint.getUrl().accept(this);
         checkingEndpoint = false;

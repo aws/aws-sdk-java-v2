@@ -13,20 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.rules;
+package software.amazon.awssdk.codegen.model.rules.endpoints;
 
-import java.util.List;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import com.fasterxml.jackson.core.TreeNode;
 
-/**
- * Visitor for the right-hand side of rules (tree, error, endpoint)
- * @param <R> The return type of the visitor
- */
-@SdkInternalApi
-public interface RuleValueVisitor<R> {
-    R visitTreeRule(List<Rule> rules);
+public class EndpointModel {
+    private TreeNode url;
 
-    R visitErrorRule(Expr error);
+    public TreeNode getUrl() {
+        return url;
+    }
 
-    R visitEndpointRule(EndpointResult endpoint);
+    public void setUrl(TreeNode url) {
+        this.url = url;
+    }
 }

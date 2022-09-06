@@ -22,28 +22,23 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
-import software.amazon.awssdk.codegen.model.service.ParameterModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.rules.DefaultRuleEngine;
 import software.amazon.awssdk.core.rules.EndpointRuleset;
 import software.amazon.awssdk.core.rules.Identifier;
+import software.amazon.awssdk.core.rules.ProviderUtils;
 import software.amazon.awssdk.core.rules.RuleEngine;
 import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.core.rules.model.Endpoint;
-import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.utils.Lazy;
 
 public class EndpointProviderSpec implements ClassSpec {
     private static final String ENGINE_FIELD_NAME = "RULES_ENGINE";
@@ -63,11 +58,11 @@ public class EndpointProviderSpec implements ClassSpec {
         return PoetUtils.createClassBuilder(className())
                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                         .addSuperinterface(endpointRulesSpecUtils.providerInterfaceName())
-                        .addField(lazyEndpointRuleSet())
                         .addField(ruleEngine())
-            .addMethod(resolveEndpointMethod())
-                        .addMethod(loadRuleSetMethod())
+                        .addField(ruleSet())
+                        .addMethod(resolveEndpointMethod())
                         .addMethod(toIdentifierValueMap())
+                        .addMethod(ruleSetBuildMethod())
                         .addAnnotation(SdkInternalApi.class)
                         .build();
     }
@@ -79,44 +74,17 @@ public class EndpointProviderSpec implements ClassSpec {
                              "Default" + endpointRulesSpecUtils.providerInterfaceName().simpleName());
     }
 
-    private MethodSpec loadRuleSetMethod() {
-        MethodSpec.Builder b = MethodSpec.methodBuilder("loadRuleSet")
-                                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-                                         .returns(EndpointRuleset.class);
-
-        b.addCode(CodeBlock.builder()
-                           .beginControlFlow("try ($T is = $T.class.getResourceAsStream($S))",
-                                             InputStream.class,
-                                             className(),
-                                             endpointRuleSetResourcePath())
-                           .addStatement("return $T.fromNode($T.parser().parse(is))", EndpointRuleset.class, JsonNode.class)
-                           .endControlFlow()
-                           .beginControlFlow("catch ($T e)", IOException.class)
-                           .addStatement("throw $T.create($S, e)", SdkClientException.class, "Unable to close input stream")
-                           .endControlFlow()
-                           .build());
-
-        return b.build();
-    }
-
-
-    private String endpointRuleSetResourcePath() {
-        return String.format("/software/amazon/awssdk/services/%s/internal/endpoint-rule-set.json",
-                             intermediateModel.getMetadata().getServiceName().toLowerCase(Locale.ENGLISH));
-    }
-
-    private FieldSpec lazyEndpointRuleSet() {
-        return FieldSpec.builder(ParameterizedTypeName.get(Lazy.class, EndpointRuleset.class), RULE_SET_FIELD_NAME)
-                        .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .initializer("new $T<>($T::loadRuleSet)", Lazy.class, className())
-                        .build();
-    }
-
-
     private FieldSpec ruleEngine() {
         return FieldSpec.builder(RuleEngine.class, ENGINE_FIELD_NAME)
                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                         .initializer("new $T()", DefaultRuleEngine.class)
+                        .build();
+    }
+
+    private FieldSpec ruleSet() {
+        return FieldSpec.builder(EndpointRuleset.class, RULE_SET_FIELD_NAME)
+                        .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                        .initializer("ruleSet()")
                         .build();
     }
 
@@ -126,7 +94,7 @@ public class EndpointProviderSpec implements ClassSpec {
         String paramsName = "params";
         MethodSpec.Builder b = MethodSpec.methodBuilder("toIdentifierValueMap")
                                          .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-            .addParameter(endpointRulesSpecUtils.parametersClassName(), paramsName)
+                                         .addParameter(endpointRulesSpecUtils.parametersClassName(), paramsName)
                                          .returns(resultType);
 
         Map<String, ParameterModel> params = intermediateModel.getEndpointRuleSetModel().getParameters();
@@ -138,7 +106,16 @@ public class EndpointProviderSpec implements ClassSpec {
             TypeName paramType = endpointRulesSpecUtils.toJavaType(model.getType());
             String methodVarName = Utils.unCapitalize(name);
 
-            b.addStatement("$T $N = $N.$N()", paramType, methodVarName, paramsName, methodVarName);
+            CodeBlock coerce;
+            // We treat region specially and generate it as the Region type,
+            // so we need to call id() to convert it back to string
+            if ("aws::region".equalsIgnoreCase(model.getBuiltIn())) {
+                coerce = CodeBlock.builder().add(".id()").build();
+            } else {
+                coerce = CodeBlock.builder().build();
+            }
+
+            b.addStatement("$T $N = $N.$N()$L", paramType, methodVarName, paramsName, methodVarName, coerce);
 
             CodeBlock identifierExpr = CodeBlock.builder()
                                                 .add("$T.of($S)", Identifier.class, name)
@@ -162,14 +139,25 @@ public class EndpointProviderSpec implements ClassSpec {
         String paramsName = "endpointParams";
 
         MethodSpec.Builder b = MethodSpec.methodBuilder("resolveEndpoint")
-            .addModifiers(Modifier.PUBLIC)
-            .returns(Endpoint.class)
-            .addAnnotation(Override.class)
-            .addParameter(endpointRulesSpecUtils.parametersClassName(), paramsName);
+                                         .addModifiers(Modifier.PUBLIC)
+                                         .returns(Endpoint.class)
+                                         .addAnnotation(Override.class)
+                                         .addParameter(endpointRulesSpecUtils.parametersClassName(), paramsName);
 
-        b.addStatement("$N.evaluate($N.getValue(), toIdentifierValueMap($N))",
-                       ENGINE_FIELD_NAME, RULE_SET_FIELD_NAME, paramsName);
+        b.addStatement("$T res = $N.evaluate($N, toIdentifierValueMap($N))",
+                       Value.class, ENGINE_FIELD_NAME, RULE_SET_FIELD_NAME, paramsName);
 
+        b.addStatement("return $T.fromEndpointValue($N.expectEndpoint())", ProviderUtils.class, "res");
+
+        return b.build();
+    }
+
+    private MethodSpec ruleSetBuildMethod() {
+        RuleSetCreationSpec ruleSetCreationSpec = new RuleSetCreationSpec(intermediateModel);
+        MethodSpec.Builder b = MethodSpec.methodBuilder("ruleSet")
+                                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                         .returns(EndpointRuleset.class)
+                                         .addStatement("return $L", ruleSetCreationSpec.ruleSetCreationExpr());
         return b.build();
     }
 }

@@ -80,7 +80,7 @@ public abstract class DefaultVisitor<R> implements RuleValueVisitor<R>, ExprVisi
     }
 
     @Override
-    public R visitEndpointRule(Endpoint endpoint) {
+    public R visitEndpointRule(EndpointResult endpoint) {
         return getDefault();
     }
 

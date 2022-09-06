@@ -18,8 +18,13 @@ package software.amazon.awssdk.codegen.poet.rules;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
+import java.util.Locale;
+import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.core.rules.Value;
+import software.amazon.awssdk.regions.Region;
 
 public class EndpointRulesSpecUtils {
     private final IntermediateModel intermediateModel;
@@ -33,15 +38,25 @@ public class EndpointRulesSpecUtils {
     }
 
     public ClassName parametersClassName() {
-        return ClassName.get(basePackage(), intermediateModel.getMetadata().getServiceName() + "EndpointParameters");
+        return ClassName.get(basePackage(), intermediateModel.getMetadata().getServiceName() + "EndpointParams");
     }
 
     public ClassName providerInterfaceName() {
         return ClassName.get(basePackage(), intermediateModel.getMetadata().getServiceName() + "EndpointProvider");
     }
 
+    public ClassName providerDefaultImplName() {
+        Metadata md = intermediateModel.getMetadata();
+        return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
+                             "Default" + providerInterfaceName().simpleName());
+    }
+
+    public String paramSetterName(String param) {
+        return Utils.unCapitalize(param);
+    }
+
     public TypeName toJavaType(String type) {
-        switch (type) {
+        switch (type.toLowerCase(Locale.ENGLISH)) {
             case "boolean":
                 return TypeName.get(Boolean.class);
             case "string":
@@ -53,7 +68,7 @@ public class EndpointRulesSpecUtils {
 
     public CodeBlock valueCreationCode(String type, CodeBlock param) {
         String methodName;
-        switch (type) {
+        switch (type.toLowerCase(Locale.ENGLISH)) {
             case "boolean":
                 methodName = "fromBool";
                 break;
@@ -67,5 +82,16 @@ public class EndpointRulesSpecUtils {
         return CodeBlock.builder()
                         .add("$T.$N($L)", Value.class, methodName, param)
                         .build();
+    }
+
+    public TypeName parameterType(ParameterModel param) {
+        if (param.getBuiltIn() == null) {
+            return toJavaType(param.getType());
+        }
+
+        if ("aws::region".equals(param.getBuiltIn().toLowerCase(Locale.ENGLISH))) {
+            return ClassName.get(Region.class);
+        }
+        return ClassName.get(Boolean.class);
     }
 }

@@ -61,7 +61,7 @@ public abstract class Rule {
 
         String type = objNode.get(TYPE).asString();
         switch (type) {
-            case ENDPOINT: return builder.endpoint(Endpoint.fromNode(objNode.get(ENDPOINT)));
+            case ENDPOINT: return builder.endpoint(EndpointResult.fromNode(objNode.get(ENDPOINT)));
             case ERROR: return builder.error(objNode.get(ERROR).asString());
             case TREE: return builder.treeRule(objNode.get(RULES).asArray()
                                                  .stream()
@@ -89,7 +89,7 @@ public abstract class Rule {
             return this;
         }
 
-        public EndpointRule endpoint(Endpoint endpoint) {
+        public EndpointRule endpoint(EndpointResult endpoint) {
             return new EndpointRule(this, endpoint);
         }
 

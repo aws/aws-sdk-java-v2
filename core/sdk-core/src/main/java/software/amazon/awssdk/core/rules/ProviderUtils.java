@@ -16,31 +16,16 @@
 package software.amazon.awssdk.core.rules;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.rules.model.Endpoint;
 
 @SdkInternalApi
-public final class EndpointRule extends Rule {
-    private final EndpointResult endpoint;
-
-    protected EndpointRule(Builder builder, EndpointResult endpoint) {
-        super(builder);
-        this.endpoint = endpoint;
+public final class ProviderUtils {
+    private ProviderUtils() {
     }
 
-    public EndpointResult getEndpoint() {
-        return endpoint;
-    }
-
-    @Override
-    public <T> T accept(RuleValueVisitor<T> visitor) {
-        return visitor.visitEndpointRule(this.getEndpoint());
-    }
-
-    @Override
-    public String toString() {
-        return "EndpointRule{" +
-               "endpoint=" + endpoint +
-               ", conditions=" + conditions +
-               ", documentation='" + documentation + '\'' +
-               '}';
+    public static Endpoint fromEndpointValue(Value.Endpoint value) {
+        return Endpoint.builder()
+            .url(value.getUrl())
+            .build();
     }
 }

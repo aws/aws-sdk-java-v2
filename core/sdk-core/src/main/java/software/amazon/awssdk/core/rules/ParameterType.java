@@ -38,13 +38,17 @@ public enum ParameterType {
     }
 
     public static ParameterType fromNode(JsonNode node) {
-        switch (node.asString().toLowerCase(Locale.ENGLISH)) {
+        return fromValue(node.asString());
+    }
+
+    public static ParameterType fromValue(String value) {
+        switch (value.toLowerCase(Locale.ENGLISH)) {
             case "string":
                 return STRING;
             case "boolean":
                 return BOOLEAN;
             default:
-                throw SdkClientException.create("Unknown parameter type: " + node.asString());
+                throw SdkClientException.create("Unknown parameter type: " + value);
         }
     }
 }

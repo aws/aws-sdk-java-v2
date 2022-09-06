@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 
 @SdkInternalApi
-public final class Endpoint {
+public final class EndpointResult {
     private static final String URL = "url";
     private static final String PROPERTIES = "properties";
     private static final String HEADERS = "headers";
@@ -32,7 +32,7 @@ public final class Endpoint {
     private Map<Identifier, Literal> properties;
     private Map<String, List<Literal>> headers;
 
-    private Endpoint(Builder builder) {
+    private EndpointResult(Builder builder) {
         this.url = builder.url;
         this.properties = builder.properties;
         this.headers = builder.headers;
@@ -50,7 +50,7 @@ public final class Endpoint {
         return headers;
     }
 
-    public static Endpoint fromNode(JsonNode node) {
+    public static EndpointResult fromNode(JsonNode node) {
         Map<String, JsonNode> objNode = node.asObject();
 
         Builder b = builder();
@@ -92,7 +92,7 @@ public final class Endpoint {
             return false;
         }
 
-        Endpoint endpoint = (Endpoint) o;
+        EndpointResult endpoint = (EndpointResult) o;
 
         if (url != null ? !url.equals(endpoint.url) : endpoint.url != null) {
             return false;
@@ -135,8 +135,8 @@ public final class Endpoint {
             return this;
         }
 
-        public Endpoint build() {
-            return new Endpoint(this);
+        public EndpointResult build() {
+            return new EndpointResult(this);
         }
     }
 }

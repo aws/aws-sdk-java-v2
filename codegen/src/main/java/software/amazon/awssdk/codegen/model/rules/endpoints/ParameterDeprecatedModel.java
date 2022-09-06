@@ -13,20 +13,25 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.rules;
+package software.amazon.awssdk.codegen.model.rules.endpoints;
 
-import java.util.List;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+public class ParameterDeprecatedModel {
+    private String message;
+    private String since;
 
-/**
- * Visitor for the right-hand side of rules (tree, error, endpoint)
- * @param <R> The return type of the visitor
- */
-@SdkInternalApi
-public interface RuleValueVisitor<R> {
-    R visitTreeRule(List<Rule> rules);
+    public String getMessage() {
+        return message;
+    }
 
-    R visitErrorRule(Expr error);
+    public void setMessage(String message) {
+        this.message = message;
+    }
 
-    R visitEndpointRule(EndpointResult endpoint);
+    public String getSince() {
+        return since;
+    }
+
+    public void setSince(String since) {
+        this.since = since;
+    }
 }

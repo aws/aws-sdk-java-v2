@@ -32,6 +32,7 @@ public class AsyncClientBuilderClass implements ClassSpec {
     private final ClassName builderInterfaceName;
     private final ClassName builderClassName;
     private final ClassName builderBaseClassName;
+    // private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public AsyncClientBuilderClass(IntermediateModel model) {
         String basePackage = model.getMetadata().getFullClientPackageName();
@@ -41,6 +42,7 @@ public class AsyncClientBuilderClass implements ClassSpec {
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getAsyncBuilderInterface());
         this.builderClassName = ClassName.get(basePackage, model.getMetadata().getAsyncBuilder());
         this.builderBaseClassName = ClassName.get(basePackage, model.getMetadata().getBaseBuilder());
+        // this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
     }
 
     @Override
@@ -60,6 +62,8 @@ public class AsyncClientBuilderClass implements ClassSpec {
                 builder.addMethod(enableEndpointDiscovery());
             }
         }
+
+        // builder.addMethod(endpointProviderMethod());
 
         return builder.addMethod(buildClientMethod()).build();
     }

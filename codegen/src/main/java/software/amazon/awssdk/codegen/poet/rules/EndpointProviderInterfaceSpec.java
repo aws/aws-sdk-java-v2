@@ -34,8 +34,10 @@ public class EndpointProviderInterfaceSpec implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         return TypeSpec.interfaceBuilder(className())
+                       .addModifiers(Modifier.PUBLIC)
                        .addAnnotation(SdkPublicApi.class)
                        .addMethod(resolveEndpointMethod())
+                       .addMethod(defaultProviderMethod())
                        .build();
     }
 
@@ -44,6 +46,14 @@ public class EndpointProviderInterfaceSpec implements ClassSpec {
                          .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
             .addParameter(endpointRulesSpecUtils.parametersClassName(), "endpointParams")
             .returns(Endpoint.class)
+                         .build();
+    }
+
+    private MethodSpec defaultProviderMethod() {
+        return MethodSpec.methodBuilder("defaultProvider")
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .returns(className())
+            .addStatement("return new $T()", endpointRulesSpecUtils.providerDefaultImplName())
                          .build();
     }
 
