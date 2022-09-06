@@ -42,6 +42,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     private final String username;
     private final String password;
     private final Set<String> nonProxyHosts;
+    private final String HTTPS = "https";
 
     private ProxyConfiguration(BuilderImpl builder) {
         this.useSystemPropertyValues = builder.useSystemPropertyValues;
@@ -85,7 +86,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      * property if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      * */
     public String username() {
-        if (Objects.equals(scheme(), "https")) {
+        if (Objects.equals(scheme(), HTTPS)) {
             return resolveValue(username, ProxySystemSetting.HTTPS_PROXY_USERNAME);
         }
         return resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
@@ -96,7 +97,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      * property if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      * */
     public String password() {
-        if (Objects.equals(scheme(), "https")) {
+        if (Objects.equals(scheme(), HTTPS)) {
             return resolveValue(password, ProxySystemSetting.HTTPS_PROXY_PASSWORD);
         }
         return resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
@@ -234,7 +235,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     private String resolveHost(String host) {
-        if (Objects.equals(scheme(), "https")) {
+        if (Objects.equals(scheme(), HTTPS)) {
             return resolveValue(host, ProxySystemSetting.HTTPS_PROXY_HOST);
         }
         return resolveValue(host, ProxySystemSetting.PROXY_HOST);
@@ -242,7 +243,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
     private int resolvePort(int port) {
         if (port == 0 && Boolean.TRUE.equals(useSystemPropertyValues)) {
-            if (Objects.equals(scheme(), "https")) {
+            if (Objects.equals(scheme(), HTTPS)) {
                 return ProxySystemSetting.HTTPS_PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0);
             }
             return ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0);
