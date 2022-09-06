@@ -9,7 +9,7 @@ import software.amazon.awssdk.regions.Region;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
-public final class QueryEndpointParameters {
+public final class QueryEndpointParams {
     private final Region region;
 
     private final Boolean useDualStackEndpoint;
@@ -24,7 +24,7 @@ public final class QueryEndpointParameters {
 
     private final String deprecatedParam;
 
-    private QueryEndpointParameters(BuilderImpl builder) {
+    private QueryEndpointParams(BuilderImpl builder) {
         this.region = builder.region;
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
         this.useFIPSEndpoint = builder.useFIPSEndpoint;
@@ -46,7 +46,7 @@ public final class QueryEndpointParameters {
         return useDualStackEndpoint;
     }
 
-    public Boolean useFIPSEndpoint() {
+    public Boolean useFipsEndpoint() {
         return useFIPSEndpoint;
     }
 
@@ -71,7 +71,7 @@ public final class QueryEndpointParameters {
 
         Builder useDualStackEndpoint(Boolean useDualStackEndpoint);
 
-        Builder useFIPSEndpoint(Boolean useFIPSEndpoint);
+        Builder useFipsEndpoint(Boolean useFIPSEndpoint);
 
         Builder endpointId(String endpointId);
 
@@ -81,7 +81,7 @@ public final class QueryEndpointParameters {
 
         Builder deprecatedParam(String deprecatedParam);
 
-        QueryEndpointParameters build();
+        QueryEndpointParams build();
     }
 
     private static class BuilderImpl implements Builder {
@@ -112,7 +112,7 @@ public final class QueryEndpointParameters {
         }
 
         @Override
-        public Builder useFIPSEndpoint(Boolean useFIPSEndpoint) {
+        public Builder useFipsEndpoint(Boolean useFIPSEndpoint) {
             this.useFIPSEndpoint = useFIPSEndpoint;
             return this;
         }
@@ -142,8 +142,8 @@ public final class QueryEndpointParameters {
         }
 
         @Override
-        public QueryEndpointParameters build() {
-            return new QueryEndpointParameters(this);
+        public QueryEndpointParams build() {
+            return new QueryEndpointParams(this);
         }
     }
 }

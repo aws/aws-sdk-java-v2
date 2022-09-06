@@ -38,7 +38,7 @@ public class EndpointRulesSpecUtils {
     }
 
     public ClassName parametersClassName() {
-        return ClassName.get(basePackage(), intermediateModel.getMetadata().getServiceName() + "EndpointParameters");
+        return ClassName.get(basePackage(), intermediateModel.getMetadata().getServiceName() + "EndpointParams");
     }
 
     public ClassName providerInterfaceName() {

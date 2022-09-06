@@ -6,7 +6,7 @@ import software.amazon.awssdk.services.query.rules.internal.DefaultQueryEndpoint
 
 @SdkPublicApi
 public interface QueryEndpointProvider {
-    Endpoint resolveEndpoint(QueryEndpointParameters endpointParams);
+    Endpoint resolveEndpoint(QueryEndpointParams endpointParams);
 
     static QueryEndpointProvider defaultProvider() {
         return new DefaultQueryEndpointProvider();

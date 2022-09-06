@@ -20,7 +20,7 @@ import software.amazon.awssdk.core.rules.Rule;
 import software.amazon.awssdk.core.rules.RuleEngine;
 import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.core.rules.model.Endpoint;
-import software.amazon.awssdk.services.query.rules.QueryEndpointParameters;
+import software.amazon.awssdk.services.query.rules.QueryEndpointParams;
 import software.amazon.awssdk.services.query.rules.QueryEndpointProvider;
 
 @Generated("software.amazon.awssdk:codegen")
@@ -31,12 +31,12 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     private static final EndpointRuleset ENDPOINT_RULE_SET = ruleSet();
 
     @Override
-    public Endpoint resolveEndpoint(QueryEndpointParameters endpointParams) {
+    public Endpoint resolveEndpoint(QueryEndpointParams endpointParams) {
         Value res = RULES_ENGINE.evaluate(ENDPOINT_RULE_SET, toIdentifierValueMap(endpointParams));
         return ProviderUtils.fromEndpointValue(res.expectEndpoint());
     }
 
-    private static Map<Identifier, Value> toIdentifierValueMap(QueryEndpointParameters params) {
+    private static Map<Identifier, Value> toIdentifierValueMap(QueryEndpointParams params) {
         Map<Identifier, Value> paramsMap = new HashMap<>();
         String region = params.region().id();
         if (region != null) {

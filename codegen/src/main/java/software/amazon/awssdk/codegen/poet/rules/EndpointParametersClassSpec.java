@@ -29,6 +29,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class EndpointParametersClassSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
@@ -125,7 +126,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
     }
 
     private MethodSpec setterMethodDeclaration(String name, ParameterModel model) {
-        return MethodSpec.methodBuilder(Utils.unCapitalize(name))
+        return MethodSpec.methodBuilder(paramMethodName(name))
                          .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                          .addParameter(parameterSpec(name, model))
                          .returns(builderInterfaceName())
@@ -133,7 +134,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
     }
 
     private MethodSpec accessorMethod(String name, ParameterModel model) {
-        return MethodSpec.methodBuilder(Utils.unCapitalize(name))
+        return MethodSpec.methodBuilder(paramMethodName(name))
                          .returns(endpointRulesSpecUtils.parameterType(model))
                          .addModifiers(Modifier.PUBLIC)
                          .addStatement("return $N", name)
@@ -141,7 +142,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
     }
 
     private MethodSpec builderSetterMethod(String name, ParameterModel model) {
-        return MethodSpec.methodBuilder(Utils.unCapitalize(name))
+        return MethodSpec.methodBuilder(paramMethodName(name))
                          .addParameter(parameterSpec(name, model))
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PUBLIC)
@@ -173,5 +174,8 @@ public class EndpointParametersClassSpec implements ClassSpec {
                          .build();
     }
 
+    private String paramMethodName(String name) {
+        return Utils.unCapitalize(CodegenNamingUtils.pascalCase(name));
+    }
 
 }
