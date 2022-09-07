@@ -115,7 +115,7 @@ public final class DeleteItemEnhancedResponse<T> {
         private T attributes;
         private ConsumedCapacity consumedCapacity;
         private ItemCollectionMetrics itemCollectionMetrics;
-        public DynamoDbResponseMetadata responseMetadata;
+        private DynamoDbResponseMetadata responseMetadata;
 
 
         public Builder<T> attributes(T attributes) {
