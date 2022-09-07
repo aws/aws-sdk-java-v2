@@ -21,9 +21,12 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.utils.BearerAuthUtils;
 
 public class SyncClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -61,6 +64,10 @@ public class SyncClientBuilderClass implements ClassSpec {
             }
         }
 
+        if (BearerAuthUtils.usesBearerAuth(model)) {
+            builder.addMethod(tokenProviderMethodImpl());
+        }
+
         return builder.addMethod(buildClientMethod()).build();
     }
 
@@ -94,6 +101,17 @@ public class SyncClientBuilderClass implements ClassSpec {
                              .returns(clientInterfaceName)
                              .addCode("return new $T(super.syncClientConfiguration());", clientClassName)
                              .build();
+    }
+
+    private MethodSpec tokenProviderMethodImpl() {
+        return MethodSpec.methodBuilder("tokenProvider").addModifiers(Modifier.PUBLIC)
+                         .addAnnotation(Override.class)
+                         .addParameter(SdkTokenProvider.class, "tokenProvider")
+                         .returns(builderClassName)
+                         .addStatement("clientConfiguration.option($T.TOKEN_PROVIDER, tokenProvider)",
+                                       AwsClientOption.class)
+                         .addStatement("return this")
+                         .build();
     }
 
     @Override

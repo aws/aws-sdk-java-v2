@@ -6,6 +6,9 @@ import software.amazon.MyServiceRetryPolicy;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
+import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -38,7 +41,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkAdvancedClientOption.SIGNER, defaultSigner())
                                   .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                                  .option(SdkClientOption.SERVICE_CONFIGURATION, ServiceConfiguration.builder().build()));
+                                  .option(SdkClientOption.SERVICE_CONFIGURATION, ServiceConfiguration.builder().build())
+                                  .option(AwsClientOption.TOKEN_PROVIDER, defaultTokenProvider())
+                                  .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
     }
 
     @Override
@@ -88,6 +93,14 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     public void setServiceConfiguration(ServiceConfiguration serviceConfiguration) {
         serviceConfiguration(serviceConfiguration);
+    }
+
+    private SdkTokenProvider defaultTokenProvider() {
+        return DefaultAwsTokenProvider.create();
+    }
+
+    private Signer defaultTokenSigner() {
+        return BearerTokenSigner.create();
     }
 
     @Override
