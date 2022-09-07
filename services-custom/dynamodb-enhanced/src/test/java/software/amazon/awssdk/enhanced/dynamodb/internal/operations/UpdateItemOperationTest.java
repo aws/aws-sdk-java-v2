@@ -734,13 +734,7 @@ public class UpdateItemOperationTest {
             UpdateItemOperation.create(requestFakeItem(item, b -> b.ignoreNulls(true)));
 
         Map<String, AttributeValue> itemMap = FakeItem.getTableSchema().itemToMap(item, true);
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("foo", "bar");
-        UpdateItemResponse response = (UpdateItemResponse) UpdateItemResponse.builder()
-                                                                             .attributes(itemMap)
-                                                                             .responseMetadata(DefaultAwsResponseMetadata.create(metadata))
-                                                                             .build();
-        return updateItemOperation.transformResponse(response,
+        return updateItemOperation.transformResponse(UpdateItemResponse.builder().attributes(itemMap).build(),
                                                      FakeItem.getTableSchema(),
                                                      PRIMARY_CONTEXT,
                                                      mockDynamoDbEnhancedClientExtension).attributes();
