@@ -66,8 +66,13 @@ public class HttpChecksumInHeaderInterceptor implements ExecutionInterceptor {
         if (shouldSkipHttpChecksumInHeader(context, executionAttributes, checksumSpecs)) {
             return context.httpRequest();
         }
+
         String httpChecksumValue = executionAttributes.getAttribute(HTTP_CHECKSUM_VALUE);
-        return context.httpRequest().copy(r -> r.putHeader(checksumSpecs.headerName(), httpChecksumValue));
+        if (httpChecksumValue != null) {
+            return context.httpRequest().copy(r -> r.putHeader(checksumSpecs.headerName(), httpChecksumValue));
+        }
+        return context.httpRequest();
+
     }
 
     /**
