@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Kubernetes Service",
+    "contributor": "",
+    "description": "Adds support for EKS Addons ResolveConflicts \"preserve\" flag. Also adds new update failed status for EKS Addons."
+}
