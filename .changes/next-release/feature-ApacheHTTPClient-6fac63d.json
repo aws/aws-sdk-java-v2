@@ -1,6 +1,6 @@
 {
-    "category": "__Apache HTTP Client__", 
+    "category": "Apache HTTP Client", 
     "contributor": "", 
     "type": "feature", 
-    "description": "Adds support for Https system properties"
+    "description": "Adds support for Https proxy system properties: host, port, user, password"
 }
