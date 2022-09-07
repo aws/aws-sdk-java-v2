@@ -221,9 +221,8 @@
                     <executions>
                         <execution>
                             <id>generate-javadocs</id>
-                            <phase>package</phase>
                             <goals>
-                                <goal>javadoc</goal>
+                                <goal>jar</goal>
                             </goals>
                             <configuration>
                                 <detectJavaApiLink>false</detectJavaApiLink>
