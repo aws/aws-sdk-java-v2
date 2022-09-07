@@ -21,9 +21,11 @@ import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.Fa
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbResponseMetadata;
 import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
 
 public class DeleteItemEnhancedResponseTest {
@@ -45,10 +47,16 @@ public class DeleteItemEnhancedResponseTest {
 
         ItemCollectionMetrics itemCollectionMetrics = ItemCollectionMetrics.builder().itemCollectionKey(collectionKey).build();
 
+        Map<String, String> metadataMap = new HashMap<>();
+        metadataMap.put("foo", "bar");
+        DynamoDbResponseMetadata dynamoDbResponseMetadata =
+            DynamoDbResponseMetadata.create(DefaultAwsResponseMetadata.create(metadataMap));
+
         DeleteItemEnhancedResponse<FakeItem> builtObject = DeleteItemEnhancedResponse.builder(FakeItem.class)
                                                                                      .attributes(fakeItem)
                                                                                      .consumedCapacity(consumedCapacity)
                                                                                      .itemCollectionMetrics(itemCollectionMetrics)
+                                                                                     .responseMetadata(dynamoDbResponseMetadata)
                                                                                      .build();
 
 
@@ -130,6 +138,22 @@ public class DeleteItemEnhancedResponseTest {
 
         DeleteItemEnhancedResponse<FakeItem> containsItemCollectionMetrics = DeleteItemEnhancedResponse.builder(FakeItem.class)
                                                                                                        .itemCollectionMetrics(itemCollectionMetrics)
+                                                                                                       .build();
+
+        assertThat(containsItemCollectionMetrics.hashCode()).isNotEqualTo(emptyResponse.hashCode());
+    }
+
+    @Test
+    public void hashCode_includesResponseMetadata() {
+        DeleteItemEnhancedResponse<FakeItem> emptyResponse = DeleteItemEnhancedResponse.builder(FakeItem.class).build();
+
+        Map<String, String> metadataMap = new HashMap<>();
+        metadataMap.put("foo", "bar");
+        DynamoDbResponseMetadata dynamoDbResponseMetadata =
+            DynamoDbResponseMetadata.create(DefaultAwsResponseMetadata.create(metadataMap));
+
+        DeleteItemEnhancedResponse<FakeItem> containsItemCollectionMetrics = DeleteItemEnhancedResponse.builder(FakeItem.class)
+                                                                                                       .responseMetadata(dynamoDbResponseMetadata)
                                                                                                        .build();
 
         assertThat(containsItemCollectionMetrics.hashCode()).isNotEqualTo(emptyResponse.hashCode());

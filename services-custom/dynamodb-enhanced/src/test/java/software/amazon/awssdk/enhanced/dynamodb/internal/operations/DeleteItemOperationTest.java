@@ -40,6 +40,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -51,12 +52,16 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemC
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactDeleteItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Delete;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
@@ -396,6 +401,31 @@ public class DeleteItemOperationTest {
                                                                                              .operationContext(PRIMARY_CONTEXT)
                                                                                              .tableSchema(FakeItem.getTableSchema())
                                                                                              .items(baseFakeItemMap).build());
+    }
+
+    @Test
+    public void transformResponse_passingRequestMetadata() {
+        FakeItem baseFakeItem = createUniqueFakeItem();
+
+        DeleteItemOperation<FakeItem> deleteItemOperation =
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
+                                                                .key(k -> k.partitionValue(baseFakeItem.getId()))
+                                                                .build());
+
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("foo", "bar");
+
+        DefaultAwsResponseMetadata awsMetadata = DefaultAwsResponseMetadata.create(metadata);
+
+        DeleteItemResponse response = (DeleteItemResponse) DeleteItemResponse.builder()
+                                                                             .responseMetadata(awsMetadata)
+                                                                             .build();
+        DeleteItemEnhancedResponse<FakeItem> enhanced = deleteItemOperation.transformResponse(response,
+                                                            FakeItem.getTableSchema(),
+                                                            PRIMARY_CONTEXT,
+                                                            mockDynamoDbEnhancedClientExtension);
+
+        assertThat(enhanced.responseMetadata(), is(awsMetadata));
     }
 
     @Test

@@ -43,6 +43,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -54,10 +55,12 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.update.DeleteAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbResponseMetadata;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
@@ -625,6 +628,31 @@ public class UpdateItemOperationTest {
         transformResponse(createUniqueFakeItem());
     }
 
+
+    @Test
+    public void transformResponse_passingRequestMetadata() {
+        FakeItem item = createUniqueFakeItem();
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItem(item, b -> b.ignoreNulls(true)));
+
+        Map<String, AttributeValue> itemMap = FakeItem.getTableSchema().itemToMap(item, true);
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("foo", "bar");
+
+        DefaultAwsResponseMetadata awsMetadata = DefaultAwsResponseMetadata.create(metadata);
+        UpdateItemResponse response = (UpdateItemResponse) UpdateItemResponse.builder()
+                                                                             .attributes(itemMap)
+                                                                             .responseMetadata(awsMetadata)
+                                                                             .build();
+
+        UpdateItemEnhancedResponse enhanced =  updateItemOperation.transformResponse(response,
+                                                                         FakeItem.getTableSchema(),
+                                                                         PRIMARY_CONTEXT,
+                                                                         mockDynamoDbEnhancedClientExtension);
+        assertThat(enhanced.responseMetadata(), is(awsMetadata));
+    }
+
     private Map<String, AttributeValue> ddbKey(String partitionKey) {
         return singletonMap("id", AttributeValue.builder().s(partitionKey).build());
     }
@@ -707,7 +735,13 @@ public class UpdateItemOperationTest {
             UpdateItemOperation.create(requestFakeItem(item, b -> b.ignoreNulls(true)));
 
         Map<String, AttributeValue> itemMap = FakeItem.getTableSchema().itemToMap(item, true);
-        return updateItemOperation.transformResponse(UpdateItemResponse.builder().attributes(itemMap).build(),
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("foo", "bar");
+        UpdateItemResponse response = (UpdateItemResponse) UpdateItemResponse.builder()
+                                                                             .attributes(itemMap)
+                                                                             .responseMetadata(DefaultAwsResponseMetadata.create(metadata))
+                                                                             .build();
+        return updateItemOperation.transformResponse(response,
                                                      FakeItem.getTableSchema(),
                                                      PRIMARY_CONTEXT,
                                                      mockDynamoDbEnhancedClientExtension).attributes();
