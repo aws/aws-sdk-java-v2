@@ -54,7 +54,8 @@ public final class ResumableFileDownloadSerializer {
         TransferManagerJsonMarshaller.LONG.marshall(download.bytesTransferred(), jsonGenerator, "bytesTransferred");
         TransferManagerJsonMarshaller.INSTANT.marshall(download.fileLastModified(), jsonGenerator, "fileLastModified");
         if (download.totalSizeInBytes().isPresent()) {
-            TransferManagerJsonMarshaller.LONG.marshall(download.totalSizeInBytes().get(), jsonGenerator, "totalSizeInBytes");
+            TransferManagerJsonMarshaller.LONG.marshall(download.totalSizeInBytes().getAsLong(), jsonGenerator,
+                                                        "totalSizeInBytes");
         }
         if (download.s3ObjectLastModified().isPresent()) {
             TransferManagerJsonMarshaller.INSTANT.marshall(download.s3ObjectLastModified().get(),

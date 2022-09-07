@@ -73,7 +73,8 @@ public final class DefaultFileDownload implements FileDownload {
             totalSizeInBytes = getObjectResponse.contentLength();
         } else if (resumedDownload != null) {
             s3objectLastModified = resumedDownload.s3ObjectLastModified().orElse(null);
-            totalSizeInBytes = resumedDownload.totalSizeInBytes().orElse(null);
+            totalSizeInBytes = resumedDownload.totalSizeInBytes().isPresent() ? resumedDownload.totalSizeInBytes().getAsLong()
+                                                                              : null;
         }
 
         DownloadFileRequest request = requestSupplier.get();

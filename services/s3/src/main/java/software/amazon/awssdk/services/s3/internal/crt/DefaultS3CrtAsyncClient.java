@@ -41,6 +41,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.internal.DelegatingS3AsyncClient;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
@@ -176,11 +177,17 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         public void afterMarshalling(Context.AfterMarshalling context,
                                      ExecutionAttributes executionAttributes) {
 
-            SdkHttpExecutionAttributes.Builder attributes =
-                SdkHttpExecutionAttributes.builder()
-                                          .put(OPERATION_NAME,
-                                               executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME))
-                    .put(HTTP_CHECKSUM, executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM));
+            SdkHttpExecutionAttributes existingHttpAttributes = executionAttributes.getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES);
+
+            SdkHttpExecutionAttributes.Builder builder = existingHttpAttributes != null ?
+                                                         existingHttpAttributes.toBuilder() :
+                                                         SdkHttpExecutionAttributes.builder();
+
+            SdkHttpExecutionAttributes attributes =
+                builder.put(OPERATION_NAME,
+                            executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME))
+                       .put(HTTP_CHECKSUM, executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM))
+                       .build();
 
             // TODO: is there a better way to disable SDK flexible checksum implementation
             // Clear HTTP_CHECKSUM and RESOLVED_CHECKSUM_SPECS to disable SDK flexible checksum implementation.
@@ -188,7 +195,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
             executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_CHECKSUM_SPECS, null);
 
             executionAttributes.putAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES,
-                                             attributes.build());
+                                             attributes);
         }
     }
 
@@ -214,16 +221,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                     throw new UnsupportedOperationException("Request-level credentials override is not supported");
                 }
 
-                if (overrideConfiguration.metricPublishers() != null) {
+                if (!CollectionUtils.isNullOrEmpty(overrideConfiguration.metricPublishers())) {
                     throw new UnsupportedOperationException("Request-level Metric Publishers override is not supported");
                 }
 
                 if (overrideConfiguration.apiCallAttemptTimeout().isPresent()) {
                     throw new UnsupportedOperationException("Request-level apiCallAttemptTimeout override is not supported");
-                }
-
-                if (overrideConfiguration.executionAttributes() != null) {
-                    throw new UnsupportedOperationException("Request-level executionAttributes override is not supported");
                 }
             }
         }
@@ -233,9 +236,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         try {
             ClassLoaderHelper.loadClass(CRT_CLIENT_CLASSPATH, false);
         } catch (ClassNotFoundException e) {
-
             throw new IllegalStateException("Could not load classes from AWS Common Runtime (CRT) library."
-                                            + " Make sure you have software.amazon.awssdk.crt:crt on the class path ", e);
+                                            + "software.amazon.awssdk.crt:crt is a required dependency; make sure you have it "
+                                            + "on the classpath.", e);
         }
     }
 }

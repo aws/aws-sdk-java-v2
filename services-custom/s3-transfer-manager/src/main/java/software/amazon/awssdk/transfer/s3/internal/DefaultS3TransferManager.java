@@ -15,27 +15,37 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
+import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.arns.Arn;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
+import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultCopy;
@@ -47,6 +57,7 @@ import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.ResumeTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
+import software.amazon.awssdk.transfer.s3.internal.serialization.CrtUploadResumeToken;
 import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
 import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
@@ -63,6 +74,7 @@ import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
+import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
@@ -93,7 +105,8 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
         if (!(s3AsyncClient instanceof S3CrtAsyncClient)) {
             log.warn(() -> "The provided S3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
-                           + " upload/download feature is not enabled. To benefit from maximum throughput,"
+                           + " upload/download feature is not enabled and resumable file upload is not supported. To benefit "
+                           + "from maximum throughput,"
                            + " consider using S3AsyncClient.crtBuilder().build() instead.");
         }
     }
@@ -158,8 +171,14 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     @Override
     public FileUpload uploadFile(UploadFileRequest uploadFileRequest) {
         Validate.paramNotNull(uploadFileRequest, "uploadFileRequest");
+        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
 
         AsyncRequestBody requestBody = AsyncRequestBody.fromFile(uploadFileRequest.source());
+
+        Consumer<SdkHttpExecutionAttributes.Builder> attachObservable =
+            b -> b.put(METAREQUEST_PAUSE_OBSERVABLE, observable);
+
+        PutObjectRequest putObjectRequest = attachSdkAttribute(uploadFileRequest.putObjectRequest(), attachObservable);
 
         CompletableFuture<CompletedFileUpload> returnFuture = new CompletableFuture<>();
 
@@ -169,10 +188,10 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         progressUpdater.registerCompletion(returnFuture);
 
         try {
-            assertNotUnsupportedArn(uploadFileRequest.putObjectRequest().bucket(), "upload");
+            assertNotUnsupportedArn(putObjectRequest.bucket(), "upload");
 
             CompletableFuture<PutObjectResponse> crtFuture =
-                s3AsyncClient.putObject(uploadFileRequest.putObjectRequest(), requestBody);
+                s3AsyncClient.putObject(putObjectRequest, requestBody);
 
             // Forward upload cancellation to CRT future
             CompletableFutureUtils.forwardExceptionTo(returnFuture, crtFuture);
@@ -185,7 +204,118 @@ public final class DefaultS3TransferManager implements S3TransferManager {
             returnFuture.completeExceptionally(throwable);
         }
 
-        return new DefaultFileUpload(returnFuture, progressUpdater.progress());
+        return new DefaultFileUpload(returnFuture, progressUpdater.progress(), observable, uploadFileRequest);
+    }
+
+    @Override
+    public FileUpload resumeUploadFile(ResumableFileUpload resumableFileUpload) {
+        Validate.paramNotNull(resumableFileUpload, "resumableFileUpload");
+
+        boolean fileModified = !fileNotModified(resumableFileUpload.fileLength(),
+                                                resumableFileUpload.fileLastModified(),
+                                                resumableFileUpload.uploadFileRequest().source());
+
+        boolean noResumeToken = !hasResumeToken(resumableFileUpload);
+
+        if (fileModified || noResumeToken) {
+            return uploadFromBeginning(resumableFileUpload, fileModified, noResumeToken);
+        }
+
+        return doResumeUpload(resumableFileUpload);
+    }
+
+    private FileUpload doResumeUpload(ResumableFileUpload resumableFileUpload) {
+        UploadFileRequest uploadFileRequest = resumableFileUpload.uploadFileRequest();
+        PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
+
+        CrtUploadResumeToken token = new CrtUploadResumeToken(resumableFileUpload.totalNumOfParts().getAsLong(),
+                                                              resumableFileUpload.partSizeInBytes().getAsLong(),
+                                                              resumableFileUpload.multipartUploadId().orElse(null));
+        String marshalledToken = token.marshallResumeToken();
+
+        Consumer<SdkHttpExecutionAttributes.Builder> attachResumeToken =
+            b -> b.put(CRT_PAUSE_RESUME_TOKEN, marshalledToken);
+
+        PutObjectRequest modifiedPutObjectRequest = attachSdkAttribute(putObjectRequest, attachResumeToken);
+
+        return uploadFile(uploadFileRequest.toBuilder()
+                                           .putObjectRequest(modifiedPutObjectRequest)
+                                           .build());
+    }
+
+    private FileUpload uploadFromBeginning(ResumableFileUpload resumableFileUpload, boolean fileModified,
+                                           boolean noResumeToken) {
+        UploadFileRequest uploadFileRequest = resumableFileUpload.uploadFileRequest();
+        PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
+        if (fileModified) {
+            log.debug(() -> String.format("The file (%s) has been modified since "
+                                          + "the last pause. " +
+                                          "The SDK will upload the requested object in bucket"
+                                          + " (%s) with key (%s) from "
+                                          + "the "
+                                          + "beginning.",
+                                          uploadFileRequest.source(),
+                                          putObjectRequest.bucket(),
+                                          putObjectRequest.key()));
+            resumableFileUpload.multipartUploadId()
+                               .ifPresent(id -> {
+                                   log.debug(() -> "Aborting previous upload with multipartUploadId: " + id);
+                                   s3AsyncClient.abortMultipartUpload(
+                                                    AbortMultipartUploadRequest.builder()
+                                                                               .bucket(putObjectRequest.bucket())
+                                                                               .key(putObjectRequest.key())
+                                                                               .uploadId(id)
+                                                                               .build())
+                                                .exceptionally(t -> {
+                                                    log.warn(() -> String.format("Failed to abort previous multipart upload "
+                                                                                 + "(id: %s)"
+                                                                                 + ". You may need to call "
+                                                                                 + "S3AsyncClient#abortMultiPartUpload to "
+                                                                                 + "free all storage consumed by"
+                                                                                 + " all parts. ",
+                                                                                 id), t);
+                                                    return null;
+                                                });
+                               });
+        }
+
+        if (noResumeToken) {
+            log.debug(() -> String.format("No resume token is found. " +
+                                          "The SDK will upload the requested object in bucket"
+                                          + " (%s) with key (%s) from "
+                                          + "the beginning.",
+                                          putObjectRequest.bucket(),
+                                          putObjectRequest.key()));
+        }
+
+
+        return uploadFile(uploadFileRequest);
+    }
+
+    private boolean hasResumeToken(ResumableFileUpload resumableFileUpload) {
+        return resumableFileUpload.totalNumOfParts().isPresent() && resumableFileUpload.partSizeInBytes().isPresent();
+    }
+
+    private PutObjectRequest attachSdkAttribute(PutObjectRequest putObjectRequest,
+                                                Consumer<SdkHttpExecutionAttributes.Builder> builderMutation) {
+        SdkHttpExecutionAttributes modifiedAttributes =
+            putObjectRequest.overrideConfiguration().map(o -> o.executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES))
+                            .map(b -> b.toBuilder().applyMutation(builderMutation).build())
+                            .orElseGet(() -> SdkHttpExecutionAttributes.builder().applyMutation(builderMutation).build());
+
+        Consumer<AwsRequestOverrideConfiguration.Builder> attachSdkHttpAttributes =
+            b -> b.putExecutionAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES, modifiedAttributes);
+
+        AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
+            putObjectRequest.overrideConfiguration()
+                            .map(o -> o.toBuilder().applyMutation(attachSdkHttpAttributes).build())
+                            .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
+                                                                            .applyMutation(attachSdkHttpAttributes)
+                                                                            .build());
+
+        return putObjectRequest.toBuilder()
+                               .overrideConfiguration(modifiedRequestOverrideConfig)
+                               .build();
     }
 
     @Override

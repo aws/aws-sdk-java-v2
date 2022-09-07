@@ -43,16 +43,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
-import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
-import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -297,7 +298,11 @@ public class UploadDirectoryHelperParameterizedTest {
                                                                                           .build()),
                                      new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
                                                                                                 .transferredBytes(0L)
-                                                                                                .build()));
+                                                                                                .build()),
+                                     new S3MetaRequestPauseObservable(),
+                                     UploadFileRequest.builder()
+                                         .source(Paths.get(".")).putObjectRequest(b -> b.bucket("bucket").key("key"))
+                                                      .build());
     }
 
     private Path createTestDirectory() throws IOException {

@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -140,12 +141,12 @@ public final class ResumableFileDownload implements ResumableTransfer,
     }
 
     /**
-     * The total size of the transfer in bytes, or {@link Optional#empty()} if unknown
+     * The total size of the transfer in bytes or {@link OptionalLong#empty()} if unknown
      *
      * @return the optional total size of the transfer.
      */
-    public Optional<Long> totalSizeInBytes() {
-        return Optional.ofNullable(totalSizeInBytes);
+    public OptionalLong totalSizeInBytes() {
+        return totalSizeInBytes == null ? OptionalLong.empty() : OptionalLong.of(totalSizeInBytes);
     }
 
     @Override

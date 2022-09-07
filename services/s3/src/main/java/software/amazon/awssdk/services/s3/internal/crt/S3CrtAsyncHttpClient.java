@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
@@ -102,18 +104,24 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         ChecksumAlgorithm checksumAlgorithm = crtChecksumAlgorithm(httpChecksum);
 
         boolean validateChecksum = validateResponseChecksum(httpChecksum);
+        String resumeToken = asyncRequest.httpExecutionAttributes().getAttribute(CRT_PAUSE_RESUME_TOKEN);
 
         S3MetaRequestOptions requestOptions = new S3MetaRequestOptions()
             .withHttpRequest(httpRequest)
             .withMetaRequestType(requestType)
             .withChecksumAlgorithm(checksumAlgorithm)
             .withValidateChecksum(validateChecksum)
+            .withEndpoint(getEndpoint(uri))
             .withResponseHandler(responseHandler)
-            .withEndpoint(getEndpoint(uri));
+            .withResumeToken(resumeToken);
 
-        try (S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions)) {
-            closeResourcesWhenComplete(executeFuture, s3MetaRequest, responseHandler);
+        S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions);
+        S3MetaRequestPauseObservable observable =
+            asyncRequest.httpExecutionAttributes().getAttribute(METAREQUEST_PAUSE_OBSERVABLE);
+        if (observable != null) {
+            observable.subscribe(s3MetaRequest);
         }
+        addCancelCallback(executeFuture, s3MetaRequest, responseHandler);
 
         return executeFuture;
     }
@@ -187,17 +195,15 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                httpChecksum.responseAlgorithms() != null;
     }
 
-    private static void closeResourcesWhenComplete(CompletableFuture<Void> executeFuture,
-                                                   S3MetaRequest s3MetaRequest,
-                                                   S3CrtResponseHandlerAdapter responseHandler) {
+    private static void addCancelCallback(CompletableFuture<Void> executeFuture,
+                                          S3MetaRequest s3MetaRequest,
+                                          S3CrtResponseHandlerAdapter responseHandler) {
         executeFuture.whenComplete((r, t) -> {
             if (executeFuture.isCancelled()) {
                 log.debug(() -> "The request is cancelled, cancelling meta request");
                 responseHandler.cancelRequest();
                 s3MetaRequest.cancel();
             }
-
-            s3MetaRequest.close();
         });
     }
 
