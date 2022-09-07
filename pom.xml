@@ -651,6 +651,7 @@
                 <spotbugs.skip>true</spotbugs.skip>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
             </properties>
         </profile>
 
@@ -715,6 +716,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
             </properties>
         </profile>
 
@@ -731,6 +733,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
             </properties>
             <build>
                 <plugins>
@@ -780,6 +783,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
             </properties>
             <build>
                 <plugins>
@@ -818,6 +822,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
             </properties>
             <build>
                 <plugins>
@@ -863,6 +868,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
             </properties>
             <build>
                 <plugins>
