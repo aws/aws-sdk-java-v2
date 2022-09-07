@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
@@ -57,13 +58,18 @@ public final class UploadPartCopyRequestIterable implements SdkIterable<UploadPa
 
         @Override
         public UploadPartCopyRequest next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("No UploadPartCopyRequest available");
+            }
+
             long partSize = Math.min(optimalPartSize, remainingBytes);
             String range = range(partSize);
             UploadPartCopyRequest uploadPartCopyRequest =
                 CopyRequestConversionUtils.toUploadPartCopyRequest(copyObjectRequest,
-                                                                   partNumber++,
+                                                                   partNumber,
                                                                    uploadId,
                                                                    range);
+            partNumber++;
             offset += partSize;
             remainingBytes -= partSize;
             return uploadPartCopyRequest;
