@@ -25,7 +25,6 @@ import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbResponseMetadata;
 import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
-import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 
 /**
  * Defines the elements returned by DynamoDB from a {@code DeleteItem} operation, such as
@@ -76,7 +75,7 @@ public final class DeleteItemEnhancedResponse<T> {
 
     /**
      * The response metadata, f.e. requestId
-     * @see UpdateItemResponse#responseMetadata() ()
+     * @see DeleteItemResponse#responseMetadata() ()
      */
     public DynamoDbResponseMetadata responseMetadata() {
         return responseMetadata;
