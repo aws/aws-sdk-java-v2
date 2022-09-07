@@ -1,5 +1,5 @@
 {
-    "category": "Netty Nio HTTP Client", 
+    "category": "Netty NIO HTTP Client", 
     "contributor": "", 
     "type": "feature", 
     "description": "Adds support for Https proxy system properties: host, port, user, password"
