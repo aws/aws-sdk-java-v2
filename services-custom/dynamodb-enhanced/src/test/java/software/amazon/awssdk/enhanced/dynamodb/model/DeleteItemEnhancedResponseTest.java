@@ -36,6 +36,7 @@ public class DeleteItemEnhancedResponseTest {
         assertThat(builtObject.attributes()).isNull();
         assertThat(builtObject.consumedCapacity()).isNull();
         assertThat(builtObject.itemCollectionMetrics()).isNull();
+        assertThat(builtObject.responseMetadata()).isNull();
     }
 
     @Test
@@ -63,6 +64,7 @@ public class DeleteItemEnhancedResponseTest {
         assertThat(builtObject.attributes()).isEqualTo(fakeItem);
         assertThat(builtObject.consumedCapacity()).isEqualTo(consumedCapacity);
         assertThat(builtObject.itemCollectionMetrics()).isEqualTo(itemCollectionMetrics);
+        assertThat(builtObject.responseMetadata()).isEqualTo(dynamoDbResponseMetadata);
     }
 
     @Test

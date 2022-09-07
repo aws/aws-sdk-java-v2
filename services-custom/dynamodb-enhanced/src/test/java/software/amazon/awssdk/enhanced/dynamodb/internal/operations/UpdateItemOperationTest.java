@@ -649,7 +649,7 @@ public class UpdateItemOperationTest {
                                                                          FakeItem.getTableSchema(),
                                                                          PRIMARY_CONTEXT,
                                                                          mockDynamoDbEnhancedClientExtension);
-        assertThat(enhanced.responseMetadata(), is(awsMetadata));
+        assertThat(enhanced.responseMetadata(), is(response.responseMetadata()));
     }
 
     private Map<String, AttributeValue> ddbKey(String partitionKey) {

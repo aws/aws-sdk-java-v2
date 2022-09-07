@@ -36,6 +36,7 @@ public class UpdateItemEnhancedResponseTest {
         assertThat(builtObject.attributes()).isNull();
         assertThat(builtObject.consumedCapacity()).isNull();
         assertThat(builtObject.itemCollectionMetrics()).isNull();
+        assertThat(builtObject.responseMetadata()).isNull();
     }
 
     @Test

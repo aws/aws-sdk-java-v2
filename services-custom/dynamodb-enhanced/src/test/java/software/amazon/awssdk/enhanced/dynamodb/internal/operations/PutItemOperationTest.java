@@ -431,7 +431,7 @@ public class PutItemOperationTest {
 
         PutItemEnhancedResponse<FakeItem> enhanced = putItemOperation.transformResponse(response, FakeItem.getTableSchema(),
                                                                                         PRIMARY_CONTEXT, null);
-        assertThat(enhanced.responseMetadata(), is(awsMetadata));
+        assertThat(enhanced.responseMetadata(), is(response.responseMetadata()));
     }
 
     @Test

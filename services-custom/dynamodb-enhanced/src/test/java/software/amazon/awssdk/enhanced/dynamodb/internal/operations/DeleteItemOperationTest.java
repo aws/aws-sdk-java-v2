@@ -422,7 +422,7 @@ public class DeleteItemOperationTest {
                                                             PRIMARY_CONTEXT,
                                                             mockDynamoDbEnhancedClientExtension);
 
-        assertThat(enhanced.responseMetadata(), is(awsMetadata));
+        assertThat(enhanced.responseMetadata(), is(response.responseMetadata()));
     }
 
     @Test
