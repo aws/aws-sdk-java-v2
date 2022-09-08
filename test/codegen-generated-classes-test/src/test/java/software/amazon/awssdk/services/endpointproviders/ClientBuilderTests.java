@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.endpointproviders;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -59,11 +60,8 @@ public class ClientBuilderTests {
                                                AwsBasicCredentials.create("akid", "skid")))
                                            .build();
 
-        try {
-            client.operationWithNoInputOrOutput(r -> {
-            });
-        } catch (Exception ignored) {
-        }
+        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {
+        })).hasMessageContaining("boom");
 
         verify(mockProvider).resolveEndpoint(any());
 
@@ -82,7 +80,11 @@ public class ClientBuilderTests {
         SdkAsyncHttpClient mockClient = mock(SdkAsyncHttpClient.class);
         when(mockClient.clientName()).thenReturn("MockHttpClient");
 
-        when(mockClient.execute(any())).thenReturn(CompletableFutureUtils.failedFuture(new RuntimeException("boom")));
+        when(mockClient.execute(any())).thenAnswer(i -> {
+            AsyncExecuteRequest r = i.getArgument(0, AsyncExecuteRequest.class);
+            r.responseHandler().onError(new RuntimeException("boom"));
+            return CompletableFutureUtils.failedFuture(new RuntimeException());
+        });
 
         when(mockProvider.resolveEndpoint(any())).thenReturn(Endpoint.builder()
                                                                      .url(URI.create("https://my-service.com"))
@@ -98,12 +100,9 @@ public class ClientBuilderTests {
                                                         AwsBasicCredentials.create("akid", "skid")))
                                                 .build();
 
-        try {
-            client.operationWithNoInputOrOutput(r -> {
-            });
-            Thread.sleep(100);
-        } catch (Exception ignored) {
-        }
+        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {}).join())
+            .hasRootCauseMessage("boom");
+
 
         verify(mockProvider).resolveEndpoint(any());
 
