@@ -98,13 +98,13 @@
                                 {
                                     "conditions": [],
                                     "endpoint": {
-                                        "url": "https://myservice-fips.{Region}.{PartitionResult#dualStackDnsSuffix}",
+                                        "url": "https://awsendpointdiscoverytestservice-fips.{Region}.{PartitionResult#dualStackDnsSuffix}",
                                         "properties": {
                                             "authSchemes": [
                                                 {
                                                     "name": "sigv4",
                                                     "signingRegion": "{Region}",
-                                                    "signingName": "myservice"
+                                                    "signingName": "awsendpointdiscoverytestservice"
                                                 }
                                             ]
                                         },
@@ -162,13 +162,13 @@
                                         {
                                             "conditions": [],
                                             "endpoint": {
-                                                "url": "https://myservice-fips.{Region}.{PartitionResult#dnsSuffix}",
+                                                "url": "https://awsendpointdiscoverytestservice-fips.{Region}.{PartitionResult#dnsSuffix}",
                                                 "properties": {
                                                     "authSchemes": [
                                                         {
                                                             "name": "sigv4",
                                                             "signingRegion": "{Region}",
-                                                            "signingName": "myservice"
+                                                            "signingName": "awsendpointdiscoverytestservice"
                                                         }
                                                     ]
                                                 },
@@ -224,13 +224,13 @@
                                 {
                                     "conditions": [],
                                     "endpoint": {
-                                        "url": "https://myservice.{Region}.{PartitionResult#dualStackDnsSuffix}",
+                                        "url": "https://awsendpointdiscoverytestservice.{Region}.{PartitionResult#dualStackDnsSuffix}",
                                         "properties": {
                                             "authSchemes": [
                                                 {
                                                     "name": "sigv4",
                                                     "signingRegion": "{Region}",
-                                                    "signingName": "myservice"
+                                                    "signingName": "awsendpointdiscoverytestservice"
                                                 }
                                             ]
                                         },
@@ -250,13 +250,13 @@
                 {
                     "conditions": [],
                     "endpoint": {
-                        "url": "https://myservice.{Region}.{PartitionResult#dnsSuffix}",
+                        "url": "https://awsendpointdiscoverytestservice.{Region}.{PartitionResult#dnsSuffix}",
                         "properties": {
                             "authSchemes": [
                                 {
                                     "name": "sigv4",
                                     "signingRegion": "{Region}",
-                                    "signingName": "myservice"
+                                    "signingName": "awsendpointdiscoverytestservice"
                                 }
                             ]
                         },

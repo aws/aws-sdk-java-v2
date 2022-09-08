@@ -47,9 +47,9 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder b = PoetUtils.createClassBuilder(className())
-            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-            .addAnnotation(SdkInternalApi.class)
-            .addSuperinterface(ExecutionInterceptor.class);
+                                      .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                                      .addAnnotation(SdkInternalApi.class)
+                                      .addSuperinterface(ExecutionInterceptor.class);
 
         b.addMethod(modifyHttpRequestMethod());
 
@@ -66,13 +66,21 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
     private MethodSpec modifyHttpRequestMethod() {
 
         MethodSpec.Builder b = MethodSpec.methodBuilder("modifyHttpRequest")
-            .addModifiers(Modifier.PUBLIC)
-            .addAnnotation(Override.class)
-            .returns(SdkHttpRequest.class)
-            .addParameter(Context.ModifyHttpRequest.class, "context")
-            .addParameter(ExecutionAttributes.class, "executionAttributes");
+                                         .addModifiers(Modifier.PUBLIC)
+                                         .addAnnotation(Override.class)
+                                         .returns(SdkHttpRequest.class)
+                                         .addParameter(Context.ModifyHttpRequest.class, "context")
+                                         .addParameter(ExecutionAttributes.class, "executionAttributes");
 
         String providerVar = "provider";
+
+        // We skip resolution if the source of the endpoint is the endpoint discovery call
+        // Note: endpointIsOverridden is a workaround until all rules handle endpoint overrides internally
+        b.beginControlFlow("if ($1T.endpointIsOverridden(executionAttributes)"
+                           + "|| $1T.endpointIsDiscovered(executionAttributes))",
+                           ProviderUtils.class)
+         .addStatement("return context.httpRequest()")
+         .endControlFlow();
 
         b.addStatement("$1T $2N = ($1T) executionAttributes.getAttribute($3T.ENDPOINT_PROVIDER)",
                        endpointRulesSpecUtils.providerInterfaceName(), providerVar, SdkInternalExecutionAttribute.class);
@@ -83,9 +91,9 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
 
     private MethodSpec ruleParams() {
         MethodSpec.Builder b = MethodSpec.methodBuilder("ruleParams")
-            .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-            .returns(endpointRulesSpecUtils.parametersClassName())
-            .addParameter(ExecutionAttributes.class, "executionAttributes");
+                                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                         .returns(endpointRulesSpecUtils.parametersClassName())
+                                         .addParameter(ExecutionAttributes.class, "executionAttributes");
 
         b.addCode("return $T.builder()", endpointRulesSpecUtils.parametersClassName());
 

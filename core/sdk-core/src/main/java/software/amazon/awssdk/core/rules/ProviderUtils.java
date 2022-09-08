@@ -18,12 +18,31 @@ package software.amazon.awssdk.core.rules;
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
 @SdkInternalApi
 public final class ProviderUtils {
     private ProviderUtils() {
+    }
+
+    /**
+     * True if the the {@link SdkExecutionAttribute#ENDPOINT_OVERRIDDEN} attribute is present and its value is
+     * {@code true}, {@code false} otherwise.
+     */
+    public static boolean endpointIsOverridden(ExecutionAttributes attrs) {
+        return attrs.getOptionalAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN).orElse(false);
+    }
+
+    /**
+     * True if the the {@link SdkInternalExecutionAttribute#IS_DISCOVERED_ENDPOINT} attribute is present and its value is
+     * {@code true}, {@code false} otherwise.
+     */
+    public static boolean endpointIsDiscovered(ExecutionAttributes attrs) {
+        return attrs.getOptionalAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT).orElse(false);
     }
 
     public static Endpoint valueAsEndpointOrThrow(Value value) {
