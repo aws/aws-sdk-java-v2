@@ -1,3 +1,48 @@
+# __2.17.270__ __2022-09-08__
+## __AWS Common Runtime HTTP Client__
+  - ### Features
+    - Adds support for Https proxy system properties: host, port, user, password
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This change exposes API settings which allow Dolby Atmos and Dolby Vision to be used when running a channel using Elemental Media Live
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - EMR on EKS now allows running Spark SQL using the newly introduced Spark SQL Job Driver in the Start Job Run API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support to send VPC Flow Logs to kinesis-data-firehose as new destination type
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - Release dimension value filtering feature to allow customers to define dimension filters for including only a subset of their dataset to be used by LookoutMetrics.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Middle East (UAE) Region (me-central-1) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds Mode to AutoMLJobConfig.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release adds support for Systems Manager State Manager Association tagging.
+
+## __Apache HTTP Client__
+  - ### Features
+    - Adds support for Https proxy system properties: host, port, user, password
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Adds support for Https proxy system properties: host, port, user, password
+
 # __2.17.269__ __2022-09-07__
 ## __AWS Data Exchange__
   - ### Features
