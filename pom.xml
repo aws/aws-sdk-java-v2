@@ -913,6 +913,7 @@
                             <author>false</author>
                             <version>true</version>
                             <use>false</use>
+                            <source>8</source>
                             <notree>true</notree>
                             <nodeprecatedlist>true</nodeprecatedlist>
                             <additionalJOptions>
