@@ -51,6 +51,7 @@ public final class IntermediateModel {
 
     private Map<String, WaiterDefinition> waiters;
 
+    @JsonIgnore
     private EndpointRuleSetModel endpointRuleSetModel;
 
     @JsonIgnore
