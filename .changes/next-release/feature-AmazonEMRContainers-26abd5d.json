@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EMR Containers",
+    "contributor": "",
+    "description": "EMR on EKS now allows running Spark SQL using the newly introduced Spark SQL Job Driver in the Start Job Run API"
+}
