@@ -17,5 +17,9 @@ public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C>
         return serviceConfiguration(ServiceConfiguration.builder().applyMutation(serviceConfiguration).build());
     }
 
+    /**
+     * Set the {@link JsonEndpointProvider} implementation that will be used by the client to determine the endpoint for
+     * each request. This is optional; if none is provided a default implementation will be used the SDK.
+     */
     B endpointProvider(JsonEndpointProvider endpointProvider);
 }

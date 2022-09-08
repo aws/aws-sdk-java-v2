@@ -122,6 +122,9 @@ public class BaseClientBuilderInterface implements ClassSpec {
         return MethodSpec.methodBuilder("endpointProvider")
                          .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                          .addParameter(endpointRulesSpecUtils.providerInterfaceName(), "endpointProvider")
+            .addJavadoc("Set the {@link $T} implementation that will be used by the client to determine the endpoint for each "
+                        + "request. This is optional; if none is provided a default implementation will be used the SDK.",
+                        endpointRulesSpecUtils.providerInterfaceName())
                          .returns(TypeVariableName.get("B"))
                          .build();
     }
