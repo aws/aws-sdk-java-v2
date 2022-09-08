@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -24,7 +25,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
+import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -512,10 +513,14 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Creates a copy of an object that is already stored in S3.
+     * Creates a copy of an object that is already stored in S3 in the same region.
      * <p>
      * Under the hood, {@link S3TransferManager} will intelligently use plain {@link CopyObjectRequest}s for smaller objects, or
-     * multiple parallel {@link UploadPartCopyRequest}s for larger objects.
+     * multiple parallel {@link UploadPartCopyRequest}s for larger objects. This behavior can be configured via
+     * {@link S3CrtAsyncClientBuilder#minimumPartSizeInBytes(Long)}. Note that for multipart copy request, existing metadata
+     * stored in the source object is NOT copied to the destination object; if required, you can retrieve the metadata
+     * from the source object and set it explicitly in the {@link CopyObjectRequest.Builder#metadata(Map)}.
+     *
      * <p>
      * While this API supports {@link TransferListener}s, they will not receive {@code bytesTransferred} callback-updates due to
      * the way the {@link CopyObjectRequest} API behaves. When copying an object, S3 performs the byte copying on your behalf
@@ -574,15 +579,21 @@ public interface S3TransferManager extends SdkAutoCloseable {
     interface Builder {
 
         /**
-         * Low level S3 client that implements {@link S3AsyncClient}.The {@link S3TransferManager} already provides sensible
-         * default client. As of now only {@link S3CrtAsyncClient} supports concurrent execution of Transfer manager operations.
+         * Specify the low level {@link S3AsyncClient} that will be used to send requests to S3. The SDK will create a default
+         * {@link S3AsyncClient} if not provided.
+         *
          * <p>
-         *    Note : The provided S3AsyncClient will not be closed when the transfer manager is closed.
-         *    This s3AsyncClient must be closed by the caller when it is ready to be disposed.
-         * @param s3AsyncClient Implementation of {@link S3AsyncClient}
+         * It's highly recommended using {@link S3AsyncClient#crtBuilder()} to create an {@link S3AsyncClient} instance to benefit
+         * from multipart upload/download feature and maximum throughput.
+         *
+         * <p>
+         * Note: the provided {@link S3AsyncClient} will not be closed when the transfer manager is closed; it must be closed by
+         * the caller when it is ready to be disposed.
+         *
+         * @param s3AsyncClient the S3 async client
          * @return Returns a reference to this object so that method calls can be chained together.
+         * @see S3AsyncClient#crtBuilder()
          */
-
         Builder s3AsyncClient(S3AsyncClient s3AsyncClient);
 
         /**

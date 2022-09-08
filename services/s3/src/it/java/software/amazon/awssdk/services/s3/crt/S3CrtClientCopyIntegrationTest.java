@@ -13,58 +13,58 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3;
+package software.amazon.awssdk.services.s3.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.computeCheckSum;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
-import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
-import static software.amazon.awssdk.transfer.s3.util.ChecksumUtils.computeCheckSum;
 
+import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
-import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
+import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
-import software.amazon.awssdk.transfer.s3.model.Copy;
-import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 
-public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase {
-    private static final String BUCKET = temporaryBucketName(S3TransferManagerCopyIntegrationTest.class);
+public class S3CrtClientCopyIntegrationTest extends S3IntegrationTestBase {
+    private static final String BUCKET = temporaryBucketName(S3CrtClientCopyIntegrationTest.class);
     private static final String ORIGINAL_OBJ = "test_file.dat";
     private static final String COPIED_OBJ = "test_file_copy.dat";
     private static final String ORIGINAL_OBJ_SPECIAL_CHARACTER = "original-special-chars-@$%";
     private static final String COPIED_OBJ_SPECIAL_CHARACTER = "special-special-chars-@$%";
-    private static final long OBJ_SIZE = ThreadLocalRandom.current().nextLong(8 * MB, 16 * MB + 1);
-
-    private static S3TransferManager tm;
-
-    private static S3AsyncClient s3AsyncClient;
-
+    private static final long OBJ_SIZE = ThreadLocalRandom.current().nextLong(8 * 1024 * 1024, 16 * 1024 * 1024 + 1);
+    private static final long SMALL_OBJ_SIZE = 1024 * 1024;
+    private static S3AsyncClient s3CrtAsyncClient;
     @BeforeAll
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
-        s3AsyncClient = S3CrtAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                        .region(DEFAULT_REGION)
-                                        .maxConcurrency(100)
-                                        .build();
-        tm = S3TransferManager.builder()
-                              .s3AsyncClient(s3AsyncClient)
-                              .build();
+        s3CrtAsyncClient = S3CrtAsyncClient.builder()
+                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                           .region(DEFAULT_REGION)
+                                           .build();
     }
 
     @AfterAll
     public static void teardown() throws Exception {
-        s3AsyncClient.close();
-        tm.close();
+        s3CrtAsyncClient.close();
         deleteBucketAndAllContents(BUCKET);
-        S3IntegrationTestBase.cleanUp();
+    }
+
+    @Test
+    void copy_singlePart_hasSameContent() {
+        byte[] originalContent = randomBytes(SMALL_OBJ_SIZE);
+        createOriginalObject(originalContent, ORIGINAL_OBJ);
+        copyObject(ORIGINAL_OBJ, COPIED_OBJ);
+        validateCopiedObject(originalContent, ORIGINAL_OBJ);
     }
 
     @Test
@@ -84,30 +84,28 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
     }
 
     private void createOriginalObject(byte[] originalContent, String originalKey) {
-        s3.putObject(r -> r.bucket(BUCKET)
+        s3CrtAsyncClient.putObject(r -> r.bucket(BUCKET)
                            .key(originalKey),
-                     RequestBody.fromBytes(originalContent));
+                                   AsyncRequestBody.fromBytes(originalContent)).join();
     }
 
     private void copyObject(String original, String destination) {
-        Copy copy = tm.copy(c -> c
-            .copyObjectRequest(r -> r
-                .sourceBucket(BUCKET)
-                .sourceKey(original)
-                .destinationBucket(BUCKET)
-                .destinationKey(destination))
-            .addTransferListener(LoggingTransferListener.create()));
+        CompletableFuture<CopyObjectResponse> future = s3CrtAsyncClient.copyObject(c -> c
+            .sourceBucket(BUCKET)
+            .sourceKey(original)
+            .destinationBucket(BUCKET)
+            .destinationKey(destination));
 
-        CompletedCopy completedCopy = copy.completionFuture().join();
-        assertThat(completedCopy.response().responseMetadata().requestId()).isNotNull();
-        assertThat(completedCopy.response().sdkHttpResponse()).isNotNull();
+        CopyObjectResponse copyObjectResponse = future.join();
+        assertThat(copyObjectResponse.responseMetadata().requestId()).isNotNull();
+        assertThat(copyObjectResponse.sdkHttpResponse()).isNotNull();
     }
 
     private void validateCopiedObject(byte[] originalContent, String originalKey) {
         ResponseBytes<GetObjectResponse> copiedObject = s3.getObject(r -> r.bucket(BUCKET)
                                                                            .key(originalKey),
                                                                      ResponseTransformer.toBytes());
-        assertThat(computeCheckSum(copiedObject.asByteArrayUnsafe())).isEqualTo(computeCheckSum(originalContent));
+        assertThat(computeCheckSum(copiedObject.asByteBuffer())).isEqualTo(computeCheckSum(ByteBuffer.wrap(originalContent)));
     }
 
     private static byte[] randomBytes(long size) {

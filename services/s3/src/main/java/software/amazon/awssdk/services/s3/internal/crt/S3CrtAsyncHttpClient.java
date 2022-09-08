@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
@@ -41,7 +40,6 @@ import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -55,18 +53,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final Logger log = Logger.loggerFor(S3CrtAsyncHttpClient.class);
     private final S3Client crtS3Client;
     private final S3NativeClientConfiguration s3NativeClientConfiguration;
-    private final boolean checksumValidationEnabled;
 
     private S3CrtAsyncHttpClient(Builder builder) {
-        s3NativeClientConfiguration =
-            S3NativeClientConfiguration.builder()
-                                       .targetThroughputInGbps(builder.targetThroughputInGbps)
-                                       .partSizeInBytes(builder.minimalPartSizeInBytes)
-                                       .maxConcurrency(builder.maxConcurrency)
-                                       .signingRegion(builder.region == null ? null : builder.region.id())
-                                       .endpointOverride(builder.endpointOverride)
-                                       .credentialsProvider(builder.credentialsProvider)
-                                       .build();
+        s3NativeClientConfiguration = builder.clientConfiguration;
 
         S3ClientOptions s3ClientOptions =
             new S3ClientOptions().withRegion(s3NativeClientConfiguration.signingRegion())
@@ -77,17 +66,14 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withPartSize(s3NativeClientConfiguration.partSizeBytes())
                                  .withComputeContentMd5(false)
                                  .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps());
-        this.checksumValidationEnabled = builder.checksumValidationEnabled == null || builder.checksumValidationEnabled;
         this.crtS3Client = new S3Client(s3ClientOptions);
     }
 
     @SdkTestInternalApi
     S3CrtAsyncHttpClient(S3Client crtS3Client,
-                         S3NativeClientConfiguration nativeClientConfiguration,
-                         boolean checksumValidationEnabled) {
+                         S3NativeClientConfiguration nativeClientConfiguration) {
         this.crtS3Client = crtS3Client;
         this.s3NativeClientConfiguration = nativeClientConfiguration;
-        this.checksumValidationEnabled = checksumValidationEnabled;
     }
 
     @Override
@@ -136,7 +122,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             return false;
         }
 
-        return checksumValidationEnabled || httpChecksum.requestValidationMode() != null;
+        return s3NativeClientConfiguration.checksumValidationEnabled() || httpChecksum.requestValidationMode() != null;
     }
 
     private static URI getEndpoint(URI uri) {
@@ -156,8 +142,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                     return S3MetaRequestOptions.MetaRequestType.GET_OBJECT;
                 case "PutObject":
                     return S3MetaRequestOptions.MetaRequestType.PUT_OBJECT;
-                case "CopyObject":
-                    return S3MetaRequestOptions.MetaRequestType.COPY_OBJECT;
                 default:
                     return S3MetaRequestOptions.MetaRequestType.DEFAULT;
             }
@@ -190,7 +174,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
      * 3. It's a GET operation
      */
     private boolean requestChecksumAlgoNotApplicable(HttpChecksum httpChecksum) {
-        return !checksumValidationEnabled ||
+        return !s3NativeClientConfiguration.checksumValidationEnabled() ||
                httpChecksum == null ||
                httpChecksum.responseAlgorithms() != null;
     }
@@ -239,82 +223,10 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     public static final class Builder implements SdkAsyncHttpClient.Builder<S3CrtAsyncHttpClient.Builder> {
-        private AwsCredentialsProvider credentialsProvider;
-        private Region region;
-        private Long minimalPartSizeInBytes;
-        private Double targetThroughputInGbps;
-        private Integer maxConcurrency;
-        private URI endpointOverride;
-        private Boolean checksumValidationEnabled;
+        private S3NativeClientConfiguration clientConfiguration;
 
-        /**
-         * Configure the credentials that should be used to authenticate with S3.
-         */
-        public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
-            this.credentialsProvider = credentialsProvider;
-            return this;
-        }
-
-        /**
-         * Configure the region with which the SDK should communicate.
-         */
-        public Builder region(Region region) {
-            this.region = region;
-            return this;
-        }
-
-        /**
-         * Sets the minimum part size for transfer parts. Decreasing the minimum part size causes
-         * multipart transfer to be split into a larger number of smaller parts. Setting this value too low
-         * has a negative effect on transfer speeds, causing extra latency and network communication for each part.
-         */
-        public Builder minimumPartSizeInBytes(Long partSizeBytes) {
-            this.minimalPartSizeInBytes = partSizeBytes;
-            return this;
-        }
-
-        /**
-         * The target throughput for transfer requests. Higher value means more S3 connections
-         * will be opened. Whether the transfer manager can achieve the configured target throughput depends
-         * on various factors such as the network bandwidth of the environment and the configured {@link #maxConcurrency}.
-         */
-        public Builder targetThroughputInGbps(Double targetThroughputInGbps) {
-            this.targetThroughputInGbps = targetThroughputInGbps;
-            return this;
-        }
-
-        /**
-         * Specifies the maximum number of S3 connections that should be established during
-         * a transfer.
-         *
-         * <p>
-         * If not provided, the TransferManager will calculate the optional number of connections
-         * based on {@link #targetThroughputInGbps}. If the value is too low, the S3TransferManager
-         * might not achieve the specified target throughput.
-         *
-         * @param maxConcurrency the max number of concurrent requests
-         * @return this builder for method chaining.
-         * @see #targetThroughputInGbps(Double)
-         */
-        public Builder maxConcurrency(Integer maxConcurrency) {
-            this.maxConcurrency = maxConcurrency;
-            return this;
-        }
-
-        /**
-         * Option to disable checksum validation of an object stored in S3.
-         *
-         */
-        public Builder checksumValidationEnabled(Boolean checksumValidationEnabled) {
-            this.checksumValidationEnabled = checksumValidationEnabled;
-            return this;
-        }
-
-        /**
-         * Configure the endpoint override with which the SDK should communicate.
-         */
-        public Builder endpointOverride(URI endpointOverride) {
-            this.endpointOverride = endpointOverride;
+        public Builder s3ClientConfiguration(S3NativeClientConfiguration clientConfiguration) {
+            this.clientConfiguration = clientConfiguration;
             return this;
         }
 
