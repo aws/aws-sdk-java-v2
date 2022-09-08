@@ -80,7 +80,7 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
                            + "|| $1T.endpointIsDiscovered(executionAttributes))",
                            ProviderUtils.class)
          .addStatement("return context.httpRequest()")
-         .endControlFlow();
+            .endControlFlow();
 
         b.addStatement("$1T $2N = ($1T) executionAttributes.getAttribute($3T.ENDPOINT_PROVIDER)",
                        endpointRulesSpecUtils.providerInterfaceName(), providerVar, SdkInternalExecutionAttribute.class);
