@@ -17,8 +17,9 @@ package software.amazon.awssdk.services.s3.checksum;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static software.amazon.awssdk.services.s3.utils.S3TestUtils.createDataOfSizeInKb;
-import static software.amazon.awssdk.services.s3.utils.S3TestUtils.fixedLengthFileWithRandomCharacters;
+import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.KB;
+import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.createDataOfSize;
+import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.fixedLengthInKbFileWithRandomOrFixedCharacters;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.BufferedReader;
@@ -54,7 +55,7 @@ import software.amazon.awssdk.testutils.Waiter;
 
 public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
-    public static final int HUGE_MSG_SIZE = 16384;
+    public static final int HUGE_MSG_SIZE = 16384 * KB;
     protected static final String KEY = "some-key";
     private static final String BUCKET = temporaryBucketName(HttpChecksumIntegrationTest.class);
     public static CaptureChecksumValidationInterceptor interceptor = new CaptureChecksumValidationInterceptor();
@@ -278,7 +279,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                           .bucket(BUCKET)
                                           .key(KEY)
                                           .checksumAlgorithm(ChecksumAlgorithm.CRC32)
-                                          .build(), RequestBody.fromString(createDataOfSizeInKb(HUGE_MSG_SIZE, 'a')));
+                                          .build(), RequestBody.fromString(createDataOfSize(HUGE_MSG_SIZE, 'a')));
 
         assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
         assertThat(interceptor.requestChecksumInHeader()).isNull();
@@ -296,7 +297,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
             .collect(Collectors.joining("\n"));
         assertThat(interceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
         assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(text).isEqualTo(createDataOfSizeInKb(HUGE_MSG_SIZE, 'a'));
+        assertThat(text).isEqualTo(createDataOfSize(HUGE_MSG_SIZE, 'a'));
     }
 
     @Test
@@ -305,7 +306,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                      .bucket(BUCKET)
                                      .key(KEY)
                                      .checksumAlgorithm(ChecksumAlgorithm.CRC32)
-                                     .build(), RequestBody.fromString(createDataOfSizeInKb(HUGE_MSG_SIZE, 'a')));
+                                     .build(), RequestBody.fromString(createDataOfSize(HUGE_MSG_SIZE, 'a')));
 
         assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
         assertThat(interceptor.requestChecksumInHeader()).isNull();
@@ -322,7 +323,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
             .collect(Collectors.joining("\n"));
         assertThat(interceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
         assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(text).isEqualTo(createDataOfSizeInKb(HUGE_MSG_SIZE, 'a'));
+        assertThat(text).isEqualTo(createDataOfSize(HUGE_MSG_SIZE, 'a'));
     }
 
     @Test
@@ -331,7 +332,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                           .bucket(BUCKET)
                                           .key(KEY)
                                           .checksumAlgorithm(ChecksumAlgorithm.CRC32)
-                                          .build(), RequestBody.fromString(createDataOfSizeInKb(HUGE_MSG_SIZE, 'a')));
+                                          .build(), RequestBody.fromString(createDataOfSize(HUGE_MSG_SIZE, 'a')));
 
         assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
         assertThat(interceptor.requestChecksumInHeader()).isNull();
@@ -347,7 +348,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
         assertThat(interceptor.validationAlgorithm()).isNull();
         assertThat(interceptor.responseValidation()).isNull();
-        assertThat(text).isEqualTo(createDataOfSizeInKb(HUGE_MSG_SIZE, 'a'));
+        assertThat(text).isEqualTo(createDataOfSize(HUGE_MSG_SIZE, 'a'));
     }
 
 
@@ -355,7 +356,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
     public void syncValidUnsignedTrailerChecksumCalculatedBySdkClient_withSmallFileRequestBody() throws InterruptedException,
                                                                                                         IOException {
 
-        File randomFileOfFixedLength = fixedLengthFileWithRandomCharacters(10);
+        File randomFileOfFixedLength = fixedLengthInKbFileWithRandomOrFixedCharacters(10, true);
 
         s3Https.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
@@ -381,7 +382,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void syncValidUnsignedTrailerChecksumCalculatedBySdkClient_withHugeFileRequestBody() throws IOException {
-        File randomFileOfFixedLength = fixedLengthFileWithRandomCharacters(34);
+        File randomFileOfFixedLength = fixedLengthInKbFileWithRandomOrFixedCharacters(34, true);
         s3Https.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)

@@ -16,9 +16,9 @@
 package software.amazon.awssdk.services.s3.checksum;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.services.s3.utils.S3TestUtils.KB;
-import static software.amazon.awssdk.services.s3.utils.S3TestUtils.createDataOfSizeInKb;
-import static software.amazon.awssdk.services.s3.utils.S3TestUtils.fixedLengthFileWithRandomCharacters;
+import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.KB;
+import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.createDataOfSize;
+import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.fixedLengthInKbFileWithRandomOrFixedCharacters;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.File;
@@ -118,13 +118,14 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
 
     @ParameterizedTest
-    @ValueSource(ints = {1, 12, 16, 17, 32, 33})
+    //createDataOfSizeInKb already creates data in kb
+    @ValueSource(ints = {1*KB, 3*KB, 12*KB, 16*KB, 17*KB, 32*KB, 33*KB})
     void asyncHttpsValidUnsignedTrailerChecksumCalculatedBySdkClient_withHugeRequestBody(int dataSize) throws InterruptedException {
         s3Async.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)
                                           .checksumAlgorithm(ChecksumAlgorithm.CRC32)
-                                          .build(), AsyncRequestBody.fromString(createDataOfSizeInKb(dataSize, 'a'))).join();
+                                          .build(), AsyncRequestBody.fromString(createDataOfSize(dataSize, 'a'))).join();
         assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
         assertThat(interceptor.requestChecksumInHeader()).isNull();
 
@@ -133,14 +134,14 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                                             .build(), AsyncResponseTransformer.toBytes()).join().asUtf8String();
         assertThat(interceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
         assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(response).isEqualTo(createDataOfSizeInKb(dataSize, 'a'));
+        assertThat(response).isEqualTo(createDataOfSize(dataSize, 'a'));
     }
 
     @ParameterizedTest
     @ValueSource(ints = {1*KB, 12*KB, 16*KB, 17*KB, 32*KB, 33*KB})
     void asyncHttpsValidUnsignedTrailerChecksumCalculatedBySdkClient_withDifferentChunkSize_OfFileAsyncFileRequestBody
         (int chunkSize) throws IOException {
-        File randomFileOfFixedLength = fixedLengthFileWithRandomCharacters(64);
+        File randomFileOfFixedLength = fixedLengthInKbFileWithRandomOrFixedCharacters(64, true);
         s3Async.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)
@@ -169,8 +170,8 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
     void asyncHttpsValidUnsignedTrailer_TwoRequests_withDifferentChunkSize_OfFileAsyncFileRequestBody(int chunkSize)
         throws IOException {
 
-        File randomFileOfFixedLengthOne = fixedLengthFileWithRandomCharacters(64);
-        File randomFileOfFixedLengthTwo = fixedLengthFileWithRandomCharacters(17);
+        File randomFileOfFixedLengthOne = fixedLengthInKbFileWithRandomOrFixedCharacters(64, true);
+        File randomFileOfFixedLengthTwo = fixedLengthInKbFileWithRandomOrFixedCharacters(17, true);
         CompletableFuture<PutObjectResponse> putObjectFutureOne =
             s3Async.putObject(PutObjectRequest.builder()
                                               .bucket(BUCKET)

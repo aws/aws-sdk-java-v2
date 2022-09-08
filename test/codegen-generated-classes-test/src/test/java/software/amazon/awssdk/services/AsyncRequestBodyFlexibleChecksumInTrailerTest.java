@@ -33,8 +33,16 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,6 +53,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
@@ -52,6 +61,7 @@ import software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
+    public static final int KB = 1024;
     private static final String CRLF = "\r\n";
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
     private static final String SCENARIO = "scenario";
@@ -86,15 +96,11 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
     public void asyncStreaming_NoSigner_shouldContainChecksum_fromInterceptors() {
         stubResponseWithHeaders();
         asyncClient.putOperationWithChecksum(b -> b.checksumAlgorithm(ChecksumAlgorithm.CRC32), AsyncRequestBody.fromString(
-            "abc"),
+                                                 "abc"),
                                              AsyncResponseTransformer.toBytes()).join();
         //payload would in json form as  "{"StringMember":"foo"}x-amz-checksum-crc32:tcUDMQ==[\r][\n]"
-        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_LENGTH, equalTo("44")));
-        verify(putRequestedFor(anyUrl()).withHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, equalTo("x-amz-checksum-crc32")));
-        verify(putRequestedFor(anyUrl()).withHeader("x-amz-content-sha256", equalTo("STREAMING-UNSIGNED-PAYLOAD-TRAILER")));
-        verify(putRequestedFor(anyUrl()).withHeader("x-amz-decoded-content-length", equalTo("3")));
-        verify(putRequestedFor(anyUrl()).withHeader("content-encoding", equalTo("aws-chunked")));
-        verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("aws-chunked")));
+        verifyHeadersForPutRequest("44", "3", "x-amz-checksum-crc32");
+
         verify(putRequestedFor(anyUrl()).withRequestBody(
             containing(
                 "3" + CRLF + "abc" + CRLF
@@ -111,22 +117,66 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
             + "x-amz-checksum-sha256:ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0=" + CRLF + CRLF;
 
         asyncClient.putOperationWithChecksum(b -> b.checksumAlgorithm(ChecksumAlgorithm.SHA256), AsyncRequestBody.fromString(
-            "abc"),
+                                                 "abc"),
                                              AsyncResponseTransformer.toBytes()).join();
         List<LoggedRequest> requests = getRecordedRequests();
         assertThat(requests.size()).isEqualTo(2);
         assertThat(requests.get(0).getBody()).contains(expectedRequestBody.getBytes());
         assertThat(requests.get(1).getBody()).contains(expectedRequestBody.getBytes());
+
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetype.MIMETYPE_TEXT_PLAIN)));
-        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_LENGTH, equalTo("81")));
-        verify(putRequestedFor(anyUrl()).withHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, equalTo("x-amz-checksum-sha256")));
-        verify(putRequestedFor(anyUrl()).withHeader("x-amz-content-sha256", equalTo("STREAMING-UNSIGNED-PAYLOAD-TRAILER")));
-        verify(putRequestedFor(anyUrl()).withHeader("x-amz-decoded-content-length", equalTo("3")));
-        verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("aws-chunked")));
+        verifyHeadersForPutRequest("81", "3", "x-amz-checksum-sha256");
+
         verify(putRequestedFor(anyUrl()).withRequestBody(
             containing(
                 expectedRequestBody)));
     }
+
+
+    @Test
+    public void asyncStreaming_FromAsyncRequestBody_VariableChunkSize_NoSigner_addsChecksums_fromInterceptors() throws IOException {
+
+        stubForFailureThenSuccess(500, "500");
+
+        File randomFileOfFixedLength = fixedLengthInKbFileWithRandomOrFixedCharacters(37, false);
+        String contentString = new String(Files.readAllBytes(randomFileOfFixedLength.toPath()));
+        asyncClient.putOperationWithChecksum(b -> b.checksumAlgorithm(ChecksumAlgorithm.CRC32),
+                                             FileAsyncRequestBody.builder().path(randomFileOfFixedLength.toPath())
+                                                                 .chunkSizeInBytes(16 * KB)
+                                                                 .build(),
+                                             AsyncResponseTransformer.toBytes()).join();
+        verifyHeadersForPutRequest("37948", "37888", "x-amz-checksum-crc32");
+        verify(putRequestedFor(anyUrl()).withRequestBody(
+            containing(
+                "4000" + CRLF + contentString.substring(0, 16 * KB) + CRLF
+                + "4000" + CRLF + contentString.substring(16 * KB, 32 * KB) + CRLF
+                + "1400" + CRLF + contentString.substring(32 * KB) + CRLF
+                + "0" + CRLF
+                + "x-amz-checksum-crc32:wQiPHw==" + CRLF + CRLF)));
+    }
+
+    @Test
+    public void asyncStreaming_withRetry_FromAsyncRequestBody_VariableChunkSize_NoSigner_addsChecksums_fromInterceptors() throws IOException {
+
+
+        File randomFileOfFixedLength = fixedLengthInKbFileWithRandomOrFixedCharacters(37, false);
+        String contentString = new String(Files.readAllBytes(randomFileOfFixedLength.toPath()));
+        stubResponseWithHeaders();
+        asyncClient.putOperationWithChecksum(b -> b.checksumAlgorithm(ChecksumAlgorithm.CRC32),
+                                             FileAsyncRequestBody.builder().path(randomFileOfFixedLength.toPath())
+                                                                 .chunkSizeInBytes(16 * KB)
+                                                                 .build(),
+                                             AsyncResponseTransformer.toBytes()).join();
+        verifyHeadersForPutRequest("37948", "37888", "x-amz-checksum-crc32");
+        verify(putRequestedFor(anyUrl()).withRequestBody(
+            containing(
+                "4000" + CRLF + contentString.substring(0, 16 * KB) + CRLF
+                + "4000" + CRLF + contentString.substring(16 * KB, 32 * KB) + CRLF
+                + "1400" + CRLF + contentString.substring(32 * KB) + CRLF
+                + "0" + CRLF
+                + "x-amz-checksum-crc32:wQiPHw==" + CRLF + CRLF)));
+    }
+
 
     private void stubResponseWithHeaders() {
         stubFor(put(anyUrl())
@@ -162,5 +212,37 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
         return findAll(putRequestedFor(urlEqualTo(PATH)));
     }
 
+
+    private void verifyHeadersForPutRequest(String contentLength, String decodedContentLength, String checksumHeader) {
+        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_LENGTH, equalTo(contentLength)));
+        verify(putRequestedFor(anyUrl()).withHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, equalTo(
+            checksumHeader)));
+        verify(putRequestedFor(anyUrl()).withHeader("x-amz-content-sha256", equalTo("STREAMING-UNSIGNED-PAYLOAD-TRAILER")));
+        verify(putRequestedFor(anyUrl()).withHeader("x-amz-decoded-content-length", equalTo(decodedContentLength)));
+        verify(putRequestedFor(anyUrl()).withHeader("content-encoding", equalTo("aws-chunked")));
+        verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("aws-chunked")));
+    }
+
+
+
+    public static File fixedLengthInKbFileWithRandomOrFixedCharacters(int sizeInKb, boolean isRandom) throws IOException {
+        File tempFile = File.createTempFile("temp-random-sdk-file-", ".tmp");
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(tempFile, "rw")) {
+            PrintWriter writer = new PrintWriter(tempFile, "UTF-8");
+            int objectSize = sizeInKb * 1024;
+            Random random = new Random();
+            for (int index = 0; index < objectSize; index++) {
+                int offset = isRandom ? random.nextInt(26) : 0;
+                writer.print(index % 5 == 0 ? ' ' : (char) ('a' + offset));
+            }
+            writer.flush();
+        }
+        tempFile.deleteOnExit();
+        return tempFile;
+    }
+
+    public static String createDataOfSize(int dataSize, char contentCharacter) {
+        return IntStream.range(0, dataSize).mapToObj(i -> String.valueOf(contentCharacter)).collect(Collectors.joining());
+    }
 
 }

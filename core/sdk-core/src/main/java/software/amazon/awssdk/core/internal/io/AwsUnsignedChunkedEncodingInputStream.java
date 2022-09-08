@@ -76,7 +76,8 @@ public class AwsUnsignedChunkedEncodingInputStream extends AwsChunkedEncodingInp
 
         long allChunks = maxSizeChunks * calculateChunkLength(defaultChunkSize);
         long remainingInChunk = remainingBytes > 0 ? calculateChunkLength(remainingBytes) : 0;
-        long lastByteSize = (long) "0".length() + (long) CRLF.length();
+        // last byte is composed of a "0" and "\r\n"
+        long lastByteSize = 1 + (long) CRLF.length();
 
         return allChunks +  remainingInChunk + lastByteSize;
     }

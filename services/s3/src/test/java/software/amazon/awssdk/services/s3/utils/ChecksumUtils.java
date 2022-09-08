@@ -15,17 +15,26 @@
 
 package software.amazon.awssdk.services.s3.utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Utilities for computing the SHA-256 checksums of various binary objects.
  */
 public final class ChecksumUtils {
+
+    public static final int KB = 1024;
+
     public static byte[] computeCheckSum(InputStream is) throws IOException {
         MessageDigest instance = createMessageDigest();
 
@@ -65,5 +74,25 @@ public final class ChecksumUtils {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Unable to create SHA-256 MessageDigest instance", e);
         }
+    }
+
+    public static File fixedLengthInKbFileWithRandomOrFixedCharacters(int sizeInKb, boolean isRandom) throws IOException {
+        File tempFile = File.createTempFile("temp-random-sdk-file-", ".tmp");
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(tempFile, "rw")) {
+            PrintWriter writer = new PrintWriter(tempFile, "UTF-8");
+            int objectSize = sizeInKb * 1024;
+            Random random = new Random();
+            for (int index = 0; index < objectSize; index++) {
+                int offset = isRandom ? random.nextInt(26) : 0;
+                writer.print(index % 5 == 0 ? ' ' : (char) ('a' + offset));
+            }
+            writer.flush();
+        }
+        tempFile.deleteOnExit();
+        return tempFile;
+    }
+
+    public static String createDataOfSize(int dataSize, char contentCharacter) {
+        return IntStream.range(0, dataSize).mapToObj(i -> String.valueOf(contentCharacter)).collect(Collectors.joining());
     }
 }
