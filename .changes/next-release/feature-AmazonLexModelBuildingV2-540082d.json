@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lex Model Building V2",
-    "contributor": "",
-    "description": "This release is for supporting Composite Slot Type feature in AWS Lex V2. Composite Slot Type will help developer to logically group coherent slots and maintain their inter-relationships in runtime conversation."
-}
