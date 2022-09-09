@@ -230,6 +230,8 @@
                                 <notree>true</notree>
                                 <includeDependencySources>false</includeDependencySources>
                                 <doclint>none</doclint>
+                                <!-- Exclude service packages to accelerate build -->
+                                <excludePackageNames>software.amazon.awssdk.services.*:*.codegen</excludePackageNames>
                             </configuration>
                         </execution>
                     </executions>
@@ -915,7 +917,7 @@
                             <use>false</use>
                             <source>8</source>
                             <notree>true</notree>
-<!--                            <nodeprecatedlist>true</nodeprecatedlist>-->
+                            <nodeprecatedlist>true</nodeprecatedlist>
                             <additionalJOptions>
                                 <additionalJOption>--allow-script-in-comments</additionalJOption>
                             </additionalJOptions>
