@@ -23,7 +23,7 @@
           ]
         },
         {
-          "fn": "partition",
+          "fn": "aws.partition",
           "argv": [
             "{Region}"
           ],

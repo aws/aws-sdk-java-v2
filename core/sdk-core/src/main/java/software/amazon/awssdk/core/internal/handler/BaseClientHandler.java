@@ -33,6 +33,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.io.SdkLengthAwareInputStream;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
@@ -91,6 +92,7 @@ public abstract class BaseClientHandler {
                                                                  ClientExecutionParams executionParams) {
         if (executionParams.discoveredEndpoint() != null) {
             URI discoveredEndpoint = executionParams.discoveredEndpoint();
+            executionParams.putExecutionAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT, true);
             return originalRequest.toBuilder().host(discoveredEndpoint.getHost()).port(discoveredEndpoint.getPort()).build();
         }
 

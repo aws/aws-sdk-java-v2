@@ -28,17 +28,20 @@ import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 
 
 public class BaseClientBuilderInterface implements ClassSpec {
     private final IntermediateModel model;
     private final String basePackage;
     private final ClassName builderInterfaceName;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public BaseClientBuilderInterface(IntermediateModel model) {
         this.model = model;
         this.basePackage = model.getMetadata().getFullClientPackageName();
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getBaseBuilderInterface());
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
     }
 
     @Override
@@ -61,6 +64,8 @@ public class BaseClientBuilderInterface implements ClassSpec {
             builder.addMethod(serviceConfigurationMethod());
             builder.addMethod(serviceConfigurationConsumerBuilderMethod());
         }
+
+        builder.addMethod(endpointProviderMethod());
 
         return builder.build();
     }
@@ -110,6 +115,17 @@ public class BaseClientBuilderInterface implements ClassSpec {
                          .addParameter(consumerBuilder, "serviceConfiguration")
                          .addStatement("return serviceConfiguration($T.builder().applyMutation(serviceConfiguration).build())",
                                        serviceConfiguration)
+                         .build();
+    }
+
+    private MethodSpec endpointProviderMethod() {
+        return MethodSpec.methodBuilder("endpointProvider")
+                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                         .addParameter(endpointRulesSpecUtils.providerInterfaceName(), "endpointProvider")
+            .addJavadoc("Set the {@link $T} implementation that will be used by the client to determine the endpoint for each "
+                        + "request. This is optional; if none is provided a default implementation will be used the SDK.",
+                        endpointRulesSpecUtils.providerInterfaceName())
+                         .returns(TypeVariableName.get("B"))
                          .build();
     }
 

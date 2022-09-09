@@ -64,6 +64,17 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
     public static final ExecutionAttribute<Boolean> IS_NONE_AUTH_TYPE_REQUEST =
         new ExecutionAttribute<>("IsNoneAuthTypeRequest");
 
+    /**
+     * The endpoint provider used to resolve the destination endpoint for a request.
+     */
+    public static final ExecutionAttribute<Object> ENDPOINT_PROVIDER =
+        new ExecutionAttribute<>("EndpointProvider");
+
+    /**
+     * Whether the endpoint on the request is the result of Endpoint Discovery.
+     */
+    public static final ExecutionAttribute<Boolean> IS_DISCOVERED_ENDPOINT =
+        new ExecutionAttribute<>("IsDiscoveredEndpoint");
 
     private SdkInternalExecutionAttribute() {
     }

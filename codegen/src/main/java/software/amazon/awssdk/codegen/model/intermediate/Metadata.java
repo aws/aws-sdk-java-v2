@@ -343,6 +343,10 @@ public class Metadata {
         return joinPackageNames(rootPackageName, getClientPackageName());
     }
 
+    public String getFullClientInternalPackageName() {
+        return joinPackageNames(getFullClientPackageName(), "internal");
+    }
+
     public String getClientPackageName() {
         return clientPackageName;
     }

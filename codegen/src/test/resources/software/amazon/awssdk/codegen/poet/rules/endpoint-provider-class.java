@@ -33,7 +33,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     @Override
     public Endpoint resolveEndpoint(QueryEndpointParams endpointParams) {
         Value res = RULES_ENGINE.evaluate(ENDPOINT_RULE_SET, toIdentifierValueMap(endpointParams));
-        return ProviderUtils.fromEndpointValue(res.expectEndpoint());
+        return ProviderUtils.valueAsEndpointOrThrow(res);
     }
 
     private static Map<Identifier, Value> toIdentifierValueMap(QueryEndpointParams params) {
@@ -46,9 +46,9 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         if (useDualStackEndpoint != null) {
             paramsMap.put(Identifier.of("useDualStackEndpoint"), Value.fromBool(useDualStackEndpoint));
         }
-        Boolean useFIPSEndpoint = params.useFIPSEndpoint();
-        if (useFIPSEndpoint != null) {
-            paramsMap.put(Identifier.of("useFIPSEndpoint"), Value.fromBool(useFIPSEndpoint));
+        Boolean useFipsEndpoint = params.useFipsEndpoint();
+        if (useFipsEndpoint != null) {
+            paramsMap.put(Identifier.of("useFIPSEndpoint"), Value.fromBool(useFipsEndpoint));
         }
         String endpointId = params.endpointId();
         if (endpointId != null) {

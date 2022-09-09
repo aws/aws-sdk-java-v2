@@ -24,10 +24,9 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
@@ -41,6 +40,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -62,12 +62,14 @@ public class BaseClientBuilderClass implements ClassSpec {
     private final ClassName builderInterfaceName;
     private final ClassName builderClassName;
     private final String basePackage;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public BaseClientBuilderClass(IntermediateModel model) {
         this.model = model;
         this.basePackage = model.getMetadata().getFullClientPackageName();
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getBaseBuilderInterface());
         this.builderClassName = ClassName.get(basePackage, model.getMetadata().getBaseBuilder());
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
     }
 
     @Override
@@ -101,6 +103,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(finalizeServiceConfigurationMethod());
         builder.addMethod(defaultSignerMethod());
         builder.addMethod(signingNameMethod());
+        builder.addMethod(defaultEndpointProviderMethod());
 
         if (model.getCustomizationConfig().getServiceConfig().getClassName() != null) {
             builder.addMethod(setServiceConfigurationMethod())
@@ -165,7 +168,9 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                         SdkAdvancedClientOption.class)
                                                .addCode("                          .option($T"
                                                         + ".CRC32_FROM_COMPRESSED_DATA_ENABLED, $L)",
-                                                        SdkClientOption.class, crc32FromCompressedDataEnabled);
+                                                        SdkClientOption.class, crc32FromCompressedDataEnabled)
+                                               .addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())",
+                                                        SdkClientOption.class);
 
         String clientConfigClassName = model.getCustomizationConfig().getServiceConfig().getClassName();
         if (StringUtils.isNotBlank(clientConfigClassName)) {
@@ -222,15 +227,19 @@ public class BaseClientBuilderClass implements ClassSpec {
                .addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
                         CollectionUtils.class, SdkClientOption.class);
 
+        builder.addStatement("$T additionalInterceptors = new $T<>()",
+                             ParameterizedTypeName.get(List.class,
+                                                       ExecutionInterceptor.class),
+                             ArrayList.class);
+
+        builder.addStatement("additionalInterceptors.add(new $T())", endpointRulesSpecUtils.interceptorName());
+
         if (model.getMetadata().isQueryProtocol()) {
-            TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
-            builder.addStatement("$T protocolInterceptors = $T.singletonList(new $T())",
-                                 listType,
-                                 Collections.class,
-                                 QueryParametersToBodyInterceptor.class);
-            builder.addStatement("interceptors = $T.mergeLists(interceptors, protocolInterceptors)",
-                                 CollectionUtils.class);
+            builder.addStatement("additionalInterceptors.add(new $T())", QueryParametersToBodyInterceptor.class);
         }
+
+        builder.addStatement("interceptors = $T.mergeLists(interceptors, additionalInterceptors)",
+                             CollectionUtils.class);
 
         if (model.getEndpointOperation().isPresent()) {
             builder.beginControlFlow("if (!endpointDiscoveryEnabled)")
@@ -388,6 +397,14 @@ public class BaseClientBuilderClass implements ClassSpec {
     private CodeBlock s3SignerDefinitionMethodBody() {
         return CodeBlock.of("return $T.create();\n",
                             ClassName.get("software.amazon.awssdk.auth.signer", "AwsS3V4Signer"));
+    }
+
+    private MethodSpec defaultEndpointProviderMethod() {
+        return MethodSpec.methodBuilder("defaultEndpointProvider")
+                         .addModifiers(PRIVATE)
+                         .returns(endpointRulesSpecUtils.providerInterfaceName())
+                         .addStatement("return $T.defaultProvider()", endpointRulesSpecUtils.providerInterfaceName())
+                         .build();
     }
 
     @Override

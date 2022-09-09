@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
@@ -104,7 +103,7 @@ public class EndpointProviderSpec implements ClassSpec {
 
         params.forEach((name, model) -> {
             TypeName paramType = endpointRulesSpecUtils.toJavaType(model.getType());
-            String methodVarName = Utils.unCapitalize(name);
+            String methodVarName = endpointRulesSpecUtils.paramMethodName(name);
 
             CodeBlock coerce;
             // We treat region specially and generate it as the Region type,
@@ -147,7 +146,7 @@ public class EndpointProviderSpec implements ClassSpec {
         b.addStatement("$T res = $N.evaluate($N, toIdentifierValueMap($N))",
                        Value.class, ENGINE_FIELD_NAME, RULE_SET_FIELD_NAME, paramsName);
 
-        b.addStatement("return $T.fromEndpointValue($N.expectEndpoint())", ProviderUtils.class, "res");
+        b.addStatement("return $T.valueAsEndpointOrThrow($N)", ProviderUtils.class, "res");
 
         return b.build();
     }

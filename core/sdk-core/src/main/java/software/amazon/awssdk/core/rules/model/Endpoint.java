@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.rules.model;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +24,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 
 @SdkPublicApi
 public final class Endpoint {
-    private final String url;
+    private final URI url;
     private final Map<String, List<String>> headers;
     private final Map<EndpointAttributeKey<?>, Object> attributes;
 
@@ -33,7 +34,7 @@ public final class Endpoint {
         this.attributes = b.attributes;
     }
 
-    public String url() {
+    public URI url() {
         return url;
     }
 
@@ -51,7 +52,7 @@ public final class Endpoint {
     }
 
     public interface Builder {
-        Builder url(String url);
+        Builder url(URI url);
 
         Builder putHeader(String name, String value);
 
@@ -61,12 +62,12 @@ public final class Endpoint {
     }
 
     private static class BuilderImpl implements Builder {
-        private String url;
+        private URI url;
         private final Map<String, List<String>> headers = new HashMap<>();
         private final Map<EndpointAttributeKey<?>, Object> attributes = new HashMap<>();
 
         @Override
-        public Builder url(String url) {
+        public Builder url(URI url) {
             this.url = url;
             return this;
         }

@@ -53,6 +53,10 @@ public class GeneratorPathProvider {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullClientPackageName());
     }
 
+    public String getClientInternalDirectory() {
+        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullClientInternalPackageName());
+    }
+
     public String getPaginatorsDirectory() {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullPaginatorsPackageName());
     }
