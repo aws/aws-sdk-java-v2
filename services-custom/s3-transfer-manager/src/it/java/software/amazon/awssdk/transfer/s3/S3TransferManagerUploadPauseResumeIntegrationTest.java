@@ -49,8 +49,6 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
     private static final String KEY = "key";
     // 24 * MB is chosen to make sure we have data written in the file already upon pausing.
     private static final long OBJ_SIZE = 24 * MB;
-    private static S3TransferManager tm;
-    private static S3AsyncClient s3Client;
     private static File largeFile;
     private static File smallFile;
 
@@ -60,20 +58,11 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         createBucket(BUCKET);
         largeFile = new RandomTempFile(OBJ_SIZE);
         smallFile = new RandomTempFile(2 * MB);
-        s3Client = S3AsyncClient.crtBuilder()
-                                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                .region(DEFAULT_REGION)
-                                .build();
-        tm = S3TransferManager.builder()
-                              .s3AsyncClient(s3Client)
-                              .build();
     }
 
     @AfterAll
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
-        s3Client.close();
-        tm.close();
         largeFile.delete();
         smallFile.delete();
         S3IntegrationTestBase.cleanUp();
@@ -165,13 +154,13 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
     private void verifyMultipartUploadIdExists(ResumableFileUpload resumableFileUpload) {
         String multipartUploadId = resumableFileUpload.multipartUploadId().get();
         ListPartsResponse listMultipartUploadsResponse =
-            s3Client.listParts(r -> r.uploadId(multipartUploadId).bucket(BUCKET).key(KEY)).join();
+            s3Async.listParts(r -> r.uploadId(multipartUploadId).bucket(BUCKET).key(KEY)).join();
         assertThat(listMultipartUploadsResponse).isNotNull();
     }
 
     private void verifyMultipartUploadIdNotExist(ResumableFileUpload resumableFileUpload) {
         String multipartUploadId = resumableFileUpload.multipartUploadId().get();
-        assertThatThrownBy(() -> s3Client.listParts(r -> r.uploadId(multipartUploadId).bucket(BUCKET).key(KEY)).join())
+        assertThatThrownBy(() -> s3Async.listParts(r -> r.uploadId(multipartUploadId).bucket(BUCKET).key(KEY)).join())
             .hasCauseInstanceOf(NoSuchUploadException.class);
     }
 

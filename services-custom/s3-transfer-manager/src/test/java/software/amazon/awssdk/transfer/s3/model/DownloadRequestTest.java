@@ -16,29 +16,23 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 
-public class DownloadRequestTest {
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+class DownloadRequestTest {
 
     @Test
-    public void noGetObjectRequest_throws() {
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("getObjectRequest");
+    void noGetObjectRequest_throws() {
 
-        DownloadRequest.builder()
-                       .responseTransformer(AsyncResponseTransformer.toBytes())
-                       .build();
+        assertThatThrownBy(() -> DownloadRequest.builder()
+                                                .responseTransformer(AsyncResponseTransformer.toBytes())
+                                                .build()).isInstanceOf(NullPointerException.class).hasMessageContaining(
+            "getObjectRequest");
     }
 
     @Test
@@ -57,13 +51,11 @@ public class DownloadRequestTest {
 
     @Test
     public void null_responseTransformer_shouldThrowException() {
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("responseTransformer");
-
-        DownloadRequest.builder()
-                       .getObjectRequest(b -> b.bucket("bucket").key("key"))
-                       .responseTransformer(null)
-                       .build();
+        assertThatThrownBy(() -> DownloadRequest.builder()
+                                                .getObjectRequest(b -> b.bucket("bucket").key("key"))
+                                                .responseTransformer(null)
+                                                .build()).isInstanceOf(NullPointerException.class).hasMessageContaining(
+            "responseTransformer");
 
     }
 

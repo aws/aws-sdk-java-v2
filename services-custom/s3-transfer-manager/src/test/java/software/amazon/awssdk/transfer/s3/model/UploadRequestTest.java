@@ -16,36 +16,30 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.nio.file.Paths;
 import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 
 public class UploadRequestTest {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void upload_noRequestParamsProvided_throws() {
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("putObjectRequest");
-
-        UploadRequest.builder()
-                     .requestBody(AsyncRequestBody.fromString("foo"))
-                     .build();
+        assertThatThrownBy(() -> UploadRequest.builder()
+                                              .requestBody(AsyncRequestBody.fromString("foo"))
+                                              .build()).isInstanceOf(NullPointerException.class).hasMessageContaining(
+            "putObjectRequest");
     }
 
     @Test
     public void bodyMissing_shouldThrow() {
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("requestBody");
-        UploadRequest.builder()
-                     .putObjectRequest(PutObjectRequest.builder().build())
-                     .build();
+        assertThatThrownBy(() -> UploadRequest.builder()
+                                              .putObjectRequest(PutObjectRequest.builder().build())
+                                              .build()).isInstanceOf(NullPointerException.class).hasMessageContaining(
+            "requestBody");
     }
 
     @Test
@@ -60,12 +54,11 @@ public class UploadRequestTest {
 
     @Test
     public void null_requestBody_shouldThrowException() {
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("requestBody");
-        UploadRequest.builder()
-                     .putObjectRequest(b -> b.bucket("bucket").key("key"))
-                     .requestBody(null)
-                     .build();
+        assertThatThrownBy(() -> UploadRequest.builder()
+                                              .requestBody(null)
+                                              .putObjectRequest(b -> b.bucket("bucket").key("key"))
+                                              .build()).isInstanceOf(NullPointerException.class).hasMessageContaining(
+            "requestBody");
     }
 
     @Test

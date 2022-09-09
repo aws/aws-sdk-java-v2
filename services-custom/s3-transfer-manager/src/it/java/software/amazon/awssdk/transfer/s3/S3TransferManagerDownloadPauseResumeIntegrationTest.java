@@ -51,7 +51,6 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
     private static final String KEY = "key";
     // 24 * MB is chosen to make sure we have data written in the file already upon pausing.
     private static final long OBJ_SIZE = 24 * MB;
-    private static S3TransferManager tm;
     private static File sourceFile;
 
     @BeforeAll
@@ -63,18 +62,11 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
                                      .bucket(BUCKET)
                                      .key(KEY)
                                      .build(), sourceFile.toPath());
-        tm =
-            S3TransferManager.builder().s3AsyncClient(S3AsyncClient.builder()
-                                                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                                   .region(DEFAULT_REGION)
-                                                                   .build())
-                             .build();
     }
 
     @AfterAll
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
-        tm.close();
         sourceFile.delete();
         S3IntegrationTestBase.cleanUp();
     }

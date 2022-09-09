@@ -49,7 +49,6 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     private static final String BUCKET = temporaryBucketName(S3TransferManagerDownloadIntegrationTest.class);
     private static final String KEY = "key";
     private static final int OBJ_SIZE = 16 * 1024 * 1024;
-    private static S3TransferManager tm;
     private static File file;
 
     @BeforeAll
@@ -60,17 +59,11 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
                                      .bucket(BUCKET)
                                      .key(KEY)
                                      .build(), file.toPath());
-        tm = S3TransferManager.builder()
-                              .s3AsyncClient(S3CrtAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                             .region(DEFAULT_REGION)
-                                                             .build())
-                              .build();
     }
 
     @AfterAll
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
-        tm.close();
         S3IntegrationTestBase.cleanUp();
     }
 
