@@ -915,7 +915,7 @@
                             <use>false</use>
                             <source>8</source>
                             <notree>true</notree>
-                            <nodeprecatedlist>true</nodeprecatedlist>
+<!--                            <nodeprecatedlist>true</nodeprecatedlist>-->
                             <additionalJOptions>
                                 <additionalJOption>--allow-script-in-comments</additionalJOption>
                             </additionalJOptions>
@@ -1304,11 +1304,10 @@
                             </groups>
                             <header><![CDATA[
                                 <h2>AWS SDK for Java API Reference - ${project.version}</h2>
-                                <div style="margin:1.2em;"><a id="fdbk" target="_blank">Provide feedback</a></div>
                                 ]]>
                             </header>
                             <bottom><![CDATA[
-                              <div style="margin:1.2em;"><a id="fdbk" target="_blank">Provide feedback</a></div>
+                              <div style="margin:1.2em;"><h3><a id="fdbk" target="_blank">Provide feedback</a><h3></div>
                               <span id="awsdocs-legal-zone-copyright"></span>
                               <script type="text/javascript">document.addEventListener("DOMContentLoaded",()=>{
                                 var a=document.createElement("meta"),b=document.createElement("meta"),c=document.createElement("script"),
