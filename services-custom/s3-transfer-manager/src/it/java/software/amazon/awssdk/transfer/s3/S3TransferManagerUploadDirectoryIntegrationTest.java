@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 import static software.amazon.awssdk.utils.IoUtils.closeQuietly;
 
@@ -23,6 +24,7 @@ import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -176,6 +178,8 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     @ParameterizedTest
     @MethodSource("prefix")
     void uploadDirectory_fileNameWithUnicode_traversedCorrectly(String directoryPrefix) throws IOException {
+        assumeTrue(Charset.defaultCharset().equals(StandardCharsets.UTF_8), "Ignoring the test if the test directory can't be "
+                                                                            + "created");
         Path testDirectory = null;
         try {
             log.info(() -> "Testing directory prefix: " + directoryPrefix);
