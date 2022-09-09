@@ -1302,12 +1302,13 @@
                                     <packages>software.amazon.awssdk*</packages>
                                 </group>
                             </groups>
-                            <header><![CDATA[<h2>AWS SDK for Java API Reference - ${project.version}</h2>]]></header>
-                            <footer><![CDATA[
-                            <div style="margin:1.2em;"><a id="fdbk" target="_blank">Provide feedback</a></div>
-                            ]]>
-                            </footer>
+                            <header><![CDATA[
+                                <h2>AWS SDK for Java API Reference - ${project.version}</h2>
+                                <div style="margin:1.2em;"><a id="fdbk" target="_blank">Provide feedback</a></div>
+                                ]]>
+                            </header>
                             <bottom><![CDATA[
+                              <div style="margin:1.2em;"><a id="fdbk" target="_blank">Provide feedback</a></div>
                               <span id="awsdocs-legal-zone-copyright"></span>
                               <script type="text/javascript">document.addEventListener("DOMContentLoaded",()=>{
                                 var a=document.createElement("meta"),b=document.createElement("meta"),c=document.createElement("script"),
