@@ -27,8 +27,6 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
 import software.amazon.awssdk.transfer.s3.model.Copy;
@@ -42,26 +40,14 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
     private static final String COPIED_OBJ_SPECIAL_CHARACTER = "special-special-chars-@$%";
     private static final long OBJ_SIZE = ThreadLocalRandom.current().nextLong(8 * MB, 16 * MB + 1);
 
-    private static S3TransferManager tm;
-
-    private static S3AsyncClient s3AsyncClient;
-
     @BeforeAll
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
-        s3AsyncClient = S3CrtAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                        .region(DEFAULT_REGION)
-                                        .maxConcurrency(100)
-                                        .build();
-        tm = S3TransferManager.builder()
-                              .s3AsyncClient(s3AsyncClient)
-                              .build();
     }
 
     @AfterAll
     public static void teardown() throws Exception {
-        s3AsyncClient.close();
         tm.close();
         deleteBucketAndAllContents(BUCKET);
         S3IntegrationTestBase.cleanUp();

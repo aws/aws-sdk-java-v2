@@ -16,39 +16,30 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import org.junit.jupiter.api.Test;
 
-public class DownloadFileRequestTest {
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+class DownloadFileRequestTest {
 
     @Test
-    public void noGetObjectRequest_throws() {
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("getObjectRequest");
-
-        DownloadFileRequest.builder()
-                           .destination(Paths.get("."))
-                           .build();
+    void noGetObjectRequest_throws() {
+        assertThatThrownBy(() -> DownloadFileRequest.builder()
+                                                    .destination(Paths.get("."))
+                                                    .build()).isInstanceOf(NullPointerException.class).hasMessageContaining(
+                                                        "getObjectRequest");
     }
 
     @Test
     public void pathMissing_throws() {
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("destination");
-
-        DownloadFileRequest.builder()
-                           .getObjectRequest(b -> b.bucket("bucket").key("key"))
-                           .build();
+        assertThatThrownBy(() -> DownloadFileRequest.builder()
+                                                    .getObjectRequest(b -> b.bucket("bucket").key("key"))
+                                                    .build()).isInstanceOf(NullPointerException.class).hasMessageContaining(
+            "destination");
     }
 
     @Test
@@ -63,19 +54,19 @@ public class DownloadFileRequestTest {
     }
 
     @Test
-    public void usingFile_null_shouldThrowException() {
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("destination");
+    void usingFile_null_shouldThrowException() {
         File file = null;
-        DownloadFileRequest.builder()
-                           .getObjectRequest(b -> b.bucket("bucket").key("key"))
-                           .destination(file)
-                           .build();
+
+        assertThatThrownBy(() -> DownloadFileRequest.builder()
+                                                    .getObjectRequest(b -> b.bucket("bucket").key("key"))
+                                                    .destination(file)
+                                                    .build()).isInstanceOf(NullPointerException.class).hasMessageContaining(
+            "destination");
 
     }
 
     @Test
-    public void equals_hashcode() {
+    void equals_hashcode() {
         EqualsVerifier.forClass(DownloadFileRequest.class)
                       .withNonnullFields("destination", "getObjectRequest")
                       .verify();

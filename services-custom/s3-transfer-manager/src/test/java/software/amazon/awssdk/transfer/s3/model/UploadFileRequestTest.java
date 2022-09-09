@@ -16,38 +16,31 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
 public class UploadFileRequestTest {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void upload_noRequestParamsProvided_throws() {
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("putObjectRequest");
-
-        UploadFileRequest.builder()
-                         .source(Paths.get("."))
-                         .build();
+        assertThatThrownBy(() -> UploadFileRequest.builder()
+                                                  .source(Paths.get("."))
+                                                  .build()).isInstanceOf(NullPointerException.class).hasMessageContaining(
+            "putObjectRequest");
     }
 
     @Test
     public void pathMissing_shouldThrow() {
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("source");
-        UploadFileRequest.builder()
-                         .putObjectRequest(PutObjectRequest.builder().build())
-                         .build();
+        assertThatThrownBy(() -> UploadFileRequest.builder()
+                                                  .putObjectRequest(PutObjectRequest.builder().build())
+                                                  .build()).isInstanceOf(NullPointerException.class).hasMessageContaining(
+            "source");
     }
 
     @Test
@@ -63,12 +56,11 @@ public class UploadFileRequestTest {
     @Test
     public void sourceUsingFile_null_shouldThrowException() {
         File file = null;
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("source");
-        UploadFileRequest.builder()
-                         .putObjectRequest(b -> b.bucket("bucket").key("key"))
-                         .source(file)
-                         .build();
+        assertThatThrownBy(() -> UploadFileRequest.builder()
+                                                  .putObjectRequest(b -> b.bucket("bucket").key("key"))
+                                                  .source(file)
+                                                  .build()).isInstanceOf(NullPointerException.class).hasMessageContaining(
+            "source");
     }
 
     @Test

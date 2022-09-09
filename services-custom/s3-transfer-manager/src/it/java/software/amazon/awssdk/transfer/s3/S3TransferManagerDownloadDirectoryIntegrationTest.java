@@ -29,7 +29,6 @@ import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.ComparisonFailure;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,7 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
+import org.opentest4j.AssertionFailedError;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
@@ -50,7 +49,6 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
                                                                                    + "-delimiter");
     private static final String CUSTOM_DELIMITER = "-";
 
-    private static S3TransferManager tm;
     private static Path sourceDirectory;
     private Path directory;
 
@@ -60,14 +58,6 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         createBucket(TEST_BUCKET);
         createBucket(TEST_BUCKET_CUSTOM_DELIMITER);
         sourceDirectory = createLocalTestDirectory();
-
-        tm = S3TransferManager.builder()
-                              .s3AsyncClient(S3CrtAsyncClient.builder()
-                                                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                             .region(DEFAULT_REGION)
-                                                             .maxConcurrency(100)
-                                                             .build())
-                              .build();
 
         tm.uploadDirectory(u -> u.sourceDirectory(sourceDirectory).bucket(TEST_BUCKET)).completionFuture().join();
 
@@ -236,7 +226,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
                 try {
                     assertThat(rightPath).exists();
                 } catch (AssertionError e) {
-                    throw new ComparisonFailure(e.getMessage(), toFileTreeString(left), toFileTreeString(right));
+                    throw new AssertionFailedError(e.getMessage(), toFileTreeString(left), toFileTreeString(right));
                 }
                 if (Files.isRegularFile(leftPath)) {
                     assertThat(leftPath).hasSameBinaryContentAs(rightPath);

@@ -49,8 +49,6 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
     private static final int OBJ_SIZE = 16 * 1024 * 1024;
 
     private static RandomTempFile testFile;
-    private static S3TransferManager tm;
-    private static S3AsyncClient s3Crt;
 
     @BeforeAll
     public static void setUp() throws Exception {
@@ -58,21 +56,10 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         createBucket(TEST_BUCKET);
 
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
-
-        s3Crt = S3CrtAsyncClient.builder()
-                                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                .region(DEFAULT_REGION)
-                                .build();
-
-        tm = S3TransferManager.builder()
-                              .s3AsyncClient(s3Crt)
-                              .build();
     }
 
     @AfterAll
     public static void teardown() throws IOException {
-        s3Crt.close();
-        tm.close();
         Files.delete(testFile.toPath());
         deleteBucketAndAllContents(TEST_BUCKET);
         S3IntegrationTestBase.cleanUp();

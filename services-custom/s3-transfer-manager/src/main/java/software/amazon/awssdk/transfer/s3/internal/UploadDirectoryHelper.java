@@ -19,8 +19,6 @@ import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationO
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_PREFIX;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -34,7 +32,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -61,24 +58,12 @@ public class UploadDirectoryHelper {
 
     private final TransferManagerConfiguration transferConfiguration;
     private final Function<UploadFileRequest, FileUpload> uploadFunction;
-    private final FileSystem fileSystem;
 
     public UploadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
                                  Function<UploadFileRequest, FileUpload> uploadFunction) {
 
         this.transferConfiguration = transferConfiguration;
         this.uploadFunction = uploadFunction;
-        this.fileSystem = FileSystems.getDefault();
-    }
-
-    @SdkTestInternalApi
-    UploadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
-                          Function<UploadFileRequest, FileUpload> uploadFunction,
-                          FileSystem fileSystem) {
-
-        this.transferConfiguration = transferConfiguration;
-        this.uploadFunction = uploadFunction;
-        this.fileSystem = fileSystem;
     }
 
     public DirectoryUpload uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
@@ -194,11 +179,11 @@ public class UploadDirectoryHelper {
         return prefix.endsWith(delimiter) ? prefix : prefix + delimiter;
     }
 
-    private String getRelativePathName(int directoryNameCount, Path path, String delimiter) {
+    private String getRelativePathName(Path source, int directoryNameCount, Path path, String delimiter) {
         String relativePathName = path.subpath(directoryNameCount,
                                                path.getNameCount()).toString();
 
-        String separator = fileSystem.getSeparator();
+        String separator =  source.getFileSystem().getSeparator();
 
         // Optimization for the case where separator equals to the delimiter: there is no need to call String#replace which
         // invokes Pattern#compile in Java 8
@@ -221,7 +206,10 @@ public class UploadDirectoryHelper {
                                               .map(s -> normalizePrefix(s, delimiter))
                                               .orElse(DEFAULT_PREFIX);
 
-        String relativePathName = getRelativePathName(directoryNameCount, path, delimiter);
+        String relativePathName = getRelativePathName(uploadDirectoryRequest.sourceDirectory(),
+                                                      directoryNameCount,
+                                                      path,
+                                                      delimiter);
         String key = prefix + relativePathName;
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
