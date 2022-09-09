@@ -5,10 +5,10 @@ env:
 phases:
   install:
     commands:
-      - apt-get update; apt-get install -y java-17-amazon-corretto-jdk
-      - update-alternatives --auto javac
-      - update-alternatives --auto java
-      - pip install awscli==1.19.34 --upgrade --user
+    - apt-get update; apt-get install -y java-17-amazon-corretto-jdk
+    - update-alternatives --auto javac
+    - update-alternatives --auto java
+    - pip install awscli==1.19.34 --upgrade --user
 
   pre_build:
     commands:
