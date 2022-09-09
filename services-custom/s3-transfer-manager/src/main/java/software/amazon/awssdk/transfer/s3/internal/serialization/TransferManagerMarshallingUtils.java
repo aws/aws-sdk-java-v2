@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
  * Marshallers and unmarshallers for serializing objects in TM, using the SDK request {@link MarshallingType}.
@@ -36,7 +37,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
  *     <li>MarshallingType.LIST</li>
  * </ul>
  * <p>
- * Note: unmarshalling generic List and Map structures is not supported at this time
+ * Note: unmarshalling generic List structures is not supported at this time
  */
 @SdkInternalApi
 public final class TransferManagerMarshallingUtils {
@@ -44,6 +45,7 @@ public final class TransferManagerMarshallingUtils {
     private static final Map<MarshallingType<?>, TransferManagerJsonMarshaller<?>> MARSHALLERS;
     private static final Map<MarshallingType<?>, TransferManagerJsonUnmarshaller<?>> UNMARSHALLERS;
     private static final Map<String, SdkField<?>> GET_OBJECT_SDK_FIELDS;
+    private static final Map<String, SdkField<?>> PUT_OBJECT_SDK_FIELDS;
 
     static {
         Map<MarshallingType<?>, TransferManagerJsonMarshaller<?>> marshallers = new HashMap<>();
@@ -74,10 +76,16 @@ public final class TransferManagerMarshallingUtils {
         unmarshallers.put(MarshallingType.BIG_DECIMAL, TransferManagerJsonUnmarshaller.BIG_DECIMAL);
         unmarshallers.put(MarshallingType.BOOLEAN, TransferManagerJsonUnmarshaller.BOOLEAN);
         unmarshallers.put(MarshallingType.SDK_BYTES, TransferManagerJsonUnmarshaller.SDK_BYTES);
+        unmarshallers.put(MarshallingType.MAP, TransferManagerJsonUnmarshaller.MAP);
         UNMARSHALLERS = Collections.unmodifiableMap(unmarshallers);
 
         GET_OBJECT_SDK_FIELDS = Collections.unmodifiableMap(
             GetObjectRequest.builder().build()
+                            .sdkFields().stream()
+                            .collect(Collectors.toMap(SdkField::locationName, Function.identity())));
+
+        PUT_OBJECT_SDK_FIELDS = Collections.unmodifiableMap(
+            PutObjectRequest.builder().build()
                             .sdkFields().stream()
                             .collect(Collectors.toMap(SdkField::locationName, Function.identity())));
     }
@@ -95,11 +103,13 @@ public final class TransferManagerMarshallingUtils {
     private static <T> MarshallingType<T> toMarshallingType(T val) {
         MarshallingType<?> marshallingType = MarshallingType.NULL;
         if (val != null) {
-            for (MarshallingType<?> type : MARSHALLERS.keySet()) {
-                if (type.getTargetClass().isAssignableFrom(val.getClass())) {
-                    marshallingType = type;
-                }
-            }
+            marshallingType =
+                MARSHALLERS.keySet()
+                           .stream()
+                           .filter(type -> type.getTargetClass()
+                                               .isAssignableFrom(val.getClass()))
+                           .findFirst()
+                           .orElse(MarshallingType.NULL);
         }
         return (MarshallingType<T>) marshallingType;
     }
@@ -131,4 +141,11 @@ public final class TransferManagerMarshallingUtils {
         throw new IllegalStateException("Could not match a field in GetObjectRequest");
     }
 
+    public static SdkField<?> putObjectSdkField(String key) {
+        SdkField<?> sdkField = PUT_OBJECT_SDK_FIELDS.get(key);
+        if (sdkField != null) {
+            return sdkField;
+        }
+        throw new IllegalStateException("Could not match a field in PutObjectRequest");
+    }
 }
