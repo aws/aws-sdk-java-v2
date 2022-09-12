@@ -1,3 +1,8 @@
+# __2.17.272__ __2022-09-12__
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding support for local Amazon EKS clusters on Outposts
+
 # __2.17.271__ __2022-09-09__
 ## __AWS CloudTrail__
   - ### Features
