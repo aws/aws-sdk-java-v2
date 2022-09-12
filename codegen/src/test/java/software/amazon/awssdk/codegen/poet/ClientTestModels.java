@@ -22,6 +22,7 @@ import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
@@ -66,6 +67,8 @@ public class ClientTestModels {
         File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query/waiters-2.json").getFile());
         File endpointRuleSetModel =
             new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set.json").getFile());
+        File endpointTestsModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests.json").getFile());
 
         C2jModels models = C2jModels
                 .builder()
@@ -73,6 +76,7 @@ public class ClientTestModels {
                 .customizationConfig(getCustomizationConfig(customizationModel))
                 .waitersModel(getWaiters(waitersModel))
             .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
+            .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
                 .build();
 
         return new IntermediateModelBuilder(models).build();
@@ -142,6 +146,10 @@ public class ClientTestModels {
 
     private static EndpointRuleSetModel getEndpointRuleSet(File file) {
         return ModelLoaderUtils.loadModel(EndpointRuleSetModel.class, file);
+    }
+
+    private static EndpointTestSuiteModel getEndpointTestSuite(File file) {
+        return ModelLoaderUtils.loadModel(EndpointTestSuiteModel.class, file);
     }
 
     private static Paginators getPaginatorsModel(File file) {

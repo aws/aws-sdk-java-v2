@@ -32,6 +32,7 @@ import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.CodeGenerator;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
@@ -49,6 +50,8 @@ public class GenerationMojo extends AbstractMojo {
     private static final String WAITERS_FILE = "waiters-2.json";
     private static final String PAGINATORS_FILE = "paginators-1.json";
     private static final String ENDPOINT_RULE_SET_FILE = "endpoint-rule-set.json";
+    private static final String ENDPOINT_TESTS_FILE = "endpoint-tests.json";
+
 
     @Parameter(property = "codeGenResources", defaultValue = "${basedir}/src/main/resources/codegen-resources/")
     private File codeGenResources;
@@ -79,6 +82,7 @@ public class GenerationMojo extends AbstractMojo {
                                   .waitersModel(loadWaiterModel(modelRootPath))
                                   .paginatorsModel(loadPaginatorModel(modelRootPath))
                                   .endpointRuleSetModel(loadEndpointRuleSetModel(modelRootPath))
+                                  .endpointTestSuiteModel(loadEndpointTestSuiteModel(modelRootPath))
                                   .build());
         });
         project.addCompileSourceRoot(sourcesDirectory.toFile().getAbsolutePath());
@@ -139,6 +143,10 @@ public class GenerationMojo extends AbstractMojo {
 
     private EndpointRuleSetModel loadEndpointRuleSetModel(Path root) {
         return loadRequiredModel(EndpointRuleSetModel.class, root.resolve(ENDPOINT_RULE_SET_FILE));
+    }
+
+    private EndpointTestSuiteModel loadEndpointTestSuiteModel(Path root) {
+        return loadRequiredModel(EndpointTestSuiteModel.class, root.resolve(ENDPOINT_TESTS_FILE));
     }
 
     /**

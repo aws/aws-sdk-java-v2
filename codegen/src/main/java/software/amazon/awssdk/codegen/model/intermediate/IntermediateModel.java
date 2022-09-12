@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
@@ -55,6 +56,9 @@ public final class IntermediateModel {
     private EndpointRuleSetModel endpointRuleSetModel;
 
     @JsonIgnore
+    private EndpointTestSuiteModel endpointTestSuiteModel;
+
+    @JsonIgnore
     private NamingStrategy namingStrategy;
 
     static {
@@ -75,7 +79,7 @@ public final class IntermediateModel {
                              Map<String, ShapeModel> shapes,
                              CustomizationConfig customizationConfig) {
         this(metadata, operations, shapes, customizationConfig, null,
-             Collections.emptyMap(), null, Collections.emptyMap(), null);
+             Collections.emptyMap(), null, Collections.emptyMap(), null, null);
     }
 
     public IntermediateModel(
@@ -87,7 +91,8 @@ public final class IntermediateModel {
         Map<String, PaginatorDefinition> paginators,
         NamingStrategy namingStrategy,
         Map<String, WaiterDefinition> waiters,
-        EndpointRuleSetModel endpointRuleSetModel) {
+        EndpointRuleSetModel endpointRuleSetModel,
+        EndpointTestSuiteModel endpointTestSuiteModel) {
         this.metadata = metadata;
         this.operations = operations;
         this.shapes = shapes;
@@ -97,6 +102,7 @@ public final class IntermediateModel {
         this.namingStrategy = namingStrategy;
         this.waiters = waiters;
         this.endpointRuleSetModel = endpointRuleSetModel;
+        this.endpointTestSuiteModel = endpointTestSuiteModel;
     }
 
     public Metadata getMetadata() {
@@ -162,6 +168,10 @@ public final class IntermediateModel {
 
     public EndpointRuleSetModel getEndpointRuleSetModel() {
         return endpointRuleSetModel;
+    }
+
+    public EndpointTestSuiteModel getEndpointTestSuiteModel() {
+        return endpointTestSuiteModel;
     }
 
     public void setPaginators(Map<String, PaginatorDefinition> paginators) {

@@ -33,6 +33,13 @@ public class ParameterModel {
         this.type = type;
     }
 
+    public BuiltInParameter getBuiltInEnum() {
+        if (builtIn == null) {
+            return null;
+        }
+        return BuiltInParameter.fromValue(builtIn);
+    }
+
     public String getBuiltIn() {
         return builtIn;
     }

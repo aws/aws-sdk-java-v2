@@ -20,10 +20,12 @@ import java.util.List;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.poet.rules.EndpointParametersClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderInterceptorSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderInterfaceSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderSpec;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesTestSpec;
 
 public final class EndpointProviderTasks extends BaseGeneratorTasks {
     private final GeneratorTaskParams generatorTaskParams;
@@ -40,6 +42,9 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         tasks.add(generateParams());
         tasks.add(generateDefaultProvider());
         tasks.add(generateInterceptor());
+        if (shouldGenerateTests()) {
+            tasks.add(generateTests());
+        }
         return tasks;
     }
 
@@ -60,12 +65,26 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
                                      new EndpointProviderInterceptorSpec(model));
     }
 
+    private GeneratorTask generateTests() {
+        return new PoetGeneratorTask(endpointTestsDir(), model.getFileHeader(), new EndpointRulesTestSpec(model));
+    }
+
     private String endpointRulesDir() {
         return generatorTaskParams.getPathProvider().getEndpointRulesDirectory();
     }
 
     private String endpointRulesInternalDir() {
         return generatorTaskParams.getPathProvider().getEndpointRulesInternalDirectory();
+    }
+
+    private String endpointTestsDir() {
+        return generatorTaskParams.getPathProvider().getEndpointRulesTestDirectory();
+    }
+
+    private boolean shouldGenerateTests() {
+        CustomizationConfig customizationConfig = generatorTaskParams.getModel().getCustomizationConfig();
+
+        return !Boolean.TRUE.equals(customizationConfig.isSkipEndpointTestGeneration());
     }
 
 }
