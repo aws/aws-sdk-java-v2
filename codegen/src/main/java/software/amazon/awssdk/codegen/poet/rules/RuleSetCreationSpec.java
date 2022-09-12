@@ -70,8 +70,8 @@ public class RuleSetCreationSpec {
         CodeBlock.Builder b = CodeBlock.builder();
 
         b.add("$T.builder()", EndpointRuleset.class)
-            .add(".version($S)", ruleSetModel.getVersion())
-            .add(".serviceId($S)", ruleSetModel.getServiceId())
+         .add(".version($S)", ruleSetModel.getVersion())
+         .add(".serviceId($S)", ruleSetModel.getServiceId())
             .add(".parameters($L)", parameters(ruleSetModel.getParameters()));
 
         ruleSetModel.getRules().stream()

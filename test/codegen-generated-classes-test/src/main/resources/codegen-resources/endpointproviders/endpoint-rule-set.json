@@ -26,6 +26,26 @@
             "required": false,
             "documentation": "Override the endpoint used to send this request",
             "type": "String"
+        },
+        "StaticStringParam": {
+            "type": "String",
+            "required": false
+        },
+        "OperationContextParam": {
+            "type": "String",
+            "required": false
+        },
+        "RegionWithDefault": {
+            "type": "String",
+            "required": true,
+            "default": "us-east-1",
+            "builtIn": "AWS::Region"
+        },
+        "BooleanClientContextParam": {
+            "type": "Boolean"
+        },
+        "StringClientContextParam": {
+            "type": "String"
         }
     },
     "rules": [

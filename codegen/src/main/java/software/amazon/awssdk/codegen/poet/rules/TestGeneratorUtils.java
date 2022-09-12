@@ -139,7 +139,7 @@ public final class TestGeneratorUtils {
                     schemeExpr.add(".signingRegion($S)", ((JrsString) memberValue).getValue());
                     break;
                 case "disableDoubleEncoding":
-                    schemeExpr.add(".disableDoubleEncoding($S)", ((JrsBoolean) memberValue).booleanValue());
+                    schemeExpr.add(".disableDoubleEncoding($L)", ((JrsBoolean) memberValue).booleanValue());
                     break;
                 case "signingRegionSet": {
                     JrsArray regions = (JrsArray) memberValue;

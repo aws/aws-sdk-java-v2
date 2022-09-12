@@ -1,4 +1,3 @@
-software.amazon.awssdk.services.s3.internal.handlers.EndpointAddressInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.CreateBucketInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.PutObjectInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.CreateMultipartUploadRequestInterceptor
@@ -12,4 +11,4 @@ software.amazon.awssdk.services.s3.internal.handlers.EnableTrailingChecksumInter
 software.amazon.awssdk.services.s3.internal.handlers.ExceptionTranslationInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.GetObjectInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.CopySourceInterceptor
-software.amazon.awssdk.services.s3.internal.handlers.SignerOverrideInterceptor
+software.amazon.awssdk.services.s3.internal.handlers.RemoveBucketFromPathInterceptor

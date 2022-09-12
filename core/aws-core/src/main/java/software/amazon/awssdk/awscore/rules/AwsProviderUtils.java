@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public final class AwsProviderUtils {
@@ -105,10 +106,12 @@ public final class AwsProviderUtils {
         String newPath = newUri.getRawPath();
         String existingPath = request.getUri().getRawPath();
 
-        if (newPath.endsWith("/") || existingPath.startsWith("/")) {
-            newPath += existingPath;
-        } else {
-            newPath = newPath + "/" + existingPath;
+        if (StringUtils.isNotBlank(existingPath)) {
+            if (newPath.endsWith("/") || existingPath.startsWith("/")) {
+                newPath += existingPath;
+            } else {
+                newPath = newPath + "/" + existingPath;
+            }
         }
 
         return request.toBuilder()
