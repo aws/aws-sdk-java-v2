@@ -18,7 +18,6 @@ package software.amazon.awssdk.codegen.poet.rules;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
-import java.util.Locale;
 import java.util.Map;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -75,9 +74,7 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
         String providerVar = "provider";
 
         // We skip resolution if the source of the endpoint is the endpoint discovery call
-        // Note: endpointIsOverridden is a workaround until all rules handle endpoint overrides internally
-        b.beginControlFlow("if ($1T.endpointIsOverridden(executionAttributes)"
-                           + "|| $1T.endpointIsDiscovered(executionAttributes))",
+        b.beginControlFlow("if ($1T.endpointIsDiscovered(executionAttributes))",
                            ProviderUtils.class)
          .addStatement("return context.httpRequest()")
             .endControlFlow();
@@ -100,24 +97,30 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
         Map<String, ParameterModel> parameters = model.getEndpointRuleSetModel().getParameters();
 
         parameters.forEach((n, m) -> {
-            if (m.getBuiltIn() == null) {
+            if (m.getBuiltInEnum() == null) {
                 return;
             }
 
             String setterName = endpointRulesSpecUtils.paramMethodName(n);
             String builtInFn;
-            switch (m.getBuiltIn().toLowerCase(Locale.ENGLISH)) {
-                case "aws::region":
+            switch (m.getBuiltInEnum()) {
+                case AWS_REGION:
                     builtInFn = "regionBuiltIn";
                     break;
-                case "aws::usedualstack":
+                case AWS_USE_DUAL_STACK:
                     builtInFn = "dualStackEnabledBuiltIn";
                     break;
-                case "aws::usefips":
+                case AWS_USE_FIPS:
                     builtInFn = "fipsEnabledBuiltIn";
                     break;
+                case SDK_ENDPOINT:
+                    builtInFn = "endpointBuiltIn";
+                    break;
+                case AWS_STS_USE_GLOBAL_ENDPOINT:
+                    // TODO: handle this
+                    return;
                 default:
-                    throw new RuntimeException("Don't know how to set built-in " + m.getBuiltIn());
+                    throw new RuntimeException("Don't know how to set built-in " + m.getBuiltInEnum());
             }
 
             b.addCode(".$N($T.$N(executionAttributes))", setterName, AwsProviderUtils.class, builtInFn);

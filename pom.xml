@@ -83,6 +83,7 @@
         <module>test/s3-benchmarks</module>
         <module>test/auth-tests</module>
         <module>test/region-testing</module>
+        <module>test/ruleset-testing-core</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>

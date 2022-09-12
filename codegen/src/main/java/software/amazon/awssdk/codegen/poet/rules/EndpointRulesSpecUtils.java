@@ -22,6 +22,7 @@ import java.util.Locale;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.regions.Region;
@@ -58,6 +59,12 @@ public class EndpointRulesSpecUtils {
                              md.getServiceName() + "EndpointInterceptor");
     }
 
+    public ClassName endpointTestsName() {
+        Metadata md = intermediateModel.getMetadata();
+        return ClassName.get(md.getFullEndpointRulesPackageName(),
+                             md.getServiceName() + "EndpointTests");
+    }
+
     public String paramMethodName(String param) {
         return Utils.unCapitalize(CodegenNamingUtils.pascalCase(param));
     }
@@ -92,11 +99,11 @@ public class EndpointRulesSpecUtils {
     }
 
     public TypeName parameterType(ParameterModel param) {
-        if (param.getBuiltIn() == null || !"aws::region".equalsIgnoreCase(param.getBuiltIn())) {
+        if (param.getBuiltInEnum() == null || param.getBuiltInEnum() != BuiltInParameter.AWS_REGION) {
             return toJavaType(param.getType());
         }
 
-        if ("aws::region".equals(param.getBuiltIn().toLowerCase(Locale.ENGLISH))) {
+        if (param.getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
             return ClassName.get(Region.class);
         }
         return toJavaType(param.getType());

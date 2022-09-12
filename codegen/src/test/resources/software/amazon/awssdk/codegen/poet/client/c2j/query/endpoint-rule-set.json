@@ -10,11 +10,11 @@
     },
     "useDualStackEndpoint": {
       "type": "boolean",
-      "builtIn": "AWS::UseDualStackEndpoint"
+      "builtIn": "AWS::UseDualStack"
     },
     "useFIPSEndpoint": {
       "type": "boolean",
-      "builtIn": "AWS::UseFIPSEndpoint"
+      "builtIn": "AWS::UseFIPS"
     },
     "endpointId": {
       "type": "string"

@@ -18,6 +18,8 @@ package software.amazon.awssdk.awscore.rules;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.rules.ProviderUtils;
 import software.amazon.awssdk.regions.Region;
 
 @SdkInternalApi
@@ -35,5 +37,12 @@ public final class AwsProviderUtils {
 
     public static Boolean fipsEnabledBuiltIn(ExecutionAttributes executionAttributes) {
         return executionAttributes.getAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED);
+    }
+
+    public static String endpointBuiltIn(ExecutionAttributes executionAttributes) {
+        if (ProviderUtils.endpointIsOverridden(executionAttributes)) {
+            return executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT).toString();
+        }
+        return null;
     }
 }

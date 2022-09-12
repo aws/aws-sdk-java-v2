@@ -36,6 +36,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Operation;
@@ -61,6 +62,7 @@ public class IntermediateModelBuilder {
     private final Paginators paginators;
     private final Waiters waiters;
     private final EndpointRuleSetModel endpointRuleSet;
+    private final EndpointTestSuiteModel endpointTestSuiteModel;
 
     public IntermediateModelBuilder(C2jModels models) {
         this.customConfig = models.customizationConfig();
@@ -71,6 +73,7 @@ public class IntermediateModelBuilder {
         this.paginators = models.paginatorsModel();
         this.waiters = models.waitersModel();
         this.endpointRuleSet = models.endpointRuleSetModel();
+        this.endpointTestSuiteModel = models.endpointTestSuiteModel();
     }
 
 
@@ -133,7 +136,7 @@ public class IntermediateModelBuilder {
         IntermediateModel fullModel = new IntermediateModel(
             constructMetadata(service, customConfig), operations, shapes,
             customConfig, endpointOperation, paginators.getPagination(), namingStrategy,
-            waiters.getWaiters(), endpointRuleSet);
+            waiters.getWaiters(), endpointRuleSet, endpointTestSuiteModel);
 
         customization.postprocess(fullModel);
 
@@ -153,7 +156,8 @@ public class IntermediateModelBuilder {
                                                                fullModel.getPaginators(),
                                                                namingStrategy,
                                                                fullModel.getWaiters(),
-                                                               fullModel.getEndpointRuleSetModel());
+                                                               fullModel.getEndpointRuleSetModel(),
+                                                               endpointTestSuiteModel);
 
         linkMembersToShapes(trimmedModel);
         linkOperationsToInputOutputShapes(trimmedModel);
