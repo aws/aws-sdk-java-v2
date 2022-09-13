@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "Two new features for local gateway route tables: support for static routes targeting Elastic Network Interfaces and direct VPC routing."
+}
