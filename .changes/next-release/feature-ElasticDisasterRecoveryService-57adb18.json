@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Disaster Recovery Service",
-    "contributor": "",
-    "description": "Fixed the data type of lagDuration that is returned in Describe Source Server API"
-}
