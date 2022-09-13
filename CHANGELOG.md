@@ -1,3 +1,32 @@
+# __2.17.273__ __2022-09-13__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release introduces the ability to have multiple server host keys for any of your Transfer Family servers that use the SFTP protocol.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - This release enables our customer to choose the option of Sharepoint 2019 for the on-premise Sharepoint connector.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - This release adds support for the client-side evaluation - powered by AWS AppConfig feature.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Added isUnstructured in response for Customer Profiles Integration APIs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Two new features for local gateway route tables: support for static routes targeting Elastic Network Interfaces and direct VPC routing.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Fixed the data type of lagDuration that is returned in Describe Source Server API
+
 # __2.17.272__ __2022-09-12__
 ## __Amazon Elastic Kubernetes Service__
   - ### Features
