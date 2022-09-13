@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.interceptor;
 
+import static software.amazon.awssdk.core.HttpChecksumConstant.DEFAULT_ASYNC_CHUNK_SIZE;
 import static software.amazon.awssdk.core.internal.io.AwsUnsignedChunkedEncodingInputStream.calculateStreamContentLength;
 
 import java.util.Optional;
@@ -100,7 +101,7 @@ public final class AsyncRequestBodyHttpChecksumTrailerInterceptor implements Exe
                                                                   long checksumContentLength, long originalContentLength) {
 
         long chunkLength =
-            calculateStreamContentLength(originalContentLength, ChecksumCalculatingAsyncRequestBody.DEFAULT_CHUNK_SIZE);
+            calculateStreamContentLength(originalContentLength, DEFAULT_ASYNC_CHUNK_SIZE);
 
         return context.httpRequest().copy(r ->
                 r.putHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, checksum.headerName())

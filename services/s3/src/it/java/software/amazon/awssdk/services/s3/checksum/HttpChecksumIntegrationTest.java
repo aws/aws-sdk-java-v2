@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.KB;
 import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.createDataOfSize;
-import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.fixedLengthInKbFileWithRandomOrFixedCharacters;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.BufferedReader;
@@ -51,11 +50,12 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.utils.CaptureChecksumValidationInterceptor;
+import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.testutils.Waiter;
 
 public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
-    public static final int HUGE_MSG_SIZE = 16384 * KB;
+    public static final int HUGE_MSG_SIZE = 1600 * KB;
     protected static final String KEY = "some-key";
     private static final String BUCKET = temporaryBucketName(HttpChecksumIntegrationTest.class);
     public static CaptureChecksumValidationInterceptor interceptor = new CaptureChecksumValidationInterceptor();
@@ -79,10 +79,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
 
         createBucket(BUCKET);
-
-        Waiter.run(() -> s3.headBucket(r -> r.bucket(BUCKET)))
-              .ignoringException(NoSuchBucketException.class)
-              .orFail();
+        s3.waiter().waitUntilBucketExists(s ->s.bucket(BUCKET));
         interceptor.reset();
     }
 
@@ -355,8 +352,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void syncValidUnsignedTrailerChecksumCalculatedBySdkClient_withSmallFileRequestBody() throws InterruptedException,
                                                                                                         IOException {
-
-        File randomFileOfFixedLength = fixedLengthInKbFileWithRandomOrFixedCharacters(10, true);
+        File randomFileOfFixedLength = new RandomTempFile(10 * KB);
 
         s3Https.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
@@ -382,7 +378,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void syncValidUnsignedTrailerChecksumCalculatedBySdkClient_withHugeFileRequestBody() throws IOException {
-        File randomFileOfFixedLength = fixedLengthInKbFileWithRandomOrFixedCharacters(34, true);
+        File randomFileOfFixedLength = new RandomTempFile(34 * KB);
         s3Https.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)

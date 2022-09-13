@@ -21,12 +21,16 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Utilities for computing the SHA-256 checksums of various binary objects.
@@ -76,20 +80,12 @@ public final class ChecksumUtils {
         }
     }
 
-    public static File fixedLengthInKbFileWithRandomOrFixedCharacters(int sizeInKb, boolean isRandom) throws IOException {
-        File tempFile = File.createTempFile("temp-random-sdk-file-", ".tmp");
-        try (RandomAccessFile randomAccessFile = new RandomAccessFile(tempFile, "rw")) {
-            PrintWriter writer = new PrintWriter(tempFile, "UTF-8");
-            int objectSize = sizeInKb * 1024;
-            Random random = new Random();
-            for (int index = 0; index < objectSize; index++) {
-                int offset = isRandom ? random.nextInt(26) : 0;
-                writer.print(index % 5 == 0 ? ' ' : (char) ('a' + offset));
-            }
-            writer.flush();
+    public static String calculatedChecksum(String contentString, Algorithm algorithm) {
+        SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(algorithm);
+        for (byte character : contentString.getBytes(StandardCharsets.UTF_8)) {
+            sdkChecksum.update(character);
         }
-        tempFile.deleteOnExit();
-        return tempFile;
+        return BinaryUtils.toBase64(sdkChecksum.getChecksumBytes());
     }
 
     public static String createDataOfSize(int dataSize, char contentCharacter) {

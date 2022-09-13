@@ -93,13 +93,10 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
                 handleStateUpdate();
             }
 
-
             @Override
             public void cancel() {
                 subscription.cancel();
             }
-
-
         });
     }
 
@@ -147,8 +144,6 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
             upstreamSubscription.cancel();
             onError(new IllegalArgumentException("Demand must not be negative"));
         }
-
-
     }
 
     /**

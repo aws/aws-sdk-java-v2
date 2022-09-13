@@ -15,14 +15,13 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import static software.amazon.awssdk.core.HttpChecksumConstant.DEFAULT_ASYNC_CHUNK_SIZE;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumContentLength;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChunkLength;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.createChecksumTrailer;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.createChunk;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
@@ -43,16 +42,12 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkInternalApi
 public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
 
-    public static final int DEFAULT_CHUNK_SIZE = 16 * 1024;
-
-    public static final byte[] FINAL_BYTE = new byte[0];
+    private static final byte[] FINAL_BYTE = new byte[0];
     private final AsyncRequestBody wrapped;
     private final SdkChecksum sdkChecksum;
     private final Algorithm algorithm;
     private final String trailerHeader;
-    private final AtomicLong remainingBytes;
     private final long totalBytes;
-    private final ByteBuffer currentBuffer;
 
     private ChecksumCalculatingAsyncRequestBody(DefaultBuilder builder) {
 
@@ -65,8 +60,6 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         this.trailerHeader = builder.trailerHeader;
         this.totalBytes = wrapped.contentLength()
                                  .orElseThrow(() -> new UnsupportedOperationException("Content length must be supplied."));
-        this.remainingBytes = new AtomicLong();
-        this.currentBuffer = ByteBuffer.allocate(DEFAULT_CHUNK_SIZE);
     }
 
     /**
@@ -157,9 +150,7 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
             sdkChecksum.reset();
         }
 
-        this.remainingBytes.set(totalBytes);
-
-        wrapped.flatMapIterable(this::bufferAndCreateChunks)
+        wrapped.flatMapIterable(this::buffer)
                .subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum, trailerHeader, totalBytes));
     }
 
@@ -239,47 +230,13 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         }
     }
 
-    private Iterable<ByteBuffer> bufferAndCreateChunks(ByteBuffer buffer) {
-        int startPosition = 0;
-        int currentBytesRead = buffer.remaining();
-
-        List<ByteBuffer> resultBufferedList = new ArrayList<>();
-        do {
-            int bufferedBytes = currentBuffer.position();
-            int availableToRead = DEFAULT_CHUNK_SIZE - bufferedBytes;
-            int bytesToMove = Math.min(availableToRead, currentBytesRead - startPosition);
-
-            if (bufferedBytes == 0) {
-                currentBuffer.put(buffer.array(), startPosition, bytesToMove);
-            } else {
-                currentBuffer.put(buffer.array(), 0, bytesToMove);
-            }
-
-            startPosition = startPosition + bytesToMove;
-
-            // Send the data once the buffer is full
-            if (currentBuffer.position() == DEFAULT_CHUNK_SIZE) {
-                currentBuffer.position(0);
-                ByteBuffer bufferToSend = ByteBuffer.allocate(DEFAULT_CHUNK_SIZE);
-                bufferToSend.put(currentBuffer.array(), 0, DEFAULT_CHUNK_SIZE);
-                bufferToSend.clear();
-                currentBuffer.clear();
-                resultBufferedList.add(bufferToSend);
-                remainingBytes.addAndGet(-DEFAULT_CHUNK_SIZE);
-            }
-
-        } while (startPosition < currentBytesRead);
-
-        int bufferedBytes = currentBuffer.position();
-        // Send the remainder buffered bytes at the end when there no more bytes
-        if (bufferedBytes > 0 && remainingBytes.get() == bufferedBytes) {
-            currentBuffer.clear();
-            ByteBuffer trimmedBuffer = ByteBuffer.allocate(bufferedBytes);
-            trimmedBuffer.put(currentBuffer.array(), 0, bufferedBytes);
-            trimmedBuffer.clear();
-            resultBufferedList.add(trimmedBuffer);
-            remainingBytes.addAndGet(-bufferedBytes);
-        }
-        return resultBufferedList;
+    private Iterable<ByteBuffer> buffer(ByteBuffer bytes) {
+        ChunkBuffer chunkBuffer = ChunkBuffer.builder()
+                                             .bufferSize(DEFAULT_ASYNC_CHUNK_SIZE)
+                                             .totalBytes(bytes.remaining())
+                                             .build();
+        chunkBuffer.bufferAndCreateChunks(bytes);
+        return chunkBuffer.getBufferedList();
     }
+
 }

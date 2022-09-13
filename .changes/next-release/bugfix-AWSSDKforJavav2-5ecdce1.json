@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Fixed issue where request used to fail while calculating Trailer based checksum for Async File Request body."
+    "description": "Fixed issue where request used to fail while calculating Trailer based checksum for Async Request body."
 }

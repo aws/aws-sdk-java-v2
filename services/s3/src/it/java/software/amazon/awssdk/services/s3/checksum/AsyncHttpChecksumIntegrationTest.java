@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.s3.checksum;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.KB;
 import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.createDataOfSize;
-import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.fixedLengthInKbFileWithRandomOrFixedCharacters;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.File;
@@ -48,6 +47,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.utils.CaptureChecksumValidationInterceptor;
+import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.testutils.Waiter;
 
 public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
@@ -69,12 +69,8 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
         s3HttpAsync = s3AsyncClientBuilder().overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
                                             .endpointOverride(URI.create("http://s3." + DEFAULT_REGION + ".amazonaws.com")).build();
 
-
         createBucket(BUCKET);
-
-        Waiter.run(() -> s3.headBucket(r -> r.bucket(BUCKET)))
-              .ignoringException(NoSuchBucketException.class)
-              .orFail();
+        s3.waiter().waitUntilBucketExists(s ->s.bucket(BUCKET));
         interceptor.reset();
     }
 
@@ -141,7 +137,7 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
     @ValueSource(ints = {1*KB, 12*KB, 16*KB, 17*KB, 32*KB, 33*KB})
     void asyncHttpsValidUnsignedTrailerChecksumCalculatedBySdkClient_withDifferentChunkSize_OfFileAsyncFileRequestBody
         (int chunkSize) throws IOException {
-        File randomFileOfFixedLength = fixedLengthInKbFileWithRandomOrFixedCharacters(64, true);
+        File randomFileOfFixedLength = new RandomTempFile(64 * KB);
         s3Async.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)
@@ -170,8 +166,8 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
     void asyncHttpsValidUnsignedTrailer_TwoRequests_withDifferentChunkSize_OfFileAsyncFileRequestBody(int chunkSize)
         throws IOException {
 
-        File randomFileOfFixedLengthOne = fixedLengthInKbFileWithRandomOrFixedCharacters(64, true);
-        File randomFileOfFixedLengthTwo = fixedLengthInKbFileWithRandomOrFixedCharacters(17, true);
+        File randomFileOfFixedLengthOne = new RandomTempFile(64 * KB);
+        File randomFileOfFixedLengthTwo = new RandomTempFile(17 * KB);
         CompletableFuture<PutObjectResponse> putObjectFutureOne =
             s3Async.putObject(PutObjectRequest.builder()
                                               .bucket(BUCKET)

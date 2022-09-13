@@ -35,12 +35,10 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.RandomAccessFile;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
@@ -53,12 +51,16 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
+import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
     public static final int KB = 1024;
@@ -71,6 +73,10 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
     public WireMockRule wireMock = new WireMockRule(0);
     private ProtocolRestJsonAsyncClient asyncClient;
     private ProtocolRestJsonAsyncClient asyncClientWithSigner;
+
+    public static String createDataOfSize(int dataSize, char contentCharacter) {
+        return IntStream.range(0, dataSize).mapToObj(i -> String.valueOf(contentCharacter)).collect(Collectors.joining());
+    }
 
     @Before
     public void setupClient() {
@@ -132,14 +138,14 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
                 expectedRequestBody)));
     }
 
-
     @Test
     public void asyncStreaming_FromAsyncRequestBody_VariableChunkSize_NoSigner_addsChecksums_fromInterceptors() throws IOException {
 
         stubForFailureThenSuccess(500, "500");
-
-        File randomFileOfFixedLength = fixedLengthInKbFileWithRandomOrFixedCharacters(37, false);
+        File randomFileOfFixedLength = new RandomTempFile(37 * KB);
         String contentString = new String(Files.readAllBytes(randomFileOfFixedLength.toPath()));
+        String expectedChecksum = calculatedChecksum(contentString, Algorithm.CRC32);
+
         asyncClient.putOperationWithChecksum(b -> b.checksumAlgorithm(ChecksumAlgorithm.CRC32),
                                              FileAsyncRequestBody.builder().path(randomFileOfFixedLength.toPath())
                                                                  .chunkSizeInBytes(16 * KB)
@@ -152,16 +158,18 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
                 + "4000" + CRLF + contentString.substring(16 * KB, 32 * KB) + CRLF
                 + "1400" + CRLF + contentString.substring(32 * KB) + CRLF
                 + "0" + CRLF
-                + "x-amz-checksum-crc32:wQiPHw==" + CRLF + CRLF)));
+                + "x-amz-checksum-crc32:" + expectedChecksum + CRLF + CRLF)));
     }
 
     @Test
     public void asyncStreaming_withRetry_FromAsyncRequestBody_VariableChunkSize_NoSigner_addsChecksums_fromInterceptors() throws IOException {
 
 
-        File randomFileOfFixedLength = fixedLengthInKbFileWithRandomOrFixedCharacters(37, false);
+        File randomFileOfFixedLength = new RandomTempFile(37 * KB);
         String contentString = new String(Files.readAllBytes(randomFileOfFixedLength.toPath()));
+        String expectedChecksum = calculatedChecksum(contentString, Algorithm.CRC32);
         stubResponseWithHeaders();
+
         asyncClient.putOperationWithChecksum(b -> b.checksumAlgorithm(ChecksumAlgorithm.CRC32),
                                              FileAsyncRequestBody.builder().path(randomFileOfFixedLength.toPath())
                                                                  .chunkSizeInBytes(16 * KB)
@@ -174,9 +182,16 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
                 + "4000" + CRLF + contentString.substring(16 * KB, 32 * KB) + CRLF
                 + "1400" + CRLF + contentString.substring(32 * KB) + CRLF
                 + "0" + CRLF
-                + "x-amz-checksum-crc32:wQiPHw==" + CRLF + CRLF)));
+                + "x-amz-checksum-crc32:" + expectedChecksum + CRLF + CRLF)));
     }
 
+    private String calculatedChecksum(String contentString, Algorithm algorithm) {
+        SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(algorithm);
+        for (byte character : contentString.getBytes(StandardCharsets.UTF_8)) {
+            sdkChecksum.update(character);
+        }
+        return BinaryUtils.toBase64(sdkChecksum.getChecksumBytes());
+    }
 
     private void stubResponseWithHeaders() {
         stubFor(put(anyUrl())
@@ -223,26 +238,5 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
         verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("aws-chunked")));
     }
 
-
-
-    public static File fixedLengthInKbFileWithRandomOrFixedCharacters(int sizeInKb, boolean isRandom) throws IOException {
-        File tempFile = File.createTempFile("temp-random-sdk-file-", ".tmp");
-        try (RandomAccessFile randomAccessFile = new RandomAccessFile(tempFile, "rw")) {
-            PrintWriter writer = new PrintWriter(tempFile, "UTF-8");
-            int objectSize = sizeInKb * 1024;
-            Random random = new Random();
-            for (int index = 0; index < objectSize; index++) {
-                int offset = isRandom ? random.nextInt(26) : 0;
-                writer.print(index % 5 == 0 ? ' ' : (char) ('a' + offset));
-            }
-            writer.flush();
-        }
-        tempFile.deleteOnExit();
-        return tempFile;
-    }
-
-    public static String createDataOfSize(int dataSize, char contentCharacter) {
-        return IntStream.range(0, dataSize).mapToObj(i -> String.valueOf(contentCharacter)).collect(Collectors.joining());
-    }
 
 }
