@@ -12,12 +12,14 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AsyncAws4Signer;
+import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkPojoBuilder;
@@ -46,6 +48,8 @@ import software.amazon.awssdk.services.xml.model.APostOperationRequest;
 import software.amazon.awssdk.services.xml.model.APostOperationResponse;
 import software.amazon.awssdk.services.xml.model.APostOperationWithOutputRequest;
 import software.amazon.awssdk.services.xml.model.APostOperationWithOutputResponse;
+import software.amazon.awssdk.services.xml.model.BearerAuthOperationRequest;
+import software.amazon.awssdk.services.xml.model.BearerAuthOperationResponse;
 import software.amazon.awssdk.services.xml.model.EventStream;
 import software.amazon.awssdk.services.xml.model.EventStreamOperationRequest;
 import software.amazon.awssdk.services.xml.model.EventStreamOperationResponse;
@@ -67,6 +71,7 @@ import software.amazon.awssdk.services.xml.model.XmlException;
 import software.amazon.awssdk.services.xml.model.XmlRequest;
 import software.amazon.awssdk.services.xml.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.APostOperationWithOutputRequestMarshaller;
+import software.amazon.awssdk.services.xml.transform.BearerAuthOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.EventStreamOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.GetOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.OperationWithChecksumRequiredRequestMarshaller;
@@ -209,6 +214,61 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
                              .withInput(aPostOperationWithOutputRequest));
             CompletableFuture<APostOperationWithOutputResponse> whenCompleteFuture = null;
+            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
+            CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
+            return whenCompleteFuture;
+        } catch (Throwable t) {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
+
+    /**
+     * Invokes the BearerAuthOperation operation asynchronously.
+     *
+     * @param bearerAuthOperationRequest
+     * @return A Java Future containing the result of the BearerAuthOperation operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>XmlException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample XmlAsyncClient.BearerAuthOperation
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/xml-service-2010-05-08/BearerAuthOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public CompletableFuture<BearerAuthOperationResponse> bearerAuthOperation(
+        BearerAuthOperationRequest bearerAuthOperationRequest) {
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, bearerAuthOperationRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "BearerAuthOperation");
+            bearerAuthOperationRequest = applySignerOverride(bearerAuthOperationRequest, BearerTokenSigner.create());
+
+            HttpResponseHandler<Response<BearerAuthOperationResponse>> responseHandler = protocolFactory
+                .createCombinedResponseHandler(BearerAuthOperationResponse::builder,
+                                               new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+
+            CompletableFuture<BearerAuthOperationResponse> executeFuture = clientHandler
+                .execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
+                             .withOperationName("BearerAuthOperation")
+                             .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory))
+                             .withCombinedResponseHandler(responseHandler)
+                             .credentialType(CredentialType.TOKEN)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withInput(bearerAuthOperationRequest));
+            CompletableFuture<BearerAuthOperationResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
