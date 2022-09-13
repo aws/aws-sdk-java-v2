@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Customer Profiles",
+    "contributor": "",
+    "description": "Added isUnstructured in response for Customer Profiles Integration APIs"
+}
