@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "This update introduces API operations to manage and create local gateway route tables, CoIP pools, and VIF group associations."
-}
