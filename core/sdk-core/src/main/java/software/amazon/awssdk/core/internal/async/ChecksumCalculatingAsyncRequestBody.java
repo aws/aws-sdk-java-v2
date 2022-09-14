@@ -150,7 +150,8 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
             sdkChecksum.reset();
         }
 
-        wrapped.flatMapIterable(this::buffer)
+        SynchronousChunkBuffer synchronousChunkBuffer = new SynchronousChunkBuffer(totalBytes);
+        wrapped.flatMapIterable(synchronousChunkBuffer::buffer)
                .subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum, trailerHeader, totalBytes));
     }
 
@@ -205,7 +206,7 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
             ByteBuffer finalChunkedByteBuffer = createChunk(ByteBuffer.wrap(FINAL_BYTE), true);
             ByteBuffer checksumTrailerByteBuffer = createChecksumTrailer(
                     BinaryUtils.toBase64(checksumBytes), trailerHeader);
-            ByteBuffer contentChunk = createChunk(byteBuffer, false);
+            ByteBuffer contentChunk = byteBuffer.hasRemaining() ? createChunk(byteBuffer, false) : byteBuffer;
 
             ByteBuffer checksumAppendedBuffer = ByteBuffer.allocate(
                     contentChunk.remaining()
@@ -230,13 +231,17 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         }
     }
 
-    private Iterable<ByteBuffer> buffer(ByteBuffer bytes) {
-        ChunkBuffer chunkBuffer = ChunkBuffer.builder()
-                                             .bufferSize(DEFAULT_ASYNC_CHUNK_SIZE)
-                                             .totalBytes(bytes.remaining())
-                                             .build();
-        chunkBuffer.bufferAndCreateChunks(bytes);
-        return chunkBuffer.getBufferedList();
+    private static final class SynchronousChunkBuffer {
+        private final ChunkBuffer chunkBuffer;
+
+        SynchronousChunkBuffer(long totalBytes) {
+            this.chunkBuffer = ChunkBuffer.builder().bufferSize(DEFAULT_ASYNC_CHUNK_SIZE).totalBytes(totalBytes).build();
+        }
+
+        private Iterable<ByteBuffer> buffer(ByteBuffer bytes) {
+            chunkBuffer.bufferAndCreateChunks(bytes);
+            return chunkBuffer.getBufferedList();
+        }
     }
 
 }

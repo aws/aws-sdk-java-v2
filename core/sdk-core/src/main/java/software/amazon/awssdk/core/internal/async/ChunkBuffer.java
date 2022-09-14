@@ -92,8 +92,12 @@ public final class ChunkBuffer {
         } while (startPosition < currentBytesRead);
 
         int remainingBytesInBuffer = currentBuffer.position();
-        // Send the remainder buffered bytes at the end when there no more bytes
-        if (remainingBytesInBuffer > 0 && remainingBytes.get() == remainingBytesInBuffer) {
+
+        // Send the remaining buffer when
+        // 1. remainingBytes in buffer are same as the last few bytes to be read.
+        // 2. If it is a zero byte and the last byte to be read.
+        if (remainingBytes.get() == remainingBytesInBuffer &&
+            (buffer.remaining() == 0 || remainingBytesInBuffer > 0)) {
             currentBuffer.clear();
             ByteBuffer trimmedBuffer = ByteBuffer.allocate(remainingBytesInBuffer);
             trimmedBuffer.put(currentBuffer.array(), 0, remainingBytesInBuffer);

@@ -23,8 +23,10 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -43,12 +45,10 @@ import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.utils.CaptureChecksumValidationInterceptor;
 import software.amazon.awssdk.testutils.RandomTempFile;
-import software.amazon.awssdk.testutils.Waiter;
 
 public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
@@ -57,12 +57,10 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
     public static CaptureChecksumValidationInterceptor interceptor = new CaptureChecksumValidationInterceptor();
     protected static S3AsyncClient s3HttpAsync;
 
-
     @BeforeAll
     public static void setUp() throws Exception {
 
         s3 = s3ClientBuilder().build();
-
         s3Async = s3AsyncClientBuilder().overrideConfiguration(o -> o.addExecutionInterceptor(interceptor)).build();
 
         // Http Client to generate Signed request
@@ -70,10 +68,14 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                             .endpointOverride(URI.create("http://s3." + DEFAULT_REGION + ".amazonaws.com")).build();
 
         createBucket(BUCKET);
-        s3.waiter().waitUntilBucketExists(s ->s.bucket(BUCKET));
+        s3.waiter().waitUntilBucketExists(s -> s.bucket(BUCKET));
         interceptor.reset();
     }
 
+    @AfterEach
+    public void clear() {
+        interceptor.reset();
+    }
 
     @Test
     void asyncValidUnsignedTrailerChecksumCalculatedBySdkClient() {
@@ -81,7 +83,6 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                           .bucket(BUCKET)
                                           .key(KEY)
                                           .overrideConfiguration(o -> o.signer(DefaultAwsCrtS3V4aSigner.create()))
-
                                           .checksumAlgorithm(ChecksumAlgorithm.CRC32)
                                           .build(), AsyncRequestBody.fromString("Hello world")).join();
         assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
@@ -114,14 +115,13 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
 
     @ParameterizedTest
-    //createDataOfSizeInKb already creates data in kb
-    @ValueSource(ints = {1*KB, 3*KB, 12*KB, 16*KB, 17*KB, 32*KB, 33*KB})
+    @ValueSource(ints = {1 * KB, 3 * KB, 12 * KB, 16 * KB, 17 * KB, 32 * KB, 33 * KB})
     void asyncHttpsValidUnsignedTrailerChecksumCalculatedBySdkClient_withHugeRequestBody(int dataSize) throws InterruptedException {
         s3Async.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)
                                           .checksumAlgorithm(ChecksumAlgorithm.CRC32)
-                                          .build(), AsyncRequestBody.fromString(createDataOfSize(dataSize, 'a'))).join();
+                                          .build(), AsyncRequestBody.fromString(createDataOfSize(64 * KB, 'a'))).join();
         assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
         assertThat(interceptor.requestChecksumInHeader()).isNull();
 
@@ -130,14 +130,14 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                                             .build(), AsyncResponseTransformer.toBytes()).join().asUtf8String();
         assertThat(interceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
         assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(response).isEqualTo(createDataOfSize(dataSize, 'a'));
+        assertThat(response).isEqualTo(createDataOfSize(64 * KB, 'a'));
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {1*KB, 12*KB, 16*KB, 17*KB, 32*KB, 33*KB})
+    @ValueSource(ints = {1 * KB, 12 * KB, 16 * KB, 17 * KB, 32 * KB, 33 * KB, 65 * KB})
     void asyncHttpsValidUnsignedTrailerChecksumCalculatedBySdkClient_withDifferentChunkSize_OfFileAsyncFileRequestBody
         (int chunkSize) throws IOException {
-        File randomFileOfFixedLength = new RandomTempFile(64 * KB);
+        File randomFileOfFixedLength = new RandomTempFile(32 * KB + 23);
         s3Async.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)
@@ -224,6 +224,47 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
         assertThat(response).isEqualTo("Hello world");
     }
 
+    @Test
+    public void putObject_with_bufferCreatedFromEmptyString() {
 
+        s3HttpAsync.putObject(PutObjectRequest.builder()
+                                              .bucket(BUCKET)
+                                              .key(KEY)
+                                              .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                              .build(), AsyncRequestBody.fromString(""))
+                   .join();
 
+        assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
+
+        String response = s3HttpAsync.getObject(GetObjectRequest.builder().bucket(BUCKET)
+                                                                .key(KEY)
+                                                                .checksumMode(ChecksumMode.ENABLED)
+                                                                .build(), AsyncResponseTransformer.toBytes()).join()
+                                     .asUtf8String();
+
+        assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
+        assertThat(response).isEqualTo("");
+    }
+
+    @Test
+    public void putObject_with_bufferCreatedFromZeroCapacityByteBuffer() {
+        ByteBuffer content = ByteBuffer.allocate(0);
+        s3HttpAsync.putObject(PutObjectRequest.builder()
+                                              .bucket(BUCKET)
+                                              .key(KEY)
+                                              .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                              .build(), AsyncRequestBody.fromByteBuffer(content))
+                   .join();
+
+        assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
+
+        String response = s3HttpAsync.getObject(GetObjectRequest.builder().bucket(BUCKET)
+                                                                .key(KEY)
+                                                                .checksumMode(ChecksumMode.ENABLED)
+                                                                .build(), AsyncResponseTransformer.toBytes()).join()
+                                     .asUtf8String();
+
+        assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
+        assertThat(response).isEqualTo("");
+    }
 }

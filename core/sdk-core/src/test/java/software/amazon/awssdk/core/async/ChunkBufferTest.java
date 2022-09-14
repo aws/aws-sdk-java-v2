@@ -73,18 +73,43 @@ class ChunkBufferTest {
     }
 
     @Test
-    void zeroTotalBytesAsInput() {
-        String inputString = "";
+    void zeroTotalBytesAsInput_returnsZeroByte() {
+        byte[] zeroByte = new byte[0];
         ChunkBuffer chunkBuffer =
-            ChunkBuffer.builder().bufferSize(5).totalBytes(inputString.getBytes(StandardCharsets.UTF_8).length).build();
+            ChunkBuffer.builder().bufferSize(5).totalBytes(zeroByte.length).build();
         Iterable<ByteBuffer> byteBuffers =
-            chunkBuffer.bufferAndCreateChunks(ByteBuffer.wrap(inputString.getBytes(StandardCharsets.UTF_8)));
+            chunkBuffer.bufferAndCreateChunks(ByteBuffer.wrap(zeroByte));
 
         AtomicInteger iteratedCounts = new AtomicInteger();
         byteBuffers.forEach(r -> {
             iteratedCounts.getAndIncrement();
         });
-        assertThat(iteratedCounts.get()).isZero();
+        assertThat(iteratedCounts.get()).isEqualTo(1);
     }
 
+    @Test
+    void emptyAllocatedBytes_returnSameNumberOfEmptyBytes() {
+
+        int totalBytes = 17;
+        int bufferSize = 5;
+        ByteBuffer wrap = ByteBuffer.allocate(totalBytes);
+        ChunkBuffer chunkBuffer =
+            ChunkBuffer.builder().bufferSize(bufferSize).totalBytes(wrap.remaining()).build();
+        Iterable<ByteBuffer> byteBuffers =
+            chunkBuffer.bufferAndCreateChunks(wrap);
+
+        AtomicInteger iteratedCounts = new AtomicInteger();
+        byteBuffers.forEach(r -> {
+            iteratedCounts.getAndIncrement();
+            if (iteratedCounts.get() * bufferSize < totalBytes) {
+                // array of empty bytes
+                assertThat(r.array()).isEqualTo(ByteBuffer.allocate(bufferSize).array());
+            } else {
+                assertThat(r.array()).isEqualTo(ByteBuffer.allocate(totalBytes % bufferSize).array());
+            }
+        });
+        assertThat(iteratedCounts.get()).isEqualTo(4);
+    }
 }
+
+
