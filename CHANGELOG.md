@@ -1,3 +1,16 @@
+# __2.17.274__ __2022-09-14__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - Amplify Studio UIBuilder is introducing forms functionality. Forms can be configured from Data Store models, JSON, or from scratch. These forms can then be generated in your project and used like any other React components.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This update introduces API operations to manage and create local gateway route tables, CoIP pools, and VIF group associations.
+
 # __2.17.273__ __2022-09-13__
 ## __AWS SDK for Java v2__
   - ### Features

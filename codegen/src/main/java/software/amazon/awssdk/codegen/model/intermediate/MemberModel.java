@@ -480,17 +480,18 @@ public class MemberModel extends DocumentationModel {
             + LF;
     }
 
-    public String getDefaultConsumerFluentSetterDocumentation() {
+    public String getDefaultConsumerFluentSetterDocumentation(String variableType) {
         return (StringUtils.isNotBlank(documentation) ? documentation : defaultSetter().replace("%s", name) + "\n")
                + LF
                + "This is a convenience method that creates an instance of the {@link "
-               + variable.getSimpleType()
+               + variableType
                + ".Builder} avoiding the need to create one manually via {@link "
-               + variable.getSimpleType()
+               + variableType
                + "#builder()}.\n"
                + LF
+               + "<p>"
                + "When the {@link Consumer} completes, {@link "
-               + variable.getSimpleType()
+               + variableType
                + ".Builder#build()} is called immediately and its result is passed to {@link #"
                + getFluentGetterMethodName()
                + "("
@@ -500,14 +501,14 @@ public class MemberModel extends DocumentationModel {
                + "@param "
                + variable.getVariableName()
                + " a consumer that will call methods on {@link "
-               + variable.getSimpleType() + ".Builder}"
+               + variableType + ".Builder}"
                + LF
                + "@return " + stripHtmlTags(defaultFluentReturn())
                + LF
                + "@see #"
                + getFluentSetterMethodName()
                + "("
-               + variable.getSimpleType()
+               + variable.getVariableSetterType()
                + ")";
     }
 

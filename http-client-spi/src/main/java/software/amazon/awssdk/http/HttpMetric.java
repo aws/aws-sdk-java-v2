@@ -100,7 +100,8 @@ public final class HttpMetric {
     /**
      * The status code of the HTTP response.
      *
-     * @implSpec This is reported by the SDK core, and should not be reported by an individual HTTP client implementation.
+     * <p>
+     * This is reported by the SDK core, and should not be reported by an individual HTTP client implementation.
      */
     public static final SdkMetric<Integer> HTTP_STATUS_CODE =
         metric("HttpStatusCode", Integer.class, MetricLevel.TRACE);
