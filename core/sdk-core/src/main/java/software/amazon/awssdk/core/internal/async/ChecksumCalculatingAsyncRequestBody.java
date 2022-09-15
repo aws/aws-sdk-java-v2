@@ -239,8 +239,7 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         }
 
         private Iterable<ByteBuffer> buffer(ByteBuffer bytes) {
-            chunkBuffer.bufferAndCreateChunks(bytes);
-            return chunkBuffer.getBufferedList();
+            return chunkBuffer.bufferAndCreateChunks(bytes);
         }
     }
 

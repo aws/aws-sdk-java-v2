@@ -19,7 +19,6 @@ import static software.amazon.awssdk.core.HttpChecksumConstant.DEFAULT_ASYNC_CHU
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -34,8 +33,6 @@ public final class ChunkBuffer {
     private final AtomicLong remainingBytes;
     private final ByteBuffer currentBuffer;
     private final int bufferSize;
-    private List<ByteBuffer> bufferedList;
-
 
     private ChunkBuffer(Long totalBytes, Integer bufferSize) {
         Validate.notNull(totalBytes, "The totalBytes must not be null");
@@ -44,29 +41,19 @@ public final class ChunkBuffer {
         this.bufferSize = chunkSize;
         this.currentBuffer = ByteBuffer.allocate(chunkSize);
         this.remainingBytes = new AtomicLong(totalBytes);
-        bufferedList = new ArrayList<>();
     }
-
 
     public static Builder builder() {
         return new DefaultBuilder();
     }
 
-    public List<ByteBuffer> getBufferedList() {
-        if (currentBuffer == null) {
-            throw new IllegalStateException("");
-        }
-        List<ByteBuffer> ret = bufferedList;
-        bufferedList = new ArrayList<>();
-        return Collections.unmodifiableList(ret);
-    }
 
-    public Iterable<ByteBuffer> bufferAndCreateChunks(ByteBuffer buffer) {
+    // currentBuffer and bufferedList can get over written if concurrent Threads calls this method at the same time.
+    public synchronized Iterable<ByteBuffer> bufferAndCreateChunks(ByteBuffer buffer) {
         int startPosition = 0;
+        List<ByteBuffer> bufferedList = new ArrayList<>();
         int currentBytesRead = buffer.remaining();
-
         do {
-
             int bufferedBytes = currentBuffer.position();
             int availableToRead = bufferSize - bufferedBytes;
             int bytesToMove = Math.min(availableToRead, currentBytesRead - startPosition);
