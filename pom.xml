@@ -914,6 +914,9 @@
                             <show>public</show>
                             <author>false</author>
                             <version>true</version>
+                            <!-- Disable index because jquery-ui version used is old -->
+                            <!-- Re-enable it when it's fixed in newer versions of JDK -->
+                            <noindex>true</noindex>
                             <use>false</use>
                             <source>8</source>
                             <notree>true</notree>
