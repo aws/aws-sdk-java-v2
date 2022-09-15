@@ -39,7 +39,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
 
-    protected static final int DEFAULT_CHUNK_SIZE = 128 * 1024;
+    public static final int DEFAULT_CHUNK_SIZE = 128 * 1024;
     protected static final int SKIP_BUFFER_SIZE = 256 * 1024;
     protected static final String CRLF = "\r\n";
     protected static final byte[] FINAL_CHUNK = new byte[0];
