@@ -1,3 +1,20 @@
+# __2.17.275__ __2022-09-15__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Increased DynamoDB transaction limit from 25 to 100.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This feature allows customers to create tags for vpc-endpoint-connections and vpc-endpoint-service-permissions.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Automatic Model Tuning now supports specifying Hyperband strategy for tuning jobs, which uses a multi-fidelity based tuning strategy to stop underperforming hyperparameter configurations early.
+
 # __2.17.274__ __2022-09-14__
 ## __AWS Amplify UI Builder__
   - ### Features

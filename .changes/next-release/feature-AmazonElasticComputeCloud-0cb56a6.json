@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "This feature allows customers to create tags for vpc-endpoint-connections and vpc-endpoint-service-permissions."
-}
