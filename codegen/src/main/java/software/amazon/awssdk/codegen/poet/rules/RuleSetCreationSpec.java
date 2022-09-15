@@ -24,10 +24,13 @@ import com.fasterxml.jackson.jr.stree.JrsObject;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.fasterxml.jackson.jr.stree.JrsValue;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.MethodSpec;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ConditionModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointModel;
@@ -47,8 +50,14 @@ import software.amazon.awssdk.core.rules.Parameters;
 import software.amazon.awssdk.core.rules.Rule;
 
 public class RuleSetCreationSpec {
+    private static final String RULE_METHOD_PREFIX = "endpointRule_";
+
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final EndpointRuleSetModel ruleSetModel;
+
+    private int ruleCounter = 0;
+
+    private final List<MethodSpec> helperMethods = new ArrayList<>();
 
     public RuleSetCreationSpec(IntermediateModel intermediateModel) {
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(intermediateModel);
@@ -63,10 +72,16 @@ public class RuleSetCreationSpec {
             .add(".serviceId($S)", ruleSetModel.getServiceId())
             .add(".parameters($L)", parameters(ruleSetModel.getParameters()));
 
-        ruleSetModel.getRules().forEach(rm -> b.add(".addRule($L)", rule(rm)));
+        ruleSetModel.getRules().stream()
+                    .map(this::rule)
+                    .forEach(m -> b.add(".addRule($N())", m.name));
 
         b.add(".build()");
         return b.build();
+    }
+
+    public List<MethodSpec> helperMethods() {
+        return helperMethods;
     }
 
     private CodeBlock parameters(Map<String, ParameterModel> params) {
@@ -129,7 +144,12 @@ public class RuleSetCreationSpec {
         return b.build();
     }
 
-    private CodeBlock rule(RuleModel model) {
+    private MethodSpec rule(RuleModel model) {
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(nextRuleMethodName());
+
+        methodBuilder.addModifiers(Modifier.PRIVATE, Modifier.STATIC);
+        methodBuilder.returns(Rule.class);
+
         CodeBlock.Builder b = CodeBlock.builder();
 
         b.add("$T.builder()", Rule.class);
@@ -144,7 +164,8 @@ public class RuleSetCreationSpec {
 
             int nRules = model.getRules().size();
             for (int i = 0; i < nRules; ++i) {
-                rulesArray.add(rule(model.getRules().get(i)));
+                MethodSpec childRule = rule(model.getRules().get(i));
+                rulesArray.add("$N()", childRule.name);
                 if (i + 1 < nRules) {
                     rulesArray.add(", ");
                 }
@@ -157,7 +178,11 @@ public class RuleSetCreationSpec {
             b.add(".endpoint($L)", endpoint);
         }
 
-        return b.build();
+        MethodSpec m = methodBuilder.addStatement("return $L", b.build()).build();
+
+        helperMethods.add(m);
+
+        return m;
     }
 
     private CodeBlock endpoint(EndpointModel model) {
@@ -278,5 +303,11 @@ public class RuleSetCreationSpec {
         }
 
         return b.build();
+    }
+
+    private String nextRuleMethodName() {
+        String n = String.format("%s%d", RULE_METHOD_PREFIX, ruleCounter);
+        ruleCounter += 1;
+        return n;
     }
 }

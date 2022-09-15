@@ -41,7 +41,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
-public abstract class BaseRuleSetTest {
+public abstract class BaseRuleSetClientTest {
     protected static final AwsCredentialsProvider CREDENTIALS_PROVIDER =
         StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
 

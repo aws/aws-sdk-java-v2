@@ -63,6 +63,11 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <artifactId>mockito-core</artifactId>
+            <groupId>org.mockito</groupId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <artifactId>maven-plugin-api</artifactId>
             <groupId>org.apache.maven</groupId>
         </dependency>

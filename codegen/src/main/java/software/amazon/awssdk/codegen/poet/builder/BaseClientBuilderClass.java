@@ -24,10 +24,12 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -38,6 +40,7 @@ import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
@@ -104,6 +107,12 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(defaultSignerMethod());
         builder.addMethod(signingNameMethod());
         builder.addMethod(defaultEndpointProviderMethod());
+
+        if (hasClientContextParams()) {
+            model.getClientContextParams().forEach((n, m) -> {
+                builder.addMethod(clientContextParamSetter(n, m));
+            });
+        }
 
         if (model.getCustomizationConfig().getServiceConfig().getClassName() != null) {
             builder.addMethod(setServiceConfigurationMethod())
@@ -407,8 +416,28 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .build();
     }
 
+    private MethodSpec clientContextParamSetter(String name, ClientContextParam param) {
+        String setterName = endpointRulesSpecUtils.paramMethodName(name);
+        String keyName = model.getNamingStrategy().getEnumValueName(name);
+        TypeName type = endpointRulesSpecUtils.toJavaType(param.getType());
+
+        return MethodSpec.methodBuilder(setterName)
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(TypeVariableName.get("B"))
+                         .addParameter(type, setterName)
+                         .addStatement("clientContextParams.put($T.$N, $N)", endpointRulesSpecUtils.clientContextParamsName(),
+                                       keyName, setterName)
+                         .addStatement("return thisBuilder()")
+                         .build();
+    }
+
     @Override
     public ClassName className() {
         return builderClassName;
+    }
+
+    private boolean hasClientContextParams() {
+        Map<String, ClientContextParam> clientContextParams = model.getClientContextParams();
+        return clientContextParams != null && !clientContextParams.isEmpty();
     }
 }

@@ -12,7 +12,37 @@
     "uid": "query-service-2010-05-08",
     "xmlNamespace": "https://query-service.amazonaws.com/doc/2010-05-08/"
   },
+  "clientContextParams": {
+    "booleanContextParam": {
+      "type": "boolean",
+      "documentation": "A boolean client context parameter"
+    },
+    "stringContextParam": {
+      "type": "string",
+      "documentation": "a string client context parameter"
+    }
+  },
   "operations": {
+    "OperationWithContextParam": {
+      "name": "OperationWithContextParam",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input":{"shape":"WithContextParam"}
+    },
+    "OperationWithStaticContextParams": {
+      "name": "OperationWithStaticContextParams",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "staticContextParams": {
+        "staticStringParam" : {
+          "value": "hello"
+        }
+      }
+    },
     "OperationWithChecksumRequired": {
       "name": "APostOperation",
       "http": {
@@ -118,6 +148,17 @@
     }
   },
   "shapes": {
+    "WithContextParam": {
+      "type": "structure",
+      "members": {
+        "StringMember" : {
+          "shape": "String",
+          "contextParam": {
+            "name": "operationContextParam"
+          }
+        }
+      }
+    },
     "APostOperationRequest": {
       "type": "structure",
       "required": [
@@ -273,7 +314,8 @@
         }
       },
       "payload":"stringMember"
-    }
+    },
+    "String":{"type":"string"}
   },
   "documentation": "A service that is implemented using the query protocol"
 }

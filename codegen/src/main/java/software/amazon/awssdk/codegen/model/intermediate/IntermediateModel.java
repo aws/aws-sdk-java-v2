@@ -29,6 +29,7 @@ import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
@@ -61,6 +62,8 @@ public final class IntermediateModel {
     @JsonIgnore
     private NamingStrategy namingStrategy;
 
+    private Map<String, ClientContextParam> clientContextParams;
+
     static {
         FILE_HEADER = loadDefaultFileHeader();
     }
@@ -79,7 +82,7 @@ public final class IntermediateModel {
                              Map<String, ShapeModel> shapes,
                              CustomizationConfig customizationConfig) {
         this(metadata, operations, shapes, customizationConfig, null,
-             Collections.emptyMap(), null, Collections.emptyMap(), null, null);
+             Collections.emptyMap(), null, Collections.emptyMap(), null, null, null);
     }
 
     public IntermediateModel(
@@ -92,7 +95,8 @@ public final class IntermediateModel {
         NamingStrategy namingStrategy,
         Map<String, WaiterDefinition> waiters,
         EndpointRuleSetModel endpointRuleSetModel,
-        EndpointTestSuiteModel endpointTestSuiteModel) {
+        EndpointTestSuiteModel endpointTestSuiteModel,
+        Map<String, ClientContextParam> clientContextParams) {
         this.metadata = metadata;
         this.operations = operations;
         this.shapes = shapes;
@@ -103,6 +107,7 @@ public final class IntermediateModel {
         this.waiters = waiters;
         this.endpointRuleSetModel = endpointRuleSetModel;
         this.endpointTestSuiteModel = endpointTestSuiteModel;
+        this.clientContextParams = clientContextParams;
     }
 
     public Metadata getMetadata() {
@@ -172,6 +177,10 @@ public final class IntermediateModel {
 
     public EndpointTestSuiteModel getEndpointTestSuiteModel() {
         return endpointTestSuiteModel;
+    }
+
+    public Map<String, ClientContextParam> getClientContextParams() {
+        return clientContextParams;
     }
 
     public void setPaginators(Map<String, PaginatorDefinition> paginators) {

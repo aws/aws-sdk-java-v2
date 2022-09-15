@@ -84,4 +84,9 @@ public abstract class DefaultVisitor<R> implements RuleValueVisitor<R>, ExprVisi
         return getDefault();
     }
 
+    @Override
+    public R visitUriEncode(UriEncodeFn fn) {
+        return getDefault();
+    }
+
 }

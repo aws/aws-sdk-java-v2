@@ -33,6 +33,15 @@
         "message": "Don't use!",
         "since": "2021-01-01"
       }
+    },
+    "booleanContextParam": {
+      "type": "boolean"
+    },
+    "stringContextParam": {
+      "type": "string"
+    },
+    "operationContextParam": {
+      "type": "string"
     }
   },
   "rules": [

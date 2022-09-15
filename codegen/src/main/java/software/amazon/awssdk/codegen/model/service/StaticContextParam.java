@@ -13,31 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.rules;
+package software.amazon.awssdk.codegen.model.service;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import com.fasterxml.jackson.core.TreeNode;
 
-@SdkInternalApi
-public interface FnVisitor<R> {
-    R visitPartition(PartitionFn fn);
+public class StaticContextParam {
+    private TreeNode value;
 
-    R visitParseArn(ParseArn fn);
+    public TreeNode getValue() {
+        return value;
+    }
 
-    R visitIsValidHostLabel(IsValidHostLabel fn);
-
-    R visitBoolEquals(BooleanEqualsFn fn);
-
-    R visitStringEquals(StringEqualsFn fn);
-
-    R visitIsSet(IsSet fn);
-
-    R visitNot(Not not);
-
-    R visitGetAttr(GetAttr getAttr);
-
-    R visitParseUrl(ParseUrl parseUrl);
-
-    R visitSubstring(Substring substring);
-
-    R visitUriEncode(UriEncodeFn fn);
+    public void setValue(TreeNode value) {
+        this.value = value;
+    }
 }

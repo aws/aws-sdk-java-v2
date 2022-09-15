@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Attributes that can be applied to all sdk requests. Only generated code from the SDK clients should set these values.
@@ -69,6 +70,9 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Object> ENDPOINT_PROVIDER =
         new ExecutionAttribute<>("EndpointProvider");
+
+    public static final ExecutionAttribute<AttributeMap> CLIENT_CONTEXT_PARAMS =
+        new ExecutionAttribute<>("ClientContextParams");
 
     /**
      * Whether the endpoint on the request is the result of Endpoint Discovery.

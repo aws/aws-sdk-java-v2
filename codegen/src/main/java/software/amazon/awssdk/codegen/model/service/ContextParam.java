@@ -13,31 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.rules;
+package software.amazon.awssdk.codegen.model.service;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+public class ContextParam {
+    private String name;
 
-@SdkInternalApi
-public interface FnVisitor<R> {
-    R visitPartition(PartitionFn fn);
+    public String getName() {
+        return name;
+    }
 
-    R visitParseArn(ParseArn fn);
-
-    R visitIsValidHostLabel(IsValidHostLabel fn);
-
-    R visitBoolEquals(BooleanEqualsFn fn);
-
-    R visitStringEquals(StringEqualsFn fn);
-
-    R visitIsSet(IsSet fn);
-
-    R visitNot(Not not);
-
-    R visitGetAttr(GetAttr getAttr);
-
-    R visitParseUrl(ParseUrl parseUrl);
-
-    R visitSubstring(Substring substring);
-
-    R visitUriEncode(UriEncodeFn fn);
+    public void setName(String name) {
+        this.name = name;
+    }
 }

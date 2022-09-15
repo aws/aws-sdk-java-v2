@@ -67,6 +67,8 @@ public final class FnNode {
                 return new ParseUrl(this);
             case Substring.ID:
                 return new Substring(this);
+            case UriEncodeFn.ID:
+                return new UriEncodeFn(this);
             default:
                 throw RuleError.builder()
                                .cause(SourceException.builder()

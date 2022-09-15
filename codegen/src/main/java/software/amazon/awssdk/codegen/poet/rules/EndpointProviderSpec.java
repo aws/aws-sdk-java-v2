@@ -53,15 +53,19 @@ public class EndpointProviderSpec implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
-        return PoetUtils.createClassBuilder(className())
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                        .addSuperinterface(endpointRulesSpecUtils.providerInterfaceName())
-                        .addField(ruleSet())
-                        .addMethod(resolveEndpointMethod())
-                        .addMethod(toIdentifierValueMap())
-                        .addMethod(ruleSetBuildMethod())
-                        .addAnnotation(SdkInternalApi.class)
-                        .build();
+        TypeSpec.Builder b = PoetUtils.createClassBuilder(className())
+                                      .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                                      .addSuperinterface(endpointRulesSpecUtils.providerInterfaceName())
+                                      .addField(ruleSet())
+                                      .addMethod(resolveEndpointMethod())
+                                      .addMethod(toIdentifierValueMap())
+                                      .addAnnotation(SdkInternalApi.class);
+
+        MethodSpec ruleSetMethod = ruleSetBuildMethod(b);
+
+        b.addMethod(ruleSetMethod);
+
+        return b.build();
     }
 
     @Override
@@ -93,8 +97,11 @@ public class EndpointProviderSpec implements ClassSpec {
         b.addStatement("$T $N = new $T<>()", resultType, resultName, HashMap.class);
 
         params.forEach((name, model) -> {
-            TypeName paramType = endpointRulesSpecUtils.toJavaType(model.getType());
             String methodVarName = endpointRulesSpecUtils.paramMethodName(name);
+
+            CodeBlock identifierExpr = CodeBlock.builder()
+                                                .add("$T.of($S)", Identifier.class, name)
+                                                .build();
 
             CodeBlock coerce;
             // We treat region specially and generate it as the Region type,
@@ -104,19 +111,15 @@ public class EndpointProviderSpec implements ClassSpec {
             } else {
                 coerce = CodeBlock.builder().build();
             }
+            CodeBlock valueExpr = endpointRulesSpecUtils.valueCreationCode(
+                model.getType(),
+                CodeBlock.builder()
+                         .add("$N.$N()$L", paramsName, methodVarName, coerce)
+                         .build());
 
-            b.addStatement("$T $N = $N.$N()$L", paramType, methodVarName, paramsName, methodVarName, coerce);
 
-            CodeBlock identifierExpr = CodeBlock.builder()
-                                                .add("$T.of($S)", Identifier.class, name)
-                                                .build();
-
-            CodeBlock valueExpr = endpointRulesSpecUtils.valueCreationCode(model.getType(),
-                                                                           CodeBlock.builder()
-                                                                                    .add("$N", methodVarName)
-                                                                                    .build());
-            b.beginControlFlow("if ($N != null)", methodVarName)
-                .addStatement("$N.put($L, $L)", resultName, identifierExpr, valueExpr);
+            b.beginControlFlow("if ($N.$N() != null)", paramsName, methodVarName)
+             .addStatement("$N.put($L, $L)", resultName, identifierExpr, valueExpr);
             b.endControlFlow();
         });
 
@@ -142,12 +145,14 @@ public class EndpointProviderSpec implements ClassSpec {
         return b.build();
     }
 
-    private MethodSpec ruleSetBuildMethod() {
+    private MethodSpec ruleSetBuildMethod(TypeSpec.Builder classBuilder) {
         RuleSetCreationSpec ruleSetCreationSpec = new RuleSetCreationSpec(intermediateModel);
         MethodSpec.Builder b = MethodSpec.methodBuilder("ruleSet")
                                          .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                                          .returns(EndpointRuleset.class)
                                          .addStatement("return $L", ruleSetCreationSpec.ruleSetCreationExpr());
+
+        ruleSetCreationSpec.helperMethods().forEach(classBuilder::addMethod);
         return b.build();
     }
 }

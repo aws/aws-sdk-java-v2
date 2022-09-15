@@ -27,6 +27,9 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -34,8 +37,12 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersAsyncClient;
+import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersAsyncClientBuilder;
 import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersClient;
+import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersClientBuilder;
+import software.amazon.awssdk.services.restjsonendpointproviders.rules.RestJsonEndpointProvidersClientContextParams;
 import software.amazon.awssdk.services.restjsonendpointproviders.rules.RestJsonEndpointProvidersEndpointProvider;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class ClientBuilderTests {
@@ -75,7 +82,7 @@ public class ClientBuilderTests {
     }
 
     @Test
-    public void assyncBuilder_setCustomProvider_interceptorUsesProvider() {
+    public void asyncBuilder_setCustomProvider_interceptorUsesProvider() {
         RestJsonEndpointProvidersEndpointProvider mockProvider = mock(RestJsonEndpointProvidersEndpointProvider.class);
         SdkAsyncHttpClient mockClient = mock(SdkAsyncHttpClient.class);
         when(mockClient.clientName()).thenReturn("MockHttpClient");
@@ -100,7 +107,8 @@ public class ClientBuilderTests {
                                                         AwsBasicCredentials.create("akid", "skid")))
                                                 .build();
 
-        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {}).join())
+        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {
+        }).join())
             .hasRootCauseMessage("boom");
 
 
@@ -114,5 +122,77 @@ public class ClientBuilderTests {
         assertThat(requestUri.getScheme()).isEqualTo("https");
         assertThat(requestUri.getHost()).isEqualTo("my-service.com");
 
+    }
+
+    @Test
+    public void sync_clientContextParamsSetOnBuilder_includedInExecutionAttributes() {
+        ExecutionInterceptor mockInterceptor = mock(ExecutionInterceptor.class);
+        when(mockInterceptor.modifyRequest(any(), any())).thenThrow(new RuntimeException("oops"));
+
+        RestJsonEndpointProvidersClient client = syncClientBuilder()
+            .overrideConfiguration(o -> o.addExecutionInterceptor(mockInterceptor))
+            .booleanClientContextParam(true)
+            .stringClientContextParam("hello")
+            .build();
+
+        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {
+        })).hasMessageContaining("oops");
+
+        ArgumentCaptor<ExecutionAttributes> attributesCaptor = ArgumentCaptor.forClass(ExecutionAttributes.class);
+        verify(mockInterceptor).modifyRequest(any(), attributesCaptor.capture());
+
+        ExecutionAttributes executionAttrs = attributesCaptor.getValue();
+
+        AttributeMap clientContextParams = executionAttrs.getAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS);
+
+        assertThat(clientContextParams.get(RestJsonEndpointProvidersClientContextParams.BOOLEAN_CLIENT_CONTEXT_PARAM))
+            .isEqualTo(true);
+        assertThat(clientContextParams.get(RestJsonEndpointProvidersClientContextParams.STRING_CLIENT_CONTEXT_PARAM))
+            .isEqualTo("hello");
+
+    }
+
+    @Test
+    public void async_clientContextParamsSetOnBuilder_includedInExecutionAttributes() {
+        ExecutionInterceptor mockInterceptor = mock(ExecutionInterceptor.class);
+        when(mockInterceptor.modifyRequest(any(), any())).thenThrow(new RuntimeException("oops"));
+
+        RestJsonEndpointProvidersAsyncClient client = asyncClientBuilder()
+            .overrideConfiguration(o -> o.addExecutionInterceptor(mockInterceptor))
+            .booleanClientContextParam(true)
+            .stringClientContextParam("hello")
+            .build();
+
+        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {
+        }).join()).hasMessageContaining("oops");
+
+        ArgumentCaptor<ExecutionAttributes> attributesCaptor = ArgumentCaptor.forClass(ExecutionAttributes.class);
+        verify(mockInterceptor).modifyRequest(any(), attributesCaptor.capture());
+
+        ExecutionAttributes executionAttrs = attributesCaptor.getValue();
+
+        AttributeMap clientContextParams = executionAttrs.getAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS);
+
+        assertThat(clientContextParams.get(RestJsonEndpointProvidersClientContextParams.BOOLEAN_CLIENT_CONTEXT_PARAM))
+            .isEqualTo(true);
+        assertThat(clientContextParams.get(RestJsonEndpointProvidersClientContextParams.STRING_CLIENT_CONTEXT_PARAM))
+            .isEqualTo("hello");
+
+    }
+
+    private RestJsonEndpointProvidersClientBuilder syncClientBuilder() {
+        return RestJsonEndpointProvidersClient.builder()
+                                              .region(Region.US_WEST_2)
+                                              .credentialsProvider(
+                                                  StaticCredentialsProvider.create(
+                                                      AwsBasicCredentials.create("akid", "skid")));
+    }
+
+    private RestJsonEndpointProvidersAsyncClientBuilder asyncClientBuilder() {
+        return RestJsonEndpointProvidersAsyncClient.builder()
+                                            .region(Region.US_WEST_2)
+                                            .credentialsProvider(
+                                                StaticCredentialsProvider.create(
+                                                    AwsBasicCredentials.create("akid", "skid")));
     }
 }

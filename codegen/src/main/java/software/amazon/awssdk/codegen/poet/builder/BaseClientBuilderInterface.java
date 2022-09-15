@@ -25,10 +25,13 @@ import com.squareup.javapoet.TypeVariableName;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 
 public class BaseClientBuilderInterface implements ClassSpec {
@@ -66,6 +69,12 @@ public class BaseClientBuilderInterface implements ClassSpec {
         }
 
         builder.addMethod(endpointProviderMethod());
+
+        if (hasClientContextParams()) {
+            model.getClientContextParams().forEach((n, m) -> {
+                builder.addMethod(clientContextParamSetter(n, m));
+            });
+        }
 
         return builder.build();
     }
@@ -129,8 +138,26 @@ public class BaseClientBuilderInterface implements ClassSpec {
                          .build();
     }
 
+    private MethodSpec clientContextParamSetter(String name, ClientContextParam param) {
+        String setterName = Utils.unCapitalize(CodegenNamingUtils.pascalCase(name));
+        TypeName type = endpointRulesSpecUtils.toJavaType(param.getType());
+
+        MethodSpec.Builder b = MethodSpec.methodBuilder(setterName)
+            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+            .addParameter(type, setterName)
+            .returns(TypeVariableName.get("B"));
+
+        PoetUtils.addJavadoc(b::addJavadoc, param.getDocumentation());
+
+        return b.build();
+    }
+
     @Override
     public ClassName className() {
         return builderInterfaceName;
+    }
+
+    private boolean hasClientContextParams() {
+        return model.getClientContextParams() != null && !model.getClientContextParams().isEmpty();
     }
 }

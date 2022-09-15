@@ -12,7 +12,49 @@
     "targetPrefix":"ProtocolTestsService",
     "uid":"restjson-2016-03-11"
   },
+  "clientContextParams": {
+    "BooleanClientContextParam": {
+      "type": "boolean",
+      "documentation": "A boolean client context parameter"
+    },
+    "StringClientContextParam": {
+      "type": "string",
+      "documentation": "a string client context parameter"
+    }
+  },
   "operations":{
+    "OperationWithStaticContextParamA": {
+      "name": "OperationWithStaticContextParamA",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "staticContextParams": {
+        "staticStringParam" : {
+          "value": "operation A"
+        }
+      }
+    },
+    "OperationWithStaticContextParamB": {
+      "name": "OperationWithStaticContextParamB",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "staticContextParams": {
+        "staticStringParam" : {
+          "value": "operation B"
+        }
+      }
+    },
+    "OperationWithContextParam": {
+      "name": "OperationWithContextParam",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input":{"shape":"WithContextParam"}
+    },
     "AllTypes":{
       "name":"AllTypes",
       "http":{
@@ -210,6 +252,17 @@
     }
   },
   "shapes":{
+    "WithContextParam": {
+      "type": "structure",
+      "members": {
+        "StringMember" : {
+          "shape": "String",
+          "contextParam": {
+            "name": "OperationContextParam"
+          }
+        }
+      }
+    },
     "AllTypesStructure":{
       "type":"structure",
       "members":{

@@ -1,4 +1,3 @@
-software.amazon.awssdk.services.s3.internal.handlers.EndpointAddressInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.CreateBucketInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.PutObjectInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.CreateMultipartUploadRequestInterceptor

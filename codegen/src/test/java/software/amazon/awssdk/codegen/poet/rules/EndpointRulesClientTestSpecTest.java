@@ -22,10 +22,10 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
-public class EndpointRulesTestSpecTest {
+public class EndpointRulesClientTestSpecTest {
     @Test
     public void endpointRulesTestClass() {
-        ClassSpec endpointProviderSpec = new EndpointRulesTestSpec(ClientTestModels.queryServiceModels());
+        ClassSpec endpointProviderSpec = new EndpointRulesClientTestSpec(ClientTestModels.queryServiceModels());
         assertThat(endpointProviderSpec, generatesTo("endpoint-rules-test-class.java"));
     }
 }

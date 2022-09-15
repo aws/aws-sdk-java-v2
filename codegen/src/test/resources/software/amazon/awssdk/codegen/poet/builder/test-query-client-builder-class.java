@@ -13,6 +13,7 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
+import software.amazon.awssdk.services.query.rules.QueryClientContextParams;
 import software.amazon.awssdk.services.query.rules.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.rules.internal.QueryEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -64,5 +65,15 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     private QueryEndpointProvider defaultEndpointProvider() {
         return QueryEndpointProvider.defaultProvider();
+    }
+
+    public B booleanContextParam(Boolean booleanContextParam) {
+        clientContextParams.put(QueryClientContextParams.BOOLEAN_CONTEXT_PARAM, booleanContextParam);
+        return thisBuilder();
+    }
+
+    public B stringContextParam(String stringContextParam) {
+        clientContextParams.put(QueryClientContextParams.STRING_CONTEXT_PARAM, stringContextParam);
+        return thisBuilder();
     }
 }
