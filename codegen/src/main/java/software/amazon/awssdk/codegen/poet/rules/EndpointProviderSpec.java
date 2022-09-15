@@ -35,12 +35,10 @@ import software.amazon.awssdk.core.rules.DefaultRuleEngine;
 import software.amazon.awssdk.core.rules.EndpointRuleset;
 import software.amazon.awssdk.core.rules.Identifier;
 import software.amazon.awssdk.core.rules.ProviderUtils;
-import software.amazon.awssdk.core.rules.RuleEngine;
 import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 
 public class EndpointProviderSpec implements ClassSpec {
-    private static final String ENGINE_FIELD_NAME = "RULES_ENGINE";
     private static final String RULE_SET_FIELD_NAME = "ENDPOINT_RULE_SET";
 
     private final IntermediateModel intermediateModel;
@@ -57,7 +55,6 @@ public class EndpointProviderSpec implements ClassSpec {
         return PoetUtils.createClassBuilder(className())
                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                         .addSuperinterface(endpointRulesSpecUtils.providerInterfaceName())
-                        .addField(ruleEngine())
                         .addField(ruleSet())
                         .addMethod(resolveEndpointMethod())
                         .addMethod(toIdentifierValueMap())
@@ -71,13 +68,6 @@ public class EndpointProviderSpec implements ClassSpec {
         Metadata md = intermediateModel.getMetadata();
         return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
                              "Default" + endpointRulesSpecUtils.providerInterfaceName().simpleName());
-    }
-
-    private FieldSpec ruleEngine() {
-        return FieldSpec.builder(RuleEngine.class, ENGINE_FIELD_NAME)
-                        .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .initializer("new $T()", DefaultRuleEngine.class)
-                        .build();
     }
 
     private FieldSpec ruleSet() {
@@ -143,8 +133,8 @@ public class EndpointProviderSpec implements ClassSpec {
                                          .addAnnotation(Override.class)
                                          .addParameter(endpointRulesSpecUtils.parametersClassName(), paramsName);
 
-        b.addStatement("$T res = $N.evaluate($N, toIdentifierValueMap($N))",
-                       Value.class, ENGINE_FIELD_NAME, RULE_SET_FIELD_NAME, paramsName);
+        b.addStatement("$T res = new $T().evaluate($N, toIdentifierValueMap($N))",
+                       Value.class, DefaultRuleEngine.class, RULE_SET_FIELD_NAME, paramsName);
 
         b.addStatement("return $T.valueAsEndpointOrThrow($N)", ProviderUtils.class, "res");
 
