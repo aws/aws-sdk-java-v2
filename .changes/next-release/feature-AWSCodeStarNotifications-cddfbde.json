@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeStar Notifications",
-    "contributor": "",
-    "description": "This release adds tag based access control for the UntagResource API."
-}

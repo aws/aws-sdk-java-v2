@@ -1,3 +1,16 @@
+# __2.17.276__ __2022-09-16__
+## __AWS CodeStar Notifications__
+  - ### Features
+    - This release adds tag based access control for the UntagResource API.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed issue where request used to fail while calculating Trailer based checksum for Async Request body.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release supports new task definition sizes.
+
 # __2.17.275__ __2022-09-15__
 ## __AWS SDK for Java v2__
   - ### Features
