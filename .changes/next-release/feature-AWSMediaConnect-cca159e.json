@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS MediaConnect",
-    "contributor": "",
-    "description": "This change allows the customer to use the SRT Caller protocol as part of their flows"
-}

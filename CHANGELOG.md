@@ -1,3 +1,24 @@
+# __2.17.277__ __2022-09-19__
+## __AWS CloudTrail__
+  - ### Features
+    - This release includes support for importing existing trails into CloudTrail Lake.
+
+## __AWS MediaConnect__
+  - ### Features
+    - This change allows the customer to use the SRT Caller protocol as part of their flows
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds CapacityAllocations field to DescribeCapacityReservations
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for Amazon RDS Proxy with SQL Server compatibility.
+
 # __2.17.276__ __2022-09-16__
 ## __AWS CodeStar Notifications__
   - ### Features
