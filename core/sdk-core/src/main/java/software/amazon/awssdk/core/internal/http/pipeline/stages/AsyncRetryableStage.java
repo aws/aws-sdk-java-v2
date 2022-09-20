@@ -158,7 +158,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                 if (exception != null) {
                     if (exception instanceof Error) {
                         future.completeExceptionally(exception);
-                    } else {
+                    } else if (exception instanceof Exception){
                         maybeRetryExecute(future, (Exception) exception);
                     }
                     return;
