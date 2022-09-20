@@ -1,3 +1,12 @@
+# __2.17.278__ __2022-09-20__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for blocked paths to Amazon VPC Reachability Analyzer.
+
 # __2.17.277__ __2022-09-19__
 ## __AWS CloudTrail__
   - ### Features
