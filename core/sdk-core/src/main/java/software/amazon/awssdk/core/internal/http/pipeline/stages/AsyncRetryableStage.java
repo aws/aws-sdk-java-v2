@@ -156,7 +156,11 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             responseFuture.whenComplete((response, exception) -> {
 
                 if (exception != null) {
-                    maybeRetryExecute(future, exception);
+                    if (exception instanceof Error) {
+                        future.completeExceptionally(exception);
+                    } else {
+                        maybeRetryExecute(future, (Exception) exception);
+                    }
                     return;
                 }
 
@@ -175,7 +179,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             });
         }
 
-        private void maybeRetryExecute(CompletableFuture<Response<OutputT>> future, Throwable exception) {
+        private void maybeRetryExecute(CompletableFuture<Response<OutputT>> future, Exception exception) {
             retryableStageHelper.setLastException(exception);
             retryableStageHelper.updateClientSendingRateForErrorResponse();
             maybeAttemptExecute(future);
