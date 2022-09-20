@@ -468,7 +468,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
             progressFuture.completeExceptionally(cause);
             newDownloadFileRequestFuture.completeExceptionally(cause);
         } else {
-            SdkClientException exception = SdkClientException.create("Failed to resume the request", throwable);
+            SdkClientException exception = SdkClientException.create("Failed to resume the request", cause);
             returnFuture.completeExceptionally(exception);
             progressFuture.completeExceptionally(exception);
             newDownloadFileRequestFuture.completeExceptionally(exception);
