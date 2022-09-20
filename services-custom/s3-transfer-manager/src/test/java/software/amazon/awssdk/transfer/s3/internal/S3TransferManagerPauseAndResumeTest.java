@@ -124,6 +124,27 @@ class S3TransferManagerPauseAndResumeTest {
     }
 
     @Test
+    void resumeDownloadFile_errorShouldNotBeWrapped() {
+        GetObjectRequest getObjectRequest = getObjectRequest();
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+        Error error = new OutOfMemoryError();
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFutureUtils.failedFuture(error));
+
+        assertThatThrownBy(() -> tm.resumeDownloadFile(r -> r.bytesTransferred(1000l)
+                                                             .downloadFileRequest(downloadFileRequest)
+                                                             .fileLastModified(fileLastModified)
+                                                             .s3ObjectLastModified(Instant.now()))
+                                   .completionFuture()
+                                   .join()).hasCauseInstanceOf(Error.class);
+    }
+
+
+    @Test
     public void pauseAfterResumeBeforeHeadSucceeds() throws InterruptedException {
         DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
                                                                      .getObjectRequest(getObjectRequest())
