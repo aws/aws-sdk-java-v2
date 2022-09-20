@@ -33,6 +33,8 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
+import software.amazon.awssdk.codegen.utils.BearerAuthUtils;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
@@ -108,6 +110,15 @@ public interface ProtocolSpec {
         return opModel.getEndpointDiscovery() != null
                ? ".discoveredEndpoint(cachedEndpoint)\n"
                : "";
+    }
+
+    default CodeBlock credentialType(OperationModel opModel, IntermediateModel model) {
+
+        if (BearerAuthUtils.isOpBearerAuth(model, opModel)) {
+            return CodeBlock.of(".credentialType($T.TOKEN)\n", CredentialType.class);
+        } else {
+            return CodeBlock.of("");
+        }
     }
 
     /**

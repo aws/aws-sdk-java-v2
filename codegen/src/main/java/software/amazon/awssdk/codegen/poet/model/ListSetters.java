@@ -63,13 +63,17 @@ class ListSetters extends AbstractMemberSetters {
                 .varargs(true)
                 .build());
 
+        TypeName elementType = listElementType();
+
         if (elementModel().hasBuilder()) {
             fluentDeclarations.add(fluentAbstractSetterDeclaration(ParameterSpec.builder(asConsumerBuilderArray(),
                                                                                          fieldName())
                                                                                 .build(), returnType)
-                                           .varargs(true)
-                                           .addJavadoc("$L", memberModel().getDefaultConsumerFluentSetterDocumentation())
-                                           .build());
+                                       .varargs(true)
+                                       .addJavadoc("$L",
+                                                   memberModel().getDefaultConsumerFluentSetterDocumentation(
+                                                       elementType.toString()))
+                                       .build());
         }
 
         if (enumTypeInListMemberModel() != null) {
