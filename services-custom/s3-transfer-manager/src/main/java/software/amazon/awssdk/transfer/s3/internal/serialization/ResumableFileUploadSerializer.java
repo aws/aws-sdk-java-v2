@@ -34,6 +34,7 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class ResumableFileUploadSerializer {
@@ -121,38 +122,49 @@ public final class ResumableFileUploadSerializer {
         return fromNodes(uploadNodes);
     }
 
-    public static ResumableFileUpload fromJson(byte[] bytes) {
+    public static ResumableFileUpload fromJson(byte[] string) {
         JsonNodeParser jsonNodeParser = JsonNodeParser.builder().build();
-        Map<String, JsonNode> uploadNodes = jsonNodeParser.parse(bytes).asObject();
+        Map<String, JsonNode> uploadNodes = jsonNodeParser.parse(string).asObject();
         return fromNodes(uploadNodes);
     }
 
-    public static ResumableFileUpload fromJson(InputStream bytes) {
+    public static ResumableFileUpload fromJson(InputStream inputStream) {
         JsonNodeParser jsonNodeParser = JsonNodeParser.builder().build();
-        Map<String, JsonNode> uploadNodes = jsonNodeParser.parse(bytes).asObject();
+        Map<String, JsonNode> uploadNodes = jsonNodeParser.parse(inputStream).asObject();
         return fromNodes(uploadNodes);
     }
 
+    @SuppressWarnings("unchecked")
     private static ResumableFileUpload fromNodes(Map<String, JsonNode> uploadNodes) {
-        TransferManagerJsonUnmarshaller<Object> longUnmarshaller = getUnmarshaller(MarshallingType.LONG);
-        TransferManagerJsonUnmarshaller<Object> instantUnmarshaller = getUnmarshaller(MarshallingType.INSTANT);
-        TransferManagerJsonUnmarshaller<Object> stringUnmarshaller = getUnmarshaller(MarshallingType.STRING);
+        TransferManagerJsonUnmarshaller<Long> longUnmarshaller =
+            (TransferManagerJsonUnmarshaller<Long>) getUnmarshaller(MarshallingType.LONG);
+        TransferManagerJsonUnmarshaller<Instant> instantUnmarshaller =
+            (TransferManagerJsonUnmarshaller<Instant>) getUnmarshaller(MarshallingType.INSTANT);
+        TransferManagerJsonUnmarshaller<String> stringUnmarshaller =
+            (TransferManagerJsonUnmarshaller<String>) getUnmarshaller(MarshallingType.STRING);
 
         ResumableFileUpload.Builder builder = ResumableFileUpload.builder();
-        builder.fileLength((Long) longUnmarshaller.unmarshall(uploadNodes.get(FILE_LENGTH)));
-        builder.fileLastModified((Instant) instantUnmarshaller.unmarshall(uploadNodes.get(FILE_LAST_MODIFIED)));
+        JsonNode fileLength = Validate.paramNotNull(uploadNodes.get(FILE_LENGTH), FILE_LENGTH);
+
+        builder.fileLength(longUnmarshaller.unmarshall(fileLength));
+
+        JsonNode fileLastModified = Validate.paramNotNull(uploadNodes.get(FILE_LAST_MODIFIED), FILE_LAST_MODIFIED);
+        builder.fileLastModified(instantUnmarshaller.unmarshall(fileLastModified));
+
         if (uploadNodes.get(MULTIPART_UPLOAD_ID) != null) {
-            builder.multipartUploadId((String) stringUnmarshaller.unmarshall(uploadNodes.get(MULTIPART_UPLOAD_ID)));
+            builder.multipartUploadId(stringUnmarshaller.unmarshall(uploadNodes.get(MULTIPART_UPLOAD_ID)));
         }
 
         if (uploadNodes.get(PART_SIZE_IN_BYTES) != null) {
-            builder.partSizeInBytes((Long) longUnmarshaller.unmarshall(uploadNodes.get(PART_SIZE_IN_BYTES)));
+            builder.partSizeInBytes(longUnmarshaller.unmarshall(uploadNodes.get(PART_SIZE_IN_BYTES)));
         }
 
         if (uploadNodes.get(PART_SIZE_IN_BYTES) != null) {
-            builder.totalNumOfParts((Long) longUnmarshaller.unmarshall(uploadNodes.get(TOTAL_NUM_OF_PARTS)));
+            builder.totalNumOfParts(longUnmarshaller.unmarshall(uploadNodes.get(TOTAL_NUM_OF_PARTS)));
         }
-        builder.uploadFileRequest(parseUploadFileRequest(uploadNodes.get(UPLOAD_FILE_REQUEST)));
+
+        JsonNode jsonNode = Validate.paramNotNull(uploadNodes.get(UPLOAD_FILE_REQUEST), UPLOAD_FILE_REQUEST);
+        builder.uploadFileRequest(parseUploadFileRequest(jsonNode));
 
         return builder.build();
     }
@@ -174,7 +186,7 @@ public final class ResumableFileUploadSerializer {
     private static void setPutObjectParameters(PutObjectRequest.Builder putObjectBuilder, String key, JsonNode value) {
         SdkField<?> f = putObjectSdkField(key);
         MarshallingType<?> marshallingType = f.marshallingType();
-        TransferManagerJsonUnmarshaller<Object> unmarshaller = getUnmarshaller(marshallingType);
+        TransferManagerJsonUnmarshaller<?> unmarshaller = getUnmarshaller(marshallingType);
         f.set(putObjectBuilder, unmarshaller.unmarshall(value, f));
     }
 }

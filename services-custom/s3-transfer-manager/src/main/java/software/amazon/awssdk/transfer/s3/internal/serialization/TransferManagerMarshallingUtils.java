@@ -123,14 +123,13 @@ public final class TransferManagerMarshallingUtils {
         return (TransferManagerJsonMarshaller<T>) marshaller;
     }
 
-    @SuppressWarnings("unchecked")
-    public static TransferManagerJsonUnmarshaller<Object> getUnmarshaller(MarshallingType<?> marshallingType) {
+    public static TransferManagerJsonUnmarshaller<?> getUnmarshaller(MarshallingType<?> marshallingType) {
         TransferManagerJsonUnmarshaller<?> unmarshaller = UNMARSHALLERS.get(marshallingType);
         if (unmarshaller == null) {
             throw new IllegalStateException(String.format("Cannot find an unmarshaller for marshalling type %s",
                                                           marshallingType));
         }
-        return (TransferManagerJsonUnmarshaller<Object>) unmarshaller;
+        return unmarshaller;
     }
 
     public static SdkField<?> getObjectSdkField(String key) {
