@@ -1,0 +1,6 @@
+{
+    "category": "S3 Transfer Manager", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixed issue where errors were being wrapped by SdkClientException"
+}
