@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Comprehend",
-    "contributor": "",
-    "description": "Amazon Comprehend now supports synchronous mode for targeted sentiment API operations."
-}
