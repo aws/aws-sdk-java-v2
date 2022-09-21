@@ -1,3 +1,23 @@
+# __2.17.279__ __2022-09-21__
+## __AWS S3 Control__
+  - ### Features
+    - S3 on Outposts launches support for object versioning for Outposts buckets. With S3 Versioning, you can preserve, retrieve, and restore every version of every object stored in your buckets. You can recover from both unintended user actions and application failures.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed issue where errors were being wrapped by SdkClientException
+
+## __Amazon Comprehend__
+  - ### Features
+    - Amazon Comprehend now supports synchronous mode for targeted sentiment API operations.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker now allows customization on Canvas Application settings, including enabling/disabling time-series forecasting and specifying an Amazon Forecast execution role at both the Domain and UserProfile levels.
+
 # __2.17.278__ __2022-09-20__
 ## __AWS SDK for Java v2__
   - ### Features
