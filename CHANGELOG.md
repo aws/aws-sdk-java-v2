@@ -1,3 +1,28 @@
+# __2.17.280__ __2022-09-22__
+## __AWS Backup Gateway__
+  - ### Features
+    - Changes include: new GetVirtualMachineApi to fetch a single user's VM, improving ListVirtualMachines to fetch filtered VMs as well as all VMs, and improving GetGatewayApi to now also return the gateway's MaintenanceStartTime.
+
+## __AWS Device Farm__
+  - ### Features
+    - This release adds the support for VPC-ENI based connectivity for private devices on AWS Device Farm.
+
+## __AWS Glue__
+  - ### Features
+    - Added support for S3 Event Notifications for Catalog Target Crawlers.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SSO Identity Store__
+  - ### Features
+    - Documentation updates for the Identity Store CLI Reference.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
 # __2.17.279__ __2022-09-21__
 ## __AWS S3 Control__
   - ### Features
