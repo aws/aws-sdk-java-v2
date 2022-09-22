@@ -79,7 +79,7 @@ public interface TransferManagerJsonUnmarshaller<T> {
 
         @Override
         public Map<String, Object> unmarshall(JsonNode jsonContent, SdkField<?> field) {
-            if (jsonContent == null || jsonContent.isNull()) {
+            if (jsonContent == null) {
                 return null;
             }
 
