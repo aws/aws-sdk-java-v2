@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "Added support for S3 Event Notifications for Catalog Target Crawlers."
+}
