@@ -201,6 +201,11 @@ public class CustomizationConfig {
      */
     private boolean delegateAsyncClientClass;
 
+    /**
+     * Whether to skip generating endpoint tests from endpoint-tests.json
+     */
+    private boolean skipEndpointTestGeneration;
+
     private CustomizationConfig() {
     }
 
@@ -512,5 +517,13 @@ public class CustomizationConfig {
 
     public void setDelegateAsyncClientClass(boolean delegateAsyncClientClass) {
         this.delegateAsyncClientClass = delegateAsyncClientClass;
+    }
+
+    public boolean isSkipEndpointTestGeneration() {
+        return skipEndpointTestGeneration;
+    }
+
+    public void setSkipEndpointTestGeneration(boolean skipEndpointTestGeneration) {
+        this.skipEndpointTestGeneration = skipEndpointTestGeneration;
     }
 }

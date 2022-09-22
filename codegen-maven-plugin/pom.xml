@@ -58,6 +58,11 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <artifactId>maven-plugin-api</artifactId>
             <groupId>org.apache.maven</groupId>
         </dependency>

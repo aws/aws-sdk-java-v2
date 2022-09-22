@@ -17,7 +17,6 @@ import software.amazon.awssdk.core.rules.ParameterType;
 import software.amazon.awssdk.core.rules.Parameters;
 import software.amazon.awssdk.core.rules.ProviderUtils;
 import software.amazon.awssdk.core.rules.Rule;
-import software.amazon.awssdk.core.rules.RuleEngine;
 import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.services.query.rules.QueryEndpointParams;
@@ -26,13 +25,11 @@ import software.amazon.awssdk.services.query.rules.QueryEndpointProvider;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class DefaultQueryEndpointProvider implements QueryEndpointProvider {
-    private static final RuleEngine RULES_ENGINE = new DefaultRuleEngine();
-
     private static final EndpointRuleset ENDPOINT_RULE_SET = ruleSet();
 
     @Override
     public Endpoint resolveEndpoint(QueryEndpointParams endpointParams) {
-        Value res = RULES_ENGINE.evaluate(ENDPOINT_RULE_SET, toIdentifierValueMap(endpointParams));
+        Value res = new DefaultRuleEngine().evaluate(ENDPOINT_RULE_SET, toIdentifierValueMap(endpointParams));
         return ProviderUtils.valueAsEndpointOrThrow(res);
     }
 
@@ -82,10 +79,10 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                  .builtIn("AWS::Region").documentation("The region to send requests to").build())
                     .addParameter(
                         Parameter.builder().name("useDualStackEndpoint").type(ParameterType.fromValue("boolean"))
-                                 .required(false).builtIn("AWS::UseDualStackEndpoint").build())
+                                 .required(false).builtIn("AWS::UseDualStack").build())
                     .addParameter(
                         Parameter.builder().name("useFIPSEndpoint").type(ParameterType.fromValue("boolean"))
-                                 .required(false).builtIn("AWS::UseFIPSEndpoint").build())
+                                 .required(false).builtIn("AWS::UseFIPS").build())
                     .addParameter(
                         Parameter.builder().name("endpointId").type(ParameterType.fromValue("string"))
                                  .required(false).build())

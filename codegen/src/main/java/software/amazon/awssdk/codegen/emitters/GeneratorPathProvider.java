@@ -81,4 +81,8 @@ public class GeneratorPathProvider {
     public String getEndpointRulesInternalDirectory() {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullInternalEndpointRulesPackageName());
     }
+
+    public String getEndpointRulesTestDirectory() {
+        return testDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullEndpointRulesPackageName());
+    }
 }

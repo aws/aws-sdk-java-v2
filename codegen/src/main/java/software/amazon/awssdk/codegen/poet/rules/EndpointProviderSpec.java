@@ -28,6 +28,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
@@ -98,7 +99,7 @@ public class EndpointProviderSpec implements ClassSpec {
             CodeBlock coerce;
             // We treat region specially and generate it as the Region type,
             // so we need to call id() to convert it back to string
-            if ("aws::region".equalsIgnoreCase(model.getBuiltIn())) {
+            if (model.getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
                 coerce = CodeBlock.builder().add(".id()").build();
             } else {
                 coerce = CodeBlock.builder().build();
