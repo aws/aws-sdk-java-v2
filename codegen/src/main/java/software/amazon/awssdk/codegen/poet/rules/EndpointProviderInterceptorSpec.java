@@ -150,12 +150,14 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
                 case SDK_ENDPOINT:
                     builtInFn = "endpointBuiltIn";
                     break;
+                case AWS_S3_USE_GLOBAL_ENDPOINT:
+                    builtInFn = "useGlobalEndpointBuiltIn";
+                    break;
                 // The S3 specific built-ins are set through the existing S3Configuration which is handled above
                 case AWS_S3_ACCELERATE:
                 case AWS_S3_DISABLE_MULTI_REGION_ACCESS_POINTS:
                 case AWS_S3_FORCE_PATH_STYLE:
                 case AWS_S3_USE_ARN_REGION:
-                case AWS_S3_USE_GLOBAL_ENDPOINT:
                 case AWS_STS_USE_GLOBAL_ENDPOINT:
                 case AWS_S3CONTROL_USE_ARN_REGION:
                     // TODO: handle this

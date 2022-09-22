@@ -100,6 +100,7 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION,
                           clientConfig.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION))
             .putAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN, clientConfig.option(SdkClientOption.SIGNER_OVERRIDDEN))
+            .putAttribute(SdkInternalExecutionAttribute.USE_GLOBAL_ENDPOINT, clientConfig.option(AwsClientOption.USE_GLOBAL_ENDPOINT))
             .putAttribute(RESOLVED_CHECKSUM_SPECS, HttpChecksumResolver.getResolvedChecksumSpecs(executionAttributes));
 
         ExecutionInterceptorChain executionInterceptorChain =

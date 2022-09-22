@@ -263,6 +263,11 @@ public class BaseClientBuilderClass implements ClassSpec {
             mergeServiceConfiguration(builder, clientConfigClassName);
         }
 
+        if (model.getCustomizationConfig().useGlobalEndpoint()) {
+            builder.addStatement("$T resolver = new UseGlobalEndpointResolver(config)", ClassName.get("software.amazon.awssdk.services.s3.internal"
+                                                                         + ".endpoints", "UseGlobalEndpointResolver"));
+        }
+
         // Update configuration
 
         builder.addCode("return config.toBuilder()\n");
@@ -290,6 +295,14 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         if (StringUtils.isNotBlank(clientConfigClassName)) {
             builder.addCode(".option($T.SERVICE_CONFIGURATION, c.build())", SdkClientOption.class);
+        }
+
+        if (model.getCustomizationConfig().useGlobalEndpoint()) {
+            builder.addCode(".option($T.USE_GLOBAL_ENDPOINT, resolver.resolve())", AwsClientOption.class);
+        }
+
+        if (hasClientContextParams()) {
+            builder.addCode(".option($T.CLIENT_CONTEXT_PARAMS, clientContextParams.build())", SdkClientOption.class);
         }
 
         builder.addCode(".build();");

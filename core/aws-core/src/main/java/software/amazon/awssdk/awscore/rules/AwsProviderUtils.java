@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.rules.ProviderUtils;
 import software.amazon.awssdk.regions.Region;
 
@@ -44,5 +45,9 @@ public final class AwsProviderUtils {
             return executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT).toString();
         }
         return null;
+    }
+
+    public static Boolean useGlobalEndpointBuiltIn(ExecutionAttributes executionAttributes) {
+        return executionAttributes.getAttribute(SdkInternalExecutionAttribute.USE_GLOBAL_ENDPOINT);
     }
 }

@@ -80,6 +80,10 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
     public static final ExecutionAttribute<Boolean> IS_DISCOVERED_ENDPOINT =
         new ExecutionAttribute<>("IsDiscoveredEndpoint");
 
+
+    public static final ExecutionAttribute<Boolean> USE_GLOBAL_ENDPOINT =
+        new ExecutionAttribute<>("UseGlobalEndpoint");
+
     private SdkInternalExecutionAttribute() {
     }
 }

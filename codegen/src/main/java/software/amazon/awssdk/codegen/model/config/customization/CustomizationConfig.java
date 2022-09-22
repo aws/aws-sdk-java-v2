@@ -206,6 +206,8 @@ public class CustomizationConfig {
      */
     private boolean skipEndpointTestGeneration;
 
+    private boolean useGlobalEndpoint;
+
     private CustomizationConfig() {
     }
 
@@ -525,5 +527,13 @@ public class CustomizationConfig {
 
     public void setSkipEndpointTestGeneration(boolean skipEndpointTestGeneration) {
         this.skipEndpointTestGeneration = skipEndpointTestGeneration;
+    }
+
+    public boolean useGlobalEndpoint() {
+        return useGlobalEndpoint;
+    }
+
+    public void setUseGlobalEndpoint(boolean useGlobalEndpoint) {
+        this.useGlobalEndpoint = useGlobalEndpoint;
     }
 }
