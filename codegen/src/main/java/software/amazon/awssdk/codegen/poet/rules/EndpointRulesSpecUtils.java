@@ -27,8 +27,8 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
-import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class EndpointRulesSpecUtils {
@@ -40,6 +40,11 @@ public class EndpointRulesSpecUtils {
 
     public String basePackage() {
         return intermediateModel.getMetadata().getFullEndpointRulesPackageName();
+    }
+
+    public ClassName rulesRuntimeClassName(String name) {
+        return ClassName.get(intermediateModel.getMetadata().getFullInternalEndpointRulesPackageName(),
+                             name);
     }
 
     public ClassName parametersClassName() {
@@ -117,7 +122,7 @@ public class EndpointRulesSpecUtils {
         }
 
         return CodeBlock.builder()
-                        .add("$T.$N($L)", Value.class, methodName, param)
+                        .add("$T.$N($L)", rulesRuntimeClassName("Value"), methodName, param)
                         .build();
     }
 
@@ -137,11 +142,11 @@ public class EndpointRulesSpecUtils {
 
         switch (treeNode.asToken()) {
             case VALUE_STRING:
-                b.add("$S", ((JrsString) treeNode).getValue());
+                b.add("$S", Validate.isInstanceOf(JrsString.class, treeNode, "Expected string").getValue());
                 break;
             case VALUE_TRUE:
             case VALUE_FALSE:
-                b.add("$L", ((JrsBoolean) treeNode).booleanValue());
+                b.add("$L", Validate.isInstanceOf(JrsBoolean.class, treeNode, "Expected boolean").booleanValue());
                 break;
             default:
                 throw new RuntimeException("Don't know how to set default value for parameter of type "

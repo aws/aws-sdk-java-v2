@@ -38,16 +38,6 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterDeprecatedM
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.RuleModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
-import software.amazon.awssdk.core.rules.Condition;
-import software.amazon.awssdk.core.rules.EndpointResult;
-import software.amazon.awssdk.core.rules.EndpointRuleset;
-import software.amazon.awssdk.core.rules.Expr;
-import software.amazon.awssdk.core.rules.FnNode;
-import software.amazon.awssdk.core.rules.Identifier;
-import software.amazon.awssdk.core.rules.Parameter;
-import software.amazon.awssdk.core.rules.ParameterType;
-import software.amazon.awssdk.core.rules.Parameters;
-import software.amazon.awssdk.core.rules.Rule;
 
 public class RuleSetCreationSpec {
     private static final String RULE_METHOD_PREFIX = "endpointRule_";
@@ -67,7 +57,7 @@ public class RuleSetCreationSpec {
     public CodeBlock ruleSetCreationExpr() {
         CodeBlock.Builder b = CodeBlock.builder();
 
-        b.add("$T.builder()", EndpointRuleset.class)
+        b.add("$T.builder()", endpointRulesSpecUtils.rulesRuntimeClassName("EndpointRuleset"))
             .add(".version($S)", ruleSetModel.getVersion())
             .add(".serviceId($S)", ruleSetModel.getServiceId())
             .add(".parameters($L)", parameters(ruleSetModel.getParameters()));
@@ -87,7 +77,7 @@ public class RuleSetCreationSpec {
     private CodeBlock parameters(Map<String, ParameterModel> params) {
         CodeBlock.Builder b = CodeBlock.builder();
 
-        b.add("$T.builder()", Parameters.class);
+        b.add("$T.builder()", endpointRulesSpecUtils.rulesRuntimeClassName("Parameters"));
 
         params.forEach((name, model) -> {
             b.add(".addParameter($L)", parameter(name, model));
@@ -101,9 +91,9 @@ public class RuleSetCreationSpec {
     private CodeBlock parameter(String name, ParameterModel model) {
         CodeBlock.Builder b = CodeBlock.builder();
 
-        b.add("$T.builder()", Parameter.class)
+        b.add("$T.builder()", endpointRulesSpecUtils.rulesRuntimeClassName("Parameter"))
             .add(".name($S)", name)
-            .add(".type($T.fromValue($S))", ParameterType.class, model.getType())
+            .add(".type($T.fromValue($S))", endpointRulesSpecUtils.rulesRuntimeClassName("ParameterType"), model.getType())
             .add(".required($L)", Boolean.TRUE.equals(model.isRequired()));
 
         if (model.getBuiltIn() != null) {
@@ -136,7 +126,10 @@ public class RuleSetCreationSpec {
 
         if (model.getDeprecated() != null) {
             ParameterDeprecatedModel deprecated = model.getDeprecated();
-            b.add(".deprecated(new $T($S, $S))", Parameter.Deprecated.class, deprecated.getMessage(), deprecated.getSince());
+            b.add(".deprecated(new $T($S, $S))",
+                  endpointRulesSpecUtils.rulesRuntimeClassName("Parameter.Deprecated"),
+                  deprecated.getMessage(),
+                  deprecated.getSince());
         }
 
         b.add(".build()");
@@ -148,11 +141,11 @@ public class RuleSetCreationSpec {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(nextRuleMethodName());
 
         methodBuilder.addModifiers(Modifier.PRIVATE, Modifier.STATIC);
-        methodBuilder.returns(Rule.class);
+        methodBuilder.returns(endpointRulesSpecUtils.rulesRuntimeClassName("Rule"));
 
         CodeBlock.Builder b = CodeBlock.builder();
 
-        b.add("$T.builder()", Rule.class);
+        b.add("$T.builder()", endpointRulesSpecUtils.rulesRuntimeClassName("Rule"));
 
         model.getConditions().forEach(c -> b.add(".addCondition($L)", condition(c)));
 
@@ -188,7 +181,7 @@ public class RuleSetCreationSpec {
     private CodeBlock endpoint(EndpointModel model) {
         CodeBlock.Builder b = CodeBlock.builder();
 
-        b.add("$T.builder()", EndpointResult.class);
+        b.add("$T.builder()", endpointRulesSpecUtils.rulesRuntimeClassName("EndpointResult"));
 
         TreeNode url = model.getUrl();
         b.add(".url($L)", expr(url));
@@ -200,7 +193,7 @@ public class RuleSetCreationSpec {
     private CodeBlock condition(ConditionModel model) {
         CodeBlock.Builder b = CodeBlock.builder();
 
-        b.add("$T.builder()", Condition.class)
+        b.add("$T.builder()", endpointRulesSpecUtils.rulesRuntimeClassName("Condition"))
             .add(".fn($L.validate())", fnNode(model));
 
         if (model.getAssign() != null) {
@@ -215,7 +208,7 @@ public class RuleSetCreationSpec {
     private CodeBlock fnNode(ConditionModel model) {
         CodeBlock.Builder b = CodeBlock.builder();
 
-        b.add("$T.builder()", FnNode.class)
+        b.add("$T.builder()", endpointRulesSpecUtils.rulesRuntimeClassName("FnNode"))
             .add(".fn($S)", model.getFn())
             .add(".argv($T.asList(", Arrays.class);
 
@@ -248,7 +241,7 @@ public class RuleSetCreationSpec {
     private CodeBlock valueExpr(JrsValue n) {
         CodeBlock.Builder b = CodeBlock.builder();
 
-        b.add("$T.of(", Expr.class);
+        b.add("$T.of(", endpointRulesSpecUtils.rulesRuntimeClassName("Expr"));
         JsonToken token = n.asToken();
         switch (token) {
             case VALUE_STRING:
@@ -277,11 +270,14 @@ public class RuleSetCreationSpec {
         JrsValue fn = n.get("fn");
 
         if (ref != null) {
-            b.add("$T.ref($T.of($S))", Expr.class, Identifier.class, ref.asText());
+            b.add("$T.ref($T.of($S))",
+                  endpointRulesSpecUtils.rulesRuntimeClassName("Expr"),
+                  endpointRulesSpecUtils.rulesRuntimeClassName("Identifier"),
+                  ref.asText());
         } else if (fn != null) {
             String name = fn.asText();
             CodeBlock.Builder fnNode = CodeBlock.builder();
-            fnNode.add("$T.builder()", FnNode.class)
+            fnNode.add("$T.builder()", endpointRulesSpecUtils.rulesRuntimeClassName("FnNode"))
                   .add(".fn($S)", name);
 
             JrsArray argv = (JrsArray) n.get("argv");

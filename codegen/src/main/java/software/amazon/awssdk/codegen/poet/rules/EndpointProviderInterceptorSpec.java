@@ -26,7 +26,6 @@ import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.rules.AwsProviderUtils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
@@ -41,7 +40,6 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.rules.ProviderUtils;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -98,14 +96,15 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
 
         // We skip resolution if the source of the endpoint is the endpoint discovery call
         b.beginControlFlow("if ($1T.endpointIsDiscovered(executionAttributes))",
-                           ProviderUtils.class)
-         .addStatement("return context.httpRequest()")
-         .endControlFlow();
+                           endpointRulesSpecUtils.rulesRuntimeClassName("ProviderUtils"));
+        b.addStatement("return context.httpRequest()");
+        b.endControlFlow();
 
         b.addStatement("$1T $2N = ($1T) executionAttributes.getAttribute($3T.ENDPOINT_PROVIDER)",
                        endpointRulesSpecUtils.providerInterfaceName(), providerVar, SdkInternalExecutionAttribute.class);
         b.addStatement("$T result = $N.resolveEndpoint(ruleParams(context, executionAttributes))", Endpoint.class, providerVar);
-        b.addStatement("return $T.setUri(context.httpRequest(), result.url())", ProviderUtils.class);
+        b.addStatement("return $T.setUri(context.httpRequest(), result.url())",
+                       endpointRulesSpecUtils.rulesRuntimeClassName("ProviderUtils"));
         return b.build();
     }
 
@@ -163,7 +162,8 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
                     throw new RuntimeException("Don't know how to set built-in " + m.getBuiltInEnum());
             }
 
-            b.addStatement("builder.$N($T.$N(executionAttributes))", setterName, AwsProviderUtils.class, builtInFn);
+            b.addStatement("builder.$N($T.$N(executionAttributes))", setterName,
+                           endpointRulesSpecUtils.rulesRuntimeClassName("AwsProviderUtils"), builtInFn);
         });
 
         b.addStatement("return builder.build()");

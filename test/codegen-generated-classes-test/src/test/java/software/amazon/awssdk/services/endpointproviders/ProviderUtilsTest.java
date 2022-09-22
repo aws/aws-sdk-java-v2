@@ -21,17 +21,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.net.URI;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.rules.AwsProviderUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.rules.ProviderUtils;
-import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.protocolrestjson.rules.internal.AwsProviderUtils;
+import software.amazon.awssdk.services.protocolrestjson.rules.internal.ProviderUtils;
+import software.amazon.awssdk.services.protocolrestjson.rules.internal.Value;
 
 public class ProviderUtilsTest {
     @Test

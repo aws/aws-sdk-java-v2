@@ -53,7 +53,7 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         if (hasClientContextParams()) {
             tasks.add(generateClientContextParams());
         }
-
+        tasks.add(new RulesEngineRuntimeGeneratorTask(generatorTaskParams));
         return tasks;
     }
 

@@ -36,12 +36,6 @@
             <artifactId>annotations</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
-        <!-- TODO: Remove this. Only added for development of the rules engine -->
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>json-utils</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>http-client-spi</artifactId>

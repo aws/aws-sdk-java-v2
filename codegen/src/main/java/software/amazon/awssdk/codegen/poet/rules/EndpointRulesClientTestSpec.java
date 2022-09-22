@@ -385,15 +385,16 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         return http.getLocation() == Location.URI;
     }
 
-    private static boolean isStreaming(MemberModel member) {
-        ParameterHttpMapping http = member.getHttp();
-
-        if (http == null) {
-            return false;
-        }
-
-        return http.getIsStreaming();
-    }
+    // TODO: Remove or use
+    // private static boolean isStreaming(MemberModel member) {
+    //     ParameterHttpMapping http = member.getHttp();
+    //
+    //     if (http == null) {
+    //         return false;
+    //     }
+    //
+    //     return http.getIsStreaming();
+    // }
 
     private ClassName syncClientClass() {
         return poetExtension.getClientClass(model.getMetadata().getSyncInterface());
@@ -497,7 +498,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                     .anyMatch(o -> !(o.hasEventStreamOutput() || o.hasEventStreamInput()));
     }
 
-    private boolean isS3() {
-        return "S3".equals(model.getMetadata().getServiceName());
-    }
+    // TODO: Remove or use
+    // private boolean isS3() {
+    //     return "S3".equals(model.getMetadata().getServiceName());
+    // }
 }

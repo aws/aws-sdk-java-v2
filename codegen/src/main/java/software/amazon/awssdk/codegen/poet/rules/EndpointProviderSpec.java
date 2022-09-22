@@ -20,7 +20,6 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,11 +31,6 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.rules.DefaultRuleEngine;
-import software.amazon.awssdk.core.rules.EndpointRuleset;
-import software.amazon.awssdk.core.rules.Identifier;
-import software.amazon.awssdk.core.rules.ProviderUtils;
-import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 
 public class EndpointProviderSpec implements ClassSpec {
@@ -76,14 +70,16 @@ public class EndpointProviderSpec implements ClassSpec {
     }
 
     private FieldSpec ruleSet() {
-        return FieldSpec.builder(EndpointRuleset.class, RULE_SET_FIELD_NAME)
+        return FieldSpec.builder(endpointRulesSpecUtils.rulesRuntimeClassName("EndpointRuleset"), RULE_SET_FIELD_NAME)
                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                         .initializer("ruleSet()")
                         .build();
     }
 
     private MethodSpec toIdentifierValueMap() {
-        ParameterizedTypeName resultType = ParameterizedTypeName.get(Map.class, Identifier.class, Value.class);
+        ParameterizedTypeName resultType = ParameterizedTypeName.get(ClassName.get(Map.class),
+                                                                     endpointRulesSpecUtils.rulesRuntimeClassName("Identifier"),
+                                                                     endpointRulesSpecUtils.rulesRuntimeClassName("Value"));
 
         String paramsName = "params";
         MethodSpec.Builder b = MethodSpec.methodBuilder("toIdentifierValueMap")
@@ -99,9 +95,8 @@ public class EndpointProviderSpec implements ClassSpec {
         params.forEach((name, model) -> {
             String methodVarName = endpointRulesSpecUtils.paramMethodName(name);
 
-            CodeBlock identifierExpr = CodeBlock.builder()
-                                                .add("$T.of($S)", Identifier.class, name)
-                                                .build();
+            CodeBlock identifierExpr =
+                CodeBlock.of("$T.of($S)", endpointRulesSpecUtils.rulesRuntimeClassName("Identifier"), name);
 
             CodeBlock coerce;
             // We treat region specially and generate it as the Region type,
@@ -118,8 +113,8 @@ public class EndpointProviderSpec implements ClassSpec {
                          .build());
 
 
-            b.beginControlFlow("if ($N.$N() != null)", paramsName, methodVarName)
-             .addStatement("$N.put($L, $L)", resultName, identifierExpr, valueExpr);
+            b.beginControlFlow("if ($N.$N() != null)", paramsName, methodVarName);
+            b.addStatement("$N.put($L, $L)", resultName, identifierExpr, valueExpr);
             b.endControlFlow();
         });
 
@@ -138,9 +133,14 @@ public class EndpointProviderSpec implements ClassSpec {
                                          .addParameter(endpointRulesSpecUtils.parametersClassName(), paramsName);
 
         b.addStatement("$T res = new $T().evaluate($N, toIdentifierValueMap($N))",
-                       Value.class, DefaultRuleEngine.class, RULE_SET_FIELD_NAME, paramsName);
+                       endpointRulesSpecUtils.rulesRuntimeClassName("Value"),
+                       endpointRulesSpecUtils.rulesRuntimeClassName("DefaultRuleEngine"),
+                       RULE_SET_FIELD_NAME,
+                       paramsName);
 
-        b.addStatement("return $T.valueAsEndpointOrThrow($N)", ProviderUtils.class, "res");
+        b.addStatement("return $T.valueAsEndpointOrThrow($N)",
+                       endpointRulesSpecUtils.rulesRuntimeClassName("ProviderUtils"),
+                       "res");
 
         return b.build();
     }
@@ -149,7 +149,7 @@ public class EndpointProviderSpec implements ClassSpec {
         RuleSetCreationSpec ruleSetCreationSpec = new RuleSetCreationSpec(intermediateModel);
         MethodSpec.Builder b = MethodSpec.methodBuilder("ruleSet")
                                          .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-                                         .returns(EndpointRuleset.class)
+                                         .returns(endpointRulesSpecUtils.rulesRuntimeClassName("EndpointRuleset"))
                                          .addStatement("return $L", ruleSetCreationSpec.ruleSetCreationExpr());
 
         ruleSetCreationSpec.helperMethods().forEach(classBuilder::addMethod);

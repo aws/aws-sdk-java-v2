@@ -5,19 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.rules.Condition;
-import software.amazon.awssdk.core.rules.DefaultRuleEngine;
-import software.amazon.awssdk.core.rules.EndpointResult;
-import software.amazon.awssdk.core.rules.EndpointRuleset;
-import software.amazon.awssdk.core.rules.Expr;
-import software.amazon.awssdk.core.rules.FnNode;
-import software.amazon.awssdk.core.rules.Identifier;
-import software.amazon.awssdk.core.rules.Parameter;
-import software.amazon.awssdk.core.rules.ParameterType;
-import software.amazon.awssdk.core.rules.Parameters;
-import software.amazon.awssdk.core.rules.ProviderUtils;
-import software.amazon.awssdk.core.rules.Rule;
-import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.services.query.rules.QueryEndpointParams;
 import software.amazon.awssdk.services.query.rules.QueryEndpointProvider;
@@ -35,33 +22,35 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
     private static Map<Identifier, Value> toIdentifierValueMap(QueryEndpointParams params) {
         Map<Identifier, Value> paramsMap = new HashMap<>();
-        String region = params.region().id();
-        if (region != null) {
-            paramsMap.put(Identifier.of("region"), Value.fromStr(region));
+        if (params.region() != null) {
+            paramsMap.put(Identifier.of("region"), Value.fromStr(params.region().id()));
         }
-        Boolean useDualStackEndpoint = params.useDualStackEndpoint();
-        if (useDualStackEndpoint != null) {
-            paramsMap.put(Identifier.of("useDualStackEndpoint"), Value.fromBool(useDualStackEndpoint));
+        if (params.useDualStackEndpoint() != null) {
+            paramsMap.put(Identifier.of("useDualStackEndpoint"), Value.fromBool(params.useDualStackEndpoint()));
         }
-        Boolean useFipsEndpoint = params.useFipsEndpoint();
-        if (useFipsEndpoint != null) {
-            paramsMap.put(Identifier.of("useFIPSEndpoint"), Value.fromBool(useFipsEndpoint));
+        if (params.useFipsEndpoint() != null) {
+            paramsMap.put(Identifier.of("useFIPSEndpoint"), Value.fromBool(params.useFipsEndpoint()));
         }
-        String endpointId = params.endpointId();
-        if (endpointId != null) {
-            paramsMap.put(Identifier.of("endpointId"), Value.fromStr(endpointId));
+        if (params.endpointId() != null) {
+            paramsMap.put(Identifier.of("endpointId"), Value.fromStr(params.endpointId()));
         }
-        Boolean defaultTrueParam = params.defaultTrueParam();
-        if (defaultTrueParam != null) {
-            paramsMap.put(Identifier.of("defaultTrueParam"), Value.fromBool(defaultTrueParam));
+        if (params.defaultTrueParam() != null) {
+            paramsMap.put(Identifier.of("defaultTrueParam"), Value.fromBool(params.defaultTrueParam()));
         }
-        String defaultStringParam = params.defaultStringParam();
-        if (defaultStringParam != null) {
-            paramsMap.put(Identifier.of("defaultStringParam"), Value.fromStr(defaultStringParam));
+        if (params.defaultStringParam() != null) {
+            paramsMap.put(Identifier.of("defaultStringParam"), Value.fromStr(params.defaultStringParam()));
         }
-        String deprecatedParam = params.deprecatedParam();
-        if (deprecatedParam != null) {
-            paramsMap.put(Identifier.of("deprecatedParam"), Value.fromStr(deprecatedParam));
+        if (params.deprecatedParam() != null) {
+            paramsMap.put(Identifier.of("deprecatedParam"), Value.fromStr(params.deprecatedParam()));
+        }
+        if (params.booleanContextParam() != null) {
+            paramsMap.put(Identifier.of("booleanContextParam"), Value.fromBool(params.booleanContextParam()));
+        }
+        if (params.stringContextParam() != null) {
+            paramsMap.put(Identifier.of("stringContextParam"), Value.fromStr(params.stringContextParam()));
+        }
+        if (params.operationContextParam() != null) {
+            paramsMap.put(Identifier.of("operationContextParam"), Value.fromStr(params.operationContextParam()));
         }
         return paramsMap;
     }
@@ -275,6 +264,15 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                     .addParameter(
                         Parameter.builder().name("deprecatedParam").type(ParameterType.fromValue("string"))
                                  .required(false).deprecated(new Parameter.Deprecated("Don't use!", "2021-01-01"))
-                                 .build()).build()).addRule(endpointRule_0()).build();
+                                 .build())
+                    .addParameter(
+                        Parameter.builder().name("booleanContextParam").type(ParameterType.fromValue("boolean"))
+                                 .required(false).build())
+                    .addParameter(
+                        Parameter.builder().name("stringContextParam").type(ParameterType.fromValue("string"))
+                                 .required(false).build())
+                    .addParameter(
+                        Parameter.builder().name("operationContextParam").type(ParameterType.fromValue("string"))
+                                 .required(false).build()).build()).addRule(endpointRule_0()).build();
     }
 }
