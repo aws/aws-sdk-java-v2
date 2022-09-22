@@ -199,6 +199,13 @@ public class WaitersAsyncFunctionalTest {
     }
 
     @Test
+    void errorShouldNotBeWrapped() {
+        when(asyncClient.allTypes(any(AllTypesRequest.class))).thenReturn(CompletableFutureUtils.failedFuture(new OutOfMemoryError()));
+        assertThatThrownBy(() -> asyncWaiter.waitUntilAllTypesSuccess(SdkBuilder::build).join())
+            .hasCauseInstanceOf(Error.class);
+    }
+
+    @Test
     public void closeWaiterCreatedWithClient_clientDoesNotClose() {
         asyncWaiter.close();
         verify(asyncClient, never()).close();

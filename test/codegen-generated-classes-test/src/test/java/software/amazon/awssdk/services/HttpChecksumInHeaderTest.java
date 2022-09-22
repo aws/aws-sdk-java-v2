@@ -21,7 +21,13 @@ import static software.amazon.awssdk.core.HttpChecksumConstant.HTTP_CHECKSUM_VAL
 
 import io.reactivex.Flowable;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +37,7 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
+import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -55,6 +62,9 @@ import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
  * request.
  */
 public class HttpChecksumInHeaderTest {
+
+    public static Set<String> VALID_CHECKSUM_HEADERS =
+        Arrays.stream(Algorithm.values()).map(x -> "x-amz-checksum-" + x).collect(Collectors.toSet());
 
     private SdkHttpClient httpClient;
     private SdkAsyncHttpClient httpAsyncClient;
@@ -144,6 +154,27 @@ public class HttpChecksumInHeaderTest {
     }
 
     @Test
+    public void sync_xml_nonStreaming_unsignedEmptyPayload_with_Sha1_in_header() {
+        //  jsonClient.flexibleCheckSumOperationWithShaChecksum(r -> r.stringMember("Hello world"));
+        xmlClient.operationWithChecksumNonStreaming(r -> r.checksumAlgorithm(software.amazon.awssdk.services.protocolrestxml.model.ChecksumAlgorithm.SHA1).build());
+        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
+        //Note that content will be of form "<?xml version="1.0" encoding="UTF-8"?><stringMember>Hello world</stringMember>"
+        assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).isNotPresent();
+
+
+        Map<String, List<String>> requestHeaders = getSyncRequest().headers();
+
+        boolean disjoint = Collections.disjoint(VALID_CHECKSUM_HEADERS, requestHeaders.keySet());
+        assertThat(disjoint).isTrue();
+
+        // Assertion to make sure signer was not executed
+        assertThat(getSyncRequest().firstMatchingHeader("x-amz-content-sha256")).isNotPresent();
+
+        assertThat(CaptureChecksumValueInterceptor.interceptorComputedChecksum).isNull();
+
+    }
+
+    @Test
     public void aync_xml_nonStreaming_unsignedPayload_with_Sha1_in_header() {
         //  jsonClient.flexibleCheckSumOperationWithShaChecksum(r -> r.stringMember("Hello world"));
 
@@ -155,6 +186,27 @@ public class HttpChecksumInHeaderTest {
         // Assertion to make sure signer was not executed
         assertThat(getAsyncRequest().firstMatchingHeader("x-amz-content-sha256")).isNotPresent();
         assertThat(CaptureChecksumValueInterceptor.interceptorComputedChecksum).isEqualTo("FB/utBbwFLbIIt5ul3Ojuy5dKgU=");
+
+    }
+
+    @Test
+    public void aync_xml_nonStreaming_unsignedEmptyPayload_with_Sha1_in_header() {
+        //  jsonClient.flexibleCheckSumOperationWithShaChecksum(r -> r.stringMember("Hello world"));
+
+        xmlAsyncClient.operationWithChecksumNonStreaming(r -> r.checksumAlgorithm(software.amazon.awssdk.services.protocolrestxml.model.ChecksumAlgorithm.SHA1).build()).join();
+
+
+        Map<String, List<String>> requestHeaders = getAsyncRequest().headers();
+
+        boolean disjoint = Collections.disjoint(VALID_CHECKSUM_HEADERS, requestHeaders.keySet());
+        assertThat(disjoint).isTrue();
+
+        assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
+        //Note that content will be of form <?xml version="1.0" encoding="UTF-8"?><stringMember>Hello world</stringMember>"
+        assertThat(getAsyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).isNotPresent();
+        // Assertion to make sure signer was not executed
+        assertThat(getAsyncRequest().firstMatchingHeader("x-amz-content-sha256")).isNotPresent();
+        assertThat(CaptureChecksumValueInterceptor.interceptorComputedChecksum).isNull();
 
     }
 

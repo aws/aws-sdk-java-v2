@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import static software.amazon.awssdk.core.HttpChecksumConstant.DEFAULT_ASYNC_CHUNK_SIZE;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumContentLength;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChunkLength;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.createChecksumTrailer;
@@ -41,12 +42,12 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkInternalApi
 public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
 
-    public static final byte[] FINAL_BYTE = new byte[0];
+    private static final byte[] FINAL_BYTE = new byte[0];
     private final AsyncRequestBody wrapped;
     private final SdkChecksum sdkChecksum;
     private final Algorithm algorithm;
     private final String trailerHeader;
-    private final AtomicLong remainingBytes;
+    private final long totalBytes;
 
     private ChecksumCalculatingAsyncRequestBody(DefaultBuilder builder) {
 
@@ -57,8 +58,8 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         this.algorithm = builder.algorithm;
         this.sdkChecksum = builder.algorithm != null ? SdkChecksum.forAlgorithm(algorithm) : null;
         this.trailerHeader = builder.trailerHeader;
-        this.remainingBytes = new AtomicLong(wrapped.contentLength()
-                .orElseThrow(() -> new UnsupportedOperationException("Content length must be supplied.")));
+        this.totalBytes = wrapped.contentLength()
+                                 .orElseThrow(() -> new UnsupportedOperationException("Content length must be supplied."));
     }
 
     /**
@@ -148,7 +149,10 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         if (sdkChecksum != null) {
             sdkChecksum.reset();
         }
-        wrapped.subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum, trailerHeader, remainingBytes));
+
+        SynchronousChunkBuffer synchronousChunkBuffer = new SynchronousChunkBuffer(totalBytes);
+        wrapped.flatMapIterable(synchronousChunkBuffer::buffer)
+               .subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum, trailerHeader, totalBytes));
     }
 
     private static final class ChecksumCalculatingSubscriber implements Subscriber<ByteBuffer> {
@@ -162,11 +166,11 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
 
         ChecksumCalculatingSubscriber(Subscriber<? super ByteBuffer> wrapped,
                                       SdkChecksum checksum,
-                                      String trailerHeader, AtomicLong remainingBytes) {
+                                      String trailerHeader, long totalBytes) {
             this.wrapped = wrapped;
             this.checksum = checksum;
             this.trailerHeader = trailerHeader;
-            this.remainingBytes = remainingBytes;
+            this.remainingBytes = new AtomicLong(totalBytes);
         }
 
         @Override
@@ -189,7 +193,8 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
                     ByteBuffer allocatedBuffer = getFinalChecksumAppendedChunk(byteBuffer);
                     wrapped.onNext(allocatedBuffer);
                 } else {
-                    wrapped.onNext(byteBuffer);
+                    ByteBuffer allocatedBuffer = createChunk(byteBuffer, false);
+                    wrapped.onNext(allocatedBuffer);
                 }
             } catch (SdkException sdkException) {
                 this.subscription.cancel();
@@ -201,7 +206,7 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
             ByteBuffer finalChunkedByteBuffer = createChunk(ByteBuffer.wrap(FINAL_BYTE), true);
             ByteBuffer checksumTrailerByteBuffer = createChecksumTrailer(
                     BinaryUtils.toBase64(checksumBytes), trailerHeader);
-            ByteBuffer contentChunk = createChunk(byteBuffer, false);
+            ByteBuffer contentChunk = byteBuffer.hasRemaining() ? createChunk(byteBuffer, false) : byteBuffer;
 
             ByteBuffer checksumAppendedBuffer = ByteBuffer.allocate(
                     contentChunk.remaining()
@@ -225,4 +230,17 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
             wrapped.onComplete();
         }
     }
+
+    private static final class SynchronousChunkBuffer {
+        private final ChunkBuffer chunkBuffer;
+
+        SynchronousChunkBuffer(long totalBytes) {
+            this.chunkBuffer = ChunkBuffer.builder().bufferSize(DEFAULT_ASYNC_CHUNK_SIZE).totalBytes(totalBytes).build();
+        }
+
+        private Iterable<ByteBuffer> buffer(ByteBuffer bytes) {
+            return chunkBuffer.bufferAndCreateChunks(bytes);
+        }
+    }
+
 }
