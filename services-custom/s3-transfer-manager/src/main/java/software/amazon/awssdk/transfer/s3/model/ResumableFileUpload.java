@@ -15,6 +15,13 @@
 
 package software.amazon.awssdk.transfer.s3.model;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
@@ -22,9 +29,13 @@ import java.util.OptionalLong;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
+import software.amazon.awssdk.transfer.s3.internal.serialization.ResumableFileUploadSerializer;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -150,6 +161,76 @@ public final class ResumableFileUpload implements ResumableTransfer,
         return Optional.ofNullable(multipartUploadId);
     }
 
+    @Override
+    public void serializeToFile(Path path) {
+        try {
+            Files.write(path, ResumableFileUploadSerializer.toJson(this));
+        } catch (IOException e) {
+            throw SdkClientException.create("Failed to write to " + path, e);
+        }
+    }
+
+    @Override
+    public void serializeToOutputStream(OutputStream outputStream) {
+        byte[] bytes = ResumableFileUploadSerializer.toJson(this);
+        try {
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+            IoUtils.copy(byteArrayInputStream, outputStream);
+        } catch (IOException e) {
+            throw SdkClientException.create("Failed to write this download object to the given OutputStream", e);
+        }
+    }
+
+    @Override
+    public String serializeToString() {
+        return new String(ResumableFileUploadSerializer.toJson(this), StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public SdkBytes serializeToBytes() {
+        return SdkBytes.fromByteArrayUnsafe(ResumableFileUploadSerializer.toJson(this));
+    }
+
+    @Override
+    public InputStream serializeToInputStream() {
+        return new ByteArrayInputStream(ResumableFileUploadSerializer.toJson(this));
+    }
+
+    /**
+     * Deserialize data at the given path into a {@link ResumableFileUpload}.
+     *
+     * @param path The {@link Path} to the file with serialized data
+     * @return the deserialized {@link ResumableFileUpload}
+     */
+    public static ResumableFileUpload fromFile(Path path) {
+        try (InputStream stream = Files.newInputStream(path)) {
+            return ResumableFileUploadSerializer.fromJson(stream);
+        } catch (IOException e) {
+            throw SdkClientException.create("Failed to create a ResumableFileUpload from " + path, e);
+        }
+    }
+
+    /**
+     * Deserialize bytes with JSON data into a {@link ResumableFileUpload}.
+     *
+     * @param bytes the serialized data
+     * @return the deserialized {@link ResumableFileUpload}
+     */
+    public static ResumableFileUpload fromBytes(SdkBytes bytes) {
+        return ResumableFileUploadSerializer.fromJson(bytes.asByteArrayUnsafe());
+    }
+
+    /**
+     * Deserialize a string with JSON data into a {@link ResumableFileUpload}.
+     *
+     * @param contents the serialized data
+     * @return the deserialized {@link ResumableFileUpload}
+     */
+    public static ResumableFileUpload fromString(String contents) {
+        return ResumableFileUploadSerializer.fromJson(contents);
+    }
+    
+    
     @Override
     public String toString() {
         return ToString.builder("ResumableFileUpload")
