@@ -154,10 +154,10 @@ public class PutItemEnhancedResponseTest {
         DynamoDbResponseMetadata dynamoDbResponseMetadata =
             DynamoDbResponseMetadata.create(DefaultAwsResponseMetadata.create(metadataMap));
 
-        PutItemEnhancedResponse<FakeItem> containsItemCollectionMetrics = PutItemEnhancedResponse.builder(FakeItem.class)
+        PutItemEnhancedResponse<FakeItem> enhancedResponseWithMetadata = PutItemEnhancedResponse.builder(FakeItem.class)
                                                                                                        .responseMetadata(dynamoDbResponseMetadata)
                                                                                                        .build();
 
-        assertThat(containsItemCollectionMetrics.hashCode()).isNotEqualTo(emptyResponse.hashCode());
+        assertThat(enhancedResponseWithMetadata.hashCode()).isNotEqualTo(emptyResponse.hashCode());
     }
 }

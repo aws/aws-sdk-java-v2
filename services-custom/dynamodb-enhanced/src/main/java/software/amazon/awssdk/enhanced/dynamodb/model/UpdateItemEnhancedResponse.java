@@ -112,10 +112,10 @@ public final class UpdateItemEnhancedResponse<T> {
 
     @NotThreadSafe
     public static final class Builder<T> {
-        public DynamoDbResponseMetadata responseMetadata;
         private T attributes;
         private ConsumedCapacity consumedCapacity;
         private ItemCollectionMetrics itemCollectionMetrics;
+        private DynamoDbResponseMetadata responseMetadata;
 
         public Builder<T> attributes(T attributes) {
             this.attributes = attributes;

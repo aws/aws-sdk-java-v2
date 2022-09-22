@@ -154,10 +154,10 @@ public class DeleteItemEnhancedResponseTest {
         DynamoDbResponseMetadata dynamoDbResponseMetadata =
             DynamoDbResponseMetadata.create(DefaultAwsResponseMetadata.create(metadataMap));
 
-        DeleteItemEnhancedResponse<FakeItem> containsItemCollectionMetrics = DeleteItemEnhancedResponse.builder(FakeItem.class)
+        DeleteItemEnhancedResponse<FakeItem> enhancedResponseWithMetadata = DeleteItemEnhancedResponse.builder(FakeItem.class)
                                                                                                        .responseMetadata(dynamoDbResponseMetadata)
                                                                                                        .build();
 
-        assertThat(containsItemCollectionMetrics.hashCode()).isNotEqualTo(emptyResponse.hashCode());
+        assertThat(enhancedResponseWithMetadata.hashCode()).isNotEqualTo(emptyResponse.hashCode());
     }
 }
