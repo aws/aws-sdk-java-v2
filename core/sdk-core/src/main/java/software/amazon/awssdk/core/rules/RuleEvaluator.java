@@ -117,6 +117,11 @@ public class RuleEvaluator implements FnVisitor<Value>, ExprVisitor<Value> {
         return fn.eval(scope);
     }
 
+    @Override
+    public Value visitIsVirtualHostLabelsS3Bucket(IsVirtualHostableS3Bucket fn) {
+        return fn.eval(scope);
+    }
+
     private Value handleRule(Rule rule) {
         RuleEvaluator self = this;
         return scope.inScope(

@@ -89,4 +89,8 @@ public abstract class DefaultVisitor<R> implements RuleValueVisitor<R>, ExprVisi
         return getDefault();
     }
 
+    @Override
+    public R visitIsVirtualHostLabelsS3Bucket(IsVirtualHostableS3Bucket fn) {
+        return getDefault();
+    }
 }

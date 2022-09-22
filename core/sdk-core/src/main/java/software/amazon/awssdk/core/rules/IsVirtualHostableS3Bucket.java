@@ -18,20 +18,20 @@ package software.amazon.awssdk.core.rules;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public class IsValidHostLabel extends VarargFn {
-    public static final String ID = "isValidHostLabel";
+public class IsVirtualHostableS3Bucket extends VarargFn {
+    public static final String ID = "aws.isVirtualHostableS3Bucket";
 
-    public IsValidHostLabel(FnNode fnNode) {
+    public IsVirtualHostableS3Bucket(FnNode fnNode) {
         super(fnNode);
     }
 
     @Override
     public <T> T acceptFnVisitor(FnVisitor<T> visitor) {
-        return visitor.visitIsValidHostLabel(this);
+        return visitor.visitIsVirtualHostLabelsS3Bucket(this);
     }
 
-    public static IsValidHostLabel ofExprs(Expr expr, boolean allowDots) {
-        return new IsValidHostLabel(FnNode.ofExprs(ID, expr, Expr.of(allowDots)));
+    public static IsVirtualHostableS3Bucket ofExprs(Expr expr, boolean allowDots) {
+        return new IsVirtualHostableS3Bucket(FnNode.ofExprs(ID, expr, Expr.of(allowDots)));
     }
 
     public Expr hostLabel() {
@@ -45,11 +45,15 @@ public class IsValidHostLabel extends VarargFn {
     @Override
     public Value eval(Scope<Value> scope) {
         String hostLabel = expectTwoArgs().left().eval(scope).expectString();
-        // TODO: use compiled Pattern
         if (allowDots(scope)) {
-            return Value.fromBool(hostLabel.matches("[a-zA-Z\\d][a-zA-Z\\d\\-.]{0,62}"));
+            // TODO: use compiled Pattern
+            return Value.fromBool(
+                hostLabel.matches("[a-z\\d][a-z\\d\\-.]{1,61}[a-z\\d]")
+                && !hostLabel.matches("(\\d+\\.){3}\\d+") // don't allow ip address
+                && !hostLabel.matches(".*[.-]{2}.*") // don't allow names like bucket-.name or bucket.-name
+            );
         } else {
-            return Value.fromBool(hostLabel.matches("[a-zA-Z\\d][a-zA-Z\\d\\-]{0,62}"));
+            return Value.fromBool(hostLabel.matches("[a-z\\d][a-z\\d\\-]{1,61}[a-z\\d]"));
         }
     }
 

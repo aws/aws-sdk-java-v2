@@ -69,6 +69,8 @@ public final class FnNode {
                 return new Substring(this);
             case UriEncodeFn.ID:
                 return new UriEncodeFn(this);
+            case IsVirtualHostableS3Bucket.ID:
+                return new IsVirtualHostableS3Bucket(this);
             default:
                 throw RuleError.builder()
                                .cause(SourceException.builder()
