@@ -153,7 +153,7 @@ class S3TransferManagerPauseAndResumeTest {
                                                                      .getObjectRequest(getObjectRequest)
                                                                      .destination(file)
                                                                      .build();
-        SdkException sdkException = SdkException.create("failed", new Throwable());
+        SdkException sdkException = SdkException.create("Failed to resume the request", new Throwable());
         when(mockS3Crt.headObject(any(Consumer.class)))
             .thenReturn(CompletableFutureUtils.failedFuture(sdkException));
 
