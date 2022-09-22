@@ -28,7 +28,8 @@ public enum BuiltInParameter {
     AWS_S3_ACCELERATE,
     AWS_S3_USE_GLOBAL_ENDPOINT,
     AWS_S3_DISABLE_MULTI_REGION_ACCESS_POINTS,
-    AWS_S3_USE_ARN_REGION
+    AWS_S3_USE_ARN_REGION,
+    AWS_S3CONTROL_USE_ARN_REGION
     ;
 
     @JsonCreator
@@ -54,6 +55,8 @@ public enum BuiltInParameter {
                 return AWS_S3_DISABLE_MULTI_REGION_ACCESS_POINTS;
             case "aws::s3::usearnregion":
                 return AWS_S3_USE_ARN_REGION;
+            case "aws::s3control::usearnregion":
+                return AWS_S3CONTROL_USE_ARN_REGION;
             default:
                 throw new RuntimeException("Unrecognized builtin: " + s);
         }

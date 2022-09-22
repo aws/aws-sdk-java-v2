@@ -25,7 +25,6 @@ import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.S3
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isDualstackEnabled;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isFipsEnabledInClientConfig;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isFipsRegion;
-import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isFipsRegion;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isUseArnRegionEnabledInClientConfig;
 import static software.amazon.awssdk.services.s3control.internal.S3ControlInternalExecutionAttribute.S3_ARNABLE_FIELD;
 

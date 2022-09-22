@@ -1094,7 +1094,7 @@
                                                 {
                                                     "conditions": [
                                                         {
-                                                            "fn": "isValidHostLabel",
+                                                            "fn": "aws.isVirtualHostableS3Bucket",
                                                             "argv": [
                                                                 {
                                                                     "ref": "Bucket"
@@ -4097,7 +4097,7 @@
                                                             ]
                                                         },
                                                         {
-                                                            "fn": "isValidHostLabel",
+                                                            "fn": "aws.isVirtualHostableS3Bucket",
                                                             "argv": [
                                                                 {
                                                                     "ref": "Bucket"

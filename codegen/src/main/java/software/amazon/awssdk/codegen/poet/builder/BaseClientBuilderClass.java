@@ -259,33 +259,7 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         String clientConfigClassName = model.getCustomizationConfig().getServiceConfig().getClassName();
         if (StringUtils.isNotBlank(clientConfigClassName)) {
-            ClassName clientConfigClass = ClassName.bestGuess(clientConfigClassName);
-            builder.addCode("$1T.Builder c = (($1T) config.option($2T.SERVICE_CONFIGURATION)).toBuilder();" +
-                            "c.profileFile(c.profileFile() != null ? c.profileFile() : config.option($2T.PROFILE_FILE));" +
-                            "c.profileName(c.profileName() != null ? c.profileName() : config.option($2T.PROFILE_NAME));",
-                            clientConfigClass, SdkClientOption.class);
-
-            if (model.getCustomizationConfig().getServiceConfig().hasDualstackProperty()) {
-                builder.addCode("if (c.dualstackEnabled() != null) {")
-                       .addCode("    $T.validState(config.option($T.DUALSTACK_ENDPOINT_ENABLED) == null, \"Dualstack has been "
-                                + "configured on both $L and the client/global level. Please limit dualstack configuration to "
-                                + "one location.\");",
-                                Validate.class, AwsClientOption.class, clientConfigClassName)
-                       .addCode("} else {")
-                       .addCode("    c.dualstackEnabled(config.option($T.DUALSTACK_ENDPOINT_ENABLED));", AwsClientOption.class)
-                       .addCode("}");
-            }
-
-            if (model.getCustomizationConfig().getServiceConfig().hasFipsProperty()) {
-                builder.addCode("if (c.fipsModeEnabled() != null) {")
-                       .addCode("    $T.validState(config.option($T.FIPS_ENDPOINT_ENABLED) == null, \"Fips has been "
-                                + "configured on both $L and the client/global level. Please limit fips configuration to "
-                                + "one location.\");",
-                                Validate.class, AwsClientOption.class, clientConfigClassName)
-                       .addCode("} else {")
-                       .addCode("    c.fipsModeEnabled(config.option($T.FIPS_ENDPOINT_ENABLED));", AwsClientOption.class)
-                       .addCode("}");
-            }
+            mergeServiceConfiguration(builder, clientConfigClassName);
         }
 
         // Update configuration
@@ -320,6 +294,71 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addCode(".build();");
 
         return builder.build();
+    }
+
+    private void mergeServiceConfiguration(MethodSpec.Builder builder, String clientConfigClassName) {
+        ClassName clientConfigClass = ClassName.bestGuess(clientConfigClassName);
+        builder.addCode("$1T.Builder c = (($1T) config.option($2T.SERVICE_CONFIGURATION)).toBuilder();" +
+                        "c.profileFile(c.profileFile() != null ? c.profileFile() : config.option($2T.PROFILE_FILE));" +
+                        "c.profileName(c.profileName() != null ? c.profileName() : config.option($2T.PROFILE_NAME));",
+                        clientConfigClass, SdkClientOption.class);
+
+        if (model.getCustomizationConfig().getServiceConfig().hasDualstackProperty()) {
+            builder.addCode("if (c.dualstackEnabled() != null) {")
+                   .addCode("    $T.validState(config.option($T.DUALSTACK_ENDPOINT_ENABLED) == null, \"Dualstack has been "
+                            + "configured on both $L and the client/global level. Please limit dualstack configuration to "
+                            + "one location.\");",
+                            Validate.class, AwsClientOption.class, clientConfigClassName)
+                   .addCode("} else {")
+                   .addCode("    c.dualstackEnabled(config.option($T.DUALSTACK_ENDPOINT_ENABLED));", AwsClientOption.class)
+                   .addCode("}");
+        }
+
+        if (model.getCustomizationConfig().getServiceConfig().hasFipsProperty()) {
+            builder.addCode("if (c.fipsModeEnabled() != null) {")
+                   .addCode("    $T.validState(config.option($T.FIPS_ENDPOINT_ENABLED) == null, \"Fips has been "
+                            + "configured on both $L and the client/global level. Please limit fips configuration to "
+                            + "one location.\");",
+                            Validate.class, AwsClientOption.class, clientConfigClassName)
+                   .addCode("} else {")
+                   .addCode("    c.fipsModeEnabled(config.option($T.FIPS_ENDPOINT_ENABLED));", AwsClientOption.class)
+                   .addCode("}");
+        }
+
+        if (model.getCustomizationConfig().getServiceConfig().hasUseArnRegionProperty()) {
+            builder.addCode(CodeBlock.builder().beginControlFlow("if (c.useArnRegionEnabled() != null)")
+                                     .addStatement("clientContextParams.put($T.USE_ARN_REGION, c.useArnRegionEnabled())",
+                                                   endpointRulesSpecUtils.clientContextParamsName())
+                                     .endControlFlow()
+                                     .build());
+        }
+
+        if (model.getCustomizationConfig().getServiceConfig().hasMultiRegionEnabledProperty()) {
+            builder.addCode(CodeBlock.builder().beginControlFlow("if (c.multiRegionEnabled() != null)")
+                                     .addStatement("clientContextParams.put($T.DISABLE_MULTI_REGION_ACCESS_POINTS, !c"
+                                                   + ".multiRegionEnabled())",
+                                                   endpointRulesSpecUtils.clientContextParamsName())
+                                     .endControlFlow()
+                                     .build());
+        }
+
+        if (model.getCustomizationConfig().getServiceConfig().hasForcePathTypeEnabledProperty()) {
+            builder.addCode(CodeBlock.builder().beginControlFlow("if (c.pathStyleAccessEnabled() != null)")
+                                     .addStatement("clientContextParams.put($T.FORCE_PATH_STYLE, c"
+                                                   + ".pathStyleAccessEnabled())",
+                                                   endpointRulesSpecUtils.clientContextParamsName())
+                                     .endControlFlow()
+                                     .build());
+        }
+
+        if (model.getCustomizationConfig().getServiceConfig().hasAccelerateModeEnabledProperty()) {
+            builder.addCode(CodeBlock.builder().beginControlFlow("if (c.accelerateModeEnabled() != null)")
+                                     .addStatement("clientContextParams.put($T.ACCELERATE, c"
+                                                   + ".accelerateModeEnabled())",
+                                                   endpointRulesSpecUtils.clientContextParamsName())
+                                     .endControlFlow()
+                                     .build());
+        }
     }
 
     private MethodSpec setServiceConfigurationMethod() {

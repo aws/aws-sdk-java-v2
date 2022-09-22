@@ -157,6 +157,7 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
                 case AWS_S3_USE_ARN_REGION:
                 case AWS_S3_USE_GLOBAL_ENDPOINT:
                 case AWS_STS_USE_GLOBAL_ENDPOINT:
+                case AWS_S3CONTROL_USE_ARN_REGION:
                     // TODO: handle this
                     return;
                 default:
