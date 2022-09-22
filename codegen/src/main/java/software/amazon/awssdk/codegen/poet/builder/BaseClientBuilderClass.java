@@ -232,9 +232,7 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         builder.addCode("$1T interceptorFactory = new $1T();\n", ClasspathInterceptorChainFactory.class)
                .addCode("$T<$T> interceptors = interceptorFactory.getInterceptors($S);\n",
-                        List.class, ExecutionInterceptor.class, requestHandlerPath)
-               .addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
-                        CollectionUtils.class, SdkClientOption.class);
+                        List.class, ExecutionInterceptor.class, requestHandlerPath);
 
         builder.addStatement("$T additionalInterceptors = new $T<>()",
                              ParameterizedTypeName.get(List.class,
@@ -249,6 +247,9 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         builder.addStatement("interceptors = $T.mergeLists(interceptors, additionalInterceptors)",
                              CollectionUtils.class);
+
+        builder.addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
+                                CollectionUtils.class, SdkClientOption.class);
 
         if (model.getEndpointOperation().isPresent()) {
             builder.beginControlFlow("if (!endpointDiscoveryEnabled)")
