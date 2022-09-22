@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Device Farm",
-    "contributor": "",
-    "description": "This release adds the support for VPC-ENI based connectivity for private devices on AWS Device Farm."
-}
