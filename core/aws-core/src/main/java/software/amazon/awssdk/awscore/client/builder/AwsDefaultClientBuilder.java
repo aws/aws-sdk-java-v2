@@ -242,6 +242,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             .withRegion(config.option(AwsClientOption.AWS_REGION))
             .withProfileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
             .withProfileName(config.option(SdkClientOption.PROFILE_NAME))
+            // TODO: disabled because this early check cases tests in endpoint-tests.json to fail.
             // .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
             //                    config.option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
             // .withDualstackEnabled(config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
