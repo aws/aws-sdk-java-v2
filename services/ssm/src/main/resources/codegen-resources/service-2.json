@@ -6925,7 +6925,9 @@
         "ChangeCalendar",
         "Automation.ChangeTemplate",
         "ProblemAnalysis",
-        "ProblemAnalysisTemplate"
+        "ProblemAnalysisTemplate",
+        "CloudFormation",
+        "ConformancePackTemplate"
       ]
     },
     "DocumentVersion":{
