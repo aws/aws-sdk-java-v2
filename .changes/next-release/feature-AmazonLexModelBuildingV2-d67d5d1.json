@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Model Building V2",
+    "contributor": "",
+    "description": "This release introduces additional optional parameters promptAttemptsSpecification to PromptSpecification, which enables the users to configure interrupt setting and Audio, DTMF and Text input configuration for the initial and retry prompt played by the Bot"
+}
