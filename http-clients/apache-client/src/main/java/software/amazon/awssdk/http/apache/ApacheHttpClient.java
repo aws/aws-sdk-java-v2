@@ -404,7 +404,10 @@ public final class ApacheHttpClient implements SdkHttpClient {
         Builder dnsResolver(DnsResolver dnsResolver);
 
         /**
-         * Configuration that defines a Socket Factory. If no matches are found, the default factory is used.
+         * Configuration that defines a custom Socket factory. If set to a null value, a default factory is used.
+         * <p>
+         * When set to a non-null value, the use of a custom factory implies the configuration options TRUST_ALL_CERTIFICATES,
+         * TLS_TRUST_MANAGERS_PROVIDER, and TLS_KEY_MANAGERS_PROVIDER are ignored.
          */
         Builder socketFactory(ConnectionSocketFactory socketFactory);
 
