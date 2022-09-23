@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "Letting external AWS customers provide ImageId as a Launch Template override in FleetLaunchTemplateOverridesRequest"
+}
