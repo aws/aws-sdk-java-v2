@@ -37,6 +37,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -122,6 +124,47 @@ class S3TransferManagerPauseAndResumeTest {
                                    .completionFuture()
                                    .join()).hasRootCause(sdkClientException);
     }
+
+    @Test
+    void resumeDownloadFile_errorShouldNotBeWrapped() {
+        GetObjectRequest getObjectRequest = getObjectRequest();
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+        Error error = new OutOfMemoryError();
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFutureUtils.failedFuture(error));
+
+        assertThatThrownBy(() -> tm.resumeDownloadFile(r -> r.bytesTransferred(1000l)
+                                                             .downloadFileRequest(downloadFileRequest)
+                                                             .fileLastModified(fileLastModified)
+                                                             .s3ObjectLastModified(Instant.now()))
+                                   .completionFuture()
+                                   .join()).hasCauseInstanceOf(Error.class);
+    }
+
+    @Test
+    void resumeDownloadFile_SdkExceptionShouldNotBeWrapped() {
+        GetObjectRequest getObjectRequest = getObjectRequest();
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+        SdkException sdkException = SdkException.create("Failed to resume the request", new Throwable());
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFutureUtils.failedFuture(sdkException));
+
+        assertThatThrownBy(() -> tm.resumeDownloadFile(r -> r.bytesTransferred(1000l)
+                                                             .downloadFileRequest(downloadFileRequest)
+                                                             .fileLastModified(fileLastModified)
+                                                             .s3ObjectLastModified(Instant.now()))
+                                   .completionFuture()
+                                   .join()).hasCause(sdkException);
+    }
+
 
     @Test
     public void pauseAfterResumeBeforeHeadSucceeds() throws InterruptedException {

@@ -33,6 +33,7 @@ import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
@@ -460,10 +461,21 @@ public final class DefaultS3TransferManager implements S3TransferManager {
                                         CompletableFuture<TransferProgress> progressFuture,
                                         CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture,
                                         Throwable throwable) {
-        SdkClientException exception = SdkClientException.create("Failed to resume the request", throwable);
-        returnFuture.completeExceptionally(exception);
-        progressFuture.completeExceptionally(exception);
-        newDownloadFileRequestFuture.completeExceptionally(exception);
+        Throwable exceptionCause = throwable instanceof CompletionException ? throwable.getCause() : throwable;
+
+        Throwable propagatedException = exceptionCause instanceof SdkException || exceptionCause instanceof Error
+                                        ? exceptionCause
+                                        : SdkClientException.create("Failed to resume the request", exceptionCause);
+
+        if (propagatedException instanceof SdkException) {
+            propagatedException = SdkException.create("Failed to resume the request", propagatedException);
+        }
+
+        returnFuture.completeExceptionally(propagatedException);
+        progressFuture.completeExceptionally(propagatedException);
+        newDownloadFileRequestFuture.completeExceptionally(propagatedException);
+
+
     }
 
     @Override
