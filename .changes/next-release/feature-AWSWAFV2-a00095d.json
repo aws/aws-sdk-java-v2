@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "contributor": "",
+    "description": "Add the default specification for ResourceType in ListResourcesForWebACL."
+}
