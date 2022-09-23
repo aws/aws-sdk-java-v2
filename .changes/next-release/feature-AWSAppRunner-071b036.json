@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS App Runner",
-    "contributor": "",
-    "description": "AWS App Runner adds a Node.js 16 runtime."
-}

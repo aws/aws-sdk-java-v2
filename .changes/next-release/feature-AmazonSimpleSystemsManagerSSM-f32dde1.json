@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "contributor": "",
-    "description": "This release adds new SSM document types ConformancePackTemplate and CloudFormation"
-}

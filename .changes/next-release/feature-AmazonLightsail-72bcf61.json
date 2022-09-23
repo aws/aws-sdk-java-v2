@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lightsail",
-    "contributor": "",
-    "description": "This release adds Instance Metadata Service (IMDS) support for Lightsail instances."
-}
