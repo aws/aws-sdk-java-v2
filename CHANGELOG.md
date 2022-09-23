@@ -1,3 +1,36 @@
+# __2.17.281__ __2022-09-23__
+## __AWS App Runner__
+  - ### Features
+    - AWS App Runner adds a Node.js 16 runtime.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Add the default specification for ResourceType in ListResourcesForWebACL.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Letting external AWS customers provide ImageId as a Launch Template override in FleetLaunchTemplateOverridesRequest
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release introduces additional optional parameters promptAttemptsSpecification to PromptSpecification, which enables the users to configure interrupt setting and Audio, DTMF and Text input configuration for the initial and retry prompt played by the Bot
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds Instance Metadata Service (IMDS) support for Lightsail instances.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release adds new SSM document types ConformancePackTemplate and CloudFormation
+
+## __AmazonNimbleStudio__
+  - ### Features
+    - Amazon Nimble Studio adds support for on-demand Amazon Elastic Compute Cloud (EC2) G3 and G5 instances, allowing customers to utilize additional GPU instance types for their creative projects.
+
 # __2.17.280__ __2022-09-22__
 ## __AWS Backup Gateway__
   - ### Features
