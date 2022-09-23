@@ -404,6 +404,11 @@ public final class ApacheHttpClient implements SdkHttpClient {
         Builder dnsResolver(DnsResolver dnsResolver);
 
         /**
+         * Configuration that defines a Socket Factory. If no matches are found, the default factory is used.
+         */
+        Builder socketFactory(ConnectionSocketFactory socketFactory);
+
+        /**
          * Configuration that defines an HTTP route planner that computes the route an HTTP request should take.
          * May not be used in conjunction with {@link #proxyConfiguration(ProxyConfiguration)}.
          */
@@ -452,6 +457,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         private HttpRoutePlanner httpRoutePlanner;
         private CredentialsProvider credentialsProvider;
         private DnsResolver dnsResolver;
+        private ConnectionSocketFactory socketFactory;
 
         private DefaultBuilder() {
         }
@@ -573,6 +579,16 @@ public final class ApacheHttpClient implements SdkHttpClient {
         }
 
         @Override
+        public Builder socketFactory(ConnectionSocketFactory socketFactory) {
+            this.socketFactory = socketFactory;
+            return this;
+        }
+
+        public void setSocketFactory(ConnectionSocketFactory socketFactory) {
+            socketFactory(socketFactory);
+        }
+
+        @Override
         public Builder httpRoutePlanner(HttpRoutePlanner httpRoutePlanner) {
             this.httpRoutePlanner = httpRoutePlanner;
             return this;
@@ -654,9 +670,9 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         private ConnectionSocketFactory getPreferredSocketFactory(ApacheHttpClient.DefaultBuilder configuration,
                                                                   AttributeMap standardOptions) {
-            // TODO v2 custom socket factory
-            return new SdkTlsSocketFactory(getSslContext(standardOptions),
-                                           getHostNameVerifier(standardOptions));
+            return Optional.ofNullable(configuration.socketFactory)
+                           .orElseGet(() -> new SdkTlsSocketFactory(getSslContext(standardOptions),
+                                                                    getHostNameVerifier(standardOptions)));
         }
 
         private HostnameVerifier getHostNameVerifier(AttributeMap standardOptions) {
