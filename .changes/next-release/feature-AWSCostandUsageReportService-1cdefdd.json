@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cost and Usage Report Service",
+    "contributor": "",
+    "description": "This release adds two new support regions(me-central-1/eu-south-2) for OSG."
+}
