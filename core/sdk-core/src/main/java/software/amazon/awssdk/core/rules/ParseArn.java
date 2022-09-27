@@ -22,7 +22,7 @@ import software.amazon.awssdk.utils.MapUtils;
 
 @SdkInternalApi
 public class ParseArn extends SingleArgFn {
-    public static final String ID = "parseArn";
+    public static final String ID = "aws.parseArn";
     public static final Identifier PARTITION = Identifier.of("partition");
     public static final Identifier SERVICE = Identifier.of("service");
     public static final Identifier REGION = Identifier.of("region");

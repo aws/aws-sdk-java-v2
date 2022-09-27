@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.rules.model;
 
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -53,5 +54,9 @@ public final class EndpointAttributeKey<T> {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (clzz != null ? clzz.hashCode() : 0);
         return result;
+    }
+
+    public static <E> EndpointAttributeKey<List<E>> forList(String name) {
+        return new EndpointAttributeKey(name, List.class);
     }
 }

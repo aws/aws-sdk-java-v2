@@ -13,6 +13,7 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
+import software.amazon.awssdk.services.query.rules.QueryClientContextParams;
 import software.amazon.awssdk.services.query.rules.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.rules.internal.QueryEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -45,12 +46,13 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
-        interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         additionalInterceptors.add(new QueryEndpointInterceptor());
         additionalInterceptors.add(new QueryParametersToBodyInterceptor());
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
-        return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).build();
+        interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
+        return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
+                     .option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build()).build();
     }
 
     private Signer defaultSigner() {
@@ -64,5 +66,15 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     private QueryEndpointProvider defaultEndpointProvider() {
         return QueryEndpointProvider.defaultProvider();
+    }
+
+    public B booleanContextParam(Boolean booleanContextParam) {
+        clientContextParams.put(QueryClientContextParams.BOOLEAN_CONTEXT_PARAM, booleanContextParam);
+        return thisBuilder();
+    }
+
+    public B stringContextParam(String stringContextParam) {
+        clientContextParams.put(QueryClientContextParams.STRING_CONTEXT_PARAM, stringContextParam);
+        return thisBuilder();
     }
 }

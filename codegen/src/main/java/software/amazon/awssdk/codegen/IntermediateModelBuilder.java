@@ -136,7 +136,7 @@ public class IntermediateModelBuilder {
         IntermediateModel fullModel = new IntermediateModel(
             constructMetadata(service, customConfig), operations, shapes,
             customConfig, endpointOperation, paginators.getPagination(), namingStrategy,
-            waiters.getWaiters(), endpointRuleSet, endpointTestSuiteModel);
+            waiters.getWaiters(), endpointRuleSet, endpointTestSuiteModel, service.getClientContextParams());
 
         customization.postprocess(fullModel);
 
@@ -157,7 +157,8 @@ public class IntermediateModelBuilder {
                                                                namingStrategy,
                                                                fullModel.getWaiters(),
                                                                fullModel.getEndpointRuleSetModel(),
-                                                               endpointTestSuiteModel);
+                                                               endpointTestSuiteModel,
+                                                               service.getClientContextParams());
 
         linkMembersToShapes(trimmedModel);
         linkOperationsToInputOutputShapes(trimmedModel);

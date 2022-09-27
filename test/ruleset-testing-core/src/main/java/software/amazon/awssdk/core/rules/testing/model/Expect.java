@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.rules.testing.model;
 
+import software.amazon.awssdk.core.rules.model.Endpoint;
+
 public class Expect {
     private Endpoint endpoint;
     private String error;

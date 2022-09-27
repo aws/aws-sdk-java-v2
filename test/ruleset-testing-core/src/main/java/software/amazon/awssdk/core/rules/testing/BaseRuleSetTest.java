@@ -32,7 +32,7 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.rules.testing.model.Endpoint;
+import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.core.rules.testing.model.Expect;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;

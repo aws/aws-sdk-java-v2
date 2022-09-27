@@ -217,6 +217,10 @@ public abstract class Value {
             }
         }
 
+        public int size() {
+            return inner.size();
+        }
+
         @Override
         public String toString() {
             return "Array{" +

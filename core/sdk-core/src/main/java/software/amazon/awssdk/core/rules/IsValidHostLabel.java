@@ -45,6 +45,7 @@ public class IsValidHostLabel extends VarargFn {
     @Override
     public Value eval(Scope<Value> scope) {
         String hostLabel = expectTwoArgs().left().eval(scope).expectString();
+        // TODO: use compiled Pattern
         if (allowDots(scope)) {
             return Value.fromBool(hostLabel.matches("[a-zA-Z\\d][a-zA-Z\\d\\-.]{0,62}"));
         } else {

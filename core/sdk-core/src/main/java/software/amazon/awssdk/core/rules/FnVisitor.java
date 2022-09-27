@@ -38,4 +38,8 @@ public interface FnVisitor<R> {
     R visitParseUrl(ParseUrl parseUrl);
 
     R visitSubstring(Substring substring);
+
+    R visitUriEncode(UriEncodeFn fn);
+
+    R visitIsVirtualHostLabelsS3Bucket(IsVirtualHostableS3Bucket fn);
 }

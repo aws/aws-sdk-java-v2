@@ -33,6 +33,15 @@
         "message": "Don't use!",
         "since": "2021-01-01"
       }
+    },
+    "booleanContextParam": {
+      "type": "boolean"
+    },
+    "stringContextParam": {
+      "type": "string"
+    },
+    "operationContextParam": {
+      "type": "string"
     }
   },
   "rules": [
@@ -122,9 +131,9 @@
                 "properties": {
                   "authSchemes": [
                     {
-                      "name": "v4a",
-                      "signingScope": "query",
-                      "signingRegions": "*"
+                      "name": "sigv4a",
+                      "signingName": "query",
+                      "signingRegionSet": ["*"]
                     }
                   ]
                 }
@@ -138,9 +147,9 @@
                 "properties": {
                   "authSchemes": [
                     {
-                      "name": "v4a",
-                      "signingScope": "query",
-                      "signingRegions": "*"
+                      "name": "sigv4a",
+                      "signingName": "query",
+                      "signingRegionSet": ["*"]
                     }
                   ]
                 }
@@ -201,9 +210,9 @@
                 "properties": {
                   "authSchemes": [
                     {
-                      "name": "v4a",
-                      "signingScope": "query",
-                      "signingRegions": "*"
+                      "name": "sigsigv4a",
+                      "signingName": "query",
+                      "signingRegionSet": ["*"]
                     }
                   ]
                 }
@@ -248,9 +257,9 @@
                 "properties": {
                   "authSchemes": [
                     {
-                      "name": "v4a",
-                      "signingScope": "query",
-                      "signingRegions": "*"
+                      "name": "sigv4a",
+                      "signingName": "query",
+                      "signingRegionSet": ["*"]
                     }
                   ]
                 }
@@ -299,9 +308,9 @@
                 "properties": {
                   "authSchemes": [
                     {
-                      "name": "v4a",
-                      "signingScope": "query",
-                      "signingRegions": "*"
+                      "name": "sigv4a",
+                      "signingName": "query",
+                      "signingRegionSet": ["*"]
                     }
                   ]
                 }

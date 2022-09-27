@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.rules.AwsProviderUtils;
 import software.amazon.awssdk.core.rules.Condition;
 import software.amazon.awssdk.core.rules.DefaultRuleEngine;
 import software.amazon.awssdk.core.rules.EndpointResult;
@@ -12,15 +13,16 @@ import software.amazon.awssdk.core.rules.EndpointRuleset;
 import software.amazon.awssdk.core.rules.Expr;
 import software.amazon.awssdk.core.rules.FnNode;
 import software.amazon.awssdk.core.rules.Identifier;
+import software.amazon.awssdk.core.rules.Literal;
 import software.amazon.awssdk.core.rules.Parameter;
 import software.amazon.awssdk.core.rules.ParameterType;
 import software.amazon.awssdk.core.rules.Parameters;
-import software.amazon.awssdk.core.rules.ProviderUtils;
 import software.amazon.awssdk.core.rules.Rule;
 import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.services.query.rules.QueryEndpointParams;
 import software.amazon.awssdk.services.query.rules.QueryEndpointProvider;
+import software.amazon.awssdk.utils.MapUtils;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
@@ -30,40 +32,260 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     @Override
     public Endpoint resolveEndpoint(QueryEndpointParams endpointParams) {
         Value res = new DefaultRuleEngine().evaluate(ENDPOINT_RULE_SET, toIdentifierValueMap(endpointParams));
-        return ProviderUtils.valueAsEndpointOrThrow(res);
+        return AwsProviderUtils.valueAsEndpointOrThrow(res);
     }
 
     private static Map<Identifier, Value> toIdentifierValueMap(QueryEndpointParams params) {
         Map<Identifier, Value> paramsMap = new HashMap<>();
-        String region = params.region().id();
-        if (region != null) {
-            paramsMap.put(Identifier.of("region"), Value.fromStr(region));
+        if (params.region() != null) {
+            paramsMap.put(Identifier.of("region"), Value.fromStr(params.region().id()));
         }
-        Boolean useDualStackEndpoint = params.useDualStackEndpoint();
-        if (useDualStackEndpoint != null) {
-            paramsMap.put(Identifier.of("useDualStackEndpoint"), Value.fromBool(useDualStackEndpoint));
+        if (params.useDualStackEndpoint() != null) {
+            paramsMap.put(Identifier.of("useDualStackEndpoint"), Value.fromBool(params.useDualStackEndpoint()));
         }
-        Boolean useFipsEndpoint = params.useFipsEndpoint();
-        if (useFipsEndpoint != null) {
-            paramsMap.put(Identifier.of("useFIPSEndpoint"), Value.fromBool(useFipsEndpoint));
+        if (params.useFipsEndpoint() != null) {
+            paramsMap.put(Identifier.of("useFIPSEndpoint"), Value.fromBool(params.useFipsEndpoint()));
         }
-        String endpointId = params.endpointId();
-        if (endpointId != null) {
-            paramsMap.put(Identifier.of("endpointId"), Value.fromStr(endpointId));
+        if (params.endpointId() != null) {
+            paramsMap.put(Identifier.of("endpointId"), Value.fromStr(params.endpointId()));
         }
-        Boolean defaultTrueParam = params.defaultTrueParam();
-        if (defaultTrueParam != null) {
-            paramsMap.put(Identifier.of("defaultTrueParam"), Value.fromBool(defaultTrueParam));
+        if (params.defaultTrueParam() != null) {
+            paramsMap.put(Identifier.of("defaultTrueParam"), Value.fromBool(params.defaultTrueParam()));
         }
-        String defaultStringParam = params.defaultStringParam();
-        if (defaultStringParam != null) {
-            paramsMap.put(Identifier.of("defaultStringParam"), Value.fromStr(defaultStringParam));
+        if (params.defaultStringParam() != null) {
+            paramsMap.put(Identifier.of("defaultStringParam"), Value.fromStr(params.defaultStringParam()));
         }
-        String deprecatedParam = params.deprecatedParam();
-        if (deprecatedParam != null) {
-            paramsMap.put(Identifier.of("deprecatedParam"), Value.fromStr(deprecatedParam));
+        if (params.deprecatedParam() != null) {
+            paramsMap.put(Identifier.of("deprecatedParam"), Value.fromStr(params.deprecatedParam()));
+        }
+        if (params.booleanContextParam() != null) {
+            paramsMap.put(Identifier.of("booleanContextParam"), Value.fromBool(params.booleanContextParam()));
+        }
+        if (params.stringContextParam() != null) {
+            paramsMap.put(Identifier.of("stringContextParam"), Value.fromStr(params.stringContextParam()));
+        }
+        if (params.operationContextParam() != null) {
+            paramsMap.put(Identifier.of("operationContextParam"), Value.fromStr(params.operationContextParam()));
         }
         return paramsMap;
+    }
+
+    private static Rule endpointRule_2() {
+        return Rule
+            .builder()
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("isSet").argv(Arrays.asList(Expr.ref(Identifier.of("useFIPSEndpoint"))))
+                              .build().validate()).build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("booleanEquals")
+                              .argv(Arrays.asList(Expr.ref(Identifier.of("useFIPSEndpoint")), Expr.of(true))).build()
+                              .validate()).build()).error("FIPS endpoints not supported with multi-region endpoints");
+    }
+
+    private static Rule endpointRule_3() {
+        return Rule
+            .builder()
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode
+                            .builder()
+                            .fn("not")
+                            .argv(Arrays.asList(FnNode.builder().fn("isSet")
+                                                      .argv(Arrays.asList(Expr.ref(Identifier.of("useFIPSEndpoint")))).build()
+                                                      .validate())).build().validate()).build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("isSet")
+                              .argv(Arrays.asList(Expr.ref(Identifier.of("useDualStackEndpoint")))).build().validate())
+                    .build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("booleanEquals")
+                              .argv(Arrays.asList(Expr.ref(Identifier.of("useDualStackEndpoint")), Expr.of(true)))
+                              .build().validate()).build())
+            .endpoint(
+                EndpointResult
+                    .builder()
+                    .url(Expr.of("https://{endpointId}.query.{partitionResult#dualStackDnsSuffix}"))
+                    .addProperty(
+                        Identifier.of("authSchemes"),
+                        Literal.fromTuple(Arrays.asList(Literal.fromRecord(MapUtils.of(Identifier.of("name"),
+                                                                                       Literal.fromStr("sigv4a"), Identifier.of("signingName"),
+                                                                                       Literal.fromStr("query"), Identifier.of("signingRegionSet"),
+                                                                                       Literal.fromTuple(Arrays.asList(Literal.fromStr("*")))))))).build());
+    }
+
+    private static Rule endpointRule_4() {
+        return Rule.builder()
+                   .endpoint(
+                       EndpointResult
+                           .builder()
+                           .url(Expr.of("https://{endpointId}.query.{partitionResult#dnsSuffix}"))
+                           .addProperty(
+                               Identifier.of("authSchemes"),
+                               Literal.fromTuple(Arrays.asList(Literal.fromRecord(MapUtils.of(Identifier.of("name"),
+                                                                                              Literal.fromStr("sigv4a"), Identifier.of("signingName"),
+                                                                                              Literal.fromStr("query"), Identifier.of("signingRegionSet"),
+                                                                                              Literal.fromTuple(Arrays.asList(Literal.fromStr("*")))))))).build());
+    }
+
+    private static Rule endpointRule_1() {
+        return Rule
+            .builder()
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("isSet").argv(Arrays.asList(Expr.ref(Identifier.of("endpointId"))))
+                              .build().validate()).build())
+            .treeRule(Arrays.asList(endpointRule_2(), endpointRule_3(), endpointRule_4()));
+    }
+
+    private static Rule endpointRule_6() {
+        return Rule
+            .builder()
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("isSet").argv(Arrays.asList(Expr.ref(Identifier.of("useFIPSEndpoint"))))
+                              .build().validate()).build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("booleanEquals")
+                              .argv(Arrays.asList(Expr.ref(Identifier.of("useFIPSEndpoint")), Expr.of(true))).build()
+                              .validate()).build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode
+                            .builder()
+                            .fn("not")
+                            .argv(Arrays.asList(FnNode.builder().fn("isSet")
+                                                      .argv(Arrays.asList(Expr.ref(Identifier.of("useDualStackEndpoint")))).build()
+                                                      .validate())).build().validate()).build())
+            .endpoint(
+                EndpointResult
+                    .builder()
+                    .url(Expr.of("https://query-fips.{region}.{partitionResult#dnsSuffix}"))
+                    .addProperty(
+                        Identifier.of("authSchemes"),
+                        Literal.fromTuple(Arrays.asList(Literal.fromRecord(MapUtils.of(Identifier.of("name"),
+                                                                                       Literal.fromStr("sigsigv4a"), Identifier.of("signingName"),
+                                                                                       Literal.fromStr("query"), Identifier.of("signingRegionSet"),
+                                                                                       Literal.fromTuple(Arrays.asList(Literal.fromStr("*")))))))).build());
+    }
+
+    private static Rule endpointRule_7() {
+        return Rule
+            .builder()
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("isSet")
+                              .argv(Arrays.asList(Expr.ref(Identifier.of("useDualStackEndpoint")))).build().validate())
+                    .build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("booleanEquals")
+                              .argv(Arrays.asList(Expr.ref(Identifier.of("useDualStackEndpoint")), Expr.of(true)))
+                              .build().validate()).build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode
+                            .builder()
+                            .fn("not")
+                            .argv(Arrays.asList(FnNode.builder().fn("isSet")
+                                                      .argv(Arrays.asList(Expr.ref(Identifier.of("useFIPSEndpoint")))).build()
+                                                      .validate())).build().validate()).build())
+            .endpoint(
+                EndpointResult
+                    .builder()
+                    .url(Expr.of("https://query.{region}.{partitionResult#dualStackDnsSuffix}"))
+                    .addProperty(
+                        Identifier.of("authSchemes"),
+                        Literal.fromTuple(Arrays.asList(Literal.fromRecord(MapUtils.of(Identifier.of("name"),
+                                                                                       Literal.fromStr("sigv4a"), Identifier.of("signingName"),
+                                                                                       Literal.fromStr("query"), Identifier.of("signingRegionSet"),
+                                                                                       Literal.fromTuple(Arrays.asList(Literal.fromStr("*")))))))).build());
+    }
+
+    private static Rule endpointRule_8() {
+        return Rule
+            .builder()
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("isSet")
+                              .argv(Arrays.asList(Expr.ref(Identifier.of("useDualStackEndpoint")))).build().validate())
+                    .build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("isSet").argv(Arrays.asList(Expr.ref(Identifier.of("useFIPSEndpoint"))))
+                              .build().validate()).build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("booleanEquals")
+                              .argv(Arrays.asList(Expr.ref(Identifier.of("useDualStackEndpoint")), Expr.of(true)))
+                              .build().validate()).build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("booleanEquals")
+                              .argv(Arrays.asList(Expr.ref(Identifier.of("useFIPSEndpoint")), Expr.of(true))).build()
+                              .validate()).build())
+            .endpoint(
+                EndpointResult
+                    .builder()
+                    .url(Expr.of("https://query-fips.{region}.{partitionResult#dualStackDnsSuffix}"))
+                    .addProperty(
+                        Identifier.of("authSchemes"),
+                        Literal.fromTuple(Arrays.asList(Literal.fromRecord(MapUtils.of(Identifier.of("name"),
+                                                                                       Literal.fromStr("sigv4a"), Identifier.of("signingName"),
+                                                                                       Literal.fromStr("query"), Identifier.of("signingRegionSet"),
+                                                                                       Literal.fromTuple(Arrays.asList(Literal.fromStr("*")))))))).build());
+    }
+
+    private static Rule endpointRule_9() {
+        return Rule.builder().endpoint(
+            EndpointResult.builder().url(Expr.of("https://query.{region}.{partitionResult#dnsSuffix}")).build());
+    }
+
+    private static Rule endpointRule_5() {
+        return Rule
+            .builder()
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("isValidHostLabel")
+                              .argv(Arrays.asList(Expr.ref(Identifier.of("region")), Expr.of(false))).build()
+                              .validate()).build())
+            .treeRule(Arrays.asList(endpointRule_6(), endpointRule_7(), endpointRule_8(), endpointRule_9()));
+    }
+
+    private static Rule endpointRule_10() {
+        return Rule.builder().error("{region} is not a valid HTTP host-label");
+    }
+
+    private static Rule endpointRule_0() {
+        return Rule
+            .builder()
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("partition").argv(Arrays.asList(Expr.ref(Identifier.of("region"))))
+                              .build().validate()).result("partitionResult").build())
+            .treeRule(Arrays.asList(endpointRule_1(), endpointRule_5(), endpointRule_10()));
     }
 
     private static EndpointRuleset ruleSet() {
@@ -95,272 +317,15 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                     .addParameter(
                         Parameter.builder().name("deprecatedParam").type(ParameterType.fromValue("string"))
                                  .required(false).deprecated(new Parameter.Deprecated("Don't use!", "2021-01-01"))
-                                 .build()).build())
-            .addRule(
-                Rule.builder()
-                    .addCondition(
-                        Condition
-                            .builder()
-                            .fn(FnNode.builder().fn("partition")
-                                      .argv(Arrays.asList(Expr.ref(Identifier.of("region")))).build()
-                                      .validate()).result("partitionResult").build())
-                    .treeRule(
-                        Arrays.asList(
-                            Rule.builder()
-                                .addCondition(
-                                    Condition
-                                        .builder()
-                                        .fn(FnNode
-                                                .builder()
-                                                .fn("isSet")
-                                                .argv(Arrays.asList(Expr.ref(Identifier
-                                                                                 .of("endpointId")))).build().validate())
-                                        .build())
-                                .treeRule(
-                                    Arrays.asList(
-                                        Rule.builder()
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("isSet")
-                                                            .argv(Arrays.asList(Expr.ref(Identifier
-                                                                                             .of("useFIPSEndpoint"))))
-                                                            .build().validate())
-                                                    .build())
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("booleanEquals")
-                                                            .argv(Arrays.asList(
-                                                                Expr.ref(Identifier
-                                                                             .of("useFIPSEndpoint")),
-                                                                Expr.of(true)))
-                                                            .build().validate())
-                                                    .build())
-                                            .error("FIPS endpoints not supported with multi-region endpoints"),
-                                        Rule.builder()
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("not")
-                                                            .argv(Arrays
-                                                                      .asList(FnNode
-                                                                                  .builder()
-                                                                                  .fn("isSet")
-                                                                                  .argv(Arrays
-                                                                                            .asList(Expr
-                                                                                                        .ref(Identifier
-                                                                                                                 .of("useFIPSEndpoint"))))
-                                                                                  .build()
-                                                                                  .validate()))
-                                                            .build().validate())
-                                                    .build())
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("isSet")
-                                                            .argv(Arrays.asList(Expr.ref(Identifier
-                                                                                             .of("useDualStackEndpoint"))))
-                                                            .build().validate())
-                                                    .build())
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("booleanEquals")
-                                                            .argv(Arrays.asList(
-                                                                Expr.ref(Identifier
-                                                                             .of("useDualStackEndpoint")),
-                                                                Expr.of(true)))
-                                                            .build().validate())
-                                                    .build())
-                                            .endpoint(
-                                                EndpointResult
-                                                    .builder()
-                                                    .url(Expr
-                                                             .of("https://{endpointId}.query.{partitionResult#dualStackDnsSuffix}"))
-                                                    .build()),
-                                        Rule.builder()
-                                            .endpoint(
-                                                EndpointResult
-                                                    .builder()
-                                                    .url(Expr
-                                                             .of("https://{endpointId}.query.{partitionResult#dnsSuffix}"))
-                                                    .build()))),
-                            Rule.builder()
-                                .addCondition(
-                                    Condition
-                                        .builder()
-                                        .fn(FnNode
-                                                .builder()
-                                                .fn("isValidHostLabel")
-                                                .argv(Arrays.asList(
-                                                    Expr.ref(Identifier.of("region")),
-                                                    Expr.of(false))).build().validate())
-                                        .build())
-                                .treeRule(
-                                    Arrays.asList(
-                                        Rule.builder()
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("isSet")
-                                                            .argv(Arrays.asList(Expr.ref(Identifier
-                                                                                             .of("useFIPSEndpoint"))))
-                                                            .build().validate())
-                                                    .build())
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("booleanEquals")
-                                                            .argv(Arrays.asList(
-                                                                Expr.ref(Identifier
-                                                                             .of("useFIPSEndpoint")),
-                                                                Expr.of(true)))
-                                                            .build().validate())
-                                                    .build())
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("not")
-                                                            .argv(Arrays
-                                                                      .asList(FnNode
-                                                                                  .builder()
-                                                                                  .fn("isSet")
-                                                                                  .argv(Arrays
-                                                                                            .asList(Expr
-                                                                                                        .ref(Identifier
-                                                                                                                 .of("useDualStackEndpoint"))))
-                                                                                  .build()
-                                                                                  .validate()))
-                                                            .build().validate())
-                                                    .build())
-                                            .endpoint(
-                                                EndpointResult
-                                                    .builder()
-                                                    .url(Expr
-                                                             .of("https://query-fips.{region}.{partitionResult#dnsSuffix}"))
-                                                    .build()),
-                                        Rule.builder()
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("isSet")
-                                                            .argv(Arrays.asList(Expr.ref(Identifier
-                                                                                             .of("useDualStackEndpoint"))))
-                                                            .build().validate())
-                                                    .build())
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("booleanEquals")
-                                                            .argv(Arrays.asList(
-                                                                Expr.ref(Identifier
-                                                                             .of("useDualStackEndpoint")),
-                                                                Expr.of(true)))
-                                                            .build().validate())
-                                                    .build())
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("not")
-                                                            .argv(Arrays
-                                                                      .asList(FnNode
-                                                                                  .builder()
-                                                                                  .fn("isSet")
-                                                                                  .argv(Arrays
-                                                                                            .asList(Expr
-                                                                                                        .ref(Identifier
-                                                                                                                 .of("useFIPSEndpoint"))))
-                                                                                  .build()
-                                                                                  .validate()))
-                                                            .build().validate())
-                                                    .build())
-                                            .endpoint(
-                                                EndpointResult
-                                                    .builder()
-                                                    .url(Expr
-                                                             .of("https://query.{region}.{partitionResult#dualStackDnsSuffix}"))
-                                                    .build()),
-                                        Rule.builder()
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("isSet")
-                                                            .argv(Arrays.asList(Expr.ref(Identifier
-                                                                                             .of("useDualStackEndpoint"))))
-                                                            .build().validate())
-                                                    .build())
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("isSet")
-                                                            .argv(Arrays.asList(Expr.ref(Identifier
-                                                                                             .of("useFIPSEndpoint"))))
-                                                            .build().validate())
-                                                    .build())
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("booleanEquals")
-                                                            .argv(Arrays.asList(
-                                                                Expr.ref(Identifier
-                                                                             .of("useDualStackEndpoint")),
-                                                                Expr.of(true)))
-                                                            .build().validate())
-                                                    .build())
-                                            .addCondition(
-                                                Condition
-                                                    .builder()
-                                                    .fn(FnNode
-                                                            .builder()
-                                                            .fn("booleanEquals")
-                                                            .argv(Arrays.asList(
-                                                                Expr.ref(Identifier
-                                                                             .of("useFIPSEndpoint")),
-                                                                Expr.of(true)))
-                                                            .build().validate())
-                                                    .build())
-                                            .endpoint(
-                                                EndpointResult
-                                                    .builder()
-                                                    .url(Expr
-                                                             .of("https://query-fips.{region}.{partitionResult#dualStackDnsSuffix}"))
-                                                    .build()),
-                                        Rule.builder()
-                                            .endpoint(
-                                                EndpointResult
-                                                    .builder()
-                                                    .url(Expr
-                                                             .of("https://query.{region}.{partitionResult#dnsSuffix}"))
-                                                    .build()))), Rule.builder()
-                                                                     .error("{region} is not a valid HTTP host-label")))).build();
+                                 .build())
+                    .addParameter(
+                        Parameter.builder().name("booleanContextParam").type(ParameterType.fromValue("boolean"))
+                                 .required(false).build())
+                    .addParameter(
+                        Parameter.builder().name("stringContextParam").type(ParameterType.fromValue("string"))
+                                 .required(false).build())
+                    .addParameter(
+                        Parameter.builder().name("operationContextParam").type(ParameterType.fromValue("string"))
+                                 .required(false).build()).build()).addRule(endpointRule_0()).build();
     }
 }

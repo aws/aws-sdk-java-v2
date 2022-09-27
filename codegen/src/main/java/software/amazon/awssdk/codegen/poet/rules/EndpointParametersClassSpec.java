@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.codegen.poet.rules;
 
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.jr.stree.JrsBoolean;
+import com.fasterxml.jackson.jr.stree.JrsString;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -25,9 +28,11 @@ import java.util.Map;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.regions.Region;
 
 public class EndpointParametersClassSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
@@ -85,7 +90,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
                                      .addSuperinterface(builderInterfaceName());
 
         parameters().forEach((name, model) -> {
-            b.addField(fieldSpec(name, model));
+            b.addField(fieldSpec(name, model).toBuilder().initializer(defaultValueCode(model)).build());
             b.addMethod(builderSetterMethod(name, model));
         });
 
@@ -114,11 +119,11 @@ public class EndpointParametersClassSpec implements ClassSpec {
     }
 
     private ParameterSpec parameterSpec(String name, ParameterModel model) {
-        return ParameterSpec.builder(endpointRulesSpecUtils.parameterType(model), name).build();
+        return ParameterSpec.builder(endpointRulesSpecUtils.parameterType(model), variableName(name)).build();
     }
 
     private FieldSpec fieldSpec(String name, ParameterModel model) {
-        return FieldSpec.builder(endpointRulesSpecUtils.parameterType(model), name)
+        return FieldSpec.builder(endpointRulesSpecUtils.parameterType(model), variableName(name))
                         .addModifiers(Modifier.PRIVATE)
                         .build();
     }
@@ -135,21 +140,29 @@ public class EndpointParametersClassSpec implements ClassSpec {
         return MethodSpec.methodBuilder(endpointRulesSpecUtils.paramMethodName(name))
                          .returns(endpointRulesSpecUtils.parameterType(model))
                          .addModifiers(Modifier.PUBLIC)
-                         .addStatement("return $N", name)
+                         .addStatement("return $N", variableName(name))
                          .build();
     }
 
     private MethodSpec builderSetterMethod(String name, ParameterModel model) {
-        return MethodSpec.methodBuilder(endpointRulesSpecUtils.paramMethodName(name))
+        String memberName = variableName(name);
+
+        MethodSpec.Builder b = MethodSpec.methodBuilder(endpointRulesSpecUtils.paramMethodName(name))
                          .addParameter(parameterSpec(name, model))
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PUBLIC)
                          .returns(builderInterfaceName())
-                         .addCode(CodeBlock.builder()
-                                           .addStatement("this.$1N = $1N", name)
-                                           .addStatement("return this")
-                                           .build())
-                         .build();
+                         .addStatement("this.$1N = $1N", memberName);
+
+        TreeNode defaultValue = model.getDefault();
+        if (defaultValue != null) {
+            b.beginControlFlow("if (this.$N == null)", memberName);
+            b.addStatement("this.$N = $L", memberName, defaultValueCode(model));
+            b.endControlFlow();
+        }
+
+        b.addStatement("return this");
+        return b.build();
     }
 
     private MethodSpec ctor() {
@@ -158,7 +171,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
                                          .addParameter(builderClassName(), "builder");
 
         parameters().forEach((name, model) -> {
-            b.addStatement("this.$1N = builder.$1N", name);
+            b.addStatement("this.$1N = builder.$1N", variableName(name));
         });
 
         return b.build();
@@ -170,5 +183,38 @@ public class EndpointParametersClassSpec implements ClassSpec {
                          .returns(builderInterfaceName())
                          .addStatement("return new $T()", builderClassName())
                          .build();
+    }
+
+    private String variableName(String name) {
+        return intermediateModel.getNamingStrategy().getVariableName(name);
+    }
+
+    private CodeBlock defaultValueCode(ParameterModel parameterModel) {
+        CodeBlock.Builder b = CodeBlock.builder();
+
+        TreeNode defaultValue = parameterModel.getDefault();
+
+        if (defaultValue == null) {
+            return b.build();
+        }
+
+        switch (defaultValue.asToken()) {
+            case VALUE_STRING:
+                String stringValue = ((JrsString) defaultValue).getValue();
+                if (parameterModel.getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
+                    b.add("$T.of($S)", Region.class, stringValue);
+                } else {
+                    b.add("$S", stringValue);
+                }
+                break;
+            case VALUE_TRUE:
+            case VALUE_FALSE:
+                b.add("$L", ((JrsBoolean) defaultValue).booleanValue());
+                break;
+            default:
+                throw new RuntimeException("Don't know how to set default value for parameter of type "
+                                           + defaultValue.asToken());
+        }
+        return b.build();
     }
 }
