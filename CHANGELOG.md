@@ -1,3 +1,20 @@
+# __2.17.283__ __2022-09-27__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release is to support retroactive Cost Categories. The new field will enable you to retroactively apply new and existing cost category rules to previous months.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - My AWS Service (placeholder) - Amazon Kendra now provides a data source connector for DropBox. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-dropbox.html
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds place IDs, which are unique identifiers of places, along with a new GetPlace operation, which can be used with place IDs to find a place again later. UnitNumber and UnitType are also added as new properties of places.
+
 # __2.17.282__ __2022-09-26__
 ## __AWS Cost and Usage Report Service__
   - ### Features
