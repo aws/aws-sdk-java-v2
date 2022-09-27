@@ -181,19 +181,36 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void build_notSettingSocketFactory_configuresClientWithDefaultSocketFactory() throws IOException {
+    public void build_notSettingSocketFactory_configuresClientWithDefaultSocketFactory() throws IOException,
+                                                                                                NoSuchAlgorithmException,
+                                                                                                KeyManagementException {
         System.setProperty(SSL_KEY_STORE.property(), clientKeyStore.toAbsolutePath().toString());
         System.setProperty(SSL_KEY_STORE_TYPE.property(), CLIENT_STORE_TYPE);
         System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
 
+        TlsKeyManagersProvider provider = FileStoreTlsKeyManagersProvider.create(clientKeyStore,
+                                                                                 CLIENT_STORE_TYPE,
+                                                                                 STORE_PASSWORD);
+        KeyManager[] keyManagers = provider.keyManagers();
+
+        SSLContext sslcontext = SSLContext.getInstance("TLS");
+        sslcontext.init(keyManagers, null, null);
+
+        ConnectionSocketFactory socketFactory = new SdkTlsSocketFactory(sslcontext, NoopHostnameVerifier.INSTANCE);
+        ConnectionSocketFactory socketFactoryMock = Mockito.spy(socketFactory);
+
         client = ApacheHttpClient.builder().build();
+
         try {
-            makeRequestWithHttpClient(client);
+            HttpExecuteResponse httpExecuteResponse = makeRequestWithHttpClient(client);
+            assertThat(httpExecuteResponse.httpResponse().statusCode()).isEqualTo(200);
         } finally {
             System.clearProperty(SSL_KEY_STORE.property());
             System.clearProperty(SSL_KEY_STORE_TYPE.property());
             System.clearProperty(SSL_KEY_STORE_PASSWORD.property());
         }
+
+        Mockito.verifyNoInteractions(socketFactoryMock);
     }
 
     @Test
