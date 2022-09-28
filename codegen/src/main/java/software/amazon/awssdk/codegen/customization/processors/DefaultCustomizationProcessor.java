@@ -35,7 +35,8 @@ public final class DefaultCustomizationProcessor {
                 new OperationModifiersProcessor(config.getOperationModifiers()),
                 new RemoveExceptionMessagePropertyProcessor(),
                 new UseLegacyEventGenerationSchemeProcessor(),
-                new NewAndLegacyEventStreamProcessor()
-        );
+                new NewAndLegacyEventStreamProcessor(),
+                new S3RemoveBucketFromUriProcessor()
+                );
     }
 }
