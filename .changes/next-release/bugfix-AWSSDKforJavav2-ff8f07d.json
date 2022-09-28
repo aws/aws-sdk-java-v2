@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Update RequestBody/AsyncRequestBody.fromString(String, Charset) to use the provided charset in the content-type."
+}
