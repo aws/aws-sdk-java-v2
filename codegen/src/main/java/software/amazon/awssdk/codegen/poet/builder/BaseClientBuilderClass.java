@@ -24,10 +24,12 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -38,6 +40,7 @@ import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
@@ -104,6 +107,12 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(defaultSignerMethod());
         builder.addMethod(signingNameMethod());
         builder.addMethod(defaultEndpointProviderMethod());
+
+        if (hasClientContextParams()) {
+            model.getClientContextParams().forEach((n, m) -> {
+                builder.addMethod(clientContextParamSetter(n, m));
+            });
+        }
 
         if (model.getCustomizationConfig().getServiceConfig().getClassName() != null) {
             builder.addMethod(setServiceConfigurationMethod())
@@ -223,9 +232,7 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         builder.addCode("$1T interceptorFactory = new $1T();\n", ClasspathInterceptorChainFactory.class)
                .addCode("$T<$T> interceptors = interceptorFactory.getInterceptors($S);\n",
-                        List.class, ExecutionInterceptor.class, requestHandlerPath)
-               .addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
-                        CollectionUtils.class, SdkClientOption.class);
+                        List.class, ExecutionInterceptor.class, requestHandlerPath);
 
         builder.addStatement("$T additionalInterceptors = new $T<>()",
                              ParameterizedTypeName.get(List.class,
@@ -241,6 +248,9 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addStatement("interceptors = $T.mergeLists(interceptors, additionalInterceptors)",
                              CollectionUtils.class);
 
+        builder.addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
+                                CollectionUtils.class, SdkClientOption.class);
+
         if (model.getEndpointOperation().isPresent()) {
             builder.beginControlFlow("if (!endpointDiscoveryEnabled)")
                    .addStatement("$1T chain = new $1T(config)", DefaultEndpointDiscoveryProviderChain.class)
@@ -250,33 +260,13 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         String clientConfigClassName = model.getCustomizationConfig().getServiceConfig().getClassName();
         if (StringUtils.isNotBlank(clientConfigClassName)) {
-            ClassName clientConfigClass = ClassName.bestGuess(clientConfigClassName);
-            builder.addCode("$1T.Builder c = (($1T) config.option($2T.SERVICE_CONFIGURATION)).toBuilder();" +
-                            "c.profileFile(c.profileFile() != null ? c.profileFile() : config.option($2T.PROFILE_FILE));" +
-                            "c.profileName(c.profileName() != null ? c.profileName() : config.option($2T.PROFILE_NAME));",
-                            clientConfigClass, SdkClientOption.class);
+            mergeServiceConfiguration(builder, clientConfigClassName);
+        }
 
-            if (model.getCustomizationConfig().getServiceConfig().hasDualstackProperty()) {
-                builder.addCode("if (c.dualstackEnabled() != null) {")
-                       .addCode("    $T.validState(config.option($T.DUALSTACK_ENDPOINT_ENABLED) == null, \"Dualstack has been "
-                                + "configured on both $L and the client/global level. Please limit dualstack configuration to "
-                                + "one location.\");",
-                                Validate.class, AwsClientOption.class, clientConfigClassName)
-                       .addCode("} else {")
-                       .addCode("    c.dualstackEnabled(config.option($T.DUALSTACK_ENDPOINT_ENABLED));", AwsClientOption.class)
-                       .addCode("}");
-            }
-
-            if (model.getCustomizationConfig().getServiceConfig().hasFipsProperty()) {
-                builder.addCode("if (c.fipsModeEnabled() != null) {")
-                       .addCode("    $T.validState(config.option($T.FIPS_ENDPOINT_ENABLED) == null, \"Fips has been "
-                                + "configured on both $L and the client/global level. Please limit fips configuration to "
-                                + "one location.\");",
-                                Validate.class, AwsClientOption.class, clientConfigClassName)
-                       .addCode("} else {")
-                       .addCode("    c.fipsModeEnabled(config.option($T.FIPS_ENDPOINT_ENABLED));", AwsClientOption.class)
-                       .addCode("}");
-            }
+        if (model.getCustomizationConfig().useGlobalEndpoint()) {
+            builder.addStatement("$T resolver = new UseGlobalEndpointResolver(config)",
+                                 ClassName.get("software.amazon.awssdk.services.s3.internal.endpoints",
+                                               "UseGlobalEndpointResolver"));
         }
 
         // Update configuration
@@ -308,9 +298,82 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addCode(".option($T.SERVICE_CONFIGURATION, c.build())", SdkClientOption.class);
         }
 
+        if (model.getCustomizationConfig().useGlobalEndpoint()) {
+            builder.addCode(".option($T.USE_GLOBAL_ENDPOINT, resolver.resolve())", AwsClientOption.class);
+        }
+
+        if (hasClientContextParams()) {
+            builder.addCode(".option($T.CLIENT_CONTEXT_PARAMS, clientContextParams.build())", SdkClientOption.class);
+        }
+
         builder.addCode(".build();");
 
         return builder.build();
+    }
+
+    private void mergeServiceConfiguration(MethodSpec.Builder builder, String clientConfigClassName) {
+        ClassName clientConfigClass = ClassName.bestGuess(clientConfigClassName);
+        builder.addCode("$1T.Builder c = (($1T) config.option($2T.SERVICE_CONFIGURATION)).toBuilder();" +
+                        "c.profileFile(c.profileFile() != null ? c.profileFile() : config.option($2T.PROFILE_FILE));" +
+                        "c.profileName(c.profileName() != null ? c.profileName() : config.option($2T.PROFILE_NAME));",
+                        clientConfigClass, SdkClientOption.class);
+
+        if (model.getCustomizationConfig().getServiceConfig().hasDualstackProperty()) {
+            builder.addCode("if (c.dualstackEnabled() != null) {")
+                   .addCode("    $T.validState(config.option($T.DUALSTACK_ENDPOINT_ENABLED) == null, \"Dualstack has been "
+                            + "configured on both $L and the client/global level. Please limit dualstack configuration to "
+                            + "one location.\");",
+                            Validate.class, AwsClientOption.class, clientConfigClassName)
+                   .addCode("} else {")
+                   .addCode("    c.dualstackEnabled(config.option($T.DUALSTACK_ENDPOINT_ENABLED));", AwsClientOption.class)
+                   .addCode("}");
+        }
+
+        if (model.getCustomizationConfig().getServiceConfig().hasFipsProperty()) {
+            builder.addCode("if (c.fipsModeEnabled() != null) {")
+                   .addCode("    $T.validState(config.option($T.FIPS_ENDPOINT_ENABLED) == null, \"Fips has been "
+                            + "configured on both $L and the client/global level. Please limit fips configuration to "
+                            + "one location.\");",
+                            Validate.class, AwsClientOption.class, clientConfigClassName)
+                   .addCode("} else {")
+                   .addCode("    c.fipsModeEnabled(config.option($T.FIPS_ENDPOINT_ENABLED));", AwsClientOption.class)
+                   .addCode("}");
+        }
+
+        if (model.getCustomizationConfig().getServiceConfig().hasUseArnRegionProperty()) {
+            builder.addCode(CodeBlock.builder().beginControlFlow("if (c.useArnRegionEnabled() != null)")
+                                     .addStatement("clientContextParams.put($T.USE_ARN_REGION, c.useArnRegionEnabled())",
+                                                   endpointRulesSpecUtils.clientContextParamsName())
+                                     .endControlFlow()
+                                     .build());
+        }
+
+        if (model.getCustomizationConfig().getServiceConfig().hasMultiRegionEnabledProperty()) {
+            builder.addCode(CodeBlock.builder().beginControlFlow("if (c.multiRegionEnabled() != null)")
+                                     .addStatement("clientContextParams.put($T.DISABLE_MULTI_REGION_ACCESS_POINTS, !c"
+                                                   + ".multiRegionEnabled())",
+                                                   endpointRulesSpecUtils.clientContextParamsName())
+                                     .endControlFlow()
+                                     .build());
+        }
+
+        if (model.getCustomizationConfig().getServiceConfig().hasForcePathTypeEnabledProperty()) {
+            builder.addCode(CodeBlock.builder().beginControlFlow("if (c.pathStyleAccessEnabled() != null)")
+                                     .addStatement("clientContextParams.put($T.FORCE_PATH_STYLE, c"
+                                                   + ".pathStyleAccessEnabled())",
+                                                   endpointRulesSpecUtils.clientContextParamsName())
+                                     .endControlFlow()
+                                     .build());
+        }
+
+        if (model.getCustomizationConfig().getServiceConfig().hasAccelerateModeEnabledProperty()) {
+            builder.addCode(CodeBlock.builder().beginControlFlow("if (c.accelerateModeEnabled() != null)")
+                                     .addStatement("clientContextParams.put($T.ACCELERATE, c"
+                                                   + ".accelerateModeEnabled())",
+                                                   endpointRulesSpecUtils.clientContextParamsName())
+                                     .endControlFlow()
+                                     .build());
+        }
     }
 
     private MethodSpec setServiceConfigurationMethod() {
@@ -407,8 +470,28 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .build();
     }
 
+    private MethodSpec clientContextParamSetter(String name, ClientContextParam param) {
+        String setterName = endpointRulesSpecUtils.paramMethodName(name);
+        String keyName = model.getNamingStrategy().getEnumValueName(name);
+        TypeName type = endpointRulesSpecUtils.toJavaType(param.getType());
+
+        return MethodSpec.methodBuilder(setterName)
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(TypeVariableName.get("B"))
+                         .addParameter(type, setterName)
+                         .addStatement("clientContextParams.put($T.$N, $N)", endpointRulesSpecUtils.clientContextParamsName(),
+                                       keyName, setterName)
+                         .addStatement("return thisBuilder()")
+                         .build();
+    }
+
     @Override
     public ClassName className() {
         return builderClassName;
+    }
+
+    private boolean hasClientContextParams() {
+        Map<String, ClientContextParam> clientContextParams = model.getClientContextParams();
+        return clientContextParams != null && !clientContextParams.isEmpty();
     }
 }

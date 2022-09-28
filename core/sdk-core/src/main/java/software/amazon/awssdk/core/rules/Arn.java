@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.rules;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -44,10 +45,19 @@ public final class Arn {
         if (base.length != 6) {
             return Optional.empty();
         }
+        // service, resource and `arn` may not be null
         if (!base[0].equals("arn")) {
             return Optional.empty();
         }
-        return Optional.of(new Arn(base[1], base[2], base[3], base[4], Arrays.asList(base[5].split("[:/]", -1))));
+        if (base[1].isEmpty() || base[2].isEmpty()) {
+            return Optional.empty();
+        }
+        if (base[5].isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(new Arn(base[1], base[2], base[3], base[4],
+                                   Arrays.stream(base[5].split("[:/]", -1))
+                                         .collect(Collectors.toList())));
     }
 
     public String partition() {

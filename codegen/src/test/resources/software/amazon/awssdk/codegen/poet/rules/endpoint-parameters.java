@@ -24,6 +24,12 @@ public final class QueryEndpointParams {
 
     private final String deprecatedParam;
 
+    private final Boolean booleanContextParam;
+
+    private final String stringContextParam;
+
+    private final String operationContextParam;
+
     private QueryEndpointParams(BuilderImpl builder) {
         this.region = builder.region;
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
@@ -32,6 +38,9 @@ public final class QueryEndpointParams {
         this.defaultTrueParam = builder.defaultTrueParam;
         this.defaultStringParam = builder.defaultStringParam;
         this.deprecatedParam = builder.deprecatedParam;
+        this.booleanContextParam = builder.booleanContextParam;
+        this.stringContextParam = builder.stringContextParam;
+        this.operationContextParam = builder.operationContextParam;
     }
 
     public static Builder builder() {
@@ -66,6 +75,18 @@ public final class QueryEndpointParams {
         return deprecatedParam;
     }
 
+    public Boolean booleanContextParam() {
+        return booleanContextParam;
+    }
+
+    public String stringContextParam() {
+        return stringContextParam;
+    }
+
+    public String operationContextParam() {
+        return operationContextParam;
+    }
+
     public interface Builder {
         Builder region(Region region);
 
@@ -81,6 +102,12 @@ public final class QueryEndpointParams {
 
         Builder deprecatedParam(String deprecatedParam);
 
+        Builder booleanContextParam(Boolean booleanContextParam);
+
+        Builder stringContextParam(String stringContextParam);
+
+        Builder operationContextParam(String operationContextParam);
+
         QueryEndpointParams build();
     }
 
@@ -93,11 +120,17 @@ public final class QueryEndpointParams {
 
         private String endpointId;
 
-        private Boolean defaultTrueParam;
+        private Boolean defaultTrueParam = true;
 
-        private String defaultStringParam;
+        private String defaultStringParam = "hello endpoints";
 
         private String deprecatedParam;
+
+        private Boolean booleanContextParam;
+
+        private String stringContextParam;
+
+        private String operationContextParam;
 
         @Override
         public Builder region(Region region) {
@@ -126,18 +159,42 @@ public final class QueryEndpointParams {
         @Override
         public Builder defaultTrueParam(Boolean defaultTrueParam) {
             this.defaultTrueParam = defaultTrueParam;
+            if (this.defaultTrueParam == null) {
+                this.defaultTrueParam = true;
+            }
             return this;
         }
 
         @Override
         public Builder defaultStringParam(String defaultStringParam) {
             this.defaultStringParam = defaultStringParam;
+            if (this.defaultStringParam == null) {
+                this.defaultStringParam = "hello endpoints";
+            }
             return this;
         }
 
         @Override
         public Builder deprecatedParam(String deprecatedParam) {
             this.deprecatedParam = deprecatedParam;
+            return this;
+        }
+
+        @Override
+        public Builder booleanContextParam(Boolean booleanContextParam) {
+            this.booleanContextParam = booleanContextParam;
+            return this;
+        }
+
+        @Override
+        public Builder stringContextParam(String stringContextParam) {
+            this.stringContextParam = stringContextParam;
+            return this;
+        }
+
+        @Override
+        public Builder operationContextParam(String operationContextParam) {
+            this.operationContextParam = operationContextParam;
             return this;
         }
 

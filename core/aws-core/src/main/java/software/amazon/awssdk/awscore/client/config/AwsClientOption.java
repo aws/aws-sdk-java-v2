@@ -71,6 +71,11 @@ public final class AwsClientOption<T> extends ClientOption<T> {
      */
     public static final AwsClientOption<DefaultsMode> DEFAULTS_MODE = new AwsClientOption<>(DefaultsMode.class);
 
+    /**
+     * Option to specify whether global endpoint should be used
+     */
+    public static final AwsClientOption<Boolean> USE_GLOBAL_ENDPOINT = new AwsClientOption<>(Boolean.class);
+
     private AwsClientOption(Class<T> valueClass) {
         super(valueClass);
     }

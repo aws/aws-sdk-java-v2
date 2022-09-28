@@ -50,10 +50,10 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
-        interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         additionalInterceptors.add(new JsonEndpointInterceptor());
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
+        interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         ServiceConfiguration.Builder c = ((ServiceConfiguration) config.option(SdkClientOption.SERVICE_CONFIGURATION))
             .toBuilder();
         c.profileFile(c.profileFile() != null ? c.profileFile() : config.option(SdkClientOption.PROFILE_FILE));

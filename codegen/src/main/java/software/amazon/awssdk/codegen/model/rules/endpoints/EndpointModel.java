@@ -16,9 +16,13 @@
 package software.amazon.awssdk.codegen.model.rules.endpoints;
 
 import com.fasterxml.jackson.core.TreeNode;
+import java.util.List;
+import java.util.Map;
 
 public class EndpointModel {
     private TreeNode url;
+    private Map<String, List<TreeNode>> headers;
+    private Map<String, TreeNode> properties;
 
     public TreeNode getUrl() {
         return url;
@@ -26,5 +30,21 @@ public class EndpointModel {
 
     public void setUrl(TreeNode url) {
         this.url = url;
+    }
+
+    public Map<String, List<TreeNode>> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Map<String, List<TreeNode>> headers) {
+        this.headers = headers;
+    }
+
+    public Map<String, TreeNode> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, TreeNode> properties) {
+        this.properties = properties;
     }
 }

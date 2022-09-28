@@ -16,11 +16,13 @@
 package software.amazon.awssdk.codegen.model.rules.endpoints;
 
 import com.fasterxml.jackson.core.TreeNode;
+import java.util.List;
 import java.util.Map;
 
 public class EndpointTestModel {
     private String documentation;
     private Map<String, TreeNode> params;
+    private List<OperationInput> operationInputs;
     private ExpectModel expect;
 
     public String getDocumentation() {
@@ -37,6 +39,14 @@ public class EndpointTestModel {
 
     public void setParams(Map<String, TreeNode> params) {
         this.params = params;
+    }
+
+    public List<OperationInput> getOperationInputs() {
+        return operationInputs;
+    }
+
+    public void setOperationInputs(List<OperationInput> operationInputs) {
+        this.operationInputs = operationInputs;
     }
 
     public ExpectModel getExpect() {

@@ -24,6 +24,12 @@ public enum BuiltInParameter {
     AWS_USE_FIPS,
     SDK_ENDPOINT,
     AWS_STS_USE_GLOBAL_ENDPOINT,
+    AWS_S3_FORCE_PATH_STYLE,
+    AWS_S3_ACCELERATE,
+    AWS_S3_USE_GLOBAL_ENDPOINT,
+    AWS_S3_DISABLE_MULTI_REGION_ACCESS_POINTS,
+    AWS_S3_USE_ARN_REGION,
+    AWS_S3CONTROL_USE_ARN_REGION
     ;
 
     @JsonCreator
@@ -39,6 +45,18 @@ public enum BuiltInParameter {
                 return SDK_ENDPOINT;
             case "aws::sts::useglobalendpoint":
                 return AWS_STS_USE_GLOBAL_ENDPOINT;
+            case "aws::s3::forcepathstyle":
+                return AWS_S3_FORCE_PATH_STYLE;
+            case "aws::s3::accelerate":
+                return AWS_S3_ACCELERATE;
+            case "aws::s3::useglobalendpoint":
+                return AWS_S3_USE_GLOBAL_ENDPOINT;
+            case "aws::s3::disablemultiregionaccesspoints":
+                return AWS_S3_DISABLE_MULTI_REGION_ACCESS_POINTS;
+            case "aws::s3::usearnregion":
+                return AWS_S3_USE_ARN_REGION;
+            case "aws::s3control::usearnregion":
+                return AWS_S3CONTROL_USE_ARN_REGION;
             default:
                 throw new RuntimeException("Unrecognized builtin: " + s);
         }

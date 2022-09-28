@@ -24,6 +24,7 @@ public class ServiceModel {
     private Map<String, Operation> operations;
     private Map<String, Shape> shapes;
     private Map<String, Authorizer> authorizers;
+    private Map<String, ClientContextParam> clientContextParams;
 
     private String documentation;
 
@@ -98,5 +99,13 @@ public class ServiceModel {
 
     public void setAuthorizers(Map<String, Authorizer> authorizers) {
         this.authorizers = authorizers;
+    }
+
+    public Map<String, ClientContextParam> getClientContextParams() {
+        return clientContextParams;
+    }
+
+    public void setClientContextParams(Map<String, ClientContextParam> clientContextParams) {
+        this.clientContextParams = clientContextParams;
     }
 }

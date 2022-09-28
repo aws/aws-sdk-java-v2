@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.rules;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,8 +30,8 @@ public final class EndpointResult {
     private static final String HEADERS = "headers";
 
     private Expr url;
-    private Map<Identifier, Literal> properties;
-    private Map<String, List<Literal>> headers;
+    private Map<Identifier, Expr> properties;
+    private Map<String, List<Expr>> headers;
 
     private EndpointResult(Builder builder) {
         this.url = builder.url;
@@ -42,11 +43,11 @@ public final class EndpointResult {
         return url;
     }
 
-    public Map<Identifier, Literal> getProperties() {
+    public Map<Identifier, Expr> getProperties() {
         return properties;
     }
 
-    public Map<String, List<Literal>> getHeaders() {
+    public Map<String, List<Expr>> getHeaders() {
         return headers;
     }
 
@@ -117,21 +118,27 @@ public final class EndpointResult {
 
     public static class Builder {
         private Expr url;
-        private final Map<Identifier, Literal> properties = new HashMap<>();
-        private final Map<String, List<Literal>> headers = new HashMap<>();
+        private final Map<Identifier, Expr> properties = new HashMap<>();
+        private final Map<String, List<Expr>> headers = new HashMap<>();
 
         public Builder url(Expr url) {
             this.url = url;
             return this;
         }
 
-        public Builder addProperty(Identifier name, Literal value) {
+        public Builder addProperty(Identifier name, Expr value) {
             properties.put(name, value);
             return this;
         }
 
-        public Builder addHeader(String name, List<Literal> value) {
+        public Builder addHeader(String name, List<Expr> value) {
             this.headers.put(name, value);
+            return this;
+        }
+
+        public Builder addHeaderValue(String name, Expr value) {
+            List<Expr> values = this.headers.computeIfAbsent(name, n -> new ArrayList<>());
+            values.add(value);
             return this;
         }
 

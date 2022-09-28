@@ -26,63 +26,62 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.rules.ProviderUtils;
 import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 
-public class ProviderUtilsTest {
+public class AwsProviderUtilsTest {
     @Test
     public void endpointOverridden_attrIsFalse_returnsFalse() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, false);
-        assertThat(ProviderUtils.endpointIsOverridden(attrs)).isFalse();
+        assertThat(AwsProviderUtils.endpointIsOverridden(attrs)).isFalse();
     }
 
     @Test
     public void endpointOverridden_attrIsAbsent_returnsFalse() {
         ExecutionAttributes attrs = new ExecutionAttributes();
-        assertThat(ProviderUtils.endpointIsOverridden(attrs)).isFalse();
+        assertThat(AwsProviderUtils.endpointIsOverridden(attrs)).isFalse();
     }
 
     @Test
     public void endpointOverridden_attrIsTrue_returnsTrue() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, true);
-        assertThat(ProviderUtils.endpointIsOverridden(attrs)).isTrue();
+        assertThat(AwsProviderUtils.endpointIsOverridden(attrs)).isTrue();
     }
 
     @Test
     public void endpointIsDiscovered_attrIsFalse_returnsFalse() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT, false);
-        assertThat(ProviderUtils.endpointIsDiscovered(attrs)).isFalse();
+        assertThat(AwsProviderUtils.endpointIsDiscovered(attrs)).isFalse();
     }
 
     @Test
     public void endpointIsDiscovered_attrIsAbsent_returnsFalse() {
         ExecutionAttributes attrs = new ExecutionAttributes();
-        assertThat(ProviderUtils.endpointIsDiscovered(attrs)).isFalse();
+        assertThat(AwsProviderUtils.endpointIsDiscovered(attrs)).isFalse();
     }
 
     @Test
     public void endpointIsDiscovered_attrIsTrue_returnsTrue() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT, true);
-        assertThat(ProviderUtils.endpointIsDiscovered(attrs)).isTrue();
+        assertThat(AwsProviderUtils.endpointIsDiscovered(attrs)).isTrue();
     }
 
     @Test
     public void valueAsEndpoint_isNone_throws() {
-        assertThatThrownBy(() -> ProviderUtils.valueAsEndpointOrThrow(Value.none()))
+        assertThatThrownBy(() -> AwsProviderUtils.valueAsEndpointOrThrow(Value.none()))
             .isInstanceOf(SdkClientException.class);
     }
 
     @Test
     public void valueAsEndpoint_isString_throwsAsMsg() {
-        assertThatThrownBy(() -> ProviderUtils.valueAsEndpointOrThrow(Value.fromStr("oops!")))
+        assertThatThrownBy(() -> AwsProviderUtils.valueAsEndpointOrThrow(Value.fromStr("oops!")))
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("oops!");
     }
@@ -97,7 +96,7 @@ public class ProviderUtilsTest {
                                     .url(URI.create("https://myservice.aws"))
                                     .build();
 
-        assertThat(expected.url()).isEqualTo(ProviderUtils.valueAsEndpointOrThrow(endpointVal).url());
+        assertThat(expected.url()).isEqualTo(AwsProviderUtils.valueAsEndpointOrThrow(endpointVal).url());
     }
 
     @Test
@@ -132,7 +131,7 @@ public class ProviderUtilsTest {
             .port(443)
             .build();
 
-        SdkHttpRequest newRequest = ProviderUtils.setUri(request, newUri);
+        SdkHttpRequest newRequest = AwsProviderUtils.setUri(request, newUri);
 
         assertThat(newRequest.getUri()).isEqualTo(newUri);
     }

@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.codegen.poet.rules;
 
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.jr.stree.JrsBoolean;
+import com.fasterxml.jackson.jr.stree.JrsString;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
@@ -59,14 +62,34 @@ public class EndpointRulesSpecUtils {
                              md.getServiceName() + "EndpointInterceptor");
     }
 
-    public ClassName endpointTestsName() {
+    public ClassName clientEndpointTestsName() {
         Metadata md = intermediateModel.getMetadata();
         return ClassName.get(md.getFullEndpointRulesPackageName(),
-                             md.getServiceName() + "EndpointTests");
+                             md.getServiceName() + "ClientEndpointTests");
+    }
+
+    public ClassName endpointProviderTestsName() {
+        Metadata md = intermediateModel.getMetadata();
+        return ClassName.get(md.getFullEndpointRulesPackageName(),
+                             md.getServiceName() + "EndpointProviderTests");
+    }
+
+    public ClassName clientContextParamsName() {
+        Metadata md = intermediateModel.getMetadata();
+        return ClassName.get(md.getFullEndpointRulesPackageName(),
+                             md.getServiceName() + "ClientContextParams");
     }
 
     public String paramMethodName(String param) {
         return Utils.unCapitalize(CodegenNamingUtils.pascalCase(param));
+    }
+
+    public String clientContextParamMethodName(String param) {
+        return Utils.unCapitalize(CodegenNamingUtils.pascalCase(param));
+    }
+
+    public String clientContextParamName(String paramName) {
+        return intermediateModel.getNamingStrategy().getEnumValueName(paramName);
     }
 
     public TypeName toJavaType(String type) {
@@ -107,5 +130,37 @@ public class EndpointRulesSpecUtils {
             return ClassName.get(Region.class);
         }
         return toJavaType(param.getType());
+    }
+
+    public CodeBlock treeNodeToLiteral(TreeNode treeNode) {
+        CodeBlock.Builder b = CodeBlock.builder();
+
+        switch (treeNode.asToken()) {
+            case VALUE_STRING:
+                b.add("$S", asString(treeNode).getValue());
+                break;
+            case VALUE_TRUE:
+            case VALUE_FALSE:
+                b.add("$L", asBoolean(treeNode).booleanValue());
+                break;
+            default:
+                throw new RuntimeException("Don't know how to set default value for parameter of type "
+                                           + treeNode.asToken());
+        }
+        return b.build();
+    }
+
+    private static JrsString asString(TreeNode node) {
+        if (node instanceof JrsString) {
+            return (JrsString) node;
+        }
+        throw new RuntimeException("Node is not a string");
+    }
+
+    private static JrsBoolean asBoolean(TreeNode node) {
+        if (node instanceof JrsBoolean) {
+            return (JrsBoolean) node;
+        }
+        throw new RuntimeException("Node is not a boolean");
     }
 }
