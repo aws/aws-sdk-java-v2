@@ -26,6 +26,7 @@ import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Note: Most of the logic is copied from EnhancedS3ServiceMetadata
@@ -33,6 +34,7 @@ import software.amazon.awssdk.utils.Lazy;
  */
 @SdkInternalApi
 public class UseGlobalEndpointResolver {
+    private static final Logger LOG = Logger.loggerFor(UseGlobalEndpointResolver.class);
     private static final String REGIONAL_SETTING = "regional";
     private final Lazy<Boolean> useUsEast1RegionalEndpoint;
     private final SdkClientConfiguration sdkClientConfiguration;
@@ -42,7 +44,8 @@ public class UseGlobalEndpointResolver {
         String defaultS3UsEast1RegionalEndpointFromSmartDefaults =
             config.option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT);
         this.useUsEast1RegionalEndpoint =
-            new Lazy<>(() -> useUsEast1RegionalEndpoint(() ->config.option(SdkClientOption.PROFILE_FILE), () -> config.option(SdkClientOption.PROFILE_NAME),
+            new Lazy<>(() -> useUsEast1RegionalEndpoint(() ->config.option(SdkClientOption.PROFILE_FILE),
+                                                        () -> config.option(SdkClientOption.PROFILE_NAME),
                                                         defaultS3UsEast1RegionalEndpointFromSmartDefaults));
     }
 
@@ -88,7 +91,7 @@ public class UseGlobalEndpointResolver {
                               .flatMap(p -> p.property(ProfileProperty.S3_US_EAST_1_REGIONAL_ENDPOINT))
                               .orElse(null);
         } catch (Exception t) {
-            //log.warn(() -> "Unable to load config file", t);
+            LOG.warn(() -> "Unable to load config file", t);
             return null;
         }
     }
