@@ -48,14 +48,60 @@ public class ParametersTest {
     }
 
     @Test
+    public void parametersObject_defaultStringParam_isPresent() {
+        RestJsonEndpointProvidersEndpointParams params = RestJsonEndpointProvidersEndpointParams.builder().build();
+        assertThat(params.regionWithDefault()).isEqualTo(Region.of("us-east-1"));
+    }
+
+    @Test
+    public void parametersObject_defaultBooleanParam_isPresent() {
+        RestJsonEndpointProvidersEndpointParams params = RestJsonEndpointProvidersEndpointParams.builder().build();
+        assertThat(params.useFips()).isEqualTo(false);
+    }
+
+    @Test
+    public void parametersObject_defaultStringParam_customValue_isPresent() {
+        RestJsonEndpointProvidersEndpointParams params = RestJsonEndpointProvidersEndpointParams.builder()
+                                                                                                .regionWithDefault(Region.of(
+                                                                                                    "us-east-1000"))
+                                                                                                .build();
+        assertThat(params.regionWithDefault()).isEqualTo(Region.of("us-east-1000"));
+    }
+
+    @Test
+    public void parametersObject_defaultBooleanParam_customValue_isPresent() {
+        RestJsonEndpointProvidersEndpointParams params = RestJsonEndpointProvidersEndpointParams.builder()
+                                                                                                .useFips(true)
+                                                                                                .build();
+        assertThat(params.useFips()).isEqualTo(true);
+    }
+
+    @Test
+    public void parametersObject_defaultStringParam_setToNull_usesDefaultValue() {
+        RestJsonEndpointProvidersEndpointParams params = RestJsonEndpointProvidersEndpointParams.builder()
+                                                                                                .regionWithDefault(null)
+                                                                                                .build();
+        assertThat(params.regionWithDefault()).isEqualTo(Region.of("us-east-1"));
+    }
+
+    @Test
+    public void parametersObject_defaultBooleanParam_setToNull_usesDefaultValue() {
+        RestJsonEndpointProvidersEndpointParams params = RestJsonEndpointProvidersEndpointParams.builder()
+                                                                                                .useFips(null)
+                                                                                                .build();
+        assertThat(params.useFips()).isEqualTo(false);
+    }
+
+    @Test
     public void regionBuiltIn_resolvedCorrectly() {
         RestJsonEndpointProvidersClient client = RestJsonEndpointProvidersClient.builder()
-            .region(REGION)
-            .credentialsProvider(CREDENTIALS)
-            .endpointProvider(mockEndpointProvider)
-            .build();
+                                                                                .region(REGION)
+                                                                                .credentialsProvider(CREDENTIALS)
+                                                                                .endpointProvider(mockEndpointProvider)
+                                                                                .build();
 
-        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {}));
+        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {
+        }));
 
         ArgumentCaptor<RestJsonEndpointProvidersEndpointParams> paramsCaptor =
             ArgumentCaptor.forClass(RestJsonEndpointProvidersEndpointParams.class);
@@ -76,7 +122,8 @@ public class ParametersTest {
                                                                                 .endpointProvider(mockEndpointProvider)
                                                                                 .build();
 
-        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {}));
+        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {
+        }));
 
         ArgumentCaptor<RestJsonEndpointProvidersEndpointParams> paramsCaptor =
             ArgumentCaptor.forClass(RestJsonEndpointProvidersEndpointParams.class);
@@ -97,7 +144,8 @@ public class ParametersTest {
                                                                                 .endpointProvider(mockEndpointProvider)
                                                                                 .build();
 
-        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {}));
+        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {
+        }));
 
         ArgumentCaptor<RestJsonEndpointProvidersEndpointParams> paramsCaptor =
             ArgumentCaptor.forClass(RestJsonEndpointProvidersEndpointParams.class);
@@ -107,5 +155,91 @@ public class ParametersTest {
         RestJsonEndpointProvidersEndpointParams params = paramsCaptor.getValue();
 
         assertThat(params.useFips()).isEqualTo(true);
+    }
+
+    @Test
+    public void staticContextParams_OperationWithStaticContextParamA_resolvedCorrectly() {
+        RestJsonEndpointProvidersClient client = RestJsonEndpointProvidersClient.builder()
+                                                                                .region(REGION)
+                                                                                .credentialsProvider(CREDENTIALS)
+                                                                                .endpointProvider(mockEndpointProvider)
+                                                                                .build();
+
+        assertThatThrownBy(() -> client.operationWithStaticContextParamA(r -> {
+        }));
+
+        ArgumentCaptor<RestJsonEndpointProvidersEndpointParams> paramsCaptor =
+            ArgumentCaptor.forClass(RestJsonEndpointProvidersEndpointParams.class);
+
+        verify(mockEndpointProvider).resolveEndpoint(paramsCaptor.capture());
+
+        RestJsonEndpointProvidersEndpointParams params = paramsCaptor.getValue();
+
+        assertThat(params.staticStringParam()).isEqualTo("operation A");
+    }
+
+    @Test
+    public void staticContextParams_OperationWithStaticContextParamB_resolvedCorrectly() {
+        RestJsonEndpointProvidersClient client = RestJsonEndpointProvidersClient.builder()
+                                                                                .region(REGION)
+                                                                                .credentialsProvider(CREDENTIALS)
+                                                                                .endpointProvider(mockEndpointProvider)
+                                                                                .build();
+
+        assertThatThrownBy(() -> client.operationWithStaticContextParamB(r -> {
+        }));
+
+        ArgumentCaptor<RestJsonEndpointProvidersEndpointParams> paramsCaptor =
+            ArgumentCaptor.forClass(RestJsonEndpointProvidersEndpointParams.class);
+
+        verify(mockEndpointProvider).resolveEndpoint(paramsCaptor.capture());
+
+        RestJsonEndpointProvidersEndpointParams params = paramsCaptor.getValue();
+
+        assertThat(params.staticStringParam()).isEqualTo("operation B");
+    }
+
+    @Test
+    public void contextParams_OperationWithContextParam_resolvedCorrectly() {
+        RestJsonEndpointProvidersClient client = RestJsonEndpointProvidersClient.builder()
+                                                                                .region(REGION)
+                                                                                .credentialsProvider(CREDENTIALS)
+                                                                                .endpointProvider(mockEndpointProvider)
+                                                                                .build();
+
+        assertThatThrownBy(() -> client.operationWithContextParam(r -> r.stringMember("foobar")));
+
+        ArgumentCaptor<RestJsonEndpointProvidersEndpointParams> paramsCaptor =
+            ArgumentCaptor.forClass(RestJsonEndpointProvidersEndpointParams.class);
+
+        verify(mockEndpointProvider).resolveEndpoint(paramsCaptor.capture());
+
+        RestJsonEndpointProvidersEndpointParams params = paramsCaptor.getValue();
+
+        assertThat(params.operationContextParam()).isEqualTo("foobar");
+    }
+
+    @Test
+    public void clientContextParams_setOnBuilder_resolvedCorrectly() {
+        RestJsonEndpointProvidersClient client = RestJsonEndpointProvidersClient.builder()
+                                                                                .region(REGION)
+                                                                                .credentialsProvider(CREDENTIALS)
+                                                                                .endpointProvider(mockEndpointProvider)
+                                                                                .stringClientContextParam("foobar")
+                                                                                .booleanClientContextParam(true)
+                                                                                .build();
+
+        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {
+        }));
+
+        ArgumentCaptor<RestJsonEndpointProvidersEndpointParams> paramsCaptor =
+            ArgumentCaptor.forClass(RestJsonEndpointProvidersEndpointParams.class);
+
+        verify(mockEndpointProvider).resolveEndpoint(paramsCaptor.capture());
+
+        RestJsonEndpointProvidersEndpointParams params = paramsCaptor.getValue();
+
+        assertThat(params.stringClientContextParam()).isEqualTo("foobar");
+        assertThat(params.booleanClientContextParam()).isTrue();
     }
 }
