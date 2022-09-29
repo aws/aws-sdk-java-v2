@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Certificate Manager",
+    "contributor": "",
+    "description": "This update returns additional certificate details such as certificate SANs and allows sorting in the ListCertificates API."
+}
