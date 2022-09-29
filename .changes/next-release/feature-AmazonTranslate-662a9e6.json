@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Translate",
+    "contributor": "",
+    "description": "This release enables customers to access control rights on Translate resources like Parallel Data and Custom Terminology using Tag Based Authorization."
+}
