@@ -30,7 +30,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Grants users or groups in your Amazon Web Services SSO identity source access to your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
+      "documentation":"<p>Grants users or groups in your IAM Identity Center identity source access to your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
     },
     "AssociatePersonasToEntities":{
       "name":"AssociatePersonasToEntities",
@@ -48,7 +48,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Defines the specific permissions of users or groups in your Amazon Web Services SSO identity source with access to your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
+      "documentation":"<p>Defines the specific permissions of users or groups in your IAM Identity Center identity source with access to your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
     },
     "BatchDeleteDocument":{
       "name":"BatchDeleteDocument",
@@ -139,7 +139,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Creates an access configuration for your documents. This includes user and group access information for your documents. This is useful for user context filtering, where search results are filtered based on the user or their group access to documents.</p> <p>You can use this to re-configure your existing document level access control without indexing all of your documents again. For example, your index contains top-secret company documents that only certain employees or users should access. One of these users leaves the company or switches to a team that should be blocked from access to top-secret documents. Your documents in your index still give this user access to top-secret documents due to the user having access at the time your documents were indexed. You can create a specific access control configuration for this user with deny access. You can later update the access control configuration to allow access in the case the user returns to the company and re-joins the 'top-secret' team. You can re-configure access control for your documents circumstances change.</p> <p>To apply your access control configuration to certain documents, you call the <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_BatchPutDocument.html\">BatchPutDocument</a> API with the <code>AccessControlConfigurationId</code> included in the <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_Document.html\">Document</a> object. If you use an S3 bucket as a data source, you update the <code>.metadata.json</code> with the <code>AccessControlConfigurationId</code> and synchronize your data source. Amazon Kendra currently only supports access control configuration for S3 data sources and documents indexed using the <code>BatchPutDocument</code> API.</p>"
+      "documentation":"<p>Creates an access configuration for your documents. This includes user and group access information for your documents. This is useful for user context filtering, where search results are filtered based on the user or their group access to documents.</p> <p>You can use this to re-configure your existing document level access control without indexing all of your documents again. For example, your index contains top-secret company documents that only certain employees or users should access. One of these users leaves the company or switches to a team that should be blocked from accessing top-secret documents. The user still has access to top-secret documents because the user had access when your documents were previously indexed. You can create a specific access control configuration for the user with deny access. You can later update the access control configuration to allow access if the user returns to the company and re-joins the 'top-secret' team. You can re-configure access control for your documents as circumstances change.</p> <p>To apply your access control configuration to certain documents, you call the <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_BatchPutDocument.html\">BatchPutDocument</a> API with the <code>AccessControlConfigurationId</code> included in the <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_Document.html\">Document</a> object. If you use an S3 bucket as a data source, you update the <code>.metadata.json</code> with the <code>AccessControlConfigurationId</code> and synchronize your data source. Amazon Kendra currently only supports access control configuration for S3 data sources and documents indexed using the <code>BatchPutDocument</code> API.</p>"
     },
     "CreateDataSource":{
       "name":"CreateDataSource",
@@ -159,7 +159,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Creates a data source that you want to use with an Amazon Kendra index. </p> <p>You specify a name, data source connector type and description for your data source. You also specify configuration information for the data source connector.</p> <p> <code>CreateDataSource</code> is a synchronous operation. The operation returns 200 if the data source was successfully created. Otherwise, an exception is raised.</p> <p>Amazon S3 and <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/data-source-custom.html\">custom</a> data sources are the only supported data sources in the Amazon Web Services GovCloud (US-West) region.</p> <p>For an example of creating an index and data source using the Python SDK, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/gs-python.html\">Getting started with Python SDK</a>. For an example of creating an index and data source using the Java SDK, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/gs-java.html\">Getting started with Java SDK</a>.</p>"
+      "documentation":"<p>Creates a data source connector that you want to use with an Amazon Kendra index.</p> <p>You specify a name, data source connector type and description for your data source. You also specify configuration information for the data source connector.</p> <p> <code>CreateDataSource</code> is a synchronous operation. The operation returns 200 if the data source was successfully created. Otherwise, an exception is raised.</p> <p>Amazon S3 and <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/data-source-custom.html\">custom</a> data sources are the only supported data sources in the Amazon Web Services GovCloud (US-West) region.</p> <p>For an example of creating an index and data source using the Python SDK, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/gs-python.html\">Getting started with Python SDK</a>. For an example of creating an index and data source using the Java SDK, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/gs-java.html\">Getting started with Java SDK</a>.</p>"
     },
     "CreateExperience":{
       "name":"CreateExperience",
@@ -289,7 +289,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Deletes an Amazon Kendra data source. An exception is not thrown if the data source is already being deleted. While the data source is being deleted, the <code>Status</code> field returned by a call to the <code>DescribeDataSource</code> API is set to <code>DELETING</code>. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/delete-data-source.html\">Deleting Data Sources</a>.</p>"
+      "documentation":"<p>Deletes an Amazon Kendra data source connector. An exception is not thrown if the data source is already being deleted. While the data source is being deleted, the <code>Status</code> field returned by a call to the <code>DescribeDataSource</code> API is set to <code>DELETING</code>. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/delete-data-source.html\">Deleting Data Sources</a>.</p>"
     },
     "DeleteExperience":{
       "name":"DeleteExperience",
@@ -426,7 +426,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Gets information about an Amazon Kendra data source.</p>"
+      "documentation":"<p>Gets information about an Amazon Kendra data source connector.</p>"
     },
     "DescribeExperience":{
       "name":"DescribeExperience",
@@ -562,7 +562,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Prevents users or groups in your Amazon Web Services SSO identity source from accessing your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
+      "documentation":"<p>Prevents users or groups in your IAM Identity Center identity source from accessing your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
     },
     "DisassociatePersonasFromEntities":{
       "name":"DisassociatePersonasFromEntities",
@@ -579,7 +579,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Removes the specific permissions of users or groups in your Amazon Web Services SSO identity source with access to your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
+      "documentation":"<p>Removes the specific permissions of users or groups in your IAM Identity Center identity source with access to your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
     },
     "GetQuerySuggestions":{
       "name":"GetQuerySuggestions",
@@ -649,7 +649,7 @@
         {"shape":"ConflictException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Gets statistics about synchronizing Amazon Kendra with a data source.</p>"
+      "documentation":"<p>Gets statistics about synchronizing a data source connector.</p>"
     },
     "ListDataSources":{
       "name":"ListDataSources",
@@ -666,7 +666,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Lists the data sources that you have created.</p>"
+      "documentation":"<p>Lists the data source connectors that you have created.</p>"
     },
     "ListEntityPersonas":{
       "name":"ListEntityPersonas",
@@ -700,7 +700,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Lists users or groups in your Amazon Web Services SSO identity source that are granted access to your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
+      "documentation":"<p>Lists users or groups in your IAM Identity Center identity source that are granted access to your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
     },
     "ListExperiences":{
       "name":"ListExperiences",
@@ -875,7 +875,7 @@
         {"shape":"ConflictException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Starts a synchronization job for a data source. If a synchronization job is already in progress, Amazon Kendra returns a <code>ResourceInUseException</code> exception.</p>"
+      "documentation":"<p>Starts a synchronization job for a data source connector. If a synchronization job is already in progress, Amazon Kendra returns a <code>ResourceInUseException</code> exception.</p>"
     },
     "StopDataSourceSyncJob":{
       "name":"StopDataSourceSyncJob",
@@ -961,7 +961,7 @@
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Updates an access control configuration for your documents in an index. This includes user and group access information for your documents. This is useful for user context filtering, where search results are filtered based on the user or their group access to documents.</p> <p>You can update an access control configuration you created without indexing all of your documents again. For example, your index contains top-secret company documents that only certain employees or users should access. You created an 'allow' access control configuration for one user who recently joined the 'top-secret' team, switching from a team with 'deny' access to top-secret documents. However, the user suddenly returns to their previous team and should no longer have access to top secret documents. You can update the access control configuration to re-configure access control for your documents as circumstances change.</p> <p>You call the <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_BatchPutDocument.html\">BatchPutDocument</a> API to apply the updated access control configuration, with the <code>AccessControlConfigurationId</code> included in the <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_Document.html\">Document</a> object. If you use an S3 bucket as a data source, you synchronize your data source to apply the the <code>AccessControlConfigurationId</code> in the <code>.metadata.json</code> file. Amazon Kendra currently only supports access control configuration for S3 data sources and documents indexed using the <code>BatchPutDocument</code> API.</p>"
+      "documentation":"<p>Updates an access control configuration for your documents in an index. This includes user and group access information for your documents. This is useful for user context filtering, where search results are filtered based on the user or their group access to documents.</p> <p>You can update an access control configuration you created without indexing all of your documents again. For example, your index contains top-secret company documents that only certain employees or users should access. You created an 'allow' access control configuration for one user who recently joined the 'top-secret' team, switching from a team with 'deny' access to top-secret documents. However, the user suddenly returns to their previous team and should no longer have access to top secret documents. You can update the access control configuration to re-configure access control for your documents as circumstances change.</p> <p>You call the <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_BatchPutDocument.html\">BatchPutDocument</a> API to apply the updated access control configuration, with the <code>AccessControlConfigurationId</code> included in the <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_Document.html\">Document</a> object. If you use an S3 bucket as a data source, you synchronize your data source to apply the <code>AccessControlConfigurationId</code> in the <code>.metadata.json</code> file. Amazon Kendra currently only supports access control configuration for S3 data sources and documents indexed using the <code>BatchPutDocument</code> API.</p>"
     },
     "UpdateDataSource":{
       "name":"UpdateDataSource",
@@ -978,7 +978,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Updates an existing Amazon Kendra data source.</p>"
+      "documentation":"<p>Updates an existing Amazon Kendra data source connector.</p>"
     },
     "UpdateExperience":{
       "name":"UpdateExperience",
@@ -1100,7 +1100,7 @@
       "members":{
         "KeyPath":{
           "shape":"S3ObjectKey",
-          "documentation":"<p>Path to the Amazon Web Services S3 bucket that contains the ACL files.</p>"
+          "documentation":"<p>Path to the Amazon S3 bucket that contains the ACL files.</p>"
         }
       },
       "documentation":"<p>Access Control List files for the documents in a data source. For the format of the file, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/s3-acl.html\">Access control for S3 data sources</a>.</p>"
@@ -1188,7 +1188,7 @@
         },
         "SslCertificateS3Path":{
           "shape":"S3Path",
-          "documentation":"<p>The path to the SSL certificate stored in an Amazon S3 bucket. You use this to connect to Alfresco.</p>"
+          "documentation":"<p>The path to the SSL certificate stored in an Amazon S3 bucket. You use this to connect to Alfresco if you require a secure SSL connection.</p> <p>You can simply generate a self-signed X509 certificate on any computer using OpenSSL. For an example of using OpenSSL to create an X509 certificate, see <a href=\"https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/configuring-https-ssl.html\">Create and sign an X509 certificate</a>.</p>"
         },
         "CrawlSystemFolders":{
           "shape":"Boolean",
@@ -1266,7 +1266,7 @@
         },
         "EntityList":{
           "shape":"AssociateEntityList",
-          "documentation":"<p>Lists users or groups in your Amazon Web Services SSO identity source.</p>"
+          "documentation":"<p>Lists users or groups in your IAM Identity Center identity source.</p>"
         }
       }
     },
@@ -1275,7 +1275,7 @@
       "members":{
         "FailedEntityList":{
           "shape":"AssociateEntitiesToExperienceFailedEntityList",
-          "documentation":"<p>Lists the users or groups in your Amazon Web Services SSO identity source that failed to properly configure with your Amazon Kendra experience.</p>"
+          "documentation":"<p>Lists the users or groups in your IAM Identity Center identity source that failed to properly configure with your Amazon Kendra experience.</p>"
         }
       }
     },
@@ -1303,7 +1303,7 @@
         },
         "Personas":{
           "shape":"EntityPersonaConfigurationList",
-          "documentation":"<p>The personas that define the specific permissions of users or groups in your Amazon Web Services SSO identity source. The available personas or access roles are <code>Owner</code> and <code>Viewer</code>. For more information on these personas, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html#access-search-experience\">Providing access to your search page</a>.</p>"
+          "documentation":"<p>The personas that define the specific permissions of users or groups in your IAM Identity Center identity source. The available personas or access roles are <code>Owner</code> and <code>Viewer</code>. For more information on these personas, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html#access-search-experience\">Providing access to your search page</a>.</p>"
         }
       }
     },
@@ -1312,7 +1312,7 @@
       "members":{
         "FailedEntityList":{
           "shape":"FailedEntityList",
-          "documentation":"<p>Lists the users or groups in your Amazon Web Services SSO identity source that failed to properly configure with your Amazon Kendra experience.</p>"
+          "documentation":"<p>Lists the users or groups in your IAM Identity Center identity source that failed to properly configure with your Amazon Kendra experience.</p>"
         }
       }
     },
@@ -1333,34 +1333,34 @@
         },
         "EqualsTo":{
           "shape":"DocumentAttribute",
-          "documentation":"<p>Performs an equals operation on two document attributes.</p>"
+          "documentation":"<p>Performs an equals operation on two document attributes or metadata fields.</p>"
         },
         "ContainsAll":{
           "shape":"DocumentAttribute",
-          "documentation":"<p>Returns true when a document contains all of the specified document attributes. This filter is only applicable to <code>StringListValue</code> metadata.</p>"
+          "documentation":"<p>Returns true when a document contains all of the specified document attributes or metadata fields. This filter is only applicable to <code>StringListValue</code> metadata.</p>"
         },
         "ContainsAny":{
           "shape":"DocumentAttribute",
-          "documentation":"<p>Returns true when a document contains any of the specified document attributes. This filter is only applicable to <code>StringListValue</code> metadata.</p>"
+          "documentation":"<p>Returns true when a document contains any of the specified document attributes or metadata fields. This filter is only applicable to <code>StringListValue</code> metadata.</p>"
         },
         "GreaterThan":{
           "shape":"DocumentAttribute",
-          "documentation":"<p>Performs a greater than operation on two document attributes. Use with a document attribute of type <code>Date</code> or <code>Long</code>.</p>"
+          "documentation":"<p>Performs a greater than operation on two document attributes or metadata fields. Use with a document attribute of type <code>Date</code> or <code>Long</code>.</p>"
         },
         "GreaterThanOrEquals":{
           "shape":"DocumentAttribute",
-          "documentation":"<p>Performs a greater or equals than operation on two document attributes. Use with a document attribute of type <code>Date</code> or <code>Long</code>.</p>"
+          "documentation":"<p>Performs a greater or equals than operation on two document attributes or metadata fields. Use with a document attribute of type <code>Date</code> or <code>Long</code>.</p>"
         },
         "LessThan":{
           "shape":"DocumentAttribute",
-          "documentation":"<p>Performs a less than operation on two document attributes. Use with a document attribute of type <code>Date</code> or <code>Long</code>.</p>"
+          "documentation":"<p>Performs a less than operation on two document attributes or metadata fields. Use with a document attribute of type <code>Date</code> or <code>Long</code>.</p>"
         },
         "LessThanOrEquals":{
           "shape":"DocumentAttribute",
-          "documentation":"<p>Performs a less than or equals operation on two document attributes. Use with a document attribute of type <code>Date</code> or <code>Long</code>.</p>"
+          "documentation":"<p>Performs a less than or equals operation on two document attributes or metadata fields. Use with a document attribute of type <code>Date</code> or <code>Long</code>.</p>"
         }
       },
-      "documentation":"<p>Provides filtering the query results based on document attributes.</p> <p>When you use the <code>AndAllFilters</code> or <code>OrAllFilters</code>, filters you can use 2 layers under the first attribute filter. For example, you can use:</p> <p> <code>&lt;AndAllFilters&gt;</code> </p> <ol> <li> <p> <code> &lt;OrAllFilters&gt;</code> </p> </li> <li> <p> <code> &lt;EqualsTo&gt;</code> </p> </li> </ol> <p>If you use more than 2 layers, you receive a <code>ValidationException</code> exception with the message \"<code>AttributeFilter</code> cannot have a depth of more than 2.\"</p> <p>If you use more than 10 attribute filters in a given list for <code>AndAllFilters</code> or <code>OrAllFilters</code>, you receive a <code>ValidationException</code> with the message \"<code>AttributeFilter</code> cannot have a length of more than 10\".</p>"
+      "documentation":"<p>Provides filtering the query results based on document attributes or metadata fields.</p> <p>When you use the <code>AndAllFilters</code> or <code>OrAllFilters</code>, filters you can use 2 layers under the first attribute filter. For example, you can use:</p> <p> <code>&lt;AndAllFilters&gt;</code> </p> <ol> <li> <p> <code> &lt;OrAllFilters&gt;</code> </p> </li> <li> <p> <code> &lt;EqualsTo&gt;</code> </p> </li> </ol> <p>If you use more than 2 layers, you receive a <code>ValidationException</code> exception with the message \"<code>AttributeFilter</code> cannot have a depth of more than 2.\"</p> <p>If you use more than 10 attribute filters in a given list for <code>AndAllFilters</code> or <code>OrAllFilters</code>, you receive a <code>ValidationException</code> with the message \"<code>AttributeFilter</code> cannot have a length of more than 10\".</p>"
     },
     "AttributeFilterList":{
       "type":"list",
@@ -1808,6 +1808,13 @@
       },
       "documentation":"<p>Maps attributes or field names of Confluence attachments to Amazon Kendra index field names. To create custom fields, use the <code>UpdateIndex</code> API before you map to Confluence fields. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/field-mapping.html\">Mapping data source fields</a>. The Confuence data source field names must exist in your Confluence custom metadata.</p>"
     },
+    "ConfluenceAuthenticationType":{
+      "type":"string",
+      "enum":[
+        "HTTP_BASIC",
+        "PAT"
+      ]
+    },
     "ConfluenceBlogConfiguration":{
       "type":"structure",
       "members":{
@@ -1870,7 +1877,7 @@
         },
         "SecretArn":{
           "shape":"SecretArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of an Secrets Manager secret that contains the user name and password required to connect to the Confluence instance. If you use Confluence cloud, you use a generated API token as the password. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/data-source-confluence.html\">Using a Confluence data source</a>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of an Secrets Manager secret that contains the user name and password required to connect to the Confluence instance. If you use Confluence Cloud, you use a generated API token as the password. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/data-source-confluence.html\">Using a Confluence data source</a>.</p> <p>You can also provide authentication credentials in the form of a personal access token. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/data-source-confluence.html#confluence-authentication\">Authentication for a Confluence data source</a>.</p>"
         },
         "Version":{
           "shape":"ConfluenceVersion",
@@ -1903,6 +1910,14 @@
         "ExclusionPatterns":{
           "shape":"DataSourceInclusionsExclusionsStrings",
           "documentation":"<p>A list of regular expression patterns to exclude certain blog posts, pages, spaces, or attachments in your Confluence. Content that matches the patterns are excluded from the index. Content that doesn't match the patterns is included in the index. If content matches both an inclusion and exclusion pattern, the exclusion pattern takes precedence and the content isn't included in the index.</p>"
+        },
+        "ProxyConfiguration":{
+          "shape":"ProxyConfiguration",
+          "documentation":"<p>Configuration information to connect to your Confluence URL instance via a web proxy. You can use this option for Confluence Server.</p> <p>You must provide the website host name and port number. For example, the host name of <i>https://a.example.com/page1.html</i> is \"a.example.com\" and the port is 443, the standard port for HTTPS.</p> <p>Web proxy credentials are optional and you can use them to connect to a web proxy server that requires basic authentication of user name and password. To store web proxy credentials, you use a secret in Secrets Manager.</p> <p>It is recommended that you follow best security practices when configuring your web proxy. This includes setting up throttling, setting up logging and monitoring, and applying security patches on a regular basis. If you use your web proxy with multiple data sources, sync jobs that occur at the same time could strain the load on your proxy. It is recommended you prepare your proxy beforehand for any security and load requirements.</p>"
+        },
+        "AuthenticationType":{
+          "shape":"ConfluenceAuthenticationType",
+          "documentation":"<p>Whether you want to connect to Confluence using basic authentication of user name and password, or a personal access token. You can use a personal access token for Confluence Server.</p>"
         }
       },
       "documentation":"<p>Provides the configuration information to connect to Confluence as your data source.</p>"
@@ -2181,7 +2196,7 @@
       "members":{
         "Name":{
           "shape":"DataSourceName",
-          "documentation":"<p>A unique name for the data source connector. A data source name can't be changed without deleting and recreating the data source connector.</p>"
+          "documentation":"<p>A name for the data source connector.</p>"
         },
         "IndexId":{
           "shape":"IndexId",
@@ -2195,6 +2210,10 @@
           "shape":"DataSourceConfiguration",
           "documentation":"<p>Configuration information to connect to your data source repository.</p> <p>You can't specify the <code>Configuration</code> parameter when the <code>Type</code> parameter is set to <code>CUSTOM</code>. If you do, you receive a <code>ValidationException</code> exception.</p> <p>The <code>Configuration</code> parameter is required for all other data sources.</p>"
         },
+        "VpcConfiguration":{
+          "shape":"DataSourceVpcConfiguration",
+          "documentation":"<p>Configuration information for an Amazon Virtual Private Cloud to connect to your data source. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/vpc-configuration.html\">Configuring a VPC</a>.</p>"
+        },
         "Description":{
           "shape":"Description",
           "documentation":"<p>A description for the data source connector.</p>"
@@ -2205,7 +2224,7 @@
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of a role with permission to access the data source connector. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/iam-roles.html\">IAM Roles for Amazon Kendra</a>.</p> <p>You can't specify the <code>RoleArn</code> parameter when the <code>Type</code> parameter is set to <code>CUSTOM</code>. If you do, you receive a <code>ValidationException</code> exception.</p> <p>The <code>RoleArn</code> parameter is required for all other data sources.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of a role with permission to access the data source and required resources. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/iam-roles.html\">IAM roles for Amazon Kendra</a>.</p> <p>You can't specify the <code>RoleArn</code> parameter when the <code>Type</code> parameter is set to <code>CUSTOM</code>. If you do, you receive a <code>ValidationException</code> exception.</p> <p>The <code>RoleArn</code> parameter is required for all other data sources.</p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -2253,7 +2272,7 @@
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of a role with permission to access <code>Query</code> API, <code>QuerySuggestions</code> API, <code>SubmitFeedback</code> API, and Amazon Web Services SSO that stores your user and group information. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/iam-roles.html\">IAM roles for Amazon Kendra</a>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of a role with permission to access <code>Query</code> API, <code>QuerySuggestions</code> API, <code>SubmitFeedback</code> API, and IAM Identity Center that stores your user and group information. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/iam-roles.html\">IAM roles for Amazon Kendra</a>.</p>"
         },
         "Configuration":{
           "shape":"ExperienceConfiguration",
@@ -2383,7 +2402,7 @@
         },
         "UserGroupResolutionConfiguration":{
           "shape":"UserGroupResolutionConfiguration",
-          "documentation":"<p>Enables fetching access levels of groups and users from an Amazon Web Services Single Sign On identity source. To configure this, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_UserGroupResolutionConfiguration.html\">UserGroupResolutionConfiguration</a>.</p>"
+          "documentation":"<p>Enables fetching access levels of groups and users from an IAM Identity Center (successor to Single Sign-On) identity source. To configure this, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_UserGroupResolutionConfiguration.html\">UserGroupResolutionConfiguration</a>.</p>"
         }
       }
     },
@@ -2583,6 +2602,10 @@
         "AlfrescoConfiguration":{
           "shape":"AlfrescoConfiguration",
           "documentation":"<p>Provides the configuration information to connect to Alfresco as your data source.</p>"
+        },
+        "TemplateConfiguration":{
+          "shape":"TemplateConfiguration",
+          "documentation":"<p>Provides a template for the configuration information to connect to your data source.</p>"
         }
       },
       "documentation":"<p>Provides the configuration information for an Amazon Kendra data source.</p>"
@@ -2849,7 +2872,8 @@
         "QUIP",
         "JIRA",
         "GITHUB",
-        "ALFRESCO"
+        "ALFRESCO",
+        "TEMPLATE"
       ]
     },
     "DataSourceVpcConfiguration":{
@@ -2958,11 +2982,11 @@
       "members":{
         "Id":{
           "shape":"DataSourceId",
-          "documentation":"<p>The identifier of the data source you want to delete.</p>"
+          "documentation":"<p>The identifier of the data source connector you want to delete.</p>"
         },
         "IndexId":{
           "shape":"IndexId",
-          "documentation":"<p>The identifier of the index used with the data source.</p>"
+          "documentation":"<p>The identifier of the index used with the data source connector.</p>"
         }
       }
     },
@@ -3126,11 +3150,11 @@
       "members":{
         "Id":{
           "shape":"DataSourceId",
-          "documentation":"<p>The identifier of the data source.</p>"
+          "documentation":"<p>The identifier of the data source connector.</p>"
         },
         "IndexId":{
           "shape":"IndexId",
-          "documentation":"<p>The identifier of the index used with the data source.</p>"
+          "documentation":"<p>The identifier of the index used with the data source connector.</p>"
         }
       }
     },
@@ -3139,39 +3163,43 @@
       "members":{
         "Id":{
           "shape":"DataSourceId",
-          "documentation":"<p>The identifier of the data source.</p>"
+          "documentation":"<p>The identifier of the data source connector.</p>"
         },
         "IndexId":{
           "shape":"IndexId",
-          "documentation":"<p>The identifier of the index that contains the data source.</p>"
+          "documentation":"<p>The identifier of the index used with the data source connector.</p>"
         },
         "Name":{
           "shape":"DataSourceName",
-          "documentation":"<p>The name that you gave the data source when it was created.</p>"
+          "documentation":"<p>The name for the data source connector.</p>"
         },
         "Type":{
           "shape":"DataSourceType",
-          "documentation":"<p>The type of the data source.</p>"
+          "documentation":"<p>The type of the data source. For example, <code>SHAREPOINT</code>.</p>"
         },
         "Configuration":{
           "shape":"DataSourceConfiguration",
-          "documentation":"<p>Configuration details for the data source. This shows how the data source is configured. The configuration options for a data source depend on the data source provider.</p>"
+          "documentation":"<p>Configuration details for the data source connector. This shows how the data source is configured. The configuration options for a data source depend on the data source provider.</p>"
+        },
+        "VpcConfiguration":{
+          "shape":"DataSourceVpcConfiguration",
+          "documentation":"<p>Configuration information for an Amazon Virtual Private Cloud to connect to your data source. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/vpc-configuration.html\">Configuring a VPC</a>.</p>"
         },
         "CreatedAt":{
           "shape":"Timestamp",
-          "documentation":"<p>The Unix timestamp of when the data source was created.</p>"
+          "documentation":"<p>The Unix timestamp of when the data source connector was created.</p>"
         },
         "UpdatedAt":{
           "shape":"Timestamp",
-          "documentation":"<p>The Unix timestamp of when the data source was last updated.</p>"
+          "documentation":"<p>The Unix timestamp of when the data source connector was last updated.</p>"
         },
         "Description":{
           "shape":"Description",
-          "documentation":"<p>The description for the data source.</p>"
+          "documentation":"<p>The description for the data source connector.</p>"
         },
         "Status":{
           "shape":"DataSourceStatus",
-          "documentation":"<p>The current status of the data source. When the status is <code>ACTIVE</code> the data source is ready to use. When the status is <code>FAILED</code>, the <code>ErrorMessage</code> field contains the reason that the data source failed.</p>"
+          "documentation":"<p>The current status of the data source connector. When the status is <code>ACTIVE</code> the data source is ready to use. When the status is <code>FAILED</code>, the <code>ErrorMessage</code> field contains the reason that the data source failed.</p>"
         },
         "Schedule":{
           "shape":"ScanSchedule",
@@ -3179,7 +3207,7 @@
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the role that enables the data source to access its resources.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the role with permission to access the data source and required resources.</p>"
         },
         "ErrorMessage":{
           "shape":"ErrorMessage",
@@ -3253,7 +3281,7 @@
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>Shows the Amazon Resource Name (ARN) of a role with permission to access <code>Query</code> API, <code>QuerySuggestions</code> API, <code>SubmitFeedback</code> API, and Amazon Web Services SSO that stores your user and group information.</p>"
+          "documentation":"<p>Shows the Amazon Resource Name (ARN) of a role with permission to access <code>Query</code> API, <code>QuerySuggestions</code> API, <code>SubmitFeedback</code> API, and IAM Identity Center that stores your user and group information.</p>"
         },
         "ErrorMessage":{
           "shape":"ErrorMessage",
@@ -3403,7 +3431,7 @@
         },
         "UserGroupResolutionConfiguration":{
           "shape":"UserGroupResolutionConfiguration",
-          "documentation":"<p>Whether you have enabled the configuration for fetching access levels of groups and users from an Amazon Web Services Single Sign On identity source.</p>"
+          "documentation":"<p>Whether you have enabled the configuration for fetching access levels of groups and users from an IAM Identity Center (successor to Single Sign-On) identity source.</p>"
         }
       }
     },
@@ -3665,7 +3693,7 @@
         },
         "EntityList":{
           "shape":"DisassociateEntityList",
-          "documentation":"<p>Lists users or groups in your Amazon Web Services SSO identity source.</p>"
+          "documentation":"<p>Lists users or groups in your IAM Identity Center identity source.</p>"
         }
       }
     },
@@ -3674,7 +3702,7 @@
       "members":{
         "FailedEntityList":{
           "shape":"FailedEntityList",
-          "documentation":"<p>Lists the users or groups in your Amazon Web Services SSO identity source that failed to properly remove access to your Amazon Kendra experience.</p>"
+          "documentation":"<p>Lists the users or groups in your IAM Identity Center identity source that failed to properly remove access to your Amazon Kendra experience.</p>"
         }
       }
     },
@@ -3702,7 +3730,7 @@
         },
         "EntityIds":{
           "shape":"EntityIdsList",
-          "documentation":"<p>The identifiers of users or groups in your Amazon Web Services SSO identity source. For example, user IDs could be user emails.</p>"
+          "documentation":"<p>The identifiers of users or groups in your IAM Identity Center identity source. For example, user IDs could be user emails.</p>"
         }
       }
     },
@@ -3711,7 +3739,7 @@
       "members":{
         "FailedEntityList":{
           "shape":"FailedEntityList",
-          "documentation":"<p>Lists the users or groups in your Amazon Web Services SSO identity source that failed to properly remove access to your Amazon Kendra experience.</p>"
+          "documentation":"<p>Lists the users or groups in your IAM Identity Center identity source that failed to properly remove access to your Amazon Kendra experience.</p>"
         }
       }
     },
@@ -4053,14 +4081,14 @@
       "members":{
         "EntityId":{
           "shape":"EntityId",
-          "documentation":"<p>The identifier of a user or group in your Amazon Web Services SSO identity source. For example, a user ID could be an email.</p>"
+          "documentation":"<p>The identifier of a user or group in your IAM Identity Center identity source. For example, a user ID could be an email.</p>"
         },
         "EntityType":{
           "shape":"EntityType",
           "documentation":"<p>Specifies whether you are configuring a <code>User</code> or a <code>Group</code>.</p>"
         }
       },
-      "documentation":"<p>Provides the configuration information for users or groups in your Amazon Web Services SSO identity source to grant access your Amazon Kendra experience.</p>"
+      "documentation":"<p>Provides the configuration information for users or groups in your IAM Identity Center identity source to grant access your Amazon Kendra experience.</p>"
     },
     "EntityDisplayData":{
       "type":"structure",
@@ -4115,14 +4143,14 @@
       "members":{
         "EntityId":{
           "shape":"EntityId",
-          "documentation":"<p>The identifier of a user or group in your Amazon Web Services SSO identity source. For example, a user ID could be an email.</p>"
+          "documentation":"<p>The identifier of a user or group in your IAM Identity Center identity source. For example, a user ID could be an email.</p>"
         },
         "Persona":{
           "shape":"Persona",
-          "documentation":"<p>The persona that defines the specific permissions of the user or group in your Amazon Web Services SSO identity source. The available personas or access roles are <code>Owner</code> and <code>Viewer</code>. For more information on these personas, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html#access-search-experience\">Providing access to your search page</a>.</p>"
+          "documentation":"<p>The persona that defines the specific permissions of the user or group in your IAM Identity Center identity source. The available personas or access roles are <code>Owner</code> and <code>Viewer</code>. For more information on these personas, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html#access-search-experience\">Providing access to your search page</a>.</p>"
         }
       },
-      "documentation":"<p>Provides the configuration information for users or groups in your Amazon Web Services SSO identity source for access to your Amazon Kendra experience. Specific permissions are defined for each user or group once they are granted access to your Amazon Kendra experience.</p>"
+      "documentation":"<p>Provides the configuration information for users or groups in your IAM Identity Center identity source for access to your Amazon Kendra experience. Specific permissions are defined for each user or group once they are granted access to your Amazon Kendra experience.</p>"
     },
     "EntityPersonaConfigurationList":{
       "type":"list",
@@ -4177,7 +4205,7 @@
         },
         "UserIdentityConfiguration":{
           "shape":"UserIdentityConfiguration",
-          "documentation":"<p>The Amazon Web Services SSO field name that contains the identifiers of your users, such as their emails.</p>"
+          "documentation":"<p>The IAM Identity Center field name that contains the identifiers of your users, such as their emails.</p>"
         }
       },
       "documentation":"<p>Provides the configuration information for your Amazon Kendra experience. This includes the data source IDs and/or FAQ IDs, and user or group information to grant access to your Amazon Kendra experience.</p>"
@@ -4207,7 +4235,7 @@
       "members":{
         "EntityId":{
           "shape":"EntityId",
-          "documentation":"<p>The identifier of a user or group in your Amazon Web Services SSO identity source. For example, a user ID could be an email.</p>"
+          "documentation":"<p>The identifier of a user or group in your IAM Identity Center identity source. For example, a user ID could be an email.</p>"
         },
         "EntityType":{
           "shape":"EntityType",
@@ -4218,7 +4246,7 @@
           "documentation":"<p>Information about the user entity.</p>"
         }
       },
-      "documentation":"<p>Summary information for users or groups in your Amazon Web Services SSO identity source with granted access to your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
+      "documentation":"<p>Summary information for users or groups in your IAM Identity Center identity source with granted access to your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
     },
     "ExperienceEntitiesSummaryList":{
       "type":"list",
@@ -4324,14 +4352,14 @@
       "members":{
         "EntityId":{
           "shape":"EntityId",
-          "documentation":"<p>The identifier of the user or group in your Amazon Web Services SSO identity source. For example, a user ID could be an email.</p>"
+          "documentation":"<p>The identifier of the user or group in your IAM Identity Center identity source. For example, a user ID could be an email.</p>"
         },
         "ErrorMessage":{
           "shape":"ErrorMessage",
-          "documentation":"<p>The reason the user or group in your Amazon Web Services SSO identity source failed to properly configure with your Amazon Kendra experience.</p>"
+          "documentation":"<p>The reason the user or group in your IAM Identity Center identity source failed to properly configure with your Amazon Kendra experience.</p>"
         }
       },
-      "documentation":"<p>Information on the users or groups in your Amazon Web Services SSO identity source that failed to properly configure with your Amazon Kendra experience.</p>"
+      "documentation":"<p>Information on the users or groups in your IAM Identity Center identity source that failed to properly configure with your Amazon Kendra experience.</p>"
     },
     "FailedEntityList":{
       "type":"list",
@@ -5269,7 +5297,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>If the previous response was incomplete (because there is more data to retrieve), Amazon Kendra returns a pagination token in the response. You can use this pagination token to retrieve the next set of access control configurations.</p>"
+          "documentation":"<p>If the previous response was incomplete (because there's more data to retrieve), Amazon Kendra returns a pagination token in the response. You can use this pagination token to retrieve the next set of access control configurations.</p>"
         },
         "MaxResults":{
           "shape":"MaxResultsIntegerForListAccessControlConfigurationsRequest",
@@ -5283,7 +5311,7 @@
       "members":{
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>If the response is truncated, Amazon Kendra returns this token that you can use in the subsequent request to retrieve the next set of access control configurations.</p>"
+          "documentation":"<p>If the response is truncated, Amazon Kendra returns this token, which you can use in the subsequent request to retrieve the next set of access control configurations.</p>"
         },
         "AccessControlConfigurations":{
           "shape":"AccessControlConfigurationSummaryList",
@@ -5300,11 +5328,11 @@
       "members":{
         "Id":{
           "shape":"DataSourceId",
-          "documentation":"<p>The identifier of the data source.</p>"
+          "documentation":"<p>The identifier of the data source connector.</p>"
         },
         "IndexId":{
           "shape":"IndexId",
-          "documentation":"<p>The identifier of the index used with the data source.</p>"
+          "documentation":"<p>The identifier of the index used with the data source connector.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -5316,11 +5344,11 @@
         },
         "StartTimeFilter":{
           "shape":"TimeRange",
-          "documentation":"<p>When specified, the synchronization jobs returned in the list are limited to jobs between the specified dates. </p>"
+          "documentation":"<p>When specified, the synchronization jobs returned in the list are limited to jobs between the specified dates.</p>"
         },
         "StatusFilter":{
           "shape":"DataSourceSyncJobStatus",
-          "documentation":"<p>When specified, only returns synchronization jobs with the <code>Status</code> field equal to the specified status.</p>"
+          "documentation":"<p>Only returns synchronization jobs with the <code>Status</code> field equal to the specified status.</p>"
         }
       }
     },
@@ -5329,7 +5357,7 @@
       "members":{
         "History":{
           "shape":"DataSourceSyncJobHistoryList",
-          "documentation":"<p>A history of synchronization jobs for the data source.</p>"
+          "documentation":"<p>A history of synchronization jobs for the data source connector.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -5343,15 +5371,15 @@
       "members":{
         "IndexId":{
           "shape":"IndexId",
-          "documentation":"<p>The identifier of the index used with one or more data sources.</p>"
+          "documentation":"<p>The identifier of the index used with one or more data source connectors.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If the previous response was incomplete (because there is more data to retrieve), Amazon Kendra returns a pagination token in the response. You can use this pagination token to retrieve the next set of data sources (<code>DataSourceSummaryItems</code>). </p>"
+          "documentation":"<p>If the previous response was incomplete (because there is more data to retrieve), Amazon Kendra returns a pagination token in the response. You can use this pagination token to retrieve the next set of data source connectors (<code>DataSourceSummaryItems</code>). </p>"
         },
         "MaxResults":{
           "shape":"MaxResultsIntegerForListDataSourcesRequest",
-          "documentation":"<p>The maximum number of data sources to return.</p>"
+          "documentation":"<p>The maximum number of data source connectors to return.</p>"
         }
       }
     },
@@ -5360,11 +5388,11 @@
       "members":{
         "SummaryItems":{
           "shape":"DataSourceSummaryList",
-          "documentation":"<p>An array of summary information for one or more data sources.</p>"
+          "documentation":"<p>An array of summary information for one or more data source connector.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If the response is truncated, Amazon Kendra returns this token that you can use in the subsequent request to retrieve the next set of data sources. </p>"
+          "documentation":"<p>If the response is truncated, Amazon Kendra returns this token that you can use in the subsequent request to retrieve the next set of data source connectors.</p>"
         }
       }
     },
@@ -5833,7 +5861,7 @@
         },
         "SslCertificateS3Path":{
           "shape":"S3Path",
-          "documentation":"<p>The path to the SSL certificate stored in an Amazon S3 bucket. You use this to connect to GitHub. </p>"
+          "documentation":"<p>The path to the SSL certificate stored in an Amazon S3 bucket. You use this to connect to GitHub if you require a secure SSL connection.</p> <p>You can simply generate a self-signed X509 certificate on any computer using OpenSSL. For an example of using OpenSSL to create an X509 certificate, see <a href=\"https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/configuring-https-ssl.html\">Create and sign an X509 certificate</a>.</p>"
         }
       },
       "documentation":"<p>Provides the configuration information to connect to GitHub Enterprise Server (on premises).</p>"
@@ -5934,11 +5962,11 @@
       "members":{
         "EntityId":{
           "shape":"EntityId",
-          "documentation":"<p>The identifier of a user or group in your Amazon Web Services SSO identity source. For example, a user ID could be an email.</p>"
+          "documentation":"<p>The identifier of a user or group in your IAM Identity Center identity source. For example, a user ID could be an email.</p>"
         },
         "Persona":{
           "shape":"Persona",
-          "documentation":"<p>The persona that defines the specific permissions of the user or group in your Amazon Web Services SSO identity source. The available personas or access roles are <code>Owner</code> and <code>Viewer</code>. For more information on these personas, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html#access-search-experience\">Providing access to your search page</a>.</p>"
+          "documentation":"<p>The persona that defines the specific permissions of the user or group in your IAM Identity Center identity source. The available personas or access roles are <code>Owner</code> and <code>Viewer</code>. For more information on these personas, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html#access-search-experience\">Providing access to your search page</a>.</p>"
         },
         "CreatedAt":{
           "shape":"Timestamp",
@@ -5949,7 +5977,7 @@
           "documentation":"<p>The date-time the summary information was last updated.</p>"
         }
       },
-      "documentation":"<p>Summary information for users or groups in your Amazon Web Services SSO identity source. This applies to users and groups with specific permissions that define their level of access to your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
+      "documentation":"<p>Summary information for users or groups in your IAM Identity Center identity source. This applies to users and groups with specific permissions that define their level of access to your Amazon Kendra experience. You can create an Amazon Kendra experience such as a search application. For more information on creating a search application experience, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/deploying-search-experience-no-code.html\">Building a search experience with no code</a>.</p>"
     },
     "PersonasSummaryList":{
       "type":"list",
@@ -6332,7 +6360,7 @@
       "members":{
         "Domain":{
           "shape":"Domain",
-          "documentation":"<p>The Quip site domain.</p>"
+          "documentation":"<p>The Quip site domain. For example, <i>https://quip-company.quipdomain.com/browse</i>. The domain in this example is \"quipdomain\".</p>"
         },
         "SecretArn":{
           "shape":"SecretArn",
@@ -6352,7 +6380,7 @@
         },
         "FolderIds":{
           "shape":"FolderIdList",
-          "documentation":"<p>The identifiers of the Quip folders you want to index.</p>"
+          "documentation":"<p>The identifiers of the Quip folders you want to index. You can find the folder ID in your browser URL when you access your folder in Quip. For example, <i>https://quip-company.quipdomain.com/zlLuOVNSarTL/folder-name</i>. The folder ID in this example is \"zlLuOVNSarTL\".</p>"
         },
         "ThreadFieldMappings":{
           "shape":"DataSourceToIndexFieldMappingList",
@@ -7053,11 +7081,11 @@
         },
         "Urls":{
           "shape":"SharePointUrlList",
-          "documentation":"<p>The Microsoft SharePoint site URLs for the documents you want to indext.</p>"
+          "documentation":"<p>The Microsoft SharePoint site URLs for the documents you want to index.</p>"
         },
         "SecretArn":{
           "shape":"SecretArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of an Secrets Manager secret that contains the user name and password required to connect to the SharePoint instance. If you use SharePoint Server, you also need to provide the sever domain name as part of the credentials. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/data-source-sharepoint.html\">Using a Microsoft SharePoint Data Source</a>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of an Secrets Manager secret that contains the user name and password required to connect to the SharePoint instance. If you use SharePoint Server, you also need to provide the sever domain name as part of the credentials. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/data-source-sharepoint.html\">Using a Microsoft SharePoint Data Source</a>.</p> <p>You can also provide OAuth authentication credentials of user name, password, client ID, and client secret. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/data-source-sharepoint.html#sharepoint-authentication\">Authentication for a SharePoint data source</a>.</p>"
         },
         "CrawlAttachments":{
           "shape":"Boolean",
@@ -7093,10 +7121,25 @@
         },
         "SslCertificateS3Path":{
           "shape":"S3Path",
-          "documentation":"<p>The path to the SSL certificate stored in an Amazon S3 bucket. You use this to connect to SharePoint.</p>"
+          "documentation":"<p>The path to the SSL certificate stored in an Amazon S3 bucket. You use this to connect to SharePoint Server if you require a secure SSL connection.</p> <p>You can simply generate a self-signed X509 certificate on any computer using OpenSSL. For an example of using OpenSSL to create an X509 certificate, see <a href=\"https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/configuring-https-ssl.html\">Create and sign an X509 certificate</a>.</p>"
+        },
+        "AuthenticationType":{
+          "shape":"SharePointOnlineAuthenticationType",
+          "documentation":"<p>Whether you want to connect to SharePoint using basic authentication of user name and password, or OAuth authentication of user name, password, client ID, and client secret. You can use OAuth authentication for SharePoint Online.</p>"
+        },
+        "ProxyConfiguration":{
+          "shape":"ProxyConfiguration",
+          "documentation":"<p>Configuration information to connect to your Microsoft SharePoint site URLs via instance via a web proxy. You can use this option for SharePoint Server.</p> <p>You must provide the website host name and port number. For example, the host name of <i>https://a.example.com/page1.html</i> is \"a.example.com\" and the port is 443, the standard port for HTTPS.</p> <p>Web proxy credentials are optional and you can use them to connect to a web proxy server that requires basic authentication of user name and password. To store web proxy credentials, you use a secret in Secrets Manager.</p> <p>It is recommended that you follow best security practices when configuring your web proxy. This includes setting up throttling, setting up logging and monitoring, and applying security patches on a regular basis. If you use your web proxy with multiple data sources, sync jobs that occur at the same time could strain the load on your proxy. It is recommended you prepare your proxy beforehand for any security and load requirements.</p>"
         }
       },
       "documentation":"<p>Provides the configuration information to connect to Microsoft SharePoint as your data source.</p>"
+    },
+    "SharePointOnlineAuthenticationType":{
+      "type":"string",
+      "enum":[
+        "HTTP_BASIC",
+        "OAUTH2"
+      ]
     },
     "SharePointUrlList":{
       "type":"list",
@@ -7109,7 +7152,8 @@
       "enum":[
         "SHAREPOINT_2013",
         "SHAREPOINT_2016",
-        "SHAREPOINT_ONLINE"
+        "SHAREPOINT_ONLINE",
+        "SHAREPOINT_2019"
       ]
     },
     "SharedDriveId":{
@@ -7327,11 +7371,11 @@
       "members":{
         "Id":{
           "shape":"DataSourceId",
-          "documentation":"<p>The identifier of the data source to synchronize.</p>"
+          "documentation":"<p>The identifier of the data source connector to synchronize.</p>"
         },
         "IndexId":{
           "shape":"IndexId",
-          "documentation":"<p>The identifier of the index that contains the data source.</p>"
+          "documentation":"<p>The identifier of the index used with the data source connector.</p>"
         }
       }
     },
@@ -7375,11 +7419,11 @@
       "members":{
         "Id":{
           "shape":"DataSourceId",
-          "documentation":"<p>The identifier of the data source for which to stop the synchronization jobs.</p>"
+          "documentation":"<p>The identifier of the data source connector for which to stop the synchronization jobs.</p>"
         },
         "IndexId":{
           "shape":"IndexId",
-          "documentation":"<p>The identifier of the index that contains the data source.</p>"
+          "documentation":"<p>The identifier of the index used with the data source connector.</p>"
         }
       }
     },
@@ -7575,6 +7619,23 @@
       "max":64,
       "min":1,
       "pattern":"[A-Z0-9]*"
+    },
+    "Template":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The template schema used for the data source, where templates schemas are supported.</p> <p>See <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/ds-schemas.html\">Data source template schemas</a>.</p>",
+      "document":true
+    },
+    "TemplateConfiguration":{
+      "type":"structure",
+      "members":{
+        "Template":{
+          "shape":"Template",
+          "documentation":"<p>The template schema used for the data source, where templates schemas are supported.</p> <p>See <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/ds-schemas.html\">Data source template schemas</a>.</p>"
+        }
+      },
+      "documentation":"<p>Provides a template for the configuration information to connect to your data source.</p>"
     },
     "TenantDomain":{
       "type":"string",
@@ -7778,11 +7839,11 @@
       "members":{
         "Id":{
           "shape":"DataSourceId",
-          "documentation":"<p>The identifier of the data source you want to update.</p>"
+          "documentation":"<p>The identifier of the data source connector you want to update.</p>"
         },
         "Name":{
           "shape":"DataSourceName",
-          "documentation":"<p>A new name for the data source connector. You must first delete the data source and re-create it to change the name of the data source.</p>"
+          "documentation":"<p>A new name for the data source connector.</p>"
         },
         "IndexId":{
           "shape":"IndexId",
@@ -7791,6 +7852,10 @@
         "Configuration":{
           "shape":"DataSourceConfiguration",
           "documentation":"<p>Configuration information you want to update for the data source connector.</p>"
+        },
+        "VpcConfiguration":{
+          "shape":"DataSourceVpcConfiguration",
+          "documentation":"<p>Configuration information for an Amazon Virtual Private Cloud to connect to your data source. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/vpc-configuration.html\">Configuring a VPC</a>.</p>"
         },
         "Description":{
           "shape":"Description",
@@ -7802,7 +7867,7 @@
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of a role with permission to access the data source. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/iam-roles.html\">IAM Roles for Amazon Kendra</a>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of a role with permission to access the data source and required resources. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/iam-roles.html\">IAM roles for Amazon Kendra</a>.</p>"
         },
         "LanguageCode":{
           "shape":"LanguageCode",
@@ -7835,7 +7900,7 @@
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of a role with permission to access <code>Query</code> API, <code>QuerySuggestions</code> API, <code>SubmitFeedback</code> API, and Amazon Web Services SSO that stores your user and group information. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/iam-roles.html\">IAM roles for Amazon Kendra</a>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of a role with permission to access <code>Query</code> API, <code>QuerySuggestions</code> API, <code>SubmitFeedback</code> API, and IAM Identity Center that stores your user and group information. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/iam-roles.html\">IAM roles for Amazon Kendra</a>.</p>"
         },
         "Configuration":{
           "shape":"ExperienceConfiguration",
@@ -7885,7 +7950,7 @@
         },
         "UserGroupResolutionConfiguration":{
           "shape":"UserGroupResolutionConfiguration",
-          "documentation":"<p>Enables fetching access levels of groups and users from an Amazon Web Services Single Sign On identity source. To configure this, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_UserGroupResolutionConfiguration.html\">UserGroupResolutionConfiguration</a>.</p>"
+          "documentation":"<p>Enables fetching access levels of groups and users from an IAM Identity Center (successor to Single Sign-On) identity source. To configure this, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_UserGroupResolutionConfiguration.html\">UserGroupResolutionConfiguration</a>.</p>"
         }
       }
     },
@@ -8043,10 +8108,10 @@
       "members":{
         "UserGroupResolutionMode":{
           "shape":"UserGroupResolutionMode",
-          "documentation":"<p>The identity store provider (mode) you want to use to fetch access levels of groups and users. Amazon Web Services Single Sign On is currently the only available mode. Your users and groups must exist in an Amazon Web Services SSO identity source in order to use this mode.</p>"
+          "documentation":"<p>The identity store provider (mode) you want to use to fetch access levels of groups and users. IAM Identity Center (successor to Single Sign-On) is currently the only available mode. Your users and groups must exist in an IAM Identity Center identity source in order to use this mode.</p>"
         }
       },
-      "documentation":"<p>Provides the configuration information to fetch access levels of groups and users from an Amazon Web Services Single Sign On identity source. This is useful for user context filtering, where search results are filtered based on the user or their group access to documents. You can also use the <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_PutPrincipalMapping.html\">PutPrincipalMapping</a> API to map users to their groups so that you only need to provide the user ID when you issue the query.</p> <p>To set up an Amazon Web Services SSO identity source in the console to use with Amazon Kendra, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/getting-started-aws-sso.html\">Getting started with an Amazon Web Services SSO identity source</a>. You must also grant the required permissions to use Amazon Web Services SSO with Amazon Kendra. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/iam-roles.html#iam-roles-aws-sso\">IAM roles for Amazon Web Services SSO</a>.</p> <p>Amazon Kendra currently does not support using <code>UserGroupResolutionConfiguration</code> with an Amazon Web Services organization member account for your Amazon Web Services SSO identify source. You must create your index in the management account for the organization in order to use <code>UserGroupResolutionConfiguration</code>.</p>"
+      "documentation":"<p>Provides the configuration information to fetch access levels of groups and users from an IAM Identity Center (successor to Single Sign-On) identity source. This is useful for user context filtering, where search results are filtered based on the user or their group access to documents. You can also use the <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/API_PutPrincipalMapping.html\">PutPrincipalMapping</a> API to map users to their groups so that you only need to provide the user ID when you issue the query.</p> <p>To set up an IAM Identity Center identity source in the console to use with Amazon Kendra, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/getting-started-aws-sso.html\">Getting started with an IAM Identity Center identity source</a>. You must also grant the required permissions to use IAM Identity Center with Amazon Kendra. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/iam-roles.html#iam-roles-aws-sso\">IAM roles for IAM Identity Center</a>.</p> <p>Amazon Kendra currently does not support using <code>UserGroupResolutionConfiguration</code> with an Amazon Web Services organization member account for your IAM Identity Center identify source. You must create your index in the management account for the organization in order to use <code>UserGroupResolutionConfiguration</code>.</p>"
     },
     "UserGroupResolutionMode":{
       "type":"string",
@@ -8066,7 +8131,7 @@
       "members":{
         "IdentityAttributeName":{
           "shape":"IdentityAttributeName",
-          "documentation":"<p>The Amazon Web Services SSO field name that contains the identifiers of your users, such as their emails. This is used for <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/user-context-filter.html\">user context filtering</a> and for granting access to your Amazon Kendra experience. You must set up Amazon Web Services SSO with Amazon Kendra. You must include your users and groups in your Access Control List when you ingest documents into your index. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/getting-started-aws-sso.html\">Getting started with an Amazon Web Services SSO identity source</a>.</p>"
+          "documentation":"<p>The IAM Identity Center field name that contains the identifiers of your users, such as their emails. This is used for <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/user-context-filter.html\">user context filtering</a> and for granting access to your Amazon Kendra experience. You must set up IAM Identity Center with Amazon Kendra. You must include your users and groups in your Access Control List when you ingest documents into your index. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/getting-started-aws-sso.html\">Getting started with an IAM Identity Center identity source</a>.</p>"
         }
       },
       "documentation":"<p>Provides the configuration information for the identifiers of your users.</p>"

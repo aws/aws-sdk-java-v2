@@ -39,6 +39,16 @@ public class BuilderClassTest {
     }
 
     @Test
+    public void baseClientBuilderInterfaceWithBearerAuthClass() throws Exception {
+        validateBearerAuthGeneration(BaseClientBuilderInterface::new, "test-bearer-auth-client-builder-interface.java");
+    }
+
+    @Test
+    public void baseClientBuilderWithBearerAuthClass() throws Exception {
+        validateBearerAuthGeneration(BaseClientBuilderClass::new, "test-bearer-auth-client-builder-class.java");
+    }
+
+    @Test
     public void baseClientBuilderClassWithInternalUserAgent() throws Exception {
         assertThat(new BaseClientBuilderClass(ClientTestModels.internalConfigModels()), generatesTo("test-client-builder-internal-defaults-class.java"));
     }
@@ -70,6 +80,11 @@ public class BuilderClassTest {
 
     private void validateGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {
         assertThat(generatorConstructor.apply(ClientTestModels.restJsonServiceModels()), generatesTo(expectedClassName));
+    }
+
+    private void validateBearerAuthGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor,
+                                           String expectedClassName) {
+        assertThat(generatorConstructor.apply(ClientTestModels.bearerAuthServiceModels()), generatesTo(expectedClassName));
     }
 
     private void validateQueryGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {

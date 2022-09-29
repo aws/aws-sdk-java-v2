@@ -418,7 +418,8 @@
         "en-NZ",
         "en-ZA",
         "ca-ES",
-        "de-AT"
+        "de-AT",
+        "yue-CN"
       ]
     },
     "LanguageCodeList":{
@@ -1081,7 +1082,9 @@
         "Arthur",
         "Daniel",
         "Liam",
-        "Pedro"
+        "Pedro",
+        "Kajal",
+        "Hiujin"
       ]
     },
     "VoiceList":{

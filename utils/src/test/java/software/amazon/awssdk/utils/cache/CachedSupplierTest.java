@@ -18,12 +18,19 @@ package software.amazon.awssdk.utils.cache;
 import static java.time.Instant.now;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
+import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.STRICT;
 
 import java.io.Closeable;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -36,6 +43,7 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior;
 
 /**
  * Validate the functionality of {@link CachedSupplier}.
@@ -70,6 +78,31 @@ public class CachedSupplierTest {
         executorService.shutdown();
     }
 
+    private static class MutableSupplier implements Supplier<RefreshResult<String>> {
+        private volatile RuntimeException thingToThrow;
+        private volatile RefreshResult<String> thingToReturn;
+
+        @Override
+        public RefreshResult<String> get() {
+            if (thingToThrow != null) {
+                throw thingToThrow;
+            }
+            return thingToReturn;
+        }
+
+        private MutableSupplier set(RuntimeException exception) {
+            this.thingToThrow = exception;
+            this.thingToReturn = null;
+            return this;
+        }
+
+        private MutableSupplier set(RefreshResult<String> value) {
+            this.thingToThrow = null;
+            this.thingToReturn = value;
+            return this;
+        }
+    }
+
     /**
      * An implementation of {@link Supplier} that allows us to (more or less) manually schedule threads so that we can make sure
      * the CachedSupplier is only calling the underlying supplier when we expect it to.
@@ -93,10 +126,14 @@ public class CachedSupplierTest {
          */
         private final Semaphore finishedGetPermits = new Semaphore(0);
 
-        private final Instant staleTime;
-        private final Instant prefetchTime;
+        private final Supplier<Instant> staleTime;
+        private final Supplier<Instant> prefetchTime;
 
         private WaitingSupplier(Instant staleTime, Instant prefetchTime) {
+            this(() -> staleTime, () -> prefetchTime);
+        }
+
+        private WaitingSupplier(Supplier<Instant> staleTime, Supplier<Instant> prefetchTime) {
             this.staleTime = staleTime;
             this.prefetchTime = prefetchTime;
         }
@@ -114,8 +151,8 @@ public class CachedSupplierTest {
 
             finishedGetPermits.release(1);
             return RefreshResult.builder("value")
-                                .staleTime(staleTime)
-                                .prefetchTime(prefetchTime)
+                                .staleTime(staleTime.get())
+                                .prefetchTime(prefetchTime.get())
                                 .build();
         }
 
@@ -158,17 +195,24 @@ public class CachedSupplierTest {
     }
 
     @Test
-    public void staleValueBlocksAllCalls() {
-        try (WaitingSupplier waitingSupplier = new WaitingSupplier(past(), future())) {
-            CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier).build();
+    public void staleValueBlocksAllCalls() throws InterruptedException {
+        AdjustableClock clock = new AdjustableClock();
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(() -> now().plus(1, ChronoUnit.MINUTES), this::future)) {
+            CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
+                                                                  .clock(clock)
+                                                                  .build();
 
             // Perform one successful "get".
             waitingSupplier.permits.release(1);
+            clock.time = now();
             waitFor(performAsyncGet(cachedSupplier));
 
             // Perform two "get"s that will attempt to refresh the value, and wait for them to get stuck.
-            performAsyncGets(cachedSupplier, 2);
+            clock.time = now().plus(61, ChronoUnit.SECONDS);
+            List<Future<?>> futures = performAsyncGets(cachedSupplier, 2);
             waitingSupplier.waitForGetsToHaveStarted(3);
+            Thread.sleep(1_000);
+            assertThat(futures).allMatch(f -> !f.isDone());
 
             // Release any "gets" that blocked and wait for them to finish.
             waitingSupplier.permits.release(50);
@@ -176,6 +220,145 @@ public class CachedSupplierTest {
 
             // Make extra sure all 3 "gets" actually happened.
             waitingSupplier.waitForGetsToHaveFinished(3);
+        }
+    }
+
+    @Test
+    public void staleValueBlocksAllCallsEvenWithStaleValuesAllowed() throws InterruptedException {
+        // This test case may seem unintuitive: why block for a stale value refresh if we allow stale values to be used? We do
+        // this because values may become stale from disuse in sync prefetch strategies. If there's a new value available, we'd
+        // still like to hold threads a little to give them a chance at a non-stale value.
+
+        AdjustableClock clock = new AdjustableClock();
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(() -> now().plus(1, ChronoUnit.MINUTES), this::future)) {
+            CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
+                                                                  .clock(clock)
+                                                                  .staleValueBehavior(ALLOW)
+                                                                  .build();
+
+            // Perform one successful "get".
+            waitingSupplier.permits.release(1);
+            clock.time = now();
+            waitFor(performAsyncGet(cachedSupplier));
+
+            // Perform two "get"s that will attempt to refresh the value, and wait for them to get stuck.
+            clock.time = now().plus(61, ChronoUnit.SECONDS);
+            List<Future<?>> futures = performAsyncGets(cachedSupplier, 2);
+            waitingSupplier.waitForGetsToHaveStarted(3);
+            Thread.sleep(1_000);
+            assertThat(futures).allMatch(f -> !f.isDone());
+
+            // Release any "gets" that blocked and wait for them to finish.
+            waitingSupplier.permits.release(50);
+            waitForAsyncGetsToFinish();
+
+            // Make extra sure all 3 "gets" actually happened.
+            waitingSupplier.waitForGetsToHaveFinished(3);
+        }
+    }
+
+    @Test
+    public void firstRetrieveFailureThrowsForStrictStaleMode() {
+        firstRetrievalFails(STRICT);
+    }
+
+    @Test
+    public void firstRetrieveFailureThrowsForAllowStaleMode() {
+        firstRetrievalFails(ALLOW);
+    }
+
+    private void firstRetrievalFails(StaleValueBehavior staleValueBehavior) {
+        RuntimeException e = new RuntimeException();
+        try (CachedSupplier<?> cachedSupplier = CachedSupplier.builder(() -> { throw e; })
+                                                              .staleValueBehavior(staleValueBehavior)
+                                                              .build()) {
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(e);
+        }
+    }
+
+    @Test
+    public void prefetchThrowIsHiddenIfValueIsNotStaleForStrictMode() {
+        prefetchThrowIsHiddenIfValueIsNotStale(STRICT);
+    }
+
+    @Test
+    public void prefetchThrowIsHiddenIfValueIsNotStaleForAllowMode() {
+        prefetchThrowIsHiddenIfValueIsNotStale(ALLOW);
+    }
+
+    private void prefetchThrowIsHiddenIfValueIsNotStale(StaleValueBehavior staleValueBehavior) {
+        MutableSupplier supplier = new MutableSupplier();
+        try (CachedSupplier<?> cachedSupplier = CachedSupplier.builder(supplier)
+                                                              .staleValueBehavior(staleValueBehavior)
+                                                              .build()) {
+            supplier.set(RefreshResult.builder("")
+                                      .prefetchTime(now())
+                                      .build());
+
+            assertThat(cachedSupplier.get()).isEqualTo("");
+
+            supplier.set(new RuntimeException());
+
+            assertThat(cachedSupplier.get()).isEqualTo("");
+        }
+    }
+
+    @Test
+    public void valueIsCachedForAShortTimeIfValueIsStaleInStrictMode() throws Throwable {
+        MutableSupplier supplier = new MutableSupplier();
+        try (CachedSupplier<?> cachedSupplier = CachedSupplier.builder(supplier)
+                                                              .staleValueBehavior(STRICT)
+                                                              .build()) {
+            supplier.set(RefreshResult.builder("")
+                                      .staleTime(now())
+                                      .build());
+
+            assertThat(cachedSupplier.get()).isEqualTo("");
+
+            RuntimeException e = new RuntimeException();
+            supplier.set(e);
+
+            assertThat(cachedSupplier.get()).isEqualTo("");
+        }
+    }
+
+    @Test
+    public void throwIsPropagatedIfValueIsStaleInStrictMode() throws InterruptedException {
+        MutableSupplier supplier = new MutableSupplier();
+        try (CachedSupplier<?> cachedSupplier = CachedSupplier.builder(supplier)
+                                                              .staleValueBehavior(STRICT)
+                                                              .build()) {
+            supplier.set(RefreshResult.builder("")
+                                      .staleTime(now())
+                                      .build());
+
+            assertThat(cachedSupplier.get()).isEqualTo("");
+
+            RuntimeException e = new RuntimeException();
+            supplier.set(e);
+
+            Thread.sleep(1001); // Wait to avoid the light rate-limiting we apply
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(e);
+        }
+    }
+
+    @Test
+    public void throwIsHiddenIfValueIsStaleInAllowMode() throws InterruptedException {
+        MutableSupplier supplier = new MutableSupplier();
+        try (CachedSupplier<?> cachedSupplier = CachedSupplier.builder(supplier)
+                                                              .staleValueBehavior(ALLOW)
+                                                              .build()) {
+            supplier.set(RefreshResult.builder("")
+                                      .staleTime(now().plusSeconds(1))
+                                      .build());
+
+            assertThat(cachedSupplier.get()).isEqualTo("");
+
+            RuntimeException e = new RuntimeException();
+            supplier.set(e);
+
+            Thread.sleep(1000);
+            assertThat(cachedSupplier.get()).isEqualTo("");
         }
     }
 
@@ -198,7 +381,7 @@ public class CachedSupplierTest {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past())) {
             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                   .prefetchStrategy(new OneCallerBlocks())
-                                                                  .prefetchJitterEnabled(false)
+                                                                  .jitterEnabled(false)
                                                                   .build();
 
             // Perform one successful "get" to prime the cache.
@@ -226,7 +409,7 @@ public class CachedSupplierTest {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                    .prefetchStrategy(new NonBlocking("test-%s"))
-                                                                   .prefetchJitterEnabled(false)
+                                                                   .jitterEnabled(false)
                                                                    .build()) {
             // Perform one successful "get" to prime the cache.
             waitingSupplier.permits.release(1);
@@ -248,7 +431,7 @@ public class CachedSupplierTest {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(now().plusSeconds(62), now().plusSeconds(1));
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                    .prefetchStrategy(new NonBlocking("test-%s"))
-                                                                   .prefetchJitterEnabled(false)
+                                                                   .jitterEnabled(false)
                                                                    .build()) {
             waitingSupplier.permits.release(2);
             cachedSupplier.get();
@@ -262,7 +445,7 @@ public class CachedSupplierTest {
 
     @Test
     public void nonBlockingPrefetchStrategyHasOneMinuteMinimumByDefault() {
-        try (WaitingSupplier waitingSupplier = new WaitingSupplier(now(), now());
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(now().plusSeconds(60), now());
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                    .prefetchStrategy(new NonBlocking("test-%s"))
                                                                    .build()) {
@@ -314,7 +497,7 @@ public class CachedSupplierTest {
                                                               .staleTime(future())
                                                               .build())
                                   .prefetchStrategy(new NonBlocking("test"))
-                                  .prefetchJitterEnabled(false)
+                                  .jitterEnabled(false)
                                   .build();
                 supplier.get();
                 css.add(supplier);
@@ -342,7 +525,7 @@ public class CachedSupplierTest {
                                                               .staleTime(now().plusSeconds(60))
                                                               .build();
                                       }).prefetchStrategy(new NonBlocking("test"))
-                                      .prefetchJitterEnabled(false)
+                                      .jitterEnabled(false)
                                       .build();
                     executor.submit(supplier::get);
                     css.add(supplier);
@@ -439,5 +622,24 @@ public class CachedSupplierTest {
 
     private Instant future() {
         return Instant.MAX;
+    }
+
+    private static class AdjustableClock extends Clock {
+        private Instant time;
+
+        @Override
+        public ZoneId getZone() {
+            return ZoneOffset.UTC;
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Instant instant() {
+            return time;
+        }
     }
 }

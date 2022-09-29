@@ -1,0 +1,60 @@
+{
+    "version": "2.17.258",
+    "date": "2022-08-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "Enable non-unique asset names under different hierarchies"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Added new resource details objects to ASFF, including resources for AwsBackupBackupVault, AwsBackupBackupPlan and AwsBackupRecoveryPoint. Added FixAvailable, FixedInVersion and Remediation to Vulnerability."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Support App",
+            "contributor": "",
+            "description": "This is the initial SDK release for the AWS Support App in Slack."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "contributor": "",
+            "description": "Update document for volume clone"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "R6a instances are powered by 3rd generation AMD EPYC (Milan) processors delivering all-core turbo frequency of 3.6 GHz. C6id, M6id, and R6id instances are powered by 3rd generation Intel Xeon Scalable processor (Ice Lake) delivering all-core turbo frequency of 3.5 GHz."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Forecast Query Service",
+            "contributor": "",
+            "description": "releasing What-If Analysis APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Forecast Service",
+            "contributor": "",
+            "description": "releasing What-If Analysis APIs and update ARN regex pattern to be more strict in accordance with security recommendation"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "This release introduces a new feature to stop a running BotRecommendation Job for Automated Chatbot Designer."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

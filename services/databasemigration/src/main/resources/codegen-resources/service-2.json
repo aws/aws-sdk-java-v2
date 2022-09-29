@@ -6393,7 +6393,7 @@
         },
         "TableState":{
           "shape":"String",
-          "documentation":"<p>The state of the tables described.</p> <p>Valid states: Table does not exist | Before load | Full load | Table completed | Table cancelled | Table error | Table all | Table updates | Table is being reloaded</p>"
+          "documentation":"<p>The state of the tables described.</p> <p>Valid states: Table does not exist | Before load | Full load | Table completed | Table cancelled | Table error | Table is being reloaded</p>"
         },
         "ValidationPendingRecords":{
           "shape":"Long",

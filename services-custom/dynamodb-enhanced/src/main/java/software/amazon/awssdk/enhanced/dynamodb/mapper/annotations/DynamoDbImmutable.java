@@ -52,6 +52,59 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
  * (converterProviders = {CustomAttributeConverter.class, DefaultAttributeConverterProvider.class});
  * }
  * </pre>
+ *
+ * <p>
+ * Example using {@link DynamoDbImmutable}:
+ * <pre>
+ * {@code
+ * @DynamoDbImmutable(builder = Customer.Builder.class)
+ * public class Customer {
+ *     private final String accountId;
+ *     private final int subId;
+ *     private final String name;
+ *     private final Instant createdDate;
+ *
+ *     private Customer(Builder b) {
+ *         this.accountId = b.accountId;
+ *         this.subId = b.subId;
+ *         this.name = b.name;
+ *         this.createdDate = b.createdDate;
+ *     }
+ *
+ *     // This method will be automatically discovered and used by the TableSchema
+ *     public static Builder builder() { return new Builder(); }
+ *
+ *     @DynamoDbPartitionKey
+ *     public String accountId() { return this.accountId; }
+ *
+ *     @DynamoDbSortKey
+ *     public int subId() { return this.subId; }
+ *
+ *     @DynamoDbSecondaryPartitionKey(indexNames = "customers_by_name")
+ *     public String name() { return this.name; }
+ *
+ *     @DynamoDbSecondarySortKey(indexNames = {"customers_by_date", "customers_by_name"})
+ *     public Instant createdDate() { return this.createdDate; }
+ *
+ *     public static final class Builder {
+ *         private String accountId;
+ *         private int subId;
+ *         private String name;
+ *         private Instant createdDate;
+ *
+ *         private Builder() {}
+ *
+ *         public Builder accountId(String accountId) { this.accountId = accountId; return this; }
+ *         public Builder subId(int subId) { this.subId = subId; return this; }
+ *         public Builder name(String name) { this.name = name; return this; }
+ *         public Builder createdDate(Instant createdDate) { this.createdDate = createdDate; return this; }
+ *
+ *         // This method will be automatically discovered and used by the TableSchema
+ *         public Customer build() { return new Customer(this); }
+ *     }
+ * }
+ * }
+ * </pre>
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

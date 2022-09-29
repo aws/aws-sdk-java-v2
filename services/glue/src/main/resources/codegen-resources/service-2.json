@@ -4409,6 +4409,14 @@
         "ConnectionName":{
           "shape":"ConnectionName",
           "documentation":"<p>The name of the connection for an Amazon S3-backed Data Catalog table to be a target of the crawl when using a <code>Catalog</code> connection type paired with a <code>NETWORK</code> Connection type.</p>"
+        },
+        "EventQueueArn":{
+          "shape":"EventQueueArn",
+          "documentation":"<p>A valid Amazon SQS ARN. For example, <code>arn:aws:sqs:region:account:sqs</code>.</p>"
+        },
+        "DlqEventQueueArn":{
+          "shape":"EventQueueArn",
+          "documentation":"<p>A valid Amazon dead-letter SQS ARN. For example, <code>arn:aws:sqs:region:account:deadLetterQueue</code>.</p>"
         }
       },
       "documentation":"<p>Specifies an Glue Data Catalog target.</p>"
@@ -5326,7 +5334,8 @@
         "CANCELLING",
         "CANCELLED",
         "SUCCEEDED",
-        "FAILED"
+        "FAILED",
+        "ERROR"
       ]
     },
     "Crawler":{
@@ -6154,6 +6163,10 @@
         "CodeGenConfigurationNodes":{
           "shape":"CodeGenConfigurationNodes",
           "documentation":"<p>The representation of a directed acyclic graph on which both the Glue Studio visual component and Glue Studio code generation is based.</p>"
+        },
+        "ExecutionClass":{
+          "shape":"ExecutionClass",
+          "documentation":"<p>Indicates whether the job is run with a standard or flexible execution class. The standard execution-class is ideal for time-sensitive workloads that require fast job startup and dedicated resources.</p> <p>The flexible execution class is appropriate for time-insensitive jobs whose start and completion times may vary. </p> <p>Only jobs with Glue version 3.0 and above and command type <code>glueetl</code> will be allowed to set <code>ExecutionClass</code> to <code>FLEX</code>. The flexible execution class is available for Spark jobs.</p>"
         }
       }
     },
@@ -8243,6 +8256,14 @@
       "documentation":"<p>Batch condition that must be met (specified number of events received or batch time window expired) before EventBridge event trigger fires.</p>"
     },
     "EventQueueArn":{"type":"string"},
+    "ExecutionClass":{
+      "type":"string",
+      "enum":[
+        "FLEX",
+        "STANDARD"
+      ],
+      "max":16
+    },
     "ExecutionProperty":{
       "type":"structure",
       "members":{
@@ -11200,6 +11221,10 @@
         "CodeGenConfigurationNodes":{
           "shape":"CodeGenConfigurationNodes",
           "documentation":"<p>The representation of a directed acyclic graph on which both the Glue Studio visual component and Glue Studio code generation is based.</p>"
+        },
+        "ExecutionClass":{
+          "shape":"ExecutionClass",
+          "documentation":"<p>Indicates whether the job is run with a standard or flexible execution class. The standard execution class is ideal for time-sensitive workloads that require fast job startup and dedicated resources.</p> <p>The flexible execution class is appropriate for time-insensitive jobs whose start and completion times may vary. </p> <p>Only jobs with Glue version 3.0 and above and command type <code>glueetl</code> will be allowed to set <code>ExecutionClass</code> to <code>FLEX</code>. The flexible execution class is available for Spark jobs.</p>"
         }
       },
       "documentation":"<p>Specifies a job definition.</p>"
@@ -11359,7 +11384,7 @@
         },
         "Timeout":{
           "shape":"Timeout",
-          "documentation":"<p>The <code>JobRun</code> timeout in minutes. This is the maximum time that a job run can consume resources before it is terminated and enters <code>TIMEOUT</code> status. The default is 2,880 minutes (48 hours). This overrides the timeout value set in the parent job.</p>"
+          "documentation":"<p>The <code>JobRun</code> timeout in minutes. This is the maximum time that a job run can consume resources before it is terminated and enters <code>TIMEOUT</code> status. This value overrides the timeout value set in the parent job.</p> <p>Streaming jobs do not have a timeout. The default for non-streaming jobs is 2,880 minutes (48 hours).</p>"
         },
         "MaxCapacity":{
           "shape":"NullableDouble",
@@ -11391,7 +11416,11 @@
         },
         "DPUSeconds":{
           "shape":"NullableDouble",
-          "documentation":"<p>This field populates only when an Auto Scaling job run completes, and represents the total time each executor ran during the lifecycle of a job run in seconds, multiplied by a DPU factor (1 for <code>G.1X</code> and 2 for <code>G.2X</code> workers). This value may be different than the <code>executionEngineRuntime</code> * <code>MaxCapacity</code> as in the case of Auto Scaling jobs, as the number of executors running at a given time may be less than the <code>MaxCapacity</code>. Therefore, it is possible that the value of <code>DPUSeconds</code> is less than <code>executionEngineRuntime</code> * <code>MaxCapacity</code>.</p>"
+          "documentation":"<p>This field populates only for Auto Scaling job runs, and represents the total time each executor ran during the lifecycle of a job run in seconds, multiplied by a DPU factor (1 for <code>G.1X</code>, 2 for <code>G.2X</code>, or 0.25 for <code>G.025X</code> workers). This value may be different than the <code>executionEngineRuntime</code> * <code>MaxCapacity</code> as in the case of Auto Scaling jobs, as the number of executors running at a given time may be less than the <code>MaxCapacity</code>. Therefore, it is possible that the value of <code>DPUSeconds</code> is less than <code>executionEngineRuntime</code> * <code>MaxCapacity</code>.</p>"
+        },
+        "ExecutionClass":{
+          "shape":"ExecutionClass",
+          "documentation":"<p>Indicates whether the job is run with a standard or flexible execution class. The standard execution-class is ideal for time-sensitive workloads that require fast job startup and dedicated resources.</p> <p>The flexible execution class is appropriate for time-insensitive jobs whose start and completion times may vary. </p> <p>Only jobs with Glue version 3.0 and above and command type <code>glueetl</code> will be allowed to set <code>ExecutionClass</code> to <code>FLEX</code>. The flexible execution class is available for Spark jobs.</p>"
         }
       },
       "documentation":"<p>Contains information about a job run.</p>"
@@ -11409,7 +11438,9 @@
         "STOPPED",
         "SUCCEEDED",
         "FAILED",
-        "TIMEOUT"
+        "TIMEOUT",
+        "ERROR",
+        "WAITING"
       ]
     },
     "JobUpdate":{
@@ -11488,6 +11519,10 @@
         "CodeGenConfigurationNodes":{
           "shape":"CodeGenConfigurationNodes",
           "documentation":"<p>The representation of a directed acyclic graph on which both the Glue Studio visual component and Glue Studio code generation is based.</p>"
+        },
+        "ExecutionClass":{
+          "shape":"ExecutionClass",
+          "documentation":"<p>Indicates whether the job is run with a standard or flexible execution class. The standard execution-class is ideal for time-sensitive workloads that require fast job startup and dedicated resources.</p> <p>The flexible execution class is appropriate for time-insensitive jobs whose start and completion times may vary. </p> <p>Only jobs with Glue version 3.0 and above and command type <code>glueetl</code> will be allowed to set <code>ExecutionClass</code> to <code>FLEX</code>. The flexible execution class is available for Spark jobs.</p>"
         }
       },
       "documentation":"<p>Specifies information used to update an existing job definition. The previous job definition is completely overwritten by this information.</p>"
@@ -13759,7 +13794,7 @@
     "PythonScript":{"type":"string"},
     "PythonVersionString":{
       "type":"string",
-      "pattern":"^[2-3]$"
+      "pattern":"^([2-3]|3[.]9)$"
     },
     "QuerySchemaVersionMetadataInput":{
       "type":"structure",
@@ -15633,7 +15668,7 @@
         },
         "Timeout":{
           "shape":"Timeout",
-          "documentation":"<p>The <code>JobRun</code> timeout in minutes. This is the maximum time that a job run can consume resources before it is terminated and enters <code>TIMEOUT</code> status. The default is 2,880 minutes (48 hours). This overrides the timeout value set in the parent job.</p>"
+          "documentation":"<p>The <code>JobRun</code> timeout in minutes. This is the maximum time that a job run can consume resources before it is terminated and enters <code>TIMEOUT</code> status. This value overrides the timeout value set in the parent job.</p> <p>Streaming jobs do not have a timeout. The default for non-streaming jobs is 2,880 minutes (48 hours).</p>"
         },
         "MaxCapacity":{
           "shape":"NullableDouble",
@@ -15654,6 +15689,10 @@
         "NumberOfWorkers":{
           "shape":"NullableInteger",
           "documentation":"<p>The number of workers of a defined <code>workerType</code> that are allocated when a job runs.</p>"
+        },
+        "ExecutionClass":{
+          "shape":"ExecutionClass",
+          "documentation":"<p>Indicates whether the job is run with a standard or flexible execution class. The standard execution-class is ideal for time-sensitive workloads that require fast job startup and dedicated resources.</p> <p>The flexible execution class is appropriate for time-insensitive jobs whose start and completion times may vary. </p> <p>Only jobs with Glue version 3.0 and above and command type <code>glueetl</code> will be allowed to set <code>ExecutionClass</code> to <code>FLEX</code>. The flexible execution class is available for Spark jobs.</p>"
         }
       }
     },
@@ -17878,6 +17917,14 @@
         "RunningActions":{
           "shape":"IntegerValue",
           "documentation":"<p>Total number Actions in running state.</p>"
+        },
+        "ErroredActions":{
+          "shape":"IntegerValue",
+          "documentation":"<p>Indicates the count of job runs in the ERROR state in the workflow run.</p>"
+        },
+        "WaitingActions":{
+          "shape":"IntegerValue",
+          "documentation":"<p>Indicates the count of job runs in WAITING state in the workflow run.</p>"
         }
       },
       "documentation":"<p>Workflow run statistics provides statistics about the workflow run.</p>"
