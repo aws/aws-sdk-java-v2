@@ -239,7 +239,8 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                        ExecutionInterceptor.class),
                              ArrayList.class);
 
-        builder.addStatement("additionalInterceptors.add(new $T())", endpointRulesSpecUtils.interceptorName());
+        builder.addStatement("additionalInterceptors.add(new $T())", endpointRulesSpecUtils.resolverInterceptorName());
+        builder.addStatement("additionalInterceptors.add(new $T())", endpointRulesSpecUtils.requestModifierInterceptorName());
 
         if (model.getMetadata().isQueryProtocol()) {
             builder.addStatement("additionalInterceptors.add(new $T())", QueryParametersToBodyInterceptor.class);

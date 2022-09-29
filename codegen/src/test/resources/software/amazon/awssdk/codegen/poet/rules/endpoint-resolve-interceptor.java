@@ -11,7 +11,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.rules.model.Endpoint;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
 import software.amazon.awssdk.services.query.rules.QueryClientContextParams;
 import software.amazon.awssdk.services.query.rules.QueryEndpointParams;
@@ -20,19 +19,20 @@ import software.amazon.awssdk.utils.AttributeMap;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public final class QueryEndpointInterceptor implements ExecutionInterceptor {
+public final class QueryResolveEndpointInterceptor implements ExecutionInterceptor {
     @Override
-    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+    public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
         if (AwsProviderUtils.endpointIsDiscovered(executionAttributes)) {
-            return context.httpRequest();
+            return context.request();
         }
         QueryEndpointProvider provider = (QueryEndpointProvider) executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         Endpoint result = provider.resolveEndpoint(ruleParams(context, executionAttributes));
-        return AwsProviderUtils.setUri(context.httpRequest(), result.url());
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, result);
+        return context.request();
     }
 
-    private static QueryEndpointParams ruleParams(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+    private static QueryEndpointParams ruleParams(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
         QueryEndpointParams.Builder builder = QueryEndpointParams.builder();
         setStaticContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME));
         setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), context.request());

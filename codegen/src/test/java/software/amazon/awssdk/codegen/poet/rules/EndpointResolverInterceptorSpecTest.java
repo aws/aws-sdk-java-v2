@@ -22,10 +22,10 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
-public class EndpointProviderInterceptorSpecTest {
+public class EndpointResolverInterceptorSpecTest {
     @Test
-    public void endpointProviderInterceptorClass() {
-        ClassSpec endpointProviderInterceptor = new EndpointProviderInterceptorSpec(ClientTestModels.queryServiceModels());
-        assertThat(endpointProviderInterceptor, generatesTo("endpoint-provider-interceptor.java"));
+    public void endpointResolverInterceptorClass() {
+        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(ClientTestModels.queryServiceModels());
+        assertThat(endpointProviderInterceptor, generatesTo("endpoint-resolve-interceptor.java"));
     }
 }

@@ -42,15 +42,14 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.rules.model.Endpoint;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 
-public class EndpointProviderInterceptorSpec implements ClassSpec {
+public class EndpointResolverInterceptorSpec implements ClassSpec {
     private final IntermediateModel model;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final PoetExtension poetExtension;
 
-    public EndpointProviderInterceptorSpec(IntermediateModel model) {
+    public EndpointResolverInterceptorSpec(IntermediateModel model) {
         this.model = model;
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
         this.poetExtension = new PoetExtension(model);
@@ -63,7 +62,7 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
                                       .addAnnotation(SdkInternalApi.class)
                                       .addSuperinterface(ExecutionInterceptor.class);
 
-        b.addMethod(modifyHttpRequestMethod());
+        b.addMethod(modifyRequestMethod());
         b.addMethod(ruleParams());
 
         b.addMethod(setContextParams());
@@ -81,16 +80,16 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
 
     @Override
     public ClassName className() {
-        return endpointRulesSpecUtils.interceptorName();
+        return endpointRulesSpecUtils.resolverInterceptorName();
     }
 
-    private MethodSpec modifyHttpRequestMethod() {
+    private MethodSpec modifyRequestMethod() {
 
-        MethodSpec.Builder b = MethodSpec.methodBuilder("modifyHttpRequest")
+        MethodSpec.Builder b = MethodSpec.methodBuilder("modifyRequest")
                                          .addModifiers(Modifier.PUBLIC)
                                          .addAnnotation(Override.class)
-                                         .returns(SdkHttpRequest.class)
-                                         .addParameter(Context.ModifyHttpRequest.class, "context")
+                                         .returns(SdkRequest.class)
+                                         .addParameter(Context.ModifyRequest.class, "context")
                                          .addParameter(ExecutionAttributes.class, "executionAttributes");
 
         String providerVar = "provider";
@@ -98,13 +97,14 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
         // We skip resolution if the source of the endpoint is the endpoint discovery call
         b.beginControlFlow("if ($1T.endpointIsDiscovered(executionAttributes))",
                            AwsProviderUtils.class)
-         .addStatement("return context.httpRequest()")
-            .endControlFlow();
+         .addStatement("return context.request()")
+         .endControlFlow().build();
 
         b.addStatement("$1T $2N = ($1T) executionAttributes.getAttribute($3T.ENDPOINT_PROVIDER)",
                        endpointRulesSpecUtils.providerInterfaceName(), providerVar, SdkInternalExecutionAttribute.class);
         b.addStatement("$T result = $N.resolveEndpoint(ruleParams(context, executionAttributes))", Endpoint.class, providerVar);
-        b.addStatement("return $T.setUri(context.httpRequest(), result.url())", AwsProviderUtils.class);
+        b.addStatement("executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, result)");
+        b.addStatement("return context.request()");
         return b.build();
     }
 
@@ -112,7 +112,7 @@ public class EndpointProviderInterceptorSpec implements ClassSpec {
         MethodSpec.Builder b = MethodSpec.methodBuilder("ruleParams")
                                          .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                                          .returns(endpointRulesSpecUtils.parametersClassName())
-                                         .addParameter(Context.ModifyHttpRequest.class, "context")
+                                         .addParameter(Context.ModifyRequest.class, "context")
                                          .addParameter(ExecutionAttributes.class, "executionAttributes");
 
         b.addStatement("$T builder = $T.builder()", paramsBuilderClass(), endpointRulesSpecUtils.parametersClassName());
