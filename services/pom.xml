@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.17.284-SNAPSHOT</version>
+        <version>2.17.284</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -336,6 +336,7 @@
         <module>supportapp</module>
         <module>controltower</module>
         <module>iotfleetwise</module>
+        <module>migrationhuborchestrator</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

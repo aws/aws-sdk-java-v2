@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "dave-fn", 
-    "type": "feature", 
-    "description": "Provide the ability to set a custom socket factory when building an HTTP client"
-}

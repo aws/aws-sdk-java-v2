@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Proton",
-    "contributor": "",
-    "description": "This release adds an option to delete pipeline provisioning repositories using the UpdateAccountSettings API"
-}
