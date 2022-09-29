@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Migration Hub Orchestrator",
+    "contributor": "",
+    "description": "Introducing AWS MigrationHubOrchestrator. This is the first public release of AWS MigrationHubOrchestrator."
+}
