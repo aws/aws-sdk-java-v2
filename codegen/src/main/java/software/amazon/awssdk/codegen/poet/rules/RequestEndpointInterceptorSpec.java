@@ -27,6 +27,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -74,7 +75,11 @@ public class RequestEndpointInterceptorSpec implements ClassSpec {
         b.addStatement("$1T endpoint = ($1T) executionAttributes.getAttribute($2T.RESOLVED_ENDPOINT)",
                        Endpoint.class,
                        SdkInternalExecutionAttribute.class);
-        b.addStatement("return $T.setUri(context.httpRequest(), endpoint.url())", AwsProviderUtils.class);
+        b.addStatement("return $T.setUri(context.httpRequest(),"
+                       + "executionAttributes.getAttribute($T.CLIENT_ENDPOINT),"
+                       + "endpoint.url())",
+                       AwsProviderUtils.class,
+                       SdkExecutionAttribute.class);
         return b.build();
     }
 

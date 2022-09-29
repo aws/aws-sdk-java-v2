@@ -19,18 +19,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.rules.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.rules.AwsProviderUtils;
+import software.amazon.awssdk.awscore.rules.EndpointAuthScheme;
+import software.amazon.awssdk.awscore.rules.SigV4AuthScheme;
+import software.amazon.awssdk.awscore.rules.SigV4aAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.rules.Identifier;
 import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.MapUtils;
 
 public class AwsProviderUtilsTest {
     @Test
@@ -100,6 +110,72 @@ public class AwsProviderUtilsTest {
     }
 
     @Test
+    public void valueAsEndpoint_endpointHasAuthSchemes_includesAuthSchemes() {
+        List<Value> authSchemes = Arrays.asList(
+            Value.fromRecord(MapUtils.of(Identifier.of("name"), Value.fromStr("sigv4"),
+                                         Identifier.of("signingRegion"), Value.fromStr("us-west-2"),
+                                         Identifier.of("signingName"), Value.fromStr("myservice"),
+                                         Identifier.of("disableDoubleEncoding"), Value.fromBool(false))),
+
+            Value.fromRecord(MapUtils.of(Identifier.of("name"), Value.fromStr("sigv4a"),
+                                         Identifier.of("signingRegionSet"),
+                                         Value.fromArray(Collections.singletonList(Value.fromStr("*"))),
+                                         Identifier.of("signingName"), Value.fromStr("myservice"),
+                                         Identifier.of("disableDoubleEncoding"), Value.fromBool(false))),
+
+            // Unknown scheme name, should ignore
+            Value.fromRecord(MapUtils.of(Identifier.of("name"), Value.fromStr("sigv5")))
+        );
+
+
+        Value.Endpoint endpointVal = Value.Endpoint.builder()
+                                                   .url("https://myservice.aws")
+                                                   .property("authSchemes", Value.fromArray(authSchemes))
+                                                   .build();
+
+
+        EndpointAuthScheme sigv4 = SigV4AuthScheme.builder()
+                                                  .signingName("myservice")
+                                                  .signingRegion("us-west-2")
+                                                  .disableDoubleEncoding(false)
+                                                  .build();
+
+        EndpointAuthScheme sigv4a = SigV4aAuthScheme.builder()
+                                                    .signingName("myservice")
+                                                    .addSigningRegion("*")
+                                                    .disableDoubleEncoding(false)
+                                                    .build();
+
+        assertThat(AwsProviderUtils.valueAsEndpointOrThrow(endpointVal).attribute(AwsEndpointAttribute.AUTH_SCHEMES))
+            .containsExactly(sigv4, sigv4a);
+    }
+
+    @Test
+    public void valueAsEndpoint_endpointHasUnknownProperty_ignores() {
+        Value.Endpoint endpointVal = Value.Endpoint.builder()
+                                                   .url("https://myservice.aws")
+                                                   .property("foo", Value.fromStr("baz"))
+                                                   .build();
+
+        assertThat(AwsProviderUtils.valueAsEndpointOrThrow(endpointVal).attribute(AwsEndpointAttribute.AUTH_SCHEMES)).isNull();
+    }
+
+    @Test
+    public void valueAsEndpoint_endpointHasHeaders_includesHeaders() {
+        Value.Endpoint endpointVal = Value.Endpoint.builder()
+                                                   .url("https://myservice.aws")
+            .addHeader("foo1", "bar1")
+            .addHeader("foo1", "bar2")
+            .addHeader("foo2", "baz")
+                                                   .build();
+
+        Map<String, List<String>> expectedHeaders = MapUtils.of("foo1", Arrays.asList("bar1", "bar2"),
+                                                                "foo2", Arrays.asList("baz"));
+
+        assertThat(AwsProviderUtils.valueAsEndpointOrThrow(endpointVal).headers()).isEqualTo(expectedHeaders);
+    }
+
+    @Test
     public void regionBuiltIn_returnsAttrValue() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(AwsExecutionAttribute.AWS_REGION, Region.US_EAST_1);
@@ -121,18 +197,34 @@ public class AwsProviderUtilsTest {
     }
 
     @Test
-    public void setUri_modifiesRequestUriCorrectly() {
-        URI newUri = URI.create("https://myservice.us-west-2.aws:8080");
+    public void endpointBuiltIn_doesNotIncludeQueryParams() {
+        URI endpoint = URI.create("https://example.com/path?foo=bar");
+        ExecutionAttributes attrs = new ExecutionAttributes();
+        attrs.putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, true);
+        attrs.putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, endpoint);
+
+        assertThat(AwsProviderUtils.endpointBuiltIn(attrs).toString()).isEqualTo("https://example.com/path");
+    }
+
+    @Test
+    public void useGlobalEndpointBuiltIn_returnsAttrValue() {
+        ExecutionAttributes attrs = new ExecutionAttributes();
+        attrs.putAttribute(SdkInternalExecutionAttribute.USE_GLOBAL_ENDPOINT, true);
+        assertThat(AwsProviderUtils.useGlobalEndpointBuiltIn(attrs)).isEqualTo(true);
+    }
+
+    @Test
+    public void setUri_combinesPathsCorrectly() {
+        URI clientEndpoint = URI.create("https://override.example.com/a");
+        URI requestUri = URI.create("https://override.example.com/a/c");
+        URI resolvedUri = URI.create("https://override.example.com/a/b");
 
         SdkHttpRequest request = SdkHttpRequest.builder()
-            .method(SdkHttpMethod.GET)
-            .protocol("http")
-            .host("otherservice.aws")
-            .port(443)
-            .build();
+                                               .uri(requestUri)
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
 
-        SdkHttpRequest newRequest = AwsProviderUtils.setUri(request, newUri);
-
-        assertThat(newRequest.getUri()).isEqualTo(newUri);
+        assertThat(AwsProviderUtils.setUri(request, clientEndpoint, resolvedUri).getUri().toString())
+            .isEqualTo("https://override.example.com/a/b/c");
     }
 }
