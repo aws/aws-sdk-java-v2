@@ -1,3 +1,61 @@
+# __2.17.284__ __2022-09-29__
+## __AWS Certificate Manager__
+  - ### Features
+    - This update returns additional certificate details such as certificate SANs and allows sorting in the ListCertificates API.
+
+## __AWS Migration Hub Orchestrator__
+  - ### Features
+    - Introducing AWS MigrationHubOrchestrator. This is the first public release of AWS MigrationHubOrchestrator.
+
+## __AWS Proton__
+  - ### Features
+    - This release adds an option to delete pipeline provisioning repositories using the UpdateAccountSettings API
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Provide the ability to set a custom socket factory when building an HTTP client
+        - Contributed by: [@dave-fn](https://github.com/dave-fn)
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Update RequestBody/AsyncRequestBody.fromString(String, Charset) to use the provided charset in the content-type.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - u-3tb1 instances are powered by Intel Xeon Platinum 8176M (Skylake) processors and are purpose-built to run large in-memory databases.
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for Amazon File Cache.
+
+## __Amazon Polly__
+  - ### Features
+    - Added support for the new Cantonese voice - Hiujin. Hiujin is available as a Neural voice only.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Training Managed Warm Pools let you retain provisioned infrastructure to reduce latency for repetitive training workloads.
+
+## __Amazon Translate__
+  - ### Features
+    - This release enables customers to access control rights on Translate resources like Parallel Data and Custom Terminology using Tag Based Authorization.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release includes diagnostic log uploading feature. If it is enabled, the log files of WorkSpaces Windows client will be sent to Amazon WorkSpaces automatically for troubleshooting. You can use modifyClientProperty api to enable/disable this feature.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds API support to debug Amazon EMR Serverless jobs in real-time with live application UIs
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@dave-fn](https://github.com/dave-fn)
 # __2.17.283__ __2022-09-27__
 ## __AWS Cost Explorer Service__
   - ### Features
