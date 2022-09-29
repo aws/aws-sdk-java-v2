@@ -144,6 +144,10 @@
                                     <release>9</release>
                                 </configuration>
                             </execution>
+                            <execution>
+                                <id>java-8-compile</id>
+                                <phase>none</phase>
+                            </execution>
                         </executions>
                         <configuration>
                             <jdkToolchain>
